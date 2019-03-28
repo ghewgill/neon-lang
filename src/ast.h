@@ -850,6 +850,7 @@ public:
 
     bool is_readonly;
 
+    virtual bool is_pure() const = 0;
     virtual void generate_address(Emitter &emitter) const = 0;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
@@ -864,6 +865,7 @@ public:
     PredefinedVariable(const std::string &name, const Type *type): Variable(Token(), name, type, true) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual bool is_pure() const override { return true; }
     virtual void generate_address(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "PredefinedVariable(" + name + ", " + type->text() + ")"; }
@@ -877,6 +879,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Module *module;
 
+    virtual bool is_pure() const override { return true; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &emitter) const override;
 
@@ -889,6 +892,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     mutable int index;
 
+    virtual bool is_pure() const override { return true; }
     virtual void reset() override { index = -1; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &emitter) const override;
@@ -902,6 +906,7 @@ public:
     ExternalGlobalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual bool is_pure() const override { return true; }
     virtual void generate_address(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ExternalGlobalVariable(" + name + ")"; }
@@ -916,6 +921,7 @@ public:
     const size_t nesting_depth;
     int index;
 
+    virtual bool is_pure() const override { return true; }
     virtual void predeclare(Emitter &) const override { internal_error("LocalVariable"); }
     virtual void predeclare(Emitter &emitter, int slot);
     virtual void generate_address(Emitter &emitter) const override;
@@ -969,6 +975,7 @@ public:
     Expression(const Expression &) = delete;
     Expression &operator=(const Expression &) = delete;
 
+    virtual bool is_pure() const = 0;
     bool eval_boolean(const Token &token) const;
     Number eval_number(const Token &token) const;
     utf8string eval_string(const Token &token) const;
@@ -1028,6 +1035,7 @@ public:
 
     const bool value;
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { return value; }
     virtual Number eval_number() const override { internal_error("ConstantBooleanExpression"); }
     virtual utf8string eval_string() const override { internal_error("ConstantBooleanExpression"); }
@@ -1043,6 +1051,7 @@ public:
 
     const Number value;
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { internal_error("ConstantNumberExpression"); }
     virtual Number eval_number() const override { return value; }
     virtual utf8string eval_string() const override { internal_error("ConstantNumberExpression"); }
@@ -1058,6 +1067,7 @@ public:
 
     const utf8string value;
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { internal_error("ConstantStringExpression"); }
     virtual Number eval_number() const override { internal_error("ConstantStringExpression"); }
     virtual utf8string eval_string() const override { return value; }
@@ -1074,6 +1084,7 @@ public:
     const std::string name;
     const std::string contents;
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { internal_error("ConstantBytesExpression"); }
     virtual Number eval_number() const override { internal_error("ConstantBytesExpression"); }
     virtual utf8string eval_string() const override { internal_error("ConstantBytesExpression"); }
@@ -1089,6 +1100,7 @@ public:
 
     const int value;
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { internal_error("ConstantEnumExpression"); }
     virtual Number eval_number() const override { return number_from_uint32(value); }
     virtual utf8string eval_string() const override { internal_error("ConstantEnumExpression"); }
@@ -1102,6 +1114,7 @@ public:
     ConstantNilExpression(): Expression(new TypePointerNil(), true) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { internal_error("ConstantNilExpression"); }
     virtual Number eval_number() const override { internal_error("ConstantNilExpression"); }
     virtual utf8string eval_string() const override { internal_error("ConstantNilExpression"); }
@@ -1115,6 +1128,7 @@ public:
     ConstantNowhereExpression(): Expression(new TypeFunctionPointerNowhere(), true) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { internal_error("ConstantNowhereExpression"); }
     virtual Number eval_number() const override { internal_error("ConstantNowhereExpression"); }
     virtual utf8string eval_string() const override { internal_error("ConstantNowhereExpression"); }
@@ -1145,6 +1159,7 @@ public:
 
     const Expression *expr;
 
+    virtual bool is_pure() const override { return expr->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("TypeConversionExpression"); }
     virtual Number eval_number() const override { internal_error("TypeConversionExpression"); }
     virtual utf8string eval_string() const override { internal_error("TypeConversionExpression"); }
@@ -1163,6 +1178,7 @@ public:
     const Type *elementtype;
     const std::vector<const Expression *> elements;
 
+    virtual bool is_pure() const override { return std::all_of(elements.begin(), elements.end(), [](const Expression *x) { return x->is_pure(); }); }
     virtual bool eval_boolean() const override { internal_error("ArrayLiteralExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayLiteralExpression"); }
     virtual utf8string eval_string() const override { internal_error("ArrayLiteralExpression"); }
@@ -1183,6 +1199,7 @@ public:
     const Type *elementtype;
     const std::map<utf8string, const Expression *> dict;
 
+    virtual bool is_pure() const override { return std::all_of(dict.begin(), dict.end(), [](std::map<utf8string, const Expression *>::const_reference x) { return x.second->is_pure(); }); }
     virtual bool eval_boolean() const override { internal_error("DictionaryLiteralExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryLiteralExpression"); }
     virtual utf8string eval_string() const override { internal_error("DictionaryLiteralExpression"); }
@@ -1207,6 +1224,7 @@ public:
 
     const std::vector<const Expression *> values;
 
+    virtual bool is_pure() const override { return std::all_of(values.begin(), values.end(), [](const Expression *x) { return x->is_pure(); }); }
     virtual bool eval_boolean() const override { internal_error("RecordLiteralExpression"); }
     virtual Number eval_number() const override { internal_error("RecordLiteralExpression"); }
     virtual utf8string eval_string() const override { internal_error("RecordLiteralExpression"); }
@@ -1237,6 +1255,7 @@ public:
     const TypeClass *reftype;
     const Expression *value;
 
+    virtual bool is_pure() const override { return false; }
     virtual bool eval_boolean() const override { internal_error("NewClassExpression"); }
     virtual Number eval_number() const override { internal_error("NewClassExpression"); }
     virtual utf8string eval_string() const override { internal_error("NewClassExpression"); }
@@ -1258,6 +1277,7 @@ public:
 
     const Expression *const value;
 
+    virtual bool is_pure() const override { return value->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("UnaryMinusExpression"); }
     virtual Number eval_number() const override { return number_negate(value->eval_number()); }
     virtual utf8string eval_string() const override { internal_error("UnaryMinusExpression"); }
@@ -1281,6 +1301,7 @@ public:
 
     const Expression *const value;
 
+    virtual bool is_pure() const override { return value->is_pure(); }
     virtual bool eval_boolean() const override { return not value->eval_boolean(); }
     virtual Number eval_number() const override { internal_error("LogicalNotExpression"); }
     virtual utf8string eval_string() const override { internal_error("LogicalNotExpression"); }
@@ -1306,6 +1327,7 @@ public:
     const Expression *left;
     const Expression *right;
 
+    virtual bool is_pure() const override { return condition->is_pure() && left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ConditionalExpression"); }
     virtual Number eval_number() const override { internal_error("ConditionalExpression"); }
     virtual utf8string eval_string() const override { internal_error("ConditionalExpression"); }
@@ -1344,6 +1366,7 @@ public:
     const Expression *expr;
     const std::vector<TryTrap> catches;
 
+    virtual bool is_pure() const override { return expr->is_pure() && std::all_of(catches.begin(), catches.end(), [](const TryTrap &x) { const Expression *e = dynamic_cast<const Expression *>(x.handler); return e != nullptr && e->is_pure(); }); }
     virtual bool eval_boolean() const override { internal_error("TryExpression"); }
     virtual Number eval_number() const override { internal_error("TryExpression"); }
     virtual utf8string eval_string() const override { internal_error("TryExpression"); }
@@ -1368,6 +1391,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { return left->eval_boolean() || right->eval_boolean(); }
     virtual Number eval_number() const override { internal_error("DisjunctionExpression"); }
     virtual utf8string eval_string() const override { internal_error("DisjunctionExpression"); }
@@ -1392,6 +1416,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { return left->eval_boolean() && right->eval_boolean(); }
     virtual Number eval_number() const override { internal_error("ConjunctionExpression"); }
     virtual utf8string eval_string() const override { internal_error("ConjunctionExpression"); }
@@ -1412,6 +1437,7 @@ public:
     const Expression *expr_before_conversion;
     const Expression *expr_after_conversion;
 
+    virtual bool is_pure() const override { return expr_before_conversion->is_pure(); }
     virtual bool eval_boolean() const override;
     virtual Number eval_number() const override { internal_error("TypeTestExpression"); }
     virtual utf8string eval_string() const override { internal_error("TypeTestExpression"); }
@@ -1430,6 +1456,7 @@ public:
     const Expression *left;
     const Expression *right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ArrayInExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayInExpression"); }
     virtual utf8string eval_string() const override { internal_error("ArrayInExpression"); }
@@ -1448,6 +1475,7 @@ public:
     const Expression *left;
     const Expression *right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("DictionaryInExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryInExpression"); }
     virtual utf8string eval_string() const override { internal_error("DictionaryInExpression"); }
@@ -1481,6 +1509,7 @@ public:
     const Expression *const right;
     const Comparison comp;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual void generate_expr(Emitter &emitter) const override;
     virtual void generate_comparison_opcode(Emitter &emitter) const = 0;
 };
@@ -1494,6 +1523,7 @@ public:
 
     const std::vector<const ComparisonExpression *> comps;
 
+    virtual bool is_pure() const override { return std::all_of(comps.begin(), comps.end(), [](const ComparisonExpression *x) { return x->is_pure(); }); }
     virtual bool eval_boolean() const override { internal_error("ChainedComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("ChainedComparisonExpression"); }
     virtual utf8string eval_string() const override { internal_error("ChainedComparisonExpression"); }
@@ -1682,6 +1712,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("AdditionExpression"); }
     virtual Number eval_number() const override { return number_add(left->eval_number(), right->eval_number()); }
     virtual utf8string eval_string() const override { internal_error("AdditionExpression"); }
@@ -1706,6 +1737,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("SubtractionExpression"); }
     virtual Number eval_number() const override { return number_subtract(left->eval_number(), right->eval_number()); }
     virtual utf8string eval_string() const override { internal_error("SubtractionExpression"); }
@@ -1730,6 +1762,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("MultiplicationExpression"); }
     virtual Number eval_number() const override { return number_multiply(left->eval_number(), right->eval_number()); }
     virtual utf8string eval_string() const override { internal_error("MultiplicationExpression"); }
@@ -1754,6 +1787,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("DivisionExpression"); }
     virtual Number eval_number() const override { return number_divide(left->eval_number(), right->eval_number()); }
     virtual utf8string eval_string() const override { internal_error("DivisionExpression"); }
@@ -1778,6 +1812,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ModuloExpression"); }
     virtual Number eval_number() const override { return number_modulo(left->eval_number(), right->eval_number()); }
     virtual utf8string eval_string() const override { internal_error("ModuloExpression"); }
@@ -1802,6 +1837,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool is_pure() const override { return left->is_pure() && right->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ExponentiationExpression"); }
     virtual Number eval_number() const override { return number_pow(left->eval_number(), right->eval_number()); }
     virtual utf8string eval_string() const override { internal_error("ExponentiationExpression"); }
@@ -1831,6 +1867,7 @@ public:
     DummyExpression(): ReferenceExpression(TYPE_DUMMY, false) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { internal_error("DummyExpression"); }
     virtual Number eval_number() const override { internal_error("DummyExpression"); }
     virtual utf8string eval_string() const override { internal_error("DummyExpression"); }
@@ -1854,6 +1891,7 @@ public:
     const Expression *index;
     const bool always_create;
 
+    virtual bool is_pure() const override { return array->is_pure() && index->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ArrayReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayReferenceIndexExpression"); }
     virtual utf8string eval_string() const override { internal_error("ArrayReferenceIndexExpression"); }
@@ -1874,6 +1912,7 @@ public:
     const Expression *index;
     const bool always_create;
 
+    virtual bool is_pure() const override { return array->is_pure() && index->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ArrayValueIndexExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayValueIndexExpression"); }
     virtual utf8string eval_string() const override { internal_error("ArrayValueIndexExpression"); }
@@ -1892,6 +1931,7 @@ public:
     const ReferenceExpression *dictionary;
     const Expression *index;
 
+    virtual bool is_pure() const override { return dictionary->is_pure() && index->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("DictionaryReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryReferenceIndexExpression"); }
     virtual utf8string eval_string() const override { internal_error("DictionaryReferenceIndexExpression"); }
@@ -1911,6 +1951,7 @@ public:
     const Expression *dictionary;
     const Expression *index;
 
+    virtual bool is_pure() const override { return dictionary->is_pure() && index->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("DictionaryValueIndexExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryValueIndexExpression"); }
     virtual utf8string eval_string() const override { internal_error("DictionaryValueIndexExpression"); }
@@ -1935,6 +1976,7 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
+    virtual bool is_pure() const override { return ref->is_pure() && first->is_pure() && last->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("StringReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("StringReferenceIndexExpression"); }
     virtual utf8string eval_string() const override { internal_error("StringReferenceIndexExpression"); }
@@ -1962,6 +2004,7 @@ public:
 
     const FunctionCall *load;
 
+    virtual bool is_pure() const override { return str->is_pure() && first->is_pure() && last->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("StringValueIndexExpression"); }
     virtual Number eval_number() const override { internal_error("StringValueIndexExpression"); }
     virtual utf8string eval_string() const override { internal_error("StringValueIndexExpression"); }
@@ -1986,6 +2029,7 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
+    virtual bool is_pure() const override { return ref->is_pure() && first->is_pure() && last->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("BytesReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("BytesReferenceIndexExpression"); }
     virtual utf8string eval_string() const override { internal_error("BytesReferenceIndexExpression"); }
@@ -2013,6 +2057,7 @@ public:
 
     const FunctionCall *load;
 
+    virtual bool is_pure() const override { return str->is_pure() && first->is_pure() && last->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("BytesValueIndexExpression"); }
     virtual Number eval_number() const override { internal_error("BytesValueIndexExpression"); }
     virtual utf8string eval_string() const override { internal_error("BytesValueIndexExpression"); }
@@ -2031,6 +2076,7 @@ public:
     const Expression *obj;
     const Expression *index;
 
+    virtual bool is_pure() const override { return obj->is_pure() && index->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ObjectSubscriptExpression"); }
     virtual Number eval_number() const override { internal_error("ObjectSubscriptExpression"); }
     virtual utf8string eval_string() const override { internal_error("ObjectSubscriptExpression"); }
@@ -2050,6 +2096,7 @@ public:
     const std::string field;
     const bool always_create;
 
+    virtual bool is_pure() const override { return ref->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("RecordReferenceFieldExpression"); }
     virtual Number eval_number() const override { internal_error("RecordReferenceFieldExpression"); }
     virtual utf8string eval_string() const override { internal_error("RecordReferenceFieldExpression"); }
@@ -2070,6 +2117,7 @@ public:
     const std::string field;
     const bool always_create;
 
+    virtual bool is_pure() const override { return rec->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("RecordValueFieldExpression"); }
     virtual Number eval_number() const override { internal_error("RecordValueFieldExpression"); }
     virtual utf8string eval_string() const override { internal_error("RecordValueFieldExpression"); }
@@ -2094,6 +2142,7 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
+    virtual bool is_pure() const override { return ref->is_pure() && first->is_pure() && last->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual utf8string eval_string() const override { internal_error("ArrayReferenceRangeExpression"); }
@@ -2121,6 +2170,7 @@ public:
 
     const FunctionCall *load;
 
+    virtual bool is_pure() const override { return array->is_pure() && first->is_pure() && last->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("ArrayValueRangeExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayValueRangeExpression"); }
     virtual utf8string eval_string() const override { internal_error("ArrayValueRangeExpression"); }
@@ -2138,6 +2188,7 @@ public:
 
     const Expression *ptr;
 
+    virtual bool is_pure() const override { return ptr->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("PointerDereferenceExpression"); }
     virtual Number eval_number() const override { internal_error("PointerDereferenceExpression"); }
     virtual utf8string eval_string() const override { internal_error("PointerDereferenceExpression"); }
@@ -2156,6 +2207,7 @@ public:
 
     const Constant *constant;
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { return constant->value->eval_boolean(); }
     virtual Number eval_number() const override { return constant->value->eval_number(); }
     virtual utf8string eval_string() const override { return constant->value->eval_string(); }
@@ -2173,6 +2225,7 @@ public:
 
     const Variable *var;
 
+    virtual bool is_pure() const override { return var->is_pure(); }
     virtual bool eval_boolean() const override { internal_error("VariableExpression"); }
     virtual Number eval_number() const override { internal_error("VariableExpression"); }
     virtual utf8string eval_string() const override { internal_error("VariableExpression"); }
@@ -2196,6 +2249,7 @@ public:
     const TypeFunction *functype;
     const size_t index;
 
+    virtual bool is_pure() const override { return false; }
     virtual bool eval_boolean() const override { internal_error("InterfaceMethodExpression"); }
     virtual Number eval_number() const override { internal_error("InterfaceMethodExpression"); }
     virtual utf8string eval_string() const override { internal_error("InterfaceMethodExpression"); }
@@ -2215,6 +2269,7 @@ public:
     const Expression *const expr;
     const size_t index;
 
+    virtual bool is_pure() const override { return false; }
     virtual bool eval_boolean() const override { internal_error("InterfacePointerConstructor"); }
     virtual Number eval_number() const override { internal_error("InterfacePointerConstructor"); }
     virtual utf8string eval_string() const override { internal_error("InterfacePointerConstructor"); }
@@ -2233,6 +2288,7 @@ public:
 
     const Expression *const expr;
 
+    virtual bool is_pure() const override { return false; }
     virtual bool eval_boolean() const override { internal_error("InterfacePointerDeconstructor"); }
     virtual Number eval_number() const override { internal_error("InterfacePointerDeconstructor"); }
     virtual utf8string eval_string() const override { internal_error("InterfacePointerDeconstructor"); }
@@ -2253,6 +2309,7 @@ public:
     const Expression *const dispatch;
     const std::vector<const Expression *> args;
 
+    virtual bool is_pure() const override { return func->is_pure() && std::all_of(args.begin(), args.end(), [](const Expression *x) { return x->is_pure(); }); }
     virtual bool eval_boolean() const override;
     virtual Number eval_number() const override;
     virtual utf8string eval_string() const override;
@@ -2291,6 +2348,7 @@ public:
     const Statement *const stmt;
     const Expression *const expr;
 
+    virtual bool is_pure() const override { return false; }
     virtual bool eval_boolean() const override { internal_error("StatementExpression"); }
     virtual Number eval_number() const override { internal_error("StatementExpression"); }
     virtual utf8string eval_string() const override { internal_error("StatementExpression"); }
@@ -2657,6 +2715,7 @@ public:
     const TypeFunction *ftype;
     mutable unsigned int function_index;
 
+    virtual bool is_pure() const override { return false; }
     virtual void reset() override { function_index = UINT_MAX; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;

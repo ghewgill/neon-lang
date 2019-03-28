@@ -3819,6 +3819,9 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     if (expr == nullptr) {
         error(3173, statement->exprs[0]->token, "boolean value expected");
     }
+    if (not expr->is_pure()) {
+        error(9999, statement->exprs[0]->token, "pure expression expected");
+    }
     std::vector<const pt::Expression *> parts;
     deconstruct(e, parts);
     for (auto x = statement->exprs.begin()+1; x != statement->exprs.end(); ++x) {
