@@ -2715,7 +2715,6 @@ public:
     const TypeFunction *ftype;
     mutable unsigned int function_index;
 
-    virtual bool is_pure() const override { return false; }
     virtual void reset() override { function_index = UINT_MAX; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
@@ -2738,6 +2737,7 @@ public:
     static const TypeFunction *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic);
     int get_stack_delta() const;
 
+    virtual bool is_pure() const override { return false; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override {}
@@ -2755,6 +2755,7 @@ public:
     PredefinedFunction(const std::string &name, const TypeFunction *ftype): BaseFunction(Token(), name, ftype) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual bool is_pure() const override;
     virtual void reset() override {}
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override { internal_error("PredefinedFunction"); }
@@ -2775,6 +2776,7 @@ public:
 
     const std::string module;
 
+    virtual bool is_pure() const override { return false; }
     virtual void reset() override {}
     virtual void postdeclare(Emitter &) const override;
     virtual void generate_address(Emitter &) const override { internal_error("ExtensionFunction"); }
@@ -2796,6 +2798,7 @@ public:
     const std::string name;
     const std::string descriptor;
 
+    virtual bool is_pure() const override { return false; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override { internal_error("ModuleFunction"); }
     virtual void generate_load(Emitter &) const override { internal_error("ModuleFunction"); }

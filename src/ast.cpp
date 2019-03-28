@@ -1196,6 +1196,15 @@ const TypeFunction *Function::makeFunctionType(const Type *returntype, const std
     return new TypeFunction(returntype, paramtypes, variadic);
 }
 
+bool PredefinedFunction::is_pure() const
+{
+    static std::set<std::string> impure {
+        "input",
+        // TODO: add other impure functions
+    };
+    return impure.find(name) == impure.end();
+}
+
 Program::Program(const std::string &source_path, const std::string &source_hash, const std::string &module_name)
   : source_path(source_path),
     source_hash(source_hash),
