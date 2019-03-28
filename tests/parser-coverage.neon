@@ -124,6 +124,9 @@ CASE expr WHEN cond, cond DO END CASE
 CHECK expr ELSE END CHECK
 CHECK expr ELSE statement() END CHECK
 CHECK expr ELSE statement() statement() END CHECK
+CHECK VALID name ELSE END CHECK
+CHECK VALID expr AS name ELSE END CHECK
+CHECK VALID expr AS name, expr AS name ELSE END CHECK
 
 % WhenCondition
 CASE expr WHEN = expr DO END CASE
@@ -169,16 +172,13 @@ IF expr THEN statement() ELSIF expr THEN statement() END IF
 IF expr THEN statement() ELSIF expr THEN statement() ELSE END IF
 IF expr THEN statement() ELSIF expr THEN statement() ELSE statement() END IF
 IF expr THEN statement() ELSIF expr THEN statement() ELSE statement() statement() END IF
+IF VALID name THEN END IF
+IF VALID expr AS name THEN END IF
+IF VALID expr AS name, expr AS name THEN END IF
 
 % IncrementStatement
 INC expr
 DEC expr
-
-% IfExpression
-IF expr THEN END IF
-IF VALID name THEN END IF
-IF VALID expr AS name THEN END IF
-IF VALID expr AS name, expr AS name THEN END IF
 
 % LoopStatement
 LOOP END LOOP
@@ -228,6 +228,9 @@ WHILE expr DO END WHILE
 WHILE expr DO statement() END WHILE
 WHILE expr DO statement() statement() END WHILE
 WHILE expr LABEL label DO statement() END WHILE
+WHILE VALID name DO END WHILE
+WHILE VALID expr AS name DO END WHILE
+WHILE VALID expr AS name, expr AS name DO END WHILE
 
 % ConditionalExpression
 name := (IF expr THEN expr ELSE expr)

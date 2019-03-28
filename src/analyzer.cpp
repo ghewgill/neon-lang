@@ -4091,10 +4091,41 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
 {
     scope.push(new ast::Scope(scope.top(), frame.top()));
     std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
-    const ast::Expression *cond = analyze(statement->cond.get());
-    cond = convert(ast::TYPE_BOOLEAN, cond);
-    if (cond == nullptr) {
-        error(3199, statement->cond->token, "boolean value expected");
+    const ast::Expression *cond { nullptr };
+    const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(statement->cond.get());
+    if (valid != nullptr) {
+        for (auto &v: valid->tests) {
+            if (not v->shorthand and scope.top()->lookupName(v->name.text) != nullptr) {
+                error2(3274, v->name, "duplicate identifier", scope.top()->getDeclaration(v->name.text), "first declaration here");
+            }
+            const ast::Expression *ptr = analyze(v->expr.get());
+            const ast::TypePointer *ptrtype = dynamic_cast<const ast::TypePointer *>(ptr->type);
+            if (ptrtype == nullptr) {
+                error(3273, v->expr->token, "pointer type expression expected");
+            }
+            const ast::TypeValidPointer *vtype = new ast::TypeValidPointer(Token(), ptrtype->reftype);
+            ast::Variable *var;
+            // TODO: Try to make this a local variable always (give the global scope a local space).
+            if (functiontypes.empty()) {
+                var = new ast::GlobalVariable(v->name, v->name.text, vtype, true);
+            } else {
+                // TODO: probably use frame.top()->get_depth() (add IF VALID to repl tests)
+                var = new ast::LocalVariable(v->name, v->name.text, vtype, frame.size()-1, true);
+            }
+            scope.top()->parent->replaceName(v->name, v->name.text, var);
+            const ast::Expression *ve = new ast::ValidPointerExpression(var, ptr);
+            if (cond == nullptr) {
+                cond = ve;
+            } else {
+                cond = new ast::ConjunctionExpression(cond, ve);
+            }
+        }
+    } else {
+        cond = analyze(statement->cond.get());
+        cond = convert(ast::TYPE_BOOLEAN, cond);
+        if (cond == nullptr) {
+            error(3199, statement->cond->token, "boolean value expected");
+        }
     }
     condition_statements.push_back(std::make_pair(cond, std::vector<const ast::Statement *>()));
     std::vector<const ast::Statement *> else_statements = analyze(statement->body);

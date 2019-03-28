@@ -1,0 +1,5 @@
+VAR a: Number
+    %<2
+CHECK VALID p AS a ELSE
+                 %<1
+END CHECK

@@ -1076,6 +1076,15 @@ void Scope::addName(const Token &token, const std::string &name, Name *ref, bool
     }
 }
 
+void Scope::replaceName(const Token &token, const std::string &name, Name *ref)
+{
+    auto a = names.find(name);
+    if (a != names.end()) {
+        names.erase(name);
+    }
+    addName(token, name, ref, true, true);
+}
+
 void Scope::addForward(const std::string &name, TypePointer *ptrtype)
 {
     forwards[name].push_back(ptrtype);

@@ -1944,7 +1944,23 @@ class Parser:
 
     def parse_check_statement(self):
         self.expect(CHECK)
-        cond = self.parse_expression()
+        if self.tokens[self.i] is VALID:
+            tests = []
+            while True:
+                self.i += 1
+                ptr = self.parse_expression()
+                if self.tokens[self.i] is AS:
+                    self.i += 1
+                    name = self.identifier()
+                else:
+                    assert isinstance(ptr, IdentifierExpression)
+                    name = ptr.name
+                tests.append((ptr, name))
+                if self.tokens[self.i] is not COMMA:
+                    break
+            cond = ValidPointerExpression(tests)
+        else:
+            cond = self.parse_expression()
         self.expect(ELSE)
         statements = []
         while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:

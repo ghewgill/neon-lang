@@ -50,6 +50,7 @@ case.neon
 case-overlap.neon
 cformat-test.neon
 check-if.neon
+check-valid.neon
 check.neon
 class-empty.neon
 cmdline.neon

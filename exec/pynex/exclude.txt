@@ -4,6 +4,7 @@ bigint.neon                # bigint
 bytes-index.neon           # index
 cal-test.neon              # os.system
 cformat-test.neon          # module
+check-valid.neon           # class
 class-empty.neon           # class
 cmdline.neon               # module
 complex-test.neon          # module

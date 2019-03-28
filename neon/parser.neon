@@ -2793,7 +2793,48 @@ FUNCTION Parser.parseCheckStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     ASSERT self.token.type = TokenType.check
     LET tokCheck: lexer.Token := self.token
     self.nextToken()
-    LET cond: POINTER TO ParseTreeNode := self.parseExpression()
+    VAR cond: POINTER TO ParseTreeNode := NIL
+    IF self.token.type = TokenType.valid THEN
+        LET tokValid: lexer.Token := self.token
+        VAR tests: Array<ValidPointerExpressionClause> tests := []
+        LOOP
+            self.nextToken()
+            LET tokExpr: lexer.Token := self.token
+            LET ptr: POINTER TO ParseTreeNode := self.parseExpression()
+            VAR name: lexer.Token := lexer.Token()
+            VAR shorthand: Boolean := FALSE
+            IF self.token.type = TokenType.as THEN
+                self.nextToken()
+                IF self.token.type <> TokenType.identifier THEN
+                    error(2135, self.token, "identifier expected")
+                END IF
+                name := self.token
+                self.nextToken()
+            ELSIF VALID ptr THEN
+                IF ptr->type = Type.IdentifierExpression THEN
+                    name := ptr->token
+                    shorthand := TRUE
+                ELSE
+                    error(2136, tokExpr, "single identifier expected (otherwise use AS alias)")
+                END IF
+            ELSE
+                internalError("pointer not valid")
+            END IF
+            tests.append(ValidPointerExpressionClause(expr WITH ptr, name WITH name, shorthand WITH shorthand))
+            IF self.token.type <> TokenType.comma THEN
+                EXIT LOOP
+            END IF
+        END LOOP
+        cond := NEW ParseTreeNode(
+            type WITH Type.ValidPointerExpression,
+            token WITH tokValid,
+            validpointerexpression WITH ValidPointerExpression(
+                tests WITH tests
+            )
+        )
+    ELSE
+        cond := self.parseExpression()
+    END IF
     IF self.token.type <> TokenType.else THEN
         error_a(2103, self.tokens[self.index-1], self.token, "ELSE expected")
     END IF
@@ -3348,7 +3389,48 @@ FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     ASSERT self.token.type = TokenType.while
     LET tokWhile: lexer.Token := self.token
     self.nextToken()
-    LET cond: POINTER TO ParseTreeNode := self.parseExpression()
+    VAR cond: POINTER TO ParseTreeNode := NIL
+    IF self.token.type = TokenType.valid THEN
+        LET tokValid: lexer.Token := self.token
+        VAR tests: Array<ValidPointerExpressionClause> tests := []
+        LOOP
+            self.nextToken()
+            LET tokExpr: lexer.Token := self.token
+            LET ptr: POINTER TO ParseTreeNode := self.parseExpression()
+            VAR name: lexer.Token := lexer.Token()
+            VAR shorthand: Boolean := FALSE
+            IF self.token.type = TokenType.as THEN
+                self.nextToken()
+                IF self.token.type <> TokenType.identifier THEN
+                    error(2121, self.token, "identifier expected")
+                END IF
+                name := self.token
+                self.nextToken()
+            ELSIF VALID ptr THEN
+                IF ptr->type = Type.IdentifierExpression THEN
+                    name := ptr->token
+                    shorthand := TRUE
+                ELSE
+                    error(2122, tokExpr, "single identifier expected (otherwise use AS alias)")
+                END IF
+            ELSE
+                internalError("pointer not valid")
+            END IF
+            tests.append(ValidPointerExpressionClause(expr WITH ptr, name WITH name, shorthand WITH shorthand))
+            IF self.token.type <> TokenType.comma THEN
+                EXIT LOOP
+            END IF
+        END LOOP
+        cond := NEW ParseTreeNode(
+            type WITH Type.ValidPointerExpression,
+            token WITH tokValid,
+            validpointerexpression WITH ValidPointerExpression(
+                tests WITH tests
+            )
+        )
+    ELSE
+        cond := self.parseExpression()
+    END IF
     VAR label: lexer.Token := lexer.Token(type WITH TokenType.while, text WITH "WHILE")
     IF self.token.type = TokenType.label THEN
         self.nextToken()

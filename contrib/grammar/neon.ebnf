@@ -113,7 +113,7 @@ AssignmentStatement = (CompoundExpression | '_'), ':=', Expression;
 
 CaseStatement = 'CASE', Expression, {'WHEN', WhenCondition, {',', WhenCondition}, 'DO', {Statement}}, ['WHEN', 'OTHERS', 'DO', {Statement}], 'END', 'CASE';
 
-CheckStatement = 'CHECK', Expression, 'ELSE', {Statement}, 'END', 'CHECK';
+CheckStatement = 'CHECK', ExpressionOrValid, 'ELSE', {Statement}, 'END', 'CHECK';
 
 ExecStatement = 'EXEC', ExecBody;
 
@@ -127,11 +127,9 @@ ForStatement = 'FOR', Identifier, ':=', Expression, 'TO', Expression, ['STEP', E
 
 ForeachStatement = 'FOREACH', Identifier, 'IN', Expression, ['INDEX', Identifier], ['LABEL', Identifier], 'DO', {Statement}, 'END', 'FOREACH';
 
-IfStatement = 'IF', IfExpression, 'THEN', {Statement}, {'ELSIF', IfExpression, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
+IfStatement = 'IF', ExpressionOrValid, 'THEN', {Statement}, {'ELSIF', ExpressionOrValid, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
 
 IncrementStatement = ('INC' | 'DEC'), Expression;
-
-IfExpression = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifier)), {',', (Identifier | (Expression, 'AS', Identifier))});
 
 LoopStatement = 'LOOP', ['LABEL', Identifier], {Statement}, 'END', 'LOOP';
 
@@ -147,9 +145,9 @@ TryStatement = 'TRY', {Statement}, {'TRAP', Identifier, {'.', Identifier}, ['AS'
 
 UnusedStatement = 'UNUSED', Identifier, {',', Identifier};
 
-WhileStatement = 'WHILE', WhileExpression, ['LABEL', Identifier], 'DO', {Statement}, 'END', 'WHILE';
+WhileStatement = 'WHILE', ExpressionOrValid, ['LABEL', Identifier], 'DO', {Statement}, 'END', 'WHILE';
 
-WhileExpression = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifier)), {',', (Identifier | (Expression, 'AS', Identifier))});
+ExpressionOrValid = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifier)), {',', (Identifier | (Expression, 'AS', Identifier))});
 
 BracketedExpression = ConditionalExpression | TryExpression | DisjunctionExpression;
 

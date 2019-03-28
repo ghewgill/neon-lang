@@ -1,0 +1,14 @@
+TYPE Cls IS CLASS
+    n: Number
+END CLASS
+
+FUNCTION f()
+    VAR p: POINTER TO Cls := NEW Cls(n WITH 5)
+    CHECK VALID p ELSE
+        EXIT FUNCTION
+    END CHECK
+    print(str(p->n))
+END FUNCTION
+
+f()
+%= 5

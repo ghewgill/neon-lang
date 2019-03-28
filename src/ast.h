@@ -270,6 +270,7 @@ public:
     Name *lookupName(const std::string &name, bool mark_referenced = true);
     Token getDeclaration(const std::string &name) const;
     virtual void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false, bool allow_shadow = false);
+    void replaceName(const Token &token, const std::string &name, Name *ref);
     void addForward(const std::string &name, TypePointer *ptrtype);
     void resolveForward(const std::string &name, const TypeClass *classtype);
     void checkForward();

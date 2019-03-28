@@ -237,6 +237,16 @@ Program
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
+  CheckStatement
+    ValidPointerExpression
+      IdentifierExpression(name)
+  CheckStatement
+    ValidPointerExpression
+      IdentifierExpression(expr)
+  CheckStatement
+    ValidPointerExpression
+      IdentifierExpression(expr)
+      IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
     ComparisonWhenCondition(EQ)
@@ -398,12 +408,6 @@ Program
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
-  IncrementStatement(1)
-    IdentifierExpression(expr)
-  IncrementStatement(-1)
-    IdentifierExpression(expr)
-  IfStatement
-    IdentifierExpression(expr)
   IfStatement
     ValidPointerExpression
       IdentifierExpression(name)
@@ -414,6 +418,10 @@ Program
     ValidPointerExpression
       IdentifierExpression(expr)
       IdentifierExpression(expr)
+  IncrementStatement(1)
+    IdentifierExpression(expr)
+  IncrementStatement(-1)
+    IdentifierExpression(expr)
   LoopStatement
     LOOP
   LoopStatement
@@ -522,6 +530,19 @@ Program
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
+  WhileStatement
+    ValidPointerExpression
+      IdentifierExpression(name)
+    WHILE
+  WhileStatement
+    ValidPointerExpression
+      IdentifierExpression(expr)
+    WHILE
+  WhileStatement
+    ValidPointerExpression
+      IdentifierExpression(expr)
+      IdentifierExpression(expr)
+    WHILE
   AssignmentStatement
     IdentifierExpression(name)
     IdentityExpression
