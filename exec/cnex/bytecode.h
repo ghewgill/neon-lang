@@ -34,6 +34,17 @@ typedef struct tagTException {
     unsigned int stack_depth;
 } Exception;
 
+typedef struct tagTInterface {
+    unsigned int methodsize;
+    unsigned int *methods;
+} Interface;
+
+typedef struct tagTClass {
+    unsigned int name;
+    unsigned int interfacesize;
+    Interface *interfaces;
+} Class;
+
 typedef struct tagTBytecode {
     uint8_t source_hash[32];
     unsigned int global_size;
@@ -59,6 +70,7 @@ typedef struct tagTBytecode {
     struct tagTFunction *functions;
     struct tagTImport  *imports;
     struct tagTException *exceptions;
+    struct tagTClass *classes;
 } TBytecode;
 
 
