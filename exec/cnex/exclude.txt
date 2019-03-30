@@ -1,19 +1,16 @@
-array-tostring.neon        # array__toString__string
-assignment.neon            # dictionary / classes
+array-tostring.neon        # EQA
 bigint.neon                # assert
 bytes-index.neon           # PUSHPPG
 cal-test.neon              # os.system
-cformat-test.neon          # module
-check-valid.neon           # class
-class-empty.neon           # class
+cformat-test.neon          # object / object__makeString
 cmdline.neon               # module
-complex-test.neon          # module
+complex-test.neon          # CALLMF
 datetime-test.neon         # module
 debug-example.neon         # module
 debug-server.neon          # module
 divide-by-zero.neon        # exception
 encoding-base64.neon       # module
-equality.neon              # class
+equality.neon              # PUSHI
 export-inline.neon         # export
 export-recursive.neon      # export
 export.neon                # export
@@ -36,14 +33,14 @@ gc-long-chain.neon         # class
 gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
-import.neon                # class
+import.neon                # PUSHPMG
 interface-parameter-export.neon # export
 interface-parameter-export2.neon # export
 interface-parameter-import.neon # class
 interface-parameter-import2.neon # class
-interface.neon             # class
+interface.neon             # PUSHI
 json-test.neon             # module
-literal-array.neon         # assert / array__range
+literal-array.neon         # array__range
 mkdir.neon                 # module
 mmap-test.neon             # mmap
 module-alias.neon          # module
@@ -54,7 +51,7 @@ module-import-name.neon    # module
 module-import-name2.neon   # module
 module.neon                # module
 module2.neon               # PUSHPMG
-multiarray-test.neon       # module
+multiarray-test.neon       # CALLMF
 net-test.neon              # net
 net-test-udp.neon          # net
 new-init-module.neon       # class
@@ -71,19 +68,6 @@ outer-parameter.neon       # PUSHPOL
 outer-tail.neon            # PUSHPOL
 outer.neon                 # PUSHPOL
 outer2.neon                # PUSHPOL
-parameters.neon            # INOUT
-pointer-method.neon        # class
-pointer-nil.neon           # class
-pointer-valid.neon         # class
-pointer.neon               # class
-pointer1.neon              # class
-pointer2.neon              # class
-pointer3.neon              # class
-pointer4.neon              # class
-pointer5.neon              # class
-pointer6.neon              # class
-pointer7.neon              # class
-pointer8.neon              # class
 process-test.neon          # process
 recursion-limit.neon       # runtime
 repl_import.neon           # random
@@ -106,7 +90,6 @@ time-stopwatch.neon        # module
 time-test.neon             # module
 unicode-char.neon          # utf8
 unicode-length.neon        # io$fprint / module
-valid-pointer.neon         # class
 value-index.neon           # dictionary
 varargs-functionpointer.neon # PUSHI
 while-valid.neon           # class

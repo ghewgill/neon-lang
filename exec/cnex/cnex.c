@@ -729,14 +729,26 @@ void exec_NED(void)
     fatal_error("exec_NED not implemented");
 }
 
-void exec_EQP(void)
+void exec_EQP(TExecutor *self)
 {
-    fatal_error("exec_EQP not implemented");
+    self->ip++;
+    Cell *b = peek(self->stack, 0)->address;
+    Cell *a = peek(self->stack, 1)->address;
+    Cell *r = cell_fromBoolean(a == b);
+    pop(self->stack);
+    pop(self->stack);
+    push(self->stack, r);
 }
 
-void exec_NEP(void)
+void exec_NEP(TExecutor *self)
 {
-    fatal_error("exec_NEP not implemented");
+    self->ip++;
+    Cell *b = peek(self->stack, 0)->address;
+    Cell *a = peek(self->stack, 1)->address;
+    Cell *r = cell_fromBoolean(a != b);
+    pop(self->stack);
+    pop(self->stack);
+    push(self->stack, r);
 }
 
 void exec_ANDB(void)
@@ -1073,15 +1085,19 @@ void exec_EXCEPT(TExecutor *self)
     exec_raiseLiteral(self, self->object->strings[val], info, code);
 }
 
-void exec_ALLOC(void)
+void exec_ALLOC(TExecutor *self)
 {
-    fatal_error("exec_ALLOC not implemented");
+    self->ip++;
+    uint32_t val = exec_getOperand(self);
+
+    Cell *cell = cell_createArrayCell(val);
+    push(self->stack, cell_fromAddress(cell));
 }
 
 void exec_PUSHNIL(TExecutor *self)
 {
     self->ip++;
-    push(self->stack, NULL);
+    push(self->stack, cell_newCell());
 }
 
 void exec_JNASSERT(TExecutor *self)
@@ -1151,9 +1167,23 @@ void exec_CALLV(void)
     fatal_error("exec_CALLV not implemented");
 }
 
-void exec_PUSHCI(void)
+void exec_PUSHCI(TExecutor *self)
 {
-    fatal_error("exec_PUSHCI not implemented");
+    self->ip++;
+    uint32_t val = exec_getOperand(self);
+
+    size_t dot = string_findChar(self->object->strings[val], '.');
+    if (dot == NPOS) {
+        for (unsigned int c = 0; c < self->object->classsize; c++) {
+            if (self->object->classes[c].name == val) {
+                push(self->stack, cell_newCell());
+                return;
+            }
+        }
+    } else {
+        // Locate class interface in module
+    }
+    fatal_error("cnex: unknown class name %s\n", TCSTR(self->object->strings[val]));
 }
 
 void invoke(TExecutor *self, int index)
@@ -1234,8 +1264,8 @@ void exec_loop(TExecutor *self)
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;
             case NED:     exec_NED(); break;
-            case EQP:     exec_EQP(); break;
-            case NEP:     exec_NEP(); break;
+            case EQP:     exec_EQP(self); break;
+            case NEP:     exec_NEP(self); break;
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(self); break;
@@ -1264,7 +1294,7 @@ void exec_loop(TExecutor *self)
             case CONSA:   exec_CONSA(self); break;
             case CONSD:   exec_CONSD(self); break;
             case EXCEPT:  exec_EXCEPT(self); break;
-            case ALLOC:   exec_ALLOC(); break;
+            case ALLOC:   exec_ALLOC(self); break;
             case PUSHNIL: exec_PUSHNIL(self); break;
             case JNASSERT:exec_JNASSERT(self); break;
             case RESETC:  exec_RESETC(self); break;
@@ -1275,7 +1305,7 @@ void exec_loop(TExecutor *self)
             case DROPN:   exec_DROPN(); break;
             case PUSHM:   exec_PUSHM(); break;
             case CALLV:   exec_CALLV(); break;
-            case PUSHCI:  exec_PUSHCI(); break;
+            case PUSHCI:  exec_PUSHCI(self); break;
             default:
                 fatal_error("exec: Unexpected opcode: %d\n", self->object->code[self->ip]);
         }

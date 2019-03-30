@@ -195,6 +195,19 @@ BOOL string_startsWith(TString *self, TString *s)
     return TRUE;
 }
 
+size_t string_findChar(TString *self, char c)
+{
+    size_t i;
+
+    for (i = 0; i < self->length; i++) {
+        if (self->data[i] == c) {
+            return i;
+        }
+    }
+
+    return NPOS;
+}
+
 char *tprintf(char *dest, TString *s)
 {
     if (s == NULL) {

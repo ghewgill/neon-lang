@@ -79,6 +79,14 @@ void bytecode_freeBytecode(TBytecode *b)
         string_freeString(b->strings[i]);
     }
     free(b->strings);
+
+    for (i = 0; i < b->classsize; i++) {
+        for (unsigned int is = 0; i < b->classes[i].interfacesize; is++) {
+            free(b->classes[i].interfaces[is].methods);
+        }
+        free(b->classes[i].interfaces);
+    }
+    free(b->classes);
     free(b);
 }
 
@@ -210,12 +218,28 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
     }
 
     b->classsize = get_vint(bytecode, len, &i);
-    /*
-        classsize = struct.unpack(">H", bytecode[i:i+2])[0]
-        i += 2
-        while classsize > 0:
-            assert False, classsize
-    */
+    b->classes = malloc(sizeof(Class) * b->classsize);
+    if (b->classes == NULL) {
+        fatal_error("Could not allocate memory for (%d) classes.", b->classes);
+    }
+    for (uint32_t c = 0; c < b->classsize; c++) {
+        b->classes[c].name = get_vint(bytecode, len, &i);
+        b->classes[c].interfacesize = get_vint(bytecode, len, &i);
+        b->classes[c].interfaces = malloc(sizeof(Interface) * b->classes[c].interfacesize);
+        if (b->classes[c].interfaces == NULL) {
+            fatal_error("Could not allocate memory for (%d) interfaces.", b->classes[c].interfacesize);
+        }
+        for (uint32_t in = 0; in < b->classes[c].interfacesize; in++) {
+            b->classes[c].interfaces[in].methodsize = get_vint(bytecode, len, &i);
+            b->classes[c].interfaces[in].methods = malloc(sizeof(unsigned int) * b->classes[c].interfaces[in].methodsize);
+            if (b->classes[c].interfaces[in].methods == NULL) {
+                fatal_error("Could not allocate memory for (%d) interface methods.", b->classes[c].interfaces[in].methodsize);
+            }
+            for (uint32_t m = 0; m < b->classes[c].interfaces[in].methodsize; m++) {
+                b->classes[c].interfaces[in].methods[m] = get_vint(bytecode, len, &i);
+            }
+        }
+    }
     b->code = bytecode + i;
     b->codelen = len - i;
 }
