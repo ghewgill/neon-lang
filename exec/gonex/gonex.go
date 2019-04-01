@@ -2345,6 +2345,8 @@ func (self *executor) op_callp() {
 		n := int(self.pop().num)
 		p := math.Pow10(n)
 		self.push(make_cell_num(math.Trunc(x*p+0.5) / p))
+	case "runtime$executorName":
+		self.push(make_cell_str("gonex"))
 	case "runtime$moduleIsMain":
 		self.push(make_cell_bool(self.module == self.modules[""]))
 	case "runtime$setRecursionLimit":

@@ -1,0 +1,4 @@
+IMPORT runtime
+
+print(runtime.executorName())
+%? (neonx|helium|cnex|gonex|jnex|pynex|rsnex)

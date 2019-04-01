@@ -654,6 +654,8 @@ impl Executor {
             } else {
                 assert!(false, "type mismatch");
             }
+        } else if self.object.strtable[val] == "runtime$executorName" {
+            self.stack.push(Cell::String("rsnex".to_string()));
         } else {
             assert!(false, "unimplemented function");
         }
