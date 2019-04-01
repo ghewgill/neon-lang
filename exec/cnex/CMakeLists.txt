@@ -5,6 +5,7 @@ set(CNEX_RTL
     lib/io.c
     lib/math.c
     lib/random.c
+    lib/runtime.c
     lib/sys.c
 )
 

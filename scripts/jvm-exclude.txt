@@ -78,6 +78,7 @@ recursion-limit.neon       # module runtime
 repl_import.neon           # module random
 repl_nested.neon           # nested function
 rtl.neon                   # ExceptionType
+runtime-test.neon          # module runtime
 sql-connect.neon           # module sqlite
 sql-cursor.neon            # module sqlite
 sql-embed.neon             # module sqlite

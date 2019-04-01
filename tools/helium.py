@@ -2920,6 +2920,27 @@ def neon_regex_search(env, r, s, match):
         match.append(r)
     return (True, match)
 
+def neon_runtime_assertionsEnabled(env):
+    return True
+
+def neon_runtime_executorName(env):
+    return "helium"
+
+def neon_runtime_garbageCollect(env):
+    pass
+
+def neon_runtime_getAllocatedObjectCount(env):
+    return 0
+
+def neon_runtime_moduleIsMain(env):
+    return True # TODO
+
+def neon_runtime_setGarbageCollectionInterval(env, count):
+    pass
+
+def neon_runtime_setRecursionLimit(env, depth):
+    pass
+
 def neon_string_find(env, s, t):
     return s.find(t)
 

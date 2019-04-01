@@ -5,6 +5,7 @@
  |%
 
 EXPORT assertionsEnabled
+EXPORT executorName
 EXPORT garbageCollect
 EXPORT getAllocatedObjectCount
 EXPORT moduleIsMain
@@ -17,6 +18,13 @@ EXPORT setRecursionLimit
  |  Return TRUE if assertions are currently enabled.
  |%
 DECLARE NATIVE FUNCTION assertionsEnabled(): Boolean
+
+%|
+ |  Function: executorName
+ |
+ |  Return the name of the executor.
+ |%
+DECLARE NATIVE FUNCTION executorName(): String
 
 %|
  |  Function: garbageCollect

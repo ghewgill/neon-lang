@@ -1441,6 +1441,9 @@ def neon_os_system(self):
 def neon_posix_fork(self):
     self.stack.append(Value(decimal.Decimal(os.fork())))
 
+def neon_runtime_executorName(self):
+    self.stack.append(Value("pynex"))
+
 def neon_string_find(self):
     t = self.stack.pop().value
     s = self.stack.pop().value

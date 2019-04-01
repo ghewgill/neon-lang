@@ -286,6 +286,7 @@ return-nothing.neon
 return-try.neon
 retval-index.neon
 rtl.neon
+runtime-test.neon
 shadow2.neon
 shadow.neon
 shebang.neon

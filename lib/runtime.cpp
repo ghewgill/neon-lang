@@ -1,5 +1,6 @@
 #include "exec.h"
 #include "number.h"
+#include "utf8string.h"
 
 namespace rtl {
 
@@ -8,6 +9,11 @@ namespace runtime {
 bool assertionsEnabled()
 {
     return executor_assertions_enabled();
+}
+
+utf8string executorName()
+{
+    return utf8string("neonx");
 }
 
 void garbageCollect()

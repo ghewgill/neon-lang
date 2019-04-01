@@ -69,6 +69,7 @@ class Executor {
         predefined.put("math$floor", this::math$floor);
         predefined.put("math$sign", this::math$sign);
         predefined.put("math$trunc", this::math$trunc);
+        predefined.put("runtime$executorName", this::runtime$executorName);
 
         object = new Bytecode(in);
         ip = 0;
@@ -1576,5 +1577,10 @@ class Executor {
     {
         BigDecimal x = stack.removeFirst().getNumber();
         stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_DOWN)));
+    }
+
+    private void runtime$executorName()
+    {
+        stack.addFirst(new Cell("jnex"));
     }
 }

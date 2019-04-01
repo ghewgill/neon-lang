@@ -20,6 +20,7 @@
 #include "lib/io.h"
 #include "lib/math.h"
 #include "lib/random.h"
+#include "lib/runtime.h"
 #include "lib/sys.h"
 
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
@@ -120,6 +121,9 @@ TDispatch gfuncDispatch[] = {
 
     // random - Random Number module
     PDFUNC("random$uint32",             random_uint32),
+
+    // runtime - runtime support services
+    PDFUNC("runtime$executorName",      runtime_executorName),
 
     // System - System level calls
     PDFUNC("sys$exit",                  sys_exit),
