@@ -1,4 +1,5 @@
 array-tostring.neon        # module
+assert-multiline.neon      # stderr
 binary-test.neon           # module
 bigint.neon                # bigint
 bytes-index.neon           # index

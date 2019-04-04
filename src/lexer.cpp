@@ -12,6 +12,14 @@
 
 #include "unicodedata.inc"
 
+std::string TokenizedSource::source_line(int line) const
+{
+    if (line == 0 || static_cast<size_t>(line) >= source_lines.size()) {
+        return std::string();
+    }
+    return std::string(source_text, source_lines[line].first, source_lines[line].second);
+}
+
 std::string Token::file() const
 {
     return source != nullptr ? source->source_path : std::string();
@@ -19,10 +27,10 @@ std::string Token::file() const
 
 std::string Token::source_line() const
 {
-    if (source == nullptr || line == 0 || static_cast<size_t>(line) >= source->source_lines.size()) {
+    if (source == nullptr) {
         return std::string();
     }
-    return std::string(source->source_text, source->source_lines[line].first, source->source_lines[line].second);
+    return source->source_line(line);
 }
 
 std::string Token::tostring() const
@@ -760,6 +768,9 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             utf8::advance(i, 1, source.end());
         }
         if (t.type != NONE) {
+            if (t.text.empty() && t.type != STRING) {
+                t.text = std::string(startindex, i);
+            }
             tokens.push_back(t);
         }
         column += (i - startindex);

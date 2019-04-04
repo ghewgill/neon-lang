@@ -1,5 +1,6 @@
 array2d.neon               # copy semantics
 array-resize.neon          # array__resize
+assert-multiline.neon      # stderr
 bigint.neon                # bigint
 binary-test.neon           # bigint
 cmdline.neon               # pushppg

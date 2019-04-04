@@ -14,6 +14,7 @@ public:
     std::string source_text;
     std::vector<std::pair<std::string::size_type, std::string::size_type>> source_lines;
     std::vector<Token> tokens;
+    std::string source_line(int line) const;
 };
 
 std::unique_ptr<TokenizedSource> tokenize(const std::string &source_path, const std::string &source);

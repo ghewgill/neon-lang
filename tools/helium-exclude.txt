@@ -87,6 +87,7 @@ array-fraction.neon
 array-negative.neon
 assert-fail2.neon
 assert-fail.neon
+assert-multiline.neon
 assign2.neon
 assign-nothing.neon
 base-decimal.neon

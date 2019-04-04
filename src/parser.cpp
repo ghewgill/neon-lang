@@ -402,7 +402,7 @@ std::unique_ptr<FunctionCallExpression> Parser::parseFunctionCall(std::unique_pt
             }
             std::unique_ptr<Expression> e { nullptr };
             if (tokens[i].type == UNDERSCORE) {
-                e.reset(new DummyExpression(tokens[i], tokens[i].column, tokens[i].column));
+                e.reset(new DummyExpression(tokens[i]));
                 ++i;
             } else {
                 e = parseExpression();
@@ -454,14 +454,14 @@ std::unique_ptr<Expression> Parser::parseArrayLiteral()
                 error2(2099, tokens[i], "']' expected", tok_lbracket, "opening '[' here");
             }
             ++i;
-            return std::unique_ptr<Expression> { new ArrayLiteralRangeExpression(tok_lbracket, tokens[i-1].column+1, std::move(first), std::move(last), std::move(step)) };
+            return std::unique_ptr<Expression> { new ArrayLiteralRangeExpression(tok_lbracket, tokens[i-1], std::move(first), std::move(last), std::move(step)) };
         } else if (tokens[i].type != RBRACKET) {
             error2(2053, tokens[i], "',' or ']' expected", tok_lbracket, "opening '[' here");
         }
         elements.push_back(std::move(element));
     }
     ++i;
-    return std::unique_ptr<Expression> { new ArrayLiteralExpression(tok_lbracket, tokens[i-1].column+1, std::move(elements)) };
+    return std::unique_ptr<Expression> { new ArrayLiteralExpression(tok_lbracket, tokens[i-1], std::move(elements)) };
 }
 
 std::unique_ptr<DictionaryLiteralExpression> Parser::parseDictionaryLiteral()
@@ -482,13 +482,13 @@ std::unique_ptr<DictionaryLiteralExpression> Parser::parseDictionaryLiteral()
         }
     }
     ++i;
-    return std::unique_ptr<DictionaryLiteralExpression> { new DictionaryLiteralExpression(tok_lbrace, tokens[i-1].column+1, std::move(elements)) };
+    return std::unique_ptr<DictionaryLiteralExpression> { new DictionaryLiteralExpression(tok_lbrace, tokens[i-1], std::move(elements)) };
 }
 
 std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
 {
     std::vector<std::pair<std::unique_ptr<Expression>, Token>> parts;
-    parts.push_back(std::make_pair(std::unique_ptr<Expression> { new StringLiteralExpression(tokens[i], tokens[i+1].column, utf8string(tokens[i].text)) }, Token()));
+    parts.push_back(std::make_pair(std::unique_ptr<Expression> { new StringLiteralExpression(tokens[i], tokens[i+1], utf8string(tokens[i].text)) }, Token()));
     for (;;) {
         ++i;
         if (tokens[i].type != SUBBEGIN) {
@@ -513,7 +513,7 @@ std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
         if (tokens[i].type != STRING) {
             internal_error("parseInterpolatedStringExpression");
         }
-        e.reset(new StringLiteralExpression(tokens[i], tokens[i+1].column, utf8string(tokens[i].text)));
+        e.reset(new StringLiteralExpression(tokens[i], tokens[i], utf8string(tokens[i].text)));
         parts.push_back(std::make_pair(std::move(e), Token()));
     }
     return std::unique_ptr<Expression> { new InterpolatedStringExpression(parts[0].first->token, std::move(parts)) };
@@ -544,7 +544,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
                 error2(2014, tokens[i], ") expected", tok_lparen, "opening '(' here");
             }
             ++i;
-            return std::unique_ptr<Expression> { new IdentityExpression(tok_lparen, tok_lparen.column, tokens[i-1].column+1, std::move(expr)) };
+            return std::unique_ptr<Expression> { new IdentityExpression(tok_lparen, tokens[i-1], std::move(expr)) };
         }
         case LBRACKET: {
             std::unique_ptr<Expression> array = parseArrayLiteral();
@@ -575,7 +575,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
             } else {
                 auto &tok_string = tokens[i];
                 i++;
-                return std::unique_ptr<Expression> { new StringLiteralExpression(tok_string, tokens[i].column, utf8string(tok_string.text)) };
+                return std::unique_ptr<Expression> { new StringLiteralExpression(tok_string, tokens[i-1], utf8string(tok_string.text)) };
             }
         }
         case EMBED: {
@@ -585,7 +585,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
             if (tok_file.type != STRING) {
                 error(2090, tok_file, "string literal expected");
             }
-            return std::unique_ptr<Expression> { new FileLiteralExpression(tok_file, tokens[i].column, tok_file.text) };
+            return std::unique_ptr<Expression> { new FileLiteralExpression(tok_file, tokens[i-1], tok_file.text) };
         }
         case HEXBYTES: {
             ++i;
@@ -594,7 +594,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
             if (tok_literal.type != STRING) {
                 error(2094, tok_literal, "string literal expected");
             }
-            return std::unique_ptr<Expression> { new BytesLiteralExpression(tok_literal, tokens[i].column, tok_literal.text) };
+            return std::unique_ptr<Expression> { new BytesLiteralExpression(tok_literal, tokens[i-1], tok_literal.text) };
         }
         case PLUS: {
             auto &tok_plus = tokens[i];
@@ -634,7 +634,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
             if (tokens[i].type == LPAREN) {
                 expr = parseFunctionCall(std::move(expr));
             }
-            return std::unique_ptr<Expression> { new NewClassExpression(tok_new, tokens[i].column, std::move(expr)) };
+            return std::unique_ptr<Expression> { new NewClassExpression(tok_new, tokens[i-1], std::move(expr)) };
         }
         case NIL: {
             auto &tok_nil = tokens[i];
@@ -700,9 +700,9 @@ std::unique_ptr<Expression> Parser::parseAtom()
                         }
                         ++i;
                         if (range != nullptr) {
-                            expr.reset(new RangeSubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(range)));
+                            expr.reset(new RangeSubscriptExpression(tok_lbracket, tokens[i-1], std::move(expr), std::move(range)));
                         } else {
-                            expr.reset(new SubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(index), first_from_end));
+                            expr.reset(new SubscriptExpression(tok_lbracket, tokens[i-1], std::move(expr), std::move(index), first_from_end));
                         }
                     } while (tokens[i-1].type == COMMA);
                 } else if (tokens[i].type == LPAREN) {
@@ -1041,7 +1041,7 @@ void Parser::parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vec
             if (tokens[i].type == DEFAULT) {
                 ++i;
                 if (tokens[i].type == UNDERSCORE) {
-                    default_value.reset(new DummyExpression(tokens[i], tokens[i].column, tokens[i].column));
+                    default_value.reset(new DummyExpression(tokens[i]));
                     ++i;
                 } else {
                     default_value = parseExpression();
@@ -2183,7 +2183,7 @@ std::unique_ptr<Statement> Parser::parseStatement()
         ++i;
         std::unique_ptr<Expression> rhs = parseExpression();
         std::vector<std::unique_ptr<Expression>> vars;
-        vars.emplace_back(new DummyExpression(tok_underscore, tok_underscore.column, tok_underscore.column));
+        vars.emplace_back(new DummyExpression(tok_underscore));
         return std::unique_ptr<Statement> { new AssignmentStatement(tok_assign, std::move(vars), std::move(rhs)) };
     } else {
         error(2033, tokens[i], "Identifier expected");

@@ -19,6 +19,7 @@ assert-empty-array.neon
 assert-enum.neon
 assert-fail2.neon
 assert-fail.neon
+assert-multiline.neon
 assert.neon
 assign2.neon
 assign-ignore.neon

@@ -9,6 +9,7 @@
 
 #include "ast.h"
 #include "bytecode.h"
+#include "lexer.h"
 #include "pt.h"
 #include "rtl_compile.h"
 #include "support.h"
@@ -3751,18 +3752,20 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             )
         )
     );
-    statements.push_back(
-        new ast::ExpressionStatement(
-            statement->token.line,
-            new ast::FunctionCall(
-                new ast::VariableExpression(fprint),
-                {
-                    new ast::VariableExpression(io_stderr),
-                    new ast::ConstantStringExpression(utf8string(statement->token.source_line()))
-                }
+    for (int line = e->get_start_token().line; line <= e->get_end_token().line; line++) {
+        statements.push_back(
+            new ast::ExpressionStatement(
+                statement->token.line,
+                new ast::FunctionCall(
+                    new ast::VariableExpression(fprint),
+                    {
+                        new ast::VariableExpression(io_stderr),
+                        new ast::ConstantStringExpression(utf8string(statement->token.source->source_line(line)))
+                    }
+                )
             )
-        )
-    );
+        );
+    }
     statements.push_back(
         new ast::ExpressionStatement(
             statement->token.line,
@@ -3777,7 +3780,18 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     );
     std::set<std::string> seen;
     for (auto part: parts) {
-        const std::string str = statement->token.source_line().substr(part->get_start_column()-1, part->get_end_column()-part->get_start_column());
+        const Token &start = part->get_start_token();
+        const Token &end = part->get_end_token();
+        std::string str;
+        if (start.line == end.line) {
+            str = start.source_line().substr(start.column-1, end.column + end.text.length() - start.column);
+        } else {
+            str = start.source_line().substr(start.column-1);
+            for (int line = start.line + 1; line < end.line; line++) {
+                str += start.source->source_line(line);
+            }
+            str += end.source_line().substr(0, end.column + end.text.length());
+        }
         if (seen.find(str) != seen.end()) {
             continue;
         }
@@ -3787,7 +3801,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         // parse tree so we can leverage the analyze step for InterpolatedStringExpression
         // (this takes care of the call to .toString()).
         std::vector<std::pair<std::unique_ptr<pt::Expression>, Token>> iparts;
-        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), 0, utf8string("  " + str + " is ")) }, Token()));
+        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), Token(), utf8string("  " + str + " is ")) }, Token()));
         iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(part) }, Token()));
         std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
         try {

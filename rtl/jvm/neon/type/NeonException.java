@@ -17,7 +17,7 @@ public class NeonException extends RuntimeException {
         this.code = code;
     }
     public String toString() {
-        return name + " (" + info + ")";
+        return name + " (" + info + ") (code " + code + ")";
     }
 
     public final String name;
