@@ -494,6 +494,10 @@ void exec_DIVN(TExecutor *self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
+   if (number_is_zero(b)) {
+        self->rtl_raise(self, "DivideByZeroException", "", BID_ZERO);
+        return;
+    }
     push(self->stack, cell_fromNumber(number_divide(a, b)));
 }
 
@@ -502,6 +506,10 @@ void exec_MODN(TExecutor *self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
+   if (number_is_zero(b)) {
+        self->rtl_raise(self, "DivideByZeroException", "", BID_ZERO);
+        return;
+    }
     push(self->stack, cell_fromNumber(number_modulo(a, b)));
 }
 

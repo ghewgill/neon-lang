@@ -8,7 +8,6 @@ complex-test.neon          # CALLMF
 datetime-test.neon         # module
 debug-example.neon         # module
 debug-server.neon          # module
-divide-by-zero.neon        # exception
 encoding-base64.neon       # module
 equality.neon              # PUSHI
 export-inline.neon         # export
