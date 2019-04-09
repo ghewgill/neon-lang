@@ -10,9 +10,10 @@ typedef enum tagEType {
     cAddress,
     cArray,
     cBoolean,
+    cBytes,
     cDictionary,
     cNumber,
-    cPointer,
+    cObject,
     cString,
 } CellType;
 
@@ -21,6 +22,7 @@ typedef struct tagTCell {
     struct tagTCell *address;
     struct tagTArray *array;
     struct tagTDictionary *dictionary;
+    struct tagTObject *object;
     struct tagTString *string;
     enum tagEType type;
     BOOL boolean;
@@ -39,13 +41,15 @@ void cell_freeCell(Cell *c);
 void cell_resetCell(Cell *c);
 
 Cell *cell_fromAddress(Cell *c);
-Cell *cell_fromArray(Cell *c);
 Cell *cell_fromBoolean(BOOL b);
+Cell *cell_fromBytes(struct tagTString *b);
+Cell *cell_fromDictionary(struct tagTDictionary *d);
 Cell *cell_fromPointer(void *p);
 Cell *cell_fromNumber(Number n);
+Cell *cell_fromObject(struct tagTObject *o);
 Cell *cell_fromCString(const char *s);
-Cell *cell_fromStringLength(const char *s, int64_t length);
 Cell *cell_fromString(struct tagTString *s);
+Cell *cell_fromStringLength(const char *s, int64_t length);
 Cell *cell_fromCell(const Cell *c);
 
 void cell_copyCell(Cell *dest, const Cell *source);

@@ -55,12 +55,7 @@ net-test.neon              # net
 net-test-udp.neon          # net
 new-init-module.neon       # class
 new-init.neon              # class
-object.neon                # object
-object-isa.neon            # object
-object-isa-case.neon       # object
-object-null.neon           # object
-object-operator.neon       # object
-object-record.neon         # object
+object-record.neon         # EQA
 os-test.neon               # os
 outer-issue192.neon        # PUSHPOL
 outer-parameter.neon       # PUSHPOL

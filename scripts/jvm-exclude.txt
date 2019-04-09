@@ -65,6 +65,7 @@ object-isa-case.neon       # object
 object-null.neon           # object
 object-operator.neon       # object
 object-record.neon         # object
+object-subscript.neon      # object
 os-test.neon               # module os
 outer-issue192.neon        # verifier
 outer-parameter.neon       # verifier
