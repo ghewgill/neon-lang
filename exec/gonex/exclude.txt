@@ -29,6 +29,7 @@ net-test.neon              # net$tcpSocket
 net-test-udp.neon          # net$udpSocket
 number-ceil.neon           # number formatting
 object-record.neon         # assignment to entry in nil map
+object-subscript.neon      # nil pointer dereference
 os-test.neon               # precision
 process-test.neon          # process$call
 sql-connect.neon           # sqlite

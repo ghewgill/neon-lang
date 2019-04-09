@@ -1,0 +1,61 @@
+VAR a: Object := [1, 2, 3]
+VAR d: Object := {"one": 1, "two": 2, "three": 3}
+VAR x: Object := 5
+VAR n: Object := NIL
+
+TRY
+    print(n[0])
+TRAP DynamicConversionException AS dc DO
+    print(dc.info)
+END TRY
+%= object is null
+
+TRY
+    print(str(a[n]))
+TRAP DynamicConversionException AS dc DO
+    print(dc.info)
+END TRY
+%= index is null
+
+TRY
+    VAR y: Object := x[0]
+    print(str(y))
+TRAP ObjectSubscriptException DO
+    print("ObjectSubscriptException")
+END TRY
+%= ObjectSubscriptException
+
+TRY
+    print(str(a["42"]))
+TRAP DynamicConversionException AS dc DO
+    print(dc.info)
+END TRY
+%= to Number
+
+TRY
+    print(str(a[42]))
+TRAP ArrayIndexException AS ai DO
+    print(ai.info)
+END TRY
+%= 42
+
+TRY
+    print(str(d[2]))
+TRAP DynamicConversionException AS dc DO
+    print(dc.info)
+END TRY
+%= to String
+
+TRY
+    print(str(d["five"]))
+TRAP ObjectSubscriptException AS os DO
+    print(os.info)
+END TRY
+%= "five"
+
+TRY
+    print(str(x[42]))
+TRAP ObjectSubscriptException AS os DO
+    print(os.info)
+END TRY
+%= 42

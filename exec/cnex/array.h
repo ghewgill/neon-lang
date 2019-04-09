@@ -12,4 +12,6 @@ Array *array_createArrayFromSize(size_t iElements);
 
 void array_freeArray(Array *self);
 
+Array *array_copyArray(Array *a);
+
 #endif

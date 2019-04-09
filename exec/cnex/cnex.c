@@ -316,7 +316,7 @@ void exec_PUSHY(TExecutor *self)
 {
     self->ip++;
     unsigned int val = exec_getOperand(self);
-    push(self->stack, cell_fromStringLength(self->object->strings[val]->data, self->object->strings[val]->length));
+    push(self->stack, cell_fromBytes(self->object->strings[val]));
 }
 
 void exec_PUSHPG(TExecutor *self)
@@ -409,6 +409,13 @@ void exec_LOADP(TExecutor *self)
     push(self->stack, cell_fromCell(addr));
 }
 
+void exec_LOADJ(TExecutor *self)
+{
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, cell_fromCell(addr));
+}
+
 void exec_STOREB(TExecutor *self)
 {
     self->ip++;
@@ -452,6 +459,13 @@ void exec_STORED(TExecutor *self)
 }
 
 void exec_STOREP(TExecutor *self)
+{
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_copyCell(addr, top(self->stack)); pop(self->stack);
+}
+
+void exec_STOREJ(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
@@ -1234,6 +1248,7 @@ void exec_loop(TExecutor *self)
             case LOADA:   exec_LOADA(self); break;
             case LOADD:   exec_LOADD(self); break;
             case LOADP:   exec_LOADP(self); break;
+            case LOADJ:   exec_LOADJ(self); break;
             case STOREB:  exec_STOREB(self); break;
             case STOREN:  exec_STOREN(self); break;
             case STORES:  exec_STORES(self); break;
@@ -1241,6 +1256,7 @@ void exec_loop(TExecutor *self)
             case STOREA:  exec_STOREA(self); break;
             case STORED:  exec_STORED(self); break;
             case STOREP:  exec_STOREP(self); break;
+            case STOREJ:  exec_STOREJ(self); break;
             case NEGN:    exec_NEGN(self); break;
             case ADDN:    exec_ADDN(self); break;
             case SUBN:    exec_SUBN(self); break;

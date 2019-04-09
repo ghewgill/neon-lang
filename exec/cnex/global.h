@@ -42,6 +42,7 @@ void array__slice(struct tagTExecutor *exec);
 void array__splice(struct tagTExecutor *exec);
 void array__toBytes__number(struct tagTExecutor *exec);
 void array__toString__number(struct tagTExecutor *exec);
+void array__toString__object(struct tagTExecutor *exec);
 void array__toString__string(struct tagTExecutor *exec);
 
 void boolean__toString(struct tagTExecutor *exec);
@@ -56,6 +57,24 @@ void bytes__toString(struct tagTExecutor *exec);
 void dictionary__keys(struct tagTExecutor *exec);
 
 void number__toString(struct tagTExecutor *exec);
+
+void object__getArray(struct tagTExecutor *exec);
+void object__makeArray(struct tagTExecutor *exec);
+void object__getBoolean(struct tagTExecutor *exec);
+void object__makeBoolean(struct tagTExecutor *exec);
+void object__getBytes(struct tagTExecutor *exec);
+void object__makeBytes(struct tagTExecutor *exec);
+void object__getDictionary(struct tagTExecutor *exec);
+void object__makeDictionary(struct tagTExecutor *exec);
+void object__makeNull(struct tagTExecutor *exec);
+void object__getNumber(struct tagTExecutor *exec);
+void object__makeNumber(struct tagTExecutor *exec);
+void object__getString(struct tagTExecutor *exec);
+void object__makeString(struct tagTExecutor *exec);
+void object__isNull(struct tagTExecutor *exec);
+void object__subscript(struct tagTExecutor *exec);
+void object__toString(struct tagTExecutor *exec);
+
 
 void string__append(struct tagTExecutor *exec);
 void string__toBytes(struct tagTExecutor *exec);
