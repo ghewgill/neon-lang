@@ -2451,38 +2451,80 @@ ast::ComparisonExpression *Analyzer::analyze_comparison(const Token &token, cons
     if (convert2(ast::TYPE_BYTES, left, right)) {
         return new ast::BytesComparisonExpression(left, right, comp);
     }
-    if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
-            error(3032, token, "comparison not available for Array");
+    {
+        const ast::TypeArray *ta1 = dynamic_cast<const ast::TypeArray *>(left->type);
+        const ast::TypeArray *ta2 = dynamic_cast<const ast::TypeArray *>(right->type);
+        if (ta1 != nullptr && ta2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3032, token, "comparison not available for Array");
+            }
+            if (ta1->is_structure_compatible(ta2)) {
+                return new ast::ArrayComparisonExpression(left, right, comp);
+            }
         }
-        return new ast::ArrayComparisonExpression(left, right, comp);
     }
-    if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr && dynamic_cast<const ast::TypeDictionary *>(right->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
-            error(3033, token, "comparison not available for Dictionary");
+    {
+        const ast::TypeDictionary *td1 = dynamic_cast<const ast::TypeDictionary *>(left->type);
+        const ast::TypeDictionary *td2 = dynamic_cast<const ast::TypeDictionary *>(right->type);
+        if (td1 != nullptr && td2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3033, token, "comparison not available for Dictionary");
+            }
+            if (td1->is_structure_compatible(td2)) {
+                return new ast::DictionaryComparisonExpression(left, right, comp);
+            }
         }
-        return new ast::DictionaryComparisonExpression(left, right, comp);
     }
-    if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr && dynamic_cast<const ast::TypeRecord *>(right->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
-            error(3034, token, "comparison not available for RECORD");
+    {
+        const ast::TypeRecord *tr1 = dynamic_cast<const ast::TypeRecord *>(left->type);
+        const ast::TypeRecord *tr2 = dynamic_cast<const ast::TypeRecord *>(right->type);
+        if (tr1 != nullptr && tr2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3034, token, "comparison not available for RECORD");
+            }
+            if (tr1->is_structure_compatible(tr2)) {
+                return new ast::RecordComparisonExpression(left, right, comp);
+            }
         }
-        return new ast::RecordComparisonExpression(left, right, comp);
     }
-    if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr && dynamic_cast<const ast::TypeEnum *>(right->type) != nullptr) {
-        return new ast::EnumComparisonExpression(left, right, comp);
-    }
-    if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr && dynamic_cast<const ast::TypePointer *>(right->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
-            error(3100, token, "comparison not available for POINTER");
+    {
+        const ast::TypeEnum *te1 = dynamic_cast<const ast::TypeEnum *>(left->type);
+        const ast::TypeEnum *te2 = dynamic_cast<const ast::TypeEnum *>(right->type);
+        if (te1 != nullptr && te2 != nullptr) {
+            if (te1->is_structure_compatible(te2)) {
+                return new ast::EnumComparisonExpression(left, right, comp);
+            }
         }
-        return new ast::PointerComparisonExpression(left, right, comp);
     }
-    if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr && dynamic_cast<const ast::TypeFunctionPointer *>(right->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
-            error(3180, token, "comparison not available for FUNCTION");
+    {
+        const ast::TypePointer *tp1 = dynamic_cast<const ast::TypePointer *>(left->type);
+        const ast::TypePointer *tp2 = dynamic_cast<const ast::TypePointer *>(right->type);
+        if (tp1 != nullptr && tp2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3100, token, "comparison not available for POINTER");
+            }
+            if (tp1->is_structure_compatible(tp2)) {
+                return new ast::PointerComparisonExpression(left, right, comp);
+            }
+            if (tp1->reftype == nullptr || tp2->reftype == nullptr) {
+                return new ast::PointerComparisonExpression(left, right, comp);
+            }
         }
-        return new ast::FunctionPointerComparisonExpression(left, right, comp);
+    }
+    {
+        const ast::TypeFunctionPointer *tf1 = dynamic_cast<const ast::TypeFunctionPointer *>(left->type);
+        const ast::TypeFunctionPointer *tf2 = dynamic_cast<const ast::TypeFunctionPointer *>(right->type);
+        if (tf1 != nullptr && tf2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3180, token, "comparison not available for FUNCTION");
+            }
+            if (tf1->is_structure_compatible(tf2)) {
+                return new ast::FunctionPointerComparisonExpression(left, right, comp);
+            }
+            if (tf1->functype == nullptr || tf2->functype == nullptr) {
+                return new ast::FunctionPointerComparisonExpression(left, right, comp);
+            }
+        }
     }
     error(3030, token, "type mismatch");
 }
