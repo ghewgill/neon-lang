@@ -41,3 +41,4 @@
 [submodule "lib/compress"]
 	path = lib/compress
 	url = https://github.com/ghewgill/neon-compress
+	ignore = untracked
