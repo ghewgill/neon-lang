@@ -38,6 +38,7 @@ const (
 	LOADD    = iota // load dictionary
 	LOADP    = iota // load pointer
 	LOADJ    = iota // load object
+	LOADV    = iota // load voidptr
 	STOREB   = iota // store boolean
 	STOREN   = iota // store number
 	STORES   = iota // store string
@@ -46,6 +47,7 @@ const (
 	STORED   = iota // store dictionary
 	STOREP   = iota // store pointer
 	STOREJ   = iota // store object
+	STOREV   = iota // store voidptr
 	NEGN     = iota // negate number
 	ADDN     = iota // add number
 	SUBN     = iota // subtract number
@@ -79,6 +81,8 @@ const (
 	NED      = iota // compare unequal dictionary
 	EQP      = iota // compare equal pointer
 	NEP      = iota // compare unequal pointer
+	EQV      = iota // compare equal voidptr
+	NEV      = iota // compare unequal voidptr
 	ANDB     = iota // and boolean
 	ORB      = iota // or boolean
 	NOTB     = iota // not boolean
@@ -963,6 +967,8 @@ func (self *executor) run() {
 			self.op_loadp()
 		case LOADJ:
 			self.op_loadj()
+		case LOADV:
+			self.op_loadv()
 		case STOREB:
 			self.op_storeb()
 		case STOREN:
@@ -979,6 +985,8 @@ func (self *executor) run() {
 			self.op_storep()
 		case STOREJ:
 			self.op_storej()
+		case STOREV:
+			self.op_storev()
 		case NEGN:
 			self.op_negn()
 		case ADDN:
@@ -1045,6 +1053,10 @@ func (self *executor) run() {
 			self.op_eqp()
 		case NEP:
 			self.op_nep()
+		case EQV:
+			self.op_eqv()
+		case NEV:
+			self.op_nev()
 		case ANDB:
 			self.op_andb()
 		case ORB:
@@ -1267,6 +1279,12 @@ func (self *executor) op_loadj() {
 	self.push(ref.load())
 }
 
+func (self *executor) op_loadv() {
+	self.ip++
+	ref := self.pop().ref
+	self.push(ref.load())
+}
+
 func (self *executor) op_storeb() {
 	self.ip++
 	ref := self.pop().ref
@@ -1317,6 +1335,13 @@ func (self *executor) op_storep() {
 }
 
 func (self *executor) op_storej() {
+	self.ip++
+	ref := self.pop().ref
+	val := self.pop()
+	ref.store(val)
+}
+
+func (self *executor) op_storev() {
 	self.ip++
 	ref := self.pop().ref
 	val := self.pop()
@@ -1543,6 +1568,14 @@ func (self *executor) op_nep() {
 	b := self.pop().ref
 	a := self.pop().ref
 	self.push(make_cell_bool(a != b))
+}
+
+func (self *executor) op_eqv() {
+	assert(false, "unimplemented eqv")
+}
+
+func (self *executor) op_nev() {
+	assert(false, "unimplemented nev")
 }
 
 func (self *executor) op_andb() {

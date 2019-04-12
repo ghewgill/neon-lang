@@ -36,6 +36,7 @@ public:
     explicit Cell(const std::shared_ptr<Object> &value);
     explicit Cell(const std::vector<Cell> &value, bool alloced = false);
     explicit Cell(const std::map<utf8string, Cell> &value);
+    static Cell makeOther(void *p) { Cell r; r.type = Type::Other; r.other_ptr = p; return r; }
     Cell &operator=(const Cell &rhs);
     bool operator==(const Cell &rhs) const;
 
@@ -48,7 +49,8 @@ public:
         Bytes,
         Object,
         Array,
-        Dictionary
+        Dictionary,
+        Other
     };
     Type get_type() const { return type; }
 
@@ -68,6 +70,7 @@ public:
     std::map<utf8string, Cell> &dictionary_for_write();
     Cell &dictionary_index_for_read(const utf8string &index);
     Cell &dictionary_index_for_write(const utf8string &index);
+    void *&other();
 
     struct GC {
         explicit GC(bool alloced = false): alloced(alloced), marked(false) {}
@@ -88,6 +91,7 @@ private:
     std::shared_ptr<Object> object_ptr;
     std::shared_ptr<std::vector<Cell>> array_ptr;
     std::shared_ptr<std::map<utf8string, Cell>> dictionary_ptr;
+    void *other_ptr;
 };
 
 #endif

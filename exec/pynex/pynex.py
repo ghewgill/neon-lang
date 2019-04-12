@@ -316,6 +316,11 @@ class Executor:
         addr = self.stack.pop()
         self.stack.append(addr.copy())
 
+    def LOADV(self):
+        self.ip += 1
+        addr = self.stack.pop()
+        self.stack.append(addr.copy())
+
     def STOREB(self):
         self.ip += 1
         addr = self.stack.pop()
@@ -359,6 +364,12 @@ class Executor:
         addr.value = value.value
 
     def STOREJ(self):
+        self.ip += 1
+        addr = self.stack.pop()
+        value = self.stack.pop()
+        addr.value = value.value
+
+    def STOREV(self):
         self.ip += 1
         addr = self.stack.pop()
         value = self.stack.pop()
@@ -534,6 +545,12 @@ class Executor:
         assert False
 
     def NEP(self):
+        assert False
+
+    def EQV(self):
+        assert False
+
+    def NEV(self):
         assert False
 
     def ANDB(self):
@@ -834,6 +851,7 @@ Dispatch = [
     Executor.LOADD,
     Executor.LOADP,
     Executor.LOADJ,
+    Executor.LOADV,
     Executor.STOREB,
     Executor.STOREN,
     Executor.STORES,
@@ -842,6 +860,7 @@ Dispatch = [
     Executor.STORED,
     Executor.STOREP,
     Executor.STOREJ,
+    Executor.STOREV,
     Executor.NEGN,
     Executor.ADDN,
     Executor.SUBN,
@@ -875,6 +894,8 @@ Dispatch = [
     Executor.NED,
     Executor.EQP,
     Executor.NEP,
+    Executor.EQV,
+    Executor.NEV,
     Executor.ANDB,
     Executor.ORB,
     Executor.NOTB,

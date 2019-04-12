@@ -20,6 +20,7 @@ enum Opcode {
     LOADD,      // load dictionary
     LOADP,      // load pointer
     LOADJ,      // load object
+    LOADV,      // load voidptr
     STOREB,     // store boolean
     STOREN,     // store number
     STORES,     // store string
@@ -28,6 +29,7 @@ enum Opcode {
     STORED,     // store dictionary
     STOREP,     // store pointer
     STOREJ,     // store object
+    STOREV,     // store voidptr
     NEGN,       // negate number
     ADDN,       // add number
     SUBN,       // subtract number
@@ -61,6 +63,8 @@ enum Opcode {
     NED,        // compare unequal dictionary
     EQP,        // compare equal pointer
     NEP,        // compare unequal pointer
+    EQV,        // compare equal voidptr
+    NEV,        // compare unequal voidptr
     ANDB,       // and boolean
     ORB,        // or boolean
     NOTB,       // not boolean

@@ -303,6 +303,7 @@ public:
     void exec_LOADD();
     void exec_LOADP();
     void exec_LOADJ();
+    void exec_LOADV();
     void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
@@ -311,6 +312,7 @@ public:
     void exec_STORED();
     void exec_STOREP();
     void exec_STOREJ();
+    void exec_STOREV();
     void exec_NEGN();
     void exec_ADDN();
     void exec_SUBN();
@@ -344,6 +346,8 @@ public:
     void exec_NED();
     void exec_EQP();
     void exec_NEP();
+    void exec_EQV();
+    void exec_NEV();
     void exec_ANDB();
     void exec_ORB();
     void exec_NOTB();
@@ -520,12 +524,12 @@ void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
 
 void *cell_get_pointer(const struct Ne_Cell *cell)
 {
-    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->address();
+    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->other();
 }
 
 void cell_set_pointer(struct Ne_Cell *cell, void *p)
 {
-    reinterpret_cast<Cell *>(cell)->address() = reinterpret_cast<Cell *>(p);
+    reinterpret_cast<Cell *>(cell)->other() = p;
 }
 
 int cell_get_array_size(const struct Ne_Cell *cell)
@@ -579,7 +583,7 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
         return;
     }
     std::vector<Cell> a = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(callback))->array();
-    Module *mod = reinterpret_cast<Module *>(a[0].address());
+    Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (mod == nullptr || number_is_zero(nindex) || not number_is_integer(nindex)) {
         g_executor->raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
@@ -874,6 +878,13 @@ void Executor::exec_LOADJ()
     stack.push(Cell(addr->object()));
 }
 
+void Executor::exec_LOADV()
+{
+    ip++;
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell::makeOther(addr->other()));
+}
+
 void Executor::exec_STOREB()
 {
     ip++;
@@ -931,6 +942,13 @@ void Executor::exec_STOREP()
 }
 
 void Executor::exec_STOREJ()
+{
+    ip++;
+    Cell *addr = stack.top().address(); stack.pop();
+    *addr = stack.top(); stack.pop();
+}
+
+void Executor::exec_STOREV()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
@@ -1220,6 +1238,22 @@ void Executor::exec_NEP()
     stack.push(Cell(a != b));
 }
 
+void Executor::exec_EQV()
+{
+    ip++;
+    void *b = stack.top().other(); stack.pop();
+    void *a = stack.top().other(); stack.pop();
+    stack.push(Cell(a == b));
+}
+
+void Executor::exec_NEV()
+{
+    ip++;
+    void *b = stack.top().other(); stack.pop();
+    void *a = stack.top().other(); stack.pop();
+    stack.push(Cell(a != b));
+}
+
 void Executor::exec_ANDB()
 {
     ip++;
@@ -1449,7 +1483,7 @@ void Executor::exec_CALLI()
         return;
     }
     std::vector<Cell> a = stack.top().array(); stack.pop();
-    Module *mod = reinterpret_cast<Module *>(a[0].address());
+    Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (number_is_zero(nindex) || not number_is_integer(nindex)) {
         raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
@@ -1670,8 +1704,7 @@ void Executor::exec_ALLOC()
     stack.push(Cell(cell));
     allocations++;
     if (param_garbage_collection_interval > 0 && allocations >= param_garbage_collection_interval) {
-        // https://github.com/ghewgill/neon-lang/issues/180
-        // garbage_collect();
+        garbage_collect();
     }
 }
 
@@ -1810,7 +1843,7 @@ void Executor::exec_DROPN()
 void Executor::exec_PUSHM()
 {
     ip++;
-    stack.push(Cell(reinterpret_cast<Cell *>(module)));
+    stack.push(Cell::makeOther(module));
 }
 
 void Executor::exec_CALLV()
@@ -1824,8 +1857,8 @@ void Executor::exec_CALLV()
     std::vector<Cell> &pi = stack.top().array_for_write();
     Cell *instance = pi[0].address();
     size_t interface_index = number_to_uint32(pi[1].number());
-    Module *m = reinterpret_cast<Module *>(instance->array_for_write()[0].array_for_write()[0].address());
-    Bytecode::ClassInfo *classinfo = reinterpret_cast<Bytecode::ClassInfo *>(instance->array_for_write()[0].array_for_write()[1].address());
+    Module *m = reinterpret_cast<Module *>(instance->array_for_write()[0].array_for_write()[0].other());
+    Bytecode::ClassInfo *classinfo = reinterpret_cast<Bytecode::ClassInfo *>(instance->array_for_write()[0].array_for_write()[1].other());
     stack.pop();
     invoke(m, classinfo->interfaces[interface_index][val]);
 }
@@ -1839,8 +1872,8 @@ void Executor::exec_PUSHCI()
         for (auto &c: module->object.classes) {
             if (c.name == val) {
                 Cell ci;
-                ci.array_for_write().push_back(Cell(reinterpret_cast<Cell *>(module)));
-                ci.array_for_write().push_back(Cell(reinterpret_cast<Cell *>(&c)));
+                ci.array_for_write().push_back(Cell::makeOther(module));
+                ci.array_for_write().push_back(Cell::makeOther(&c));
                 stack.push(ci);
                 return;
             }
@@ -1854,8 +1887,8 @@ void Executor::exec_PUSHCI()
             for (auto &c: m->object.classes) {
                 if (m->object.strtable[c.name] == methodname) {
                     Cell ci;
-                    ci.array_for_write().push_back(Cell(reinterpret_cast<Cell *>(m)));
-                    ci.array_for_write().push_back(Cell(reinterpret_cast<Cell *>(&c)));
+                    ci.array_for_write().push_back(Cell::makeOther(m));
+                    ci.array_for_write().push_back(Cell::makeOther(&c));
                     stack.push(ci);
                     return;
                 }
@@ -2017,6 +2050,8 @@ static void mark(Cell *c)
                     todo.push_back(const_cast<Cell *>(&x.second));
                 }
                 break;
+            case Cell::Type::Other:
+                break;
         }
     }
 }
@@ -2161,6 +2196,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case LOADD:   exec_LOADD(); break;
             case LOADP:   exec_LOADP(); break;
             case LOADJ:   exec_LOADJ(); break;
+            case LOADV:   exec_LOADV(); break;
             case STOREB:  exec_STOREB(); break;
             case STOREN:  exec_STOREN(); break;
             case STORES:  exec_STORES(); break;
@@ -2169,6 +2205,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case STORED:  exec_STORED(); break;
             case STOREP:  exec_STOREP(); break;
             case STOREJ:  exec_STOREJ(); break;
+            case STOREV:  exec_STOREV(); break;
             case NEGN:    exec_NEGN(); break;
             case ADDN:    exec_ADDN(); break;
             case SUBN:    exec_SUBN(); break;
@@ -2202,6 +2239,8 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case NED:     exec_NED(); break;
             case EQP:     exec_EQP(); break;
             case NEP:     exec_NEP(); break;
+            case EQV:     exec_EQV(); break;
+            case NEV:     exec_NEV(); break;
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(); break;
@@ -2306,6 +2345,10 @@ template <> struct default_value_writer<Cell> {
                 d.close();
                 break;
             }
+            case Cell::Type::Other:
+                writer.write("type", "other");
+                writer.write("value", std::to_string(reinterpret_cast<intptr_t>(cell.other())));
+                break;
         }
         writer.close();
     }

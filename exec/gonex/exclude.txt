@@ -15,6 +15,8 @@ fork.neon                  # posix$fork
 for.neon                   # decimal
 function-pointer-nowhere.neon # nowhere
 gc1.neon                   # gc
+gc2.neon                   # gc
+gc3.neon                   # gc
 gc-array.neon              # gc
 gc-long-chain.neon         # gc
 index.neon                 # copy semantics

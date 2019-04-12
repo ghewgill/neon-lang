@@ -102,6 +102,14 @@ Cell *cell_fromCString(const char *s)
     return x;
 }
 
+Cell *cell_fromOther(void *p)
+{
+    Cell *x = cell_newCell();
+    x->type = cOther;
+    x->other = p;
+    return x;
+}
+
 Cell *cell_fromCell(const Cell *c)
 {
     assert(c != NULL);
@@ -123,6 +131,7 @@ Cell *cell_fromCell(const Cell *c)
             x->string = NULL;
             x->address = NULL;
             x->dictionary = NULL;
+            x->other = NULL;
             break;
         case cBoolean:
             x->boolean = c->boolean;
@@ -132,6 +141,7 @@ Cell *cell_fromCell(const Cell *c)
             x->address = NULL;
             x->array = NULL;
             x->dictionary = NULL;
+            x->other = NULL;
             break;
         case cBytes:
             x->string = string_copyString(c->string);
@@ -150,12 +160,14 @@ Cell *cell_fromCell(const Cell *c)
             x->string = NULL;
             x->address = NULL;
             x->array = NULL;
+            x->other = NULL;
             break;
         case cObject:
             x->object = c->object;
             x->object->refcount++;
             x->boolean = FALSE;
             x->dictionary = NULL;
+            x->other = NULL;
             x->number = number_from_uint32(0);
             x->string = NULL;
             x->address = NULL;
@@ -169,6 +181,7 @@ Cell *cell_fromCell(const Cell *c)
             x->boolean = FALSE;
             x->array = NULL;
             x->dictionary = NULL;
+            x->other = NULL;
             break;
         case cString:
             x->string = string_copyString(c->string);
@@ -178,7 +191,16 @@ Cell *cell_fromCell(const Cell *c)
             x->boolean = FALSE;
             x->array = NULL;
             x->dictionary = NULL;
+            x->other = NULL;
             break;
+        case cOther:
+            x->other = c->other;
+            x->string = NULL;
+            x->address = NULL;
+            x->number = number_from_uint32(0);
+            x->boolean = FALSE;
+            x->array = NULL;
+            x->dictionary = NULL;
         case cNothing:
             assert(c->type == cNothing);
             break;
@@ -190,6 +212,7 @@ Cell *cell_fromCell(const Cell *c)
             x->boolean = FALSE;
             x->array = NULL;
             x->dictionary = NULL;
+            x->other = NULL;
             break;
     }
     return x;
@@ -333,6 +356,9 @@ TString *cell_toString(Cell *c)
         }
         case cString:
             r = string_appendString(r, c->string);
+            break;
+        case cOther:
+            r = string_appendCString(r, "<voidptr>");
             break;
         default:
             fatal_error("Unhandled cell type: %d", c->type);
@@ -480,6 +506,7 @@ int32_t cell_compareCell(const Cell * s, const Cell * d)
         case cNumber:       return !number_is_equal(s->number, d->number);
         case cObject:       assert(FALSE); return 0;
         case cString:       return string_compareString(s->string, d->string);
+        case cOther:        return s->other != d->other;
     }
     return 1;
 }
@@ -498,6 +525,7 @@ Cell *cell_newCell(void)
     c->boolean = FALSE;
     c->array = NULL;
     c->dictionary = NULL;
+    c->other = NULL;
     c->type = cNothing;
     return c;
 }
@@ -519,6 +547,7 @@ void cell_resetCell(Cell *c)
     c->address = NULL;
     c->boolean = FALSE;
     c->dictionary = NULL;
+    c->other = NULL;
     c->type = cNothing;
 }
 

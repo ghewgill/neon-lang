@@ -146,6 +146,7 @@ void Emitter::emit(Opcode b)
             case LOADD:     break;
             case LOADP:     break;
             case LOADJ:     break;
+            case LOADV:     break;
             case STOREB:    stack_depth -= 2; break;
             case STOREN:    stack_depth -= 2; break;
             case STORES:    stack_depth -= 2; break;
@@ -154,6 +155,7 @@ void Emitter::emit(Opcode b)
             case STORED:    stack_depth -= 2; break;
             case STOREP:    stack_depth -= 2; break;
             case STOREJ:    stack_depth -= 2; break;
+            case STOREV:    stack_depth -= 2; break;
             case NEGN:      break;
             case ADDN:      stack_depth -= 1; break;
             case SUBN:      stack_depth -= 1; break;
@@ -187,6 +189,8 @@ void Emitter::emit(Opcode b)
             case NED:       stack_depth -= 1; break;
             case EQP:       stack_depth -= 1; break;
             case NEP:       stack_depth -= 1; break;
+            case EQV:       stack_depth -= 1; break;
+            case NEV:       stack_depth -= 1; break;
             case ANDB:      stack_depth -= 1; break;
             case ORB:       stack_depth -= 1; break;
             case NOTB:      break;
@@ -852,12 +856,20 @@ std::string ast::TypeClass::get_type_descriptor(Emitter &emitter) const
 
 void ast::TypePointer::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADP);
+    if (reftype != nullptr) {
+        emitter.emit(LOADP);
+    } else {
+        emitter.emit(LOADV);
+    }
 }
 
 void ast::TypePointer::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREP);
+    if (reftype != nullptr) {
+        emitter.emit(STOREP);
+    } else {
+        emitter.emit(STOREV);
+    }
 }
 
 void ast::TypePointer::generate_call(Emitter &) const
@@ -1365,7 +1377,7 @@ void ast::ConstantNilExpression::generate_expr(Emitter &emitter) const
 void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(PUSHN, number_from_uint32(0));
-    emitter.emit(PUSHNIL);
+    emitter.emit(PUSHM);
     emitter.emit(CONSA, 2);
 }
 

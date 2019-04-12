@@ -30,11 +30,11 @@ namespace rtl {
 
 namespace io {
 
-Cell VAR_stdin(reinterpret_cast<Cell *>(stdin));
-Cell VAR_stdout(reinterpret_cast<Cell *>(stdout));
-Cell VAR_stderr(reinterpret_cast<Cell *>(stderr));
+Cell VAR_stdin(Cell::makeOther(stdin));
+Cell VAR_stdout(Cell::makeOther(stdout));
+Cell VAR_stderr(Cell::makeOther(stderr));
 
-void close(Cell **ppf)
+void close(void **ppf)
 {
     FILE *f = check_file(*ppf);
     fclose(f);

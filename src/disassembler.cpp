@@ -40,6 +40,7 @@ private:
     void disasm_LOADD();
     void disasm_LOADP();
     void disasm_LOADJ();
+    void disasm_LOADV();
     void disasm_STOREB();
     void disasm_STOREN();
     void disasm_STORES();
@@ -48,6 +49,7 @@ private:
     void disasm_STORED();
     void disasm_STOREP();
     void disasm_STOREJ();
+    void disasm_STOREV();
     void disasm_NEGN();
     void disasm_ADDN();
     void disasm_SUBN();
@@ -81,6 +83,8 @@ private:
     void disasm_NED();
     void disasm_EQP();
     void disasm_NEP();
+    void disasm_EQV();
+    void disasm_NEV();
     void disasm_ANDB();
     void disasm_ORB();
     void disasm_NOTB();
@@ -243,6 +247,12 @@ void InstructionDisassembler::disasm_LOADJ()
     index++;
 }
 
+void InstructionDisassembler::disasm_LOADV()
+{
+    out << "LOADV";
+    index++;
+}
+
 void InstructionDisassembler::disasm_STOREB()
 {
     out << "STOREB";
@@ -288,6 +298,12 @@ void InstructionDisassembler::disasm_STOREP()
 void InstructionDisassembler::disasm_STOREJ()
 {
     out << "STOREJ";
+    index++;
+}
+
+void InstructionDisassembler::disasm_STOREV()
+{
+    out << "STOREV";
     index++;
 }
 
@@ -486,6 +502,18 @@ void InstructionDisassembler::disasm_EQP()
 void InstructionDisassembler::disasm_NEP()
 {
     out << "NEP";
+    index++;
+}
+
+void InstructionDisassembler::disasm_EQV()
+{
+    out << "EQV";
+    index++;
+}
+
+void InstructionDisassembler::disasm_NEV()
+{
+    out << "NEV";
     index++;
 }
 
@@ -772,6 +800,7 @@ void InstructionDisassembler::disassemble()
         case LOADD:   disasm_LOADD(); break;
         case LOADP:   disasm_LOADP(); break;
         case LOADJ:   disasm_LOADJ(); break;
+        case LOADV:   disasm_LOADV(); break;
         case STOREB:  disasm_STOREB(); break;
         case STOREN:  disasm_STOREN(); break;
         case STORES:  disasm_STORES(); break;
@@ -780,6 +809,7 @@ void InstructionDisassembler::disassemble()
         case STORED:  disasm_STORED(); break;
         case STOREP:  disasm_STOREP(); break;
         case STOREJ:  disasm_STOREJ(); break;
+        case STOREV:  disasm_STOREV(); break;
         case NEGN:    disasm_NEGN(); break;
         case ADDN:    disasm_ADDN(); break;
         case SUBN:    disasm_SUBN(); break;
@@ -813,6 +843,8 @@ void InstructionDisassembler::disassemble()
         case NED:     disasm_NED(); break;
         case EQP:     disasm_EQP(); break;
         case NEP:     disasm_NEP(); break;
+        case EQV:     disasm_EQV(); break;
+        case NEV:     disasm_NEV(); break;
         case ANDB:    disasm_ANDB(); break;
         case ORB:     disasm_ORB(); break;
         case NOTB:    disasm_NOTB(); break;

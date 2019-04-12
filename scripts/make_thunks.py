@@ -39,8 +39,8 @@ CppFromAstParam = {
     ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_GENERIC", OUT): "Cell",
     ("TYPE_POINTER", VALUE): "void *",
-    ("TYPE_POINTER", REF): "Cell **",
-    ("TYPE_POINTER", OUT): "Cell *",
+    ("TYPE_POINTER", REF): "void **",
+    ("TYPE_POINTER", OUT): "void *",
     ("TYPE_BOOLEAN", VALUE): "bool",
     ("TYPE_BOOLEAN", REF): "bool *",
     ("TYPE_NUMBER", VALUE): "Number",
@@ -69,7 +69,7 @@ CppFromAstReturn = {
     ("TYPE_GENERIC", VALUE): "Cell",
     ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_POINTER", VALUE): "void *",
-    ("TYPE_POINTER", REF): "Cell **",
+    ("TYPE_POINTER", REF): "void **",
     ("TYPE_BOOLEAN", VALUE): "bool",
     ("TYPE_BOOLEAN", REF): "bool *",
     ("TYPE_NUMBER", VALUE): "Number",
@@ -89,8 +89,8 @@ CppFromAstReturn = {
 
 CppFromAstArg = {
     ("TYPE_POINTER", VALUE): "void *",
-    ("TYPE_POINTER", REF): "Cell **",
-    ("TYPE_POINTER", OUT): "Cell **",
+    ("TYPE_POINTER", REF): "void **",
+    ("TYPE_POINTER", OUT): "void **",
     ("TYPE_GENERIC", VALUE): "Cell &",
     ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_GENERIC", OUT): "Cell *",
@@ -145,8 +145,8 @@ JvmFromAst = {
 }
 
 CellField = {
-    ("TYPE_POINTER", VALUE): "address()",
-    ("TYPE_POINTER", REF): "address()->address()",
+    ("TYPE_POINTER", VALUE): "other()",
+    ("TYPE_POINTER", REF): "address()->other()",
     ("TYPE_BOOLEAN", VALUE): "boolean()",
     ("TYPE_BOOLEAN", REF): "address()->boolean()",
     ("TYPE_NUMBER", VALUE): "number()",
@@ -372,7 +372,7 @@ with open("src/thunks.inc", "w") as inc:
                 print >>inc, "        for (auto x: r) t[x.first] = Cell(x.second);"
                 print >>inc, "        stack.push(Cell(t));"
             elif rtype[0] == "TYPE_POINTER":
-                print >>inc, "        stack.push(Cell(static_cast<Cell *>(r)));"
+                print >>inc, "        stack.push(Cell::makeOther(r));"
             else:
                 print >>inc, "        stack.push(Cell(r));"
         for i, a in reversed(list(enumerate(params))):

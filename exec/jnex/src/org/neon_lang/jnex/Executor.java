@@ -113,6 +113,7 @@ class Executor {
                 case LOADD: doLOADD(); break;
                 case LOADP: doLOADP(); break;
                 case LOADJ: doLOADJ(); break;
+                //case LOADV
                 case STOREB: doSTOREB(); break;
                 case STOREN: doSTOREN(); break;
                 case STORES: doSTORES(); break;
@@ -121,6 +122,7 @@ class Executor {
                 case STORED: doSTORED(); break;
                 case STOREP: doSTOREP(); break;
                 case STOREJ: doSTOREJ(); break;
+                //case STOREV
                 case NEGN: doNEGN(); break;
                 case ADDN: doADDN(); break;
                 case SUBN: doSUBN(); break;
@@ -154,6 +156,8 @@ class Executor {
                 //case NED
                 case EQP: doEQP(); break;
                 case NEP: doNEP(); break;
+                //case EQV
+                //case NEV
                 //case ANDB
                 //case ORB
                 case NOTB: doNOTB(); break;
@@ -992,6 +996,7 @@ class Executor {
         LOADD,
         LOADP,
         LOADJ,
+        LOADV,
         STOREB,
         STOREN,
         STORES,
@@ -1000,6 +1005,7 @@ class Executor {
         STORED,
         STOREP,
         STOREJ,
+        STOREV,
         NEGN,
         ADDN,
         SUBN,
@@ -1033,6 +1039,8 @@ class Executor {
         NED,
         EQP,
         NEP,
+        EQV,
+        NEV,
         ANDB,
         ORB,
         NOTB,

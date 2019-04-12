@@ -15,6 +15,7 @@ typedef enum tagEType {
     cNumber,
     cObject,
     cString,
+    cOther,
 } CellType;
 
 typedef struct tagTCell {
@@ -26,6 +27,7 @@ typedef struct tagTCell {
     struct tagTString *string;
     enum tagEType type;
     BOOL boolean;
+    void *other;
 } Cell;
 
 Cell *cell_createAddressCell(Cell *a);
@@ -50,6 +52,7 @@ Cell *cell_fromObject(struct tagTObject *o);
 Cell *cell_fromCString(const char *s);
 Cell *cell_fromString(struct tagTString *s);
 Cell *cell_fromStringLength(const char *s, int64_t length);
+Cell *cell_fromOther(void *p);
 Cell *cell_fromCell(const Cell *c);
 
 void cell_copyCell(Cell *dest, const Cell *source);
