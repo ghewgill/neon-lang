@@ -79,7 +79,7 @@ void *spawn(const utf8string &command)
     return p;
 }
 
-Number wait(Cell **process)
+Number wait(void **process)
 {
     DWORD r;
     {

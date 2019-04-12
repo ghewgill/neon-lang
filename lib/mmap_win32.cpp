@@ -26,7 +26,7 @@ namespace rtl {
 
 namespace mmap {
 
-void close(Cell **ppf)
+void close(void **ppf)
 {
     MemoryFile *f = check_file(*ppf);
     UnmapViewOfFile(f->view);
