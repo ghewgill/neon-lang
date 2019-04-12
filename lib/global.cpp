@@ -650,7 +650,7 @@ std::shared_ptr<Object> object__subscript(const std::shared_ptr<Object> &obj, co
         throw RtlException(Exception_DynamicConversionException, utf8string("index is null"));
     }
     std::shared_ptr<Object> r;
-    if (obj == nullptr || not obj->subscript(index, r)) {
+    if (not obj->subscript(index, r)) {
         throw RtlException(Exception_ObjectSubscriptException, index->toString());
     }
     return r;
