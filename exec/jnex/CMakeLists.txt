@@ -10,6 +10,14 @@ set(JNEX
     src/org/neon_lang/jnex/Bytecode.java
     src/org/neon_lang/jnex/Cell.java
     src/org/neon_lang/jnex/Executor.java
+    src/org/neon_lang/jnex/NeObject.java
+    src/org/neon_lang/jnex/NeObjectArray.java
+    src/org/neon_lang/jnex/NeObjectBoolean.java
+    src/org/neon_lang/jnex/NeObjectBytes.java
+    src/org/neon_lang/jnex/NeObjectDictionary.java
+    src/org/neon_lang/jnex/NeObjectNumber.java
+    src/org/neon_lang/jnex/NeObjectString.java
+    src/org/neon_lang/jnex/NeonException.java
 )
 string(REPLACE ".java" ".class" JNEX_CLASSES "${JNEX}")
 foreach (java ${JNEX})

@@ -144,6 +144,16 @@ func get_vint(bytes []byte, i *int) int {
 	return r
 }
 
+type neonexception struct {
+	name string
+	info string
+	code float64
+}
+
+func (e *neonexception) Error() string {
+	return fmt.Sprintf("%s (%s)", e.name, e.info);
+}
+
 type object interface {
 	getBoolean() (bool, error)
 	getNumber() (float64, error)
@@ -341,9 +351,13 @@ func (obj objectArray) getDictionary() (map[string]object, error) {
 
 func (obj objectArray) subscript(index object) (object, error) {
 	if i, err := index.getNumber(); err == nil {
-		return obj.array[int(i)], nil
+		if int(i) < len(obj.array) {
+			return obj.array[int(i)], nil
+		} else {
+			return nil, &neonexception{"ArrayIndexException", fmt.Sprintf("%g", i), 0}
+		}
 	} else {
-		return nil, err
+		return nil, &neonexception{"DynamicConversionException", "to Number", 0}
 	}
 }
 
@@ -389,9 +403,13 @@ func (obj objectDictionary) getDictionary() (map[string]object, error) {
 
 func (obj objectDictionary) subscript(index object) (object, error) {
 	if k, err := index.getString(); err == nil {
-		return obj.dict[k], nil
+		if r, ok := obj.dict[k]; ok {
+                    return r, nil
+                } else {
+                    return nil, &neonexception{"ObjectSubscriptException", "\"" + k + "\"", 0}
+                }
 	} else {
-		return nil, err
+		return nil, &neonexception{"DynamicConversionException", "to String", 0}
 	}
 }
 
@@ -2313,10 +2331,18 @@ func (self *executor) op_callp() {
 	case "object__subscript":
 		i := self.pop().obj
 		o := self.pop().obj
-		if x, err := o.subscript(i); err == nil {
+		if o == nil {
+			self.raise_literal("DynamicConversionException", exceptioninfo{"object is null", 0})
+                } else if i == nil {
+			self.raise_literal("DynamicConversionException", exceptioninfo{"index is null", 0})
+		} else if x, err := o.subscript(i); err == nil {
 			self.push(make_cell_obj(x))
 		} else {
-			self.raise_literal("ObjectSubscriptException", exceptioninfo{i.toString(), 0})
+                        if ne, ok := err.(*neonexception); ok {
+                            self.raise_literal(ne.name, exceptioninfo{ne.info, ne.code})
+                        } else {
+                            self.raise_literal("ObjectSubscriptException", exceptioninfo{i.toString(), 0})
+                        }
 		}
 	case "object__toString":
 		o := self.pop().obj

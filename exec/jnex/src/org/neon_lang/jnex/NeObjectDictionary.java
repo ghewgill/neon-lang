@@ -13,7 +13,15 @@ class NeObjectDictionary implements NeObject {
 
     public NeObject subscript(NeObject i)
     {
-        return d.get(i.getString());
+        String s = i.getString();
+        if (s == null) {
+            throw new NeonException("DynamicConversionException", "to String");
+        }
+        NeObject r = d.get(s);
+        if (r == null) {
+            throw new NeonException("ObjectSubscriptException", "\"" + s + "\"");
+        }
+        return r;
     }
 
     public String toString()

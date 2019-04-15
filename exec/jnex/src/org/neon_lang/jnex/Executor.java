@@ -94,113 +94,117 @@ class Executor {
         while (callstack.size() > min_callstack_depth && ip < object.code.size()) {
             //System.err.println("ip=" + ip + " op=" + opcodes[object.code.get(ip)]);
             //for (Cell c: stack) { System.err.println("  " + c); }
-            switch (opcodes[object.code.get(ip)]) {
-                case PUSHB: doPUSHB(); break;
-                case PUSHN: doPUSHN(); break;
-                case PUSHS: doPUSHS(); break;
-                case PUSHY: doPUSHY(); break;
-                case PUSHPG: doPUSHPG(); break;
-                //case PUSHPPG
-                //case PUSHPMG
-                case PUSHPL: doPUSHPL(); break;
-                case PUSHPOL: doPUSHPOL(); break;
-                case PUSHI: doPUSHI(); break;
-                case LOADB: doLOADB(); break;
-                case LOADN: doLOADN(); break;
-                case LOADS: doLOADS(); break;
-                case LOADY: doLOADY(); break;
-                case LOADA: doLOADA(); break;
-                case LOADD: doLOADD(); break;
-                case LOADP: doLOADP(); break;
-                case LOADJ: doLOADJ(); break;
-                //case LOADV
-                case STOREB: doSTOREB(); break;
-                case STOREN: doSTOREN(); break;
-                case STORES: doSTORES(); break;
-                case STOREY: doSTOREY(); break;
-                case STOREA: doSTOREA(); break;
-                case STORED: doSTORED(); break;
-                case STOREP: doSTOREP(); break;
-                case STOREJ: doSTOREJ(); break;
-                //case STOREV
-                case NEGN: doNEGN(); break;
-                case ADDN: doADDN(); break;
-                case SUBN: doSUBN(); break;
-                case MULN: doMULN(); break;
-                case DIVN: doDIVN(); break;
-                case MODN: doMODN(); break;
-                case EXPN: doEXPN(); break;
-                case EQB: doEQB(); break;
-                case NEB: doNEB(); break;
-                case EQN: doEQN(); break;
-                case NEN: doNEN(); break;
-                case LTN: doLTN(); break;
-                case GTN: doGTN(); break;
-                case LEN: doLEN(); break;
-                case GEN: doGEN(); break;
-                case EQS: doEQS(); break;
-                //case NES
-                //case LTS
-                case GTS: doGTS(); break;
-                //case LES
-                //case GES
-                //case EQY
-                //case NEY
-                //case LTY
-                //case GTY
-                //case LEY
-                //case GEY
-                //case EQA
-                //case NEA
-                //case EQD
-                //case NED
-                case EQP: doEQP(); break;
-                case NEP: doNEP(); break;
-                //case EQV
-                //case NEV
-                //case ANDB
-                //case ORB
-                case NOTB: doNOTB(); break;
-                case INDEXAR: doINDEXAR(); break;
-                case INDEXAW: doINDEXAW(); break;
-                case INDEXAV: doINDEXAV(); break;
-                case INDEXAN: doINDEXAN(); break;
-                case INDEXDR: doINDEXDR(); break;
-                case INDEXDW: doINDEXDW(); break;
-                case INDEXDV: doINDEXDV(); break;
-                //case INA
-                //case IND
-                case CALLP: doCALLP(); break;
-                case CALLF: doCALLF(); break;
-                //case CALLMF
-                //case CALLI
-                case JUMP: doJUMP(); break;
-                case JF: doJF(); break;
-                case JT: doJT(); break;
-                case JFCHAIN: doJFCHAIN(); break;
-                case DUP: doDUP(); break;
-                case DUPX1: doDUPX1(); break;
-                case DROP: doDROP(); break;
-                case RET: doRET(); break;
-                //case CALLE
-                case CONSA: doCONSA(); break;
-                case CONSD: doCONSD(); break;
-                case EXCEPT: doEXCEPT(); break;
-                case ALLOC: doALLOC(); break;
-                case PUSHNIL: doPUSHNIL(); break;
-                case JNASSERT: doJNASSERT(); break;
-                case RESETC: doRESETC(); break;
-                //case PUSHPEG
-                case JUMPTBL: doJUMPTBL(); break;
-                //case CALLX
-                case SWAP: doSWAP(); break;
-                //case DROPN
-                //case PUSHM
-                //case CALLV
-                case PUSHCI: doPUSHCI(); break;
-                default:
-                    System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
-                    System.exit(1);
+            try {
+                switch (opcodes[object.code.get(ip)]) {
+                    case PUSHB: doPUSHB(); break;
+                    case PUSHN: doPUSHN(); break;
+                    case PUSHS: doPUSHS(); break;
+                    case PUSHY: doPUSHY(); break;
+                    case PUSHPG: doPUSHPG(); break;
+                    //case PUSHPPG
+                    //case PUSHPMG
+                    case PUSHPL: doPUSHPL(); break;
+                    case PUSHPOL: doPUSHPOL(); break;
+                    case PUSHI: doPUSHI(); break;
+                    case LOADB: doLOADB(); break;
+                    case LOADN: doLOADN(); break;
+                    case LOADS: doLOADS(); break;
+                    case LOADY: doLOADY(); break;
+                    case LOADA: doLOADA(); break;
+                    case LOADD: doLOADD(); break;
+                    case LOADP: doLOADP(); break;
+                    case LOADJ: doLOADJ(); break;
+                    //case LOADV
+                    case STOREB: doSTOREB(); break;
+                    case STOREN: doSTOREN(); break;
+                    case STORES: doSTORES(); break;
+                    case STOREY: doSTOREY(); break;
+                    case STOREA: doSTOREA(); break;
+                    case STORED: doSTORED(); break;
+                    case STOREP: doSTOREP(); break;
+                    case STOREJ: doSTOREJ(); break;
+                    //case STOREV
+                    case NEGN: doNEGN(); break;
+                    case ADDN: doADDN(); break;
+                    case SUBN: doSUBN(); break;
+                    case MULN: doMULN(); break;
+                    case DIVN: doDIVN(); break;
+                    case MODN: doMODN(); break;
+                    case EXPN: doEXPN(); break;
+                    case EQB: doEQB(); break;
+                    case NEB: doNEB(); break;
+                    case EQN: doEQN(); break;
+                    case NEN: doNEN(); break;
+                    case LTN: doLTN(); break;
+                    case GTN: doGTN(); break;
+                    case LEN: doLEN(); break;
+                    case GEN: doGEN(); break;
+                    case EQS: doEQS(); break;
+                    //case NES
+                    //case LTS
+                    case GTS: doGTS(); break;
+                    //case LES
+                    //case GES
+                    //case EQY
+                    //case NEY
+                    //case LTY
+                    //case GTY
+                    //case LEY
+                    //case GEY
+                    //case EQA
+                    //case NEA
+                    //case EQD
+                    //case NED
+                    case EQP: doEQP(); break;
+                    case NEP: doNEP(); break;
+                    //case EQV
+                    //case NEV
+                    //case ANDB
+                    //case ORB
+                    case NOTB: doNOTB(); break;
+                    case INDEXAR: doINDEXAR(); break;
+                    case INDEXAW: doINDEXAW(); break;
+                    case INDEXAV: doINDEXAV(); break;
+                    case INDEXAN: doINDEXAN(); break;
+                    case INDEXDR: doINDEXDR(); break;
+                    case INDEXDW: doINDEXDW(); break;
+                    case INDEXDV: doINDEXDV(); break;
+                    //case INA
+                    //case IND
+                    case CALLP: doCALLP(); break;
+                    case CALLF: doCALLF(); break;
+                    //case CALLMF
+                    //case CALLI
+                    case JUMP: doJUMP(); break;
+                    case JF: doJF(); break;
+                    case JT: doJT(); break;
+                    case JFCHAIN: doJFCHAIN(); break;
+                    case DUP: doDUP(); break;
+                    case DUPX1: doDUPX1(); break;
+                    case DROP: doDROP(); break;
+                    case RET: doRET(); break;
+                    //case CALLE
+                    case CONSA: doCONSA(); break;
+                    case CONSD: doCONSD(); break;
+                    case EXCEPT: doEXCEPT(); break;
+                    case ALLOC: doALLOC(); break;
+                    case PUSHNIL: doPUSHNIL(); break;
+                    case JNASSERT: doJNASSERT(); break;
+                    case RESETC: doRESETC(); break;
+                    //case PUSHPEG
+                    case JUMPTBL: doJUMPTBL(); break;
+                    //case CALLX
+                    case SWAP: doSWAP(); break;
+                    //case DROPN
+                    //case PUSHM
+                    //case CALLV
+                    case PUSHCI: doPUSHCI(); break;
+                    default:
+                        System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
+                        System.exit(1);
+                }
+            } catch (NeonException x) {
+                raiseLiteral(x.name, x.info);
             }
         }
     }
@@ -1488,12 +1492,16 @@ class Executor {
         NeObject i = stack.removeFirst().getObject();
         NeObject o = stack.removeFirst().getObject();
         if (o == null) {
-            raiseLiteral("DynamicConversionException");
+            raiseLiteral("DynamicConversionException", "object is null");
+            return;
+        }
+        if (i == null) {
+            raiseLiteral("DynamicConversionException", "index is null");
             return;
         }
         NeObject r = o.subscript(i);
         if (r == null) {
-            raiseLiteral("ObjectSubscriptException");
+            raiseLiteral("ObjectSubscriptException", i.toString());
             return;
         }
         stack.addFirst(new Cell(r));

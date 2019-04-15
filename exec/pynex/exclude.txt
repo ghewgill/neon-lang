@@ -62,7 +62,6 @@ net-test-udp.neon          # net
 new-init-module.neon       # class
 new-init.neon              # class
 number-ceil.neon           # precision
-object-subscript.neon      # AsserionError
 os-test.neon               # os
 outer-issue192.neon        # PUSHPOL
 outer-parameter.neon       # PUSHPOL

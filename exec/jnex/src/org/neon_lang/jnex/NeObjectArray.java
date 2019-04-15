@@ -13,6 +13,13 @@ class NeObjectArray implements NeObject {
 
     public NeObject subscript(NeObject i)
     {
+        Number n = i.getNumber();
+        if (n == null) {
+            throw new NeonException("DynamicConversionException", "to Number");
+        }
+        if (i.getNumber().intValue() >= a.size()) {
+            throw new NeonException("ArrayIndexException", i.getNumber().toString());
+        }
         return a.get(i.getNumber().intValue());
     }
 

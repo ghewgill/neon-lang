@@ -47,6 +47,7 @@ net-test-udp.neon      # Module not required
 number-ceil.neon       # Feature not required
 number-underscore.neon # Feature not required
 object-record.neon     # Feature not required
+object-subscript.neon  # Feature not required
 os-test.neon           # Module not required
 outer.neon             # Feature not required
 outer2.neon            # Feature not required
@@ -126,7 +127,6 @@ mismatch.neon
 module-assign-let.neon
 module-assign-var.neon
 module-scope.neon
-object-subscript.neon
 pointer6.neon
 pointer-mismatch.neon
 return.neon
