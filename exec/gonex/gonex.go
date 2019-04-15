@@ -151,7 +151,7 @@ type neonexception struct {
 }
 
 func (e *neonexception) Error() string {
-	return fmt.Sprintf("%s (%s)", e.name, e.info);
+	return fmt.Sprintf("%s (%s)", e.name, e.info)
 }
 
 type object interface {
@@ -404,10 +404,10 @@ func (obj objectDictionary) getDictionary() (map[string]object, error) {
 func (obj objectDictionary) subscript(index object) (object, error) {
 	if k, err := index.getString(); err == nil {
 		if r, ok := obj.dict[k]; ok {
-                    return r, nil
-                } else {
-                    return nil, &neonexception{"ObjectSubscriptException", "\"" + k + "\"", 0}
-                }
+			return r, nil
+		} else {
+			return nil, &neonexception{"ObjectSubscriptException", "\"" + k + "\"", 0}
+		}
 	} else {
 		return nil, &neonexception{"DynamicConversionException", "to String", 0}
 	}
@@ -2333,16 +2333,16 @@ func (self *executor) op_callp() {
 		o := self.pop().obj
 		if o == nil {
 			self.raise_literal("DynamicConversionException", exceptioninfo{"object is null", 0})
-                } else if i == nil {
+		} else if i == nil {
 			self.raise_literal("DynamicConversionException", exceptioninfo{"index is null", 0})
 		} else if x, err := o.subscript(i); err == nil {
 			self.push(make_cell_obj(x))
 		} else {
-                        if ne, ok := err.(*neonexception); ok {
-                            self.raise_literal(ne.name, exceptioninfo{ne.info, ne.code})
-                        } else {
-                            self.raise_literal("ObjectSubscriptException", exceptioninfo{i.toString(), 0})
-                        }
+			if ne, ok := err.(*neonexception); ok {
+				self.raise_literal(ne.name, exceptioninfo{ne.info, ne.code})
+			} else {
+				self.raise_literal("ObjectSubscriptException", exceptioninfo{i.toString(), 0})
+			}
 		}
 	case "object__toString":
 		o := self.pop().obj
