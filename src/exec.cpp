@@ -125,7 +125,7 @@ template <typename T> static void *marshal_number(Cell &cell, void *&p, size_t &
 static void *marshal_pointer(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = cell.address();
+    *a = cell.other();
     p = a + 1;
     space -= sizeof(void *);
     return a;
@@ -134,7 +134,7 @@ static void *marshal_pointer(Cell &cell, void *&p, size_t &space)
 static void *marshal_pointer_a(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = cell.address()->address();
+    *a = cell.address()->other();
     p = a + 1;
     space -= sizeof(void *);
     return a;
@@ -188,7 +188,7 @@ template <typename T> static Cell unmarshal_number(void *p)
 
 static Cell unmarshal_pointer(void *p)
 {
-    return Cell(*(reinterpret_cast<Cell **>(p)));
+    return Cell::makeOther(*(reinterpret_cast<void **>(p)));
 }
 
 class ActivationFrame {
