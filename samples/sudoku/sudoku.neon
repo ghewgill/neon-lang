@@ -387,9 +387,9 @@ END FUNCTION
 
 FUNCTION findErrors(grid: multiarray.ArrayNumber2D): multiarray.ArrayBoolean2D
     VAR r: multiarray.ArrayBoolean2D := multiarray.makeBoolean2D(9, 9)
-    VAR rows: multiarray.ArrayNumber2D := multiarray.makeNumber2DValue(9, 10, -1)
-    VAR cols: multiarray.ArrayNumber2D := multiarray.makeNumber2DValue(9, 10, -1)
-    VAR cels: multiarray.ArrayNumber2D := multiarray.makeNumber2DValue(9, 10, -1)
+    VAR rows: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 10, -1)
+    VAR cols: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 10, -1)
+    VAR cels: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 10, -1)
     FOR i := 0 TO 8 DO
         FOR j := 0 TO 8 DO
             LET n: Number := grid[i, j]

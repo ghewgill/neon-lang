@@ -2926,10 +2926,20 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
                 }
                 i++;
                 const ast::Type *type = deserialize_type(s, descriptor, i);
+                const ast::Expression *default_value = nullptr;
+                if (descriptor.at(i) == '=') {
+                    i++;
+                    Bytecode::Bytes buf;
+                    for (auto c: descriptor.substr(i)) {
+                        buf.push_back(c);
+                    }
+                    int j = 0;
+                    default_value = type->deserialize_value(buf, j);
+                    i += j;
+                }
                 Token token;
                 token.text = name;
-                // TODO: default value
-                params.push_back(new ast::ParameterType(token, mode, type, nullptr));
+                params.push_back(new ast::ParameterType(token, mode, type, default_value));
                 if (descriptor.at(i) == ',') {
                     i++;
                 }

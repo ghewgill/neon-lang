@@ -690,8 +690,10 @@ std::string ast::TypeFunction::get_type_descriptor(Emitter &emitter) const
             default:
                 internal_error("invalid parameter mode");
         }
-        // TODO: default value
         r += m + p->declaration.text + ":" + emitter.get_type_reference(p->type);
+        if (p->default_value != nullptr && dynamic_cast<const ast::DummyExpression *>(p->default_value) == nullptr) {
+            r += "=" + p->type->serialize(p->default_value);
+        }
     }
     r += "]";
     if (variadic) {

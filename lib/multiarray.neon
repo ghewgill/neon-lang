@@ -13,7 +13,6 @@ EXPORT ArrayString3D
 EXPORT makeBoolean2D
 EXPORT makeBoolean3D
 EXPORT makeNumber2D
-EXPORT makeNumber2DValue
 EXPORT makeNumber3D
 EXPORT makeString2D
 EXPORT makeString3D
@@ -96,23 +95,7 @@ END FUNCTION
  |
  |  Create a new <ArrayNumber2D> with the given number of rows and columns.
  |%
-FUNCTION makeNumber2D(rows, columns: Number): ArrayNumber2D
-    VAR r: ArrayNumber2D := []
-    r.resize(rows)
-    FOR i := 0 TO rows-1 DO
-        r[i].resize(columns)
-    END FOR
-    RETURN r
-END FUNCTION
-
-%|
- |  Function: makeNumber2DValue
- |
- |  Create a new <ArrayNumber2D> with the given number of rows and columns.
- |%
-FUNCTION makeNumber2DValue(rows, columns: Number, value: Number): ArrayNumber2D
-    % TODO: Make 'value' a parameter with a default value
-    % (depends on https://github.com/ghewgill/neon-lang/issues/45).
+FUNCTION makeNumber2D(rows, columns: Number, value: Number DEFAULT 0): ArrayNumber2D
     VAR r: ArrayNumber2D := []
     r.resize(rows)
     FOR i := 0 TO rows-1 DO

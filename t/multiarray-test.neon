@@ -30,7 +30,7 @@ FOREACH row IN n2 DO
     END FOREACH
 END FOREACH
 
-VAR n2v: multiarray.ArrayNumber2D := multiarray.makeNumber2DValue(4, 5, -1)
+VAR n2v: multiarray.ArrayNumber2D := multiarray.makeNumber2D(4, 5, -1)
 ASSERT n2v.size() = 4
 FOREACH row IN n2v DO
     ASSERT row.size() = 5
