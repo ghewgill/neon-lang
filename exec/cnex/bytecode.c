@@ -104,19 +104,15 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
     b->strings = getstrtable(bytecode, b->strtablesize + i, &i, &b->strtablelen);
 
     b->typesize = get_vint(bytecode, len, &i);
-    /*
-        typesize = struct.unpack(">H", bytecode[i:i+2])[0]
-        i += 2
-        self.export_types = []
-        while typesize > 0:
-            t = Type()
-            t.name = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            t.descriptor = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            self.export_types.append(t)
-            typesize -= 1
-    */
+    b->export_types = malloc(sizeof(ExportType) * b->typesize);
+    if (b->export_types == NULL) {
+        fatal_error("Could not allocate memory for exported type info.");
+    }
+    for (uint32_t f = 0; f < b->typesize; f++) {
+        b->export_types[f].name = get_vint(bytecode, len, &i);
+        b->export_types[f].descriptor = get_vint(bytecode, len, &i);
+    }
+ 
     b->constantsize = get_vint(bytecode, len, &i);
     /*
         constantsize = struct.unpack(">H", bytecode[i:i+2])[0]

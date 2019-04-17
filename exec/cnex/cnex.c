@@ -36,10 +36,12 @@ void exec_freeExecutor(TExecutor *e)
 {
     uint32_t i;
 
-    for (i = 0; i < e->object->global_size; i++) {
-        cell_clearCell(&e->globals[i]);
+    for (unsigned int m = 0; m < e->modules; m++) {
+        for (i = 0; i < e->module[m].bytecode->global_size; i++) {
+            cell_clearCell(&e->module[m].globals[i]);
+        }
+        free(e->module[m].globals);
     }
-    free(e->globals);
     assert(isEmpty(e->stack));
     destroyStack(e->stack);
     free(e->stack);
@@ -202,19 +204,36 @@ TExecutor *exec_newExecutor(TBytecode *object)
     r->debug = gOptions.ExecutorDebugStats;
     r->disassemble = gOptions.ExecutorDisassembly;
     r->framestack = framestack_createFrameStack(r->param_recursion_limit);
-    r->globals = malloc(sizeof(Cell) * r->object->global_size);
-    if (r->globals == NULL) {
+    r->modules = object->importsize + 1;
+    r->module = malloc(sizeof(TModule) * r->modules);
+    if (r->module == NULL) {
+        fatal_error("Failed to allocate memory for %d neon module(s).", r->modules);
+    }
+    r->module[0].name = "";
+    r->module[0].bytecode = object;
+    r->module[0].globals = malloc(sizeof(Cell) * r->module[0].bytecode->global_size);
+    if (r->module[0].globals == NULL) {
         fatal_error("Failed to allocate memory for global storage.");
     }
-    for (i = 0; i < r->object->global_size; i++) {
-        cell_resetCell(&r->globals[i]);
+    for (i = 0; i < r->module[0].bytecode->global_size; i++) {
+        cell_resetCell(&r->module[0].globals[i]);
     }
-    r->module = malloc(sizeof(TModule) * 1);
-    if (r->module == NULL) {
-        fatal_error("Failed to allocatge memory for neon module(s).");
-    }
-    r->module->name = "";
 
+    for (unsigned int m = 1; m < r->modules; m++) {
+        r->module[m].name = object->strings[object->imports[m-1].name]->data;
+        // Load module bytecode and parse it into a TBytecode object.
+        r->module[m].bytecode = bytecode_newBytecode();
+        r->module[m].bytecode->global_size = 0;
+        // Allocate globals, and initialize the cells.
+        r->module[m].globals = malloc(sizeof(Cell) * r->module[m].bytecode->global_size);
+        if (r->module[m].globals == NULL) {
+            fatal_error("Failed to allocate memory for %s module global storage.", r->module[m].name);
+        }
+        for (i = 0; i < r->module[m].bytecode->global_size; i++) {
+            cell_resetCell(&r->module[m].globals[i]);
+        }
+    }
+ 
     /* Debug / Diagnostic fields */
     r->diagnostics.total_opcodes = 0;
     r->diagnostics.callstack_max_height = 0;
@@ -324,7 +343,7 @@ void exec_PUSHPG(TExecutor *self)
     self->ip++;
     unsigned int addr = exec_getOperand(self);
     assert(addr < self->object->global_size);
-    push(self->stack, cell_fromAddress(&self->globals[addr]));
+    push(self->stack, cell_fromAddress(&self->module[0].globals[addr] ));
 }
 
 /* push pointer to predefined global */

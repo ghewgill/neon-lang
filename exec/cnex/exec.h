@@ -8,6 +8,8 @@
 
 typedef struct tagTModule {
     char *name;
+    struct tagTBytecode *bytecode;
+    struct tagTCell *globals;
 } TModule;
 
 typedef struct tagTExecutor {
@@ -18,12 +20,13 @@ typedef struct tagTExecutor {
     unsigned int callstack[300];
     int32_t callstacktop;
     int32_t param_recursion_limit;
-    struct tagTCell *globals;
+    //struct tagTCell *globals;
     struct tagTFrameStack *framestack;
     BOOL enable_assert;
     BOOL debug;
     BOOL disassemble;
     void (*rtl_raise)(struct tagTExecutor *, const char *, const char *, Number);
+    unsigned int modules;
     struct tagTModule *module;
 
     /* Debug / Diagnostic fields */
