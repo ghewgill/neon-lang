@@ -53,14 +53,15 @@ gc1.neon                   # gc
 gc2.neon                   # gc
 gc3.neon                   # gc
 import.neon                # import
-interface-parameter-export.neon # method
-interface-parameter-export2.neon # method
-interface-parameter-import.neon # method
-interface-parameter-import2.neon # method
 in.neon                    # ArrayInExpression
 inc-reference.neon         # actually works here so avoid the TODO
 index.neon                 # copy semantics
 interface.neon             # methods
+interface-multiple.neon    # method
+interface-parameter-export.neon # method
+interface-parameter-export2.neon # method
+interface-parameter-import.neon # method
+interface-parameter-import2.neon # method
 intrinsic.neon             # various
 fork.neon                  # module posix
 io-test.neon               # module io

@@ -163,6 +163,7 @@ in.neon
 input.neon
 intdiv.neon
 interface.neon
+interface-multiple.neon
 interface-parameter-export2.neon
 interface-parameter-export.neon
 interface-parameter-import2.neon

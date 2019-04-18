@@ -53,11 +53,12 @@ import.neon                # import
 in.neon                    # INA
 index.neon                 # copy semantics
 intdiv.neon                # import
+interface.neon             # SWAP
+interface-multiple.neon    # SWAP
 interface-parameter-export.neon    # types
 interface-parameter-export2.neon   # function_export
 interface-parameter-import.neon    # import
 interface-parameter-import2.neon   # types
-interface.neon             # SWAP
 intrinsic.neon             # format
 io-test.neon               # import
 json-test.neon             # import

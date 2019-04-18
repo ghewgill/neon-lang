@@ -1361,7 +1361,11 @@ class Parser:
         self.expect(CLASS)
         while self.tokens[self.i] is IMPLEMENTS:
             self.i += 1
-            interface = self.identifier()
+            while True:
+                interface = self.identifier()
+                if self.tokens[self.i] is not COMMA:
+                    break
+                self.i += 1
         fields = []
         while self.tokens[self.i] is not END:
             is_private = self.tokens[self.i] is PRIVATE

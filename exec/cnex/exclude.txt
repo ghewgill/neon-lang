@@ -33,11 +33,12 @@ gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
 import.neon                # PUSHPMG
+interface.neon             # PUSHI
+interface-multiple.neon    # PUSHI
 interface-parameter-export.neon # export
 interface-parameter-export2.neon # export
 interface-parameter-import.neon # class
 interface-parameter-import2.neon # class
-interface.neon             # PUSHI
 json-test.neon             # module
 literal-array.neon         # array__range
 mkdir.neon                 # module

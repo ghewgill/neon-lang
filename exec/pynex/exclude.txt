@@ -40,11 +40,12 @@ gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
 import.neon                # class
+interface.neon             # class
+interface-multiple.neon    # class
 interface-parameter-export.neon # export
 interface-parameter-export2.neon # export
 interface-parameter-import.neon # class
 interface-parameter-import2.neon # class
-interface.neon             # class
 intrinsic.neon             # format
 io-test.neon               # module
 json-test.neon             # module

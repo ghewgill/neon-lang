@@ -65,7 +65,7 @@ ParameterisedType = ('Array' | 'Dictionary'), '<', Type, '>';
 
 RecordType = 'RECORD', { ['PRIVATE'], Identifier, ':', Type}, 'END', 'RECORD';
 
-ClassType = 'CLASS', ['IMPLEMENTS', Identifier, ['.', Identifier], {',', Identifier, ['.', Identifier]}], { ['PRIVATE'], Identifier, ':', Type}, 'END', 'CLASS';
+ClassType = 'CLASS', {'IMPLEMENTS', Identifier, ['.', Identifier], {',', Identifier, ['.', Identifier]}}, { ['PRIVATE'], Identifier, ':', Type}, 'END', 'CLASS';
 
 EnumType = 'ENUM', {Identifier}, 'END', 'ENUM';
 

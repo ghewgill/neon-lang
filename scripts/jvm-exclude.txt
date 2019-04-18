@@ -35,6 +35,7 @@ index.neon                 # copy semantics
 inline-construct-record.neon   # stack size too large
 inline-init-record.neon    # stack size too large
 interface.neon             # interface
+interface-multiple.neon    # interface
 interface-parameter-export.neon # interface
 interface-parameter-export2.neon # interface
 interface-parameter-import.neon # interface
