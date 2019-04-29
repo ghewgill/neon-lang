@@ -42,28 +42,17 @@ int main(int argc, char *argv[])
     }
 
     int a = 1;
-    while (a < argc) {
-        if (std::string(argv[a]) == "-i") {
+    while (a < argc && argv[a][0] == '-' && argv[a][1] != '\0') {
+        std::string arg = argv[a];
+        if (arg == "-i") {
             ignore_errors = true;
-            a++;
-            continue;
-        }
-        if (std::string(argv[a]) == "-d") {
+        } else if (arg == "-d") {
             listing = true;
-            a++;
-            continue;
-        }
-        if (std::string(argv[a]) == "--json") {
+        } else if (arg == "--json") {
             error_json = true;
-            a++;
-            continue;
-        }
-        if (std::string(argv[a]) == "-q") {
+        } else if (arg == "-q") {
             quiet = true;
-            a++;
-            continue;
-        }
-        if (std::string(argv[a]) == "-t") {
+        } else if (arg == "-t") {
             a++;
             if (a < argc) {
                 target = argv[a];
@@ -78,10 +67,14 @@ int main(int argc, char *argv[])
                     exit(1);
                 }
             }
-            a++;
-            continue;
+        } else {
+            fprintf(stderr, "Unknown option: %s\n", arg.c_str());
+            exit(1);
         }
+        a++;
+    }
 
+    while (a < argc) {
         std::string name = argv[a];
         std::string source_path;
 
