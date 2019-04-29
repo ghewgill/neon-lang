@@ -21,6 +21,7 @@ bool dump_ast = false;
 bool dump_listing = false;
 bool enable_assert = true;
 bool enable_trace = false;
+bool error_json = false;
 unsigned short debug_port = 0;
 bool repl_no_prompt = false;
 bool repl_stop_on_any_error = false;
@@ -88,6 +89,8 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "%s: -d requires integer argument\n", argv[0]);
                 exit(1);
             }
+        } else if (arg == "--json") {
+            error_json = true;
         } else if (arg == "-l") {
             dump_listing = true;
         } else if (arg == "-n") {
@@ -162,7 +165,11 @@ int main(int argc, char *argv[])
             }
 
         } catch (CompilerError *error) {
-            error->write(std::cerr);
+            if (error_json) {
+                error->write_json(std::cerr);
+            } else {
+                error->write(std::cerr);
+            }
             exit(1);
         }
 

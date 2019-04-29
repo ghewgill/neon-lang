@@ -484,6 +484,7 @@ add_executable(neondis
     src/util.cpp
 )
 target_include_directories(neondis PRIVATE
+    external/minijson_writer-master
     external/utfcpp-master/source
 )
 target_link_libraries(neondis
@@ -513,6 +514,7 @@ add_executable(test_lexer
 )
 target_include_directories(test_lexer PRIVATE
     src
+    external/minijson_writer-master
     external/utfcpp-master/source
 )
 target_link_libraries(test_lexer
@@ -536,6 +538,7 @@ add_executable(test_parser
 )
 target_include_directories(test_parser PRIVATE
     src
+    external/minijson_writer-master
     external/utfcpp-master/source
 )
 target_link_libraries(test_parser

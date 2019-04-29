@@ -10,6 +10,7 @@ public:
     CompilerError(const std::string &compiler_file, int compiler_line, const std::string &message): compiler_file(compiler_file), compiler_line(compiler_line), message(message) {}
     virtual ~CompilerError() {}
     virtual void write(std::ostream &out) = 0;
+    virtual void write_json(std::ostream &out) = 0;
     const std::string compiler_file;
     const int compiler_line;
     const std::string message;
@@ -21,6 +22,7 @@ class InternalError: public CompilerError {
 public:
     InternalError(const std::string &compiler_file, int compiler_line, const std::string &message): CompilerError(compiler_file, compiler_line, message) {}
     virtual void write(std::ostream &out) override;
+    virtual void write_json(std::ostream &out) override;
 };
 
 class SourceErrorToken {
@@ -40,6 +42,7 @@ public:
     SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const std::string &message): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2(), message2() {}
     SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const std::string &message, const Token &token2, const std::string &message2): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2(token2), message2(message2) {}
     virtual void write(std::ostream &out) override;
+    virtual void write_json(std::ostream &out) override;
     const int number;
     const SourceErrorToken token;
     const SourceErrorToken token2;

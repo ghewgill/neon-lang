@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
     bool ignore_errors = false;
     bool listing = false;
     bool quiet = false;
+    bool error_json = false;
     std::string target;
     CompileProc target_proc = nullptr;
 
@@ -49,6 +50,11 @@ int main(int argc, char *argv[])
         }
         if (std::string(argv[a]) == "-d") {
             listing = true;
+            a++;
+            continue;
+        }
+        if (std::string(argv[a]) == "--json") {
+            error_json = true;
             a++;
             continue;
         }
@@ -124,7 +130,11 @@ int main(int argc, char *argv[])
             }
 
         } catch (CompilerError *error) {
-            error->write(std::cerr);
+            if (error_json) {
+                error->write_json(std::cerr);
+            } else {
+                error->write(std::cerr);
+            }
             if (not ignore_errors) {
                 exit(1);
             }
