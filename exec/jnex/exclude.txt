@@ -21,7 +21,7 @@ debug-server.neon          # import
 decimal.neon               # number format
 dictionary-sorted.neon     # import
 encoding-base64.neon       # import
-equality.neon              # PUSHM
+equality.neon              # PUSHFP
 exception-opstack.neon     # exception
 exception-opstack-depth.neon    # exception
 export-function-indent.neon# function_export
@@ -41,7 +41,7 @@ foreach-eval.neon          # import
 fork.neon                  # posix
 format.neon                # CALLMF
 function-pointer-nowhere.neon # EQA
-function-pointer.neon      # PUSHM
+function-pointer.neon      # PUSHFP
 gc-array.neon              # import
 gc-long-chain.neon         # import
 gc1.neon                   # import
@@ -121,7 +121,7 @@ time-test.neon             # import
 unicode-char.neon          # UTF-8
 unicode-length.neon        # UTF-8
 value-copy.neon            # copy
-varargs-functionpointer.neon # PUSHM
+varargs-functionpointer.neon # PUSHFP
 win32-test.neon            # CALLMF
 
 compress-test.neon

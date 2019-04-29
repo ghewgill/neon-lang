@@ -788,7 +788,7 @@ class Executor:
     def DROPN(self):
         assert False
 
-    def PUSHM(self):
+    def PUSHFP(self):
         assert False
 
     def CALLV(self):
@@ -933,7 +933,7 @@ Dispatch = [
     Executor.CALLX,
     Executor.SWAP,
     Executor.DROPN,
-    Executor.PUSHM,
+    Executor.PUSHFP,
     Executor.CALLV,
     Executor.PUSHCI,
 ]

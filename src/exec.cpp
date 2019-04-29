@@ -385,7 +385,7 @@ public:
     void exec_CALLX();
     void exec_SWAP();
     void exec_DROPN();
-    void exec_PUSHM();
+    void exec_PUSHFP();
     void exec_CALLV();
     void exec_PUSHCI();
 
@@ -1840,10 +1840,12 @@ void Executor::exec_DROPN()
     }
 }
 
-void Executor::exec_PUSHM()
+void Executor::exec_PUSHFP()
 {
     ip++;
-    stack.push(Cell::makeOther(module));
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
+    std::vector<Cell> a = {Cell::makeOther(module), Cell(number_from_uint32(val))};
+    stack.push(Cell(a));
 }
 
 void Executor::exec_CALLV()
@@ -2278,7 +2280,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case CALLX:   exec_CALLX(); break;
             case SWAP:    exec_SWAP(); break;
             case DROPN:   exec_DROPN(); break;
-            case PUSHM:   exec_PUSHM(); break;
+            case PUSHFP:  exec_PUSHFP(); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(); break;
             default:

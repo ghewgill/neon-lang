@@ -120,7 +120,7 @@ const (
 	CALLX    = iota // call extension
 	SWAP     = iota // swap two top stack elements
 	DROPN    = iota // drop element n
-	PUSHM    = iota // push current module
+	PUSHFP   = iota // push function pointer
 	CALLV    = iota // call virtual
 	PUSHCI   = iota // push class info
 )
@@ -1149,8 +1149,8 @@ func (self *executor) run() {
 			self.op_swap()
 		case DROPN:
 			self.op_dropn()
-		case PUSHM:
-			self.op_pushm()
+		case PUSHFP:
+			self.op_pushfp()
 		case CALLV:
 			self.op_callv()
 		case PUSHCI:
@@ -2745,9 +2745,11 @@ func (self *executor) op_dropn() {
 	assert(false, "unimplemented dropn")
 }
 
-func (self *executor) op_pushm() {
+func (self *executor) op_pushfp() {
 	self.ip++
-	self.push(make_cell_module(self.module))
+	val := get_vint(self.module.object.code, &self.ip)
+	r := []cell{make_cell_module(self.module), make_cell_num(float64(val))}
+	self.push(make_cell_array(r))
 }
 
 func (self *executor) op_callv() {

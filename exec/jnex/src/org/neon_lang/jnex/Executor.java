@@ -196,7 +196,7 @@ class Executor {
                     //case CALLX
                     case SWAP: doSWAP(); break;
                     //case DROPN
-                    //case PUSHM
+                    //case PUSHFP
                     //case CALLV
                     case PUSHCI: doPUSHCI(); break;
                     default:
@@ -1082,7 +1082,7 @@ class Executor {
         CALLX,
         SWAP,
         DROPN,
-        PUSHM,
+        PUSHFP,
         CALLV,
         PUSHCI,
     }

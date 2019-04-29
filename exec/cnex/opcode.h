@@ -102,7 +102,7 @@
     OPCODE(CALLX)      /* call extension */\
     OPCODE(SWAP)       /* swap two top stack elements */\
     OPCODE(DROPN)      /* drop element n */\
-    OPCODE(PUSHM)      /* push current module */\
+    OPCODE(PUSHFP)     /* push function pointer */\
     OPCODE(CALLV)      /* call virtual */\
     OPCODE(PUSHCI)     /* push class info */\
 

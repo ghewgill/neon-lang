@@ -1215,9 +1215,9 @@ void exec_DROPN(void)
     fatal_error("exec_DROPN not implemented");
 }
 
-void exec_PUSHM(void)
+void exec_PUSHFP(void)
 {
-    fatal_error("exec_PUSHM not implemented");
+    fatal_error("exec_PUSHFP not implemented");
 }
 
 void exec_CALLV(void)
@@ -1367,7 +1367,7 @@ void exec_loop(TExecutor *self)
             case CALLX:   exec_CALLX(); break;
             case SWAP:    exec_SWAP(self); break;
             case DROPN:   exec_DROPN(); break;
-            case PUSHM:   exec_PUSHM(); break;
+            case PUSHFP:  exec_PUSHFP(); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(self); break;
             default:

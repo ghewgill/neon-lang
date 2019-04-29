@@ -122,7 +122,7 @@ private:
     void disasm_CALLX();
     void disasm_SWAP();
     void disasm_DROPN();
-    void disasm_PUSHM();
+    void disasm_PUSHFP();
     void disasm_CALLV();
     void disasm_PUSHCI();
 };
@@ -759,10 +759,11 @@ void InstructionDisassembler::disasm_DROPN()
     out << "DROPN " << val;
 }
 
-void InstructionDisassembler::disasm_PUSHM()
+void InstructionDisassembler::disasm_PUSHFP()
 {
-    out << "PUSHM";
     index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
+    out << "PUSHFP " << val;
 }
 
 void InstructionDisassembler::disasm_CALLV()
@@ -882,7 +883,7 @@ void InstructionDisassembler::disassemble()
         case CALLX:   disasm_CALLX(); break;
         case SWAP:    disasm_SWAP(); break;
         case DROPN:   disasm_DROPN(); break;
-        case PUSHM:   disasm_PUSHM(); break;
+        case PUSHFP:  disasm_PUSHFP(); break;
         case CALLV:   disasm_CALLV(); break;
         case PUSHCI:  disasm_PUSHCI(); break;
     }

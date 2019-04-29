@@ -102,7 +102,7 @@ enum Opcode {
     CALLX,      // call extension
     SWAP,       // swap two top stack elements
     DROPN,      // drop element n
-    PUSHM,      // push current module
+    PUSHFP,     // push function pointer
     CALLV,      // call virtual
     PUSHCI,     // push class info
 };

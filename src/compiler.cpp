@@ -228,7 +228,7 @@ void Emitter::emit(Opcode b)
             case CALLX:     break;
             case SWAP:      break;
             case DROPN:     break;
-            case PUSHM:     stack_depth += 1; break;
+            case PUSHFP:    stack_depth += 1; break;
             case CALLV:     break;
             case PUSHCI:    stack_depth += 1; break;
         }
@@ -1200,9 +1200,7 @@ void ast::Function::postdeclare(Emitter &emitter) const
 void ast::Function::generate_load(Emitter &emitter) const
 {
     // Get the address of a function for function pointer support.
-    emitter.emit(PUSHI, function_index);
-    emitter.emit(PUSHM);
-    emitter.emit(CONSA, 2);
+    emitter.emit(PUSHFP, function_index);
 }
 
 void ast::Function::generate_call(Emitter &emitter) const
@@ -1378,9 +1376,7 @@ void ast::ConstantNilExpression::generate_expr(Emitter &emitter) const
 
 void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
 {
-    emitter.emit(PUSHN, number_from_uint32(0));
-    emitter.emit(PUSHM);
-    emitter.emit(CONSA, 2);
+    emitter.emit(PUSHFP, 0);
 }
 
 void ast::TypeConversionExpression::generate_expr(Emitter &emitter) const

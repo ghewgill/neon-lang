@@ -103,7 +103,7 @@ enum Opcode {
     CALLX,      // call extension
     SWAP,       // swap two top stack elements
     DROPN,      // drop element n
-    PUSHM,      // push current module
+    PUSHFP,     // push function pointer
     CALLV,      // call virtual
     PUSHCI,     // push class info
 }
@@ -359,7 +359,7 @@ impl Executor {
                 x if x == Opcode::CALLX as u8 => self.op_callx(),
                 x if x == Opcode::SWAP as u8 => self.op_swap(),
                 x if x == Opcode::DROPN as u8 => self.op_dropn(),
-                x if x == Opcode::PUSHM as u8 => self.op_pushm(),
+                x if x == Opcode::PUSHFP as u8 => self.op_pushfp(),
                 x if x == Opcode::CALLV as u8 => self.op_callv(),
                 x if x == Opcode::PUSHCI as u8 => self.op_pushci(),
                 _ => panic!("invalid opcode")
@@ -785,7 +785,7 @@ impl Executor {
         assert!(false, "unimplemented");
     }
 
-    fn op_pushm(&mut self) {
+    fn op_pushfp(&mut self) {
         assert!(false, "unimplemented");
     }
 
