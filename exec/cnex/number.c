@@ -30,6 +30,7 @@ void number_toString(Number x, char *buf, size_t len)
 
     char val[50] = { 0 };
     bid128_to_string(val, x);
+    printf("\n**formatting number: %s **\n", val);
 
     char *v, *s = v = &val[1];
 
@@ -97,7 +98,7 @@ void number_toString(Number x, char *buf, size_t len)
             // going to insert the decimal into slen+exponent location.
             memcpy(r, mantissa, slen+exponent);
             r[slen+exponent] = '.';
-            memcpy(&r[slen+exponent]+1, &mantissa[slen+exponent], slen - (slen+exponent));
+            memcpy(&r[slen+exponent+1], &mantissa[slen+exponent], slen - (slen+exponent));
         } else if (exponent < 0 && -exponent == slen) {
             // Our exponent is negative, and is the length of the mantissa, so we're going to start
             // the number with "0.", and then add the rest of the mantissa on the right side of the decimal.
@@ -561,5 +562,7 @@ void main()
     assert(strcasecmp(number_to_string(number_from_string("+1E-35")), "1e-35") == 0);
     assert(strcasecmp(number_to_string(number_from_string("-1E-35")), "-1e-35") == 0);
     assert(strcasecmp(number_to_string(number_from_string("+0E-6176")), "0") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+8018797208429722826939072854263270E-32")), "80.1879720842972282693907285426327") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+707486673985408982210122026333411E-33")), "0.707486673985408982210122026333411") == 0);
 }
 #endif

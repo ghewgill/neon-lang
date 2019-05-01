@@ -28,3 +28,4 @@ void fatal_error(const char *msg, ...)
     va_end(args);
     exit(1);
 }
+

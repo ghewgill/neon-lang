@@ -43,4 +43,22 @@ size_t callstack_top(struct tagTCallStack *stack);
 size_t callstack_peek(struct tagTCallStack *stack, int depth);
 int callstack_isEmpty(struct tagTCallStack *stack);
 
+
+typedef struct tagTItemStack {
+    int top;
+    int capacity;
+    int max;
+    void **data;
+} TItemStack;
+
+TItemStack *createItemStack(int capacity);
+void destroyItemStack(TItemStack *stack);
+
+int item_isFull(TItemStack *stack);
+int item_isEmpty(TItemStack *stack);
+void item_push(TItemStack *stack, void *item);
+void item_pop(TItemStack *stack);
+void *item_top(TItemStack *stack);
+void *item_peek(TItemStack *stack, int element);
+
 #endif

@@ -4,7 +4,7 @@ bytes-index.neon           # PUSHPPG
 cal-test.neon              # os.system
 cformat-test.neon          # object / object__makeString
 cmdline.neon               # module
-complex-test.neon          # CALLMF
+#complex-test.neon          # CALLMF
 datetime-test.neon         # module
 debug-example.neon         # module
 debug-server.neon          # module
@@ -24,7 +24,7 @@ file-test.neon             # module
 file-writebytes.neon       # file
 file-writelines.neon       # file
 fork.neon                  # posix
-format.neon                # CALLMF
+#format.neon                # CALLMF
 function-pointer-nowhere.neon # functionpointer
 function-pointer.neon      # functionpointer
 gc-array.neon              # class
@@ -50,7 +50,7 @@ module-import-name.neon    # module
 module-import-name2.neon   # module
 module.neon                # module
 module2.neon               # PUSHPMG
-multiarray-test.neon       # CALLMF
+#multiarray-test.neon       # CALLMF
 net-test.neon              # net
 net-test-udp.neon          # net
 new-init-module.neon       # class

@@ -199,6 +199,8 @@ Object *object_fromCell(Cell *c)
         o->type = oDictionary;
     } else if (c->type == cNumber) {
         o->type = oNumber;
+    } else if (c->type == cOther) {
+        o->type = oOther;
     } else if (c->type == cString) {
         o->type = oString;
     }

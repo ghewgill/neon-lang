@@ -20,13 +20,13 @@ typedef struct tagTFunction {
 //vtype int
 //value []byte
 //}
-//
-//type exportvariable struct {
-//name  int
-//vtype int
-//index int
-//}
-//
+
+typedef struct tagTVariable {
+    unsigned int name;
+    unsigned int type;
+    unsigned int index;
+} Variable;
+
 //type exportfunction struct {
 //name       int
 //descriptor int
@@ -89,6 +89,7 @@ typedef struct tagTBytecode {
     unsigned int interfaceexportsize;
     unsigned int importsize;
     unsigned int classsize;
+    //struct tagTBytecodeData code;
     const uint8_t *code;
     unsigned int codelen;
 
@@ -98,6 +99,7 @@ typedef struct tagTBytecode {
     struct tagTImport  *imports;
     struct tagTException *exceptions;
     struct tagTClass *classes;
+    struct tagTVariable *variables;
 } TBytecode;
 
 

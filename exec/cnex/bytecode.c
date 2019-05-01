@@ -70,6 +70,7 @@ void bytecode_freeBytecode(TBytecode *b)
         return;
     }
 
+    free(b->variables);
     free(b->functions);
     free(b->imports);
     free(b->export_functions);
@@ -114,6 +115,10 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
     }
  
     b->constantsize = get_vint(bytecode, len, &i);
+    if (b->constantsize) {
+        i += b->constantsize;
+        //fatal_error("Constants not implemented yet.");
+    }
     /*
         constantsize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2
@@ -132,21 +137,16 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
             constantsize -= 1;
     */
     b->variablesize = get_vint(bytecode, len, &i);
-    /*
-        variablesize = struct.unpack(">H", bytecode[i:i+2])[0]
-        i += 2
-        self.export_variables = []
-        while variablesize > 0:
-            v = Variable()
-            v.name = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            v.type = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            v.index = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            self.export_variables.append(v)
-            variablesize -= 1
-    */
+    b->variables = malloc(sizeof(Variable) * b->variablesize);
+    if (b->variables == NULL) {
+        fatal_error("Could not allocate memory %d for variables.", b->variablesize);
+    }
+    for (uint32_t v = 0; v < b->variablesize; v++) {
+        b->variables[v].name = get_vint(bytecode, len, &i);
+        b->variables[v].type = get_vint(bytecode, len, &i);
+        b->variables[v].index = get_vint(bytecode, len, &i);
+    }
+
     b->export_functionsize = get_vint(bytecode, len, &i);
     b->export_functions = malloc(sizeof(ExportFunction) * b->export_functionsize);
     if (b->export_functions == NULL) {
@@ -158,6 +158,11 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
         b->export_functions[f].index = get_vint(bytecode, len, &i);
     }
     b->exceptionexportsize = get_vint(bytecode, len, &i);
+    if (b->exceptionexportsize) {
+        i += b->exceptionexportsize;
+        //fatal_error("Exported Exceptions not implemented yet.");
+    }
+
     /*
         exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2
@@ -170,6 +175,11 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
             exceptionexportsize -= 1
     */
     b->interfaceexportsize = get_vint(bytecode, len, &i);
+    if (b->interfaceexportsize) {
+        i += b->interfaceexportsize;
+        //fatal_error("Exported Interfaces not implemented yet.");
+    }
+
     /*
         interfaceexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2

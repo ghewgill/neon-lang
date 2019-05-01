@@ -382,6 +382,9 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
         c->type = cArray;
     }
     assert(c->type == cArray);
+    if (c->array == NULL) {
+        c->array = array_createArray();
+    }
     if (i >= c->array->size) {
         c->array->data = realloc(c->array->data, sizeof(Cell) * (i+1));
         if (c->array->data == NULL) {
