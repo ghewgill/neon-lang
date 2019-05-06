@@ -1757,17 +1757,22 @@ func (self *executor) op_callp() {
 		a.array = append(a.array, b...)
 		r.store(a)
 	case "array__resize":
-		size := int(self.pop().num)
-		r := self.pop().ref
-		a := r.load().array
-		if size < len(a) {
-			a = a[:size]
+		size := self.pop().num
+		if size != math.Trunc(size) || size < 0 {
+			self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", size), 0})
 		} else {
-			for len(a) < size {
-				a = append(a, make_cell_none())
+			size := int(size)
+			r := self.pop().ref
+			a := r.load().array
+			if size < len(a) {
+				a = a[:size]
+			} else {
+				for len(a) < size {
+					a = append(a, make_cell_none())
+				}
 			}
+			r.store(make_cell_array(a))
 		}
-		r.store(make_cell_array(a))
 	case "array__size":
 		a := self.pop().array
 		self.push(make_cell_num(float64(len(a))))
