@@ -3,7 +3,6 @@ array-resize.neon          # array__resize
 assert-multiline.neon      # stderr
 bigint.neon                # bigint
 binary-test.neon           # bigint
-cmdline.neon               # pushppg
 complex-test.neon          # precision
 datetime-test.neon         # gmtime
 debug-example.neon         # debugger
@@ -21,7 +20,7 @@ gc-array.neon              # gc
 gc-long-chain.neon         # gc
 index.neon                 # copy semantics
 interface-parameter-import2.neon   # interface
-io-test.neon               # pushppg
+io-test.neon               # io.File
 literal-array.neon         # array__range
 math-test.neon             # math
 mmap-test.neon             # mmap$open
@@ -46,7 +45,7 @@ struct-test.neon           # bigint
 time-stopwatch.neon        # time$tick
 time-test.neon             # precision
 unicode-char.neon          # utf8
-unicode-length.neon        # pushppg
+unicode-length.neon        # utf8
 value-copy.neon            # copy semantics
 
 compress-test.neon         # module

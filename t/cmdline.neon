@@ -4,10 +4,10 @@ IMPORT sys
 
 VAR a: Array<String>
 a := sys.args
-print(a[0][LAST-11 TO LAST])
+print(a[0])
 print(a[1])
 print(a[2])
 
-%= cmdline.neon
+%? .*cmdline.neonx?
 %= hello
 %= world

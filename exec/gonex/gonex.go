@@ -882,6 +882,7 @@ type returnaddress struct {
 type executor struct {
 	modulefilename        string
 	param_recursion_limit int
+	predefined_globals    map[string]*cell
 	modules               map[string]*module
 	init_order            []*module
 	stack                 []cell
@@ -895,6 +896,7 @@ func make_executor(modulefilename string, bytes []byte) executor {
 	r := executor{
 		modulefilename:        modulefilename,
 		param_recursion_limit: 1000,
+		predefined_globals:    map[string]*cell{},
 		modules:               map[string]*module{},
 		stack:                 []cell{},
 		callstack:             []returnaddress{},
@@ -902,6 +904,14 @@ func make_executor(modulefilename string, bytes []byte) executor {
 		module:                nil,
 		ip:                    0,
 	}
+
+	args := []cell{}
+	for i := 1; i < len(os.Args); i++ {
+		args = append(args, make_cell_str(os.Args[i]))
+	}
+	a := make_cell_array(args)
+	r.predefined_globals["sys$args"] = &a
+
 	r.importModule("", make_bytecode(bytes))
 	r.module = r.modules[""]
 	return r
@@ -1209,7 +1219,7 @@ func (self *executor) op_pushpg() {
 func (self *executor) op_pushppg() {
 	self.ip++
 	name := get_vint(self.module.object.code, &self.ip)
-	assert(false, "unimplemented pushppg "+string(self.module.object.strtable[name]))
+	self.push(make_cell_addr(self.predefined_globals[string(self.module.object.strtable[name])]))
 }
 
 func (self *executor) op_pushpmg() {
