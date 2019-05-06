@@ -19,5 +19,5 @@ else:
 
 if os.system("{} -q -t js {}".format(os.path.join("bin", "neonc"), fullname)) != 0:
     sys.exit(1)
-if os.system("{} {}".format(node, fullname.replace(".neon", ".js"))) != 0:
+if os.system("{} {} {}".format(node, fullname.replace(".neon", ".js"), " ".join(sys.argv[2:]))) != 0:
     sys.exit(1)

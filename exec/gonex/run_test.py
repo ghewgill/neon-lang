@@ -6,4 +6,4 @@ fullname = sys.argv[1]
 path, name = os.path.split(fullname)
 
 subprocess.check_call([os.path.join("bin", "neonc"), "-q", fullname])
-subprocess.check_call(["exec/gonex/gonex", fullname + "x"])
+subprocess.check_call(["exec/gonex/gonex", fullname + "x"] + sys.argv[2:])
