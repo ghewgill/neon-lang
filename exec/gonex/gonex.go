@@ -460,7 +460,12 @@ func (r referenceDictionary) load() cell {
 }
 
 func (r referenceDictionary) store(c cell) {
-	r.dict.load().dict[r.key] = c
+	d := r.dict.load()
+	if d.dict == nil {
+		d.dict = map[string]cell{}
+		r.dict.store(d)
+	}
+	d.dict[r.key] = c
 }
 
 const (
