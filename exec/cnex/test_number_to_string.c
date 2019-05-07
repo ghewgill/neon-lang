@@ -1,10 +1,10 @@
 #include <assert.h>
-#include <string.h>
+#include <strings.h>
 
 #include "number.h"
 #include "time.h"
 
-void main()
+int main()
 {
     srand((unsigned int)time(NULL));
 
