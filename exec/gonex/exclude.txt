@@ -11,14 +11,12 @@ ffi.neon                   # calle
 file-filecopied2.neon      # copy
 fork.neon                  # posix$fork
 for.neon                   # decimal
-function-pointer-nowhere.neon # nowhere
 gc1.neon                   # gc
 gc2.neon                   # gc
 gc3.neon                   # gc
 gc-array.neon              # gc
 gc-long-chain.neon         # gc
 index.neon                 # copy semantics
-interface-parameter-import2.neon   # interface
 io-test.neon               # io.File
 literal-array.neon         # array__range
 math-test.neon             # math
