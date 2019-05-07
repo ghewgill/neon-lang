@@ -1761,6 +1761,25 @@ func (self *executor) op_callp() {
 		a := r.load()
 		a.array = append(a.array, b...)
 		r.store(a)
+	case "array__range":
+		step := self.pop().num
+		last := self.pop().num
+		first := self.pop().num
+		if step == 0 {
+			self.raise_literal("ValueRangeException", exceptioninfo{fmt.Sprintf("%g", step), 0})
+		} else {
+			r := []cell{}
+			if step < 0 {
+				for i := first; i >= last; i += step {
+					r = append(r, make_cell_num(i))
+				}
+			} else {
+				for i := first; i <= last; i += step {
+					r = append(r, make_cell_num(i))
+				}
+			}
+			self.push(make_cell_array(r))
+		}
 	case "array__resize":
 		size := self.pop().num
 		if size != math.Trunc(size) || size < 0 {

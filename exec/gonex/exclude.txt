@@ -18,7 +18,6 @@ gc-array.neon              # gc
 gc-long-chain.neon         # gc
 index.neon                 # copy semantics
 io-test.neon               # io.File
-literal-array.neon         # array__range
 math-test.neon             # math
 mmap-test.neon             # mmap$open
 module2.neon               # exception stack
