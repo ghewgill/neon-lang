@@ -2850,6 +2850,7 @@ func (self *executor) raise_literal(exception string, ei exceptioninfo) {
 			if tip >= e.start && tip < e.end {
 				handler := string(tmodule.object.strtable[e.excid])
 				if exception == handler || (len(exception) > len(handler) && exception[0:len(handler)] == handler && exception[len(handler)] == '.') {
+					self.module = tmodule
 					self.ip = e.handler
 					if len(self.frames) > 0 {
 						for len(self.stack) > self.frames[len(self.frames)-1].opstack_depth+e.stack_depth {

@@ -20,7 +20,6 @@ index.neon                 # copy semantics
 io-test.neon               # io.File
 math-test.neon             # math
 mmap-test.neon             # mmap$open
-module2.neon               # exception stack
 modulo.neon                # modulo
 net-test.neon              # net$tcpSocket
 net-test-udp.neon          # net$udpSocket
