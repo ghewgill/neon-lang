@@ -2,20 +2,12 @@
 #define NUMBER_H
 
 #include <limits.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
-
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#endif
+#include <stdint.h>
 
 #define DECIMAL_GLOBAL_ROUNDING 1
 #define DECIMAL_GLOBAL_EXCEPTION_FLAGS 1
 
-#ifndef _WCHAR_T_DEFINED
-#define _WCHAR_T_DEFINED
-#endif
 #include "bid_conf.h"
 #ifdef _MSC_VER
 #pragma warning(push, 0)
