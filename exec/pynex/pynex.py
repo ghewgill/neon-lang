@@ -751,12 +751,6 @@ class Executor:
         self.ip += 1
         self.stack.append(Value(None))
 
-    def JNASSERT(self):
-        self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
-        if not enable_assert:
-            self.ip = target
-
     def RESETC(self):
         self.ip += 1
         value = self.stack.pop()
@@ -926,7 +920,6 @@ Dispatch = [
     Executor.EXCEPT,
     Executor.ALLOC,
     Executor.PUSHNIL,
-    Executor.JNASSERT,
     Executor.RESETC,
     Executor.PUSHPEG,
     Executor.JUMPTBL,
@@ -1477,6 +1470,9 @@ def neon_os_system(self):
 
 def neon_posix_fork(self):
     self.stack.append(Value(decimal.Decimal(os.fork())))
+
+def neon_runtime_assertionsEnabled(self):
+    self.stack.append(Value(enable_assert))
 
 def neon_runtime_executorName(self):
     self.stack.append(Value("pynex"))

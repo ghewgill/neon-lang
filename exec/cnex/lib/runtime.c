@@ -5,6 +5,11 @@
 #include "nstring.h"
 #include "stack.h"
 
+void runtime_assertionsEnabled(struct tagTExecutor *exec)
+{
+    push(exec->stack, cell_fromBoolean(exec->enable_assert));
+}
+
 void runtime_executorName(TExecutor *exec)
 {
     push(exec->stack, cell_fromString(string_createCString("cnex")));

@@ -124,6 +124,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("random$uint32",             random_uint32),
 
     // runtime - runtime support services
+    PDFUNC("runtime$assertionsEnabled", runtime_assertionsEnabled),
     PDFUNC("runtime$executorName",      runtime_executorName),
 
     // System - System level calls

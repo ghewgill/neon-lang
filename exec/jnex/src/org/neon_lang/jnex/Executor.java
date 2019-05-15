@@ -69,6 +69,7 @@ class Executor {
         predefined.put("math$floor", this::math$floor);
         predefined.put("math$sign", this::math$sign);
         predefined.put("math$trunc", this::math$trunc);
+        predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
         predefined.put("runtime$executorName", this::runtime$executorName);
 
         object = new Bytecode(in);
@@ -189,7 +190,6 @@ class Executor {
                     case EXCEPT: doEXCEPT(); break;
                     case ALLOC: doALLOC(); break;
                     case PUSHNIL: doPUSHNIL(); break;
-                    case JNASSERT: doJNASSERT(); break;
                     case RESETC: doRESETC(); break;
                     //case PUSHPEG
                     case JUMPTBL: doJUMPTBL(); break;
@@ -852,15 +852,6 @@ class Executor {
         stack.addFirst(new Cell((Cell)null));
     }
 
-    private void doJNASSERT()
-    {
-        ip++;
-        int target = getVint();
-        if (!enable_assert) {
-            ip = target;
-        }
-    }
-
     private void doRESETC()
     {
         ip++;
@@ -1075,7 +1066,6 @@ class Executor {
         EXCEPT,
         ALLOC,
         PUSHNIL,
-        JNASSERT,
         RESETC,
         PUSHPEG,
         JUMPTBL,
@@ -1593,6 +1583,11 @@ class Executor {
     {
         BigDecimal x = stack.removeFirst().getNumber();
         stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_DOWN)));
+    }
+
+    private void runtime$assertionsEnabled()
+    {
+        stack.addFirst(new Cell(enable_assert));
     }
 
     private void runtime$executorName()

@@ -96,7 +96,6 @@ enum Opcode {
     EXCEPT,     // throw exception
     ALLOC,      // allocate record
     PUSHNIL,    // push nil pointer
-    JNASSERT,   // jump if assertions disabled
     RESETC,     // reset cell
     PUSHPEG,    // push pointer to external global
     JUMPTBL,    // jump table
@@ -352,7 +351,6 @@ impl Executor {
                 x if x == Opcode::EXCEPT as u8 => self.op_except(),
                 x if x == Opcode::ALLOC as u8 => self.op_alloc(),
                 x if x == Opcode::PUSHNIL as u8 => self.op_pushnil(),
-                x if x == Opcode::JNASSERT as u8 => self.op_jnassert(),
                 x if x == Opcode::RESETC as u8 => self.op_resetc(),
                 x if x == Opcode::PUSHPEG as u8 => self.op_pushpeg(),
                 x if x == Opcode::JUMPTBL as u8 => self.op_jumptbl(),
@@ -754,10 +752,6 @@ impl Executor {
     }
 
     fn op_pushnil(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
-    fn op_jnassert(&mut self) {
         assert!(false, "unimplemented");
     }
 

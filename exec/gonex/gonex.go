@@ -20,109 +20,108 @@ import (
 )
 
 const (
-	PUSHB    = iota // push boolean immediate
-	PUSHN    = iota // push number immediate
-	PUSHS    = iota // push string immediate
-	PUSHY    = iota // push bytes immediate
-	PUSHPG   = iota // push pointer to global
-	PUSHPPG  = iota // push pointer to predefined global
-	PUSHPMG  = iota // push pointer to module global
-	PUSHPL   = iota // push pointer to local
-	PUSHPOL  = iota // push pointer to outer local
-	PUSHI    = iota // push 32-bit integer immediate
-	LOADB    = iota // load boolean
-	LOADN    = iota // load number
-	LOADS    = iota // load string
-	LOADY    = iota // load bytes
-	LOADA    = iota // load array
-	LOADD    = iota // load dictionary
-	LOADP    = iota // load pointer
-	LOADJ    = iota // load object
-	LOADV    = iota // load voidptr
-	STOREB   = iota // store boolean
-	STOREN   = iota // store number
-	STORES   = iota // store string
-	STOREY   = iota // store bytes
-	STOREA   = iota // store array
-	STORED   = iota // store dictionary
-	STOREP   = iota // store pointer
-	STOREJ   = iota // store object
-	STOREV   = iota // store voidptr
-	NEGN     = iota // negate number
-	ADDN     = iota // add number
-	SUBN     = iota // subtract number
-	MULN     = iota // multiply number
-	DIVN     = iota // divide number
-	MODN     = iota // modulo number
-	EXPN     = iota // exponentiate number
-	EQB      = iota // compare equal boolean
-	NEB      = iota // compare unequal boolean
-	EQN      = iota // compare equal number
-	NEN      = iota // compare unequal number
-	LTN      = iota // compare less number
-	GTN      = iota // compare greater number
-	LEN      = iota // compare less equal number
-	GEN      = iota // compare greater equal number
-	EQS      = iota // compare equal string
-	NES      = iota // compare unequal string
-	LTS      = iota // compare less string
-	GTS      = iota // compare greater string
-	LES      = iota // compare less equal string
-	GES      = iota // compare greater equal string
-	EQY      = iota // compare equal bytes
-	NEY      = iota // compare unequal bytes
-	LTY      = iota // compare less bytes
-	GTY      = iota // compare greater bytes
-	LEY      = iota // compare less equal bytes
-	GEY      = iota // compare greater equal bytes
-	EQA      = iota // compare equal array
-	NEA      = iota // compare unequal array
-	EQD      = iota // compare equal dictionary
-	NED      = iota // compare unequal dictionary
-	EQP      = iota // compare equal pointer
-	NEP      = iota // compare unequal pointer
-	EQV      = iota // compare equal voidptr
-	NEV      = iota // compare unequal voidptr
-	ANDB     = iota // and boolean
-	ORB      = iota // or boolean
-	NOTB     = iota // not boolean
-	INDEXAR  = iota // index array for read
-	INDEXAW  = iota // index array for write
-	INDEXAV  = iota // index array value
-	INDEXAN  = iota // index array value, no exception
-	INDEXDR  = iota // index dictionary for read
-	INDEXDW  = iota // index dictionary for write
-	INDEXDV  = iota // index dictionary value
-	INA      = iota // in array
-	IND      = iota // in dictionary
-	CALLP    = iota // call predefined
-	CALLF    = iota // call function
-	CALLMF   = iota // call module function
-	CALLI    = iota // call indirect
-	JUMP     = iota // unconditional jump
-	JF       = iota // jump if false
-	JT       = iota // jump if true
-	JFCHAIN  = iota // jump and drop next if false
-	DUP      = iota // duplicate
-	DUPX1    = iota // duplicate under second value
-	DROP     = iota // drop
-	RET      = iota // return
-	CALLE    = iota // call foreign
-	CONSA    = iota // construct array
-	CONSD    = iota // construct dictionary
-	EXCEPT   = iota // throw exception
-	ALLOC    = iota // allocate record
-	PUSHNIL  = iota // push nil pointer
-	JNASSERT = iota // jump if assertions disabled
-	RESETC   = iota // reset cell
-	PUSHPEG  = iota // push pointer to external global
-	JUMPTBL  = iota // jump table
-	CALLX    = iota // call extension
-	SWAP     = iota // swap two top stack elements
-	DROPN    = iota // drop element n
-	PUSHFP   = iota // push function pointer
-	CALLV    = iota // call virtual
-	PUSHCI   = iota // push class info
+	PUSHB   = iota // push boolean immediate
+	PUSHN   = iota // push number immediate
+	PUSHS   = iota // push string immediate
+	PUSHY   = iota // push bytes immediate
+	PUSHPG  = iota // push pointer to global
+	PUSHPPG = iota // push pointer to predefined global
+	PUSHPMG = iota // push pointer to module global
+	PUSHPL  = iota // push pointer to local
+	PUSHPOL = iota // push pointer to outer local
+	PUSHI   = iota // push 32-bit integer immediate
+	LOADB   = iota // load boolean
+	LOADN   = iota // load number
+	LOADS   = iota // load string
+	LOADY   = iota // load bytes
+	LOADA   = iota // load array
+	LOADD   = iota // load dictionary
+	LOADP   = iota // load pointer
+	LOADJ   = iota // load object
+	LOADV   = iota // load voidptr
+	STOREB  = iota // store boolean
+	STOREN  = iota // store number
+	STORES  = iota // store string
+	STOREY  = iota // store bytes
+	STOREA  = iota // store array
+	STORED  = iota // store dictionary
+	STOREP  = iota // store pointer
+	STOREJ  = iota // store object
+	STOREV  = iota // store voidptr
+	NEGN    = iota // negate number
+	ADDN    = iota // add number
+	SUBN    = iota // subtract number
+	MULN    = iota // multiply number
+	DIVN    = iota // divide number
+	MODN    = iota // modulo number
+	EXPN    = iota // exponentiate number
+	EQB     = iota // compare equal boolean
+	NEB     = iota // compare unequal boolean
+	EQN     = iota // compare equal number
+	NEN     = iota // compare unequal number
+	LTN     = iota // compare less number
+	GTN     = iota // compare greater number
+	LEN     = iota // compare less equal number
+	GEN     = iota // compare greater equal number
+	EQS     = iota // compare equal string
+	NES     = iota // compare unequal string
+	LTS     = iota // compare less string
+	GTS     = iota // compare greater string
+	LES     = iota // compare less equal string
+	GES     = iota // compare greater equal string
+	EQY     = iota // compare equal bytes
+	NEY     = iota // compare unequal bytes
+	LTY     = iota // compare less bytes
+	GTY     = iota // compare greater bytes
+	LEY     = iota // compare less equal bytes
+	GEY     = iota // compare greater equal bytes
+	EQA     = iota // compare equal array
+	NEA     = iota // compare unequal array
+	EQD     = iota // compare equal dictionary
+	NED     = iota // compare unequal dictionary
+	EQP     = iota // compare equal pointer
+	NEP     = iota // compare unequal pointer
+	EQV     = iota // compare equal voidptr
+	NEV     = iota // compare unequal voidptr
+	ANDB    = iota // and boolean
+	ORB     = iota // or boolean
+	NOTB    = iota // not boolean
+	INDEXAR = iota // index array for read
+	INDEXAW = iota // index array for write
+	INDEXAV = iota // index array value
+	INDEXAN = iota // index array value, no exception
+	INDEXDR = iota // index dictionary for read
+	INDEXDW = iota // index dictionary for write
+	INDEXDV = iota // index dictionary value
+	INA     = iota // in array
+	IND     = iota // in dictionary
+	CALLP   = iota // call predefined
+	CALLF   = iota // call function
+	CALLMF  = iota // call module function
+	CALLI   = iota // call indirect
+	JUMP    = iota // unconditional jump
+	JF      = iota // jump if false
+	JT      = iota // jump if true
+	JFCHAIN = iota // jump and drop next if false
+	DUP     = iota // duplicate
+	DUPX1   = iota // duplicate under second value
+	DROP    = iota // drop
+	RET     = iota // return
+	CALLE   = iota // call foreign
+	CONSA   = iota // construct array
+	CONSD   = iota // construct dictionary
+	EXCEPT  = iota // throw exception
+	ALLOC   = iota // allocate record
+	PUSHNIL = iota // push nil pointer
+	RESETC  = iota // reset cell
+	PUSHPEG = iota // push pointer to external global
+	JUMPTBL = iota // jump table
+	CALLX   = iota // call extension
+	SWAP    = iota // swap two top stack elements
+	DROPN   = iota // drop element n
+	PUSHFP  = iota // push function pointer
+	CALLV   = iota // call virtual
+	PUSHCI  = iota // push class info
 )
 
 func assert(b bool, msg string) {
@@ -1150,8 +1149,6 @@ func (self *executor) run() {
 			self.op_alloc()
 		case PUSHNIL:
 			self.op_pushnil()
-		case JNASSERT:
-			self.op_jnassert()
 		case RESETC:
 			self.op_resetc()
 		case PUSHPEG:
@@ -2443,6 +2440,8 @@ func (self *executor) op_callp() {
 		n := int(self.pop().num)
 		p := math.Pow10(n)
 		self.push(make_cell_num(math.Trunc(x*p+0.5) / p))
+	case "runtime$assertionsEnabled":
+		self.push(make_cell_bool(true)) // TODO: enable_assertions
 	case "runtime$executorName":
 		self.push(make_cell_str("gonex"))
 	case "runtime$moduleIsMain":
@@ -2736,12 +2735,6 @@ func (self *executor) op_alloc() {
 func (self *executor) op_pushnil() {
 	self.ip += 1
 	self.stack = append(self.stack, make_cell_addr(nil))
-}
-
-func (self *executor) op_jnassert() {
-	self.ip++
-	/*target :=*/ get_vint(self.module.object.code, &self.ip)
-	// TODO: check assert
 }
 
 func (self *executor) op_resetc() {

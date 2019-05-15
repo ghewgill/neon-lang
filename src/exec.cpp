@@ -378,7 +378,6 @@ public:
     void exec_EXCEPT();
     void exec_ALLOC();
     void exec_PUSHNIL();
-    void exec_JNASSERT();
     void exec_RESETC();
     void exec_PUSHPEG();
     void exec_JUMPTBL();
@@ -1714,15 +1713,6 @@ void Executor::exec_PUSHNIL()
     stack.push(Cell(static_cast<Cell *>(nullptr)));
 }
 
-void Executor::exec_JNASSERT()
-{
-    ip++;
-    uint32_t target = Bytecode::get_vint(module->object.code, ip);
-    if (not options->enable_assert) {
-        ip = target;
-    }
-}
-
 void Executor::exec_RESETC()
 {
     ip++;
@@ -2273,7 +2263,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case EXCEPT:  exec_EXCEPT(); break;
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(); break;
-            case JNASSERT:exec_JNASSERT(); break;
             case RESETC:  exec_RESETC(); break;
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(); break;

@@ -1158,15 +1158,6 @@ void exec_PUSHNIL(TExecutor *self)
     push(self->stack, cell_newCell());
 }
 
-void exec_JNASSERT(TExecutor *self)
-{
-    self->ip++;
-    unsigned int target = exec_getOperand(self);
-    if (!self->enable_assert) {
-        self->ip = target;
-    }
-}
-
 void exec_RESETC(TExecutor *self)
 {
     self->ip++;
@@ -1360,7 +1351,6 @@ void exec_loop(TExecutor *self)
             case EXCEPT:  exec_EXCEPT(self); break;
             case ALLOC:   exec_ALLOC(self); break;
             case PUSHNIL: exec_PUSHNIL(self); break;
-            case JNASSERT:exec_JNASSERT(self); break;
             case RESETC:  exec_RESETC(self); break;
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(self); break;

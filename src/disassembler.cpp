@@ -115,7 +115,6 @@ private:
     void disasm_EXCEPT();
     void disasm_ALLOC();
     void disasm_PUSHNIL();
-    void disasm_JNASSERT();
     void disasm_RESETC();
     void disasm_PUSHPEG();
     void disasm_JUMPTBL();
@@ -710,13 +709,6 @@ void InstructionDisassembler::disasm_PUSHNIL()
     index++;
 }
 
-void InstructionDisassembler::disasm_JNASSERT()
-{
-    index++;
-    uint32_t addr = Bytecode::get_vint(obj.code, index);
-    out << "JNASSERT " << addr;
-}
-
 void InstructionDisassembler::disasm_RESETC()
 {
     out << "RESETC";
@@ -876,7 +868,6 @@ void InstructionDisassembler::disassemble()
         case EXCEPT:  disasm_EXCEPT(); break;
         case ALLOC:   disasm_ALLOC(); break;
         case PUSHNIL: disasm_PUSHNIL(); break;
-        case JNASSERT:disasm_JNASSERT(); break;
         case RESETC:  disasm_RESETC(); break;
         case PUSHPEG: disasm_PUSHPEG(); break;
         case JUMPTBL: disasm_JUMPTBL(); break;

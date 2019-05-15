@@ -221,7 +221,6 @@ void Emitter::emit(Opcode b)
             case EXCEPT:    stack_depth = -1; break;
             case ALLOC:     stack_depth += 1; break;
             case PUSHNIL:   stack_depth += 1; break;
-            case JNASSERT:  break;
             case RESETC:    stack_depth -= 1; break;
             case PUSHPEG:   stack_depth += 1; break;
             case JUMPTBL:   stack_depth -= 1; in_jumptbl = true; break;
@@ -2096,7 +2095,9 @@ void ast::ExceptionHandlerStatement::generate_code(Emitter &emitter) const
 void ast::AssertStatement::generate_code(Emitter &emitter) const
 {
     auto skip_label = emitter.create_label();
-    emitter.emit_jump(JNASSERT, skip_label);
+    emitter.emit(CALLP, emitter.str("runtime$assertionsEnabled"));
+    emitter.adjust_stack_depth(1);
+    emitter.emit_jump(JF, skip_label);
     expr->generate(emitter);
     emitter.emit_jump(JT, skip_label);
     for (auto stmt: statements) {

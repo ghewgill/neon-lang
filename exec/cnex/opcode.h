@@ -95,7 +95,6 @@
     OPCODE(EXCEPT)     /* throw exception */\
     OPCODE(ALLOC)      /* allocate record */\
     OPCODE(PUSHNIL)    /* push nil pointer */\
-    OPCODE(JNASSERT)   /* jump if assertions disabled */\
     OPCODE(RESETC)     /* reset cell */\
     OPCODE(PUSHPEG)    /* push pointer to external global */\
     OPCODE(JUMPTBL)    /* jump table */\

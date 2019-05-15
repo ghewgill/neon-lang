@@ -95,7 +95,6 @@ enum Opcode {
     EXCEPT,     // throw exception
     ALLOC,      // allocate record
     PUSHNIL,    // push nil pointer
-    JNASSERT,   // jump if assertions disabled
     RESETC,     // reset cell
     PUSHPEG,    // push pointer to external global
     JUMPTBL,    // jump table
