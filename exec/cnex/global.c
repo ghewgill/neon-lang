@@ -204,11 +204,11 @@ struct tagTVariables {
 void global_init(int argc, char *argv[], int iArgStart)
 {
     // Init io module
-    VAR_stderr.address = cell_createAddressCell((void*)stderr);
+    VAR_stderr.address = cell_createOtherCell(stderr);
     VAR_stderr.type = cAddress;
-    VAR_stdin.address = cell_createAddressCell((void*)stdin);
+    VAR_stdin.address = cell_createOtherCell(stdin);
     VAR_stdin.type = cAddress;
-    VAR_stdout.address = cell_createAddressCell((void*)stdout);
+    VAR_stdout.address = cell_createOtherCell(stdout);
     VAR_stdout.type = cAddress;
 
     // Init Random Module
@@ -300,6 +300,7 @@ void neon_concatBytes(TExecutor *exec)
     Cell *b = peek(exec->stack, 0);
     Cell *a = peek(exec->stack, 1);
     Cell *r = cell_createStringCell(b->string->length + a->string->length);
+    r->type = cBytes;
 
     memcpy(r->string->data, a->string->data, a->string->length);
     memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
@@ -567,7 +568,7 @@ void array__toBytes__number(TExecutor *exec)
     size_t x, i;
     Cell *a = cell_fromCell(top(exec->stack)); pop(exec->stack);
 
-    Cell *r = cell_newCellType(cString);
+    Cell *r = cell_newCellType(cBytes);
     r->string = string_createString(a->array->size);
 
     for (x = 0, i = 0; x < a->array->size; x++) {
@@ -654,7 +655,7 @@ void bytes__range(TExecutor *exec)
         lst += t->string->length - 1;
     }
 
-    Cell *sub = cell_newCellType(cString);
+    Cell *sub = cell_newCellType(cBytes);
     sub->string = string_newString();
     sub->string->length = lst + 1 - fst;
     sub->string->data = malloc(sub->string->length);
@@ -694,7 +695,7 @@ void bytes__splice(TExecutor *exec)
         lst += s->string->length - 1;
     }
 
-    Cell *sub = cell_newCellType(cString);
+    Cell *sub = cell_newCellType(cBytes);
     sub->string = string_newString();
     sub->string->length = t->string->length + (((fst - 1) + s->string->length) - lst);
     sub->string->data = malloc(sub->string->length);

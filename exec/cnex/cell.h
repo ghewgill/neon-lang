@@ -34,9 +34,20 @@ Cell *cell_createAddressCell(Cell *a);
 Cell *cell_createArrayCell(size_t elements);
 Cell *cell_createDictionaryCell(void);
 Cell *cell_createStringCell(size_t size);
+Cell *cell_createOtherCell(void *ptr);
 
 Cell *cell_newCell(void);
 Cell *cell_newCellType(CellType t);
+
+void cell_ensureAddress(Cell *a);
+void cell_ensureArray(Cell *a);
+void cell_ensureBoolean(Cell *b);
+void cell_ensureBytes(Cell *b);
+void cell_ensureDictionary(Cell *d);
+void cell_ensureNumber(Cell *n);
+void cell_ensureObject(Cell *o);
+void cell_ensureOther(Cell *o);
+void cell_ensureString(Cell *s);
 
 void cell_clearCell(Cell *c);
 void cell_freeCell(Cell *c);
