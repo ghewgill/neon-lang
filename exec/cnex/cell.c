@@ -13,6 +13,93 @@
 #include "object.h"
 #include "util.h"
 
+void cell_ensureAddress(Cell *a)
+{
+    if (a->type == cNothing) {
+        a->type = cAddress;
+    }
+    assert(a->type == cAddress);
+}
+
+void cell_ensureArray(Cell *a)
+{
+    if (a->type == cNothing) {
+        a->type = cArray;
+    }
+    assert(a->type == cArray);
+    if (a->array == NULL) {
+        a->array = array_createArray();
+    }
+}
+
+void cell_ensureBoolean(Cell * b)
+{
+    if (b->type == cNothing) {
+        b->type = cBoolean;
+    }
+    assert(b->type == cBoolean);
+}
+
+void cell_ensureBytes(Cell *b)
+{
+    if (b->type == cNothing) {
+        b->type = cBytes;
+    }
+    assert(b->type == cBytes);
+    if (b->string == NULL) {
+        b->string = string_createString(0);
+    }
+}
+
+void cell_ensureDictionary(Cell *d)
+{
+    if (d->type == cNothing) {
+        d->type = cDictionary;
+    }
+    assert(d->type == cDictionary);
+    if (d->dictionary == NULL) {
+        d->dictionary = dictionary_createDictionary();
+    }
+}
+
+void cell_ensureNumber(Cell *n)
+{
+    if (n->type == cNothing) {
+        n->type = cNumber;
+    }
+    assert(n->type == cNumber);
+}
+
+void cell_ensureObject(Cell *o)
+{
+    if (o->type == cNothing) {
+        o->type = cObject;
+    }
+    assert(o->type == cObject);
+    if (o->object == NULL) {
+        o->object = object_createObject();
+    }
+}
+
+void cell_ensureOther(Cell *o)
+{
+    if (o->type == cNothing) {
+        o->type = cOther;
+    }
+    assert(o->type == cOther);
+}
+
+void cell_ensureString(Cell *s)
+{
+    if (s->type == cNothing) {
+        s->type = cString;
+    }
+    assert(s->type == cString);
+    if (s->string == NULL) {
+        s->string = string_createString(0);
+    }
+}
+
 Cell *cell_fromAddress(Cell *c)
 {
     Cell *x = cell_newCell();
@@ -201,6 +288,7 @@ Cell *cell_fromCell(const Cell *c)
             x->boolean = FALSE;
             x->array = NULL;
             x->dictionary = NULL;
+            break;
         case cNothing:
             assert(c->type == cNothing);
             break;
@@ -250,6 +338,15 @@ Cell *cell_createArrayCell(size_t iElements)
     c->array = array_createArrayFromSize(iElements);
 
     c->type = cArray;
+    return c;
+}
+
+Cell *cell_createOtherCell(void *ptr)
+{
+    Cell *c = cell_newCell();
+    c->other = ptr;
+
+    c->type = cOther;
     return c;
 }
 
@@ -485,6 +582,7 @@ void cell_copyCell(Cell *dest, const Cell *source)
     }
     dest->address = source->address;
     dest->boolean = source->boolean;
+    dest->other = source->other;
     dest->type = source->type;
 }
 

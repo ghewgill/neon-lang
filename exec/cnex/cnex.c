@@ -364,6 +364,7 @@ void exec_LOADB(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureBoolean(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
@@ -371,6 +372,7 @@ void exec_LOADN(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureNumber(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
@@ -378,6 +380,7 @@ void exec_LOADS(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureString(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
@@ -385,6 +388,7 @@ void exec_LOADY(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureBytes(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
@@ -392,6 +396,7 @@ void exec_LOADA(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureArray(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
@@ -399,6 +404,7 @@ void exec_LOADD(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureDictionary(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
@@ -406,6 +412,7 @@ void exec_LOADP(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureAddress(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
@@ -413,6 +420,7 @@ void exec_LOADJ(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureObject(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
@@ -420,6 +428,7 @@ void exec_LOADV(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_ensureOther(addr);
     push(self->stack, cell_fromCell(addr));
 }
 
