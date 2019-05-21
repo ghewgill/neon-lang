@@ -574,6 +574,7 @@ if use_java:
     tests_jvm = buildenv.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/jvm-exclude.txt")))
     buildenv.Depends(tests_jvm, jvm_classes)
 tests_cpp = buildenv.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/cpp-exclude.txt")))
+tests_nenex = buildenv.Command("tests_nenex", [neonc, "scripts/run_test.py", "exec/nenex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/nenex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/nenex/exclude.txt")))
 tests_pynex = buildenv.Command("tests_pynex", [neonc, "scripts/run_test.py", "exec/pynex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/pynex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/pynex/exclude.txt")))
 if use_java:
     tests_jnex = buildenv.Command("tests_jnex", [neonc, "scripts/run_test.py", "exec/jnex/run_test.py", jnex, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/jnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/jnex/exclude.txt")))
