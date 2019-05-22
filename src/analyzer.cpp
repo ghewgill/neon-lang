@@ -984,6 +984,9 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (atype == nullptr) {
         return nullptr;
     }
+    if (elementtype->make_converter(atype->elementtype) == nullptr) {
+        return nullptr;
+    }
     return [this, atype](Analyzer *analyzer, const Expression *e) {
         return make_array_conversion(analyzer, atype, e, this);
     };
@@ -1020,6 +1023,9 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     }
     const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
     if (dtype == nullptr) {
+        return nullptr;
+    }
+    if (elementtype->make_converter(dtype->elementtype) == nullptr) {
         return nullptr;
     }
     return [this, dtype](Analyzer *analyzer, const Expression *e) {
