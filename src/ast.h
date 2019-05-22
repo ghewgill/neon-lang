@@ -757,7 +757,7 @@ public:
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
-    virtual std::string text() const override { return "TypeFunctionPointer(" + functype->text() + ")"; }
+    virtual std::string text() const override { return "TypeFunctionPointer(" + (functype != nullptr ? functype->text() : "nowhere") + ")"; }
 private:
     TypeFunctionPointer(const TypeFunctionPointer &);
     TypeFunctionPointer &operator=(const TypeFunctionPointer &);
@@ -776,6 +776,7 @@ public:
     const std::map<std::string, int> names;
 
     virtual const Expression *make_default_value() const override;
+    virtual std::function<const Expression *(Analyzer *analyzer, const Expression *from)> make_converter(const Type *from) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
