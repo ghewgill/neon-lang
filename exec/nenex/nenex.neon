@@ -43,12 +43,21 @@ TYPE Function IS RECORD
     entry: Number
 END RECORD
 
+TYPE Exception IS RECORD
+    start: Number
+    end: Number
+    excid: Number
+    handler: Number
+    stack_depth: Number
+END RECORD
+
 TYPE Bytecode IS RECORD
     sourceHash: Bytes
     globalSize: Number
     strtable: Array<String>
     imports: Array<Import>
     functions: Array<Function>
+    exceptions: Array<Exception>
     code: Array<Number>
 END RECORD
 
@@ -84,7 +93,7 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     ASSERT interfaceexportsize = 0
 
     LET importsize: Number := getVint(a, INOUT i)
-    FOR z := 0 TO importsize-1 DO
+    FOR z := 1 TO importsize DO
         VAR imp: Import := Import()
         imp.name := getVint(a, INOUT i)
         imp.hash := bytes[i TO i+31]
@@ -93,7 +102,7 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     END FOR
 
     LET functionsize: Number := getVint(a, INOUT i)
-    FOR z := 0 TO functionsize-1 DO
+    FOR z := 1 TO functionsize DO
         VAR f: Function := Function()
         f.name := getVint(a, INOUT i)
         f.nest := getVint(a, INOUT i)
@@ -104,7 +113,15 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     END FOR
 
     LET exceptionsize: Number := getVint(a, INOUT i)
-    ASSERT exceptionsize = 0
+    FOR z := 1 TO exceptionsize DO
+        VAR e: Exception := Exception()
+        e.start := getVint(a, INOUT i)
+        e.end := getVint(a, INOUT i)
+        e.excid := getVint(a, INOUT i)
+        e.handler := getVint(a, INOUT i)
+        e.stack_depth := getVint(a, INOUT i)
+        r.exceptions.append(e)
+    END FOR
 
     LET classsize: Number := getVint(a, INOUT i)
     ASSERT classsize = 0
@@ -125,6 +142,7 @@ END CLASS
 
 TYPE Frame IS RECORD
     locals: Array<POINTER TO Value>
+    opstack_depth: Number
 END RECORD
 
 TYPE Executor IS RECORD
@@ -260,13 +278,53 @@ END FUNCTION
 
 FUNCTION Executor.invoke(INOUT self: Executor, index: Number)
     self.callstack.append(self.ip)
+    LET params: Number := self.bytecode.functions[index].params
     LET locals: Number := self.bytecode.functions[index].locals
     VAR frame: Frame := Frame()
     WHILE frame.locals.size() < locals DO
         frame.locals.append(NEW Value)
     END WHILE
+    frame.opstack_depth := self.stack.size() - params
     self.frames.append(frame)
     self.ip := self.bytecode.functions[index].entry
+END FUNCTION
+
+FUNCTION Executor.raise_literal(INOUT self: Executor, exception: String, info: ExceptionInfo)
+    VAR exceptionvar: Array<POINTER TO Value> := [
+        NEW Value(s WITH exception),
+        NEW Value(s WITH info.info),
+        NEW Value(n WITH info.code),
+        NEW Value(n WITH self.ip),
+    ]
+    VAR tip: Number := self.ip
+    VAR sp: Number := self.callstack.size()
+    LOOP
+        FOREACH e IN self.bytecode.exceptions DO
+            IF e.start <= tip < e.end THEN
+                LET handler: String := self.bytecode.strtable[e.excid]
+                IF exception = handler
+                OR (exception.length() > handler.length() AND exception[FIRST TO handler.length()-1] = handler AND exception[handler.length()] = ".") THEN
+                    self.ip := e.handler
+                    WHILE self.stack.size() > (IF self.frames.size() = 0 THEN 0 ELSE self.frames[LAST].opstack_depth) + e.stack_depth DO
+                        _ := self.pop()
+                    END WHILE
+                    self.callstack.resize(sp)
+                    self.stack.append(NEW Value(a WITH exceptionvar))
+                    EXIT FUNCTION
+                END IF
+            END IF
+        END FOREACH
+        IF sp = 0 THEN
+            EXIT LOOP
+        END IF
+        DEC sp
+        IF self.frames.size() > 0 THEN
+            self.frames[LAST TO LAST] := []
+        END IF
+        tip := self.callstack[sp]
+    END LOOP
+    io.fprint(io.stderr, "Unhandled exception \(exception) (\(info.info)) (code \(info.code))")
+    sys.exit(1)
 END FUNCTION
 
 FUNCTION f_pushb(INOUT self: Executor)
@@ -873,7 +931,24 @@ FUNCTION f_consd(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_except(INOUT self: Executor)
-    ASSERT FALSE
+    LET start_ip: Number := self.ip
+    INC self.ip
+    LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
+    self.ip := start_ip
+    VAR info: Array<POINTER TO Value> := self.pop()->a
+    VAR ei: ExceptionInfo := ExceptionInfo()
+    LET size: Number := info.size()
+    IF size >= 1 THEN
+        IF VALID info[0] AS p THEN
+            ei.info := p->s
+        END IF
+    END IF
+    IF size >= 2 THEN
+        IF VALID info[1] AS p THEN
+            ei.code := p->n
+        END IF
+    END IF
+    self.raise_literal(self.bytecode.strtable[val], ei)
 END FUNCTION
 
 FUNCTION f_alloc(INOUT self: Executor)
@@ -954,5 +1029,7 @@ FUNCTION makeExecutor(bytes: Bytes): Executor
     RETURN r
 END FUNCTION
 
-VAR e: Executor := makeExecutor(file.readBytes(sys.args[1]))
-e.run()
+BEGIN MAIN
+    VAR e: Executor := makeExecutor(file.readBytes(sys.args[1]))
+    e.run()
+END MAIN
