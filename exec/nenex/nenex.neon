@@ -120,6 +120,7 @@ TYPE Value IS CLASS
     n: Number
     s: String
     a: Array<POINTER TO Value>
+    d: Dictionary<POINTER TO Value>
 END CLASS
 
 TYPE Frame IS RECORD
@@ -362,7 +363,12 @@ FUNCTION f_loada(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_loadd(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    self.stack.append(NEW Value(d WITH addr->d))
 END FUNCTION
 
 FUNCTION f_loadp(INOUT self: Executor)
@@ -420,7 +426,12 @@ FUNCTION f_storea(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_stored(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    addr->d := self.pop()->d
 END FUNCTION
 
 FUNCTION f_storep(INOUT self: Executor)
@@ -545,7 +556,10 @@ FUNCTION f_nes(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_lts(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: String := self.pop()->s
+    LET a: String := self.pop()->s
+    self.stack.append(NEW Value(b WITH a < b))
 END FUNCTION
 
 FUNCTION f_gts(INOUT self: Executor)
@@ -660,7 +674,7 @@ FUNCTION f_indexav(INOUT self: Executor)
     INC self.ip
     LET index: Number := self.pop()->n
     LET array: Array<POINTER TO Value> := self.pop()->a
-    self.stack.append(NEW Value(p WITH array[index]))
+    self.stack.append(array[index])
 END FUNCTION
 
 FUNCTION f_indexan(INOUT self: Executor)
@@ -668,15 +682,36 @@ FUNCTION f_indexan(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_indexdr(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET key: String := self.pop()->s
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    IF key NOT IN addr->d THEN
+        % TODO: key not found
+    END IF
+    self.stack.append(NEW Value(p WITH addr->d[key]))
 END FUNCTION
 
 FUNCTION f_indexdw(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET key: String := self.pop()->s
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    IF key NOT IN addr->d THEN
+        addr->d[key] := NEW Value()
+    END IF
+    self.stack.append(NEW Value(p WITH addr->d[key]))
 END FUNCTION
 
 FUNCTION f_indexdv(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET key: String := self.pop()->s
+    LET dict: Dictionary<POINTER TO Value> := self.pop()->d
+    self.stack.append(dict[key])
 END FUNCTION
 
 FUNCTION f_ina(INOUT self: Executor)
@@ -713,6 +748,13 @@ FUNCTION f_callp(INOUT self: Executor)
             LET b: String := self.pop()->s
             LET a: String := self.pop()->s
             self.stack.append(NEW Value(s WITH a & b))
+        WHEN "dictionary__keys" DO
+            LET d: Dictionary<POINTER TO Value> := self.pop()->d
+            LET a: Array<POINTER TO Value> := []
+            FOREACH k IN d.keys() DO
+                a.append(NEW Value(s WITH k))
+            END FOREACH
+            self.stack.append(NEW Value(a WITH a))
         WHEN "ord" DO
             LET s: String := self.pop()->s
             self.stack.append(NEW Value(n WITH ord(s)))
@@ -819,7 +861,15 @@ FUNCTION f_consa(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_consd(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
+    VAR d: Dictionary<POINTER TO Value> := {}
+    FOR i := 1 TO val DO
+        LET v: POINTER TO Value := self.pop()
+        LET k: String := self.pop()->s
+        d[k] := v
+    END FOR
+    self.stack.append(NEW Value(d WITH d))
 END FUNCTION
 
 FUNCTION f_except(INOUT self: Executor)

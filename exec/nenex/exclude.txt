@@ -10,7 +10,7 @@ array-tostring.neon         # array__toString__number
 array.neon                  # exceptionsize
 array2d.neon                # value semantics
 assert-multiline.neon       # pushppg
-assignment.neon             # dictionary
+assignment.neon             # pushnil
 bigint.neon                 # math$abs
 binary-test.neon            # exception Utf8DecodingException
 bytes-embed.neon            # bytes
@@ -32,8 +32,6 @@ concat-bytes.neon           # exception Utf8DecodingException
 datetime-test.neon          # callmf
 debug-example.neon          # debugger$log
 debug-server.neon           # os$spawn
-dictionary-keys.neon        # dictionary
-dictionary-sorted.neon      # dictionary
 dictionary.neon             # exceptionsize
 divide-by-zero.neon         # exceptionsize
 encoding-base64.neon        # exception Utf8DecodingException
@@ -61,8 +59,6 @@ file-symlink.neon           # exceptionsize
 file-test.neon              # exceptionsize
 file-writebytes.neon        # array__toBytes__number
 file-writelines.neon        # file$writeLines
-foreach-function.neon       # dictionary
-foreach-value.neon          # dictionary
 foreach.neon                # format
 fork.neon                   # posix$fork
 format.neon                 # callmf
@@ -90,8 +86,6 @@ json-test.neon              # object__makeNull
 lexer-unicode.neon          # ina
 lexical-scope.neon          # exceptionsize
 literal-array.neon          # array__range
-literal-empty.neon          # dictionary
-literal.neon                # dictionary
 loop-label.neon             # foreach
 math-test.neon              # math$abs
 mkdir.neon                  # exceptionsize
@@ -105,7 +99,6 @@ module-import-name2.neon    # pushpmg
 module.neon                 # typesize
 module2.neon                # exceptionsize
 multiarray-test.neon        # callmf
-nested-substitution.neon    # dictionary
 net-test.neon               # net$tcpSocket
 net-test-udp.neon           # net$udpSocket
 new-init-module.neon        # pushnil
@@ -138,7 +131,6 @@ pointer5.neon               # classsize
 pointer7.neon               # classsize
 pointer8.neon               # classsize
 predeclare1.neon            # array__append
-predeclare3.neon            # dictionary
 process-test.neon           # process$call
 record-empty.neon           # indexan
 record-private.neon         # storep
@@ -170,7 +162,7 @@ try-expression.neon         # exceptionsize
 unicode-length.neon         # exception Utf8DecodingException
 valid-pointer.neon          # classsize
 value-copy.neon             # exceptionsize
-value-index.neon            # dictionary
+value-index.neon            # indexan
 varargs-functionpointer.neon # pushfp
 varargs.neon                # pushppg
 while-valid.neon            # classsize
