@@ -2571,6 +2571,9 @@ const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
         //return new ast::ConstantBooleanExpression(target->is_assignment_compatible(left->type));
         // So for now, do it dynamically at runtime by going to Object and back.
         left = convert(ast::TYPE_OBJECT, left);
+        if (left == nullptr) {
+            error(3275, expr->left->token, "cannot convert to Object");
+        }
     }
     return new ast::TypeTestExpression(left, convert(target, left));
 }
