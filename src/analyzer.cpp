@@ -4767,6 +4767,17 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         atype = arrtype;
         elementtype = arrtype->elementtype;
         len_method = "size";
+        if (elementtype == nullptr) {
+            // Case of an empty literal array. There is no elementtype,
+            // so two things: (1) We won't be able to create temporary
+            // variables with an actual type, and (2) The body of the loop
+            // will never be executed anyway.
+            // Note that this skips over all semantic checking of the rest
+            // of the loop declaration as well as the entire loop body.
+            // Not sure it's a good idea to allow semantically invalid code
+            // through.
+            return new ast::NullStatement(statement->token.line);
+        }
     } else if (strtype != nullptr) {
         atype = strtype;
         elementtype = ast::TYPE_STRING;
