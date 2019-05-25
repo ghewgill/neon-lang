@@ -10,7 +10,6 @@ array-tostring.neon         # array__toString__number
 array.neon                  # exception ArrayIndexException
 array2d.neon                # value semantics
 assert-multiline.neon       # pushppg
-assignment.neon             # pushnil
 bigint.neon                 # math$abs
 binary-test.neon            # exception Utf8DecodingException
 bytes-embed.neon            # bytes
@@ -22,8 +21,6 @@ bytes-value-index.neon      # pushy
 bytes.neon                  # array__toBytes__number
 cal-test.neon               # os$system
 cformat-test.neon           # object__makeString
-check-valid.neon            # classsize
-class-empty.neon            # classsize
 cmdline.neon                # pushppg
 comparison2.neon            # dupx1
 complex-test.neon           # callmf
@@ -35,7 +32,7 @@ dictionary.neon             # exception DictionaryIndexException
 divide-by-zero.neon         # exception DivideByZeroException
 encoding-base64.neon        # exception Utf8DecodingException
 enum.neon                   # unknown enum
-equality.neon               # classsize
+equality.neon               # pushy
 export-function-indent.neon # exportfunctionsize
 export-inline.neon          # typesize
 export.neon                 # typesize
@@ -54,23 +51,23 @@ fork.neon                   # posix$fork
 format.neon                 # callmf
 function-pointer-nowhere.neon # pushfp
 function-pointer.neon       # pushfp
-gc-array.neon               # classsize
-gc-long-chain.neon          # classsize
-gc1.neon                    # classsize
-gc2.neon                    # classsize
-gc3.neon                    # classsize
+gc-array.neon               # gc
+gc-long-chain.neon          # gc
+gc1.neon                    # gc
+gc2.neon                    # gc
+gc3.neon                    # gc
 import-dup.neon             # sys$exit
-import.neon                 # classsize
+import.neon                 # pushpmg
 in.neon                     # ina
 inc-reference.neon          # array__toString__number
 index.neon                  # value semantics
 intdiv.neon                 # math$intdiv
-interface-multiple.neon     # classsize
+interface-multiple.neon     # pushi
 interface-parameter-export.neon  # typesize
 interface-parameter-export2.neon # exportfunctionsize
-interface-parameter-import.neon  # pushnil
+interface-parameter-import.neon  # module
 interface-parameter-import2.neon # typesize
-interface.neon              # classsize
+interface.neon              # pushi
 io-test.neon                # pushppg
 json-test.neon              # object__makeNull
 lexer-unicode.neon          # ina
@@ -90,8 +87,7 @@ module2.neon                # pushpmg
 multiarray-test.neon        # callmf
 net-test.neon               # net$tcpSocket
 net-test-udp.neon           # net$udpSocket
-new-init-module.neon        # pushnil
-new-init.neon               # classsize
+new-init-module.neon        # module
 number-ceil.neon            # math$ceil
 object-isa-case.neon        # object__makeNumber
 object-isa.neon             # object__makeBoolean
@@ -109,16 +105,6 @@ outer2.neon                 # pushpol
 parameter-out-array.neon    # array__splice
 parameter-out-string.neon   # string__splice
 parameters.neon             # storep
-pointer-method.neon         # classsize
-pointer-nil.neon            # classsize
-pointer-valid.neon          # classsize
-pointer.neon                # classsize
-pointer2.neon               # classsize
-pointer3.neon               # classsize
-pointer4.neon               # classsize
-pointer5.neon               # classsize
-pointer7.neon               # classsize
-pointer8.neon               # classsize
 predeclare1.neon            # array__append
 process-test.neon           # process$call
 record-empty.neon           # indexan
@@ -148,12 +134,10 @@ time-test.neon              # time$now
 tostring.neon               # unknown enum
 try-expression.neon         # exception ArrayIndexException
 unicode-length.neon         # exception Utf8DecodingException
-valid-pointer.neon          # classsize
 value-copy.neon             # pushy
 value-index.neon            # indexan
 varargs-functionpointer.neon # pushfp
 varargs.neon                # pushppg
-while-valid.neon            # classsize
 
 compress-test.neon
 extsample-test.neon

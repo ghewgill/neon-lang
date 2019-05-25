@@ -51,6 +51,11 @@ TYPE Exception IS RECORD
     stack_depth: Number
 END RECORD
 
+TYPE ClassInfo IS RECORD
+    name: Number
+    interfaces: Array<Array<Number>>
+END RECORD
+
 TYPE Bytecode IS RECORD
     sourceHash: Bytes
     globalSize: Number
@@ -58,6 +63,7 @@ TYPE Bytecode IS RECORD
     imports: Array<Import>
     functions: Array<Function>
     exceptions: Array<Exception>
+    classes: Array<ClassInfo>
     code: Array<Number>
 END RECORD
 
@@ -124,7 +130,20 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     END FOR
 
     LET classsize: Number := getVint(a, INOUT i)
-    ASSERT classsize = 0
+    FOR z := 1 TO classsize DO
+        VAR c: ClassInfo := ClassInfo()
+        c.name := getVint(a, INOUT i)
+        LET interfacecount: Number := getVint(a, INOUT i)
+        FOR zi := 1 TO interfacecount DO
+            LET methods: Array<Number> := []
+            LET methodcount: Number := getVint(a, INOUT i)
+            FOR zm := 1 TO methodcount DO
+                methods.append(getVint(a, INOUT i))
+            END FOR
+            c.interfaces.append(methods)
+        END FOR
+        r.classes.append(c)
+    END FOR
 
     r.code := a[i TO LAST]
 
@@ -138,6 +157,7 @@ TYPE Value IS CLASS
     s: String
     a: Array<POINTER TO Value>
     d: Dictionary<POINTER TO Value>
+    ci: ClassInfo
 END CLASS
 
 TYPE Frame IS RECORD
@@ -430,7 +450,12 @@ FUNCTION f_loadd(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_loadp(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    self.stack.append(NEW Value(p WITH addr->p))
 END FUNCTION
 
 FUNCTION f_loadj(INOUT self: Executor)
@@ -493,7 +518,12 @@ FUNCTION f_stored(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_storep(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    addr->p := self.pop()->p
 END FUNCTION
 
 FUNCTION f_storej(INOUT self: Executor)
@@ -553,7 +583,10 @@ FUNCTION f_expn(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_eqb(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: Boolean := self.pop()->b
+    LET a: Boolean := self.pop()->b
+    self.stack.append(NEW Value(b WITH a = b))
 END FUNCTION
 
 FUNCTION f_neb(INOUT self: Executor)
@@ -676,11 +709,17 @@ FUNCTION f_ned(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_eqp(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: POINTER TO Value := self.pop()->p
+    LET a: POINTER TO Value := self.pop()->p
+    self.stack.append(NEW Value(b WITH a = b))
 END FUNCTION
 
 FUNCTION f_nep(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: POINTER TO Value := self.pop()->p
+    LET a: POINTER TO Value := self.pop()->p
+    self.stack.append(NEW Value(b WITH a <> b))
 END FUNCTION
 
 FUNCTION f_eqv(INOUT self: Executor)
@@ -891,7 +930,12 @@ FUNCTION f_dup(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_dupx1(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET a: POINTER TO Value := self.pop()
+    LET b: POINTER TO Value := self.pop()
+    self.stack.append(a)
+    self.stack.append(b)
+    self.stack.append(a)
 END FUNCTION
 
 FUNCTION f_drop(INOUT self: Executor)
@@ -952,11 +996,18 @@ FUNCTION f_except(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_alloc(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
+    VAR a: Array<POINTER TO Value> := []
+    FOR i := 1 TO val DO
+        a.append(NEW Value())
+    END FOR
+    self.stack.append(NEW Value(p WITH NEW Value(a WITH a)))
 END FUNCTION
 
 FUNCTION f_pushnil(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    self.stack.append(NEW Value(p WITH NIL))
 END FUNCTION
 
 FUNCTION f_resetc(INOUT self: Executor)
@@ -968,6 +1019,8 @@ FUNCTION f_resetc(INOUT self: Executor)
         addr->n := 0
         addr->s := ""
         addr->a := []
+        addr->d := {}
+        addr->ci := ClassInfo()
     ELSE
         ASSERT FALSE
     END IF
@@ -1013,7 +1066,22 @@ FUNCTION f_callv(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_pushci(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
+    LET dot: Number := string.find(self.bytecode.strtable[val], ".")
+    IF dot < 0 THEN
+        FOREACH c IN self.bytecode.classes DO
+            IF c.name = val THEN
+                LET a: Array<POINTER TO Value> := [
+                    NEW Value(ci WITH c)
+                ]
+                self.stack.append(NEW Value(a WITH a))
+                EXIT FUNCTION
+            END IF
+        END FOREACH
+    END IF
+    io.fprint(io.stderr, "neon: unknown class name \(self.bytecode.strtable[val])")
+    sys.exit(1)
 END FUNCTION
 
 FUNCTION makeExecutor(bytes: Bytes): Executor
