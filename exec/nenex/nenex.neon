@@ -565,6 +565,10 @@ FUNCTION f_divn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
+    CHECK b <> 0 ELSE
+        self.raise_literal("DivideByZeroException", ExceptionInfo())
+        EXIT FUNCTION
+    END CHECK
     self.stack.append(NEW Value(n WITH a / b))
 END FUNCTION
 
@@ -751,6 +755,10 @@ FUNCTION f_indexar(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
+    CHECK index = math.trunc(index) AND 0 <= index < addr->a.size() ELSE
+        self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH str(index)))
+        EXIT FUNCTION
+    END CHECK
     self.stack.append(NEW Value(p WITH addr->a[index]))
 END FUNCTION
 
@@ -760,6 +768,10 @@ FUNCTION f_indexaw(INOUT self: Executor)
     LET addr: POINTER TO Value := self.pop()->p
     CHECK VALID addr ELSE
         RAISE InternalException
+    END CHECK
+    CHECK index = math.trunc(index) AND 0 <= index ELSE
+        self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH str(index)))
+        EXIT FUNCTION
     END CHECK
     WHILE index >= addr->a.size() DO
         addr->a.append(NEW Value())
@@ -771,6 +783,10 @@ FUNCTION f_indexav(INOUT self: Executor)
     INC self.ip
     LET index: Number := self.pop()->n
     LET array: Array<POINTER TO Value> := self.pop()->a
+    CHECK index = math.trunc(index) AND 0 <= index < array.size() ELSE
+        self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH str(index)))
+        EXIT FUNCTION
+    END CHECK
     self.stack.append(array[index])
 END FUNCTION
 
@@ -785,9 +801,10 @@ FUNCTION f_indexdr(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
-    IF key NOT IN addr->d THEN
-        % TODO: key not found
-    END IF
+    CHECK key IN addr->d ELSE
+        self.raise_literal("DictionaryIndexException", ExceptionInfo(info WITH key))
+        EXIT FUNCTION
+    END CHECK
     self.stack.append(NEW Value(p WITH addr->d[key]))
 END FUNCTION
 
@@ -808,6 +825,10 @@ FUNCTION f_indexdv(INOUT self: Executor)
     INC self.ip
     LET key: String := self.pop()->s
     LET dict: Dictionary<POINTER TO Value> := self.pop()->d
+    CHECK key IN dict ELSE
+        self.raise_literal("DictionaryIndexException", ExceptionInfo(info WITH key))
+        EXIT FUNCTION
+    END CHECK
     self.stack.append(dict[key])
 END FUNCTION
 
@@ -944,6 +965,7 @@ FUNCTION f_drop(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_ret(INOUT self: Executor)
+    self.frames[LAST TO LAST] := []
     self.ip := self.callstack[LAST]
     self.callstack[LAST TO LAST] := []
 END FUNCTION

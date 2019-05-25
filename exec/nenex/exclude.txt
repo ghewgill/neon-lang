@@ -1,13 +1,10 @@
 array-append.neon           # array__append
 array-concat.neon           # array__concat
 array-extend.neon           # array__extend
-array-fraction.neon         # exception ArrayIndexException
 array-last-method.neon      # string__append
-array-negative.neon         # exception ArrayIndexException
 array-resize.neon           # array__resize
 array-slice.neon            # array__slice
 array-tostring.neon         # array__toString__number
-array.neon                  # exception ArrayIndexException
 array2d.neon                # value semantics
 assert-multiline.neon       # pushppg
 bigint.neon                 # math$abs
@@ -28,8 +25,6 @@ concat-bytes.neon           # exception Utf8DecodingException
 datetime-test.neon          # callmf
 debug-example.neon          # debugger$log
 debug-server.neon           # os$spawn
-dictionary.neon             # exception DictionaryIndexException
-divide-by-zero.neon         # exception DivideByZeroException
 encoding-base64.neon        # exception Utf8DecodingException
 enum.neon                   # unknown enum
 equality.neon               # pushy
@@ -132,7 +127,6 @@ sys-exit.neon               # sys$exit
 time-stopwatch.neon         # callmf
 time-test.neon              # time$now
 tostring.neon               # unknown enum
-try-expression.neon         # exception ArrayIndexException
 unicode-length.neon         # exception Utf8DecodingException
 value-copy.neon             # pushy
 value-index.neon            # indexan
