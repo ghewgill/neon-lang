@@ -262,7 +262,9 @@ bool TypeArray::is_structure_compatible(const Type *rhs) const
     if (a == nullptr) {
         return false;
     }
-    return elementtype->is_structure_compatible(a->elementtype);
+    // If elementtype is nullptr, then this array is an empty array
+    // and it is compatible with any other kind of array.
+    return elementtype == nullptr || elementtype->is_structure_compatible(a->elementtype);
 }
 
 std::string TypeArray::serialize(const Expression *value) const
@@ -320,7 +322,9 @@ bool TypeDictionary::is_structure_compatible(const Type *rhs) const
     if (d == nullptr) {
         return false;
     }
-    return elementtype->is_structure_compatible(d->elementtype);
+    // If elementtype is nullptr, then this dictionary is an empty dictionary
+    // and it is compatible with any other kind of dictionary.
+    return elementtype == nullptr || elementtype->is_structure_compatible(d->elementtype);
 }
 
 std::string TypeDictionary::serialize(const Expression *value) const
