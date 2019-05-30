@@ -906,6 +906,9 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     }
     const TypeArray *atype = dynamic_cast<const TypeArray *>(from);
     if (atype != nullptr) {
+        if (atype->elementtype != nullptr && make_converter(atype->elementtype) == nullptr) {
+            return nullptr;
+        }
         if (atype->elementtype != TYPE_OBJECT) {
             return [atype](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
@@ -925,6 +928,9 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     }
     const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
     if (dtype != nullptr) {
+        if (dtype->elementtype != nullptr && make_converter(dtype->elementtype) == nullptr) {
+            return nullptr;
+        }
         if (dtype->elementtype != TYPE_OBJECT) {
             return [dtype](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
@@ -943,7 +949,11 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     }
     const TypeRecord *rtype = dynamic_cast<const TypeRecord *>(from);
     if (rtype != nullptr) {
-        // TODO: Check convertability of all fields to Object.
+        for (auto &f: rtype->fields) {
+            if (make_converter(f.type) == nullptr) {
+                return nullptr;
+            }
+        }
         return [rtype](Analyzer *analyzer, const Expression *e) {
             return make_object_conversion_from_record(analyzer, rtype, e);
         };
@@ -1039,6 +1049,12 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         return identity_conversion;
     }
     if (from == TYPE_OBJECT) {
+        for (auto &f: fields) {
+            auto conv = f.type->make_converter(ast::TYPE_OBJECT);
+            if (conv == nullptr) {
+                return nullptr;
+            }
+        }
         return [this](Analyzer *analyzer, const Expression *e) {
             return make_record_conversion_from_object(analyzer, this, e);
         };
