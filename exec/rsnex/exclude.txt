@@ -225,6 +225,7 @@ next-while.neon
 number-ceil.neon
 number-underscore.neon
 object-isa-case.neon
+object-isa-inconvertible.neon
 object-isa.neon
 object.neon
 object-null.neon

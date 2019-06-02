@@ -1522,6 +1522,10 @@ void ast::ConjunctionExpression::generate_expr(Emitter &emitter) const
 void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
 {
     assert(expr_before_conversion->type == TYPE_OBJECT);
+    if (expr_after_conversion == nullptr) {
+        emitter.emit(PUSHB, 0);
+        return;
+    }
     int start_stack_depth = emitter.get_stack_depth();
     Bytecode::ExceptionInfo ei;
     ei.start = emitter.current_ip();

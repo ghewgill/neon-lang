@@ -1419,11 +1419,7 @@ private:
 
 class TypeTestExpression: public Expression {
 public:
-    TypeTestExpression(const Expression *expr_before_conversion, const Expression *expr_after_conversion): Expression(TYPE_BOOLEAN, expr_before_conversion->type != TYPE_OBJECT), expr_before_conversion(expr_before_conversion), expr_after_conversion(expr_after_conversion) {
-        if (expr_after_conversion == nullptr) {
-            internal_error("expr_after_conversion");
-        }
-    }
+    TypeTestExpression(const Expression *expr_before_conversion, const Expression *expr_after_conversion): Expression(TYPE_BOOLEAN, expr_before_conversion->type != TYPE_OBJECT), expr_before_conversion(expr_before_conversion), expr_after_conversion(expr_after_conversion) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr_before_conversion;

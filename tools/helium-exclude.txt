@@ -46,6 +46,7 @@ net-test.neon          # Module not required
 net-test-udp.neon      # Module not required
 number-ceil.neon       # Feature not required
 number-underscore.neon # Feature not required
+object-isa-inconvertible.neon
 object-record.neon     # Feature not required
 object-subscript.neon  # Feature not required
 os-test.neon           # Module not required

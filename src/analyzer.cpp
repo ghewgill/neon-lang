@@ -906,7 +906,15 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     }
     const TypeArray *atype = dynamic_cast<const TypeArray *>(from);
     if (atype != nullptr) {
-        if (atype->elementtype != nullptr && make_converter(atype->elementtype) == nullptr) {
+        if (atype->elementtype == nullptr) {
+            return [](Analyzer *analyzer, const Expression *e) {
+                return new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    {e}
+                );
+            };
+        }
+        if (make_converter(atype->elementtype) == nullptr) {
             return nullptr;
         }
         if (atype->elementtype != TYPE_OBJECT) {
@@ -928,7 +936,15 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     }
     const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
     if (dtype != nullptr) {
-        if (dtype->elementtype != nullptr && make_converter(dtype->elementtype) == nullptr) {
+        if (dtype->elementtype == nullptr) {
+            return [](Analyzer *analyzer, const Expression *e) {
+                return new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    {e}
+                );
+            };
+        }
+        if (make_converter(dtype->elementtype) == nullptr) {
             return nullptr;
         }
         if (dtype->elementtype != TYPE_OBJECT) {
@@ -983,6 +999,9 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         }
     }
     if (from == TYPE_OBJECT) {
+        if (elementtype->make_converter(ast::TYPE_OBJECT) == nullptr) {
+            return nullptr;
+        }
         return [this](Analyzer *analyzer, const Expression *e) {
             return make_array_conversion(analyzer, TYPE_ARRAY_OBJECT, new FunctionCall(
                 new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getArray"))),
@@ -1024,6 +1043,9 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         }
     }
     if (from == TYPE_OBJECT) {
+        if (elementtype->make_converter(ast::TYPE_OBJECT) == nullptr) {
+            return nullptr;
+        }
         return [this](Analyzer *analyzer, const Expression *e) {
             return make_dictionary_conversion(analyzer, TYPE_DICTIONARY_OBJECT, new FunctionCall(
                 new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getDictionary"))),
