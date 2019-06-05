@@ -458,6 +458,7 @@ void array__resize(TExecutor *exec)
         exec->rtl_raise(exec, "ArrayIndexException", number_to_string(new_size), BID_ZERO);
     }
 
+    cell_ensureArray(addr);
     size_t array_size = addr->array->size;
     addr->array->size = number_to_sint64(new_size);
     addr->array->data = realloc(addr->array->data, (sizeof(Cell) * addr->array->size));
