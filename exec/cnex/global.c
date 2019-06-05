@@ -1002,6 +1002,7 @@ void string__append(TExecutor *exec)
 void string__toBytes(TExecutor *exec)
 {
     Cell *r = cell_fromCell(top(exec->stack)); pop(exec->stack);
+    r->type = cBytes;
     push(exec->stack, r);
 }
 
