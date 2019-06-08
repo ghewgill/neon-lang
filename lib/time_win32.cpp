@@ -7,7 +7,7 @@ const ULONGLONG FILETIME_UNIX_EPOCH = 116444736000000000ULL;
 
 namespace rtl {
 
-namespace time {
+namespace ne_time {
 
 Number now()
 {
@@ -34,6 +34,6 @@ Number tick()
     return number_divide(number_from_uint64(now.QuadPart), frequency);
 }
 
-} // namespace time
+} // namespace ne_time
 
 } // namespace rtl

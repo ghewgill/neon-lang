@@ -3,7 +3,7 @@
 
 namespace rtl {
 
-namespace global {
+namespace ne_global {
 
 utf8string chr(Number x);
 utf8string concat(const utf8string &a, const utf8string &b);
@@ -16,6 +16,6 @@ Number ord(const utf8string &s);
 Number round(Number places, Number value);
 utf8string str(Number x);
 
-} // namespace global
+} // namespace ne_global
 
 } // namespace rtl

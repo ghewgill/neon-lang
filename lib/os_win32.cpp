@@ -19,14 +19,14 @@ static ProcessObject *check_process(const std::shared_ptr<Object> &pp)
 {
     ProcessObject *po = dynamic_cast<ProcessObject *>(pp.get());
     if (po == nullptr || po->process == INVALID_HANDLE_VALUE) {
-        throw RtlException(rtl::os::Exception_OsException_InvalidProcess, utf8string(""));
+        throw RtlException(rtl::ne_os::Exception_OsException_InvalidProcess, utf8string(""));
     }
     return po;
 }
 
 namespace rtl {
 
-namespace os {
+namespace ne_os {
 
 void chdir(const utf8string &path)
 {
@@ -83,7 +83,7 @@ std::shared_ptr<Object> spawn(const utf8string &command)
         &si,
         &pi);
     if (not r) {
-        throw RtlException(file::Exception_FileException_PathNotFound, command);
+        throw RtlException(ne_file::Exception_FileException_PathNotFound, command);
     }
     AssignProcessToJobObject(job, pi.hProcess);
     CloseHandle(pi.hThread);
@@ -103,6 +103,6 @@ Number wait(const std::shared_ptr<Object> &process)
     return number_from_uint32(r);
 }
 
-} // namespace os
+} // namespace ne_os
 
 } // namespace rtl

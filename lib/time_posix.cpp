@@ -5,7 +5,7 @@
 
 namespace rtl {
 
-namespace time {
+namespace ne_time {
 
 Number now()
 {
@@ -16,6 +16,6 @@ Number now()
     return number_add(number_from_uint32(tv.tv_sec), number_divide(number_from_uint32(tv.tv_usec), number_from_uint32(1e6)));
 }
 
-} // namespace time
+} // namespace ne_time
 
 } // namespace rtl

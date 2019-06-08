@@ -8,7 +8,7 @@
 
 namespace rtl {
 
-namespace string {
+namespace ne_string {
 
 Number find(const utf8string &s, const utf8string &t)
 {
@@ -92,6 +92,6 @@ utf8string upper(const utf8string &ss)
     return r;
 }
 
-} // namespace string
+} // namespace ne_string
 
 } // namespace rtl

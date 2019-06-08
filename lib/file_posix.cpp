@@ -17,17 +17,17 @@
 static void handle_error(int error, const utf8string &path)
 {
     switch (error) {
-        case EACCES: throw RtlException(rtl::file::Exception_FileException_PermissionDenied, path);
-        case EEXIST: throw RtlException(rtl::file::Exception_FileException_DirectoryExists, path);
-        case ENOENT: throw RtlException(rtl::file::Exception_FileException_PathNotFound, path);
+        case EACCES: throw RtlException(rtl::ne_file::Exception_FileException_PermissionDenied, path);
+        case EEXIST: throw RtlException(rtl::ne_file::Exception_FileException_DirectoryExists, path);
+        case ENOENT: throw RtlException(rtl::ne_file::Exception_FileException_PathNotFound, path);
         default:
-            throw RtlException(rtl::file::Exception_FileException, path + ": " + strerror(error));
+            throw RtlException(rtl::ne_file::Exception_FileException, path + ": " + strerror(error));
     }
 }
 
 namespace rtl {
 
-namespace file {
+namespace ne_file {
 
 utf8string _CONSTANT_Separator()
 {
@@ -271,6 +271,6 @@ void symlink(const utf8string &target, const utf8string &newlink, bool /*targetI
     }
 }
 
-} // namespace file
+} // namespace ne_file
 
 } // namespace rtl

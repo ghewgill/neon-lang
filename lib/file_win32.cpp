@@ -8,13 +8,13 @@
 static void handle_error(DWORD error, const utf8string &path)
 {
     switch (error) {
-        case ERROR_ALREADY_EXISTS: throw RtlException(rtl::file::Exception_FileException_DirectoryExists, path);
-        case ERROR_ACCESS_DENIED: throw RtlException(rtl::file::Exception_FileException_PermissionDenied, path);
-        case ERROR_PATH_NOT_FOUND: throw RtlException(rtl::file::Exception_FileException_PathNotFound, path);
-        case ERROR_FILE_EXISTS: throw RtlException(rtl::file::Exception_FileException_Exists, path);
-        case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(rtl::file::Exception_FileException_PermissionDenied, path);
+        case ERROR_ALREADY_EXISTS: throw RtlException(rtl::ne_file::Exception_FileException_DirectoryExists, path);
+        case ERROR_ACCESS_DENIED: throw RtlException(rtl::ne_file::Exception_FileException_PermissionDenied, path);
+        case ERROR_PATH_NOT_FOUND: throw RtlException(rtl::ne_file::Exception_FileException_PathNotFound, path);
+        case ERROR_FILE_EXISTS: throw RtlException(rtl::ne_file::Exception_FileException_Exists, path);
+        case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(rtl::ne_file::Exception_FileException_PermissionDenied, path);
         default:
-            throw RtlException(rtl::file::Exception_FileException, path + ": " + utf8string(std::to_string(error)));
+            throw RtlException(rtl::ne_file::Exception_FileException, path + ": " + utf8string(std::to_string(error)));
     }
 }
 
@@ -28,7 +28,7 @@ static Number unix_time_from_filetime(const FILETIME &ft)
 
 namespace rtl {
 
-namespace file {
+namespace ne_file {
 
 utf8string _CONSTANT_Separator()
 {
@@ -145,6 +145,6 @@ void symlink(const utf8string &target, const utf8string &newlink, bool targetIsD
     }
 }
 
-} // namespace file
+} // namespace ne_file
 
 } // namespace rtl

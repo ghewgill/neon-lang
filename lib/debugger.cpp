@@ -3,7 +3,7 @@
 
 namespace rtl {
 
-namespace debugger {
+namespace ne_debugger {
 
 void breakpoint()
 {
@@ -15,6 +15,6 @@ void log(const utf8string &message)
     executor_log(message.str());
 }
 
-} // namespace debugger
+} // namespace ne_debugger
 
 } // namespace rtl

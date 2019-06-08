@@ -24,7 +24,7 @@ static ProcessObject *check_process(const std::shared_ptr<Object> &pp)
 {
     ProcessObject *po = dynamic_cast<ProcessObject *>(pp.get());
     if (po == nullptr || po->pid == 0) {
-        throw RtlException(rtl::os::Exception_OsException_InvalidProcess, utf8string(""));
+        throw RtlException(rtl::ne_os::Exception_OsException_InvalidProcess, utf8string(""));
     }
     return po;
 }
@@ -40,7 +40,7 @@ void closer()
 
 namespace rtl {
 
-namespace os {
+namespace ne_os {
 
 void chdir(const utf8string &path)
 {
@@ -118,6 +118,6 @@ Number wait(const std::shared_ptr<Object> &process)
     return number_from_sint8(-1);
 }
 
-} // namespace os
+} // namespace ne_os
 
 } // namespace rtl

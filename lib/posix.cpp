@@ -23,7 +23,7 @@
 
 namespace rtl {
 
-namespace posix {
+namespace ne_posix {
 
 Number VAR_errno;
 
@@ -503,6 +503,6 @@ Number write(Number fildes, const std::vector<unsigned char> &buf)
     return wrap(::write(number_to_sint32(fildes), buf.data(), buf.size()));
 }
 
-} // namespace posix
+} // namespace ne_posix
 
 } // namespace rtl

@@ -905,7 +905,7 @@ bool FunctionCall::eval_boolean() const
 {
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
-    if (f->name == "odd") return rtl::global::odd(args[0]->eval_number());
+    if (f->name == "odd") return rtl::ne_global::odd(args[0]->eval_number());
     internal_error("unexpected intrinsic");
 }
 
@@ -913,12 +913,12 @@ Number FunctionCall::eval_number() const
 {
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
-    if (f->name == "ord") return rtl::global::ord(args[0]->eval_string());
-    if (f->name == "int") return rtl::global::int_(args[0]->eval_number());
-    if (f->name == "max") return rtl::global::max(args[0]->eval_number(), args[1]->eval_number());
-    if (f->name == "min") return rtl::global::min(args[0]->eval_number(), args[1]->eval_number());
-    if (f->name == "num") return rtl::global::num(args[0]->eval_string());
-    if (f->name == "round") return rtl::global::round(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "ord") return rtl::ne_global::ord(args[0]->eval_string());
+    if (f->name == "int") return rtl::ne_global::int_(args[0]->eval_number());
+    if (f->name == "max") return rtl::ne_global::max(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "min") return rtl::ne_global::min(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "num") return rtl::ne_global::num(args[0]->eval_string());
+    if (f->name == "round") return rtl::ne_global::round(args[0]->eval_number(), args[1]->eval_number());
     internal_error("unexpected intrinsic");
 }
 
@@ -926,9 +926,9 @@ utf8string FunctionCall::eval_string() const
 {
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
-    if (f->name == "chr") return rtl::global::chr(args[0]->eval_number());
-    if (f->name == "concat") return rtl::global::concat(args[0]->eval_string(), args[1]->eval_string());
-    if (f->name == "str") return rtl::global::str(args[0]->eval_number());
+    if (f->name == "chr") return rtl::ne_global::chr(args[0]->eval_number());
+    if (f->name == "concat") return rtl::ne_global::concat(args[0]->eval_string(), args[1]->eval_string());
+    if (f->name == "str") return rtl::ne_global::str(args[0]->eval_number());
     internal_error("unexpected intrinsic");
 }
 

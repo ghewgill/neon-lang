@@ -5,7 +5,7 @@
 
 namespace rtl {
 
-namespace time {
+namespace ne_time {
 
 static const Number NANOSECONDS_PER_SECOND = number_from_uint64(NSEC_PER_SEC);
 
@@ -21,6 +21,6 @@ Number tick()
     return number_add(number_from_uint64(mts.tv_sec), number_divide(number_from_uint64(mts.tv_nsec), NANOSECONDS_PER_SECOND));
 }
 
-} // namespace time
+} // namespace ne_time
 
 } // namespace rtl

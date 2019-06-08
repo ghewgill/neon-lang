@@ -8,7 +8,7 @@
 
 namespace rtl {
 
-namespace net {
+namespace ne_net {
 
 #ifdef _WIN32
 void initWinsock()
@@ -243,6 +243,6 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     return true;
 }
 
-} // namespace net
+} // namespace ne_net
 
 } // namespace rtl

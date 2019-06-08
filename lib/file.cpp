@@ -7,7 +7,7 @@
 
 namespace rtl {
 
-namespace file {
+namespace ne_file {
 
 std::vector<unsigned char> readBytes(const utf8string &filename)
 {
@@ -68,6 +68,6 @@ void writeLines(const utf8string &filename, const std::vector<utf8string> &lines
     }
 }
 
-} // namespace file
+} // namespace ne_file
 
 } // namespace rtl

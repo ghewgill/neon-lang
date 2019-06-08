@@ -8,7 +8,7 @@
 
 namespace rtl {
 
-namespace datetime {
+namespace ne_datetime {
 
 Cell gmtime(Number t)
 {
@@ -40,6 +40,6 @@ Number timegm_(Cell &t)
     return number_from_uint64(::timegm(&tm));
 }
 
-} // namespace datetime
+} // namespace ne_datetime
 
 } // namespace rtl

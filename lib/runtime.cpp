@@ -4,7 +4,7 @@
 
 namespace rtl {
 
-namespace runtime {
+namespace ne_runtime {
 
 bool assertionsEnabled()
 {
@@ -41,6 +41,6 @@ void setRecursionLimit(Number depth)
     executor_set_recursion_limit(number_to_uint64(depth));
 }
 
-} // namespace runtime
+} // namespace ne_runtime
 
 } // namespace rtl

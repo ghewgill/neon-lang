@@ -6,7 +6,7 @@
 
 namespace rtl {
 
-namespace math {
+namespace ne_math {
 
 Number abs(Number x)
 {
@@ -120,7 +120,7 @@ Number ldexp(Number x, Number exp)
 {
     if (not number_is_integer(exp)) {
         // TODO: more specific exception?
-        throw RtlException(global::Exception_ValueRangeException, utf8string(number_to_string(exp)));
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(exp)));
     }
     return number_ldexp(x, number_to_sint32(exp));
 }
@@ -173,7 +173,7 @@ Number sinh(Number x)
 Number sqrt(Number x)
 {
     if (number_is_negative(x)) {
-        throw RtlException(global::Exception_ValueRangeException, utf8string(number_to_string(x)));
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
     }
     return number_sqrt(x);
 }
@@ -198,6 +198,6 @@ Number trunc(Number x)
     return number_trunc(x);
 }
 
-} // namespace math
+} // namespace ne_math
 
 } // namespace rtl

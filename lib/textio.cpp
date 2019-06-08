@@ -29,14 +29,14 @@ static TextFileObject *check_file(const std::shared_ptr<Object> &pf)
 {
     TextFileObject *fo = dynamic_cast<TextFileObject *>(pf.get());
     if (fo == nullptr || fo->file == NULL) {
-        throw RtlException(rtl::textio::Exception_TextioException_InvalidFile, utf8string(""));
+        throw RtlException(rtl::ne_textio::Exception_TextioException_InvalidFile, utf8string(""));
     }
     return fo;
 }
 
 namespace rtl {
 
-namespace textio {
+namespace ne_textio {
 
 Cell VAR_stdin(std::shared_ptr<Object> { new TextFileObject(stdin) });
 Cell VAR_stdout(std::shared_ptr<Object> { new TextFileObject(stdout) });
@@ -112,6 +112,6 @@ void writeLine(const std::shared_ptr<Object> &pf, const utf8string &s)
     fputs("\n", f->file);
 }
 
-} // namespace textio
+} // namespace ne_textio
 
 } // namespace rtl

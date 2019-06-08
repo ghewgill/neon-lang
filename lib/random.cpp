@@ -7,13 +7,13 @@ static std::mt19937 g_gen(g_rd());
 
 namespace rtl {
 
-namespace random {
+namespace ne_random {
 
 Number uint32()
 {
     return number_from_uint32(g_gen());
 }
 
-} // namespace random
+} // namespace ne_random
 
 } // namespace rtl

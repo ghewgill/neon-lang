@@ -26,14 +26,14 @@ static MmapObject *check_file(const std::shared_ptr<Object> &pf)
 {
     MmapObject *f = static_cast<MmapObject *>(pf.get());
     if (f->fd < 0) {
-        throw RtlException(rtl::mmap::Exception_MmapException_InvalidFile, utf8string(""));
+        throw RtlException(rtl::ne_mmap::Exception_MmapException_InvalidFile, utf8string(""));
     }
     return f;
 }
 
 namespace rtl {
 
-namespace mmap {
+namespace ne_mmap {
 
 void close(const std::shared_ptr<Object> &pf)
 {
@@ -89,14 +89,14 @@ void write(const std::shared_ptr<Object> &pf, Number offset, const std::vector<u
     MmapObject *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
-        throw RtlException(global::Exception_ValueRangeException, utf8string(""));
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(""));
     }
     if (o + data.size() > f->len) {
-        throw RtlException(global::Exception_ValueRangeException, utf8string(""));
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(""));
     }
     memcpy(f->view + o, data.data(), data.size());
 }
 
-} // namespace mmap
+} // namespace ne_mmap
 
 } // namespace rtl

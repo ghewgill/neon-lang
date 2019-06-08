@@ -11,7 +11,7 @@
 
 namespace rtl {
 
-namespace os {
+namespace ne_os {
 
 utf8string getenv(const utf8string &name)
 {
@@ -37,6 +37,6 @@ Number system(const utf8string &command)
     return number_from_sint32(::system(cmd.c_str()));
 }
 
-} // namespace os
+} // namespace ne_os
 
 } // namespace rtl

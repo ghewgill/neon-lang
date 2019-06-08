@@ -19,7 +19,7 @@
 
 namespace rtl {
 
-namespace global {
+namespace ne_global {
 
 void array__append(Cell *self, Cell &element)
 {
@@ -656,6 +656,6 @@ std::shared_ptr<Object> object__subscript(const std::shared_ptr<Object> &obj, co
     return r;
 }
 
-} // namespace global
+} // namespace ne_global
 
 } // namespace rtl

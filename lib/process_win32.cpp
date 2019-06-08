@@ -5,7 +5,7 @@
 
 namespace rtl {
 
-namespace process {
+namespace ne_process {
 
 Number call(const utf8string &command, std::vector<unsigned char> *out, std::vector<unsigned char> *err)
 {
@@ -77,6 +77,6 @@ Number call(const utf8string &command, std::vector<unsigned char> *out, std::vec
     return number_from_uint32(r);
 }
 
-} // namespace process
+} // namespace ne_process
 
 } // namespace rtl

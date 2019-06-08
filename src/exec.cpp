@@ -578,14 +578,14 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
 {
     // TODO: move this into a method in Executor that's called by exec_CALLI too
     if (g_executor->callstack.size() >= g_executor->param_recursion_limit) {
-        g_executor->raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        g_executor->raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
     std::vector<Cell> a = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(callback))->array();
     Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (mod == nullptr || number_is_zero(nindex) || not number_is_integer(nindex)) {
-        g_executor->raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
+        g_executor->raise(rtl::ne_global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
         return;
     }
     if (params != NULL) {
@@ -991,7 +991,7 @@ void Executor::exec_DIVN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise(rtl::global::Exception_DivideByZeroException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_DivideByZeroException, ExceptionInfo(utf8string("")));
         return;
     }
     stack.push(Cell(number_divide(a, b)));
@@ -1003,7 +1003,7 @@ void Executor::exec_MODN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise(rtl::global::Exception_DivideByZeroException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_DivideByZeroException, ExceptionInfo(utf8string("")));
         return;
     }
     stack.push(Cell(number_modulo(a, b)));
@@ -1282,17 +1282,17 @@ void Executor::exec_INDEXAR()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= addr->array().size()) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(j))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(j))));
         return;
     }
     stack.push(Cell(&addr->array_index_for_read(j)));
@@ -1304,12 +1304,12 @@ void Executor::exec_INDEXAW()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
@@ -1322,17 +1322,17 @@ void Executor::exec_INDEXAV()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= array.size()) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(j))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(j))));
         return;
     }
     assert(j < array.size());
@@ -1347,12 +1347,12 @@ void Executor::exec_INDEXAN()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
@@ -1368,7 +1368,7 @@ void Executor::exec_INDEXDR()
     Cell *addr = stack.top().address(); stack.pop();
     auto e = addr->dictionary().find(index);
     if (e == addr->dictionary().end()) {
-        raise(rtl::global::Exception_DictionaryIndexException, ExceptionInfo(index));
+        raise(rtl::ne_global::Exception_DictionaryIndexException, ExceptionInfo(index));
         return;
     }
     stack.push(Cell(&addr->dictionary_index_for_read(index)));
@@ -1389,7 +1389,7 @@ void Executor::exec_INDEXDV()
     const std::map<utf8string, Cell> &dictionary = stack.top().dictionary();
     auto e = dictionary.find(index);
     if (e == dictionary.end()) {
-        raise(rtl::global::Exception_DictionaryIndexException, ExceptionInfo(index));
+        raise(rtl::ne_global::Exception_DictionaryIndexException, ExceptionInfo(index));
         return;
     }
     Cell val = e->second;
@@ -1438,7 +1438,7 @@ void Executor::exec_CALLF()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
     invoke(module, val);
@@ -1450,7 +1450,7 @@ void Executor::exec_CALLMF()
     uint32_t mod = Bytecode::get_vint(module->object.code, ip);
     uint32_t func = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
     auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
@@ -1478,14 +1478,14 @@ void Executor::exec_CALLI()
 {
     ip++;
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
     std::vector<Cell> a = stack.top().array(); stack.pop();
     Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (number_is_zero(nindex) || not number_is_integer(nindex)) {
-        raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
         return;
     }
     uint32_t index = number_to_uint32(nindex);
@@ -1843,7 +1843,7 @@ void Executor::exec_CALLV()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
     std::vector<Cell> &pi = stack.top().array_for_write();

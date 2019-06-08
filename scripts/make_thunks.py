@@ -410,7 +410,7 @@ with open("src/variables_exec.inc", "w") as inc:
     print >>inc, "namespace rtl {"
     for name, atype in variables.values():
         a = name.split("$")
-        print >>inc, "namespace {} {{ extern Cell VAR_{}; }}".format(a[0], a[1])
+        print >>inc, "namespace ne_{} {{ extern Cell VAR_{}; }}".format(a[0], a[1])
     print >>inc, "}"
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
@@ -418,7 +418,7 @@ with open("src/variables_exec.inc", "w") as inc:
     print >>inc, "} BuiltinVariables[] = {"
     for name, atype, in variables.values():
         a = name.split("$")
-        print >>inc, "    {{\"{}\", &rtl::{}::VAR_{}}},".format(name, a[0], a[1])
+        print >>inc, "    {{\"{}\", &rtl::ne_{}::VAR_{}}},".format(name, a[0], a[1])
     print >>inc, "};"
 
 with open("src/functions_compile.inc", "w") as inc:
@@ -483,7 +483,7 @@ with open("src/functions_exec.inc", "w") as inc:
         ] or a[0] in "curses":
             a[1] += "_"
         cpp_name[name] = "{}::{}".format(*a)
-        print >>inc, "namespace {} {{ extern {} {}({}); }}".format(a[0], CppFromAstReturn[rtype], a[1], ", ".join(CppFromAstArg[x] for x in params))
+        print >>inc, "namespace ne_{} {{ extern {} {}({}); }}".format(a[0], CppFromAstReturn[rtype], a[1], ", ".join(CppFromAstArg[x] for x in params))
     print >>inc, "}"
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
@@ -491,7 +491,7 @@ with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "    void *func;"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
-        print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name])
+        print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::ne_{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name])
     print >>inc, "};";
 
 with open("src/enums.inc", "w") as inc:
@@ -505,11 +505,11 @@ with open("src/exceptions.inc", "w") as inc:
     print >>inc, "};"
     print >>inc, "namespace rtl {"
     for prefix, name in exceptions:
-        print >>inc, "namespace {} {{ static const ExceptionName Exception_{} = {{\"{}\"}}; }}".format(prefix[:-1], name.replace(".", "_"), name)
+        print >>inc, "namespace ne_{} {{ static const ExceptionName Exception_{} = {{\"{}\"}}; }}".format(prefix[:-1], name.replace(".", "_"), name)
     print >>inc
     print >>inc, "static const ExceptionName ExceptionNames[] = {"
     for prefix, name in exceptions:
         if prefix == "global$":
-            print >>inc, "    global::Exception_{},".format(name)
+            print >>inc, "    ne_global::Exception_{},".format(name)
     print >>inc, "};"
     print >>inc, "}"

@@ -30,14 +30,14 @@ static FileObject *check_file(const std::shared_ptr<Object> &pf)
 {
     FileObject *fo = dynamic_cast<FileObject *>(pf.get());
     if (fo == nullptr || fo->file == NULL) {
-        throw RtlException(rtl::io::Exception_IoException_InvalidFile, utf8string(""));
+        throw RtlException(rtl::ne_io::Exception_IoException_InvalidFile, utf8string(""));
     }
     return fo;
 }
 
 namespace rtl {
 
-namespace io {
+namespace ne_io {
 
 Cell VAR_stdin(std::shared_ptr<Object> { new FileObject(stdin) });
 Cell VAR_stdout(std::shared_ptr<Object> { new FileObject(stdout) });
@@ -136,6 +136,6 @@ void writeBytes(const std::shared_ptr<Object> &pf, const std::vector<unsigned ch
     fwrite(b.data(), 1, b.size(), f->file);
 }
 
-} // namespace io
+} // namespace ne_io
 
 } // namespace rtl

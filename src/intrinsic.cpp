@@ -11,15 +11,15 @@
 
 namespace rtl {
 
-namespace global {
+namespace ne_global {
 
 utf8string chr(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(global::Exception_ValueRangeException, utf8string("chr() argument not an integer"));
+        throw RtlException(Exception_ValueRangeException, utf8string("chr() argument not an integer"));
     }
     if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
-        throw RtlException(global::Exception_ValueRangeException, utf8string("chr() argument out of range 0-0x10ffff"));
+        throw RtlException(Exception_ValueRangeException, utf8string("chr() argument out of range 0-0x10ffff"));
     }
     std::string r;
     utf8::append(number_to_uint32(x), std::back_inserter(r));
@@ -58,7 +58,7 @@ Number num(const utf8string &s)
 {
     Number n = number_from_string(s.str());
     if (number_is_nan(n)) {
-        throw RtlException(global::Exception_ValueRangeException, utf8string("num() argument not a number"));
+        throw RtlException(Exception_ValueRangeException, utf8string("num() argument not a number"));
     }
     return n;
 }
@@ -66,7 +66,7 @@ Number num(const utf8string &s)
 bool odd(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(global::Exception_ValueRangeException, utf8string("odd() requires integer"));
+        throw RtlException(Exception_ValueRangeException, utf8string("odd() requires integer"));
     }
     return number_is_odd(x);
 }
@@ -75,7 +75,7 @@ Number ord(const utf8string &ss)
 {
     std::string s = ss.str(); // TODO
     if (utf8::distance(s.begin(), s.end()) != 1) {
-        throw RtlException(global::Exception_ArrayIndexException, utf8string("ord() requires string of length 1"));
+        throw RtlException(Exception_ArrayIndexException, utf8string("ord() requires string of length 1"));
     }
     auto it = s.begin();
     return number_from_uint32(utf8::next(it, s.end()));
@@ -96,6 +96,6 @@ utf8string str(Number x)
     return utf8string(number_to_string(x));
 }
 
-} // namespace global
+} // namespace ne_global
 
 } // namespace rtl

@@ -5,7 +5,7 @@
 
 namespace rtl {
 
-namespace time {
+namespace ne_time {
 
 void sleep(Number seconds)
 {
@@ -13,6 +13,6 @@ void sleep(Number seconds)
     std::this_thread::sleep_for(us);
 }
 
-} // namespace time
+} // namespace ne_time
 
 } // namespace rtl
