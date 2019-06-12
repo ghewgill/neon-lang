@@ -132,7 +132,7 @@ JvmFromAst = {
     ("TYPE_STRING", OUT): "Ljava/lang/String;", # TODO
     ("TYPE_BYTES", VALUE): "[B",
     ("TYPE_BYTES", OUT): "Ljava/lang/Object;", # TODO
-    ("TYPE_OBJECT", VALUE): "Lneon/type/Object",
+    ("TYPE_OBJECT", VALUE): "Ljava/lang/Object;",
     ("TYPE_ARRAY", VALUE): "Lneon/type/Array;",
     ("TYPE_ARRAY", REF): "Lneon/type/Array;",
     ("TYPE_ARRAY_NUMBER", VALUE): "Lneon/type/Array;",
@@ -246,6 +246,10 @@ for fn in sys.argv[1:]:
                         AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)
                         enums[name] = []
                         in_enum = name
+                    elif atype == "Object":
+                        AstFromNeon[name] = ("TYPE_OBJECT", VALUE)
+                        AstFromNeon["INOUT "+name] = ("TYPE_OBJECT", REF)
+                        AstFromNeon["OUT "+name] = ("TYPE_OBJECT", OUT)
                     else:
                         AstFromNeon[name] = ("TYPE_GENERIC", VALUE)
                         AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)

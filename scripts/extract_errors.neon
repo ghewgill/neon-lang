@@ -38,4 +38,4 @@ VAR out: io.File := io.open("src/errors.txt", io.Mode.write)
 FOREACH error IN errors.keys() DO
     io.fprint(out, "N\(error) \(errors[error])")
 END FOREACH
-io.close(INOUT out)
+io.close(out)

@@ -25,6 +25,13 @@ EXPORT wait
 EXCEPTION OsException
 
 %|
+ |  Exception: OsException.InvalidProcess
+ |
+ |  Invalid process.
+ |%
+EXCEPTION OsException.InvalidProcess
+
+%|
  |  Exception: OsException.PathNotFound
  |
  |  Path not found during chdir.
@@ -57,7 +64,7 @@ END ENUM
  |
  |  Opaque type representing a process.
  |%
-TYPE Process IS POINTER
+TYPE Process IS Object
 
 %|
  |  Function: chdir
@@ -113,4 +120,4 @@ DECLARE NATIVE FUNCTION spawn(command: String): Process
  |
  |  Wait for a process to terminate.
  |%
-DECLARE NATIVE FUNCTION wait(INOUT process: Process): Number
+DECLARE NATIVE FUNCTION wait(process: Process): Number

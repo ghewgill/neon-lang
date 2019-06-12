@@ -32,7 +32,7 @@ END ENUM
  |
  |  Opaque type representing a memory mapped file.
  |%
-TYPE MemoryFile IS POINTER
+TYPE MemoryFile IS Object
 
 %|
  |  Exception: MmapException
@@ -60,7 +60,7 @@ EXCEPTION OpenFileException
  |
  |  Close a memory mapped file.
  |%
-DECLARE NATIVE FUNCTION close(INOUT f: MemoryFile)
+DECLARE NATIVE FUNCTION close(f: MemoryFile)
 
 %|
  |  Function: open

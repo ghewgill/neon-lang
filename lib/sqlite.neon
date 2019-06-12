@@ -21,6 +21,7 @@ EXPORT cursorFetch
 EXPORT cursorClose
 
 EXCEPTION SqliteException
+EXCEPTION SqliteException.InvalidDatabase
 EXCEPTION SqliteException.ParameterName
 
 VAR db: Database
@@ -30,7 +31,7 @@ VAR db: Database
  |
  |  Opaque type representing a SQLite database.
  |%
-TYPE Database IS POINTER
+TYPE Database IS Object
 
 %|
  |  Type: Row

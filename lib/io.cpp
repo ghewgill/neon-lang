@@ -17,38 +17,47 @@
 
 #include "enums.inc"
 
-static FILE *check_file(void *pf)
+class FileObject: public Object {
+public:
+    FileObject(FILE *file): file(file) {}
+    FileObject(const FileObject &) = delete;
+    FileObject &operator=(const FileObject &) = delete;
+    virtual utf8string toString() const { return utf8string("<FILE:" + std::to_string(reinterpret_cast<intptr_t>(file)) + ">"); }
+    FILE *file;
+};
+
+static FileObject *check_file(const std::shared_ptr<Object> &pf)
 {
-    FILE *f = static_cast<FILE *>(pf);
-    if (f == NULL) {
+    FileObject *fo = dynamic_cast<FileObject *>(pf.get());
+    if (fo == nullptr || fo->file == NULL) {
         throw RtlException(rtl::io::Exception_IoException_InvalidFile, utf8string(""));
     }
-    return f;
+    return fo;
 }
 
 namespace rtl {
 
 namespace io {
 
-Cell VAR_stdin(Cell::makeOther(stdin));
-Cell VAR_stdout(Cell::makeOther(stdout));
-Cell VAR_stderr(Cell::makeOther(stderr));
+Cell VAR_stdin(std::shared_ptr<Object> { new FileObject(stdin) });
+Cell VAR_stdout(std::shared_ptr<Object> { new FileObject(stdout) });
+Cell VAR_stderr(std::shared_ptr<Object> { new FileObject(stderr) });
 
-void close(void **ppf)
+void close(const std::shared_ptr<Object> &pf)
 {
-    FILE *f = check_file(*ppf);
-    fclose(f);
-    *ppf = NULL;
+    FileObject *f = check_file(pf);
+    fclose(f->file);
+    f->file = NULL;
 }
 
-void fprint(void *pf, const utf8string &s)
+void fprint(const std::shared_ptr<Object> &pf, const utf8string &s)
 {
-    FILE *f = check_file(pf);
-    fputs(s.c_str(), f);
-    fputs("\n", f);
+    FileObject *f = check_file(pf);
+    fputs(s.c_str(), f->file);
+    fputs("\n", f->file);
 }
 
-void *open(const utf8string &name, Cell &mode)
+std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
 {
     const char *m;
     switch (number_to_uint32(mode.number())) {
@@ -57,26 +66,26 @@ void *open(const utf8string &name, Cell &mode)
         default:
             return NULL;
     }
-    return fopen(name.c_str(), m);
+    return std::shared_ptr<Object> { new FileObject(fopen(name.c_str(), m)) };
 }
 
-std::vector<unsigned char> readBytes(void *pf, Number count)
+std::vector<unsigned char> readBytes(const std::shared_ptr<Object> &pf, Number count)
 {
-    FILE *f = check_file(pf);
+    FileObject *f = check_file(pf);
     uint64_t ncount = number_to_uint64(count);
     std::vector<unsigned char> r(ncount);
-    size_t n = fread(const_cast<unsigned char *>(r.data()), 1, ncount, f);
+    size_t n = fread(const_cast<unsigned char *>(r.data()), 1, ncount, f->file);
     r.resize(n);
     return r;
 }
 
-bool readLine(void *pf, utf8string *s)
+bool readLine(const std::shared_ptr<Object> &pf, utf8string *s)
 {
-    FILE *f = check_file(pf);
+    FileObject *f = check_file(pf);
     s->clear();
     for (;;) {
         char buf[1024];
-        if (fgets(buf, sizeof(buf), f) == NULL) {
+        if (fgets(buf, sizeof(buf), f->file) == NULL) {
             return not s->empty();
         }
         s->append(buf);
@@ -87,9 +96,9 @@ bool readLine(void *pf, utf8string *s)
     }
 }
 
-void seek(void *pf, Number offset, Cell &whence)
+void seek(const std::shared_ptr<Object> &pf, Number offset, Cell &whence)
 {
-    FILE *f = check_file(pf);
+    FileObject *f = check_file(pf);
     int w;
     switch (number_to_uint32(whence.number())) {
         case ENUM_SeekBase_absolute: w = SEEK_SET; break;
@@ -98,40 +107,40 @@ void seek(void *pf, Number offset, Cell &whence)
         default:
             return;
     }
-    fseek(f, static_cast<long>(number_to_sint64(offset)), w);
+    fseek(f->file, static_cast<long>(number_to_sint64(offset)), w);
 }
 
-Number tell(void *pf)
+Number tell(const std::shared_ptr<Object> &pf)
 {
-    FILE *f = check_file(pf);
-    return number_from_sint64(ftell(f));
+    FileObject *f = check_file(pf);
+    return number_from_sint64(ftell(f->file));
 }
 
-void truncate(void *pf)
+void truncate(const std::shared_ptr<Object> &pf)
 {
-    FILE *f = check_file(pf);
-    long ofs = ftell(f);
+    FileObject *f = check_file(pf);
+    long ofs = ftell(f->file);
     #ifdef _WIN32
-        if (_chsize(_fileno(f), ofs) != 0) {
+        if (_chsize(_fileno(f->file), ofs) != 0) {
             throw RtlException(Exception_IoException_Write, utf8string(""));
         }
     #else
-        if (ftruncate(fileno(f), ofs) != 0) {
+        if (ftruncate(fileno(f->file), ofs) != 0) {
             throw RtlException(Exception_IoException_Write, utf8string(""));
         }
     #endif
 }
 
-void write(void *pf, const utf8string &s)
+void write(const std::shared_ptr<Object> &pf, const utf8string &s)
 {
-    FILE *f = check_file(pf);
-    fputs(s.c_str(), f);
+    FileObject *f = check_file(pf);
+    fputs(s.c_str(), f->file);
 }
 
-void writeBytes(void *pf, const std::vector<unsigned char> &b)
+void writeBytes(const std::shared_ptr<Object> &pf, const std::vector<unsigned char> &b)
 {
-    FILE *f = check_file(pf);
-    fwrite(b.data(), 1, b.size(), f);
+    FileObject *f = check_file(pf);
+    fwrite(b.data(), 1, b.size(), f->file);
 }
 
 } // namespace io

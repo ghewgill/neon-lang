@@ -1,4 +1,5 @@
 array-tostring.neon        # EQA
+assert-multiline.neon      # assert
 bigint.neon                # assert
 bytes-index.neon           # PUSHPPG
 cal-test.neon              # os.system
@@ -39,6 +40,8 @@ interface-parameter-export.neon # export
 interface-parameter-export2.neon # export
 interface-parameter-import.neon # class
 interface-parameter-import2.neon # class
+interface.neon             # PUSHI
+io-test.neon               # File as Object
 json-test.neon             # module
 literal-array.neon         # array__range
 mkdir.neon                 # module

@@ -1370,7 +1370,7 @@ LET files: Array<String> := sys.args[1 TO LAST]
 FOREACH fn IN files DO
     current_file := io.open(fn, io.Mode.read)
     interpret()
-    io.close(INOUT current_file)
+    io.close(current_file)
 END FOREACH
 
 current_file := io.stdin

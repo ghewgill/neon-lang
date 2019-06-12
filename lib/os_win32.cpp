@@ -6,9 +6,23 @@
 
 #include "enums.inc"
 
-struct Process {
+class ProcessObject: public Object {
+public:
+    ProcessObject(HANDLE process): process(process) {}
+    ProcessObject(const ProcessObject &) = delete;
+    ProcessObject &operator=(const ProcessObject &) = delete;
+    virtual utf8string toString() const { return utf8string("<PROCESS " + std::to_string(reinterpret_cast<intptr_t>(process)) + ">"); }
     HANDLE process;
 };
+
+static ProcessObject *check_process(const std::shared_ptr<Object> &pp)
+{
+    ProcessObject *po = dynamic_cast<ProcessObject *>(pp.get());
+    if (po == nullptr || po->process == INVALID_HANDLE_VALUE) {
+        throw RtlException(rtl::os::Exception_OsException_InvalidProcess, utf8string(""));
+    }
+    return po;
+}
 
 namespace rtl {
 
@@ -34,16 +48,15 @@ Cell platform()
     return Cell(number_from_uint32(ENUM_Platform_win32));
 }
 
-void kill(void *process)
+void kill(const std::shared_ptr<Object> &process)
 {
-    Process *p = reinterpret_cast<Process *>(process);
+    ProcessObject *p = check_process(process);
     TerminateProcess(p->process, 1);
     CloseHandle(p->process);
     p->process = INVALID_HANDLE_VALUE;
-    delete p;
 }
 
-void *spawn(const utf8string &command)
+std::shared_ptr<Object> spawn(const utf8string &command)
 {
     static HANDLE job = INVALID_HANDLE_VALUE;
     if (job == INVALID_HANDLE_VALUE) {
@@ -54,7 +67,6 @@ void *spawn(const utf8string &command)
         SetInformationJobObject(job, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
     }
 
-    Process *p = new Process;
     STARTUPINFO si;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
@@ -74,22 +86,19 @@ void *spawn(const utf8string &command)
         throw RtlException(file::Exception_FileException_PathNotFound, command);
     }
     AssignProcessToJobObject(job, pi.hProcess);
-    p->process = pi.hProcess;
     CloseHandle(pi.hThread);
-    return p;
+    return std::shared_ptr<Object> { new ProcessObject(pi.hProcess) };
 }
 
-Number wait(void **process)
+Number wait(const std::shared_ptr<Object> &process)
 {
     DWORD r;
     {
-        Process **pp = reinterpret_cast<Process **>(process);
-        WaitForSingleObject((*pp)->process, INFINITE);
-        GetExitCodeProcess((*pp)->process, &r);
-        CloseHandle((*pp)->process);
-        (*pp)->process = INVALID_HANDLE_VALUE;
-        delete *pp;
-        *pp = NULL;
+        ProcessObject *p = check_process(process);
+        WaitForSingleObject(p->process, INFINITE);
+        GetExitCodeProcess(p->process, &r);
+        CloseHandle(p->process);
+        p->process = INVALID_HANDLE_VALUE;
     }
     return number_from_uint32(r);
 }

@@ -5,6 +5,24 @@
 #include "cell.h"
 #include "rtl_exec.h"
 
+class DatabaseObject: public Object {
+public:
+    DatabaseObject(sqlite3 *db): db(db) {}
+    DatabaseObject(const DatabaseObject &) = delete;
+    DatabaseObject &operator=(const DatabaseObject &) = delete;
+    virtual utf8string toString() const { return utf8string("<SQLITE " + std::to_string(reinterpret_cast<intptr_t>(db)) + ">"); }
+    sqlite3 *db;
+};
+
+static DatabaseObject *check_database(const std::shared_ptr<Object> &pdb)
+{
+    DatabaseObject *db = dynamic_cast<DatabaseObject *>(pdb.get());
+    if (db == nullptr || db->db == NULL) {
+        throw RtlException(rtl::sqlite::Exception_SqliteException_InvalidDatabase, utf8string(""));
+    }
+    return db;
+}
+
 static int callback(void *rowscell, int columns, char **values, char ** /*names*/)
 {
     std::vector<Cell> *rows = static_cast<std::vector<Cell> *>(rowscell);
@@ -20,23 +38,24 @@ namespace rtl {
 
 namespace sqlite {
 
-void *open(const utf8string &name)
+std::shared_ptr<Object> open(const utf8string &name)
 {
     sqlite3 *db;
     int r = sqlite3_open(name.c_str(), &db);
     if (r != SQLITE_OK) {
         throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db)), r);
     }
-    return db;
+    return std::shared_ptr<Object> { new DatabaseObject(db) };
 }
 
-Cell exec(void *db, const utf8string &sql, const std::map<utf8string, utf8string> &parameters)
+Cell exec(const std::shared_ptr<Object> &pdb, const utf8string &sql, const std::map<utf8string, utf8string> &parameters)
 {
+    DatabaseObject *db = check_database(pdb);
     std::vector<Cell> rows;
     sqlite3_stmt *stmt;
-    int r = sqlite3_prepare_v2(static_cast<sqlite3 *>(db), sql.c_str(), -1, &stmt, NULL);
+    int r = sqlite3_prepare_v2(db->db, sql.c_str(), -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
     }
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
@@ -45,7 +64,7 @@ Cell exec(void *db, const utf8string &sql, const std::map<utf8string, utf8string
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
         }
     }
     int columns = sqlite3_column_count(stmt);
@@ -61,19 +80,20 @@ Cell exec(void *db, const utf8string &sql, const std::map<utf8string, utf8string
             }
             rows.push_back(Cell(row));
         } else {
-            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
         }
     }
     sqlite3_finalize(stmt);
     return Cell(rows);
 }
 
-bool execOne(void *db, const utf8string &sql, const std::map<utf8string, utf8string> &parameters, Cell *result)
+bool execOne(const std::shared_ptr<Object> &pdb, const utf8string &sql, const std::map<utf8string, utf8string> &parameters, Cell *result)
 {
+    DatabaseObject *db = check_database(pdb);
     sqlite3_stmt *stmt;
-    int r = sqlite3_prepare_v2(static_cast<sqlite3 *>(db), sql.c_str(), -1, &stmt, NULL);
+    int r = sqlite3_prepare_v2(db->db, sql.c_str(), -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
     }
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
@@ -82,7 +102,7 @@ bool execOne(void *db, const utf8string &sql, const std::map<utf8string, utf8str
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
         }
     }
     int columns = sqlite3_column_count(stmt);
@@ -96,26 +116,29 @@ bool execOne(void *db, const utf8string &sql, const std::map<utf8string, utf8str
             result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
         }
     } else {
-        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
     }
     sqlite3_finalize(stmt);
     return true;
 }
 
-Cell execRaw(void *db, const utf8string &sql)
+Cell execRaw(const std::shared_ptr<Object> &pdb, const utf8string &sql)
 {
+    DatabaseObject *db = check_database(pdb);
     std::vector<Cell> rows;
     char *errmsg;
-    int r = sqlite3_exec(static_cast<sqlite3 *>(db), sql.c_str(), callback, &rows, &errmsg);
+    int r = sqlite3_exec(db->db, sql.c_str(), callback, &rows, &errmsg);
     if (r != SQLITE_OK) {
-        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
     }
     return Cell(rows);
 }
 
-void close(void *db)
+void close(const std::shared_ptr<Object> &pdb)
 {
-    sqlite3_close(static_cast<sqlite3 *>(db));
+    DatabaseObject *db = check_database(pdb);
+    sqlite3_close(db->db);
+    db->db = NULL;
 }
 
 class Cursor {
@@ -126,7 +149,7 @@ public:
     {
         int r = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
         if (r != SQLITE_OK) {
-            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db)), r);
         }
         columns = sqlite3_column_count(stmt);
     }
@@ -142,7 +165,7 @@ public:
                 result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
             }
         } else {
-            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db)), r);
         }
         return true;
     }
@@ -162,9 +185,10 @@ private:
 
 std::map<utf8string, std::unique_ptr<Cursor>> Cursors;
 
-utf8string cursorDeclare(void *db, const utf8string &name, const utf8string &query)
+utf8string cursorDeclare(const std::shared_ptr<Object> &pdb, const utf8string &name, const utf8string &query)
 {
-    Cursors[name] = std::unique_ptr<Cursor> { new Cursor(static_cast<sqlite3 *>(db), query) };
+    DatabaseObject *db = check_database(pdb);
+    Cursors[name] = std::unique_ptr<Cursor> { new Cursor(db->db, query) };
     return name;
 }
 

@@ -56,7 +56,7 @@ END ENUM
  |
  |  Opaque type representing a file on disk.
  |%
-TYPE File IS POINTER
+TYPE File IS Object
 
 %|
  |  Exception: IoException
@@ -105,7 +105,7 @@ DECLARE NATIVE VAR stderr: File
  |
  |  Close a file.
  |%
-DECLARE NATIVE FUNCTION close(INOUT f: File)
+DECLARE NATIVE FUNCTION close(f: File)
 
 %|
  |  Function: fprint

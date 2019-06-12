@@ -11,11 +11,25 @@
 
 #include "enums.inc"
 
-struct Process {
+class ProcessObject: public Object {
+public:
+    ProcessObject(pid_t pid): pid(pid) {}
+    ProcessObject(const ProcessObject &) = delete;
+    ProcessObject &operator=(const ProcessObject &) = delete;
+    virtual utf8string toString() const { return utf8string("<PROCESS " + std::to_string(pid) + ">"); }
     pid_t pid;
 };
 
-static std::vector<Process *> g_children;
+static ProcessObject *check_process(const std::shared_ptr<Object> &pp)
+{
+    ProcessObject *po = dynamic_cast<ProcessObject *>(pp.get());
+    if (po == nullptr || po->pid == 0) {
+        throw RtlException(rtl::os::Exception_OsException_InvalidProcess, utf8string(""));
+    }
+    return po;
+}
+
+static std::vector<std::shared_ptr<ProcessObject>> g_children;
 
 void closer()
 {
@@ -47,19 +61,21 @@ Cell platform()
     return Cell(number_from_uint32(ENUM_Platform_posix));
 }
 
-void kill(void *process)
+void kill(const std::shared_ptr<Object> &process)
 {
-    Process *p = reinterpret_cast<Process *>(process);
+    ProcessObject *p = check_process(process);
     ::kill(-p->pid, SIGTERM);
     p->pid = 0;
-    auto pi = std::find(g_children.begin(), g_children.end(), p);
-    if (pi != g_children.end()) {
-        g_children.erase(pi);
+    for (auto pi = g_children.begin(); pi != g_children.end(); ++pi) {
+        if (pi->get() == p) {
+            g_children.erase(pi);
+            break;
+        }
     }
     delete p;
 }
 
-void *spawn(const utf8string &command)
+std::shared_ptr<Object> spawn(const utf8string &command)
 {
     static bool init_closer = false;
     if (not init_closer) {
@@ -67,9 +83,8 @@ void *spawn(const utf8string &command)
         init_closer = true;
     }
 
-    Process *p = new Process;
-    p->pid = ::fork();
-    if (p->pid == 0) {
+    pid_t pid = ::fork();
+    if (pid == 0) {
         setpgid(0, 0);
         g_children.clear();
         for (int fd = 3; fd <= 256; fd++) {
@@ -78,23 +93,24 @@ void *spawn(const utf8string &command)
         execl("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
         _exit(127);
     }
+    std::shared_ptr<ProcessObject> p = std::shared_ptr<ProcessObject> { new ProcessObject(pid) };
     g_children.push_back(p);
     return p;
 }
 
-Number wait(void **process)
+Number wait(const std::shared_ptr<Object> &process)
 {
     int r;
     {
-        Process **pp = reinterpret_cast<Process **>(process);
-        waitpid((*pp)->pid, &r, 0);
-        (*pp)->pid = 0;
-        auto pi = std::find(g_children.begin(), g_children.end(), *pp);
-        if (pi != g_children.end()) {
-            g_children.erase(pi);
+        ProcessObject *p = check_process(process);
+        waitpid(p->pid, &r, 0);
+        p->pid = 0;
+        for (auto pi = g_children.begin(); pi != g_children.end(); ++pi) {
+            if (pi->get() == p) {
+                g_children.erase(pi);
+                break;
+            }
         }
-        delete *pp;
-        *pp = NULL;
     }
     if (WIFEXITED(r)) {
         return number_from_uint8(WEXITSTATUS(r));

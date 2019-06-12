@@ -5,18 +5,22 @@
 #include "number.h"
 #include "rtl_exec.h"
 
-class MemoryFile {
+class MmapObject: public Object {
 public:
+    MmapObject(): file(INVALID_HANDLE_VALUE), len(0), map(INVALID_HANDLE_VALUE), view(NULL) {}
+    MmapObject(const MmapObject &) = delete;
+    MmapObject &operator=(const MmapObject &) = delete;
+    virtual utf8string toString() const { return utf8string("<mmap " + std::to_string(reinterpret_cast<intptr_t>(file)) + ">"); }
     HANDLE file;
     size_t len;
     HANDLE map;
     BYTE *view;
 };
 
-static MemoryFile *check_file(void *pf)
+static MmapObject *check_file(const std::shared_ptr<Object> &pf)
 {
-    MemoryFile *f = static_cast<MemoryFile *>(pf);
-    if (f == NULL) {
+    MmapObject *f = dynamic_cast<MmapObject *>(pf.get());
+    if (f == NULL || f->view == NULL) {
         throw RtlException(rtl::mmap::Exception_MmapException_InvalidFile, utf8string(""));
     }
     return f;
@@ -26,19 +30,18 @@ namespace rtl {
 
 namespace mmap {
 
-void close(void **ppf)
+void close(const std::shared_ptr<Object> &pf)
 {
-    MemoryFile *f = check_file(*ppf);
+    MmapObject *f = check_file(pf);
     UnmapViewOfFile(f->view);
     CloseHandle(f->map);
     CloseHandle(f->file);
-    delete f;
-    *ppf = NULL;
+    f->view = NULL;
 }
 
-void *open(const utf8string &name, Cell &)
+std::shared_ptr<Object> open(const utf8string &name, Cell &)
 {
-    MemoryFile *f = new MemoryFile;
+    MmapObject *f = new MmapObject;
     f->file = INVALID_HANDLE_VALUE;
     if (not name.empty()) {
         f->file = CreateFile(name.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -71,12 +74,12 @@ void *open(const utf8string &name, Cell &)
         delete f;
         throw RtlException(Exception_OpenFileException, utf8string("MapViewOfFile: error (" + std::to_string(e) + ")"));
     }
-    return f;
+    return std::shared_ptr<Object> { f };
 }
 
-std::vector<unsigned char> read(void *pf, Number offset, Number count)
+std::vector<unsigned char> read(const std::shared_ptr<Object> &pf, Number offset, Number count)
 {
-    MemoryFile *f = check_file(pf);
+    MmapObject *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
         return std::vector<unsigned char>();
@@ -88,15 +91,15 @@ std::vector<unsigned char> read(void *pf, Number offset, Number count)
     return std::vector<unsigned char>(f->view + o, f->view + o + c);
 }
 
-Number size(void *pf)
+Number size(const std::shared_ptr<Object> &pf)
 {
-    MemoryFile *f = check_file(pf);
+    MmapObject *f = check_file(pf);
     return number_from_uint64(f->len);
 }
 
-void write(void *pf, Number offset, const std::vector<unsigned char> &data)
+void write(const std::shared_ptr<Object> &pf, Number offset, const std::vector<unsigned char> &data)
 {
-    MemoryFile *f = check_file(pf);
+    MmapObject *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
         throw RtlException(global::Exception_ValueRangeException, utf8string(""));
