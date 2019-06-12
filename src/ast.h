@@ -2608,11 +2608,11 @@ public:
         TypeTestWhenCondition(const TypeTestWhenCondition &);
         TypeTestWhenCondition &operator=(const TypeTestWhenCondition &);
     };
-    CaseStatement(int line, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(line), expr(expr), clauses(clauses) {}
+    CaseStatement(int line, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(line), expr(expr), xclauses(clauses) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr;
-    const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
+    const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> xclauses;
 
     virtual bool always_returns() const override;
 

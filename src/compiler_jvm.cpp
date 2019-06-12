@@ -2675,7 +2675,7 @@ public:
         RangeWhenCondition &operator=(const RangeWhenCondition &);
     };
     explicit CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
-        for (auto &c: cs->clauses) {
+        for (auto &c: cs->xclauses) {
             std::vector<const WhenCondition *> whens;
             for (auto w: c.first) {
                 auto *cwc = dynamic_cast<const ast::CaseStatement::ComparisonWhenCondition *>(w);
@@ -2706,15 +2706,20 @@ public:
             clause_labels.push_back(std::make_pair(context.create_label(), context.create_label()));
         }
         clause_labels.push_back(std::make_pair(context.create_label(), context.create_label()));
+        bool seen_others = false;
         for (size_t i = 0; i < clauses.size(); i++) {
             auto &clause = clauses[i];
             auto &conditions = clause.first;
             auto &statements = clause.second;
             context.jump_target(clause_labels[i].first);
-            for (size_t j = 0; j < conditions.size(); j++) {
-                auto label_next = context.create_label();
-                conditions[j]->generate(context, clause_labels[i].second, j+1 < conditions.size() ? label_next : clause_labels[i+1].first);
-                context.jump_target(label_next);
+            if (not conditions.empty()) {
+                for (size_t j = 0; j < conditions.size(); j++) {
+                    auto label_next = context.create_label();
+                    conditions[j]->generate(context, clause_labels[i].second, j+1 < conditions.size() ? label_next : clause_labels[i+1].first);
+                    context.jump_target(label_next);
+                }
+            } else {
+                seen_others = true;
             }
             context.jump_target(clause_labels[i].second);
             context.ca.code << OP_pop;
@@ -2722,6 +2727,9 @@ public:
                 stmt->generate(context);
             }
             context.emit_jump(OP_goto, clause_labels.back().second);
+        }
+        if (not seen_others) {
+            context.ca.code << OP_pop;
         }
         context.jump_target(clause_labels.back().second);
     }

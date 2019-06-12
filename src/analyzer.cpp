@@ -5528,6 +5528,7 @@ public:
         node->expr->accept(this);
         std::set<std::string> assigned;
         bool first = true;
+        bool seen_others = false;
         for (auto &c: node->clauses) {
             for (auto &w: c.first) {
                 auto *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(w.get());
@@ -5544,6 +5545,9 @@ public:
                     internal_error("unknown case when condition");
                 }
             }
+            if (c.first.empty()) {
+                seen_others = true;
+            }
             enter(true);
             for (auto &s: c.second) {
                 s->accept(this);
@@ -5555,6 +5559,9 @@ public:
                 intersect(assigned, scopes.back().assigned);
             }
             leave();
+        }
+        if (not seen_others) {
+            assigned.clear();
         }
         for (auto a: assigned) {
             mark_assigned(a, Token());

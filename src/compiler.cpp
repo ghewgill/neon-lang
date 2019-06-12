@@ -2216,7 +2216,7 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
         std::map<int32_t, const std::vector<const Statement *> *> values;
         std::vector<const Statement *> when_others;
         bool all_integer_equality = true;
-        for (auto &clause: clauses) {
+        for (auto &clause: xclauses) {
             for (auto cond: clause.first) {
                 const ComparisonWhenCondition *comp = dynamic_cast<const ComparisonWhenCondition *>(cond);
                 if (comp != nullptr && comp->comp == ComparisonExpression::Comparison::EQ) {
@@ -2279,7 +2279,8 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
         }
     }
 
-    for (auto clause: clauses) {
+    bool seen_others = false;
+    for (auto clause: xclauses) {
         auto &conditions = clause.first;
         auto &statements = clause.second;
         auto next_label = emitter.create_label();
@@ -2291,6 +2292,8 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
             }
             emitter.emit_jump(JUMP, next_label);
             emitter.jump_target(match_label);
+        } else {
+            seen_others = true;
         }
         emitter.emit(DROP);
         for (auto stmt: statements) {
@@ -2298,6 +2301,9 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
         }
         emitter.emit_jump(JUMP, end_label);
         emitter.jump_target(next_label);
+    }
+    if (not seen_others) {
+        emitter.emit(DROP);
     }
     emitter.jump_target(end_label);
 }

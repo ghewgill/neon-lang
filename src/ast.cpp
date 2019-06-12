@@ -862,12 +862,16 @@ bool BaseLoopStatement::always_returns() const
 
 bool CaseStatement::always_returns() const
 {
-    for (auto clause: clauses) {
+    bool seen_others = false;
+    for (auto clause: xclauses) {
+        if (clause.first.empty()) {
+            seen_others = true;
+        }
         if (clause.second.empty() || not clause.second.back()->always_returns()) {
             return false;
         }
     }
-    return true;
+    return seen_others;
 }
 
 bool TryStatement::always_returns() const

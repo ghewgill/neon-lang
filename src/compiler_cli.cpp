@@ -3251,7 +3251,7 @@ public:
         RangeWhenCondition &operator=(const RangeWhenCondition &);
     };
     explicit CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
-        for (auto &c: cs->clauses) {
+        for (auto &c: cs->xclauses) {
             std::vector<const WhenCondition *> whens;
             for (auto w: c.first) {
                 auto *cwc = dynamic_cast<const ast::CaseStatement::ComparisonWhenCondition *>(w);

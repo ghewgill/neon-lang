@@ -1663,15 +1663,16 @@ std::unique_ptr<Statement> Parser::parseCaseStatement()
         }
         clauses.push_back(std::make_pair(std::move(conditions), std::move(statements)));
     }
-    std::vector<std::unique_ptr<Statement>> others_statements;
     if (tokens[i].type == WHEN && tokens[i+1].type == OTHERS && tokens[i+2].type == DO) {
         i += 3;
+        std::vector<std::unique_ptr<Statement>> others_statements;
         while (tokens[i].type != END) {
             std::unique_ptr<Statement> stmt = parseStatement();
             if (stmt != nullptr) {
                 others_statements.push_back(std::move(stmt));
             }
         }
+        clauses.push_back(std::make_pair(std::vector<std::unique_ptr<CaseStatement::WhenCondition>>(), std::move(others_statements)));
     }
     if (tokens[i].type != END) {
         error(2031, tokens[i], "'END' expected");
@@ -1681,7 +1682,6 @@ std::unique_ptr<Statement> Parser::parseCaseStatement()
         error_a(2039, tokens[i-1], tokens[i], "CASE expected");
     }
     ++i;
-    clauses.push_back(std::make_pair(std::vector<std::unique_ptr<CaseStatement::WhenCondition>>(), std::move(others_statements)));
     return std::unique_ptr<Statement> { new CaseStatement(tok_case, std::move(expr), std::move(clauses)) };
 }
 

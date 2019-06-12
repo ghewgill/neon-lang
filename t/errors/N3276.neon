@@ -1,0 +1,13 @@
+TYPE Fruit IS ENUM
+    apple
+    banana
+    cherry
+    durian
+END ENUM
+
+LET f: Fruit := Fruit.banana
+CASE f
+%<
+    WHEN Fruit.apple DO
+    WHEN Fruit.banana TO Fruit.cherry DO
+END CASE
