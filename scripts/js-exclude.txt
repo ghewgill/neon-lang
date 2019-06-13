@@ -127,6 +127,7 @@ struct-test.neon           # DictionaryInExpression
 sudoku-test.neon           # ArrayReferenceRangeExpression
 sys-exit.neon              # module sys
 tail-call.neon             # recursion limit
+textio-test.neon           # module textio
 time-stopwatch.neon        # module time
 time-test.neon             # module time
 tostring.neon              # keyword enum

@@ -316,6 +316,7 @@ structure.neon
 sudoku-test.neon
 sys-exit.neon
 tail-call.neon
+textio-test.neon
 time-stopwatch.neon
 time-test.neon
 tostring.neon

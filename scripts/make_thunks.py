@@ -300,6 +300,7 @@ for fn in sys.argv[1:]:
                         "Array<String>": "ast::TYPE_ARRAY_STRING",
                         "File": "dynamic_cast<const ast::Type *>(scope->lookupName(\"File\"))",
                         "Number": "ast::TYPE_NUMBER",
+                        "TextFile": "dynamic_cast<const ast::Type *>(scope->lookupName(\"TextFile\"))",
                     }[ntype]
                     variables[name] = [name, atype]
                 elif a[:1] == ["EXCEPTION"]:

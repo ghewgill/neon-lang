@@ -196,7 +196,7 @@ class Value:
             return str(self.value)
 
 Globals = {
-    "io$stderr": Value(None),
+    "textio$stderr": Value(None),
 }
 
 class Executor:
@@ -1306,14 +1306,6 @@ def neon_file_exists(self):
     n = self.stack.pop().value
     self.stack.append(Value(os.path.exists(n)))
 
-def neon_io_fprint(self):
-    s = self.stack.pop().value
-    f = self.stack.pop().value
-    if f is Globals["io$stderr"]:
-        sys.stderr.write(s)
-    else:
-        assert False, f
-
 def neon_math_abs(self):
     x = self.stack.pop().value
     self.stack.append(Value(abs(x)))
@@ -1530,6 +1522,14 @@ def neon_sys_exit(self):
         self.raise_literal("InvalidValueException", ("sys.exit invalid parameter: {}".format(x), 0))
         return
     sys.exit(int(x))
+
+def neon_textio_writeLine(self):
+    s = self.stack.pop().value
+    f = self.stack.pop().value
+    if f is Globals["textio$stderr"]:
+        sys.stderr.write(s)
+    else:
+        assert False, f
 
 def neon_time_now(self):
     self.stack.append(Value(decimal.Decimal(time.time())))

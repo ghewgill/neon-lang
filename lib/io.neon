@@ -1,7 +1,7 @@
 %|
  |  File: io
  |
- |  Functions for general purpose input and output with files.
+ |  Functions for general purpose byte-oriented input and output with files.
  |%
 
 EXPORT File
@@ -11,10 +11,8 @@ EXPORT SeekBase
 EXPORT IoException
 
 EXPORT close
-EXPORT fprint
 EXPORT open
 EXPORT readBytes
-EXPORT readLine
 EXPORT seek
 EXPORT tell
 EXPORT truncate
@@ -108,13 +106,6 @@ DECLARE NATIVE VAR stderr: File
 DECLARE NATIVE FUNCTION close(f: File)
 
 %|
- |  Function: fprint
- |
- |  Print a string, followed by a newline, to a file.
- |%
-DECLARE NATIVE FUNCTION fprint(f: File, s: String)
-
-%|
  |  Function: open
  |
  |  Open a file with the given name and mode.
@@ -127,16 +118,6 @@ DECLARE NATIVE FUNCTION open(name: String, mode: Mode): File
  |  Read bytes from a file.
  |%
 DECLARE NATIVE FUNCTION readBytes(f: File, count: Number): Bytes
-
-%|
- |  Function: readLine
- |
- |  Read a line of text from a file.
- |
- |  Returns:
- |      FALSE if there are no more lines in the file, otherwise TRUE.
- |%
-DECLARE NATIVE FUNCTION readLine(f: File, OUT s: String): Boolean
 
 %|
  |  Function: seek

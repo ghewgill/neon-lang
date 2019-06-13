@@ -248,6 +248,7 @@ rtl_cpp = rtl_const + squeeze([
     "lib/sqlite.cpp",
     "lib/string.cpp",
     "lib/sys.cpp",
+    "lib/textio.cpp",
     "lib/time.cpp",
 ])
 
@@ -269,6 +270,7 @@ rtl_neon = squeeze([
     "lib/sqlite.neon",
     "lib/string.neon",
     "lib/sys.neon",
+    "lib/textio.neon",
     "lib/time.neon",
 ])
 

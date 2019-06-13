@@ -2981,6 +2981,29 @@ def neon_sys_exit(env, n):
         raise NeonException("InvalidValueException", "sys.exit invalid parameter: {}".format(n))
     sys.exit(n)
 
+def neon_textio_close(env, f):
+    f.close()
+    return (None, None)
+
+def neon_textio_open(env, fn, mode):
+    return open(fn, "w" if mode.name == "write" else "r")
+
+def neon_textio_readLine(env, f, r):
+    r = f.readline()
+    return r is not None, r.rstrip("\r\n")
+
+def neon_textio_seekEnd(env, f):
+    f.seek(0, os.SEEK_END)
+
+def neon_textio_seekStart(env, f):
+    f.seek(0, os.SEEK_SET)
+
+def neon_textio_truncate(env, f):
+    f.truncate()
+
+def neon_textio_writeLine(env, f, s):
+    print(s, file=f)
+
 try:
     source = codecs.open(sys.argv[1], encoding="utf-8").read()
 except UnicodeDecodeError:

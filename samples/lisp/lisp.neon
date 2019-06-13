@@ -214,9 +214,26 @@ FUNCTION parse(s: String): POINTER TO Value
     RETURN parse2(s, INOUT i)
 END FUNCTION
 
+FUNCTION readLine(f: io.File, OUT s: String): Boolean
+    s := ""
+    VAR b: Bytes := HEXBYTES ""
+    LOOP
+        LET c: Bytes := io.readBytes(f, 1)
+        IF c.size() = 0 THEN
+            RETURN FALSE
+        END IF
+        IF c = HEXBYTES "0a" THEN
+            EXIT LOOP
+        END IF
+        b := b & c
+    END LOOP
+    s := b.decodeToString()
+    RETURN TRUE
+END FUNCTION
+
 FUNCTION read(f: io.File): POINTER TO Value
     VAR s: String
-    IF NOT io.readLine(f, OUT s) THEN
+    IF NOT readLine(f, OUT s) THEN
         sys.exit(0)
     END IF
     RETURN parse(s)

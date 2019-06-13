@@ -110,6 +110,7 @@ set(RTL_NEON
     lib/sqlite.neon
     lib/string.neon
     lib/sys.neon
+    lib/textio.neon
     lib/time.neon
 )
 if (WIN32)
@@ -152,6 +153,7 @@ if (JAVAC)
         rtl/jvm/neon/Math.java
         rtl/jvm/neon/Os.java
         rtl/jvm/neon/Sys.java
+        rtl/jvm/neon/Textio.java
         rtl/jvm/neon/Time.java
         rtl/jvm/neon/type/Array.java
         rtl/jvm/neon/type/NeonException.java
@@ -341,6 +343,7 @@ add_library(executor OBJECT
     lib/sqlite.cpp
     lib/string.cpp
     lib/sys.cpp
+    lib/textio.cpp
     lib/time.cpp
     ${platform_executor}
 )

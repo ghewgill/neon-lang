@@ -50,19 +50,12 @@ void close(const std::shared_ptr<Object> &pf)
     f->file = NULL;
 }
 
-void fprint(const std::shared_ptr<Object> &pf, const utf8string &s)
-{
-    FileObject *f = check_file(pf);
-    fputs(s.c_str(), f->file);
-    fputs("\n", f->file);
-}
-
 std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
 {
     const char *m;
     switch (number_to_uint32(mode.number())) {
-        case ENUM_Mode_read:  m = "r"; break;
-        case ENUM_Mode_write: m = "w+"; break;
+        case ENUM_Mode_read:  m = "rb"; break;
+        case ENUM_Mode_write: m = "w+b"; break;
         default:
             return NULL;
     }

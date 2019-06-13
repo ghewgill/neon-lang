@@ -1311,6 +1311,23 @@ END FUNCTION
 
 VAR current_file: io.File
 
+FUNCTION readLine(f: io.File, OUT s: String): Boolean
+    s := ""
+    VAR b: Bytes := HEXBYTES ""
+    LOOP
+        LET c: Bytes := io.readBytes(f, 1)
+        IF c.size() = 0 THEN
+            RETURN FALSE
+        END IF
+        IF c = HEXBYTES "0a" THEN
+            EXIT LOOP
+        END IF
+        b := b & c
+    END LOOP
+    s := b.decodeToString()
+    RETURN TRUE
+END FUNCTION
+
 FUNCTION refill(): Boolean
     IF cell_input <> cell_normal_input THEN
         cell_input := cell_normal_input
@@ -1319,7 +1336,7 @@ FUNCTION refill(): Boolean
         RETURN FALSE
     END IF
     VAR s: String
-    IF NOT io.readLine(current_file, OUT s) THEN
+    IF NOT readLine(current_file, OUT s) THEN
         RETURN FALSE
     END IF
     FOR i := 0 TO s.length()-1 DO

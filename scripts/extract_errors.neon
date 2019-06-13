@@ -1,8 +1,8 @@
 IMPORT file
-IMPORT io
 IMPORT regex
 IMPORT string
 IMPORT sys
+IMPORT textio
 
 VAR errors: Dictionary<String> := {}
 LET sources: Array<String> := file.files("src")
@@ -34,8 +34,8 @@ FOREACH fn IN sources DO
     END FOREACH
 END FOREACH
 
-VAR out: io.File := io.open("src/errors.txt", io.Mode.write)
+VAR out: textio.TextFile := textio.open("src/errors.txt", textio.Mode.write)
 FOREACH error IN errors.keys() DO
-    io.fprint(out, "N\(error) \(errors[error])")
+    textio.writeLine(out, "N\(error) \(errors[error])")
 END FOREACH
-io.close(out)
+textio.close(out)

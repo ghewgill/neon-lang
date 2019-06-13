@@ -3823,29 +3823,29 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     for (auto x = statement->exprs.begin()+1; x != statement->exprs.end(); ++x) {
         parts.push_back(x->get());
     }
-    const ast::Module *io = dynamic_cast<const ast::Module *>(scope.top()->lookupName("io"));
-    if (io == nullptr) {
-        ast::Module *module = import_module(Token(), "io");
-        rtl_import("io", module);
-        global_scope->addName(Token(IDENTIFIER, "io"), "io", module, true);
-        io = module;
+    const ast::Module *textio = dynamic_cast<const ast::Module *>(scope.top()->lookupName("textio"));
+    if (textio == nullptr) {
+        ast::Module *module = import_module(Token(), "textio");
+        rtl_import("textio", module);
+        global_scope->addName(Token(IDENTIFIER, "textio"), "textio", module, true);
+        textio = module;
     }
     std::vector<const ast::Statement *> statements;
-    const ast::Variable *io_stderr = dynamic_cast<const ast::Variable *>(io->scope->lookupName("stderr"));
-    if (io_stderr == nullptr) {
-        internal_error("need io.stderr");
+    const ast::Variable *textio_stderr = dynamic_cast<const ast::Variable *>(textio->scope->lookupName("stderr"));
+    if (textio_stderr == nullptr) {
+        internal_error("need textio.stderr");
     }
-    const ast::PredefinedFunction *fprint = dynamic_cast<const ast::PredefinedFunction *>(io->scope->lookupName("fprint"));
-    if (fprint == nullptr) {
-        internal_error("need io.fprint");
+    const ast::PredefinedFunction *writeLine = dynamic_cast<const ast::PredefinedFunction *>(textio->scope->lookupName("writeLine"));
+    if (writeLine == nullptr) {
+        internal_error("need textio.writeLine");
     }
     statements.push_back(
         new ast::ExpressionStatement(
             statement->token.line,
             new ast::FunctionCall(
-                new ast::VariableExpression(fprint),
+                new ast::VariableExpression(writeLine),
                 {
-                    new ast::VariableExpression(io_stderr),
+                    new ast::VariableExpression(textio_stderr),
                     new ast::ConstantStringExpression(utf8string("Assert failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "):"))
                 }
             )
@@ -3856,9 +3856,9 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             new ast::ExpressionStatement(
                 statement->token.line,
                 new ast::FunctionCall(
-                    new ast::VariableExpression(fprint),
+                    new ast::VariableExpression(writeLine),
                     {
-                        new ast::VariableExpression(io_stderr),
+                        new ast::VariableExpression(textio_stderr),
                         new ast::ConstantStringExpression(utf8string(statement->token.source->source_line(line)))
                     }
                 )
@@ -3869,9 +3869,9 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         new ast::ExpressionStatement(
             statement->token.line,
             new ast::FunctionCall(
-                new ast::VariableExpression(fprint),
+                new ast::VariableExpression(writeLine),
                 {
-                    new ast::VariableExpression(io_stderr),
+                    new ast::VariableExpression(textio_stderr),
                     new ast::ConstantStringExpression(utf8string("Assert expression dump:"))
                 }
             )
@@ -3908,9 +3908,9 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
                 new ast::ExpressionStatement(
                     statement->token.line,
                     new ast::FunctionCall(
-                        new ast::VariableExpression(fprint),
+                        new ast::VariableExpression(writeLine),
                         {
-                            new ast::VariableExpression(io_stderr),
+                            new ast::VariableExpression(textio_stderr),
                             analyze(ie.get())
                         }
                     )

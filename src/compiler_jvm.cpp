@@ -993,7 +993,7 @@ public:
 
     virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &context) const override {
-        if (pv->name == "io$stderr") {
+        if (pv->name == "textio$stderr") {
             context.ca.code << OP_getstatic << context.cf.Field("java/lang/System", "err", "Ljava/io/PrintStream;");
         } else {
             internal_error("PredefinedVariable: " + pv->name);
