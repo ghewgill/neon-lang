@@ -129,12 +129,6 @@ neon = {
         }
     },
 
-    io: {
-        fprint: function(f, s) {
-            console.error(s);
-        }
-    },
-
     math: {
         abs: function(x) {
             return Math.abs(x);
@@ -248,6 +242,12 @@ neon = {
     sys: {
         exit: function(x) {
             process.exit(x);
+        }
+    },
+
+    textio: {
+        writeLine: function(f, s) {
+            console.error(s);
         }
     },
 
