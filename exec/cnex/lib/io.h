@@ -3,11 +3,9 @@
 
 struct tagTExecutor;
 
-void io_fprint(struct tagTExecutor *exec);
 void io_close(struct tagTExecutor *exec);
 void io_open(struct tagTExecutor *exec);
 void io_readBytes(struct tagTExecutor *exec);
-void io_readLine(struct tagTExecutor *exec);
 void io_seek(struct tagTExecutor *exec);
 void io_tell(struct tagTExecutor *exec);
 void io_truncate(struct tagTExecutor *exec);

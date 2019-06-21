@@ -71,11 +71,9 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("binary$xorBytes",           binary_xorBytes),
 
     // io - InputOutput module
-    PDFUNC("io$fprint",                 io_fprint),
     PDFUNC("io$close",                  io_close),
     PDFUNC("io$open",                   io_open),
     PDFUNC("io$readBytes",              io_readBytes),
-    PDFUNC("io$readLine",               io_readLine),
     PDFUNC("io$seek",                   io_seek),
     PDFUNC("io$tell",                   io_tell),
     PDFUNC("io$truncate",               io_truncate),
@@ -204,11 +202,11 @@ struct tagTVariables {
 void global_init(int argc, char *argv[], int iArgStart)
 {
     // Init io module
-    VAR_stderr.address = cell_createOtherCell(stderr);
+    VAR_stderr.address = cell_fromObject(object_createFileObject(stderr));
     VAR_stderr.type = cAddress;
-    VAR_stdin.address = cell_createOtherCell(stdin);
+    VAR_stdin.address = cell_fromObject(object_createFileObject(stdin));
     VAR_stdin.type = cAddress;
-    VAR_stdout.address = cell_createOtherCell(stdout);
+    VAR_stdout.address = cell_fromObject(object_createFileObject(stdout));
     VAR_stdout.type = cAddress;
 
     // Init Random Module
@@ -600,7 +598,7 @@ void array__toString__object(TExecutor *exec)
         if (r->string->length > 1) {
             r->string = string_appendCString(r->string, ", ");
         }
-        TString *es = cell_toString(a->array->data[i].object->cell);
+        TString *es = cell_toString(a->array->data[i].object->ptr);
         r->string = string_appendString(r->string, es);
         string_freeString(es);
     }
@@ -783,7 +781,7 @@ void number__toString(TExecutor *exec)
 
 void object__getArray(TExecutor *exec)
 {
-    Cell *a = cell_fromCell(top(exec->stack)->object->cell); pop(exec->stack);
+    Cell *a = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (a->type != cArray) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Array", BID_ZERO);
         return;
@@ -793,7 +791,7 @@ void object__getArray(TExecutor *exec)
 
 void object__getBoolean(TExecutor *exec)
 {
-    Cell *b = cell_fromCell(top(exec->stack)->object->cell); pop(exec->stack);
+    Cell *b = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (b->type != cBoolean) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Boolean", BID_ZERO);
         return;
@@ -803,7 +801,7 @@ void object__getBoolean(TExecutor *exec)
 
 void object__getBytes(TExecutor *exec)
 {
-    Cell *b = cell_fromCell(top(exec->stack)->object->cell); pop(exec->stack);
+    Cell *b = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (b->type != cBytes) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Bytes", BID_ZERO);
         return;
@@ -813,7 +811,7 @@ void object__getBytes(TExecutor *exec)
 
 void object__getDictionary(TExecutor *exec)
 {
-    Cell *d = cell_fromCell(top(exec->stack)->object->cell); pop(exec->stack);
+    Cell *d = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (d->type != cDictionary) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Dictionary", BID_ZERO);
         return;
@@ -823,7 +821,7 @@ void object__getDictionary(TExecutor *exec)
 
 void object__getNumber(TExecutor *exec)
 {
-    Cell *v = cell_fromCell(top(exec->stack)->object->cell); pop(exec->stack);
+    Cell *v = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (v->type != cNumber) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Number", BID_ZERO);
         return;
@@ -833,7 +831,7 @@ void object__getNumber(TExecutor *exec)
 
 void object__getString(TExecutor *exec)
 {
-    Cell *s = cell_fromCell(top(exec->stack)->object->cell); pop(exec->stack);
+    Cell *s = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (s->type != cString) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to String", BID_ZERO);
         return;
@@ -889,7 +887,7 @@ void object__isNull(TExecutor *exec)
     BOOL r = FALSE;
     Object *o = top(exec->stack)->object;
 
-    if (o == NULL || o->cell == NULL) {
+    if (o == NULL || o->ptr == NULL) {
         r = TRUE;
     }
     pop(exec->stack);
@@ -901,14 +899,14 @@ void object__subscript(struct tagTExecutor *exec)
     Cell *index = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *o = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *r = cell_newCell();
-    if (o->object->cell == NULL) {
+    if (o->object->ptr == NULL) {
         exec->rtl_raise(exec, "DynamicConversionException", "object is null", BID_ZERO);
         cell_freeCell(index);
         cell_freeCell(o);
         cell_freeCell(r);
         return;
     }
-    if (index->object->cell == NULL) {
+    if (index->object->ptr == NULL) {
         exec->rtl_raise(exec, "DynamicConversionException", "index is null", BID_ZERO);
         cell_freeCell(index);
         cell_freeCell(o);
@@ -923,16 +921,16 @@ void object__subscript(struct tagTExecutor *exec)
             cell_freeCell(r);
             return;
         }
-        Number i = index->object->cell->number;
+        Number i = ((Cell*)index->object->ptr)->number;
         uint64_t ii = number_to_uint64(i);
-        if (ii >= o->object->cell->array->size) {
+        if (ii >= ((Cell*)o->object->ptr)->array->size) {
             exec->rtl_raise(exec, "ArrayIndexException", number_to_string(i), BID_ZERO);
             cell_freeCell(index);
             cell_freeCell(o);
             cell_freeCell(r);
             return;
         }
-        cell_copyCell(r, &o->object->cell->array->data[ii]);
+        cell_copyCell(r, &((Cell*)o->object->ptr)->array->data[ii]);
     } else if (o->object->type == oDictionary) {
         if (index->object->type != oString) {
             exec->rtl_raise(exec, "DynamicConversionException", "to String", BID_ZERO);
@@ -941,8 +939,8 @@ void object__subscript(struct tagTExecutor *exec)
             cell_freeCell(r);
             return;
         }
-        TString *i = index->object->cell->string;
-        Cell *e = dictionary_findDictionaryEntry(o->object->cell->dictionary, i);
+        TString *i = ((Cell*)index->object->ptr)->string;
+        Cell *e = dictionary_findDictionaryEntry(((Cell*)o->object->ptr)->dictionary, i);
         if (e == NULL) {
             Cell *str = object_toString(index->object);
             char *x = string_asCString(str->string);
@@ -956,7 +954,7 @@ void object__subscript(struct tagTExecutor *exec)
         }
         cell_copyCell(r, e);
     } else {
-        TString *str = cell_toString(index->object->cell);
+        TString *str = cell_toString(index->object->ptr);
         char *x = string_asCString(str);
         exec->rtl_raise(exec, "ObjectSubscriptException", x, BID_ZERO);
         string_freeString(str);

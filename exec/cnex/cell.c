@@ -660,7 +660,9 @@ void cell_clearCell(Cell *c)
     } else if (c->type == cDictionary) {
         dictionary_freeDictionary(c->dictionary);
     } else if (c->type == cObject) {
-        object_releaseObject(c->object);
+        if (c->object != NULL && c->object->release != NULL) {
+            c->object->release(c->object);
+        }
     } else if (c->type == cBytes) {
         string_freeString(c->string);
     }

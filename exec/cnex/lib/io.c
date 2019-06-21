@@ -22,6 +22,32 @@
 #include "number.h"
 #include "stack.h"
 #include "nstring.h"
+#include "object.h"
+
+
+void object_releaseFileObject(Object *o)
+{
+    if (o != NULL) {
+        assert(o->refcount > 0);
+        o->refcount--;
+
+        if (o->refcount <= 0) {
+            if (o->ptr != NULL) {
+                fclose((FILE*)o->ptr);
+            }
+            free(o);
+        }
+    }
+}
+
+Object *object_createFileObject(FILE *f)
+{
+    Object *r = object_createObject();
+    r->ptr = f;
+    r->release = object_releaseFileObject;
+
+    return r;
+}
 
 
 static FILE *check_file(TExecutor *exec, void *pf)
@@ -35,25 +61,13 @@ static FILE *check_file(TExecutor *exec, void *pf)
 }
 
 
-void io_fprint(TExecutor *exec)
-{
-    Cell *s = peek(exec->stack, 0);
-    void *pf = peek(exec->stack, 1)->other;
-
-    FILE *f = check_file(exec, pf);
-    fwrite(s->string->data, 1, s->string->length, f);
-    fputs("\n", f);
-
-    pop(exec->stack);
-    pop(exec->stack);
-}
-
 void io_close(TExecutor *exec)
 {
-    void *ppf = peek(exec->stack, 0)->address->other;
+    void *ppf = peek(exec->stack, 0)->object->ptr;
 
     FILE *f = check_file(exec, ppf);
     fclose(f);
+    peek(exec->stack, 0)->object->ptr = NULL;
 
     pop(exec->stack);
 }
@@ -65,25 +79,24 @@ void io_open(TExecutor *exec)
 
     const char *m;
     switch (number_to_uint32(mode)) {
-        case ENUM_Mode_read:  m = "r"; break;
-        case ENUM_Mode_write: m = "w+"; break;
+        case ENUM_Mode_read:  m = "rb"; break;
+        case ENUM_Mode_write: m = "w+b"; break;
         default:
             free(pszName);
             push(exec->stack, cell_fromAddress(NULL));
             return;
     }
 
-    Cell *r = cell_newCellType(cOther);
-    r->other = (void*)fopen(pszName, m);
+    Object *r = object_createFileObject(fopen(pszName, m));
     free(pszName);
 
-    push(exec->stack, r);
+    push(exec->stack, cell_fromObject(r));
 }
 
 void io_readBytes(TExecutor *exec)
 {
     Number count = top(exec->stack)->number; pop(exec->stack);
-    void *pf = top(exec->stack)->other; pop(exec->stack);
+    void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
     uint64_t ncount = number_to_uint64(count);
@@ -98,38 +111,11 @@ void io_readBytes(TExecutor *exec)
     push(exec->stack, r);
 }
 
-void io_readLine(TExecutor *exec)
-{
-    void *pf = top(exec->stack)->other; pop(exec->stack);
-
-    FILE *f = check_file(exec, pf);
-
-    Cell *r = cell_createStringCell(0);
-    BOOL ret = FALSE;
-
-    for (;;) {
-        char buf[1024];
-        if (fgets(buf, sizeof(buf), f) == NULL) {
-            ret = r->string->length != 0;
-            break;
-        }
-        r->string = string_appendCString(r->string, buf);
-        if (r->string->data[r->string->length - 1] == '\n') {
-            string_resizeString(r->string, r->string->length-1);
-            ret = TRUE;
-            break;
-        }
-    }
-
-    push(exec->stack, cell_fromBoolean(ret));
-    push(exec->stack, r);
-}
-
 void io_seek(TExecutor *exec)
 {
     Number whence = top(exec->stack)->number; pop(exec->stack);
     Number offset = top(exec->stack)->number; pop(exec->stack);
-    void *pf = top(exec->stack)->other;  pop(exec->stack);
+    void *pf = top(exec->stack)->object->ptr;  pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
     int w;
@@ -145,7 +131,7 @@ void io_seek(TExecutor *exec)
 
 void io_tell(TExecutor *exec)
 {
-    void *pf = top(exec->stack)->other;  pop(exec->stack);
+    void *pf = top(exec->stack)->object->ptr;  pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
     push(exec->stack, cell_fromNumber(number_from_sint64(ftell(f))));
@@ -153,7 +139,7 @@ void io_tell(TExecutor *exec)
 
 void io_truncate(TExecutor *exec)
 {
-    void *pf = top(exec->stack)->other; pop(exec->stack);
+    void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
     long ofs = ftell(f);
@@ -171,7 +157,7 @@ void io_truncate(TExecutor *exec)
 void io_write(TExecutor *exec)
 {
     char *pszBuf = string_asCString(top(exec->stack)->string); pop(exec->stack);
-    void *pf = top(exec->stack)->other; pop(exec->stack);
+    void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
     fputs(pszBuf, f);
@@ -181,7 +167,7 @@ void io_write(TExecutor *exec)
 void io_writeBytes(TExecutor *exec)
 {
     Cell *b = peek(exec->stack, 0);
-    void *pf = peek(exec->stack, 1)->other;
+    void *pf = peek(exec->stack, 1)->object->ptr;
 
     FILE *f = check_file(exec, pf);
     fwrite(b->string->data, 1, b->string->length, f);
@@ -189,4 +175,3 @@ void io_writeBytes(TExecutor *exec)
     pop(exec->stack);
     pop(exec->stack);
 }
-
