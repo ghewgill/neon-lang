@@ -21,7 +21,9 @@ typedef enum tagNObjectType {
 typedef struct tagTObject {
     ObjectType      type;
     int             refcount;
-    struct tagTCell *cell;
+    void            *ptr;
+
+    void (*release)(struct tagTObject*);
 } Object;
 
 Object *object_createObject(void);
@@ -36,6 +38,8 @@ Object *object_createBytesObject(TString *b);
 Object *object_createDictionaryObject(Dictionary *d);
 Object *object_createNumberObject(Number n);
 Object *object_createStringObject(TString *s);
+
+Object *object_createFileObject(FILE *f);
 
 Object *object_fromCell(Cell *c);
 

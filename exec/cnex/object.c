@@ -17,7 +17,7 @@ Cell *object_toString(Object *obj)
         Cell *cell = cell_newCell();
         TString *r = string_createString(0);
         size_t x;
-        Array *a = obj->cell->array;
+        Array *a = ((Cell*)obj->ptr)->array;
         r = string_appendCString(r, "[");
         for (x = 0; x < a->size; x++) {
             if (r->length > 1) {
@@ -31,7 +31,7 @@ Cell *object_toString(Object *obj)
         cell_setString(cell, r);
         return cell;
     } else if (obj->type == oBoolean) {
-        if (obj->cell->boolean == TRUE) {
+        if (((Cell*)obj->ptr)->boolean == TRUE) {
             return cell_fromCString("TRUE");
         }
         return cell_fromCString("FALSE");
@@ -39,7 +39,7 @@ Cell *object_toString(Object *obj)
         Cell *cell = cell_newCell();
         BOOL first = TRUE;
         TString *r = string_createCString("HEXBYTES \"");
-        TString *bytes = obj->cell->string;
+        TString *bytes = ((Cell*)obj->ptr)->string;
         for (size_t x = 0; x < bytes->length; x++) {
             if (first) {
                 first = FALSE;
@@ -57,7 +57,7 @@ Cell *object_toString(Object *obj)
         Cell *cell = cell_newCell();
         TString *r = string_createString(0);
         size_t x;
-        Dictionary *d = obj->cell->dictionary;
+        Dictionary *d = ((Cell*)obj->ptr)->dictionary;
         r = string_appendCString(r, "{");
         Cell *keys = dictionary_getKeys(d);
         for (x = 0; x < keys->array->size; x++) {
@@ -76,13 +76,13 @@ Cell *object_toString(Object *obj)
         cell_setString(cell, r);
         return cell;
     } else if (obj->type == oNumber) {
-        return cell_fromCString(number_to_string(obj->cell->number));
+        return cell_fromCString(number_to_string(((Cell*)obj->ptr)->number));
     } else if (obj->type == oString) {
         Cell *cell = cell_fromCString("\"");
-        cell->string = string_appendString(cell->string, obj->cell->string);
+        cell->string = string_appendString(cell->string, ((Cell*)obj->ptr)->string);
         cell->string = string_appendCString(cell->string, "\"");
         return cell;
-    } else if (obj->cell == NULL) {
+    } else if (obj->ptr == NULL) {
         return cell_fromCString("null");
     }
     return NULL;
@@ -97,7 +97,8 @@ Object *object_createObject()
 
     o->type = oNone;
     o->refcount = 1;
-    o->cell = NULL;
+    o->release = object_releaseObject;
+    o->ptr = NULL;
     return o;
 }
 
@@ -108,8 +109,8 @@ void object_releaseObject(Object *o)
         o->refcount--;
 
         if (o->refcount <= 0) {
-            if (o->cell != NULL) {
-                cell_freeCell(o->cell);
+            if (o->ptr != NULL) {
+                cell_freeCell(o->ptr);
             }
             free(o);
         }
@@ -122,9 +123,9 @@ Object *object_createArrayObject(Array *a)
     Object *o = object_createObject();
 
     o->type = oArray;
-    o->cell = cell_newCell();
-    o->cell->array = array_copyArray(a);
-    o->cell->type = cArray;
+    o->ptr = cell_newCell();
+    ((Cell*)o->ptr)->array = array_copyArray(a);
+    ((Cell*)o->ptr)->type = cArray;
     o->refcount = 1;
 
     return o;
@@ -135,7 +136,7 @@ Object *object_createBooleanObject(BOOL b)
     Object *o = object_createObject();
 
     o->type = oBoolean;
-    o->cell = cell_fromBoolean(b);
+    o->ptr = cell_fromBoolean(b);
     o->refcount = 1;
 
     return o;
@@ -146,7 +147,7 @@ Object *object_createBytesObject(TString *b)
     Object *o = object_createObject();
 
     o->type = oBytes;
-    o->cell = cell_fromBytes(b);
+    o->ptr = cell_fromBytes(b);
     o->refcount = 1;
 
     return o;
@@ -157,7 +158,7 @@ Object *object_createDictionaryObject(Dictionary *d)
     Object *o = object_createObject();
 
     o->type = oDictionary;
-    o->cell = cell_fromDictionary(d);
+    o->ptr = cell_fromDictionary(d);
     o->refcount = 1;
 
     return o;
@@ -168,7 +169,7 @@ Object *object_createNumberObject(Number val)
     Object *o = object_createObject();
 
     o->type = oNumber;
-    o->cell = cell_fromNumber(val);
+    o->ptr = cell_fromNumber(val);
     o->refcount = 1;
 
     return o;
@@ -179,7 +180,7 @@ Object *object_createStringObject(TString *s)
     Object *o = object_createObject();
 
     o->type = oString;
-    o->cell = cell_fromString(s);
+    o->ptr = cell_fromString(s);
     o->refcount = 1;
 
     return o;
@@ -202,7 +203,7 @@ Object *object_fromCell(Cell *c)
     } else if (c->type == cString) {
         o->type = oString;
     }
-    o->cell = c;
+    o->ptr = c;
     o->refcount = 1;
 
     return o;

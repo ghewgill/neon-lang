@@ -28,11 +28,6 @@ void neon_str(struct tagTExecutor *exec);
 
 
 
-/* io.neon functions */
-void io_fprint(struct tagTExecutor *exec);
-
-
-
 void array__append(struct tagTExecutor *exec);
 void array__concat(struct tagTExecutor *exec);
 void array__extend(struct tagTExecutor *exec);
