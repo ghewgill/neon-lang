@@ -10,6 +10,8 @@ EXPORT Type
 EXPORT make
 EXPORT field
 EXPORT packBool
+EXPORT packIEEE32
+EXPORT packIEEE64
 EXPORT packInt8
 EXPORT packInt16BE
 EXPORT packInt16LE
@@ -25,6 +27,8 @@ EXPORT packUInt32LE
 EXPORT packUInt64BE
 EXPORT packUInt64LE
 EXPORT unpackBool
+EXPORT unpackIEEE32
+EXPORT unpackIEEE64
 EXPORT unpackInt8
 EXPORT unpackInt16BE
 EXPORT unpackInt16LE
@@ -49,6 +53,8 @@ IMPORT binary
  |
  |  Values:
  |      bool - boolean
+ |      ieee32 - IEEE 754 32 bit binary floating point
+ |      ieee64 - IEEE 754 64 bit binary floating point
  |      int8 - signed 8 bit integer
  |      int16BE - signed 16 bit integer, big endian
  |      int16LE - signed 16 bit integer, little endian
@@ -68,6 +74,8 @@ IMPORT binary
  |%
 TYPE Type IS ENUM
     bool
+    ieee32
+    ieee64
     int8
     int16BE
     int16LE
@@ -132,6 +140,20 @@ END FUNCTION
 FUNCTION packBool(b: Boolean): Bytes
     RETURN (IF b THEN HEXBYTES "01" ELSE HEXBYTES "00")
 END FUNCTION
+
+%|
+ |  Function: packIEEE32
+ |
+ |  Pack a <Number> value into a <Bytes> in IEEE 754 binary32 floating point format.
+ |%
+DECLARE NATIVE FUNCTION packIEEE32(n: Number): Bytes
+
+%|
+ |  Function: packIEEE64
+ |
+ |  Pack a <Number> value into a <Bytes> in IEEE 754 binary64 floating point format.
+ |%
+DECLARE NATIVE FUNCTION packIEEE64(n: Number): Bytes
 
 %|
  |  Function: packInt8
@@ -349,6 +371,20 @@ FUNCTION unpackBool(b: Bytes): Boolean
     LET a: Array<Number> := b.toArray()
     RETURN a[0] <> 0
 END FUNCTION
+
+%|
+ |  Function: unpackIEEE32
+ |
+ |  Unpack a <Number> from a <Bytes> in IEEE 754 binary32 floating point format.
+ |%
+DECLARE NATIVE FUNCTION unpackIEEE32(b: Bytes): Number
+
+%|
+ |  Function: unpackIEEE64
+ |
+ |  Unpack a <Number> from a <Bytes> in IEEE 754 binary64 floating point format.
+ |%
+DECLARE NATIVE FUNCTION unpackIEEE64(b: Bytes): Number
 
 %|
  |  Function: unpackInt8
@@ -574,6 +610,10 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<Object>): Bytes
             CASE self.fields[f].type
                 WHEN Type.bool DO
                     buf.extend(packBool(v).toArray())
+                WHEN Type.ieee32 DO
+                    buf.extend(packIEEE32(v).toArray())
+                WHEN Type.ieee64 DO
+                    buf.extend(packIEEE64(v).toArray())
                 WHEN Type.int8 DO
                     buf.extend(packInt8(v).toArray())
                 WHEN Type.int16BE DO
@@ -649,6 +689,12 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<Object>
             WHEN Type.bool DO
                 v := unpackBool(data[i TO i])
                 INC i
+            WHEN Type.ieee32 DO
+                v := unpackIEEE32(data[i TO i+3])
+                i := i + 4
+            WHEN Type.ieee64 DO
+                v := unpackIEEE64(data[i TO i+7])
+                i := i + 8
             WHEN Type.int8 DO
                 v := unpackInt8(data[i TO i])
                 INC i
@@ -713,6 +759,14 @@ END FUNCTION
 BEGIN MAIN
     ASSERT packBool(FALSE) = HEXBYTES "00"
     ASSERT packBool(TRUE) = HEXBYTES "01"
+
+    ASSERT packIEEE32(0) = HEXBYTES "00 00 00 00"
+    ASSERT packIEEE32(1) = HEXBYTES "00 00 80 3f"
+    ASSERT packIEEE32(1e10) = HEXBYTES "f9 02 15 50"
+
+    ASSERT packIEEE64(0) = HEXBYTES "00 00 00 00 00 00 00 00"
+    ASSERT packIEEE64(1) = HEXBYTES "00 00 00 00 00 00 f0 3f"
+    ASSERT packIEEE64(1e100) = HEXBYTES "7d c3 94 25 ad 49 b2 54"
 
     ASSERT packInt8(-128) = HEXBYTES "80"
     ASSERT packInt8(-1) = HEXBYTES "FF"
@@ -793,6 +847,14 @@ BEGIN MAIN
 
     ASSERT unpackBool(HEXBYTES "00") = FALSE
     ASSERT unpackBool(HEXBYTES "01") = TRUE
+
+    ASSERT unpackIEEE32(HEXBYTES "00 00 00 00") = 0
+    ASSERT unpackIEEE32(HEXBYTES "00 00 80 3f") = 1
+    ASSERT unpackIEEE32(HEXBYTES "f9 02 15 50") = 1e10
+
+    ASSERT unpackIEEE64(HEXBYTES "00 00 00 00 00 00 00 00") = 0
+    ASSERT unpackIEEE64(HEXBYTES "00 00 00 00 00 00 f0 3f") = 1
+    ASSERT unpackIEEE64(HEXBYTES "7d c3 94 25 ad 49 b2 54") = 1.000000000000000015902891109759918e100
 
     ASSERT unpackInt8(HEXBYTES "80") = -128
     ASSERT unpackInt8(HEXBYTES "FF") = -1

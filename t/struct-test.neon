@@ -2,18 +2,20 @@ IMPORT struct
 VAR s: struct.Struct := struct.make([
     struct.field("field1", struct.Type.int32BE, 4),
     struct.field("field2", struct.Type.string, 20),
+    struct.field("field3", struct.Type.ieee64, 8),
 ])
 
 print("\(s.sizeof())")
-%= 24
+%= 32
 
 VAR b: Bytes := s.pack({
     "field1": 500,
     "field2": "hello",
+    "field3": 1,
 })
 VAR a: Array<Number> := b.toArray()
 print("\(a.size())")
-%= 24
+%= 32
 print(str(a[0]))
 %= 0
 print(str(a[1]))
@@ -34,6 +36,10 @@ print(str(a[8]))
 %= 111
 print(str(a[9]))
 %= 0
+print(str(a[30]))
+%= 240
+print(str(a[31]))
+%= 63
 
 LET v: Dictionary<Object> := s.unpack(b)
 print(str(v["field1"]))
@@ -44,7 +50,7 @@ print(v["field2"])
 b := s.pack({"field2": "hi"})
 a := b.toArray()
 print("\(a.size())")
-%= 24
+%= 32
 
 LET range: struct.Struct := struct.make([
     struct.field("FE", struct.Type.uint8, 1),

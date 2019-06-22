@@ -109,6 +109,7 @@ set(RTL_NEON
     lib/runtime.neon
     lib/sqlite.neon
     lib/string.neon
+    lib/struct.neon
     lib/sys.neon
     lib/textio.neon
     lib/time.neon
@@ -342,6 +343,7 @@ add_library(executor OBJECT
     lib/runtime.cpp
     lib/sqlite.cpp
     lib/string.cpp
+    lib/struct.cpp
     lib/sys.cpp
     lib/textio.cpp
     lib/time.cpp
