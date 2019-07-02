@@ -12,5 +12,5 @@ void runtime_assertionsEnabled(struct tagTExecutor *exec)
 
 void runtime_executorName(TExecutor *exec)
 {
-    push(exec->stack, cell_fromString(string_createCString("cnex")));
+    push(exec->stack, cell_fromCString("cnex"));
 }
