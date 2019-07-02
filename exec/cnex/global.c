@@ -784,6 +784,7 @@ void object__getArray(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (a->type != cArray) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Array", BID_ZERO);
+        cell_freeCell(a);
         return;
     }
     push(exec->stack, a);
@@ -794,6 +795,7 @@ void object__getBoolean(TExecutor *exec)
     Cell *b = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (b->type != cBoolean) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Boolean", BID_ZERO);
+        cell_freeCell(b);
         return;
     }
     push(exec->stack, b);
@@ -804,6 +806,7 @@ void object__getBytes(TExecutor *exec)
     Cell *b = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (b->type != cBytes) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Bytes", BID_ZERO);
+        cell_freeCell(b);
         return;
     }
     push(exec->stack, b);
@@ -814,6 +817,7 @@ void object__getDictionary(TExecutor *exec)
     Cell *d = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (d->type != cDictionary) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Dictionary", BID_ZERO);
+        cell_freeCell(d);
         return;
     }
     push(exec->stack, d);
@@ -824,6 +828,7 @@ void object__getNumber(TExecutor *exec)
     Cell *v = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (v->type != cNumber) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to Number", BID_ZERO);
+        cell_freeCell(v);
         return;
     }
     push(exec->stack, v);
@@ -834,6 +839,7 @@ void object__getString(TExecutor *exec)
     Cell *s = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (s->type != cString) {
         exec_rtl_raiseException(exec, "DynamicConversionException", "to String", BID_ZERO);
+        cell_freeCell(s);
         return;
     }
     push(exec->stack, s);
