@@ -5,7 +5,7 @@
 #include "nstring.h"
 #include "stack.h"
 
-void runtime_assertionsEnabled(struct tagTExecutor *exec)
+void runtime_assertionsEnabled(TExecutor *exec)
 {
     push(exec->stack, cell_fromBoolean(exec->enable_assert));
 }
