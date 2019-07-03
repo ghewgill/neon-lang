@@ -84,7 +84,6 @@ string-format.neon         # format
 string-index.neon          # PUSHPPG
 string-test.neon           # assert / string$find
 struct-test.neon           # module
-textio-test.neon           # File as Object
 time-stopwatch.neon        # module
 time-test.neon             # module
 unicode-char.neon          # utf8

@@ -7,6 +7,7 @@ set(CNEX_RTL
     lib/random.c
     lib/runtime.c
     lib/sys.c
+    lib/textio.c
 )
 
 add_executable(cnex

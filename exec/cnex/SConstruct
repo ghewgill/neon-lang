@@ -33,6 +33,7 @@ rtl_c = ([
     "lib/random.c",
     "lib/runtime.c",
     "lib/sys.c",
+    "lib/textio.c",
 ])
 
 cnex = envcnex.Program("cnex", [

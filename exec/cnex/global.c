@@ -23,6 +23,7 @@
 #include "lib/random.h"
 #include "lib/runtime.h"
 #include "lib/sys.h"
+#include "lib/textio.h"
 
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
@@ -128,6 +129,15 @@ TDispatch gfuncDispatch[] = {
     // System - System level calls
     PDFUNC("sys$exit",                  sys_exit),
 
+    // Textio - Text file modules
+    PDFUNC("textio$close",              textio_close),
+    PDFUNC("textio$open",               textio_open),
+    PDFUNC("textio$readLine",           textio_readLine),
+    PDFUNC("textio$seekEnd",            textio_seekEnd),
+    PDFUNC("textio$seekStart",          textio_seekStart),
+    PDFUNC("textio$truncate",           textio_truncate),
+    PDFUNC("textio$writeLine",          textio_writeLine),
+
 
 
     // Global Functions::
@@ -184,30 +194,36 @@ TDispatch gfuncDispatch[] = {
 };
 
 static Cell VAR_args;
-static Cell VAR_stderr;
-static Cell VAR_stdin;
-static Cell VAR_stdout;
+static Cell VAR_iostderr;
+static Cell VAR_iostdin;
+static Cell VAR_iostdout;
+static Cell VAR_textiostderr;
+static Cell VAR_textiostdin;
+static Cell VAR_textiostdout;
 
 struct tagTVariables {
     const char *name;
     struct tagTCell *value;
 } BuiltinVariables[] = {
-    { "io$stderr",                      &VAR_stderr },
-    { "io$stdin",                       &VAR_stdin  },
-    { "io$stdout",                      &VAR_stdout },
+    { "io$stderr",                      &VAR_iostderr },
+    { "io$stdin",                       &VAR_iostdin  },
+    { "io$stdout",                      &VAR_iostdout },
     { "sys$args",                       &VAR_args   },
+    { "textio$stderr",                  &VAR_textiostderr },
+    { "textio$stdin",                   &VAR_textiostdin  },
+    { "textio$stdout",                  &VAR_textiostdout },
     { 0 },
 };
 
 void global_init(int argc, char *argv[], int iArgStart)
 {
     // Init io module
-    VAR_stderr.address = cell_fromObject(object_createFileObject(stderr));
-    VAR_stderr.type = cAddress;
-    VAR_stdin.address = cell_fromObject(object_createFileObject(stdin));
-    VAR_stdin.type = cAddress;
-    VAR_stdout.address = cell_fromObject(object_createFileObject(stdout));
-    VAR_stdout.type = cAddress;
+    VAR_iostderr.address = cell_fromObject(object_createFileObject(stderr));
+    VAR_iostderr.type = cAddress;
+    VAR_iostdin.address = cell_fromObject(object_createFileObject(stdin));
+    VAR_iostdin.type = cAddress;
+    VAR_iostdout.address = cell_fromObject(object_createFileObject(stdout));
+    VAR_iostdout.type = cAddress;
 
     // Init Random Module
     random_initModule();
@@ -216,6 +232,14 @@ void global_init(int argc, char *argv[], int iArgStart)
     VAR_args.address = cell_createArrayCell(0);
     VAR_args.type = cAddress;
     sys_initModule(argc, argv, iArgStart, VAR_args.address);
+
+    // Init Textio module
+    VAR_textiostderr.address = cell_fromObject(object_createFileObject(stderr));
+    VAR_textiostderr.type = cAddress;
+    VAR_textiostdin.address = cell_fromObject(object_createFileObject(stdin));
+    VAR_textiostdin.type = cAddress;
+    VAR_textiostdout.address = cell_fromObject(object_createFileObject(stdout));
+    VAR_textiostdout.type = cAddress;
 }
 
 void global_shutdown()
