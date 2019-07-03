@@ -2085,6 +2085,9 @@ func (self *executor) op_callp() {
 			ckeys[i] = make_cell_str(k)
 		}
 		self.push(make_cell_array(ckeys))
+	case "exceptiontype__toString":
+		et := self.pop().array
+		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v,%v>", et[0].str, et[1].str, et[2].num, et[3].num)))
 	case "file$_CONSTANT_Separator":
 		self.push(make_cell_str(string(os.PathSeparator)))
 	case "file$copy":

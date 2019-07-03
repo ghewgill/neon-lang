@@ -873,6 +873,25 @@ FUNCTION f_callp(INOUT self: Executor)
                 a.append(NEW Value(s WITH k))
             END FOREACH
             self.stack.append(NEW Value(a WITH a))
+        WHEN "exceptiontype__toString" DO
+            LET ei: Array<POINTER TO Value> := self.pop()->a
+            VAR name: String := ""
+            VAR info: String := ""
+            VAR code: Number := 0
+            VAR offset: Number := 0
+            IF VALID ei[0] AS p THEN
+                name := p->s
+            END IF
+            IF VALID ei[1] AS p THEN
+                info := p->s
+            END IF
+            IF VALID ei[2] AS p THEN
+                code := p->n
+            END IF
+            IF VALID ei[3] AS p THEN
+                offset := p->n
+            END IF
+            self.stack.append(NEW Value(s WITH "<ExceptionType:\(name),\(info),\(code),\(offset)>"))
         WHEN "ord" DO
             LET s: String := self.pop()->s
             self.stack.append(NEW Value(n WITH ord(s)))

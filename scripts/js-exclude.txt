@@ -31,6 +31,7 @@ enum.neon                  # keyword enum
 equality.neon              # DictionaryComparisonExpression
 exception-as.neon          # exception offset
 exception-subexception.neon# exception multiple handlers
+exception-tostring.neon    # exception tostring
 export.neon                # method
 ffi.neon                   # ffi
 file-exists.neon           # module file

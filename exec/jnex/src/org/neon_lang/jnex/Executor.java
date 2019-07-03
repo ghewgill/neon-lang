@@ -39,6 +39,7 @@ class Executor {
         predefined.put("chr", this::chr);
         predefined.put("concat", this::concat);
         predefined.put("dictionary__keys", this::dictionary__keys);
+        predefined.put("exceptiontype__toString", this::exceptiontype__toString);
         predefined.put("number__toString", this::number__toString);
         predefined.put("object__getArray", this::object__getArray);
         predefined.put("object__getBoolean", this::object__getBoolean);
@@ -1307,6 +1308,12 @@ class Executor {
             r.add(new Cell(k));
         }
         stack.addFirst(new Cell(r));
+    }
+
+    private void exceptiontype__toString()
+    {
+        List<Cell> a = stack.removeFirst().getArray();
+        stack.addFirst(new Cell("<ExceptionType:" + a.get(0).getString() + "," + a.get(1).getString() + "," + a.get(2).getNumber() + "," + a.get(3).getNumber() + ">"));
     }
 
     private void number__toString()

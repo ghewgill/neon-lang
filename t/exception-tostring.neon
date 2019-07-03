@@ -1,0 +1,8 @@
+EXCEPTION TestException
+
+TRY
+    RAISE TestException(info WITH "info", code WITH 123)
+TRAP TestException AS e DO
+    print("\(e)")
+END TRY
+%? <ExceptionType:TestException,info,123,\d+>

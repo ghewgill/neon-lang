@@ -2528,6 +2528,8 @@ class NeonException:
         self.info = info
         self.code = code
         self.offset = 0
+    def toString(self, env, obj):
+        return "<ExceptionType:{},{},{},{}>".format(self.name[0], self.info, self.code, self.offset)
 
 class NextException:
     def __init__(self, label):

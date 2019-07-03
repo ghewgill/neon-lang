@@ -45,6 +45,18 @@
  |%
 
 %|
+ |  Type: ExceptionType
+ |
+ |  Record that contains information about a raised exception.
+ |%
+TYPE ExceptionType IS RECORD
+    name: String
+    info: String
+    code: Number
+    offset: Number
+END RECORD
+
+%|
  |  Exception: ArrayIndexException
  |
  |  An array index is not valid or out of range.
@@ -224,6 +236,7 @@ DECLARE NATIVE FUNCTION object__getDictionary(obj: Object): Dictionary<Object>
 DECLARE NATIVE FUNCTION object__isNull(obj: Object): Boolean
 DECLARE NATIVE FUNCTION object__subscript(obj: Object, index: Object): Object
 DECLARE NATIVE FUNCTION object__toString(obj: Object): String
+DECLARE NATIVE FUNCTION exceptiontype__toString(ei: ExceptionType): String
 
 %|
  |  Function: chr
