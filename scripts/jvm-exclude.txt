@@ -14,6 +14,7 @@ encoding-base64.neon       # verifier - incompatible object for function call
 enum.neon                  # enum toString
 exception-as.neon          # ExceptionType
 exception-code.neon        # ExceptionType
+exception-tostring.neon    # ExceptionType
 export.neon                # enum with no name
 ffi.neon                   # ForeignFunction
 file-filecopied1.neon      # exception identification

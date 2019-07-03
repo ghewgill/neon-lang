@@ -377,6 +377,19 @@ utf8string interfacepointer__toString(Cell &p)
     return utf8string("<ip:" + std::to_string(reinterpret_cast<intptr_t>(p.array_for_write()[0].address())) + "," + number_to_string(p.array_for_write()[1].number()) + ">");
 }
 
+utf8string exceptiontype__toString(Cell &ei)
+{
+    return utf8string("<ExceptionType:")
+         + ei.array_for_write()[0].string()
+         + utf8string(",")
+         + ei.array_for_write()[1].string()
+         + utf8string(",")
+         + utf8string(number_to_string(ei.array_for_write()[2].number()))
+         + utf8string(",")
+         + utf8string(number_to_string(ei.array_for_write()[3].number()))
+         + utf8string(">");
+}
+
 std::vector<unsigned char> concatBytes(const std::vector<unsigned char> &a, const std::vector<unsigned char> &b)
 {
     std::vector<unsigned char> r = a;

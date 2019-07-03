@@ -99,6 +99,7 @@ exception-opstack.neon
 exception-opstack-depth.neon
 exception-stackerror.neon
 exception-subexception.neon
+exception-tostring.neon
 exception-trace.neon
 exit-for.neon
 exit-while.neon

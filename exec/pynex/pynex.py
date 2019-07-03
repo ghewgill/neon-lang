@@ -1092,6 +1092,10 @@ def neon_dictionary__keys(self):
     d = self.stack.pop().value
     self.stack.append(Value([Value(x) for x in d.keys()]))
 
+def neon_exceptiontype__toString(self):
+    ei = self.stack.pop().value
+    self.stack.append(Value("<ExceptionType:{},{},{},{}>".format(ei[0].value, ei[1].value, ei[2].value, ei[3].value)))
+
 def neon_int(self):
     x = self.stack.pop().value
     self.stack.append(Value(decimal.Decimal(int(x))))

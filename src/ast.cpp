@@ -1268,6 +1268,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
         fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
         Type *exception_type = new TypeRecord(Token(), "global", "ExceptionType", fields);
+        exception_type->methods["toString"] = new PredefinedFunction("exceptiontype__toString", new TypeFunction(TYPE_STRING, { new ParameterType(Token(), ParameterType::Mode::IN, exception_type, nullptr) }, false));
         scope->addName(Token(IDENTIFIER, "ExceptionType"), "ExceptionType", exception_type, true);
     }
 
