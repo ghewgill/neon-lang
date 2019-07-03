@@ -5119,6 +5119,9 @@ std::vector<ast::TryTrap> Analyzer::analyze_catches(const std::vector<std::uniqu
             if (vtype == nullptr) {
                 internal_error("could not find ExceptionType");
             }
+            if (scope.top()->lookupName(x->name.text) != nullptr) {
+                error2(3276, x->name, "duplicate identifier", scope.top()->getDeclaration(x->name.text), "first declaration here");
+            }
             // TODO: Try to make this a local variable always (give the global scope a local space).
             if (functiontypes.empty()) {
                 var = new ast::GlobalVariable(x->name, x->name.text, vtype, true);
