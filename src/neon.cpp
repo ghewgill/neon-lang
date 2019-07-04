@@ -26,6 +26,11 @@ unsigned short debug_port = 0;
 bool repl_no_prompt = false;
 bool repl_stop_on_any_error = false;
 
+static bool has_suffix(const std::string &str, const std::string &suffix)
+{
+    return str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix;
+}
+
 static TokenizedSource dump(const TokenizedSource &tokens)
 {
     for (auto t: tokens.tokens) {
@@ -113,38 +118,35 @@ int main(int argc, char *argv[])
     }
 
     const std::string name = argv[a];
-    std::string source_path;
-
-    std::stringstream buf;
-    if (name == "-") {
-        buf << std::cin.rdbuf();
-    } else if (name == "-c") {
-        buf << argv[a+1];
-    } else {
-        auto i = name.find_last_of("/:\\");
-        if (i != std::string::npos) {
-            source_path = name.substr(0, i+1);
-        }
-        std::ifstream inf(name);
-        if (not inf) {
-            fprintf(stderr, "Source file not found: %s\n", name.c_str());
-            exit(1);
-        }
-        buf << inf.rdbuf();
-    }
+    auto i = name.find_last_of("/:\\");
+    const std::string source_path { i != std::string::npos ? name.substr(0, i+1) : "" };
 
     CompilerSupport compiler_support(source_path, nullptr);
     RuntimeSupport runtime_support(source_path);
+    std::unique_ptr<DebugInfo> debug;
 
     std::vector<unsigned char> bytecode;
-    // TODO - Allow reading debug information from file.
-    DebugInfo debug(name, buf.str());
+    if (not has_suffix(name, ".neonx")) {
 
-    // Pretty hacky way of checking whether the input file is compiled or not.
-    if (name[name.length()-1] != 'x') {
+        std::stringstream source;
+        if (name == "-") {
+            source << std::cin.rdbuf();
+        } else if (name == "-c") {
+            source << argv[a+1];
+        } else {
+            std::ifstream inf(name);
+            if (not inf) {
+                fprintf(stderr, "Source file not found: %s\n", name.c_str());
+                exit(1);
+            }
+            source << inf.rdbuf();
+        }
+
+        // TODO - Allow reading debug information from file.
+        debug.reset(new DebugInfo(name, source.str()));
 
         try {
-            auto tokens = tokenize(name, buf.str());
+            auto tokens = tokenize(name, source.str());
             if (dump_tokens) {
                 dump(*tokens);
             }
@@ -159,9 +161,9 @@ int main(int argc, char *argv[])
                 dump(program);
             }
 
-            bytecode = compile(program, &debug);
+            bytecode = compile(program, debug.get());
             if (dump_listing) {
-                disassemble(bytecode, std::cerr, &debug);
+                disassemble(bytecode, std::cerr, debug.get());
             }
 
         } catch (CompilerError *error) {
@@ -174,12 +176,21 @@ int main(int argc, char *argv[])
         }
 
     } else {
-        std::string s = buf.str();
+
+        std::ifstream inf(name, std::ios::binary);
+        if (not inf) {
+            fprintf(stderr, "Source file not found: %s\n", name.c_str());
+            exit(1);
+        }
+        std::stringstream object;
+        object << inf.rdbuf();
+        std::string s = object.str();
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
+
     }
 
     struct ExecOptions options;
     options.enable_assert = enable_assert;
     options.enable_trace = enable_trace;
-    exit(exec(name, bytecode, &debug, &runtime_support, &options, debug_port, argc-a, argv+a));
+    exit(exec(name, bytecode, debug.get(), &runtime_support, &options, debug_port, argc-a, argv+a));
 }
