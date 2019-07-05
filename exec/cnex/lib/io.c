@@ -66,6 +66,9 @@ void io_close(TExecutor *exec)
     void *ppf = peek(exec->stack, 0)->object->ptr;
 
     FILE *f = check_file(exec, ppf);
+    if (f == NULL) {
+        return;
+    }
     fclose(f);
     peek(exec->stack, 0)->object->ptr = NULL;
 
@@ -99,6 +102,10 @@ void io_readBytes(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     uint64_t ncount = number_to_uint64(count);
 
     Cell *r = cell_createStringCell(ncount);
@@ -118,6 +125,10 @@ void io_seek(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr;  pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     int w;
     switch (number_to_uint32(whence)) {
         case ENUM_SeekBase_absolute: w = SEEK_SET; break;
@@ -134,6 +145,10 @@ void io_tell(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr;  pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     push(exec->stack, cell_fromNumber(number_from_sint64(ftell(f))));
 }
 
@@ -142,6 +157,10 @@ void io_truncate(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     long ofs = ftell(f);
 #ifdef _WIN32
     if (_chsize(_fileno(f), ofs) != 0) {
@@ -160,6 +179,10 @@ void io_write(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     fputs(pszBuf, f);
     free(pszBuf);
 }
@@ -170,6 +193,10 @@ void io_writeBytes(TExecutor *exec)
     void *pf = peek(exec->stack, 1)->object->ptr;
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     fwrite(b->string->data, 1, b->string->length, f);
 
     pop(exec->stack);
