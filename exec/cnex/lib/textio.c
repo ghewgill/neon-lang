@@ -42,6 +42,10 @@ void textio_close(TExecutor *exec)
     void *ppf = peek(exec->stack, 0)->object->ptr;
 
     FILE *f = check_file(exec, ppf);
+    if (f == NULL) {
+        return;
+    }
+
     fclose(f);
     peek(exec->stack, 0)->object->ptr = NULL;
 
@@ -74,6 +78,9 @@ void textio_readLine(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
 
     Cell *r = cell_createStringCell(0);
     BOOL ret = FALSE;
@@ -101,6 +108,10 @@ void textio_seekEnd(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     fseek(f, 0, SEEK_END);
 }
 
@@ -109,6 +120,10 @@ void textio_seekStart(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     fseek(f, 0, SEEK_SET);
 }
 
@@ -117,6 +132,10 @@ void textio_truncate(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
+
     long ofs = ftell(f);
 #ifdef _WIN32
     if (_chsize(_fileno(f), ofs) != 0) {
@@ -135,6 +154,9 @@ void textio_writeLine(TExecutor *exec)
     void *pf = top(exec->stack)->object->ptr; pop(exec->stack);
 
     FILE *f = check_file(exec, pf);
+    if (f == NULL) {
+        return;
+    }
 
     fputs(s, f);
     fputs("\n", f);
