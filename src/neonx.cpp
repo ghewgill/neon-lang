@@ -9,6 +9,7 @@
 #include "support.h"
 
 bool g_enable_assert = true;
+bool g_enable_trace = false;
 unsigned short g_debug_port = 0;
 
 bool has_suffix(const std::string &str, const std::string &suffix)
@@ -37,7 +38,7 @@ void run_from_neonx(const std::string &name, int argc, char *argv[])
     // TODO: Implement reading DebugInfo from another file.
     struct ExecOptions options;
     options.enable_assert = g_enable_assert;
-    options.enable_trace = false;
+    options.enable_trace = g_enable_trace;
     exit(exec(name, bytecode, nullptr, &runtime_support, &options, g_debug_port, argc, argv));
 }
 
@@ -56,6 +57,8 @@ int main(int argc, char *argv[])
             g_debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
         } else if (arg == "-n") {
             g_enable_assert = false;
+        } else if (arg == "-t") {
+            g_enable_trace = true;
         } else {
             fprintf(stderr, "Unknown option: %s\n", arg.c_str());
             exit(1);
