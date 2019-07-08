@@ -165,6 +165,8 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("dictionary__keys",          dictionary__keys),
 
+    PDFUNC("exceptiontype__toString",   exceptiontype__toString),
+
     PDFUNC("number__toString",          number__toString),
 
     PDFUNC("object__getArray",          object__getArray),
@@ -785,6 +787,28 @@ void dictionary__keys(TExecutor *exec)
 {
     Dictionary *d = top(exec->stack)->dictionary; 
     Cell *r = dictionary_getKeys(d);
+
+    pop(exec->stack);
+    push(exec->stack, r);
+}
+
+
+
+
+void exceptiontype__toString(struct tagTExecutor *exec)
+{
+    Cell *ex = top(exec->stack);
+
+    assert(ex->array->size == 4);
+    Cell *r = cell_fromCString("<ExceptionType:");
+    string_appendString(r->string, ex->array->data[0].string);
+    string_appendChar(r->string, ',');
+    string_appendString(r->string, ex->array->data[1].string);
+    string_appendChar(r->string, ',');
+    string_appendCString(r->string, number_to_string(ex->array->data[2].number));
+    string_appendChar(r->string, ',');
+    string_appendCString(r->string, number_to_string(ex->array->data[3].number));
+    string_appendChar(r->string, '>');
 
     pop(exec->stack);
     push(exec->stack, r);
