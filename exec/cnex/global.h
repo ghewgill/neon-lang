@@ -51,6 +51,8 @@ void bytes__toString(struct tagTExecutor *exec);
 
 void dictionary__keys(struct tagTExecutor *exec);
 
+void exceptiontype__toString(struct tagTExecutor *exec);
+
 void number__toString(struct tagTExecutor *exec);
 
 void object__getArray(struct tagTExecutor *exec);
