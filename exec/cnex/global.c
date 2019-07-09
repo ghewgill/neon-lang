@@ -1,6 +1,7 @@
 #include "global.h"
 
 #include <assert.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -688,19 +689,19 @@ void bytes__range(TExecutor *exec)
     }
     if (fst < 0) {
         char n[128];
-        snprintf(n, 128, "%lld", fst);
+        snprintf(n, 128, "%" PRId64, fst);
         exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
         return;
     }
     if (fst >= (int64_t)t->string->length) {
         char n[128];
-        snprintf(n, 128, "%lld", fst);
+        snprintf(n, 128, "%" PRId64, fst);
         exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
         return;
     }
     if (lst >= (int64_t)t->string->length) {
         char n[128];
-        snprintf(n, 128, "%lld", lst);
+        snprintf(n, 128, "%" PRId64, lst);
         exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
         return;
     }
@@ -1144,6 +1145,15 @@ void string__substring(TExecutor *exec)
     Number first = top(exec->stack)->number;          pop(exec->stack);
     Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
+    if (!number_is_integer(first)) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(first), BID_ZERO);
+        return;
+    }
+    if (!number_is_integer(last)) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(last), BID_ZERO);
+        return;
+    }
+
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
     if (first_from_end) {
@@ -1152,6 +1162,35 @@ void string__substring(TExecutor *exec)
     if (last_from_end) {
         l += a->string->length - 1;
     }
+    if (f < 0) {
+        char n[128];
+        snprintf(n, 128, "%" PRId64, f);
+        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        return;
+    }
+    if (f >= (int64_t)a->string->length) {
+        char n[128];
+        snprintf(n, 128, "%" PRId64, f);
+        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        return;
+    }
+    if (l >= (int64_t)a->string->length) {
+        char n[128];
+        snprintf(n, 128, "%" PRId64, l);
+        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        return;
+    }
+
+    if (l < 0) {
+        l = -1;
+    }
+
+    if ((((l + 1) - f) + 1) <= 0) {
+        push(exec->stack, cell_createStringCell(0));
+        cell_freeCell(a);
+        return;
+    }
+
     char *sub = malloc(((l+1) - f) + 1);
     if (sub == NULL) {
         fatal_error("Could not allocate %d bytes for substring.", ((l+1) - f) + 1);

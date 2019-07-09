@@ -79,7 +79,6 @@ string-bytes.neon          # format
 string-compare.neon        # compare
 string-escape.neon         # utf8
 string-format.neon         # format
-string-index.neon          # PUSHPPG
 string-test.neon           # assert / string$find
 struct-test.neon           # module
 time-stopwatch.neon        # module
