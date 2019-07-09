@@ -669,8 +669,15 @@ void bytes__range(TExecutor *exec)
     Number first = top(exec->stack)->number;          pop(exec->stack);
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
-    assert(number_is_integer(first));
-    assert(number_is_integer(last));
+    if (!number_is_integer(first)) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first), BID_ZERO);
+        return;
+    }
+    if (!number_is_integer(last)) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last), BID_ZERO);
+        return;
+    }
+
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
     if (first_from_end) {
@@ -679,13 +686,41 @@ void bytes__range(TExecutor *exec)
     if (last_from_end) {
         lst += t->string->length - 1;
     }
+    if (fst < 0) {
+        char n[128];
+        snprintf(n, 128, "%lld", fst);
+        exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
+        return;
+    }
+    if (fst >= (int64_t)t->string->length) {
+        char n[128];
+        snprintf(n, 128, "%lld", fst);
+        exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
+        return;
+    }
+    if (lst >= (int64_t)t->string->length) {
+        char n[128];
+        snprintf(n, 128, "%lld", lst);
+        exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
+        return;
+    }
 
+    if (lst < 0) {
+        lst = -1;
+    }
     Cell *sub = cell_newCellType(cBytes);
     sub->string = string_newString();
+
+    if (lst < fst) {
+        cell_freeCell(t);
+        push(exec->stack, sub);
+        return;
+    }
+
     sub->string->length = lst + 1 - fst;
     sub->string->data = malloc(sub->string->length);
     if (sub->string->data == NULL) {
-        fatal_error("Could not allocate %d bytes for string.", sub->string->length);
+        fatal_error("Could not allocate %d bytes for byte array.", sub->string->length);
     }
     memcpy(sub->string->data, &t->string->data[fst], lst + 1 - fst);
     cell_freeCell(t);
