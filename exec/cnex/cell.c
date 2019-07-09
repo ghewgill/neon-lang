@@ -596,7 +596,7 @@ int32_t cell_compareCell(const Cell * s, const Cell * d)
 
     switch (s->type) {
         case cAddress:      return s->address != d->address;
-        case cArray:        return s->array->size != d->array->size;
+        case cArray:        return !array_compareArray(s->array, d->array);
         case cBoolean:      return s->boolean != d->boolean;
         case cBytes:        return string_compareString(s->string, d->string);
         case cDictionary:   return !dictionary_compareDictionary(s->dictionary, d->dictionary);

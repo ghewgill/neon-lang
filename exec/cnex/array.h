@@ -14,4 +14,6 @@ void array_freeArray(Array *self);
 
 Array *array_copyArray(Array *a);
 
+int array_compareArray(Array *l, Array *r);
+
 #endif

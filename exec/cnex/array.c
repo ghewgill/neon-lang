@@ -58,3 +58,17 @@ Array *array_copyArray(Array *a)
     return r;
 }
 
+int array_compareArray(Array *l, Array *r)
+{
+    if (l->size != r->size) {
+        return FALSE;
+    }
+
+    for (size_t i = 0; i < l->size; i++) {
+        if (cell_compareCell(&l->data[i], &r->data[i]) != 0) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+

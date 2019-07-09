@@ -1,4 +1,3 @@
-array-tostring.neon        # EQA
 assert-multiline.neon      # assert
 bigint.neon                # assert
 cal-test.neon              # os.system

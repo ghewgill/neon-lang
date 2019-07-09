@@ -756,14 +756,26 @@ void exec_GEY(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_EQA(void)
+void exec_EQA(TExecutor *self)
 {
-    fatal_error("exec_EQA not implemented");
+    self->ip++;
+    Cell *b = top(self->stack);
+    Cell *a = peek(self->stack, 1);
+    Cell *r = cell_fromBoolean(array_compareArray(a->array, b->array) != 0);
+    pop(self->stack);
+    pop(self->stack);
+    push(self->stack, r);
 }
 
-void exec_NEA(void)
+void exec_NEA(TExecutor *self)
 {
-    fatal_error("exec_NEA not implemented");
+    self->ip++;
+    Cell *b = top(self->stack);
+    Cell *a = peek(self->stack, 1);
+    Cell *r = cell_fromBoolean(array_compareArray(a->array, b->array) == 0);
+    pop(self->stack);
+    pop(self->stack);
+    push(self->stack, r);
 }
 
 void exec_EQD(void)
@@ -1324,8 +1336,8 @@ void exec_loop(TExecutor *self)
             case GTY:     exec_GTY(self); break;
             case LEY:     exec_LEY(self); break;
             case GEY:     exec_GEY(self); break;
-            case EQA:     exec_EQA(); break;
-            case NEA:     exec_NEA(); break;
+            case EQA:     exec_EQA(self); break;
+            case NEA:     exec_NEA(self); break;
             case EQD:     exec_EQD(); break;
             case NED:     exec_NED(); break;
             case EQP:     exec_EQP(self); break;
