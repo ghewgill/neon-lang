@@ -216,20 +216,6 @@ add_dependencies(common
     gmp
 )
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    set(platform_compile
-        lib/file_const_posix.cpp
-    )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
-    set(platform_compile
-        lib/file_const_posix.cpp
-    )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    set(platform_compile
-        lib/file_const_win32.cpp
-    )
-endif ()
-
 add_custom_command(
     OUTPUT src/rtl.inc
     COMMAND python scripts/build_rtl_inc.py ${RTL_NEON}

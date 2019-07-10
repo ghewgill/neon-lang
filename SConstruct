@@ -218,21 +218,7 @@ if coverage:
 
 buildenv.Command("src/unicodedata.inc", ["tools/helium.py", "scripts/make_unicode.neon", "data/UnicodeData.txt"], "python $SOURCES > $TARGET")
 
-rtl_const = []
-
-if os.name == "posix":
-    rtl_const.extend([
-        "lib/file_const_posix.cpp",
-    ])
-elif os.name == "nt":
-    rtl_const.extend([
-        "lib/file_const_win32.cpp",
-    ])
-else:
-    print("Unsupported platform:", os.name, file=sys.stderr)
-    sys.exit(1)
-
-rtl_cpp = rtl_const + squeeze([
+rtl_cpp = squeeze([
     "lib/binary.cpp",
     "lib/datetime.cpp",
     "lib/debugger.cpp",
@@ -352,7 +338,6 @@ neonc = buildenv.Program("bin/neonc", [
     "src/parser.cpp",
     "src/pt_dump.cpp",
     "src/rtl_compile.cpp",
-    rtl_const,
     "src/sql.cpp",
     "src/support.cpp",
     "src/support_compiler.cpp",
@@ -536,7 +521,6 @@ buildenv.Program("bin/fuzz_parser", [
     "src/number.cpp",
     "src/parser.cpp",
     "src/rtl_compile.cpp",
-    rtl_const,
     "src/sql.cpp",
     "src/util.cpp",
 ] + coverage_lib,
