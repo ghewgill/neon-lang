@@ -574,7 +574,7 @@ void exec_NEB(TExecutor *self)
     push(self->stack, cell_fromBoolean(a != b));
 }
 
-void exec_EQN(TExecutor*self)
+void exec_EQN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -582,7 +582,7 @@ void exec_EQN(TExecutor*self)
     push(self->stack, cell_fromBoolean(number_is_equal(a, b)));
 }
 
-void exec_NEN(TExecutor*self)
+void exec_NEN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -590,7 +590,7 @@ void exec_NEN(TExecutor*self)
     push(self->stack, cell_fromBoolean(number_is_not_equal(a, b)));
 }
 
-void exec_LTN(TExecutor*self)
+void exec_LTN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -598,7 +598,7 @@ void exec_LTN(TExecutor*self)
     push(self->stack, cell_fromBoolean(number_is_less(a, b)));
 }
 
-void exec_GTN(TExecutor*self)
+void exec_GTN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -606,7 +606,7 @@ void exec_GTN(TExecutor*self)
     push(self->stack, cell_fromBoolean(number_is_greater(a, b)));
 }
 
-void exec_LEN(TExecutor*self)
+void exec_LEN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -614,7 +614,7 @@ void exec_LEN(TExecutor*self)
     push(self->stack, cell_fromBoolean(number_is_less_equal(a, b)));
 }
 
-void exec_GEN(TExecutor*self)
+void exec_GEN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -622,7 +622,7 @@ void exec_GEN(TExecutor*self)
     push(self->stack, cell_fromBoolean(number_is_greater_equal(a, b)));
 }
 
-void exec_EQS(TExecutor*self)
+void exec_EQS(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -633,7 +633,7 @@ void exec_EQS(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_NES(TExecutor*self)
+void exec_NES(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -644,7 +644,7 @@ void exec_NES(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LTS(TExecutor*self)
+void exec_LTS(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -655,7 +655,7 @@ void exec_LTS(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GTS(TExecutor*self)
+void exec_GTS(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -666,7 +666,7 @@ void exec_GTS(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LES(TExecutor*self)
+void exec_LES(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -677,7 +677,7 @@ void exec_LES(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GES(TExecutor*self)
+void exec_GES(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -688,7 +688,7 @@ void exec_GES(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_EQY(TExecutor*self)
+void exec_EQY(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -699,7 +699,7 @@ void exec_EQY(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_NEY(TExecutor*self)
+void exec_NEY(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -710,7 +710,7 @@ void exec_NEY(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LTY(TExecutor*self)
+void exec_LTY(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -721,7 +721,7 @@ void exec_LTY(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GTY(TExecutor*self)
+void exec_GTY(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -732,7 +732,7 @@ void exec_GTY(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LEY(TExecutor*self)
+void exec_LEY(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -743,7 +743,7 @@ void exec_LEY(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GEY(TExecutor*self)
+void exec_GEY(TExecutor *self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -1087,7 +1087,7 @@ void exec_DUP(TExecutor *self)
     push(self->stack, cell_fromCell(top(self->stack)));
 }
 
-void exec_DUPX1(TExecutor*self)
+void exec_DUPX1(TExecutor *self)
 {
     self->ip++;
     Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
