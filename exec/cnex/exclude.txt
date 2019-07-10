@@ -1,8 +1,6 @@
-assert-multiline.neon      # assert
 bigint.neon                # assert
 cal-test.neon              # os.system
-cformat-test.neon          # object / object__makeString
-cmdline.neon               # module
+cformat-test.neon          # CALLMF
 complex-test.neon          # CALLMF
 datetime-test.neon         # module
 debug-example.neon         # module
