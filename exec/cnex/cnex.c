@@ -355,9 +355,11 @@ void exec_PUSHPOL(void)
     fatal_error("exec_PUSHPOL not implemented");
 }
 
-void exec_PUSHI(void)
+void exec_PUSHI(TExecutor *self)
 {
-    fatal_error("exec_PUSHI not implemented");
+    self->ip++;
+    uint32_t x = exec_getOperand(self);
+    push(self->stack, cell_fromNumber(number_from_uint32(x)));
 }
 
 void exec_LOADB(TExecutor *self)
@@ -1276,7 +1278,7 @@ void exec_loop(TExecutor *self)
             case PUSHPMG: exec_PUSHPMG(); break;
             case PUSHPL:  exec_PUSHPL(self); break;
             case PUSHPOL: exec_PUSHPOL(); break;
-            case PUSHI:   exec_PUSHI(); break;
+            case PUSHI:   exec_PUSHI(self); break;
             case LOADB:   exec_LOADB(self); break;
             case LOADN:   exec_LOADN(self); break;
             case LOADS:   exec_LOADS(self); break;
