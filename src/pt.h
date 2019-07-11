@@ -62,6 +62,7 @@ class TryExpression;
 class NewClassExpression;
 class ValidPointerExpression;
 class RangeSubscriptExpression;
+class NewFunctionExpression;
 
 class ImportDeclaration;
 class TypeDeclaration;
@@ -157,6 +158,7 @@ public:
     virtual void visit(const NewClassExpression *) = 0;
     virtual void visit(const ValidPointerExpression *) = 0;
     virtual void visit(const RangeSubscriptExpression *) = 0;
+    virtual void visit(const NewFunctionExpression *) = 0;
 
     virtual void visit(const ImportDeclaration *) = 0;
     virtual void visit(const TypeDeclaration *) = 0;
@@ -637,6 +639,13 @@ public:
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> base;
     std::unique_ptr<ArrayRange> range;
+};
+
+class NewFunctionExpression: public Expression {
+public:
+    NewFunctionExpression(const Token &token, std::unique_ptr<FunctionDeclaration> &&decl): Expression(token, token, token), decl(std::move(decl)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    std::unique_ptr<FunctionDeclaration> decl;
 };
 
 class FunctionParameterGroup {

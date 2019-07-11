@@ -234,6 +234,10 @@ public:
         child(node->range->first.get());
         child(node->range->last.get());
     }
+    virtual void visit(const NewFunctionExpression *node) override {
+        write("NewFunctionExpression");
+        child(node->decl.get());
+    }
 
     virtual void visit(const ImportDeclaration *node) override {
         write("ImportDeclaration(" + node->module.text + "." + node->name.text + ", " + node->alias.text + ")");

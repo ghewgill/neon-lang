@@ -653,8 +653,8 @@ std::unique_ptr<Expression> Parser::parseAtom()
                     error_a(9999, tokens[i-1], tokens[i], "'FUNCTION' expected");
                 }
                 ++i;
-                std::unique_ptr<Declaration> { new FunctionDeclaration(tok_new, Token(), Token(), std::move(returntype), std::move(args), rparen, std::move(body), tok_end_function) };
-                //return std::unique_ptr<Expression> { new NewFunctionExpression(tok_new, tokens[i-1],
+                auto decl = std::unique_ptr<FunctionDeclaration> { new FunctionDeclaration(tok_new, Token(), Token(), std::move(returntype), std::move(args), rparen, std::move(body), tok_end_function) };
+                return std::unique_ptr<Expression> { new NewFunctionExpression(tok_new, std::move(decl)) };
             } else {
                 error(2110, tokens[i], "identifier or FUNCTION expected");
             }

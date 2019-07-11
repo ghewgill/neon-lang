@@ -86,6 +86,7 @@ public:
     const ast::Expression *analyze(const pt::NewClassExpression *expr);
     const ast::Expression *analyze(const pt::ValidPointerExpression *expr);
     const ast::Expression *analyze(const pt::RangeSubscriptExpression *expr);
+    const ast::Expression *analyze(const pt::NewFunctionExpression *expr);
     const ast::Statement *analyze(const pt::ImportDeclaration *declaration);
     const ast::Statement *analyze(const pt::TypeDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::ConstantDeclaration *declaration);
@@ -201,6 +202,7 @@ public:
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewFunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
@@ -298,6 +300,7 @@ public:
     virtual void visit(const pt::NewClassExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ValidPointerExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::RangeSubscriptExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::NewFunctionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
@@ -394,6 +397,7 @@ public:
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewFunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TypeDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
@@ -490,6 +494,7 @@ public:
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewFunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) override {}
     virtual void visit(const pt::TypeDeclaration *) override {}
     virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
@@ -2817,6 +2822,12 @@ const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *exp
     } else {
         error2(3143, expr->base->token, "not an array or string", type->declaration, "declaration here");
     }
+}
+
+const ast::Expression *Analyzer::analyze(const pt::NewFunctionExpression *expr)
+{
+    printf("%p\n", expr);
+    return nullptr;
 }
 
 ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descriptor, std::string::size_type &i)
@@ -5475,6 +5486,7 @@ public:
     virtual void visit(const pt::NewClassExpression *node) { node->expr->accept(this); }
     virtual void visit(const pt::ValidPointerExpression *node) { for (auto &x: node->tests) x->expr->accept(this); }
     virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->first.get()->accept(this); node->range->last.get()->accept(this); }
+    virtual void visit(const pt::NewFunctionExpression *node) { node->decl->accept(this); }
 
     virtual void visit(const pt::ImportDeclaration *) {}
     virtual void visit(const pt::TypeDeclaration *) {}
