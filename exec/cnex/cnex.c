@@ -1037,9 +1037,25 @@ void exec_CALLMF(void)
     fatal_error("exec_CALLMF not implemented");
 }
 
-void exec_CALLI(void)
+void exec_CALLI(TExecutor *self)
 {
-    fatal_error("exec_CALLI not implemented");
+    self->ip++;
+    if (self->callstacktop >= self->param_recursion_limit) {
+        self->rtl_raise(self, "StackOverflowException", "", BID_ZERO);
+        return;
+    }
+
+    Cell *a = top(self->stack);
+    // ToDo: Implement modules.  Element 0 has the pointer to the module this function is in.
+    //TModule *mod = (TModule*)a->array->data[0].other;
+    Number nindex = a->array->data[1].number;
+    pop(self->stack);
+    if (number_is_zero(nindex) || !number_is_integer(nindex)) {
+        self->rtl_raise(self, "InvalidFunctionException", "", BID_ZERO);
+        return;
+    }
+    uint32_t index = number_to_uint32(nindex);
+    invoke(self, index);
 }
 
 void exec_JUMP(TExecutor *self)
@@ -1229,9 +1245,14 @@ void exec_DROPN(void)
     fatal_error("exec_DROPN not implemented");
 }
 
-void exec_PUSHFP(void)
+void exec_PUSHFP(TExecutor *self)
 {
-    fatal_error("exec_PUSHFP not implemented");
+    self->ip++;
+    uint32_t val = exec_getOperand(self);
+    Cell *a = cell_createArrayCell(0);
+    cell_arrayAppendElementPointer(a, cell_createOtherCell(self->module));
+    cell_arrayAppendElementPointer(a, cell_fromNumber(number_from_uint32(val)));
+    push(self->stack, a);
 }
 
 void exec_CALLV(void)
@@ -1359,7 +1380,7 @@ void exec_loop(TExecutor *self)
             case CALLP:   exec_CALLP(self); break;
             case CALLF:   exec_CALLF(self); break;
             case CALLMF:  exec_CALLMF(); break;
-            case CALLI:   exec_CALLI(); break;
+            case CALLI:   exec_CALLI(self); break;
             case JUMP:    exec_JUMP(self); break;
             case JF:      exec_JF(self); break;
             case JT:      exec_JT(self); break;
@@ -1380,7 +1401,7 @@ void exec_loop(TExecutor *self)
             case CALLX:   exec_CALLX(); break;
             case SWAP:    exec_SWAP(self); break;
             case DROPN:   exec_DROPN(); break;
-            case PUSHFP:  exec_PUSHFP(); break;
+            case PUSHFP:  exec_PUSHFP(self); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(self); break;
             default:

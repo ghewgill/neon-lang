@@ -378,6 +378,35 @@ void cell_arrayAppendElement(Cell *c, const Cell e)
     cell_copyCell(&c->array->data[c->array->size-1], &e);
 }
 
+void cell_arrayAppendElementPointer(Cell *c, Cell *e)
+{
+    if (c->type == cNothing) {
+        c->type = cArray;
+    }
+    assert(c->type == cArray);
+    if (c->array == NULL) {
+        c->array = array_createArray();
+    }
+
+    if (c->array->data) {
+        c->array->data = realloc(c->array->data, sizeof(Cell) * (c->array->size + 1));
+        if (c->array->data == NULL) {
+            fatal_error("Unable to expand array.");
+        }
+        c->array->size++;
+    }
+    if (c->array->data == NULL) {
+        c->array->data = malloc(sizeof(Cell));
+        if (c->array->data == NULL) {
+            fatal_error("Unable to allocate memory for appended array element.");
+        }
+        c->array->size = 1;
+    }
+
+    cell_copyCell(&c->array->data[c->array->size-1], e);
+    cell_freeCell(e);
+}
+
 BOOL cell_arrayElementExists(const Cell *a, const Cell *e)
 {
     assert(a->type == cArray);

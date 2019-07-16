@@ -22,8 +22,6 @@ file-writebytes.neon       # file
 file-writelines.neon       # file
 fork.neon                  # posix
 format.neon                # CALLMF
-function-pointer-nowhere.neon # functionpointer
-function-pointer.neon      # functionpointer
 gc-array.neon              # class
 gc-long-chain.neon         # class
 gc1.neon                   # class
