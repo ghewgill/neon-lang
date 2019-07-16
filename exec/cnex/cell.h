@@ -80,6 +80,7 @@ struct tagTString *cell_toString(Cell *c);
 Cell *cell_arrayIndexForRead(Cell* c, size_t i);
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i);
 void cell_arrayAppendElement(Cell *c, const Cell e);
+void cell_arrayAppendElementPointer(Cell *c, Cell *e);
 BOOL cell_arrayElementExists(const Cell *a, const Cell *e);
 
 
