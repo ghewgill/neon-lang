@@ -126,6 +126,7 @@ TDispatch gfuncDispatch[] = {
     // runtime - runtime support services
     PDFUNC("runtime$assertionsEnabled", runtime_assertionsEnabled),
     PDFUNC("runtime$executorName",      runtime_executorName),
+    PDFUNC("runtime$moduleIsMain",      runtime_moduleIsMain),
 
     // System - System level calls
     PDFUNC("sys$exit",                  sys_exit),

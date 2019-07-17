@@ -18,6 +18,7 @@ add_executable(cnex
     dictionary.c
     framestack.c
     global.c
+    module.c
     nstring.c
     number.c
     object.c

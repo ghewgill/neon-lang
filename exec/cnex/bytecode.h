@@ -2,10 +2,10 @@
 #define BYTECODE_H
 #include <stdint.h>
 
-typedef struct tagTType {
+typedef struct tagTExportType {
     unsigned int name;
     unsigned int descriptor;
-} Type;
+} ExportType;
 
 typedef struct tagTFunction {
     unsigned int name;
@@ -14,6 +14,32 @@ typedef struct tagTFunction {
     unsigned int locals;
     unsigned int entry;
 } Function;
+
+typedef struct tagTExportConstant {
+    unsigned int name;
+    unsigned int vtype;
+    unsigned char *value;
+} Constant;
+
+typedef struct tagTVariable {
+    unsigned int name;
+    unsigned int type;
+    unsigned int index;
+} Variable;
+
+typedef struct tagTExportException {
+    unsigned int name;
+} ExportException;
+
+typedef struct tagTMethodDescriptor {
+    unsigned int first;
+    unsigned int second;
+} MethodDescriptor;
+
+typedef struct tagTExportInterface {
+    unsigned int name;
+    MethodDescriptor *method_descriptors;
+} ExportInterface;
 
 typedef struct tagTExportFunction {
     unsigned int name;
@@ -65,12 +91,16 @@ typedef struct tagTBytecode {
     const uint8_t *code;
     unsigned int codelen;
 
-    struct tagTType *export_types;
+    struct tagTExportType *export_types;
+    struct tagTExportConstant *export_constants;
     struct tagTExportFunction *export_functions;
+    struct tagTExportException *export_exceptions;
+    struct tagTExportInterface *export_interfaces;
     struct tagTFunction *functions;
     struct tagTImport  *imports;
     struct tagTException *exceptions;
     struct tagTClass *classes;
+    struct tagTVariable *variables;
 } TBytecode;
 
 

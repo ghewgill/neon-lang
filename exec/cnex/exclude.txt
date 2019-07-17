@@ -1,53 +1,41 @@
-bigint.neon                # assert
+bigint.neon                # gmp
+binary-test.neon           # exceptions in binary module
 cal-test.neon              # os.system
-cformat-test.neon          # CALLMF
-complex-test.neon          # CALLMF
-datetime-test.neon         # module
-debug-example.neon         # module
-debug-server.neon          # module
-encoding-base64.neon       # module
+datetime-test.neon         # datetime
+debug-example.neon         # debugger
+debug-server.neon          # debugger
+encoding-base64.neon       # binary exceptions
+equality.neon              # PUSHI
 export-inline.neon         # export
 export-recursive.neon      # export
 export.neon                # export
 ffi.neon                   # ffi
-file-exists.neon           # module
-file-filecopied.neon       # module
-file-filecopied1.neon      # module
-file-filecopied2.neon      # module
-file-filecopied3.neon      # module
-file-symlink.neon          # module
-file-test.neon             # module
+file-exists.neon           # file
+file-filecopied.neon       # file
+file-filecopied1.neon      # file
+file-filecopied2.neon      # file
+file-filecopied3.neon      # file
+file-symlink.neon          # file
+file-test.neon             # file
 file-writebytes.neon       # file
 file-writelines.neon       # file
 fork.neon                  # posix
-format.neon                # CALLMF
 gc-array.neon              # class
 gc-long-chain.neon         # class
 gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
-import.neon                # PUSHPMG
-interface.neon             # PUSHI
-interface-multiple.neon    # PUSHI
+import.neon                # CALLV
+interface.neon             # CALLV
+interface-multiple.neon    # CALLV
 interface-parameter-export.neon # export
 interface-parameter-export2.neon # export
 interface-parameter-import.neon # class
 interface-parameter-import2.neon # class
-interface.neon             # PUSHI
-json-test.neon             # module
 literal-array.neon         # array__range
-mkdir.neon                 # module
+mkdir.neon                 # file
 mmap-test.neon             # mmap
-module-alias.neon          # module
-module-alias2.neon         # module
-module-import-name-alias.neon #module
-module-import-name-alias2.neon # module
-module-import-name.neon    # module
-module-import-name2.neon   # module
 module-load-order.neon     # module
-module.neon                # module
-module2.neon               # PUSHPMG
-multiarray-test.neon       # CALLMF
 net-test.neon              # net
 net-test-udp.neon          # net
 new-init-module.neon       # class
@@ -60,8 +48,7 @@ outer-tail.neon            # PUSHPOL
 outer.neon                 # PUSHPOL
 outer2.neon                # PUSHPOL
 process-test.neon          # process
-recursion-limit.neon       # runtime
-repl_import.neon           # random
+recursion-limit.neon       # runtime$setRecursionLimit
 sql-connect.neon           # file
 sql-cursor.neon            # sqlite
 sql-embed.neon             # sqlite
@@ -69,21 +56,18 @@ sql-execute.neon           # sqlite
 sql-query.neon             # sqlite
 sql-whenever.neon          # sqlite
 sqlite-test.neon           # sqlite
-stack-overflow.neon        # stack
-string-bytes.neon          # format
-string-compare.neon        # compare
+stack-overflow.neon        # call stack size
+string-bytes.neon          # Cell Type assertion
 string-escape.neon         # utf8
-string-format.neon         # format
-string-test.neon           # assert / string$find
-struct-test.neon           # module
-time-stopwatch.neon        # module
-time-test.neon             # module
-unicode-char.neon          # utf8
-unicode-length.neon        # io$fprint / module
-value-index.neon           # dictionary
-varargs-functionpointer.neon # PUSHI
+string-test.neon           # string$find
+struct-test.neon           # DynamicConversionException
+time-stopwatch.neon        # time module
+time-test.neon             # time module
+unicode-char.neon          # unicode
+unicode-length.neon        # unicode
+varargs-functionpointer.neon # functionpointer
 while-valid.neon           # class
-win32-test.neon            # module
+win32-test.neon            # CALLE
 
 compress-test.neon         # module
 extsample-test.neon        # module
