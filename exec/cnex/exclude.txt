@@ -6,7 +6,6 @@ datetime-test.neon         # module
 debug-example.neon         # module
 debug-server.neon          # module
 encoding-base64.neon       # module
-equality.neon              # PUSHI
 export-inline.neon         # export
 export-recursive.neon      # export
 export.neon                # export

@@ -778,14 +778,26 @@ void exec_NEA(TExecutor *self)
     push(self->stack, r);
 }
 
-void exec_EQD(void)
+void exec_EQD(TExecutor *self)
 {
-    fatal_error("exec_EQD not implemented");
+    self->ip++;
+    Cell *b = top(self->stack);
+    Cell *a = peek(self->stack, 1);
+    Cell *r = cell_fromBoolean(dictionary_compareDictionary(a->dictionary, b->dictionary) != 0);
+    pop(self->stack);
+    pop(self->stack);
+    push(self->stack, r);
 }
 
-void exec_NED(void)
+void exec_NED(TExecutor *self)
 {
-    fatal_error("exec_NED not implemented");
+    self->ip++;
+    Cell *b = top(self->stack);
+    Cell *a = peek(self->stack, 1);
+    Cell *r = cell_fromBoolean(dictionary_compareDictionary(a->dictionary, b->dictionary) == 0);
+    pop(self->stack);
+    pop(self->stack);
+    push(self->stack, r);
 }
 
 void exec_EQP(TExecutor *self)
@@ -1359,8 +1371,8 @@ void exec_loop(TExecutor *self)
             case GEY:     exec_GEY(self); break;
             case EQA:     exec_EQA(self); break;
             case NEA:     exec_NEA(self); break;
-            case EQD:     exec_EQD(); break;
-            case NED:     exec_NED(); break;
+            case EQD:     exec_EQD(self); break;
+            case NED:     exec_NED(self); break;
             case EQP:     exec_EQP(self); break;
             case NEP:     exec_NEP(self); break;
             case EQV:     exec_EQV(self); break;
