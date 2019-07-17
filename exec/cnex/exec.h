@@ -6,25 +6,25 @@
 #include "number.h"
 #include "util.h"
 
-typedef struct tagTModule {
-    char *name;
-} TModule;
-
 typedef struct tagTExecutor {
-    struct tagTBytecode *object;
     unsigned int ip;
     struct tagTStack *stack;
     /*struct tagTStack *callstack; */
-    unsigned int callstack[300];
+    struct CallStack {
+        struct tagTModule *mod;
+        unsigned int ip;
+    } callstack[300];
     int32_t callstacktop;
     int32_t param_recursion_limit;
-    struct tagTCell *globals;
     struct tagTFrameStack *framestack;
     BOOL enable_assert;
     BOOL debug;
     BOOL disassemble;
     void (*rtl_raise)(struct tagTExecutor *, const char *, const char *, Number);
+    unsigned int module_count;
     struct tagTModule *module;
+    struct tagTModule **modules;
+    struct tagTModule **init_order;
 
     /* Debug / Diagnostic fields */
     struct {

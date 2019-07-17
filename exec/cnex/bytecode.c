@@ -70,11 +70,23 @@ void bytecode_freeBytecode(TBytecode *b)
         return;
     }
 
+    free(b->variables);
     free(b->functions);
     free(b->imports);
     free(b->export_functions);
     free(b->exceptions);
     free(b->export_types);
+    free(b->export_exceptions);
+
+    for (i = 0; i < b->constantsize; i++) {
+        free(b->export_constants[i].value);
+    }
+    free(b->export_constants);
+    for (i = 0; i < b->interfaceexportsize; i++) {
+        free(b->export_interfaces[i].method_descriptors);
+    }
+    free(b->export_interfaces);
+
     for (i = 0; i < b->strtablelen; i++) {
         string_freeString(b->strings[i]);
     }
@@ -104,53 +116,46 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
     b->strings = getstrtable(bytecode, b->strtablesize + i, &i, &b->strtablelen);
 
     b->typesize = get_vint(bytecode, len, &i);
-    /*
-        typesize = struct.unpack(">H", bytecode[i:i+2])[0]
-        i += 2
-        self.export_types = []
-        while typesize > 0:
-            t = Type()
-            t.name = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            t.descriptor = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            self.export_types.append(t)
-            typesize -= 1
-    */
+    b->export_types = malloc(sizeof(ExportType) * b->typesize);
+    if (b->export_types == NULL) {
+        fatal_error("Could not allocate memory for exported type info.");
+    }
+    for (uint32_t f = 0; f < b->typesize; f++) {
+        b->export_types[f].name = get_vint(bytecode, len, &i);
+        b->export_types[f].descriptor = get_vint(bytecode, len, &i);
+    }
+ 
     b->constantsize = get_vint(bytecode, len, &i);
-    /*
-        constantsize = struct.unpack(">H", bytecode[i:i+2])[0]
-        i += 2
-        self.export_constants = []
-        while constantsize > 0:
-            c = Constant()
-            c.name = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            c.type = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            size = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            c.value = bytecode[i:i+size]
-            i += size
-            self.export_constants.append(c)
-            constantsize -= 1;
-    */
+    b->export_constants = malloc(sizeof(Constant) * b->constantsize);
+    if (b->export_constants == NULL) {
+        fatal_error("Could not allocate memory for constants.");
+    }
+    for (uint32_t c = 0; c < b->constantsize; c++) {
+        b->export_constants[c].name = get_vint(bytecode, len, &i);
+        b->export_constants[c].vtype = get_vint(bytecode, len, &i);
+        unsigned int datasize = get_vint(bytecode, len, &i);
+        if (i+datasize > len) {
+            fatal_error("Invalid constant data size.");
+        }
+        b->export_constants[c].value = malloc(sizeof(unsigned char) * datasize);
+        if (b->export_constants[c].value == NULL) {
+            fatal_error("Could not allocate memory for value of constant \"%s\".", b->strings[b->export_constants[c].name]->data);
+        }
+        memcpy(b->export_constants[c].value, &bytecode[i], datasize);
+        i += datasize;
+    }
+
     b->variablesize = get_vint(bytecode, len, &i);
-    /*
-        variablesize = struct.unpack(">H", bytecode[i:i+2])[0]
-        i += 2
-        self.export_variables = []
-        while variablesize > 0:
-            v = Variable()
-            v.name = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            v.type = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            v.index = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            self.export_variables.append(v)
-            variablesize -= 1
-    */
+    b->variables = malloc(sizeof(Variable) * b->variablesize);
+    if (b->variables == NULL) {
+        fatal_error("Could not allocate memory %d for variables.", b->variablesize);
+    }
+    for (uint32_t v = 0; v < b->variablesize; v++) {
+        b->variables[v].name = get_vint(bytecode, len, &i);
+        b->variables[v].type = get_vint(bytecode, len, &i);
+        b->variables[v].index = get_vint(bytecode, len, &i);
+    }
+
     b->export_functionsize = get_vint(bytecode, len, &i);
     b->export_functions = malloc(sizeof(ExportFunction) * b->export_functionsize);
     if (b->export_functions == NULL) {
@@ -161,29 +166,35 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
         b->export_functions[f].descriptor = get_vint(bytecode, len, &i);
         b->export_functions[f].index = get_vint(bytecode, len, &i);
     }
+
     b->exceptionexportsize = get_vint(bytecode, len, &i);
-    /*
-        exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
-        i += 2
-        self.export_exceptions = []
-        while exceptionexportsize > 0:
-            e = ExceptionExport()
-            e.name = struct.unpack(">H", bytecode[i:i+2])[0]
-            i += 2
-            self.export_exceptions.append(e)
-            exceptionexportsize -= 1
-    */
+    b->export_exceptions = malloc(sizeof(ExportException) * b->exceptionexportsize);
+    if (b->export_exceptions == NULL) {
+        fatal_error("Could not allocate memory for exported exceptions.");
+    }
+    for (uint32_t e = 0; e < b->exceptionexportsize; e++) {
+        b->export_exceptions[e].name = get_vint(bytecode, len, &i);
+    }
+
     b->interfaceexportsize = get_vint(bytecode, len, &i);
-    /*
-        interfaceexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
-        i += 2
-        while interfaceexportsize > 0:
-            assert False, interfaceexportsize
-    */
+    b->export_interfaces = malloc(sizeof(ExportInterface) * b->interfaceexportsize);
+    for (uint32_t e = 0; e < b->interfaceexportsize; e++) {
+        b->export_interfaces[e].name = get_vint(bytecode, len, &i);
+        unsigned int methoddescriptorsize = get_vint(bytecode, len, &i);
+        b->export_interfaces[e].method_descriptors = malloc(sizeof(MethodDescriptor) * methoddescriptorsize);
+        if (b->export_interfaces[e].method_descriptors == NULL) {
+            fatal_error("Could not allocate memory for method descriptors for exported interface: %s", b->strings[b->export_interfaces[e].name]->data);
+        }
+        for (uint32_t m = 0; m < methoddescriptorsize; m++) {
+            b->export_interfaces[e].method_descriptors[m].first = get_vint(bytecode, len, &i);
+            b->export_interfaces[e].method_descriptors[m].second = get_vint(bytecode, len, &i);
+        }
+    }
+
     b->importsize = get_vint(bytecode, len, &i);
     b->imports = malloc(sizeof(Import) * b->importsize);
     if (b->imports == NULL) {
-        fatal_error("Could not allocate memory for exported function info.");
+        fatal_error("Could not allocate memory for imported module info.");
     }
     for (uint32_t f = 0; f < b->importsize; f++) {
         b->imports[f].name = get_vint(bytecode, len, &i);
@@ -227,7 +238,7 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
         b->classes[c].interfacesize = get_vint(bytecode, len, &i);
         b->classes[c].interfaces = malloc(sizeof(Interface) * b->classes[c].interfacesize);
         if (b->classes[c].interfaces == NULL) {
-            fatal_error("Could not allocate memory for (%d) interfaces.", b->classes[c].interfacesize);
+            fatal_error("Could not allocate memory for (%d) interfaces of class \"%s\".", b->classes[c].interfacesize, b->strings[b->classes[c].name]->data);
         }
         for (uint32_t in = 0; in < b->classes[c].interfacesize; in++) {
             b->classes[c].interfaces[in].methodsize = get_vint(bytecode, len, &i);

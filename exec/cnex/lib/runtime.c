@@ -14,3 +14,8 @@ void runtime_executorName(TExecutor *exec)
 {
     push(exec->stack, cell_fromCString("cnex"));
 }
+
+void runtime_moduleIsMain(TExecutor *exec)
+{
+    push(exec->stack, cell_fromBoolean(exec->module == exec->modules[0]));
+}
