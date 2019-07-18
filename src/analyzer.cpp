@@ -2826,8 +2826,11 @@ const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *exp
 
 const ast::Expression *Analyzer::analyze(const pt::NewFunctionExpression *expr)
 {
-    printf("%p\n", expr);
-    return nullptr;
+    const pt::FunctionDeclaration *declaration = expr->decl.get();
+    const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
+    ast::Function *function = new ast::Function(expr->token, "", ftype, frame.top(), scope.top(), frame.top()->get_depth()+1);
+    scope.top()->addName(expr->token, "", function);
+    return new ast::VariableExpression(function);
 }
 
 ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descriptor, std::string::size_type &i)

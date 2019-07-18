@@ -2736,6 +2736,7 @@ private:
 class Function: public BaseFunction {
 public:
     Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, bool variadic, size_t nesting_depth);
+    Function(const Token &declaration, const std::string &name, const TypeFunction *ftype, Frame *outer, Scope *parent, size_t nesting_depth);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Frame *frame;

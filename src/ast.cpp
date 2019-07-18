@@ -1151,6 +1151,19 @@ Function::Function(const Token &declaration, const std::string &name, const Type
     }
 }
 
+Function::Function(const Token &declaration, const std::string &name, const TypeFunction *ftype, Frame *outer, Scope *parent, size_t nesting_depth)
+  : BaseFunction(declaration, name, ftype),
+    frame(new LocalFrame(outer)),
+    scope(new Scope(parent, frame)),
+    params(params),
+    nesting_depth(nesting_depth),
+    statements()
+{
+    for (auto p: params) {
+        scope->addName(p->declaration, p->name, p, true);
+    }
+}
+
 const TypeFunction *Function::makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic)
 {
     std::vector<const ParameterType *> paramtypes;
