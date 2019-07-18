@@ -1,0 +1,8 @@
+TYPE Foo IS RECORD
+END RECORD
+
+FUNCTION Foo.f(OUT self: Foo)
+                   %<
+END FUNCTION
+
+Foo().f()

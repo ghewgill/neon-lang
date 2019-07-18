@@ -2206,6 +2206,20 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     int param_index = 0;
     std::vector<const ast::Expression *> args(ftype->params.size());
     if (self != nullptr) {
+        switch (ftype->params[0]->mode) {
+            case ast::ParameterType::Mode::IN:
+                break;
+            case ast::ParameterType::Mode::INOUT: {
+                const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(self);
+                if (ref == nullptr) {
+                    error(3277, dotmethod->base.get()->token, "first parameter must be a reference");
+                }
+                break;
+            }
+            case ast::ParameterType::Mode::OUT:
+                internal_error("OUT parameter mode found for self parameter");
+                break;
+        }
         args[0] = self;
         ++param_index;
     }
@@ -3412,6 +3426,9 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
                 if (ptype != type) {
                     error(3128, x->type->token, "expected self parameter");
                 }
+            }
+            if (mode == ast::ParameterType::Mode::OUT) {
+                error(3278, x->token, "self parameter must be IN or INOUT");
             }
         }
         if (x->varargs) {
