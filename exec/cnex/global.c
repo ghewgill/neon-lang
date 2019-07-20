@@ -668,13 +668,15 @@ void bytes__range(TExecutor *exec)
     Number last  = top(exec->stack)->number;          pop(exec->stack);
     BOOL first_from_end  = top(exec->stack)->boolean; pop(exec->stack);
     Number first = top(exec->stack)->number;          pop(exec->stack);
-    Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
+    Cell *t = top(exec->stack);
 
     if (!number_is_integer(first)) {
+        pop(exec->stack);
         exec->rtl_raise(exec, "BytesIndexException", number_to_string(first), BID_ZERO);
         return;
     }
     if (!number_is_integer(last)) {
+        pop(exec->stack);
         exec->rtl_raise(exec, "BytesIndexException", number_to_string(last), BID_ZERO);
         return;
     }
@@ -688,18 +690,21 @@ void bytes__range(TExecutor *exec)
         lst += t->string->length - 1;
     }
     if (fst < 0) {
+        pop(exec->stack);
         char n[128];
         snprintf(n, 128, "%" PRId64, fst);
         exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
         return;
     }
     if (fst >= (int64_t)t->string->length) {
+        pop(exec->stack);
         char n[128];
         snprintf(n, 128, "%" PRId64, fst);
         exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
         return;
     }
     if (lst >= (int64_t)t->string->length) {
+        pop(exec->stack);
         char n[128];
         snprintf(n, 128, "%" PRId64, lst);
         exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
@@ -713,7 +718,7 @@ void bytes__range(TExecutor *exec)
     sub->string = string_newString();
 
     if (lst < fst) {
-        cell_freeCell(t);
+        pop(exec->stack);
         push(exec->stack, sub);
         return;
     }
@@ -724,7 +729,7 @@ void bytes__range(TExecutor *exec)
         fatal_error("Could not allocate %d bytes for byte array.", sub->string->length);
     }
     memcpy(sub->string->data, &t->string->data[fst], lst + 1 - fst);
-    cell_freeCell(t);
+    pop(exec->stack);
 
     push(exec->stack, sub);
 }
