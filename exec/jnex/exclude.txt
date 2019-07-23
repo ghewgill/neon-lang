@@ -76,6 +76,7 @@ module-import-name-alias2.neon # module
 module-import-name.neon    # module
 module-import-name2.neon   # module
 module-import-name3.neon   # module
+module-load-order.neon     # module
 module-scope.neon          # module
 module.neon                # module
 module2.neon               # module

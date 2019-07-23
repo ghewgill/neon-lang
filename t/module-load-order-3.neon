@@ -1,0 +1,5 @@
+% SKIP
+
+EXPORT FUNCTION foo() END FUNCTION
+
+print("module 3")

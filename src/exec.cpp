@@ -713,9 +713,9 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
             exit(1);
         }
         // TODO: check hash of exports
-        executor->init_order.push_back(importname);
         executor->modules[importname] = nullptr; // Prevent unwanted recursion.
         executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
+        executor->init_order.push_back(importname);
     }
 }
 

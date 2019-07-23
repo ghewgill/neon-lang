@@ -932,9 +932,6 @@ func (self *executor) importModule(name string, object bytecode) {
 		object:  object,
 		globals: make([]cell, object.global_size),
 	}
-	if name != "" {
-		self.init_order = append([]*module{m}, self.init_order...)
-	}
 	self.modules[name] = m
 	for _, imp := range object.imports {
 		name := string(object.strtable[imp.name])
@@ -952,6 +949,9 @@ func (self *executor) importModule(name string, object bytecode) {
 			panic(err)
 		}
 		self.importModule(name, make_bytecode(bytes))
+	}
+	if name != "" {
+		self.init_order = append([]*module{m}, self.init_order...)
 	}
 }
 

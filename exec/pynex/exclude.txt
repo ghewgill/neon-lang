@@ -55,6 +55,7 @@ mmap-test.neon             # mmap
 module-alias2.neon         # module
 module-import-name-alias2.neon # module
 module-import-name2.neon   # module
+module-load-order.neon     # module
 module.neon                # module
 module2.neon               # module
 multiarray-test.neon       # module

@@ -41,6 +41,7 @@ module-import-name-alias2.neon # Feature not required
 module-import-name.neon # Feature not required
 module-import-name2.neon # Feature not required
 module-import-name3.neon # Feature not required
+module-load-order.neon # Feature not required
 multiarray-test.neon   # Module not required
 net-test.neon          # Module not required
 net-test-udp.neon      # Module not required

@@ -1,0 +1,8 @@
+% SKIP
+
+IMPORT "module-load-order-3" ALIAS module3
+
+EXPORT FUNCTION foo() END FUNCTION
+
+module3.foo()
+print("module 2")

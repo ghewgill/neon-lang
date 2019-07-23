@@ -80,6 +80,7 @@ mmap-test.neon             # module mmap
 module-alias2.neon         # keyword var
 module-import-name-alias2.neon # keyword var
 module-import-name2.neon   # keyword var
+module-load-order.neon     # module
 module.neon                # methods
 module2.neon               # methods
 modulo.neon                # decimal floating point
