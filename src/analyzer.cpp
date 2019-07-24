@@ -2829,7 +2829,7 @@ const ast::Expression *Analyzer::analyze(const pt::NewFunctionExpression *expr)
     const pt::FunctionDeclaration *declaration = expr->decl.get();
     const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
     ast::Function *function = new ast::Function(expr->token, "", ftype, frame.top(), scope.top(), frame.top()->get_depth()+1);
-    scope.top()->addName(expr->token, "", function, true);
+    scope.top()->addName(expr->token, std::to_string(reinterpret_cast<intptr_t>(expr)), function, true);
     return new ast::VariableExpression(function);
 }
 
