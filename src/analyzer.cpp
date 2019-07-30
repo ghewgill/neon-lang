@@ -2827,10 +2827,9 @@ const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *exp
 const ast::Expression *Analyzer::analyze(const pt::NewFunctionExpression *expr)
 {
     const pt::FunctionDeclaration *declaration = expr->decl.get();
-    const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
-    ast::Function *function = new ast::Function(expr->token, "", ftype, frame.top(), scope.top(), frame.top()->get_depth()+1);
-    scope.top()->addName(expr->token, std::to_string(reinterpret_cast<intptr_t>(expr)), function, true);
-    return new ast::VariableExpression(function);
+    const ast::Statement *st = analyze_decl(declaration);
+    analyze_body(declaration);
+    return new ast::VariableExpression(dynamic_cast<const ast::DeclarationStatement *>(st)->decl);
 }
 
 ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descriptor, std::string::size_type &i)
