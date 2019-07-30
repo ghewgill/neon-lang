@@ -15,6 +15,8 @@ env:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install scons; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which mcs || brew install mono; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then which scons || sudo apt install scons; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then which mcs || sudo apt install mono-mcs; fi
 before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
