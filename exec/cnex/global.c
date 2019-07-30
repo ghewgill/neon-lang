@@ -481,6 +481,7 @@ void array__resize(TExecutor *exec)
 
     if (!number_is_integer(new_size)) {
         exec->rtl_raise(exec, "ArrayIndexException", number_to_string(new_size), BID_ZERO);
+        return;
     }
 
     cell_ensureArray(addr);
@@ -601,6 +602,9 @@ void array__toBytes__number(TExecutor *exec)
         uint32_t b = number_to_uint32(a->array->data[x].number);
         if (b >= 256) {
             exec->rtl_raise(exec, "ByteOutOfRangeException", TO_STRING(b), BID_ZERO);
+            cell_freeCell(a);
+            cell_freeCell(r);
+            return;
         }
         r->string->data[i++] = (uint8_t)b;
     }
