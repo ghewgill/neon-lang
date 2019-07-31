@@ -650,7 +650,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
                 auto &tok_end_function = tokens[i];
                 ++i;
                 if (tokens[i].type != FUNCTION) {
-                    error_a(9999, tokens[i-1], tokens[i], "'FUNCTION' expected");
+                    error_a(3279, tokens[i-1], tokens[i], "'FUNCTION' expected");
                 }
                 ++i;
                 auto decl = std::unique_ptr<FunctionDeclaration> { new FunctionDeclaration(tok_new, Token(), Token(IDENTIFIER, std::to_string(i)), std::move(returntype), std::move(args), rparen, std::move(body), tok_end_function) };

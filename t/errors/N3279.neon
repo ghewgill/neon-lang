@@ -1,0 +1,2 @@
+LET f: FUNCTION() := NEW FUNCTION() END 5
+                                        %<

@@ -1,0 +1,11 @@
+% TODO
+
+FUNCTION f(): FUNCTION(n: Number): Number
+    RETURN NEW FUNCTION(n: Number): Number
+        RETURN n + 1
+    END FUNCTION
+END FUNCTION
+
+LET z: FUNCTION(n: Number): Number := f()
+print(str(z(5)))
+%= 6

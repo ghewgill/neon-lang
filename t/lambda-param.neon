@@ -1,0 +1,6 @@
+LET f: FUNCTION(n: Number): Number := NEW FUNCTION(n: Number): Number
+    RETURN n + 1
+END FUNCTION
+
+print(str(f(5)))
+%= 6
