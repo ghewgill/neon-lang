@@ -23,6 +23,7 @@ add_executable(cnex
     number.c
     object.c
     stack.c
+    support.c
     util.c
     ${CNEX_RTL}
 )
@@ -35,7 +36,6 @@ add_executable(test_number_to_string_c
     test_number_to_string.c
     number.c
 )
-
 target_link_libraries(test_number_to_string_c
     bid
 )
@@ -44,9 +44,20 @@ add_test(
     COMMAND test_number_to_string_c
 )
 
+add_executable(test_path_support
+    test_path_support.c
+    support.c
+    util.c
+)
+add_test(
+    NAME test_path_support
+    COMMAND test_path_support
+)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
     set_target_properties(test_number_to_string_c PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
+    set_target_properties(test_path_support PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
 endif ()
 
 target_link_libraries(cnex
@@ -57,5 +68,5 @@ if (WIN32)
 else (WIN32)
     target_link_libraries(cnex m)
     target_link_libraries(test_number_to_string_c m)
+    target_link_libraries(test_path_support m)
 endif (WIN32)
-

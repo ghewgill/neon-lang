@@ -1,11 +1,14 @@
 #include "module.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "bytecode.h"
 #include "cell.h"
 #include "exec.h"
+#include "nstring.h"
+#include "support.h"
 
 
 TModule *module_newModule(const char *name)
@@ -23,6 +26,9 @@ TModule *module_newModule(const char *name)
     strcpy(r->name, name);
 
     r->bytecode = bytecode_newBytecode();
+    r->globals = NULL;
+    r->code = NULL;
+    r->codelen = 0;
 
     return r;
 }
@@ -36,6 +42,72 @@ TModule *module_findModule(TExecutor *self, const char *name)
             break;
         }
     }
+    return r;
+}
+
+TModule *module_loadNeonProgram(const char *neonxPath)
+{
+    FILE *fp = fopen(neonxPath, "rb");
+    if (fp == NULL) {
+        fprintf(stderr, "Could not open Neon executable: %s\nError: %d - %s.\n", neonxPath, errno, strerror(errno));
+        return NULL;
+    }
+    fseek(fp, 0, SEEK_END);
+    long nSize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    TModule *pModule = module_newModule("");
+
+    pModule->code = malloc(nSize);
+    if (pModule->code == NULL) {
+        fatal_error("Could not allocate memory for neon bytecode.");
+    }
+    unsigned int bytes_read = (unsigned int)fread(pModule->code, 1, nSize, fp);
+    fclose(fp);
+
+    bytecode_loadBytecode(pModule->bytecode, pModule->code, bytes_read);
+
+    return pModule;
+}
+
+TModule *module_loadModule(TExecutor *exec, const char *name, unsigned int module_num)
+{
+    // First, check to see if we have already loaded this module.
+    TModule *r = module_findModule(exec, name);
+    if (r != NULL) {
+        // We have already loaded this module, so bail out,
+        // returning the pointer to the existing module.
+        return r;
+    }
+
+    // Since this module was not found, we haven't loaded it yet.
+    exec->module_count++;
+    exec->modules = realloc(exec->modules, sizeof(TModule*) * exec->module_count);
+    if (exec->modules == NULL) {
+        fatal_error("Could not allocate memory for %s module.", name);
+    }
+
+    // Add this new module to the list of loaded modules.
+    exec->modules[exec->module_count-1] = module_newModule(name);
+    r = exec->modules[exec->module_count-1];
+
+    // Setup it up, and load it.
+    path_readModule(r);
+    bytecode_loadBytecode(r->bytecode, r->code, r->codelen);
+
+    // Traverse any imports, and recursively load them, if they exist.
+    for (unsigned int m = 0; m < r->bytecode->importsize; m++) {
+        module_loadModule(exec, r->bytecode->strings[r->bytecode->imports[m].name]->data, exec->module_count);
+    }
+
+    // Set the module init order, so modules are initialized in the correct order they are used in.
+    exec->init_order = realloc(exec->init_order,  (sizeof(unsigned int) * (exec->init_count + 1)));
+    if (exec->init_order == NULL) {
+        fatal_error("Could not allocate memory for module init_order for module #%d, \"%s\".", module_num, name);
+    }
+    exec->init_order[exec->init_count] = module_num;
+    exec->init_count++;
+
     return r;
 }
 

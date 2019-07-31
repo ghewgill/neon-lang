@@ -24,7 +24,8 @@ typedef struct tagTExecutor {
     unsigned int module_count;
     struct tagTModule *module;
     struct tagTModule **modules;
-    struct tagTModule **init_order;
+    unsigned int *init_order;
+    unsigned int init_count;
 
     /* Debug / Diagnostic fields */
     struct {

@@ -402,7 +402,7 @@ void cell_arrayAppendElementPointer(Cell *c, Cell *e)
         }
         c->array->size = 1;
     }
-
+    cell_resetCell(&c->array->data[c->array->size-1]);
     cell_copyCell(&c->array->data[c->array->size-1], e);
     cell_freeCell(e);
 }
@@ -685,7 +685,7 @@ void cell_clearCell(Cell *c)
 {
     assert(c != NULL);
 
-    if (c->type == cString) {
+    if (c->type == cString || c->type == cBytes) {
         string_freeString(c->string);
     } else if (c->type == cArray) {
         array_freeArray(c->array);
@@ -695,8 +695,6 @@ void cell_clearCell(Cell *c)
         if (c->object != NULL && c->object->release != NULL) {
             c->object->release(c->object);
         }
-    } else if (c->type == cBytes) {
-        string_freeString(c->string);
     }
     cell_resetCell(c);
 }
