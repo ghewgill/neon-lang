@@ -1,10 +1,18 @@
+#ifdef __MS_HEAP_DBG
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+
 #include <assert.h>
-#include <errno.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef __MS_HEAP_DBG
+#include <stdlib.h>
+#endif
 
 #include "array.h"
 #include "bytecode.h"
@@ -14,11 +22,13 @@
 #include "global.h"
 #include "framestack.h"
 #include "module.h"
+#include "nstring.h"
 #include "number.h"
 #include "opcode.h"
 #include "stack.h"
-#include "nstring.h"
+#include "support.h"
 #include "util.h"
+
 
 void invoke(TExecutor *self, TModule *m, int index);
 
@@ -34,48 +44,6 @@ typedef struct tagTCommandLineOptions {
 
 static TOptions gOptions = { FALSE, FALSE, TRUE, 0, NULL, NULL, NULL };
 
-static char *getApplicationName(char *arg)
-{
-    char *p = arg;
-    char *s = p;
-
-    while (*p) {
-        if (*p == '\\' || *p == '/') {
-            s = p;
-        }
-        p++;
-    }
-    return ++s;
-}
-
-static char *getApplicationPath(char *arg)
-{
-    BOOL bHavePath = TRUE;
-    char *p = arg;
-    char *e = p;
-
-    while (*p) {
-        if (*p == '\\' || *p == '/') {
-            e = p;
-        }
-        p++;
-    }
-
-    if (e == p) {
-        e -= 2;
-        bHavePath = FALSE;
-    }
-
-    char *r = malloc((e - arg) + 2);
-    if (bHavePath) {
-        e++;
-        memcpy(r, arg, e - arg);
-    } else {
-        memcpy(r, ".", 1);
-    }
-    r[e - arg] = '\0';
-    return r;
-}
 
 void exec_freeExecutor(TExecutor *e)
 {
@@ -85,16 +53,14 @@ void exec_freeExecutor(TExecutor *e)
     free(e->stack);
 
     // Next, iterate all allocated modules, freeing them as we go.
-    // Note that we do not free the last (main) module until all others are freed.
-    for (unsigned int m = 1; m < e->module_count; m++) {
+    for (unsigned int m = e->module_count; m > 0; m--) {
         if (e->debug == TRUE) {
-            fprintf(stderr, "Free module #%d - %s\n", m, e->modules[m]->name);
+            fprintf(stderr, "Free module #%d - %s\n", m-1, e->modules[m-1]->name);
         }
-        module_freeModule(e->modules[m]);
+        module_freeModule(e->modules[m-1]);
     }
-    // Next, free the "main" module, before destroying the modules container.
-    module_freeModule(e->modules[0]);
     free(e->modules);
+    free(e->init_order);
 
     // Then, destroy the frame stack.
     framestack_destroyFrameStack(e->framestack);
@@ -138,7 +104,7 @@ BOOL ParseOptions(int argc, char* argv[])
         } else {
             // Once we assign the name of the application we're going to execute, stop looking for switches.
             gOptions.pszFilename = argv[nIndex];
-            gOptions.pszExecutablePath = getApplicationPath(argv[nIndex]);
+            gOptions.pszExecutablePath = path_getPathOnly(argv[nIndex]);
             gOptions.ArgStart = nIndex;
             return TRUE;
         }
@@ -152,31 +118,19 @@ BOOL ParseOptions(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    gOptions.pszExecutableName = getApplicationName(argv[0]);
+    gOptions.pszExecutableName = path_getFileNameOnly(argv[0]);
+
     if (!ParseOptions(argc, argv)) {
         return 3;
     }
+
     global_init(argc, argv, gOptions.ArgStart);
+    path_initPaths(gOptions.pszExecutablePath);
 
-    FILE *fp = fopen(gOptions.pszFilename, "rb");
-    if (fp == NULL) {
-        fprintf(stderr, "Could not open Neon executable: %s\nError: %d - %s.\n", gOptions.pszFilename, errno, strerror(errno));
-        return 2;
+    TModule *pModule = module_loadNeonProgram(gOptions.pszFilename);
+    if (pModule == NULL) {
+        goto shutdown;
     }
-    fseek(fp, 0, SEEK_END);
-    long nSize = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-
-    TModule *pModule = module_newModule("");
-    pModule->code = malloc(nSize);
-    if (pModule->code == NULL) {
-        fatal_error("Could not allocate memory for neon bytecode.");
-    }
-    unsigned int bytes_read = (unsigned int)fread(pModule->code, 1, nSize, fp);
-    fclose(fp);
-
-    bytecode_loadBytecode(pModule->bytecode, pModule->code, bytes_read);
-
     TExecutor *exec = exec_newExecutor(pModule);
 
     exec->diagnostics.time_start = clock();
@@ -205,7 +159,10 @@ int main(int argc, char* argv[])
     }
 
     exec_freeExecutor(exec);
+
+shutdown:
     global_shutdown();
+    path_freePaths();
 
     free(gOptions.pszExecutablePath);
 
@@ -218,8 +175,8 @@ int exec_run(TExecutor *self, BOOL enable_assert)
     self->ip = (uint32_t)self->module->bytecode->codelen;
     invoke(self, self->modules[0], 0);
 
-    for (unsigned int m = 1; m < self->module_count; m++) {
-        invoke(self, self->modules[m], 0);
+    for (unsigned int m = 0; m < self->init_count; m++) {
+        invoke(self, self->modules[self->init_order[(self->init_count - 1) - m]], 0);
     }
 
     exec_loop(self);
@@ -228,72 +185,6 @@ int exec_run(TExecutor *self, BOOL enable_assert)
         assert(isEmpty(self->stack));
     }
     return 0;
-}
-
-// This function locates, and reads the binary byte code in from a compiled Neon module.
-uint8_t *exec_readBytecode(const char *name, unsigned int *code_size)
-{
-    // ToDo: Implement %neonpath% environment variable, as well as ".neonpath" path file.
-    int pass = 0;
-    char filename[256];
-    // For this first case, look in the cwd for the module.
-    sprintf(filename, "%s.neonx", name);
-    FILE *fp = NULL;
-
-load:
-    fp = fopen(filename, "rb");
-    if (fp == NULL) {
-        switch (pass) {
-            // For this secon case, look in the lib/ folder for the module.
-            case 0: sprintf(filename, "lib/%s.neonx", name); pass++; goto load;
-            // Finally, look in the same directory as the primary neon executable was loaded from.
-            case 1: sprintf(filename, "%s/%s.neonx", gOptions.pszExecutablePath, name); pass++; goto load;
-            default: break;
-        }
-        fatal_error("Could not locate Neon module \"%s\"", name);
-    }
-    fseek(fp, 0, SEEK_END);
-    long nSize = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-
-    uint8_t *data = malloc(nSize);
-    if (data == NULL) {
-        fatal_error("Could not allocate bytecode memory for %s module.", name);
-    }
-    *code_size = (unsigned int)fread(data, 1, nSize, fp);
-    fclose(fp);
-
-    return data;
-}
-
-TModule *exec_locateModule(TExecutor *self, const char *name)
-{
-    // First, check to see if we have already loaded this module.
-    TModule *r = module_findModule(self, name);
-    if (r != NULL) {
-        // We have already loaded this module, so bail out,
-        // returning the pointer to the existing module.
-        return r;
-    }
-    // Since we haven't loaded this module yet, setup it up, and load it.
-    self->module_count++;
-    self->modules = realloc(self->modules, sizeof(TModule*) * self->module_count);
-    if (self->modules == NULL) {
-        fatal_error("Could not allocate memory for %s module.", name);
-    }
-
-    self->modules[self->module_count-1] = module_newModule(name);
-    r = self->modules[self->module_count-1];
-
-    unsigned int code_size = 0;
-    r->code = exec_readBytecode(name, &code_size);
-    bytecode_loadBytecode(r->bytecode, r->code, code_size);
-
-    // Traverse any imports, and recursively load them, if they exist.
-    for (unsigned int m = 0; m < r->bytecode->importsize; m++) {
-        exec_locateModule(self, r->bytecode->strings[r->bytecode->imports[m].name]->data);
-    }
-    return r;
 }
 
 TExecutor *exec_newExecutor(TModule *object)
@@ -320,24 +211,29 @@ TExecutor *exec_newExecutor(TModule *object)
     if (r->modules == NULL) {
         fatal_error("Failed to allocate memory for %d neon module(s).", r->module_count);
     }
+    // Setup the init_order array.  This stores the index of the modules that need to be initialized before
+    // other modules.  Some modules depend on other modules. See t/module-load-order.neonx.
+    r->init_order = NULL;
+    r->init_count = 0;
     r->modules[0] = object;
 
+    // Allocate and initialize all global variables.
     r->modules[0]->globals = malloc(sizeof(Cell) * r->modules[0]->bytecode->global_size);
     if (r->modules[0]->globals == NULL) {
         fatal_error("Failed to allocate memory for global storage.");
     }
-    // Initialize all global variables
     for (i = 0; i < r->modules[0]->bytecode->global_size; i++) {
         cell_resetCell(&r->modules[0]->globals[i]);
     }
-    // Set current modules to module::main.
+
+    // Set current module to module::main.
     r->module = r->modules[0];
 
     // Next, iterate the imports, loading all the module code recursively, as necessary.
     for (unsigned int m = 0; m < r->module->bytecode->importsize; m++) {
-        TModule *mod = exec_locateModule(r, r->module->bytecode->strings[r->module->bytecode->imports[m].name]->data);
-        // mod will ALWAYS point to a module.  Either an existing module we've already loaded, or a new
-        // module that has already been pushed onto the module stack.
+        TModule *mod = module_loadModule(r, r->module->bytecode->strings[r->module->bytecode->imports[m].name]->data, r->module_count);
+        // mod will ALWAYS point to a module that has been pushed onto the module stack.
+        assert(mod->globals == NULL);
         // Allocate the modules globals
         mod->globals = malloc(sizeof(Cell) * mod->bytecode->global_size);
         if (mod->globals == NULL) {
@@ -385,14 +281,16 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
     cell_setNumber(&exceptionvar->array->data[2], code);
     cell_setNumber(&exceptionvar->array->data[3], number_from_uint64(self->ip));
     uint64_t tip = self->ip;
+    TModule *tmodule = self->module;
     uint32_t sp = self->callstacktop;
     for (;;) {
         uint64_t i;
-        for (i = 0; i < self->module->bytecode->exceptionsize; i++) {
-            if ((self->module->bytecode->exceptions[i].start <= tip) && (tip < self->module->bytecode->exceptions[i].end)) {
-                TString *handler = self->module->bytecode->strings[self->module->bytecode->exceptions[i].exid];
+        for (i = 0; i < tmodule->bytecode->exceptionsize; i++) {
+            if ((tmodule->bytecode->exceptions[i].start <= tip) && (tip < tmodule->bytecode->exceptions[i].end)) {
+                TString *handler = tmodule->bytecode->strings[tmodule->bytecode->exceptions[i].exid];
                 if ((string_compareString(name, handler) == 0) || (name->length > handler->length && string_startsWith(name, handler) && name->data[handler->length] == '.')) {
-                    self->ip = self->module->bytecode->exceptions[i].handler;
+                    self->ip = tmodule->bytecode->exceptions[i].handler;
+                    self->module = tmodule;
                     while (self->stack->top > (((framestack_isEmpty(self->framestack) ? -1 : framestack_topFrame(self->framestack)->stack_depth) + (int32_t)self->module->bytecode->exceptions[i].stack_depth))) {
                         pop(self->stack);
                     }
@@ -408,8 +306,9 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         if (!framestack_isEmpty(self->framestack)) {
             framestack_popFrame(self->framestack);
         }
-        tip = self->callstack[sp--].ip;
-        self->module = self->callstack[sp].mod;
+        tip = self->callstack[sp].ip;
+        tmodule = self->callstack[sp].mod;
+        sp -= 1;
     }
     fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
     exit(1);

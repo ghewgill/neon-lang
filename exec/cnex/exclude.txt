@@ -1,11 +1,11 @@
 bigint.neon                # gmp
 binary-test.neon           # exceptions in binary module
 cal-test.neon              # os.system
+check.neon                 # exceptions in binary module
 datetime-test.neon         # datetime
 debug-example.neon         # debugger
 debug-server.neon          # debugger
 encoding-base64.neon       # binary exceptions
-equality.neon              # PUSHI
 export-inline.neon         # export
 export-recursive.neon      # export
 export.neon                # export

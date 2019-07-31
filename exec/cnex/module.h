@@ -7,6 +7,7 @@ struct tagTExecutor;
 typedef struct tagTModule {
     char *name;
     uint8_t *code;
+    unsigned int codelen;
     struct tagTBytecode *bytecode;
     struct tagTCell *globals;
 } TModule;
@@ -15,9 +16,10 @@ typedef struct tagTModule {
 TModule *module_newModule(const char *name);
 
 TModule *module_findModule(struct tagTExecutor *self, const char *name);
+TModule *module_loadModule(struct tagTExecutor *self, const char *name, unsigned int module_num);
+TModule *module_loadNeonProgram(const char *neonxPath);
 
 void module_freeModule(TModule *m);
-
 
 #endif
 
