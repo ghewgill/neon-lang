@@ -81,7 +81,7 @@ void bytecode_freeBytecode(TBytecode *b)
     free(b->strings);
 
     for (i = 0; i < b->classsize; i++) {
-        for (unsigned int is = 0; i < b->classes[i].interfacesize; is++) {
+        for (unsigned int is = 0; is < b->classes[i].interfacesize; is++) {
             free(b->classes[i].interfaces[is].methods);
         }
         free(b->classes[i].interfaces);
