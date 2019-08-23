@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import glob
 import sys
 
@@ -37,15 +39,15 @@ for fn in reduce(lambda x, y: x + y, [glob.glob(x) for x in sys.argv[1:]]):
     if "%!" in open(fn).read():
         print("skipped, failure")
         if fn in KnownParseFailures:
-            print "Unneeded known failure:", fn
+            print("Unneeded known failure:", fn)
         continue
     try:
         parser.parseFile(fn, parseAll=True)
         if fn in KnownParseFailures:
-            print "Incorrect known failure:", fn
+            print("Incorrect known failure:", fn)
     except ParseException, e:
         if fn in KnownParseFailures:
-            print "Known failure:", e
+            print("Known failure:", e)
         else:
-            print >>sys.stderr, "Failure parsing:", fn
+            print("Failure parsing:", fn, file=sys.stderr)
             raise

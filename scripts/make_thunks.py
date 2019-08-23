@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import re
 import sys
@@ -313,7 +315,7 @@ for fn in sys.argv[1:]:
                     else:
                         enums[in_enum].append(a[0])
     else:
-        print >>sys.stderr, "Unexpected file: {}".format(fn)
+        print("Unexpected file: {}".format(fn), file=sys.stderr)
         sys.exit(1)
 
 thunks = set()
@@ -323,121 +325,121 @@ for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic i
 
 with open("src/thunks.inc", "w") as inc:
     for rtype, params in thunks:
-        print >>inc, "static void thunk_{}_{}(opstack<Cell> &{}, void *func)".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params), "stack" if (params or rtype[0] != "TYPE_NOTHING") else "")
-        print >>inc, "{"
+        print("static void thunk_{}_{}(opstack<Cell> &{}, void *func)".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params), "stack" if (params or rtype[0] != "TYPE_NOTHING") else ""), file=inc)
+        print("{", file=inc)
         d = 0
         for i, a in reversed(list(enumerate(params))):
             from_stack = True
             if a[0].startswith("TYPE_ARRAY_") and a[1] == VALUE:
-                print >>inc, "    {} a{};".format(CppFromAstParam[a], i)
-                print >>inc, "    for (auto x: stack.peek({}).array()) a{}.push_back(x.{});".format(d, i, ArrayElementField[a])
+                print("    {} a{};".format(CppFromAstParam[a], i), file=inc)
+                print("    for (auto x: stack.peek({}).array()) a{}.push_back(x.{});".format(d, i, ArrayElementField[a]), file=inc)
             elif a[0].startswith("TYPE_ARRAY_") and a[1] == REF:
-                print >>inc, "    {} t{};".format(CppFromAstParam[a], i)
-                print >>inc, "    for (auto x: stack.peek({}).address()->array()) t{}.push_back(x.{});".format(d, i, ArrayElementField[a])
-                print >>inc, "    {} *a{} = &t{};".format(CppFromAstParam[a], i, i)
+                print("    {} t{};".format(CppFromAstParam[a], i), file=inc)
+                print("    for (auto x: stack.peek({}).address()->array()) t{}.push_back(x.{});".format(d, i, ArrayElementField[a]), file=inc)
+                print("    {} *a{} = &t{};".format(CppFromAstParam[a], i, i), file=inc)
             elif a[0].startswith("TYPE_ARRAY_") and a[1] == OUT:
-                print >>inc, "    {} t{};".format(CppFromAstParam[a], i)
-                print >>inc, "    {} *a{} = &t{};".format(CppFromAstParam[a], i, i)
+                print("    {} t{};".format(CppFromAstParam[a], i), file=inc)
+                print("    {} *a{} = &t{};".format(CppFromAstParam[a], i, i), file=inc)
                 from_stack = False
             elif a[0].startswith("TYPE_DICTIONARY_") and a[1] == VALUE:
-                print >>inc, "    {} a{};".format(CppFromAstParam[a], i)
-                print >>inc, "    for (auto x: stack.peek({}).dictionary()) a{}[x.first] = x.second.{};".format(d, i, ArrayElementField[a])
+                print("    {} a{};".format(CppFromAstParam[a], i), file=inc)
+                print("    for (auto x: stack.peek({}).dictionary()) a{}[x.first] = x.second.{};".format(d, i, ArrayElementField[a]), file=inc)
             elif a in [("TYPE_GENERIC", VALUE), ("TYPE_ARRAY", VALUE), ("TYPE_DICTIONARY", VALUE)]:
-                print >>inc, "    {} a{} = stack.peek({});".format(CppFromAstParam[a], i, d)
+                print("    {} a{} = stack.peek({});".format(CppFromAstParam[a], i, d), file=inc)
             elif a in [("TYPE_GENERIC", REF), ("TYPE_ARRAY", REF), ("TYPE_DICTIONARY", REF)]:
-                print >>inc, "    {} a{} = stack.peek({}).address();".format(CppFromAstParam[a], i, d)
+                print("    {} a{} = stack.peek({}).address();".format(CppFromAstParam[a], i, d), file=inc)
             elif a[1] == REF:
-                print >>inc, "    {} a{} = &stack.peek({}).{};".format(CppFromAstParam[a], i, d, CellField[a])
+                print("    {} a{} = &stack.peek({}).{};".format(CppFromAstParam[a], i, d, CellField[a]), file=inc)
             elif a[1] == OUT:
-                print >>inc, "    {} t{};".format(CppFromAstParam[a], i)
-                print >>inc, "    {} *a{} = &t{};".format(CppFromAstParam[a], i, i)
+                print("    {} t{};".format(CppFromAstParam[a], i), file=inc)
+                print("    {} *a{} = &t{};".format(CppFromAstParam[a], i, i), file=inc)
                 from_stack = False
             else:
-                print >>inc, "    {} a{} = stack.peek({}).{};".format(CppFromAstParam[a], i, d, CellField[a])
+                print("    {} a{} = stack.peek({}).{};".format(CppFromAstParam[a], i, d, CellField[a]), file=inc)
             if from_stack:
                 d += 1
         stack_count = sum(1 for x in params if x[1] != OUT)
         assert d == stack_count
-        print >>inc, "    try {"
-        print >>inc, "        {}reinterpret_cast<{} (*)({})>(func)({});".format("auto r = " if rtype[0] != "TYPE_NOTHING" else "", CppFromAstReturn[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
+        print("    try {", file=inc)
+        print("        {}reinterpret_cast<{} (*)({})>(func)({});".format("auto r = " if rtype[0] != "TYPE_NOTHING" else "", CppFromAstReturn[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params)))), file=inc)
         for i, a in reversed(list(enumerate(params))):
             d = len(params) - 1 - i
             if a[0].startswith("TYPE_ARRAY_") and a[1] == REF:
-                print >>inc, "        stack.peek({}).address()->array_for_write().clear();".format(d)
-                print >>inc, "        for (auto x: t{}) stack.peek({}).address()->array_for_write().push_back(Cell(x));".format(i, d)
+                print("        stack.peek({}).address()->array_for_write().clear();".format(d), file=inc)
+                print("        for (auto x: t{}) stack.peek({}).address()->array_for_write().push_back(Cell(x));".format(i, d), file=inc)
         if params:
-            print >>inc, "        stack.drop({});".format(stack_count)
+            print("        stack.drop({});".format(stack_count), file=inc)
         if rtype[0] != "TYPE_NOTHING":
             if rtype[0].startswith("TYPE_ARRAY_"):
-                print >>inc, "        std::vector<Cell> t;"
-                print >>inc, "        for (auto x: r) t.push_back(Cell(x));"
-                print >>inc, "        stack.push(Cell(t));"
+                print("        std::vector<Cell> t;", file=inc)
+                print("        for (auto x: r) t.push_back(Cell(x));", file=inc)
+                print("        stack.push(Cell(t));", file=inc)
             elif rtype[0].startswith("TYPE_DICTIONARY_"):
-                print >>inc, "        std::map<utf8string, Cell> t;"
-                print >>inc, "        for (auto x: r) t[x.first] = Cell(x.second);"
-                print >>inc, "        stack.push(Cell(t));"
+                print("        std::map<utf8string, Cell> t;", file=inc)
+                print("        for (auto x: r) t[x.first] = Cell(x.second);", file=inc)
+                print("        stack.push(Cell(t));", file=inc)
             elif rtype[0] == "TYPE_POINTER":
-                print >>inc, "        stack.push(Cell::makeOther(r));"
+                print("        stack.push(Cell::makeOther(r));", file=inc)
             else:
-                print >>inc, "        stack.push(Cell(r));"
+                print("        stack.push(Cell(r));", file=inc)
         for i, a in reversed(list(enumerate(params))):
             if a[1] == OUT:
                 if a[0].startswith("TYPE_ARRAY_"):
-                    print >>inc, "        std::vector<Cell> o{};".format(i)
-                    print >>inc, "        for (auto x: t{}) o{}.push_back(Cell(x));".format(i, i)
-                    print >>inc, "        stack.push(Cell(o{}));".format(i)
+                    print("        std::vector<Cell> o{};".format(i), file=inc)
+                    print("        for (auto x: t{}) o{}.push_back(Cell(x));".format(i, i), file=inc)
+                    print("        stack.push(Cell(o{}));".format(i), file=inc)
                 else:
-                    print >>inc, "        stack.push(Cell(t{}));".format(i)
-        print >>inc, "    } catch (RtlException &) {"
+                    print("        stack.push(Cell(t{}));".format(i), file=inc)
+        print("    } catch (RtlException &) {", file=inc)
         if params:
-            print >>inc, "        stack.drop({});".format(stack_count)
-        print >>inc, "        throw;"
-        print >>inc, "    }"
-        print >>inc, "}"
-        print >>inc, ""
+            print("        stack.drop({});".format(stack_count), file=inc)
+        print("        throw;", file=inc)
+        print("    }", file=inc)
+        print("}", file=inc)
+        print("", file=inc)
 
 with open("src/variables_compile.inc", "w") as inc:
-    print >>inc, "static void init_builtin_variables(const std::string &module, ast::Scope *scope)"
-    print >>inc, "{"
+    print("static void init_builtin_variables(const std::string &module, ast::Scope *scope)", file=inc)
+    print("{", file=inc)
     for name, atype in variables.values():
         i = name.index("$")
         module = name[:i]
         modname = name[i+1:]
-        print >>inc, "    if (module == \"{}\") scope->addName(Token(IDENTIFIER, \"{}\"), \"{}\", new ast::PredefinedVariable(\"{}\", {}));".format(module, modname, modname, name, atype)
-    print >>inc, "}"
+        print("    if (module == \"{}\") scope->addName(Token(IDENTIFIER, \"{}\"), \"{}\", new ast::PredefinedVariable(\"{}\", {}));".format(module, modname, modname, name, atype), file=inc)
+    print("}", file=inc)
 
 with open("src/variables_exec.inc", "w") as inc:
-    print >>inc, "namespace rtl {"
+    print("namespace rtl {", file=inc)
     for name, atype in variables.values():
         a = name.split("$")
-        print >>inc, "namespace ne_{} {{ extern Cell VAR_{}; }}".format(a[0], a[1])
-    print >>inc, "}"
-    print >>inc, "static struct {"
-    print >>inc, "    const char *name;"
-    print >>inc, "    Cell *value;"
-    print >>inc, "} BuiltinVariables[] = {"
+        print("namespace ne_{} {{ extern Cell VAR_{}; }}".format(a[0], a[1]), file=inc)
+    print("}", file=inc)
+    print("static struct {", file=inc)
+    print("    const char *name;", file=inc)
+    print("    Cell *value;", file=inc)
+    print("} BuiltinVariables[] = {", file=inc)
     for name, atype, in variables.values():
         a = name.split("$")
-        print >>inc, "    {{\"{}\", &rtl::ne_{}::VAR_{}}},".format(name, a[0], a[1])
-    print >>inc, "};"
+        print("    {{\"{}\", &rtl::ne_{}::VAR_{}}},".format(name, a[0], a[1]), file=inc)
+    print("};", file=inc)
 
 with open("src/functions_compile.inc", "w") as inc:
-    print >>inc, "struct PredefinedType {"
-    print >>inc, "    const ast::Type *type;"
-    print >>inc, "    const char *modtypename;"
-    print >>inc, "};"
-    print >>inc, "static struct {"
-    print >>inc, "    const char *name;"
-    print >>inc, "    PredefinedType returntype;"
-    print >>inc, "    bool exported;"
-    print >>inc, "    int count;"
-    print >>inc, "    struct {ast::ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];"
-    print >>inc, "    bool variadic;"
-    print >>inc, "}} BuiltinFunctions[{}];".format(len(functions))
-    print >>inc, "void init_builtin_functions() {"
+    print("struct PredefinedType {", file=inc)
+    print("    const ast::Type *type;", file=inc)
+    print("    const char *modtypename;", file=inc)
+    print("};", file=inc)
+    print("static struct {", file=inc)
+    print("    const char *name;", file=inc)
+    print("    PredefinedType returntype;", file=inc)
+    print("    bool exported;", file=inc)
+    print("    int count;", file=inc)
+    print("    struct {ast::ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];", file=inc)
+    print("    bool variadic;", file=inc)
+    print("}} BuiltinFunctions[{}];".format(len(functions)), file=inc)
+    print("void init_builtin_functions() {", file=inc)
     bfi = 0
     for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
-        print >>inc, "    BuiltinFunctions[{}] = {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}, {}}};".format(
+        print("    BuiltinFunctions[{}] = {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}, {}}};".format(
             bfi,
             name.replace("global$", ""),
             "ast::"+rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr",
@@ -446,33 +448,33 @@ with open("src/functions_compile.inc", "w") as inc:
             len(params),
             ",".join("{{ast::ParameterType::Mode::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, "ast::"+p if p not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames)),
             "true" if variadic else "false"
-        )
+        ), file=inc)
         bfi += 1
-    print >>inc, "}";
+    print("}", file=inc)
 
 with open("src/functions_compile_jvm.inc", "w") as inc:
-    print >>inc, "static struct {"
-    print >>inc, "    const char *name;"
-    print >>inc, "    const char *module;"
-    print >>inc, "    const char *function;"
-    print >>inc, "    const char *signature;"
-    print >>inc, "} FunctionSignatures[] = {"
+    print("static struct {", file=inc)
+    print("    const char *name;", file=inc)
+    print("    const char *module;", file=inc)
+    print("    const char *function;", file=inc)
+    print("    const char *signature;", file=inc)
+    print("} FunctionSignatures[] = {", file=inc)
     for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
         module, function = name.split("$")
         if function in [
             "int",
         ]:
             function += "_"
-        print >>inc, "    {{\"{}\", \"{}\", \"{}\", \"{}\"}},".format(
+        print("    {{\"{}\", \"{}\", \"{}\", \"{}\"}},".format(
             name.replace("global$", ""),
             "neon/{}".format(module.title()),
             function,
             "(" + "".join(JvmFromAst[(p, m)] for (p, m), t, n in zip(params, paramtypes, paramnames)) + ")" + ("[Ljava/lang/Object;" if any(x[1] == REF for x in params) else JvmFromAst[rtype])
-        )
-    print >>inc, "};"
+        ), file=inc)
+    print("};", file=inc)
 
 with open("src/functions_exec.inc", "w") as inc:
-    print >>inc, "namespace rtl {"
+    print("namespace rtl {", file=inc)
     cpp_name = {}
     for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
         assert "." not in name
@@ -483,33 +485,33 @@ with open("src/functions_exec.inc", "w") as inc:
         ] or a[0] in "curses":
             a[1] += "_"
         cpp_name[name] = "{}::{}".format(*a)
-        print >>inc, "namespace ne_{} {{ extern {} {}({}); }}".format(a[0], CppFromAstReturn[rtype], a[1], ", ".join(CppFromAstArg[x] for x in params))
-    print >>inc, "}"
-    print >>inc, "static struct {"
-    print >>inc, "    const char *name;"
-    print >>inc, "    Thunk thunk;"
-    print >>inc, "    void *func;"
-    print >>inc, "} BuiltinFunctions[] = {"
+        print("namespace ne_{} {{ extern {} {}({}); }}".format(a[0], CppFromAstReturn[rtype], a[1], ", ".join(CppFromAstArg[x] for x in params)), file=inc)
+    print("}", file=inc)
+    print("static struct {", file=inc)
+    print("    const char *name;", file=inc)
+    print("    Thunk thunk;", file=inc)
+    print("    void *func;", file=inc)
+    print("} BuiltinFunctions[] = {", file=inc)
     for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
-        print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::ne_{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name])
-    print >>inc, "};";
+        print("    {{\"{}\", {}, reinterpret_cast<void *>(rtl::ne_{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name]), file=inc)
+    print("};", file=inc)
 
 with open("src/enums.inc", "w") as inc:
     for name, values in enums.items():
         for i, v in enumerate(values):
-            print >>inc, "static const uint32_t ENUM_{}_{} = {};".format(name, v, i)
+            print("static const uint32_t ENUM_{}_{} = {};".format(name, v, i), file=inc)
 
 with open("src/exceptions.inc", "w") as inc:
-    print >>inc, "struct ExceptionName {"
-    print >>inc, "    const char *name;"
-    print >>inc, "};"
-    print >>inc, "namespace rtl {"
+    print("struct ExceptionName {", file=inc)
+    print("    const char *name;", file=inc)
+    print("};", file=inc)
+    print("namespace rtl {", file=inc)
     for prefix, name in exceptions:
-        print >>inc, "namespace ne_{} {{ static const ExceptionName Exception_{} = {{\"{}\"}}; }}".format(prefix[:-1], name.replace(".", "_"), name)
-    print >>inc
-    print >>inc, "static const ExceptionName ExceptionNames[] = {"
+        print("namespace ne_{} {{ static const ExceptionName Exception_{} = {{\"{}\"}}; }}".format(prefix[:-1], name.replace(".", "_"), name), file=inc)
+    print("", file=inc)
+    print("static const ExceptionName ExceptionNames[] = {", file=inc)
     for prefix, name in exceptions:
         if prefix == "global$":
-            print >>inc, "    ne_global::Exception_{},".format(name)
-    print >>inc, "};"
-    print >>inc, "}"
+            print("    ne_global::Exception_{},".format(name), file=inc)
+    print("};", file=inc)
+    print("}", file=inc)
