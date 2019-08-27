@@ -25,6 +25,11 @@ else:
 
 envcnex.Append(CPPPATH=[Dir(".")])
 
+test_number_to_string_c = envcnex.Program("test_number_to_string_c", [
+    "test_number_to_string.c",
+    "number.c",
+])
+
 rtl_c = ([
     "lib/binary.c",
     "lib/io.c",
@@ -51,5 +56,7 @@ cnex = envcnex.Program("cnex", [
     rtl_c,
 ],
 )
+
+envcnex.Command("tests_number", test_number_to_string_c, test_number_to_string_c[0].path)
 
 Return(["cnex"])
