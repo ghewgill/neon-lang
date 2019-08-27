@@ -16,7 +16,6 @@ else:
         "-std=c99",
         "-Wall",
         "-Werror",
-        "-D_POSIX_C_SOURCE=200112L",
     ])
     if "RELEASE" in envcnex and not envcnex["RELEASE"]:
         envcnex.Append(CFLAGS=[

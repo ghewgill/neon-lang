@@ -1,3 +1,6 @@
+#ifndef _WIN32
+#define _POSIX_C_SOURCE 200112L
+#endif
 #include "io.h"
 #include "enums.h"
 
