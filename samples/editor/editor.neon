@@ -7,10 +7,10 @@ IMPORT sys
 FUNCTION highlight(s: String): String
     VAR r: String := string.repeat(".", s.length())
     VAR i: Number := 0
-    LOOP
+    WHILE i < s.length() DO
         VAR m: regex.Match
         IF NOT regex.search(@@"([A-Z]+(?!\w))|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|0#[0-9]+#[0-9A-Za-z_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@\5@)|(%.*)"@@, s[i TO LAST], OUT m) THEN
-            EXIT LOOP
+            EXIT WHILE
         END IF
         VAR n: Number := 0
         VAR h: String := ""
@@ -30,11 +30,11 @@ FUNCTION highlight(s: String): String
             n := 6
             h := "c"
         ELSE
-            EXIT LOOP
+            EXIT WHILE
         END IF
         r[i+m[n].start TO i+m[n].end-1] := string.repeat(h, m[n].end-m[n].start)
         i := i + m[n].end
-    END LOOP
+    END WHILE
     RETURN r
 END FUNCTION
 
