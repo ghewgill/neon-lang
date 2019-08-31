@@ -11,6 +11,7 @@ EXPORT SeekBase
 EXPORT IoException
 
 EXPORT close
+EXPORT flush
 EXPORT open
 EXPORT readBytes
 EXPORT seek
@@ -104,6 +105,13 @@ DECLARE NATIVE VAR stderr: File
  |  Close a file.
  |%
 DECLARE NATIVE FUNCTION close(f: File)
+
+%|
+ |  Function: flush
+ |
+ |  Flush a file.
+ |%
+DECLARE NATIVE FUNCTION flush(f: File)
 
 %|
  |  Function: open

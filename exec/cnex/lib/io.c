@@ -77,6 +77,17 @@ void io_close(TExecutor *exec)
     pop(exec->stack);
 }
 
+void io_flush(TExecutor *exec)
+{
+    void *ppf = top(exec->stack)->object->ptr; pop(exec->stack);
+
+    FILE *f = check_file(exec, ppf);
+    if (f == NULL) {
+        return;
+    }
+    fflush(f);
+}
+
 void io_open(TExecutor *exec)
 {
     Number mode = top(exec->stack)->number; pop(exec->stack);

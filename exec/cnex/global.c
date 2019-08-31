@@ -74,6 +74,7 @@ TDispatch gfuncDispatch[] = {
 
     // io - InputOutput module
     PDFUNC("io$close",                  io_close),
+    PDFUNC("io$flush",                  io_flush),
     PDFUNC("io$open",                   io_open),
     PDFUNC("io$readBytes",              io_readBytes),
     PDFUNC("io$seek",                   io_seek),

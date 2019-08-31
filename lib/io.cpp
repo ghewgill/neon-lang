@@ -50,6 +50,12 @@ void close(const std::shared_ptr<Object> &pf)
     f->file = NULL;
 }
 
+void flush(const std::shared_ptr<Object> &pf)
+{
+    FileObject *f = check_file(pf);
+    fflush(f->file);
+}
+
 std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
 {
     const char *m;

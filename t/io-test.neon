@@ -12,5 +12,9 @@ print(io.readBytes(f, 5).decodeToString())
 %= MIT L
 print(str(io.tell(f)))
 %= 9
+io.close(f)
 
+f := io.open("tmp/io-test.tmp", io.Mode.write)
+io.write(f, "foo")
+io.flush(f)
 io.close(f)

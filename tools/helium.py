@@ -2775,6 +2775,9 @@ def neon_io_close(env, f):
     f.close()
     return (None, None)
 
+def neon_io_flush(env, f):
+    f.flush()
+
 def neon_io_fprint(env, f, s):
     print(s, file=f)
 
