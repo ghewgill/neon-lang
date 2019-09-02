@@ -19,8 +19,10 @@ git clone -b gh-pages . tmp-gh-pages
 rm -rf tmp-gh-pages/* $(ls -d tmp-gh-pages/.* | grep -v -E '/\.(\.|git)?$')
 
 # Copy generated documentation to temporary dir
-cp -r gh-pages/_site/ tmp-gh-pages/
-cp -r docs/_build/html/ tmp-gh-pages/docs/
+cp -r gh-pages/_site/. tmp-gh-pages/            # web site main pages
+cp -r docs/_build/html/. tmp-gh-pages/docs/     # sphinx language documentation
+cp -r gh-pages/html tmp-gh-pages/               # naturaldocs library
+cp -r gh-pages/samples tmp-gh-pages/            # naturaldocs samples
 
 # Remove .gitignore so we can sensibly commit generated files
 rm -f tmp-gh-pages/html/.gitignore tmp-gh-pages/samples/.gitignore
