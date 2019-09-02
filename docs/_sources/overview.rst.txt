@@ -49,6 +49,16 @@ Aggregate types are:
 - ``Array`` (arbitrary size vector)
 - ``Dictionary`` (map indexed by a ``String`` key)
 
+There is a dynamic ``Object`` type which can hold values of any of the concrete types.
+
+::
+
+    VAR x: Object
+    x := 5
+    print(str(x))
+    x := "hello"
+    print(x)
+
 Dynamic heap allocation is supported by a ``POINTER`` type.
 
 ::

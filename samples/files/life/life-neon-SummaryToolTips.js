@@ -1,1 +1,0 @@
-NDSummary.OnToolTipsLoaded("File:life/life.neon",{6:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Conway\'s Game of Life.</div></div>"});

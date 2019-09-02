@@ -125,6 +125,15 @@ Operator   Description
 ``NOT IN`` membership test (*O(log n)* complexity)
 ========== ===========
 
+Object Operator
+---------------
+
+======== ===========
+Operator Description
+======== ===========
+``ISA``  type test (``object ISA Type``)
+======== ===========
+
 Pointer Operator
 ----------------
 

@@ -1,1 +1,0 @@
-NDSummary.OnToolTipsLoaded("File:cal/cal.neon",{4:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Implementation of the Unix cal command.</div></div>"});

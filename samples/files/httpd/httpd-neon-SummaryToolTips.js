@@ -1,1 +1,0 @@
-NDSummary.OnToolTipsLoaded("File:httpd/httpd.neon",{7:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Implementation of a simple HTTP server.</div></div>"});

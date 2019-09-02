@@ -1,1 +1,0 @@
-NDSearch.OnPrefixDataLoaded("mak",["Function"],[["makePuzzle",,[[,,,,0,"File:sudoku/sudoku.neon:makePuzzle"]]],["makeSolution",,[[,,,,0,"File:sudoku/sudoku.neon:makeSolution"]]]]);

@@ -1,1 +1,0 @@
-NDSummary.OnToolTipsLoaded("File:mandelbrot/mandelbrot.neon",{8:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Mandelbrot set generator.</div></div>"});

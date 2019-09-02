@@ -1,1 +1,0 @@
-NDFramePage.OnPageTitleLoaded("File:samples.txt","samples.txt");NDSummary.OnSummaryLoaded("File:samples.txt",[["Text File","TextFile"]],[["Sections","Section"]],[[21,0,0,"Neon Samples","Neon_Samples"]]);

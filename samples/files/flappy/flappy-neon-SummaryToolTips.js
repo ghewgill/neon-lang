@@ -1,1 +1,0 @@
-NDSummary.OnToolTipsLoaded("File:flappy/flappy.neon",{1:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Implementation of a &quot;Flappy Bird&quot; clone.</div></div>"});
