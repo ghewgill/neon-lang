@@ -15,6 +15,12 @@ __attribute__((noreturn))
 #endif
 ;
 
-typedef enum { FALSE, TRUE } BOOL;
+typedef int BOOL;
+#ifndef FALSE
+#define FALSE 0
+#endif
+#ifndef TRUE
+#define TRUE (!FALSE)
+#endif
 
 #endif

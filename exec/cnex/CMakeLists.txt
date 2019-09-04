@@ -1,5 +1,22 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY .)
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    set(platform_cnex
+        lib/time_posix.c
+        lib/time_darwin.c
+    )
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+    set(platform_cnex
+        lib/time_posix.c
+        lib/time_linux.c
+    )
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    set(platform_cnex
+        lib/time_win32.c
+    )
+endif ()
+
+
 set(CNEX_RTL
     lib/binary.c
     lib/io.c
@@ -8,6 +25,7 @@ set(CNEX_RTL
     lib/runtime.c
     lib/sys.c
     lib/textio.c
+    ${platform_cnex}
 )
 
 add_executable(cnex
