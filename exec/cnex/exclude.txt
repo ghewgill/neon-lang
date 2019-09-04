@@ -61,8 +61,6 @@ string-bytes.neon          # Cell Type assertion
 string-escape.neon         # utf8
 string-test.neon           # string$find
 struct-test.neon           # DynamicConversionException
-time-stopwatch.neon        # time module
-time-test.neon             # time module
 unicode-char.neon          # unicode
 unicode-length.neon        # unicode
 varargs-functionpointer.neon # functionpointer

@@ -25,6 +25,7 @@
 #include "lib/runtime.h"
 #include "lib/sys.h"
 #include "lib/textio.h"
+#include "lib/time.h"
 
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
@@ -141,6 +142,10 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("textio$truncate",           textio_truncate),
     PDFUNC("textio$writeLine",          textio_writeLine),
 
+    // Time - Time services
+    PDFUNC("time$now",                  time_now),
+    PDFUNC("time$sleep",                time_sleep),
+    PDFUNC("time$tick",                 time_tick),
 
 
     // Global Functions::
@@ -245,6 +250,9 @@ void global_init(int argc, char *argv[], int iArgStart)
     VAR_textiostdin.type = cAddress;
     VAR_textiostdout.address = cell_fromObject(object_createFileObject(stdout));
     VAR_textiostdout.type = cAddress;
+
+    // Init the Time module
+    time_initModule();
 }
 
 void global_shutdown()

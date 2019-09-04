@@ -1,3 +1,6 @@
+from __future__ import print_function
+
+import os
 import sys
 
 Import(["env"])
@@ -45,6 +48,29 @@ rtl_c = ([
     "lib/sys.c",
     "lib/textio.c",
 ])
+
+if os.name == "posix":
+    rtl_c.extend([
+        "lib/time_posix.c",
+    ])
+    if sys.platform.startswith("darwin"):
+        rtl_c.extend([
+            "lib/time_darwin.c",
+        ])
+    elif sys.platform.startswith("linux"):
+        rtl_c.extend([
+            "lib/time_linux.c",
+        ])
+    else:
+        print("Unsupported platform:", sys.platform, file=sys.stderr)
+        sys.exit(1)
+elif os.name == "nt":
+    rtl_c.extend([
+        "lib/time_win32.c",
+    ])
+else:
+    print("Unsupported platform:", os.name, file=sys.stderr)
+    sys.exit(1)
 
 cnex = envcnex.Program("cnex", [
     "array.c",
