@@ -1,14 +1,8 @@
 bigint.neon                # gmp
-binary-test.neon           # exceptions in binary module
 cal-test.neon              # os.system
-check.neon                 # exceptions in binary module
 datetime-test.neon         # datetime
 debug-example.neon         # debugger
 debug-server.neon          # debugger
-encoding-base64.neon       # binary exceptions
-export-inline.neon         # export
-export-recursive.neon      # export
-export.neon                # export
 ffi.neon                   # ffi
 file-exists.neon           # file
 file-filecopied.neon       # file
@@ -28,19 +22,15 @@ gc3.neon                   # class
 import.neon                # CALLV
 interface.neon             # CALLV
 interface-multiple.neon    # CALLV
-interface-parameter-export.neon # export
-interface-parameter-export2.neon # export
-interface-parameter-import.neon # class
-interface-parameter-import2.neon # class
+interface-parameter-import.neon # unknown class name
+interface-parameter-import2.neon # CALLV
 literal-array.neon         # array__range
 mkdir.neon                 # file
 mmap-test.neon             # mmap
-module-load-order.neon     # module
 net-test.neon              # net
 net-test-udp.neon          # net
 new-init-module.neon       # class
 new-init.neon              # class
-object-record.neon         # EQA
 os-test.neon               # os
 outer-issue192.neon        # PUSHPOL
 outer-parameter.neon       # PUSHPOL
@@ -60,11 +50,9 @@ stack-overflow.neon        # call stack size
 string-bytes.neon          # Cell Type assertion
 string-escape.neon         # utf8
 string-test.neon           # string$find
-struct-test.neon           # DynamicConversionException
+struct-test.neon           # struct$packIEEE64
 unicode-char.neon          # unicode
 unicode-length.neon        # unicode
-varargs-functionpointer.neon # functionpointer
-while-valid.neon           # class
 win32-test.neon            # CALLE
 
 compress-test.neon         # module
