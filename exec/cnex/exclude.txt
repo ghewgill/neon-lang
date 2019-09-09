@@ -24,7 +24,6 @@ interface.neon             # CALLV
 interface-multiple.neon    # CALLV
 interface-parameter-import.neon # unknown class name
 interface-parameter-import2.neon # CALLV
-literal-array.neon         # array__range
 mkdir.neon                 # file
 mmap-test.neon             # mmap
 net-test.neon              # net

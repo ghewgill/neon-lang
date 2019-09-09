@@ -153,6 +153,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("array__append",             array__append),
     PDFUNC("array__concat",             array__concat),
     PDFUNC("array__extend",             array__extend),
+    PDFUNC("array__range",              array__range),
     PDFUNC("array__resize",             array__resize),
     PDFUNC("array__size",               array__size),
     PDFUNC("array__slice",              array__slice),
@@ -482,6 +483,32 @@ void array__extend(TExecutor *exec)
     }
     cell_freeCell(elements);
     pop(exec->stack);
+}
+
+void array__range(TExecutor *exec)
+{
+    Number step = top(exec->stack)->number; pop(exec->stack);
+    Number last = top(exec->stack)->number; pop(exec->stack);
+    Number first = top(exec->stack)->number; pop(exec->stack);
+
+    if (number_is_zero(step)) {
+        exec->rtl_raise(exec, "ValueRangeException", number_to_string(step), BID_ZERO);
+        return;
+    }
+
+    Cell *r = cell_createArrayCell(0);
+
+    if (number_is_negative(step)) {
+        for (Number i = first; number_is_greater_equal(i, last); i = number_add(i, step)) {
+            cell_arrayAppendElement(r, *cell_fromNumber(i));
+        }
+    } else {
+        for (Number i = first; number_is_less_equal(i, last); i = number_add(i, step)) {
+            cell_arrayAppendElement(r, *cell_fromNumber(i));
+        }
+    }
+
+    push(exec->stack, r);
 }
 
 void array__resize(TExecutor *exec)
