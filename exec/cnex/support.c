@@ -33,6 +33,8 @@ typedef struct tagTPath {
 // We only need to declare this once, in one location.
 static TPath *neon_paths;
 
+TExtenstions *g_libraries;
+
 static void path_pushPath(const char *source_path)
 {
     // Always start at the root...
@@ -127,6 +129,7 @@ void path_readModule(TModule *m)
     long nSize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
+    m->source_path = strdup(modulePath);
     m->code = malloc(nSize);
     if (m->code == NULL) {
         fatal_error("Could not allocate %d bytes for bytecode from %s module.", nSize, m->name);
@@ -146,6 +149,11 @@ FILE *path_findModule(const char *name, char *modulePath)
         // ToDo: Locate .neon*, files, and return full paths / handles to those as well.
         sprintf(filename, "%s/%s.neonx", next->path, name);
         r = fopen(filename, "rb");
+        // Locate possible Neon Extensions
+        if (r == NULL) {
+            sprintf(filename, "%s/%s/%s.neonx", next->path, name, name);
+            r = fopen(filename, "rb");
+        }
         if (r) {
             if (modulePath) {
                 strcpy(modulePath, filename);
@@ -216,4 +224,47 @@ char *path_getPathOnly(char *path)
     }
     r[e - path] = '\0';
     return r;
+}
+
+void ext_insertModule(const char *name, void *handle)
+{
+    if (g_libraries == NULL) {
+        g_libraries = malloc(sizeof(TExtenstions));
+        if (g_libraries == NULL) {
+            fatal_error("Could not allocate memory for global extension module pointers.");
+        }
+        g_libraries->modules = NULL;
+        g_libraries->size = 0;
+    }
+    g_libraries->size++;
+    g_libraries->modules = realloc(g_libraries->modules, sizeof(TExtensionModule) * g_libraries->size);
+    if (g_libraries->modules == NULL) {
+        fatal_error("Could not allocate memory for extension library \"%s\".", name);
+    }
+
+    g_libraries->modules->module = strdup(name);
+    g_libraries->modules->handle = handle;
+}
+
+TExtensionModule *ext_findModule(const char *name)
+{
+    if (g_libraries) {
+        for (int i = 0; i < g_libraries->size; i++) {
+            if (strcmp(g_libraries->modules[i].module, name) == 0) {
+                return &g_libraries->modules[i];
+            }
+        }
+    }
+    return NULL;
+}
+
+void ext_cleanup()
+{
+    if (g_libraries) {
+        for (int i = 0; i < sizeof(g_libraries->modules) / sizeof(TExtensionModule); i++) {
+            free(g_libraries->modules->module);
+        }
+        free(g_libraries->modules);
+        free(g_libraries);
+    }
 }

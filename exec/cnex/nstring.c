@@ -230,6 +230,17 @@ char *to_string(char *dest, size_t len, uint32_t val)
     return dest;
 }
 
+const char *string_ensureNullTerminated(TString *s)
+{
+    // This function ensures that the string is null terminated without adding to actual length of the string.
+    s->data = realloc(s->data, s->length + 1);
+    if (s->data == NULL) {
+        fatal_error("Could not null terminate string with %d bytes.", s->length + 1);
+    }
+    s->data[s->length] = '\0';
+    return s->data;
+}
+
 
 #ifdef __STRING_TESTS
 int main()

@@ -1,8 +1,21 @@
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#else
+// The following is needed for strdup on Posix platforms.
+#define _POSIX_C_SOURCE 200809L
+#endif
 #include "module.h"
 
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <io.h>
+#define strdup _strdup
+#else
+#include <unistd.h>
+#endif
 
 #include "bytecode.h"
 #include "cell.h"
@@ -58,6 +71,7 @@ TModule *module_loadNeonProgram(const char *neonxPath)
 
     TModule *pModule = module_newModule("");
 
+    pModule->source_path = strdup(neonxPath);
     pModule->code = malloc(nSize);
     if (pModule->code == NULL) {
         fatal_error("Could not allocate memory for neon bytecode.");
@@ -118,6 +132,7 @@ void module_freeModule(TModule *m)
     }
     free(m->globals);
     bytecode_freeBytecode(m->bytecode);
+    free(m->source_path);
     free(m->name);
     free(m->code);
     free(m);
