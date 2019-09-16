@@ -345,6 +345,7 @@ set_source_files_properties(
     PROPERTIES OBJECT_DEPENDS src/exceptions.inc
 )
 target_include_directories(executor
+    PRIVATE common
     PRIVATE src
     PRIVATE external/IntelRDFPMathLib20U1/LIBRARY/src
     PRIVATE external/lib/libffi-3.2.1/include

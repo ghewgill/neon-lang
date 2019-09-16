@@ -141,6 +141,7 @@ SConscript("external/SConscript-naturaldocs")
 buildenv = env.Clone()
 
 buildenv.Append(CPPPATH=[
+    Dir("common"),
     Dir("src"),
 ])
 if sys.platform == "win32":
