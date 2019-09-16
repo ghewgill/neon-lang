@@ -26,6 +26,7 @@ typedef struct tagTExecutor {
     struct tagTModule **modules;
     unsigned int *init_order;
     unsigned int init_count;
+    int exit_code;
 
     /* Debug / Diagnostic fields */
     struct {
@@ -36,8 +37,10 @@ typedef struct tagTExecutor {
     } diagnostics;
 } TExecutor;
 
-void exec_loop(struct tagTExecutor *self);
+int exec_loop(TExecutor *self, int64_t min_callstack_depth);
 int exec_run(struct tagTExecutor *self, BOOL enable_assert);
+
+void invoke(struct tagTExecutor *self, struct tagTModule *m, int index);
 
 void exec_rtl_raiseException(struct tagTExecutor *self, const char *name, const char *info, Number code);
 

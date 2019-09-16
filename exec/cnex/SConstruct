@@ -24,9 +24,12 @@ else:
         envcnex.Append(CFLAGS=[
             "-g",
         ])
-    envcnex.Append(LIBS="m")
+    envcnex.Append(LIBS=["m", "dl"])
 
-envcnex.Append(CPPPATH=[Dir(".")])
+envcnex.Append(CPPPATH=[
+    Dir("."),
+    Dir("../../common"),
+])
 
 test_number_to_string_c = envcnex.Program("test_number_to_string_c", [
     "test_number_to_string.c",
@@ -51,6 +54,7 @@ rtl_c = ([
 
 if os.name == "posix":
     rtl_c.extend([
+        "rtl_posix.c",
         "lib/time_posix.c",
     ])
     if sys.platform.startswith("darwin"):
@@ -66,6 +70,7 @@ if os.name == "posix":
         sys.exit(1)
 elif os.name == "nt":
     rtl_c.extend([
+        "rtl_win32.c",
         "lib/time_win32.c",
     ])
 else:
@@ -78,6 +83,7 @@ cnex = envcnex.Program("cnex", [
     "cell.c",
     "cnex.c",
     "dictionary.c",
+    "extension.c",
     "framestack.c",
     "global.c",
     "module.c",

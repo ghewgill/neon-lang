@@ -2,16 +2,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY .)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(platform_cnex
+        rtl_posix.c
         lib/time_posix.c
         lib/time_darwin.c
     )
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     set(platform_cnex
+        rtl_posix.c
         lib/time_posix.c
         lib/time_linux.c
     )
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     set(platform_cnex
+        rtl_win32.c
         lib/time_win32.c
     )
 endif ()
@@ -34,6 +37,7 @@ add_executable(cnex
     cell.c
     cnex.c
     dictionary.c
+    extension.c
     framestack.c
     global.c
     module.c
@@ -48,6 +52,7 @@ add_executable(cnex
 
 target_include_directories(cnex
     PRIVATE .
+    PRIVATE ../../common
 )
 
 add_executable(test_number_to_string_c
@@ -84,7 +89,7 @@ target_link_libraries(cnex
 
 if (WIN32)
 else (WIN32)
-    target_link_libraries(cnex m)
+    target_link_libraries(cnex m dl)
     target_link_libraries(test_number_to_string_c m)
     target_link_libraries(test_path_support m)
 endif (WIN32)

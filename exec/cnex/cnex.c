@@ -22,13 +22,26 @@
 #include "global.h"
 #include "framestack.h"
 #include "module.h"
+#include "neonext.h"
 #include "nstring.h"
 #include "number.h"
 #include "opcode.h"
+#include "rtl_platform.h"
 #include "stack.h"
 #include "support.h"
 #include "util.h"
 
+#ifdef _WIN32
+#define PATHSEP "\\"
+#define LIBRARY_NAME_PREFIX ""
+#else
+#define PATHSEP "/"
+#define LIBRARY_NAME_PREFIX "lib"
+#endif
+
+TExtensionModule *g_ExtensionModules;
+extern struct Ne_MethodTable ExtensionMethodTable;
+TExecutor *g_executor;
 
 void invoke(TExecutor *self, TModule *m, int index);
 
@@ -48,7 +61,9 @@ static TOptions gOptions = { FALSE, FALSE, TRUE, 0, NULL, NULL, NULL };
 void exec_freeExecutor(TExecutor *e)
 {
     // First, assert that we've emptied the stack during normal execution.
-    assert(isEmpty(e->stack));
+    if (e->exit_code == 0) {
+        assert(isEmpty(e->stack));
+    }
     destroyStack(e->stack);
     free(e->stack);
 
@@ -118,6 +133,7 @@ BOOL ParseOptions(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+    int ret = 0;
     gOptions.pszExecutableName = path_getFileNameOnly(argv[0]);
 
     if (!ParseOptions(argc, argv)) {
@@ -131,11 +147,11 @@ int main(int argc, char* argv[])
     if (pModule == NULL) {
         goto shutdown;
     }
-    TExecutor *exec = exec_newExecutor(pModule);
+    g_executor = exec_newExecutor(pModule);
 
-    exec->diagnostics.time_start = clock();
-    exec_run(exec, gOptions.EnableAssertions);
-    exec->diagnostics.time_end = clock();
+    g_executor->diagnostics.time_start = clock();
+    ret = exec_run(g_executor, gOptions.EnableAssertions);
+    g_executor->diagnostics.time_end = clock();
 
     if (gOptions.ExecutorDebugStats) {
         fprintf(stderr, "\n*** Neon C Executor Statistics ***\n----------------------------------\n"
@@ -147,26 +163,27 @@ int main(int argc, char* argv[])
                         "Global Size            : %" PRIu32 "\n"
                         "Max Framesets          : %d\n"
                         "Execution Time         : %fms\n",
-                        exec->diagnostics.total_opcodes,
-                        exec->stack->max + 1,
-                        exec->stack->top,
-                        exec->diagnostics.callstack_max_height + 1,
-                        exec->callstacktop,
-                        exec->module[0].bytecode->global_size,
-                        exec->framestack->max,
-                        (((float)exec->diagnostics.time_end - exec->diagnostics.time_start) / CLOCKS_PER_SEC) * 1000
+                        g_executor->diagnostics.total_opcodes,
+                        g_executor->stack->max + 1,
+                        g_executor->stack->top,
+                        g_executor->diagnostics.callstack_max_height + 1,
+                        g_executor->callstacktop,
+                        g_executor->module[0].bytecode->global_size,
+                        g_executor->framestack->max,
+                        (((float)g_executor->diagnostics.time_end - g_executor->diagnostics.time_start) / CLOCKS_PER_SEC) * 1000
         );
     }
 
-    exec_freeExecutor(exec);
+    exec_freeExecutor(g_executor);
 
 shutdown:
     global_shutdown();
     path_freePaths();
+    ext_cleanup();
 
     free(gOptions.pszExecutablePath);
 
-    return 0;
+    return ret;
 }
 
 int exec_run(TExecutor *self, BOOL enable_assert)
@@ -179,12 +196,12 @@ int exec_run(TExecutor *self, BOOL enable_assert)
         invoke(self, self->modules[self->init_order[(self->init_count - 1) - m]], 0);
     }
 
-    exec_loop(self);
+    int r = exec_loop(self, 0);
 
-    if (gOptions.ExecutorDebugStats) {
+    if (r == 0 && gOptions.ExecutorDebugStats) {
         assert(isEmpty(self->stack));
     }
-    return 0;
+    return r;
 }
 
 TExecutor *exec_newExecutor(TModule *object)
@@ -198,6 +215,7 @@ TExecutor *exec_newExecutor(TModule *object)
     r->stack = createStack(300);
     r->ip = 0;
     r->callstacktop = -1;
+    r->exit_code = 0;
     r->param_recursion_limit = 1000;
     r->enable_assert = TRUE;
     r->debug = gOptions.ExecutorDebugStats;
@@ -311,7 +329,10 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         sp -= 1;
     }
     fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
-    exit(1);
+    // ToDo: Initiate a stack dump here...
+
+    // Setting exit_code here will cause exec_loop to terminate and return this exit code.
+    self->exit_code = 1;
 }
 
 void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info, Number code)
@@ -1310,9 +1331,55 @@ void exec_JUMPTBL(TExecutor *self)
     }
 }
 
-void exec_CALLX(void)
+void exec_CALLX(TExecutor *self)
 {
-    fatal_error("exec_CALLX not implemented");
+    self->ip++;
+    uint32_t mod = exec_getOperand(self);
+    uint32_t name = exec_getOperand(self);
+    uint32_t out_param_count = exec_getOperand(self);
+
+    char modname[256];
+    snprintf(modname, 256, "%s/%sneon_%s", path_getPathOnly(self->module->source_path), LIBRARY_NAME_PREFIX, self->module->bytecode->strings[mod]->data);
+    TExtensionModule *exmod = ext_findModule(modname);
+    if (exmod == NULL) {
+        void_function_t init = rtl_foreign_function(self, modname, "Ne_INIT");
+        if (init == NULL) {
+            fatal_error("neon_exec: function Ne_INIT not found in %s\n", modname);
+        }
+        (init)(&ExtensionMethodTable);
+    }
+
+    // ToDo: Lookup function in array, based on the string number, rather than building the strig name each time.
+    void_function_t p;
+    char funcname[256];
+    snprintf(funcname, 256, "%s%s", "Ne_", self->module->bytecode->strings[name]->data);
+    p = rtl_foreign_function(self, modname, funcname);
+    if (p == NULL) {
+        fatal_error("neon_exec: function Ne_%s not found in %s\n", funcname, modname);
+    }
+    Ne_ExtensionFunction f = (Ne_ExtensionFunction)(p);
+    Cell *out_params = cell_createArrayCell(out_param_count);
+    Cell *retval = cell_newCell();
+    int r = (*f)((struct Ne_Cell*)retval, (struct Ne_ParameterList*)top(self->stack), (struct Ne_ParameterList*)out_params);
+    pop(self->stack);
+    switch (r) {
+        case Ne_SUCCESS: {
+            push(self->stack, retval);
+            for (size_t i = 0; i < out_params->array->size; i++) {
+                push(self->stack, cell_fromCell(&out_params->array->data[i]));
+            }
+            break;
+        }
+        case Ne_EXCEPTION: {
+            const char *exceptionname = string_ensureNullTerminated(retval->array->data[0].string);
+            const char *info = string_ensureNullTerminated(retval->array->data[1].string);
+            Number code = retval->array->data[2].number;
+            exec_rtl_raiseException(self, exceptionname, info, code);
+            break;
+        }
+        default:
+            fatal_error("neon: invalid return value %d from extension function %s.%s\n", r, modname, funcname);
+    }
 }
 
 void exec_SWAP(TExecutor *self)
@@ -1324,9 +1391,11 @@ void exec_SWAP(TExecutor *self)
     self->stack->data[top-1] = t;
 }
 
-void exec_DROPN(void)
+void exec_DROPN(TExecutor *self)
 {
-    fatal_error("exec_DROPN not implemented");
+    self->ip++;
+    uint32_t val = exec_getOperand(self);
+    drop(self->stack, val);
 }
 
 void exec_PUSHFP(TExecutor *self)
@@ -1382,9 +1451,9 @@ void invoke(TExecutor *self, TModule *m, int index)
     self->ip = self->module->bytecode->functions[index].entry;
 }
 
-void exec_loop(TExecutor *self)
+int exec_loop(TExecutor *self, int64_t min_callstack_depth)
 {
-    while (self->ip < self->module->bytecode->codelen) {
+    while ((self->callstacktop +1) > min_callstack_depth && self->ip < self->module->bytecode->codelen && self->exit_code == 0) {
         if (self->disassemble) { 
             fprintf(stderr, "mod:%s\tip: %d\top: %s\tst: %d\n", self->module->name, self->ip, sOpcode[self->module->bytecode->code[self->ip]], self->stack->top); 
         }
@@ -1485,9 +1554,9 @@ void exec_loop(TExecutor *self)
             case RESETC:  exec_RESETC(self); break;
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(self); break;
-            case CALLX:   exec_CALLX(); break;
+            case CALLX:   exec_CALLX(self); break;
             case SWAP:    exec_SWAP(self); break;
-            case DROPN:   exec_DROPN(); break;
+            case DROPN:   exec_DROPN(self); break;
             case PUSHFP:  exec_PUSHFP(self); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(self); break;
@@ -1496,4 +1565,5 @@ void exec_loop(TExecutor *self)
         }
         self->diagnostics.total_opcodes++;
     }
+    return self->exit_code;
 }

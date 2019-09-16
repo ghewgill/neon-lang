@@ -54,10 +54,6 @@ unicode-char.neon          # unicode
 unicode-length.neon        # unicode
 win32-test.neon            # CALLE
 
-compress-test.neon         # module
-extsample-test.neon        # module
-hash-test.neon             # assert
-http-test.neon             # module
-regex-test.neon            # module
-sodium-test.neon           # module
+http-test.neon             # os$spawn
+sodium-test.neon           # binary$shiftRight32() exception
 zeromq-test.neon           # module

@@ -48,4 +48,6 @@ char *string_asCString(TString *s);
 BOOL string_startsWith(TString *self, TString *s);
 size_t string_findChar(TString *self, char c);
 
+const char *string_ensureNullTerminated(TString *s);
+
 #endif

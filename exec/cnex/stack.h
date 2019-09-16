@@ -18,6 +18,8 @@ void push(TStack *stack, struct tagTCell *item);
 void pop(TStack *stack);
 struct tagTCell *top(TStack *stack);
 struct tagTCell *peek(TStack *stack, int element);
+void drop(TStack *stack, int element);
+void dump(TStack* stack);
 
 typedef struct tagTCallStack {
     struct {

@@ -6,6 +6,7 @@
 #include <limits.h>
 
 #include "cell.h"
+#include "nstring.h"
 #include "util.h"
 
 #define INITIAL_CALLSTACK       10
@@ -28,7 +29,9 @@ TStack *createStack(int capacity)
 
 void destroyStack(TStack *stack)
 {
-    assert(isEmpty(stack));
+    while (stack->top > 0) {
+        pop(stack);
+    }
 
     free(stack->data);
     stack->top = -1;
@@ -86,7 +89,37 @@ Cell *peek(TStack *stack, int element)
     return stack->data[stack->top - element];
 }
 
+void drop(TStack *stack, int element)
+{
+    if (element == 0) {
+        pop(stack);
+        return;
+    }
 
+    if (element > stack->top) {
+        fatal_error("Stack underflow error.");
+    }
+
+    Cell *p = stack->data[stack->top - element];
+    for (int i = stack->top - element; i < stack->top; i++) {
+        stack->data[i] = stack->data[i+1];
+    }
+    // Clear that stack element.  Not critical, but; proper.
+    stack->data[stack->top--] = NULL;
+    cell_freeCell(p);
+}
+
+void dump(TStack* stack)
+{
+    int x = 0;
+    for (;;) {
+        if (isEmpty(stack)) break;
+        Cell *i = top(stack);
+        fprintf(stderr, "Stack #%d - %s\n", x++, TCSTR(cell_toString(i)));
+        pop(stack);
+    }
+
+}
 
 
 
