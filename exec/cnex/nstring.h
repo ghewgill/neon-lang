@@ -29,6 +29,7 @@ void string_clearString(TString *s);
 
 TString *string_createCString(const char *s);
 TString *string_createString(size_t length);
+TString *string_createStringFromData(void *data, size_t len);
 
 int string_compareString(TString *lhs, TString *rhs);
 BOOL string_isEmpty(TString *s);
@@ -47,6 +48,15 @@ char *string_asCString(TString *s);
 
 BOOL string_startsWith(TString *self, TString *s);
 size_t string_findChar(TString *self, char c);
+int64_t string_findString(TString *self, size_t pos, TString *p);
+int64_t string_findFirstOf(TString *self, size_t pos, TString *p);
+int64_t string_findFirstNotOf(TString *self, size_t pos, TString *p);
+int64_t string_findLastNotOf(TString *self, TString *p);
+
+TString *string_subString(TString *s, int64_t pos, int64_t count);
+
+TString *string_toLowerCase(TString *s);
+TString *string_toUpperCase(TString *s);
 
 const char *string_ensureNullTerminated(TString *s);
 

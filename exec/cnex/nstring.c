@@ -1,13 +1,13 @@
 #include "nstring.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "cell.h"
 #include "util.h"
 
 TString *string_createCString(const char *s)
@@ -22,8 +22,22 @@ TString *string_createString(size_t length)
     c->length = length;
     c->data = malloc(c->length);
     if (c->data == NULL) {
-        fatal_error("Could not allocate memory (0x%08X bytes) for requested new string.", length);
+        fatal_error("Could not allocate %d bytes for requested new string.", length);
     }
+    return c;
+}
+
+TString *string_createStringFromData(void *data, size_t len)
+{
+    TString *c = string_newString();
+
+    c->length = len;
+    c->data = malloc(c->length);
+    if (c->data == NULL) {
+        fatal_error("Could not allocate %d bytes for new data string.", len);
+    }
+    memcpy(c->data, data, len);
+
     return c;
 }
 
@@ -67,7 +81,7 @@ TString *string_copyString(TString *s)
     if (s->data) {
         r->data = malloc(s->length);
         if (r->data == NULL) {
-            fatal_error("Unable to allocate requested string length of 0x%08X bytes to copy string to.", s->length);
+            fatal_error("Unable to allocate requested string length of %d bytes to copy string to.", s->length);
         }
         memcpy(r->data, s->data, s->length);
         r->length = s->length;
@@ -208,6 +222,101 @@ size_t string_findChar(TString *self, char c)
     return NPOS;
 }
 
+static inline BOOL isNotOneOf(TString *self, char c)
+{
+    for (size_t i = 0; i < self->length; i++) {
+        if (self->data[i] == c) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+int64_t string_findFirstOf(TString *self, size_t pos, TString *p)
+{
+    if (self->data == NULL || self->length == 0 || pos > self->length) {
+        return -1;
+    }
+    if (p == NULL || p->data == NULL || p->length == 0) {
+        return -1;
+    }
+
+
+    for (size_t l = pos; l < self->length; l++) {
+        if (isNotOneOf(p, self->data[l]) == FALSE) {
+            return l;
+        }
+    }
+    return -1;
+}
+
+int64_t string_findFirstNotOf(TString *self, size_t pos, TString *p)
+{
+    if (self->data == NULL || self->length == 0 || p == NULL || p->data == NULL || pos > self->length) {
+        return -1;
+    }
+
+    // If a string of no chars is passed, should we return 0, or -1?  Technically, we didn't find anything,
+    // so the first char we didn't find would be 0.
+    if (p->length == 0) {
+        return 0;
+    }
+
+    for (size_t l = pos; l < self->length; l++) {
+        if (isNotOneOf(p, self->data[l])) {
+            return l;
+        }
+    }
+    return -1;
+}
+
+int64_t string_findLastNotOf(TString *self, TString *p)
+{
+    if (self->data == NULL || self->length == 0) {
+        return -1;
+    }
+
+    if (p == NULL || p->data == NULL || p->length == 0) {
+        return self->length;
+    }
+
+    for (size_t l = self->length; l > 0; l--) {
+        if (isNotOneOf(p, self->data[l-1])) {
+            return l;
+        }
+    }
+    return -1;
+}
+
+int64_t string_findString(TString *self, size_t pos, TString *p)
+{
+    if (p == NULL || p->data == NULL || p->length == 0) {
+        return -1;
+    }
+    if (self == NULL || self->data == NULL || self->length == 0) {
+        return -1;
+    }
+    if (pos > self->length || p->length > self->length || p->length + pos > self->length) {
+        return -1;
+    }
+
+    for (size_t i = pos; i < ((self->length - p->length) + 1); i++) {
+        if (self->data[i] == p->data[0]) {
+            BOOL bFound = TRUE;
+            for (size_t n = 1; n < p->length - 1; n++) {
+                if (self->data[i+n] != p->data[n]) {
+                    bFound = FALSE;
+                    break;
+                }
+            }
+            if (bFound) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
 char *tprintf(char *dest, TString *s)
 {
     if (s == NULL) {
@@ -241,22 +350,43 @@ const char *string_ensureNullTerminated(TString *s)
     return s->data;
 }
 
-
-#ifdef __STRING_TESTS
-int main()
+// NOTE:  The following functions return NEW string objects from existing strings.
+// Return the middle part of a string, starting at pos, for count number of bytes.
+TString *string_subString(TString *s, int64_t pos, int64_t count)
 {
-    TString *s1 = string_createCString("This is String #1's Data.");
-    TString *s2 = string_createCString("This is String #2's Data.");
-    TString *foo = string_createCString("foo");
-    TString *bar = string_createCString("bar");
-    TString *foobar = string_createCString("foo.bar");
+    int64_t newLen = count;
+    int64_t startAt = pos;
 
-    if (string_startsWith(foobar, foo)) {
-        printf("%s starts with %s\n", string_asCString(foobar), string_asCString(foo));
+    if ((size_t)(pos + count) > s->length) {
+        newLen = s->length;
     }
-    if (string_startsWith(foobar, bar)) {
-        printf("%s starts with %s\n", string_asCString(foobar), string_asCString(foo));
+    if ((size_t)startAt > s->length) {
+        startAt = 0;
     }
-    return 0;
+
+    TString *r = string_createStringFromData(&s->data[startAt], newLen);
+
+    return r;
 }
-#endif
+
+TString *string_toLowerCase(TString *s)
+{
+    TString *r = string_createString(s->length);
+
+    for (size_t i = 0; i < s->length; i++) {
+        r->data[i] = (char)tolower(s->data[i]);
+    }
+
+    return r;
+}
+
+TString *string_toUpperCase(TString *s)
+{
+    TString *r = string_createString(s->length);
+
+    for (size_t i = 0; i < s->length; i++) {
+        r->data[i] = (char)toupper(s->data[i]);
+    }
+
+    return r;
+}
