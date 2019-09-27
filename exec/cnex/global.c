@@ -23,6 +23,7 @@
 #include "lib/math.h"
 #include "lib/random.h"
 #include "lib/runtime.h"
+#include "lib/string.h"
 #include "lib/sys.h"
 #include "lib/textio.h"
 #include "lib/time.h"
@@ -130,10 +131,18 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("runtime$executorName",      runtime_executorName),
     PDFUNC("runtime$moduleIsMain",      runtime_moduleIsMain),
 
-    // System - System level calls
+    // string - string module functions
+    PDFUNC("string$find",               string_find),
+    PDFUNC("string$lower",              string_lower),
+    PDFUNC("string$split",              string_split),
+    PDFUNC("string$splitLines",         string_splitLines),
+    PDFUNC("string$trimCharacters",     string_trimCharacters),
+    PDFUNC("string$upper",              string_upper),
+
+    // sys - System level calls
     PDFUNC("sys$exit",                  sys_exit),
 
-    // Textio - Text file modules
+    // Textio - Text file functions
     PDFUNC("textio$close",              textio_close),
     PDFUNC("textio$open",               textio_open),
     PDFUNC("textio$readLine",           textio_readLine),

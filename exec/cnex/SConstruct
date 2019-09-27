@@ -42,12 +42,19 @@ test_path_support = envcnex.Program("test_path_support", [
     "util.c",
 ])
 
+test_string_support_c = envcnex.Program("test_string_support", [
+    "test_string_support.c",
+    "nstring.c",
+    "util.c",
+])
+
 rtl_c = ([
     "lib/binary.c",
     "lib/io.c",
     "lib/math.c",
     "lib/random.c",
     "lib/runtime.c",
+    "lib/string.c",
     "lib/sys.c",
     "lib/textio.c",
 ])
@@ -99,5 +106,6 @@ cnex = envcnex.Program("cnex", [
 
 envcnex.Command("tests_number", test_number_to_string_c, test_number_to_string_c[0].path)
 envcnex.Command("tests_paths", test_path_support, test_path_support[0].path)
+envcnex.Command("test_string_support_c", test_string_support_c, test_string_support_c[0].path)
 
 Return(["cnex"])

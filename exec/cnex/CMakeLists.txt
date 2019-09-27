@@ -26,6 +26,7 @@ set(CNEX_RTL
     lib/math.c
     lib/random.c
     lib/runtime.c
+    lib/string.c
     lib/sys.c
     lib/textio.c
     ${platform_cnex}
@@ -55,6 +56,16 @@ target_include_directories(cnex
     PRIVATE ../../common
 )
 
+add_executable(test_string_support
+    test_string_support.c
+    nstring.c
+    util.c
+)
+add_test(
+    NAME test_string_support
+    COMMAND test_string_support
+)
+
 add_executable(test_number_to_string_c
     test_number_to_string.c
     number.c
@@ -79,6 +90,7 @@ add_test(
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
+    set_target_properties(test_string_support PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
     set_target_properties(test_number_to_string_c PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
     set_target_properties(test_path_support PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
 endif ()
@@ -90,6 +102,7 @@ target_link_libraries(cnex
 if (WIN32)
 else (WIN32)
     target_link_libraries(cnex m dl)
+    target_link_libraries(test_string_support m)
     target_link_libraries(test_number_to_string_c m)
     target_link_libraries(test_path_support m)
 endif (WIN32)
