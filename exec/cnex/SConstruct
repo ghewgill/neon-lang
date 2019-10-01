@@ -52,6 +52,7 @@ rtl_c = ([
     "lib/binary.c",
     "lib/datetime.c",
     "lib/io.c",
+    "lib/file.c",
     "lib/math.c",
     "lib/net.c",
     "lib/os.c",
@@ -66,6 +67,7 @@ rtl_c = ([
 if os.name == "posix":
     rtl_c.extend([
         "rtl_posix.c",
+        "lib/file_posix.c",
         "lib/os_posix.c",
         "lib/process_posix.c",
         "lib/time_posix.c",
@@ -84,6 +86,7 @@ if os.name == "posix":
 elif os.name == "nt":
     rtl_c.extend([
         "rtl_win32.c",
+        "lib/file_win32.c",
         "lib/os_win32.c",
         "lib/process_win32.c",
         "lib/time_win32.c",

@@ -21,6 +21,7 @@
 #include "lib/binary.h"
 #include "lib/datetime.h"
 #include "lib/io.h"
+#include "lib/file.h"
 #include "lib/math.h"
 #include "lib/net.h"
 #include "lib/os.h"
@@ -82,6 +83,24 @@ TDispatch gfuncDispatch[] = {
     // datetime - Date/Time module
     PDFUNC("datetime$gmtime",           datetime_gmtime),
     PDFUNC("datetime$timegm",           datetime_timegm),
+
+    // file - File Module
+    PDFUNC("file$_CONSTANT_Separator",  file_CONSTANT_Separator),
+    PDFUNC("file$copy",                 file_copy),
+    PDFUNC("file$copyOverwriteIfExists",file_copyOverwriteIfExists),
+    PDFUNC("file$delete",               file_delete),
+    PDFUNC("file$exists",               file_exists),
+    PDFUNC("file$files",                file_files),
+    PDFUNC("file$getInfo",              file_getInfo),
+    PDFUNC("file$isDirectory",          file_isDirectory),
+    PDFUNC("file$mkdir",                file_mkdir),
+    PDFUNC("file$readBytes",            file_readBytes),
+    PDFUNC("file$readLines",            file_readLines),
+    PDFUNC("file$removeEmptyDirectory", file_removeEmptyDirectory),
+    PDFUNC("file$rename",               file_rename),
+    PDFUNC("file$symlink",              file_symlink),
+    PDFUNC("file$writeBytes",           file_writeBytes),
+    PDFUNC("file$writeLines",           file_writeLines),
 
     // io - InputOutput module
     PDFUNC("io$close",                  io_close),

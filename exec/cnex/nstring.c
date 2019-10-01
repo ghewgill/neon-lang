@@ -221,6 +221,37 @@ BOOL string_startsWith(TString *self, TString *s)
     return TRUE;
 }
 
+BOOL string_endsWithNoCase(TString *self, TString *s)
+{
+    size_t i, si;
+    if (self->length < s->length) {
+        return FALSE;  // Can't possibly END with s, if self isn't even large enough to contain s.
+    }
+
+    for (si = 0, i = self->length - s->length; i < self->length; si++, i++) {
+        if (tolower(self->data[i]) != tolower(s->data[si])) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+BOOL string_endsWith(TString *self, TString *s)
+{
+    size_t i, si;
+    if (self->length < s->length) {
+        return FALSE;  // Can't possibly END with s, if self isn't even large enough to contain s.
+    }
+
+    for (si = 0, i = self->length - s->length; i < self->length; si++, i++) {
+        if (self->data[i] != s->data[si]) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
 size_t string_findChar(TString *self, char c)
 {
     size_t i;
@@ -228,6 +259,19 @@ size_t string_findChar(TString *self, char c)
     for (i = 0; i < self->length; i++) {
         if (self->data[i] == c) {
             return i;
+        }
+    }
+
+    return NPOS;
+}
+
+size_t string_findCharRev(TString *self, char c)
+{
+    size_t i;
+
+    for (i = self->length; i > 0; i--) {
+        if (self->data[i-1] == c) {
+            return i-1;
         }
     }
 

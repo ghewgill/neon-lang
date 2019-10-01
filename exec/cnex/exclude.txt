@@ -1,15 +1,6 @@
 bigint.neon                # gmp
 debug-example.neon         # debugger
 debug-server.neon          # debugger
-file-exists.neon           # file
-file-filecopied.neon       # file
-file-filecopied1.neon      # file
-file-filecopied2.neon      # file
-file-filecopied3.neon      # file
-file-symlink.neon          # file
-file-test.neon             # file
-file-writebytes.neon       # file
-file-writelines.neon       # file
 fork.neon                  # posix
 gc-array.neon              # class
 gc-long-chain.neon         # class
@@ -21,7 +12,6 @@ interface.neon             # CALLV
 interface-multiple.neon    # CALLV
 interface-parameter-import.neon # unknown class name
 interface-parameter-import2.neon # CALLV
-mkdir.neon                 # file
 mmap-test.neon             # mmap
 new-init-module.neon       # class
 new-init.neon              # class
