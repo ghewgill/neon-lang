@@ -48,7 +48,11 @@ void string_resizeString(TString *s, size_t n);
 char *string_asCString(TString *s);
 
 BOOL string_startsWith(TString *self, TString *s);
+BOOL string_endsWithNoCase(TString *self, TString *s);
+BOOL string_endsWith(TString *self, TString *s);
 size_t string_findChar(TString *self, char c);
+size_t string_findCharRev(TString *self, char c);
+
 int64_t string_findString(TString *self, size_t pos, TString *p);
 int64_t string_findFirstOf(TString *self, size_t pos, TString *p);
 int64_t string_findFirstNotOf(TString *self, size_t pos, TString *p);

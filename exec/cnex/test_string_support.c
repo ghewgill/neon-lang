@@ -78,6 +78,10 @@ int main()
     int64_t last = string_findLastNotOf(s3, ts);
     TString *r = string_subString(s3, first, last - first);
     assert(string_compareString(r, string_createCString("This is String#3's Data.\t\r\n")) == 0);
+    // Test Find operations
+    assert(string_findCharRev(foobar, '.') == 3);
+    assert(string_findCharRev(s2, ' ') == 19);
+    assert(string_findCharRev(foobar, '/') == NPOS);
 
     return 0;
 }

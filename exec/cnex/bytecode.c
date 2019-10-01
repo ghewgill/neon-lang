@@ -129,7 +129,7 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
         b->export_types[f].name = get_vint(bytecode, len, &i);
         b->export_types[f].descriptor = get_vint(bytecode, len, &i);
     }
- 
+
     b->constantsize = get_vint(bytecode, len, &i);
     b->export_constants = malloc(sizeof(Constant) * b->constantsize);
     if (b->export_constants == NULL) {
