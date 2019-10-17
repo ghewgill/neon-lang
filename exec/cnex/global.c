@@ -706,10 +706,13 @@ void boolean__toString(TExecutor *exec)
 
 void bytes__decodeToString(TExecutor *exec)
 {
-    /* ToDo: handle UTF8 String
-     * ToDo: Remove the following line once implemented.  Only used to prevent compiler warning.
-     */
-    assert(exec != NULL);
+    // ToDo: handle UTF8 Strings
+    TString *s = top(exec->stack)->string;
+
+    Cell *r = cell_fromCString(string_ensureNullTerminated(s));
+
+    pop(exec->stack);
+    push(exec->stack, r);
 }
 
 void bytes__range(TExecutor *exec)
