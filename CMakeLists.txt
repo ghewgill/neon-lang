@@ -572,7 +572,11 @@ endif (WIN32)
 add_custom_command(
     OUTPUT src/errors.txt
     COMMAND python tools/helium.py scripts/extract_errors.neon
-    DEPENDS src/*.cpp
+    DEPENDS src/lexer.cpp
+    DEPENDS src/parser.cpp
+    DEPENDS src/analyzer.cpp
+    DEPENDS src/sql.cpp
+    DEPENDS src/ast.cpp
 )
 add_custom_target(errors_txt ALL
     DEPENDS src/errors.txt
