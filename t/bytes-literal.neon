@@ -3,6 +3,10 @@ text := HEXBYTES "de ad be ef"
 print("\(text.toArray())")
 %= [222, 173, 190, 239]
 
+text := HEXBYTES "01 23 45 67 89 AB CD EF"
+print("\(text.toArray())")
+%= [1, 35, 69, 103, 137, 171, 205, 239]
+
 text := HEXBYTES "1 2 3 4"
 print("\(text.toArray())")
 %= [1, 2, 3, 4]

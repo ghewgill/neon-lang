@@ -1622,7 +1622,7 @@ class Parser:
         elif t is HEXBYTES:
             self.i += 1
             assert isinstance(self.tokens[self.i], String)
-            b = bytes([int(x, 16) for x in re.findall(r"[0-9a-z]{1,2}", self.tokens[self.i].value)])
+            b = bytes([int(x, 16) for x in re.findall(r"[0-9a-z]{1,2}", self.tokens[self.i].value.lower())])
             self.i += 1
             return StringLiteralExpression(b)
         elif t is PLUS:
