@@ -39,19 +39,17 @@ public:
 class SqlValueLiteral: public SqlValue {
 public:
     explicit SqlValueLiteral(const std::string &value): value(value) {}
+    SqlValueLiteral(const SqlValueLiteral &) = delete;
+    SqlValueLiteral &operator=(const SqlValueLiteral &) = delete;
     const std::string value;
-private:
-    SqlValueLiteral(const SqlValueLiteral &);
-    SqlValueLiteral &operator=(const SqlValueLiteral &);
 };
 
 class SqlValueVariable: public SqlValue {
 public:
     explicit SqlValueVariable(const Token &variable): variable(variable) {}
+    SqlValueVariable(const SqlValueVariable &) = delete;
+    SqlValueVariable &operator=(const SqlValueVariable &) = delete;
     const Token variable;
-private:
-    SqlValueVariable(const SqlValueVariable &);
-    SqlValueVariable &operator=(const SqlValueVariable &);
 };
 
 class SqlIdentifier {
@@ -63,21 +61,19 @@ public:
 class SqlIdentifierSymbol: public SqlIdentifier {
 public:
     explicit SqlIdentifierSymbol(const std::string &ident): ident(ident) {}
+    SqlIdentifierSymbol(const SqlIdentifierSymbol &) = delete;
+    SqlIdentifierSymbol &operator=(const SqlIdentifierSymbol &) = delete;
     virtual std::string text() const override { return ident; }
     const std::string ident;
-private:
-    SqlIdentifierSymbol(const SqlIdentifierSymbol &);
-    SqlIdentifierSymbol &operator=(const SqlIdentifierSymbol &);
 };
 
 class SqlIdentifierVariable: public SqlIdentifier {
 public:
     explicit SqlIdentifierVariable(const Token &variable): variable(variable) {}
+    SqlIdentifierVariable(const SqlIdentifierVariable &) = delete;
+    SqlIdentifierVariable &operator=(const SqlIdentifierVariable &) = delete;
     virtual std::string text() const override { return ":" + variable.text; }
     const Token variable;
-private:
-    SqlIdentifierVariable(const SqlIdentifierVariable &);
-    SqlIdentifierVariable &operator=(const SqlIdentifierVariable &);
 };
 
 class SqlStatement {
@@ -163,20 +159,18 @@ public:
 class SqlWheneverStatement: public SqlStatement {
 public:
     SqlWheneverStatement(SqlWheneverCondition condition, SqlWheneverAction action): condition(condition), action(action) {}
+    SqlWheneverStatement(const SqlWheneverStatement &) = delete;
+    SqlWheneverStatement &operator=(const SqlWheneverStatement &) = delete;
     const SqlWheneverCondition condition;
     const SqlWheneverAction action;
-private:
-    SqlWheneverStatement(const SqlWheneverStatement &);
-    SqlWheneverStatement &operator=(const SqlWheneverStatement &);
 };
 
 class SqlQueryStatement: public SqlStatement {
 public:
     explicit SqlQueryStatement(const std::string &query): query(query) {}
+    SqlQueryStatement(const SqlQueryStatement &) = delete;
+    SqlQueryStatement &operator=(const SqlQueryStatement &) = delete;
     const std::string query;
-private:
-    SqlQueryStatement(const SqlQueryStatement &);
-    SqlQueryStatement &operator=(const SqlQueryStatement &);
 };
 
 class SqlStatementInfo {

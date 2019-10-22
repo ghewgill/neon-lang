@@ -194,13 +194,12 @@ static Cell unmarshal_pointer(void *p)
 class ActivationFrame {
 public:
     ActivationFrame(uint32_t nesting_depth, ActivationFrame *outer, size_t count, size_t opstack_depth): nesting_depth(nesting_depth), outer(outer), locals(count), opstack_depth(opstack_depth) {}
+    ActivationFrame(const ActivationFrame &) = delete;
+    ActivationFrame &operator=(const ActivationFrame &) = delete;
     uint32_t nesting_depth;
     ActivationFrame *outer;
     std::vector<Cell> locals;
     size_t opstack_depth;
-private:
-    ActivationFrame(const ActivationFrame &);
-    ActivationFrame &operator=(const ActivationFrame &);
 };
 
 // The fields here must match the declaration of
@@ -220,6 +219,8 @@ class Executor;
 class Module {
 public:
     Module(const std::string &name, const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support);
+    Module(const Module &) = delete;
+    Module &operator=(const Module &) = delete;
     const std::string name;
     Bytecode object;
     const DebugInfo *debug;
@@ -228,14 +229,13 @@ public:
     std::vector<std::pair<bool, Number>> number_table;
     std::vector<ForeignCallInfo *> foreign_functions;
     std::map<std::pair<std::string, std::string>, std::pair<Module *, int>> module_functions;
-private:
-    Module(const Module &);
-    Module &operator=(const Module &);
 };
 
 class Executor: public IHttpServerHandler {
 public:
     Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, std::map<std::string, Cell *> *external_globals);
+    Executor(const Executor &) = delete;
+    Executor &operator=(const Executor &) = delete;
     virtual ~Executor();
 
     // Module: debugger
@@ -397,9 +397,6 @@ public:
     virtual void handle_POST(const std::string &path, const std::string &data, HttpResponse &response);
 
     friend class Module;
-private:
-    Executor(const Executor &);
-    Executor &operator=(const Executor &);
 };
 
 const char *Executor::DebuggerStateName[] = {

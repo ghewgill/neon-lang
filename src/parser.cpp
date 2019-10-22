@@ -14,6 +14,8 @@ using namespace pt;
 class Parser {
 public:
     explicit Parser(const TokenizedSource &tokens);
+    Parser(const Parser &) = delete;
+    Parser &operator=(const Parser &) = delete;
 
     TokenizedSource source;
     const std::vector<Token> tokens;
@@ -82,23 +84,20 @@ public:
     std::unique_ptr<Program> parse();
 private:
     std::vector<std::unique_ptr<TypeRecord::Field>> parseFields();
-    Parser(const Parser &);
-    Parser &operator=(const Parser &);
 
     class TemporaryMinimumIndent {
     public:
         TemporaryMinimumIndent(Parser *parser, size_t indent): parser(parser), old_indent(parser->minimum_column) {
             parser->minimum_column = indent;
         }
+        TemporaryMinimumIndent(const TemporaryMinimumIndent &) = delete;
+        TemporaryMinimumIndent &operator=(const TemporaryMinimumIndent &) = delete;
         ~TemporaryMinimumIndent() {
             parser->minimum_column = old_indent;
         }
     private:
         Parser *parser;
         const size_t old_indent;
-    private:
-        TemporaryMinimumIndent(const TemporaryMinimumIndent &);
-        TemporaryMinimumIndent &operator=(const TemporaryMinimumIndent &);
     };
 };
 

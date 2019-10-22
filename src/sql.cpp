@@ -85,6 +85,8 @@ public:
     {
         update_current();
     }
+    Lexer(const Lexer &) = delete;
+    Lexer &operator=(const Lexer &) = delete;
 
     std::string::size_type position()
     {
@@ -247,14 +249,13 @@ public:
         this_token.column = token.column + current_index;
         this_token.text = statement.substr(current_index, index);
     }
-private:
-    Lexer(const Lexer &);
-    Lexer &operator=(const Lexer &);
 };
 
 class Parser {
 public:
     explicit Parser(Lexer &lexer): lexer(lexer), assignments(), parameters() {}
+    Parser(const Parser &) = delete;
+    Parser &operator=(const Parser &) = delete;
     Lexer &lexer;
     std::vector<::Token> assignments;
     std::vector<::Token> parameters;
@@ -663,9 +664,6 @@ public:
                 return std::unique_ptr<SqlStatement> { new SqlQueryStatement(query) };
         }
     }
-private:
-    Parser(const Parser &);
-    Parser &operator=(const Parser &);
 };
 
 } // namespace sql

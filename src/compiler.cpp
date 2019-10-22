@@ -50,6 +50,8 @@ public:
     };
 public:
     Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions({FunctionInfo("", Label())}), function_exit(), current_function_depth(), stack_depth(0), in_jumptbl(false), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
+    Emitter(const Emitter &) = delete;
+    Emitter &operator=(const Emitter &) = delete;
     void emit_byte(unsigned char b);
     void emit(Opcode b);
     void emit_uint32(uint32_t value);
@@ -107,9 +109,6 @@ private:
     DebugInfo *debug_info;
 public:
     std::map<const ast::PredefinedFunction *, int> predefined_name_index;
-private:
-    Emitter(const Emitter &);
-    Emitter &operator=(const Emitter &);
 };
 
 void Emitter::emit_byte(unsigned char b)

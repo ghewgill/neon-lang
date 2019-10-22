@@ -8,14 +8,13 @@
 class CompilerError {
 public:
     CompilerError(const std::string &compiler_file, int compiler_line, const std::string &message): compiler_file(compiler_file), compiler_line(compiler_line), message(message) {}
+    CompilerError &operator=(const CompilerError &) = delete;
     virtual ~CompilerError() {}
     virtual void write(std::ostream &out) = 0;
     virtual void write_json(std::ostream &out) = 0;
     const std::string compiler_file;
     const int compiler_line;
     const std::string message;
-private:
-    CompilerError &operator=(const CompilerError &);
 };
 
 class InternalError: public CompilerError {

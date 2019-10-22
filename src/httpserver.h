@@ -25,13 +25,12 @@ class HttpServerImpl;
 class HttpServer {
 public:
     HttpServer(unsigned short port, IHttpServerHandler *handler);
+    HttpServer(const HttpServer &) = delete;
+    HttpServer &operator=(const HttpServer &) = delete;
     ~HttpServer();
     void service(bool wait);
 private:
     HttpServerImpl *impl;
-private:
-    HttpServer(const HttpServer &);
-    HttpServer &operator=(const HttpServer &);
 };
 
 #endif

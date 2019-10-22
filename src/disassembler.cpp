@@ -883,6 +883,8 @@ void InstructionDisassembler::disassemble()
 class Disassembler {
 public:
     Disassembler(std::ostream &out, const Bytecode::Bytes &bytes, const DebugInfo *debug);
+    Disassembler(const Disassembler &) = delete;
+    Disassembler &operator=(const Disassembler &) = delete;
     void disassemble();
 private:
     std::ostream &out;
@@ -891,9 +893,6 @@ private:
     Bytecode::Bytes::size_type index;
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
-private:
-    Disassembler(const Disassembler &);
-    Disassembler &operator=(const Disassembler &);
 };
 
 Disassembler::Disassembler(std::ostream &out, const Bytecode::Bytes &bytes, const DebugInfo *debug)

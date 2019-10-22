@@ -148,14 +148,13 @@ public:
 class AstNode {
 public:
     AstNode() {}
+    AstNode(const AstNode &) = delete;
+    AstNode &operator=(const AstNode &) = delete;
     virtual ~AstNode() {}
     virtual void accept(IAstVisitor *visitor) const = 0;
     void dump(std::ostream &out, int depth = 0) const;
     virtual std::string text() const = 0;
     virtual void dumpsubnodes(std::ostream &/*out*/, int /*depth*/) const {}
-private:
-    AstNode(const AstNode &);
-    AstNode &operator=(const AstNode &);
 };
 
 class Name;
@@ -171,6 +170,8 @@ class Statement;
 class Frame {
 public:
     explicit Frame(Frame *outer): outer(outer), predeclared(false), slots() {}
+    Frame(const Frame &) = delete;
+    Frame &operator=(const Frame &) = delete;
     virtual ~Frame() {}
 
     virtual void predeclare(Emitter &emitter);
@@ -209,9 +210,6 @@ protected:
     Frame *const outer;
     bool predeclared;
     std::vector<Slot> slots;
-private:
-    Frame(const Frame &);
-    Frame &operator=(const Frame &);
 };
 
 class ExternalGlobalInfo {
@@ -264,6 +262,8 @@ public:
             sql_whenever[x] = parent != nullptr ? parent->sql_whenever[x] : SqlWheneverAction::Continue;
         }
     }
+    Scope(const Scope &) = delete;
+    Scope &operator=(const Scope &) = delete;
     virtual ~Scope() {}
 
     bool allocateName(const Token &token, const std::string &name);
@@ -282,9 +282,6 @@ public:
 private:
     std::map<std::string, int> names;
     std::map<std::string, std::vector<TypePointer *>> forwards;
-private:
-    Scope(const Scope &);
-    Scope &operator=(const Scope &);
 };
 
 class ExternalGlobalScope: public Scope {
@@ -295,6 +292,8 @@ public:
 class Name: public AstNode {
 public:
     Name(const Token &declaration, const std::string &name, const Type *type): declaration(declaration), name(name), type(type) {}
+    Name(const Name &) = delete;
+    Name &operator=(const Name &) = delete;
     const Token declaration;
     const std::string name;
     const Type *type;
@@ -304,9 +303,6 @@ public:
     virtual void postdeclare(Emitter &) const {}
 
     virtual void generate_export(Emitter &emitter, const std::string &name) const = 0;
-private:
-    Name(const Name &);
-    Name &operator=(const Name &);
 };
 
 class Type: public Name {
@@ -481,20 +477,21 @@ public:
         OUT
     };
     ParameterType(const Token &declaration, Mode mode, const Type *type, const Expression *default_value): declaration(declaration), mode(mode), type(type), default_value(default_value) {}
+    ParameterType(const ParameterType &) = delete;
+    ParameterType &operator=(const ParameterType &) = delete;
     const Token declaration;
     const Mode mode;
     const Type *type;
     const Expression *default_value;
 
     std::string text() const { return std::string("ParameterType(mode=") + (mode == Mode::IN ? "IN" : mode == Mode::INOUT ? "OUT" : mode == Mode::OUT ? "OUT" : "unknown") + ",type=" + (type != nullptr ? type->text() : "none") + ")"; }
-private:
-    ParameterType(const ParameterType &);
-    ParameterType &operator=(const ParameterType &);
 };
 
 class TypeFunction: public Type {
 public:
     TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params, bool variadic): Type(Token(), "function"), returntype(returntype), params(params), variadic(variadic) {}
+    TypeFunction(const TypeFunction &) = delete;
+    TypeFunction &operator=(const TypeFunction &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual const Expression *make_default_value() const override { internal_error("TypeFunction"); }
@@ -527,14 +524,13 @@ public:
         }
         return r + ")";
     }
-private:
-    TypeFunction(const TypeFunction &);
-    TypeFunction &operator=(const TypeFunction &);
 };
 
 class TypeArray: public Type {
 public:
     TypeArray(const Token &declaration, const Type *elementtype);
+    TypeArray(const TypeArray &) = delete;
+    TypeArray &operator=(const TypeArray &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Type *elementtype;
 
@@ -552,9 +548,6 @@ public:
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeArray(" + (elementtype != nullptr ? elementtype->text() : "any") + ")"; }
-private:
-    TypeArray(const TypeArray &);
-    TypeArray &operator=(const TypeArray &);
 };
 
 extern TypeArray *TYPE_ARRAY_NUMBER;
@@ -571,6 +564,8 @@ public:
 class TypeDictionary: public Type {
 public:
     TypeDictionary(const Token &declaration, const Type *elementtype);
+    TypeDictionary(const TypeDictionary &) = delete;
+    TypeDictionary &operator=(const TypeDictionary &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Type *elementtype;
 
@@ -588,9 +583,6 @@ public:
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeDictionary(" + (elementtype != nullptr ? elementtype->text() : "any") + ")"; }
-private:
-    TypeDictionary(const TypeDictionary &);
-    TypeDictionary &operator=(const TypeDictionary &);
 };
 
 extern TypeDictionary *TYPE_DICTIONARY_STRING;
@@ -672,6 +664,8 @@ public:
 class TypePointer: public Type {
 public:
     TypePointer(const Token &declaration, const TypeClass *reftype);
+    TypePointer(const TypePointer &) = delete;
+    TypePointer &operator=(const TypePointer &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const TypeClass *reftype;
@@ -689,9 +683,6 @@ public:
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypePointer(" + (reftype != nullptr ? reftype->text() : "any") + ")"; }
-private:
-    TypePointer(const TypePointer &);
-    TypePointer &operator=(const TypePointer &);
 };
 
 class TypePointerNil: public TypePointer {
@@ -710,6 +701,8 @@ public:
 class TypeInterfacePointer: public Type {
 public:
     TypeInterfacePointer(const Token &declaration, const Interface *interface);
+    TypeInterfacePointer(const TypeInterfacePointer &) = delete;
+    TypeInterfacePointer &operator=(const TypeInterfacePointer &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Interface *interface;
@@ -726,9 +719,6 @@ public:
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override;
-private:
-    TypeInterfacePointer(const TypeInterfacePointer &);
-    TypeInterfacePointer &operator=(const TypeInterfacePointer &);
 };
 
 class TypeValidInterfacePointer: public TypeInterfacePointer {
@@ -742,6 +732,8 @@ public:
 class TypeFunctionPointer: public Type {
 public:
     TypeFunctionPointer(const Token &declaration, const TypeFunction *functype);
+    TypeFunctionPointer(const TypeFunctionPointer &) = delete;
+    TypeFunctionPointer &operator=(const TypeFunctionPointer &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const TypeFunction *functype;
@@ -758,9 +750,6 @@ public:
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeFunctionPointer(" + (functype != nullptr ? functype->text() : "nowhere") + ")"; }
-private:
-    TypeFunctionPointer(const TypeFunctionPointer &);
-    TypeFunctionPointer &operator=(const TypeFunctionPointer &);
 };
 
 class TypeFunctionPointerNowhere: public TypeFunctionPointer {
@@ -920,6 +909,8 @@ public:
 class LocalVariable: public Variable {
 public:
     LocalVariable(const Token &declaration, const std::string &name, const Type *type, size_t nesting_depth, bool is_readonly): Variable(declaration, name, type, is_readonly), nesting_depth(nesting_depth), index(-1) {}
+    LocalVariable(const LocalVariable &) = delete;
+    LocalVariable &operator=(const LocalVariable &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const size_t nesting_depth;
     int index;
@@ -929,14 +920,13 @@ public:
     virtual void generate_address(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "LocalVariable(" + name + ", " + type->text() + ")"; }
-private:
-    LocalVariable(const LocalVariable &);
-    LocalVariable &operator=(const LocalVariable &);
 };
 
 class FunctionParameter: public LocalVariable {
 public:
     FunctionParameter(const Token &declaration, const std::string &name, const Type *type, size_t nesting_depth, ParameterType::Mode mode, const Expression *default_value): LocalVariable(declaration, name, type, nesting_depth, mode == ParameterType::Mode::IN), mode(mode), default_value(default_value) {}
+    FunctionParameter(const FunctionParameter &) = delete;
+    FunctionParameter &operator=(const FunctionParameter &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     ParameterType::Mode mode;
     const Expression *default_value;
@@ -944,42 +934,39 @@ public:
     virtual void generate_address(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "FunctionParameter(" + name + ", " + type->text() + ")"; }
-private:
-    FunctionParameter(const FunctionParameter &);
-    FunctionParameter &operator=(const FunctionParameter &);
 };
 
 class Exception: public Name {
 public:
     Exception(const Token &declaration, const std::string &name): Name(declaration, name, TYPE_EXCEPTION), subexceptions() {}
+    Exception(const Exception &) = delete;
+    Exception &operator=(const Exception &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     std::map<std::string, Exception *> subexceptions;
 
     virtual std::string text() const override { return "Exception(" + name + ")"; }
-private:
-    Exception(const Exception &);
-    Exception &operator=(const Exception &);
 };
 
 class Interface: public Name {
 public:
     Interface(const Token &declaration, const std::string &name, const std::vector<std::pair<Token, const TypeFunction *>> &methods): Name(declaration, name, TYPE_INTERFACE), methods(methods) {}
+    Interface(const Interface &) = delete;
+    Interface &operator=(const Interface &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     const std::vector<std::pair<Token, const TypeFunction *>> methods;
 
     virtual std::string text() const override { return "Interface(" + name + ")"; }
-private:
-    Interface(const Interface &);
-    Interface &operator=(const Interface &);
 };
 
 class Expression: public AstNode {
 public:
     Expression(const Type *type, bool is_constant, bool is_readonly = true): type(type), is_constant(is_constant), is_readonly(is_readonly) {}
+    Expression(const Expression &) = delete;
+    Expression &operator=(const Expression &) = delete;
 
     bool eval_boolean(const Token &token) const;
     Number eval_number(const Token &token) const;
@@ -1017,14 +1004,13 @@ protected:
     friend class BytesComparisonExpression;
     friend class ConstantExpression;
     friend class FunctionCall;
-private:
-    Expression(const Expression &);
-    Expression &operator=(const Expression &);
 };
 
 class Constant: public Name {
 public:
     Constant(const Token &declaration, const std::string &name, const Expression *value): Name(declaration, name, value->type), value(value) {}
+    Constant(const Constant &) = delete;
+    Constant &operator=(const Constant &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *value;
@@ -1032,9 +1018,6 @@ public:
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual std::string text() const override { return "Constant(" + name + ", " + value->text() + ")"; }
-private:
-    Constant(const Constant &);
-    Constant &operator=(const Constant &);
 };
 
 class ConstantBooleanExpression: public Expression {
@@ -1142,6 +1125,8 @@ public:
 class TypeConversionExpression: public Expression {
 public:
     TypeConversionExpression(const Type *type, const Expression *expr): Expression(type, expr->is_constant), expr(expr) {}
+    TypeConversionExpression(const TypeConversionExpression &) = delete;
+    TypeConversionExpression &operator=(const TypeConversionExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr;
@@ -1152,14 +1137,13 @@ public:
     virtual void generate_expr(Emitter &) const override;
 
     virtual std::string text() const override { return "TypeConversionExpression(" + expr->text() + ")"; }
-private:
-    TypeConversionExpression(const TypeConversionExpression &);
-    TypeConversionExpression &operator=(const TypeConversionExpression &);
 };
 
 class ArrayLiteralExpression: public Expression {
 public:
     ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements, const std::vector<Token> &elementtokens): Expression(new TypeArrayLiteral(Token(), elementtype, elements, elementtokens), all_constant(elements)), elementtype(elementtype), elements(elements) {}
+    ArrayLiteralExpression(const ArrayLiteralExpression &) = delete;
+    ArrayLiteralExpression &operator=(const ArrayLiteralExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Type *elementtype;
@@ -1172,15 +1156,14 @@ public:
 
     virtual std::string text() const override { return "ArrayLiteralExpression(...)"; }
 private:
-    ArrayLiteralExpression(const ArrayLiteralExpression &);
-    ArrayLiteralExpression &operator=(const ArrayLiteralExpression &);
-
     static bool all_constant(const std::vector<const Expression *> &elements);
 };
 
 class DictionaryLiteralExpression: public Expression {
 public:
     DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<utf8string, const Expression *>> &elements, const std::vector<Token> &elementtokens): Expression(new TypeDictionaryLiteral(Token(), elementtype, elements, elementtokens), all_constant(elements)), elementtype(elementtype), dict(make_dictionary(elements)) {}
+    DictionaryLiteralExpression(const DictionaryLiteralExpression &) = delete;
+    DictionaryLiteralExpression &operator=(const DictionaryLiteralExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Type *elementtype;
@@ -1193,9 +1176,6 @@ public:
 
     virtual std::string text() const override { return "DictionaryLiteralExpression(...)"; }
 private:
-    DictionaryLiteralExpression(const DictionaryLiteralExpression &);
-    DictionaryLiteralExpression &operator=(const DictionaryLiteralExpression &);
-
     static bool all_constant(const std::vector<std::pair<utf8string, const Expression *>> &elements);
     static std::map<utf8string, const Expression *> make_dictionary(const std::vector<std::pair<utf8string, const Expression *>> &elements);
 };
@@ -1207,6 +1187,8 @@ public:
             internal_error("RecordLiteralExpression: unexpected null type");
         }
     }
+    RecordLiteralExpression(const RecordLiteralExpression &) = delete;
+    RecordLiteralExpression &operator=(const RecordLiteralExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Expression *> values;
@@ -1218,26 +1200,24 @@ public:
 
     virtual std::string text() const override { return "RecordLiteralExpression(...)"; }
 private:
-    RecordLiteralExpression(const RecordLiteralExpression &);
-    RecordLiteralExpression &operator=(const RecordLiteralExpression &);
-
     static bool all_constant(const std::vector<const Expression *> &values);
 };
 
 class ClassLiteralExpression: public RecordLiteralExpression {
 public:
     ClassLiteralExpression(const TypeClass *type, const std::vector<const Expression *> &values): RecordLiteralExpression(type, values) {}
+    ClassLiteralExpression(const ClassLiteralExpression &) = delete;
+    ClassLiteralExpression &operator=(const ClassLiteralExpression &) = delete;
     virtual void generate_expr(Emitter &) const override;
 
     virtual std::string text() const override { return "ClassLiteralExpression(...)"; }
-private:
-    ClassLiteralExpression(const ClassLiteralExpression &);
-    ClassLiteralExpression &operator=(const ClassLiteralExpression &);
 };
 
 class NewClassExpression: public Expression {
 public:
     NewClassExpression(const TypeClass *reftype, const Expression *value): Expression(new TypeValidPointer(Token(), reftype), false), reftype(reftype), value(value) {}
+    NewClassExpression(const NewClassExpression &) = delete;
+    NewClassExpression &operator=(const NewClassExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const TypeClass *reftype;
@@ -1249,9 +1229,6 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "NewClassExpression(" + type->text() + ")"; }
-private:
-    NewClassExpression(const NewClassExpression &);
-    NewClassExpression &operator=(const NewClassExpression &);
 };
 
 class UnaryMinusExpression: public Expression {
@@ -1261,6 +1238,8 @@ public:
             internal_error("UnaryMinusExpression");
         }
     }
+    UnaryMinusExpression(const UnaryMinusExpression &) = delete;
+    UnaryMinusExpression &operator=(const UnaryMinusExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const value;
@@ -1273,9 +1252,6 @@ public:
     virtual std::string text() const override {
         return "UnaryMinusExpression(" + value->text() + ")";
     }
-private:
-    UnaryMinusExpression(const UnaryMinusExpression &);
-    UnaryMinusExpression &operator=(const UnaryMinusExpression &);
 };
 
 class LogicalNotExpression: public Expression {
@@ -1285,6 +1261,8 @@ public:
             internal_error("LogicalNotExpression");
         }
     }
+    LogicalNotExpression(const LogicalNotExpression &) = delete;
+    LogicalNotExpression &operator=(const LogicalNotExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const value;
@@ -1297,9 +1275,6 @@ public:
     virtual std::string text() const override {
         return "LogicalNotExpression(" + value->text() + ")";
     }
-private:
-    LogicalNotExpression(const LogicalNotExpression &);
-    LogicalNotExpression &operator=(const LogicalNotExpression &);
 };
 
 class ConditionalExpression: public Expression {
@@ -1309,6 +1284,8 @@ public:
             internal_error("ConditionalExpression");
         }
     }
+    ConditionalExpression(const ConditionalExpression &) = delete;
+    ConditionalExpression &operator=(const ConditionalExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *condition;
@@ -1323,9 +1300,6 @@ public:
     virtual std::string text() const override {
         return "ConditionalExpression(" + condition->text() + "," + left->text() + "," + right->text() + ")";
     }
-private:
-    ConditionalExpression(const ConditionalExpression &);
-    ConditionalExpression &operator=(const ConditionalExpression &);
 };
 
 class TryTrap {
@@ -1349,6 +1323,8 @@ public:
 class TryExpression: public Expression {
 public:
     TryExpression(const Expression *expr, const std::vector<TryTrap> &catches): Expression(expr->type, false), expr(expr), catches(catches) {}
+    TryExpression(const TryExpression &) = delete;
+    TryExpression &operator=(const TryExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr;
@@ -1362,9 +1338,6 @@ public:
     virtual std::string text() const override {
         return "TryExpression(" + expr->text() + ")";
     }
-private:
-    TryExpression(const TryExpression &);
-    TryExpression &operator=(const TryExpression &);
 };
 
 class DisjunctionExpression: public Expression {
@@ -1374,6 +1347,8 @@ public:
             internal_error("DisjunctionExpression");
         }
     }
+    DisjunctionExpression(const DisjunctionExpression &) = delete;
+    DisjunctionExpression &operator=(const DisjunctionExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
@@ -1387,9 +1362,6 @@ public:
     virtual std::string text() const override {
         return "DisjunctionExpression(" + left->text() + "," + right->text() + ")";
     }
-private:
-    DisjunctionExpression(const DisjunctionExpression &);
-    DisjunctionExpression &operator=(const DisjunctionExpression &);
 };
 
 class ConjunctionExpression: public Expression {
@@ -1399,6 +1371,8 @@ public:
             internal_error("ConjunctionExpression");
         }
     }
+    ConjunctionExpression(const ConjunctionExpression &) = delete;
+    ConjunctionExpression &operator=(const ConjunctionExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
@@ -1412,14 +1386,13 @@ public:
     virtual std::string text() const override {
         return "ConjunctionExpression(" + left->text() + "," + right->text() + ")";
     }
-private:
-    ConjunctionExpression(const ConjunctionExpression &);
-    ConjunctionExpression &operator=(const ConjunctionExpression &);
 };
 
 class TypeTestExpression: public Expression {
 public:
     TypeTestExpression(const Expression *expr_before_conversion, const Expression *expr_after_conversion): Expression(TYPE_BOOLEAN, expr_before_conversion->type != TYPE_OBJECT), expr_before_conversion(expr_before_conversion), expr_after_conversion(expr_after_conversion) {}
+    TypeTestExpression(const TypeTestExpression &) = delete;
+    TypeTestExpression &operator=(const TypeTestExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr_before_conversion;
@@ -1431,14 +1404,13 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "TypeTestExpression(" + expr_before_conversion->text() + ", " + expr_after_conversion->text() + ")"; }
-private:
-    TypeTestExpression(const TypeTestExpression &);
-    TypeTestExpression &operator=(const TypeTestExpression &);
 };
 
 class ArrayInExpression: public Expression {
 public:
     ArrayInExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, false), left(left), right(right) {}
+    ArrayInExpression(const ArrayInExpression &) = delete;
+    ArrayInExpression &operator=(const ArrayInExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *left;
@@ -1450,14 +1422,13 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ArrayInExpression(" + left->text() + ", " + right->text() + ")"; }
-private:
-    ArrayInExpression(const ArrayInExpression &);
-    ArrayInExpression &operator=(const ArrayInExpression &);
 };
 
 class DictionaryInExpression: public Expression {
 public:
     DictionaryInExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, false), left(left), right(right) {}
+    DictionaryInExpression(const DictionaryInExpression &) = delete;
+    DictionaryInExpression &operator=(const DictionaryInExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *left;
@@ -1469,9 +1440,6 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "DictionaryInExpression(" + left->text() + ", " + right->text() + ")"; }
-private:
-    DictionaryInExpression(const DictionaryInExpression &);
-    DictionaryInExpression &operator=(const DictionaryInExpression &);
 };
 
 class ComparisonExpression: public Expression {
@@ -1491,6 +1459,8 @@ public:
         return "(undefined)";
     }
     ComparisonExpression(const Type *operand_type, const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), operand_type(operand_type), left(left), right(right), comp(comp) {}
+    ComparisonExpression(const ComparisonExpression &) = delete;
+    ComparisonExpression &operator=(const ComparisonExpression &) = delete;
 
     const Type *const operand_type;
     const Expression *const left;
@@ -1499,14 +1469,13 @@ public:
 
     virtual void generate_expr(Emitter &emitter) const override;
     virtual void generate_comparison_opcode(Emitter &emitter) const = 0;
-private:
-    ComparisonExpression(const ComparisonExpression &);
-    ComparisonExpression &operator=(const ComparisonExpression &);
 };
 
 class ChainedComparisonExpression: public Expression {
 public:
     explicit ChainedComparisonExpression(const std::vector<const ComparisonExpression *> &comps): Expression(TYPE_BOOLEAN, false), comps(comps) {}
+    ChainedComparisonExpression(const ChainedComparisonExpression &) = delete;
+    ChainedComparisonExpression &operator=(const ChainedComparisonExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const ComparisonExpression *> comps;
@@ -1517,9 +1486,6 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ChainedComparisonExpression(...)"; }
-private:
-    ChainedComparisonExpression(const ChainedComparisonExpression &);
-    ChainedComparisonExpression &operator=(const ChainedComparisonExpression &);
 };
 
 class BooleanComparisonExpression: public ComparisonExpression {
@@ -1660,6 +1626,8 @@ public:
 class ValidPointerExpression: public PointerComparisonExpression {
 public:
     ValidPointerExpression(const Variable *var, const Expression *ptr): PointerComparisonExpression(ptr, new ConstantNilExpression(), ComparisonExpression::Comparison::NE), var(var) {}
+    ValidPointerExpression(const ValidPointerExpression &) = delete;
+    ValidPointerExpression &operator=(const ValidPointerExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Variable *var;
@@ -1669,9 +1637,6 @@ public:
     virtual std::string text() const override {
         return "ValidPointerExpression(" + left->text() + ")";
     }
-private:
-    ValidPointerExpression(const ValidPointerExpression &);
-    ValidPointerExpression &operator=(const ValidPointerExpression &);
 };
 
 class FunctionPointerComparisonExpression: public ComparisonExpression {
@@ -1696,6 +1661,8 @@ public:
             internal_error("AdditionExpression");
         }
     }
+    AdditionExpression(const AdditionExpression &) = delete;
+    AdditionExpression &operator=(const AdditionExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
@@ -1709,9 +1676,6 @@ public:
     virtual std::string text() const override {
         return "AdditionExpression(" + left->text() + "," + right->text() + ")";
     }
-private:
-    AdditionExpression(const AdditionExpression &);
-    AdditionExpression &operator=(const AdditionExpression &);
 };
 
 class SubtractionExpression: public Expression {
@@ -1721,6 +1685,8 @@ public:
             internal_error("SubtractionExpression");
         }
     }
+    SubtractionExpression(const SubtractionExpression &) = delete;
+    SubtractionExpression &operator=(const SubtractionExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
@@ -1734,9 +1700,6 @@ public:
     virtual std::string text() const override {
         return "SubtractionExpression(" + left->text() + "," + right->text() + ")";
     }
-private:
-    SubtractionExpression(const SubtractionExpression &);
-    SubtractionExpression &operator=(const SubtractionExpression &);
 };
 
 class MultiplicationExpression: public Expression {
@@ -1746,6 +1709,8 @@ public:
             internal_error("MultiplicationExpression");
         }
     }
+    MultiplicationExpression(const MultiplicationExpression &) = delete;
+    MultiplicationExpression &operator=(const MultiplicationExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
@@ -1759,9 +1724,6 @@ public:
     virtual std::string text() const override {
         return "MultiplicationExpression(" + left->text() + "," + right->text() + ")";
     }
-private:
-    MultiplicationExpression(const MultiplicationExpression &);
-    MultiplicationExpression &operator=(const MultiplicationExpression &);
 };
 
 class DivisionExpression: public Expression {
@@ -1771,6 +1733,8 @@ public:
             internal_error("DivisionExpression");
         }
     }
+    DivisionExpression(const DivisionExpression &) = delete;
+    DivisionExpression &operator=(const DivisionExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
@@ -1784,9 +1748,6 @@ public:
     virtual std::string text() const override {
         return "DivisionExpression(" + left->text() + "," + right->text() + ")";
     }
-private:
-    DivisionExpression(const DivisionExpression &);
-    DivisionExpression &operator=(const DivisionExpression &);
 };
 
 class ModuloExpression: public Expression {
@@ -1796,6 +1757,8 @@ public:
             internal_error("ModuloExpression");
         }
     }
+    ModuloExpression(const ModuloExpression &) = delete;
+    ModuloExpression &operator=(const ModuloExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
@@ -1809,9 +1772,6 @@ public:
     virtual std::string text() const override {
         return "ModuloExpression(" + left->text() + "," + right->text() + ")";
     }
-private:
-    ModuloExpression(const ModuloExpression &);
-    ModuloExpression &operator=(const ModuloExpression &);
 };
 
 class ExponentiationExpression: public Expression {
@@ -1821,6 +1781,8 @@ public:
             internal_error("ExponentiationExpression");
         }
     }
+    ExponentiationExpression(const ExponentiationExpression &) = delete;
+    ExponentiationExpression &operator=(const ExponentiationExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
@@ -1834,14 +1796,13 @@ public:
     virtual std::string text() const override {
         return "ExponentiationExpression(" + left->text() + "," + right->text() + ")";
     }
-private:
-    ExponentiationExpression(const ExponentiationExpression &);
-    ExponentiationExpression &operator=(const ExponentiationExpression &);
 };
 
 class ReferenceExpression: public Expression {
 public:
     ReferenceExpression(const Type *type, bool is_readonly): Expression(type, false, is_readonly) {}
+    ReferenceExpression(const ReferenceExpression &) = delete;
+    ReferenceExpression &operator=(const ReferenceExpression &) = delete;
 
     virtual void generate_expr(Emitter &emitter) const override { generate_load(emitter); }
     virtual bool can_generate_address() const { return true; }
@@ -1849,9 +1810,6 @@ public:
     virtual void generate_address_write(Emitter &) const = 0;
     virtual void generate_load(Emitter &) const;
     virtual void generate_store(Emitter &) const;
-private:
-    ReferenceExpression(const ReferenceExpression &);
-    ReferenceExpression &operator=(const ReferenceExpression &);
 };
 
 class DummyExpression: public ReferenceExpression {
@@ -1874,6 +1832,8 @@ public:
 class ArrayReferenceIndexExpression: public ReferenceExpression {
 public:
     ArrayReferenceIndexExpression(const Type *type, const ReferenceExpression *array, const Expression *index, bool always_create): ReferenceExpression(type, array->is_readonly), array(array), index(index), always_create(always_create) {}
+    ArrayReferenceIndexExpression(const ArrayReferenceIndexExpression &) = delete;
+    ArrayReferenceIndexExpression &operator=(const ArrayReferenceIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *array;
@@ -1887,14 +1847,13 @@ public:
     virtual void generate_address_write(Emitter &) const override;
 
     virtual std::string text() const override { return "ArrayReferenceIndexExpression(" + array->text() + ", " + index->text() + ")"; }
-private:
-    ArrayReferenceIndexExpression(const ArrayReferenceIndexExpression &);
-    ArrayReferenceIndexExpression &operator=(const ArrayReferenceIndexExpression &);
 };
 
 class ArrayValueIndexExpression: public Expression {
 public:
     ArrayValueIndexExpression(const Type *type, const Expression *array, const Expression *index, bool always_create): Expression(type, false), array(array), index(index), always_create(always_create) {}
+    ArrayValueIndexExpression(const ArrayValueIndexExpression &) = delete;
+    ArrayValueIndexExpression &operator=(const ArrayValueIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *array;
@@ -1907,14 +1866,13 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ArrayValueIndexExpression(" + array->text() + ", " + index->text() + ")"; }
-private:
-    ArrayValueIndexExpression(const ArrayValueIndexExpression &);
-    ArrayValueIndexExpression &operator=(const ArrayValueIndexExpression &);
 };
 
 class DictionaryReferenceIndexExpression: public ReferenceExpression {
 public:
     DictionaryReferenceIndexExpression(const Type *type, const ReferenceExpression *dictionary, const Expression *index): ReferenceExpression(type, dictionary->is_readonly), dictionary(dictionary), index(index) {}
+    DictionaryReferenceIndexExpression(const DictionaryReferenceIndexExpression &) = delete;
+    DictionaryReferenceIndexExpression &operator=(const DictionaryReferenceIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *dictionary;
@@ -1927,14 +1885,13 @@ public:
     virtual void generate_address_write(Emitter &) const override;
 
     virtual std::string text() const override { return "DictionaryReferenceIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
-private:
-    DictionaryReferenceIndexExpression(const DictionaryReferenceIndexExpression &);
-    DictionaryReferenceIndexExpression &operator=(const DictionaryReferenceIndexExpression &);
 };
 
 class DictionaryValueIndexExpression: public Expression {
 public:
     DictionaryValueIndexExpression(const Type *type, const Expression *dictionary, const Expression *index): Expression(type, false), dictionary(dictionary), index(index) {}
+    DictionaryValueIndexExpression(const DictionaryValueIndexExpression &) = delete;
+    DictionaryValueIndexExpression &operator=(const DictionaryValueIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *dictionary;
@@ -1946,14 +1903,13 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "DictionaryValueIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
-private:
-    DictionaryValueIndexExpression(const DictionaryValueIndexExpression &);
-    DictionaryValueIndexExpression &operator=(const DictionaryValueIndexExpression &);
 };
 
 class StringReferenceIndexExpression: public ReferenceExpression {
 public:
     StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    StringReferenceIndexExpression(const StringReferenceIndexExpression &) = delete;
+    StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
@@ -1975,14 +1931,13 @@ public:
     virtual void generate_store(Emitter &) const override;
 
     virtual std::string text() const override { return "StringReferenceIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
-private:
-    StringReferenceIndexExpression(const StringReferenceIndexExpression &);
-    StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &);
 };
 
 class StringValueIndexExpression: public Expression {
 public:
     StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    StringValueIndexExpression(const StringValueIndexExpression &) = delete;
+    StringValueIndexExpression &operator=(const StringValueIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *str;
@@ -1999,14 +1954,13 @@ public:
     virtual void generate_expr(Emitter &) const override;
 
     virtual std::string text() const override { return "StringValueIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
-private:
-    StringValueIndexExpression(const StringValueIndexExpression &);
-    StringValueIndexExpression &operator=(const StringValueIndexExpression &);
 };
 
 class BytesReferenceIndexExpression: public ReferenceExpression {
 public:
     BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    BytesReferenceIndexExpression(const BytesReferenceIndexExpression &) = delete;
+    BytesReferenceIndexExpression &operator=(const BytesReferenceIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
@@ -2028,14 +1982,13 @@ public:
     virtual void generate_store(Emitter &) const override;
 
     virtual std::string text() const override { return "BytesReferenceIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
-private:
-    BytesReferenceIndexExpression(const BytesReferenceIndexExpression &);
-    BytesReferenceIndexExpression &operator=(const BytesReferenceIndexExpression &);
 };
 
 class BytesValueIndexExpression: public Expression {
 public:
     BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    BytesValueIndexExpression(const BytesValueIndexExpression &) = delete;
+    BytesValueIndexExpression &operator=(const BytesValueIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *str;
@@ -2052,14 +2005,13 @@ public:
     virtual void generate_expr(Emitter &) const override;
 
     virtual std::string text() const override { return "BytesValueIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
-private:
-    BytesValueIndexExpression(const BytesValueIndexExpression &);
-    BytesValueIndexExpression &operator=(const BytesValueIndexExpression &);
 };
 
 class ObjectSubscriptExpression: public Expression {
 public:
     ObjectSubscriptExpression(const Expression *obj, const Expression *index): Expression(TYPE_OBJECT, false), obj(obj), index(index) {}
+    ObjectSubscriptExpression(const ObjectSubscriptExpression &) = delete;
+    ObjectSubscriptExpression &operator=(const ObjectSubscriptExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *obj;
@@ -2071,14 +2023,13 @@ public:
     virtual void generate_expr(Emitter &) const override;
 
     virtual std::string text() const override { return "ObjectSubscriptExpression(" + obj->text() + ", " + index->text() + ")"; }
-private:
-    ObjectSubscriptExpression(const ObjectSubscriptExpression &);
-    ObjectSubscriptExpression &operator=(const ObjectSubscriptExpression &);
 };
 
 class RecordReferenceFieldExpression: public ReferenceExpression {
 public:
     RecordReferenceFieldExpression(const Type *type, const ReferenceExpression *ref, const std::string &field, bool always_create): ReferenceExpression(type, ref->is_readonly), ref(ref), field(field), always_create(always_create) {}
+    RecordReferenceFieldExpression(const RecordReferenceFieldExpression &) = delete;
+    RecordReferenceFieldExpression &operator=(const RecordReferenceFieldExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
@@ -2092,14 +2043,13 @@ public:
     virtual void generate_address_write(Emitter &) const override;
 
     virtual std::string text() const override { return "RecordReferenceFieldExpression(" + ref->text() + ", " + field + ")"; }
-private:
-    RecordReferenceFieldExpression(const RecordReferenceFieldExpression &);
-    RecordReferenceFieldExpression &operator=(const RecordReferenceFieldExpression &);
 };
 
 class RecordValueFieldExpression: public Expression {
 public:
     RecordValueFieldExpression(const Type *type, const Expression *rec, const std::string &field, bool always_create): Expression(type, rec->is_constant, rec->is_readonly), rec(rec), field(field), always_create(always_create) {}
+    RecordValueFieldExpression(const RecordValueFieldExpression &) = delete;
+    RecordValueFieldExpression &operator=(const RecordValueFieldExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *rec;
@@ -2112,14 +2062,13 @@ public:
     virtual void generate_expr(Emitter &) const override;
 
     virtual std::string text() const override { return "RecordValueFieldExpression(" + rec->text() + ", " + field + ")"; }
-private:
-    RecordValueFieldExpression(const RecordValueFieldExpression &);
-    RecordValueFieldExpression &operator=(const RecordValueFieldExpression &);
 };
 
 class ArrayReferenceRangeExpression: public ReferenceExpression {
 public:
     ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    ArrayReferenceRangeExpression(const ArrayReferenceRangeExpression &) = delete;
+    ArrayReferenceRangeExpression &operator=(const ArrayReferenceRangeExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
@@ -2141,14 +2090,13 @@ public:
     virtual void generate_store(Emitter &) const override;
 
     virtual std::string text() const override { return "ArrayReferenceRangeExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
-private:
-    ArrayReferenceRangeExpression(const ArrayReferenceRangeExpression &);
-    ArrayReferenceRangeExpression &operator=(const ArrayReferenceRangeExpression &);
 };
 
 class ArrayValueRangeExpression: public Expression {
 public:
     ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    ArrayValueRangeExpression(const ArrayValueRangeExpression &) = delete;
+    ArrayValueRangeExpression &operator=(const ArrayValueRangeExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *array;
@@ -2165,14 +2113,13 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ArrayValueRangeExpression(" + array->text() + ", " + first->text() + ", " + last->text() + ")"; }
-private:
-    ArrayValueRangeExpression(const ArrayValueRangeExpression &);
-    ArrayValueRangeExpression &operator=(const ArrayValueRangeExpression &);
 };
 
 class PointerDereferenceExpression: public ReferenceExpression {
 public:
     PointerDereferenceExpression(const Type *type, const Expression *ptr): ReferenceExpression(type, false), ptr(ptr) {}
+    PointerDereferenceExpression(const PointerDereferenceExpression &) = delete;
+    PointerDereferenceExpression &operator=(const PointerDereferenceExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *ptr;
@@ -2184,14 +2131,13 @@ public:
     virtual void generate_address_write(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "PointerDereferenceExpression(" + ptr->text() + ")"; }
-private:
-    PointerDereferenceExpression(const PointerDereferenceExpression &);
-    PointerDereferenceExpression &operator=(const PointerDereferenceExpression &);
 };
 
 class ConstantExpression: public Expression {
 public:
     explicit ConstantExpression(const Constant *constant): Expression(constant->type, true, true), constant(constant) {}
+    ConstantExpression(const ConstantExpression &) = delete;
+    ConstantExpression &operator=(const ConstantExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Constant *constant;
@@ -2202,14 +2148,13 @@ public:
     virtual void generate_expr(Emitter &emitter) const override { constant->value->generate(emitter); }
 
     virtual std::string text() const override { return "ConstantExpression(" + constant->text() + ")"; }
-private:
-    ConstantExpression(const ConstantExpression &);
-    ConstantExpression &operator=(const ConstantExpression &);
 };
 
 class VariableExpression: public ReferenceExpression {
 public:
     explicit VariableExpression(const Variable *var): ReferenceExpression(var->type, var->is_readonly), var(var) {}
+    VariableExpression(const VariableExpression &) = delete;
+    VariableExpression &operator=(const VariableExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Variable *var;
@@ -2225,14 +2170,13 @@ public:
     virtual std::string text() const override {
         return "VariableExpression(" + var->text() + ")";
     }
-private:
-    VariableExpression(const VariableExpression &);
-    VariableExpression &operator=(const VariableExpression &);
 };
 
 class InterfaceMethodExpression: public Expression {
 public:
     InterfaceMethodExpression(const TypeFunction *functype, size_t index): Expression(functype->returntype, false), functype(functype), index(index) {}
+    InterfaceMethodExpression(const InterfaceMethodExpression &) = delete;
+    InterfaceMethodExpression &operator=(const InterfaceMethodExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const TypeFunction *functype;
@@ -2245,14 +2189,13 @@ public:
     virtual void generate_call(Emitter &) const override;
 
     virtual std::string text() const override { return "InterfaceMethodExpression(" + std::to_string(index) + ")"; }
-private:
-    InterfaceMethodExpression(const InterfaceMethodExpression &);
-    InterfaceMethodExpression &operator=(const InterfaceMethodExpression &);
 };
 
 class InterfacePointerConstructor: public Expression {
 public:
     InterfacePointerConstructor(const TypeInterfacePointer *type, const Expression *expr, size_t index): Expression(type, false), expr(expr), index(index) {}
+    InterfacePointerConstructor(const InterfacePointerConstructor &) = delete;
+    InterfacePointerConstructor &operator=(const InterfacePointerConstructor &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
@@ -2265,14 +2208,13 @@ public:
     virtual void generate_call(Emitter &) const override { internal_error("InterfacePointerConstructor"); }
 
     virtual std::string text() const override { return "InterfacePointerConstructor(" + std::to_string(index) + ")"; }
-private:
-    InterfacePointerConstructor(const InterfacePointerConstructor &);
-    InterfacePointerConstructor &operator=(const InterfacePointerConstructor &);
 };
 
 class InterfacePointerDeconstructor: public Expression {
 public:
     explicit InterfacePointerDeconstructor(const Expression *expr): Expression(new TypePointer(Token(), nullptr), false), expr(expr) {}
+    InterfacePointerDeconstructor(const InterfacePointerDeconstructor &) = delete;
+    InterfacePointerDeconstructor &operator=(const InterfacePointerDeconstructor &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
@@ -2284,14 +2226,13 @@ public:
     virtual void generate_call(Emitter &) const override { internal_error("InterfacePointerDeconstructor"); }
 
     virtual std::string text() const override { return "InterfacePointerDeconstructor()"; }
-private:
-    InterfacePointerDeconstructor(const InterfacePointerDeconstructor &);
-    InterfacePointerDeconstructor &operator=(const InterfacePointerDeconstructor &);
 };
 
 class FunctionCall: public Expression {
 public:
     FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args) {}
+    FunctionCall(const FunctionCall &) = delete;
+    FunctionCall &operator=(const FunctionCall &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const func;
@@ -2307,9 +2248,6 @@ public:
 
     virtual std::string text() const override;
 private:
-    FunctionCall(const FunctionCall &);
-    FunctionCall &operator=(const FunctionCall &);
-
     static const Type *get_expr_type(const Expression *func) {
         const TypeFunction *f = dynamic_cast<const TypeFunction *>(func->type);
         if (f != nullptr) {
@@ -2332,6 +2270,8 @@ private:
 class StatementExpression: public Expression {
 public:
     StatementExpression(const Statement *stmt, const Expression *expr): Expression(expr != nullptr ? expr->type : TYPE_NOTHING, false), stmt(stmt), expr(expr) {}
+    StatementExpression(const StatementExpression &) = delete;
+    StatementExpression &operator=(const StatementExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Statement *const stmt;
@@ -2343,9 +2283,6 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "StatementExpression"; }
-private:
-    StatementExpression(const StatementExpression &);
-    StatementExpression &operator=(const StatementExpression &);
 };
 
 class Statement: public AstNode {
@@ -2386,6 +2323,8 @@ public:
 class TypeDeclarationStatement: public Statement {
 public:
     TypeDeclarationStatement(int line, const std::string &name, const ast::Type *type): Statement(line), name(name), type(type) {}
+    TypeDeclarationStatement(const TypeDeclarationStatement &) = delete;
+    TypeDeclarationStatement &operator=(const TypeDeclarationStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string name;
     const ast::Type *type;
@@ -2393,23 +2332,19 @@ public:
     virtual void generate_code(Emitter &) const override;
 
     virtual std::string text() const override { return "TypeDeclarationStatement(" + name + ", " + type->text() + ")"; }
-private:
-    TypeDeclarationStatement(const TypeDeclarationStatement &);
-    TypeDeclarationStatement &operator=(const TypeDeclarationStatement &);
 };
 
 class DeclarationStatement: public Statement {
 public:
     DeclarationStatement(int line, Variable *decl): Statement(line), decl(decl) {}
+    DeclarationStatement(const DeclarationStatement &) = delete;
+    DeclarationStatement &operator=(const DeclarationStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     Variable *decl;
 
     virtual void generate_code(Emitter &) const override {}
 
     virtual std::string text() const override { return "DeclarationStatement(" + decl->text() + ")"; }
-private:
-    DeclarationStatement(const DeclarationStatement &);
-    DeclarationStatement &operator=(const DeclarationStatement &);
 };
 
 class ExceptionHandlerStatement: public CompoundStatement {
@@ -2425,6 +2360,8 @@ public:
 class AssertStatement: public CompoundStatement {
 public:
     AssertStatement(int line, const std::vector<const Statement *> &statements, const Expression *expr, const std::string &source): CompoundStatement(line, statements), expr(expr), source(source) {}
+    AssertStatement(const AssertStatement &) = delete;
+    AssertStatement &operator=(const AssertStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
@@ -2433,10 +2370,6 @@ public:
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "AssertStatement(" + expr->text() + ")"; }
-
-private:
-    AssertStatement(const AssertStatement &);
-    AssertStatement &operator=(const AssertStatement &);
 };
 
 class AssignmentStatement: public Statement {
@@ -2448,6 +2381,8 @@ public:
             }
         }
     }
+    AssignmentStatement(const AssignmentStatement &) = delete;
+    AssignmentStatement &operator=(const AssignmentStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const ReferenceExpression *> variables;
@@ -2462,15 +2397,13 @@ public:
         }
         return s + expr->text() + ")";
     }
-
-private:
-    AssignmentStatement(const AssignmentStatement &);
-    AssignmentStatement &operator=(const AssignmentStatement &);
 };
 
 class ExpressionStatement: public Statement {
 public:
     ExpressionStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
+    ExpressionStatement(const ExpressionStatement &) = delete;
+    ExpressionStatement &operator=(const ExpressionStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
@@ -2480,14 +2413,13 @@ public:
     virtual std::string text() const override {
         return "ExpressionStatement(" + expr->text() + ")";
     }
-private:
-    ExpressionStatement(const ExpressionStatement &);
-    ExpressionStatement &operator=(const ExpressionStatement &);
 };
 
 class ReturnStatement: public Statement {
 public:
     ReturnStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
+    ReturnStatement(const ReturnStatement &) = delete;
+    ReturnStatement &operator=(const ReturnStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
@@ -2498,14 +2430,13 @@ public:
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ReturnStatement(" + (expr != nullptr ? expr->text() : "") + ")"; }
-private:
-    ReturnStatement(const ReturnStatement &);
-    ReturnStatement &operator=(const ReturnStatement &);
 };
 
 class IncrementStatement: public Statement {
 public:
     IncrementStatement(int line, const ReferenceExpression *ref, int delta): Statement(line), ref(ref), delta(delta) {}
+    IncrementStatement(const IncrementStatement &) = delete;
+    IncrementStatement &operator=(const IncrementStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
@@ -2516,14 +2447,13 @@ public:
     virtual std::string text() const override {
         return "IncrementStatement(" + ref->text() + ", " + std::to_string(delta) + ")";
     }
-private:
-    IncrementStatement(const IncrementStatement &);
-    IncrementStatement &operator=(const IncrementStatement &);
 };
 
 class IfStatement: public Statement {
 public:
     IfStatement(int line, const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(line), condition_statements(condition_statements), else_statements(else_statements) {}
+    IfStatement(const IfStatement &) = delete;
+    IfStatement &operator=(const IfStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
@@ -2537,9 +2467,6 @@ public:
     virtual std::string text() const override {
         return "IfStatement(" + condition_statements[0].first->text() + ")";
     }
-private:
-    IfStatement(const IfStatement &);
-    IfStatement &operator=(const IfStatement &);
 };
 
 class BaseLoopStatement: public CompoundStatement {
@@ -2567,48 +2494,46 @@ public:
     class WhenCondition {
     public:
         explicit WhenCondition(const Token &token): token(token) {}
+        WhenCondition(const WhenCondition &) = delete;
+        WhenCondition &operator=(const WhenCondition &) = delete;
         virtual ~WhenCondition() {}
         const Token token;
         virtual bool overlaps(const WhenCondition *cond) const = 0;
         virtual void generate(Emitter &emitter) const = 0;
-    private:
-        WhenCondition(const WhenCondition &);
-        WhenCondition &operator=(const WhenCondition &);
     };
     class ComparisonWhenCondition: public WhenCondition {
     public:
         ComparisonWhenCondition(const Token &token, ComparisonExpression::Comparison comp, const Expression *expr): WhenCondition(token), comp(comp), expr(expr) {}
+        ComparisonWhenCondition(const ComparisonWhenCondition &) = delete;
+        ComparisonWhenCondition &operator=(const ComparisonWhenCondition &) = delete;
         ComparisonExpression::Comparison comp;
         const Expression *expr;
         virtual bool overlaps(const WhenCondition *cond) const override;
         virtual void generate(Emitter &emitter) const override;
-    private:
-        ComparisonWhenCondition(const ComparisonWhenCondition &);
-        ComparisonWhenCondition &operator=(const ComparisonWhenCondition &);
     };
     class RangeWhenCondition: public WhenCondition {
     public:
         RangeWhenCondition(const Token &token, const Expression *low_expr, const Expression *high_expr): WhenCondition(token), low_expr(low_expr), high_expr(high_expr) {}
+        RangeWhenCondition(const RangeWhenCondition &) = delete;
+        RangeWhenCondition &operator=(const RangeWhenCondition &) = delete;
         const Expression *low_expr;
         const Expression *high_expr;
         virtual bool overlaps(const WhenCondition *cond) const override;
         virtual void generate(Emitter &emitter) const override;
-    private:
-        RangeWhenCondition(const RangeWhenCondition &);
-        RangeWhenCondition &operator=(const RangeWhenCondition &);
     };
     class TypeTestWhenCondition: public WhenCondition {
     public:
         TypeTestWhenCondition(const Token &token, const Expression *expr, const Type *target): WhenCondition(token), expr(expr), target(target) {}
+        TypeTestWhenCondition(const TypeTestWhenCondition &) = delete;
+        TypeTestWhenCondition &operator=(const TypeTestWhenCondition &) = delete;
         const Expression *expr;
         const Type *target;
         virtual bool overlaps(const WhenCondition *cond) const override;
         virtual void generate(Emitter &emitter) const override;
-    private:
-        TypeTestWhenCondition(const TypeTestWhenCondition &);
-        TypeTestWhenCondition &operator=(const TypeTestWhenCondition &);
     };
     CaseStatement(int line, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(line), expr(expr), clauses(clauses) {}
+    CaseStatement(const CaseStatement &) = delete;
+    CaseStatement &operator=(const CaseStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr;
@@ -2621,14 +2546,13 @@ public:
     virtual std::string text() const override {
         return "CaseStatement(" + expr->text() + ")";
     }
-private:
-    CaseStatement(const CaseStatement &);
-    CaseStatement &operator=(const CaseStatement &);
 };
 
 class ExitStatement: public Statement {
 public:
     ExitStatement(int line, unsigned int loop_id): Statement(line), loop_id(loop_id) {}
+    ExitStatement(const ExitStatement &) = delete;
+    ExitStatement &operator=(const ExitStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const unsigned int loop_id;
@@ -2638,14 +2562,13 @@ public:
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ExitStatement(...)"; }
-private:
-    ExitStatement(const ExitStatement &);
-    ExitStatement &operator=(const ExitStatement &);
 };
 
 class NextStatement: public Statement {
 public:
     NextStatement(int line, unsigned int loop_id): Statement(line), loop_id(loop_id) {}
+    NextStatement(const NextStatement &) = delete;
+    NextStatement &operator=(const NextStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const unsigned int loop_id;
@@ -2655,14 +2578,13 @@ public:
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "NextStatement(...)"; }
-private:
-    NextStatement(const NextStatement &);
-    NextStatement &operator=(const NextStatement &);
 };
 
 class TryStatement: public Statement {
 public:
     TryStatement(int line, const std::vector<const Statement *> &statements, const std::vector<TryTrap> &catches): Statement(line), statements(statements), catches(catches) {}
+    TryStatement(const TryStatement &) = delete;
+    TryStatement &operator=(const TryStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> statements;
@@ -2673,14 +2595,13 @@ public:
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "TryStatement(...)"; }
-private:
-    TryStatement(const TryStatement &);
-    TryStatement &operator=(const TryStatement &);
 };
 
 class RaiseStatement: public Statement {
 public:
     RaiseStatement(int line, const Exception *exception, const Expression *info): Statement(line), exception(exception), info(info) {}
+    RaiseStatement(const RaiseStatement &) = delete;
+    RaiseStatement &operator=(const RaiseStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Exception *exception;
@@ -2692,14 +2613,13 @@ public:
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "RaiseStatement(" + exception->text() + ")"; }
-private:
-    RaiseStatement(const RaiseStatement &);
-    RaiseStatement &operator=(const RaiseStatement &);
 };
 
 class ResetStatement: public Statement {
 public:
     ResetStatement(int line, const std::vector<const ReferenceExpression *> &vars): Statement(line), variables(vars) {}
+    ResetStatement(const ResetStatement &) = delete;
+    ResetStatement &operator=(const ResetStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const ReferenceExpression *> variables;
@@ -2713,29 +2633,26 @@ public:
         }
         return s + ")";
     }
-
-private:
-    ResetStatement(const ResetStatement &);
-    ResetStatement &operator=(const ResetStatement &);
 };
 
 class BaseFunction: public Variable {
 public:
     BaseFunction(const Token &declaration, const std::string &name, const TypeFunction *ftype): Variable(declaration, name, ftype, true), ftype(ftype), function_index(UINT_MAX) {}
+    BaseFunction(const BaseFunction &) = delete;
+    BaseFunction &operator=(const BaseFunction &) = delete;
     const TypeFunction *ftype;
     mutable unsigned int function_index;
 
     virtual void reset() override { function_index = UINT_MAX; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
-private:
-    BaseFunction(const BaseFunction &);
-    BaseFunction &operator=(const BaseFunction &);
 };
 
 class Function: public BaseFunction {
 public:
     Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, bool variadic, size_t nesting_depth);
+    Function(const Function &) = delete;
+    Function &operator=(const Function &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Frame *frame;
@@ -2758,9 +2675,6 @@ public:
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
 
     virtual std::string text() const override { return "Function(" + name + ", " + type->text() + ")"; }
-private:
-    Function(const Function &);
-    Function &operator=(const Function &);
 };
 
 class PredefinedFunction: public BaseFunction {
@@ -2821,6 +2735,8 @@ public:
 class ForeignFunction: public BaseFunction {
 public:
     ForeignFunction(const Token &declaration, const std::string &name, const TypeFunction *ftype): BaseFunction(declaration, name, ftype), library_name(), param_types(), foreign_index(-1) {}
+    ForeignFunction(const ForeignFunction &) = delete;
+    ForeignFunction &operator=(const ForeignFunction &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     utf8string library_name;
@@ -2832,15 +2748,13 @@ public:
     virtual void postdeclare(Emitter &) const override;
     virtual void generate_address(Emitter &) const override { internal_error("ForeignFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
-
-private:
-    ForeignFunction(const ForeignFunction &);
-    ForeignFunction &operator=(const ForeignFunction &);
 };
 
 class Module: public Name {
 public:
     Module(const Token &declaration, Scope *scope, const std::string &name): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope, scope->frame)) {}
+    Module(const Module &) = delete;
+    Module &operator=(const Module &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Scope *scope;
@@ -2850,14 +2764,13 @@ public:
     virtual void generate_export(Emitter &, const std::string &) const override { internal_error("can't export module"); }
 
     virtual std::string text() const override { return "Module"; }
-private:
-    Module(const Module &);
-    Module &operator=(const Module &);
 };
 
 class Program: public AstNode {
 public:
     Program(const std::string &source_path, const std::string &source_hash, const std::string &module_name);
+    Program(const Program &) = delete;
+    Program &operator=(const Program &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::string source_path;
@@ -2874,9 +2787,6 @@ public:
 
     virtual std::string text() const override { return "Program"; }
     virtual void dumpsubnodes(std::ostream &out, int depth) const override;
-private:
-    Program(const Program &);
-    Program &operator=(const Program &);
 };
 
 } // namespace ast

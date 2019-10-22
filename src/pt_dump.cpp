@@ -10,6 +10,8 @@ using namespace pt;
 class Dumper: public IParseTreeVisitor {
 public:
     explicit Dumper(std::ostream &out): out(out), depth(0) {}
+    Dumper(const Dumper &) = delete;
+    Dumper &operator=(const Dumper &) = delete;
 
     virtual void visit(const TypeSimple *node) override {
         write("TypeSimple(" + node->name + ")");
@@ -554,10 +556,6 @@ private:
         }
         return r;
     }
-
-private:
-    Dumper(const Dumper &);
-    Dumper &operator=(const Dumper &);
 };
 
 void pt::dump(std::ostream &out, const ParseTreeNode *node)

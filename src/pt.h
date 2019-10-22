@@ -202,12 +202,11 @@ class FunctionParameterGroup;
 class ParseTreeNode {
 public:
     explicit ParseTreeNode(const Token &token): token(token) {}
+    ParseTreeNode(const ParseTreeNode &) = delete;
+    ParseTreeNode &operator=(const ParseTreeNode &) = delete;
     virtual ~ParseTreeNode() {}
     virtual void accept(IParseTreeVisitor *visitor) const = 0;
     const Token token;
-private:
-    ParseTreeNode(const ParseTreeNode &) = delete;
-    ParseTreeNode &operator=(const ParseTreeNode &) = delete;
 };
 
 class Type: public ParseTreeNode {
@@ -831,11 +830,10 @@ public:
     class WhenCondition {
     public:
         explicit WhenCondition(const Token &token): token(token) {}
-        virtual ~WhenCondition() {}
-        const Token token;
-    private:
         WhenCondition(const WhenCondition &) = delete;
         WhenCondition &operator=(const WhenCondition &) = delete;
+        virtual ~WhenCondition() {}
+        const Token token;
     };
     class ComparisonWhenCondition: public WhenCondition {
     public:

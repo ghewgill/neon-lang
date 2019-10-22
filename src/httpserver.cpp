@@ -44,6 +44,8 @@ std::string HttpResponse::to_string() const
 class Client {
 public:
     Client(IHttpServerHandler *handler, SOCKET socket): handler(handler), socket(socket), request(), path(), post_length(-1), post_data() {}
+    Client(const Client &) = delete;
+    Client &operator=(const Client &) = delete;
     ~Client();
     IHttpServerHandler *handler;
     SOCKET socket;
@@ -56,9 +58,6 @@ public:
     bool handle_request();
     void handle_response(HttpResponse &response);
     static bool header_match(const std::string &header, const std::string &target, std::string &value);
-private:
-    Client(const Client &);
-    Client &operator=(const Client &);
 };
 
 Client::~Client()
@@ -169,6 +168,8 @@ bool Client::header_match(const std::string &header, const std::string &target, 
 class HttpServerImpl {
 public:
     HttpServerImpl(unsigned short port, IHttpServerHandler *handler);
+    HttpServerImpl(const HttpServerImpl &) = delete;
+    HttpServerImpl &operator=(const HttpServerImpl &) = delete;
     ~HttpServerImpl();
 
     IHttpServerHandler *const handler;
@@ -177,10 +178,6 @@ public:
 
     void service(bool wait);
     void handle_request(Client &client);
-
-private:
-    HttpServerImpl(const HttpServerImpl &);
-    HttpServerImpl &operator=(const HttpServerImpl &);
 };
 
 HttpServerImpl::HttpServerImpl(unsigned short port, IHttpServerHandler *handler)

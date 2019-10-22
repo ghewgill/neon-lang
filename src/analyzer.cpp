@@ -20,6 +20,8 @@ static const ast::Expression *identity_conversion(Analyzer *, const ast::Express
 class Analyzer {
 public:
     Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ast::ExternalGlobalInfo> *external_globals);
+    Analyzer(const Analyzer &) = delete;
+    Analyzer &operator=(const Analyzer &) = delete;
 
     ICompilerSupport *support;
     const pt::Program *program;
@@ -144,14 +146,13 @@ private:
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
     ast::ComparisonExpression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
-private:
-    Analyzer(const Analyzer &);
-    Analyzer &operator=(const Analyzer &);
 };
 
 class TypeAnalyzer: public pt::IParseTreeVisitor {
 public:
     TypeAnalyzer(Analyzer *a, const std::string &name): type(nullptr), a(a), name(name) {}
+    TypeAnalyzer(const TypeAnalyzer &) = delete;
+    TypeAnalyzer &operator=(const TypeAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeEnum *t) override { type = a->analyze_enum(t, name); }
     virtual void visit(const pt::TypeRecord *t) override { type = a->analyze_record(t, name); }
@@ -241,14 +242,13 @@ public:
 private:
     Analyzer *a;
     const std::string name;
-private:
-    TypeAnalyzer(const TypeAnalyzer &);
-    TypeAnalyzer &operator=(const TypeAnalyzer &);
 };
 
 class ExpressionAnalyzer: public pt::IParseTreeVisitor {
 public:
     explicit ExpressionAnalyzer(Analyzer *a): expr(nullptr), a(a) {}
+    ExpressionAnalyzer(const ExpressionAnalyzer &) = delete;
+    ExpressionAnalyzer &operator=(const ExpressionAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
@@ -337,14 +337,13 @@ public:
     const ast::Expression *expr;
 private:
     Analyzer *a;
-private:
-    ExpressionAnalyzer(const ExpressionAnalyzer &);
-    ExpressionAnalyzer &operator=(const ExpressionAnalyzer &);
 };
 
 class DeclarationAnalyzer: public pt::IParseTreeVisitor {
 public:
     DeclarationAnalyzer(Analyzer *a, std::vector<const ast::Statement *> &v): a(a), v(v) {}
+    DeclarationAnalyzer(const DeclarationAnalyzer &) = delete;
+    DeclarationAnalyzer &operator=(const DeclarationAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
@@ -433,14 +432,13 @@ public:
 private:
     Analyzer *a;
     std::vector<const ast::Statement *> &v;
-private:
-    DeclarationAnalyzer(const DeclarationAnalyzer &);
-    DeclarationAnalyzer &operator=(const DeclarationAnalyzer &);
 };
 
 class StatementAnalyzer: public pt::IParseTreeVisitor {
 public:
     StatementAnalyzer(Analyzer *a, std::vector<const ast::Statement *> &v): a(a), v(v) {}
+    StatementAnalyzer(const StatementAnalyzer &) = delete;
+    StatementAnalyzer &operator=(const StatementAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
@@ -529,9 +527,6 @@ public:
 private:
     Analyzer *a;
     std::vector<const ast::Statement *> &v;
-private:
-    StatementAnalyzer(const StatementAnalyzer &);
-    StatementAnalyzer &operator=(const StatementAnalyzer &);
 };
 
 static std::string path_basename(const std::string &path)
@@ -5265,6 +5260,7 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 class ExportedTypeChecker {
 public:
     explicit ExportedTypeChecker(const std::set<const ast::Name *> &exported): exported(exported), seen() {}
+    ExportedTypeChecker &operator=(const ExportedTypeChecker &) = delete;
     void check(const ast::Type *type) {
         if (seen.find(type) != seen.end()) {
             return;
@@ -5305,7 +5301,6 @@ public:
 private:
     const std::set<const ast::Name *> &exported;
     std::set<const ast::Name *> seen;
-    ExportedTypeChecker &operator=(const ExportedTypeChecker &) = delete;
 };
 
 const ast::Program *Analyzer::analyze()
@@ -5399,6 +5394,8 @@ public:
     VariableChecker(): scopes(), out_parameters() {
         scopes.push_back(ScopeInfo());
     }
+    VariableChecker(const VariableChecker &) = delete;
+    VariableChecker &operator=(const VariableChecker &) = delete;
     virtual void visit(const pt::TypeSimple *) {}
     virtual void visit(const pt::TypeEnum *) {}
     virtual void visit(const pt::TypeRecord *) {}
@@ -5822,10 +5819,6 @@ private:
             }
         }
     }
-
-private:
-    VariableChecker(const VariableChecker &);
-    VariableChecker &operator=(const VariableChecker &);
 };
 
 const ast::Program *analyze(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ast::ExternalGlobalInfo> *external_globals)

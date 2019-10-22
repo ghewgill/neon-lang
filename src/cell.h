@@ -74,11 +74,10 @@ public:
 
     struct GC {
         explicit GC(bool alloced = false): alloced(alloced), marked(false) {}
+        GC(const GC &) = delete;
+        GC &operator=(const GC &) = delete;
         const bool alloced;
         bool marked;
-    private:
-        GC(const GC &);
-        GC &operator=(const GC &);
     } gc;
 
 private:
