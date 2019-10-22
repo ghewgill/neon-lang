@@ -12,7 +12,8 @@ jobs:
           env: BUILDER=cmake WITH_SUBMODULES=0
         - os: linux
           compiler: clang
-          env: BUILDER=cmake WITH_SUBMODULES=1
+          # Submodules currently only build with scons.
+          env: BUILDER=scons RELEASE=0 WITH_SUBMODULES=1
         - os: linux
           compiler: clang
           arch: arm64
@@ -20,7 +21,8 @@ jobs:
         - os: linux
           compiler: clang
           arch: arm64
-          env: BUILDER=cmake WITH_SUBMODULES=1
+          # Submodules currently only build with scons.
+          env: BUILDER=scons RELEASE=0 WITH_SUBMODULES=1
         - os: osx
           compiler: clang
           env: BUILDER=cmake WITH_SUBMODULES=0
