@@ -1,17 +1,24 @@
 language: cpp
-os:
-  - linux
-  - osx
-compiler:
-  - gcc
-  - clang
+jobs:
+    include:
+        - os: linux
+          compiler: gcc
+          env: BUILDER=scons RELEASE=0 WITH_SUBMODULES=0
+        - os: linux
+          compiler: gcc
+          env: BUILDER=cmake WITH_SUBMODULES=0
+        - os: linux
+          compiler: clang
+          env: BUILDER=cmake WITH_SUBMODULES=0
+        - os: linux
+          compiler: clang
+          arch: arm64
+          env: BUILDER=cmake WITH_SUBMODULES=0
+        - os: osx
+          compiler: clang
+          env: BUILDER=cmake WITH_SUBMODULES=0
 git:
   submodules: false
-env:
-  - BUILDER=scons RELEASE=0 WITH_SUBMODULES=0
-  - BUILDER=scons RELEASE=0 WITH_SUBMODULES=1
-  - BUILDER=scons RELEASE=1 WITH_SUBMODULES=1
-  - BUILDER=cmake WITH_SUBMODULES=0
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install scons; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which mcs || brew install mono; fi
