@@ -12,11 +12,21 @@ jobs:
           env: BUILDER=cmake WITH_SUBMODULES=0
         - os: linux
           compiler: clang
+          env: BUILDER=cmake WITH_SUBMODULES=1
+        - os: linux
+          compiler: clang
           arch: arm64
           env: BUILDER=cmake WITH_SUBMODULES=0
+        - os: linux
+          compiler: clang
+          arch: arm64
+          env: BUILDER=cmake WITH_SUBMODULES=1
         - os: osx
           compiler: clang
           env: BUILDER=cmake WITH_SUBMODULES=0
+        - os: osx
+          compiler: clang
+          env: BUILDER=cmake WITH_SUBMODULES=1
 git:
   submodules: false
 before_install:
