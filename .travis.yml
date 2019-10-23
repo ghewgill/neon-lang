@@ -1,26 +1,47 @@
 language: cpp
-os:
-  - linux
-  - osx
-compiler:
-  - gcc
-  - clang
+jobs:
+    include:
+        - os: linux
+          compiler: gcc
+          env: BUILDER=scons RELEASE=0 WITH_SUBMODULES=0
+        - os: linux
+          compiler: gcc
+          env: BUILDER=cmake WITH_SUBMODULES=0
+        - os: linux
+          compiler: clang
+          env: BUILDER=cmake WITH_SUBMODULES=0
+        - os: linux
+          compiler: clang
+          # Submodules currently only build with scons.
+          env: BUILDER=scons RELEASE=0 WITH_SUBMODULES=1
+        - os: linux
+          compiler: clang
+          arch: arm64
+          env: BUILDER=cmake WITH_SUBMODULES=0
+        # Currently resid does not build on arm.
+        #- os: linux
+        #  compiler: clang
+        #  arch: arm64
+        #  # Submodules currently only build with scons.
+        #  env: BUILDER=scons RELEASE=0 WITH_SUBMODULES=1 BID_GENERIC=1
+        - os: osx
+          compiler: clang
+          env: BUILDER=cmake WITH_SUBMODULES=0
+        - os: osx
+          compiler: clang
+          env: BUILDER=cmake WITH_SUBMODULES=1
 git:
   submodules: false
-env:
-  - BUILDER=scons RELEASE=0 WITH_SUBMODULES=0
-  - BUILDER=scons RELEASE=0 WITH_SUBMODULES=1
-  - BUILDER=scons RELEASE=1 WITH_SUBMODULES=1
-  - BUILDER=cmake WITH_SUBMODULES=0
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install scons; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which mcs || brew install mono; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt update; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then which scons || sudo apt install scons; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then which mcs || sudo apt install mono-mcs; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install libncurses-dev; fi
 before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:
-  - if [ "$BUILDER" == "scons" ]; then scons RELEASE=$RELEASE; fi
+  - if [ "$BUILDER" == "scons" ]; then if [ "$BID_GENERIC" == "" ]; then scons RELEASE=$RELEASE; else scons RELEASE=$RELEASE BID_GENERIC=$BID_GENERIC; fi; fi
   - if [ "$BUILDER" == "cmake" ]; then scons external/lib && cmake . && make && ctest -V; fi
 sudo: false
