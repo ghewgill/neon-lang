@@ -157,7 +157,6 @@ TYPE Type IS ENUM
     NativeVariableDeclaration
     LetDeclaration
     FunctionDeclaration
-    ForeignFunctionDeclaration
     NativeFunctionDeclaration
     ExtensionFunctionDeclaration
     ExceptionDeclaration
@@ -440,15 +439,6 @@ TYPE FunctionDeclaration IS RECORD
     endToken: lexer.Token
 END RECORD
 
-TYPE ForeignFunctionDeclaration IS RECORD
-    type: lexer.Token
-    name: lexer.Token
-    returntype: POINTER TO ParseTreeNode
-    args: Array<FunctionParameterGroup>
-    rparen: lexer.Token
-    dict: POINTER TO ParseTreeNode
-END RECORD
-
 TYPE ExceptionDeclaration IS RECORD
     name: Array<lexer.Token>
 END RECORD
@@ -617,7 +607,6 @@ TYPE ParseTreeNode IS CLASS
     nativevariabledeclaration: NativeVariableDeclaration
     letdeclaration: LetDeclaration
     functiondeclaration: FunctionDeclaration
-    foreignfunctiondeclaration: ForeignFunctionDeclaration
     exceptiondeclaration: ExceptionDeclaration
     interfacedeclaration: InterfaceDeclaration
     exportdeclaration: ExportDeclaration
@@ -945,45 +934,6 @@ FUNCTION Parser.parseFunctionDefinition(INOUT self: Parser, startColumn: Number 
             rparen WITH rparen,
             body WITH body,
             endToken WITH tokEndFunction
-        )
-    )
-END FUNCTION
-
-FUNCTION Parser.parseForeignDefinition(INOUT self: Parser): POINTER TO ParseTreeNode
-    ASSERT self.token.type = TokenType.foreign
-    LET tokForeign: lexer.Token := self.token
-    self.nextToken()
-    IF self.token.type <> TokenType.function THEN
-        error(2045, self.token, "FUNCTION expected")
-    END IF
-    VAR type: lexer.Token
-    VAR name: lexer.Token
-    VAR returntype: POINTER TO ParseTreeNode
-    VAR args: Array<FunctionParameterGroup>
-    VAR rparen: lexer.Token
-    self.parseFunctionHeader(OUT type, OUT name, OUT returntype, OUT args, OUT rparen)
-    IF self.token.type <> TokenType.lbrace THEN
-        error(2046, self.token, "{ expected")
-    END IF
-    LET dict: POINTER TO ParseTreeNode := self.parseDictionaryLiteral()
-    IF self.token.type <> TokenType.end THEN
-        error(2050, self.token, "'END' expected")
-    END IF
-    self.nextToken()
-    IF self.token.type <> TokenType.function THEN
-        error_a(2051, self.tokens[self.index-1], self.token, "'END FUNCTION' expected")
-    END IF
-    self.nextToken()
-    RETURN NEW ParseTreeNode(
-        type WITH Type.ForeignFunctionDeclaration,
-        token WITH tokForeign,
-        foreignfunctiondeclaration WITH ForeignFunctionDeclaration(
-            type WITH type,
-            name WITH name,
-            returntype WITH returntype,
-            args WITH args,
-            rparen WITH rparen,
-            dict WITH dict
         )
     )
 END FUNCTION
@@ -2554,16 +2504,6 @@ FUNCTION Parser.parseExport(INOUT self: Parser): POINTER TO ParseTreeNode
                     declaration WITH function
                 )
             ) END IF
-        WHEN TokenType.foreign DO
-            LET foreign: POINTER TO ParseTreeNode := self.parseForeignDefinition()
-            IF VALID foreign THEN RETURN NEW ParseTreeNode(
-                type WITH Type.ExportDeclaration,
-                token WITH tokExport,
-                exportdeclaration WITH ExportDeclaration(
-                    names WITH [foreign->foreignfunctiondeclaration.name],
-                    declaration WITH foreign
-                )
-            ) END IF
         %| TODO WHEN TokenType.declare DO
             LET declare: POINTER TO ParseTreeNode := self.parseDeclaration()
             IF VALID declare THEN RETURN NEW ParseTreeNode(
@@ -3485,8 +3425,6 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseConstantDefinition()
         WHEN TokenType.function DO
             RETURN self.parseFunctionDefinition()
-        WHEN TokenType.foreign DO
-            RETURN self.parseForeignDefinition()
         WHEN TokenType.declare DO
             RETURN self.parseDeclaration()
         WHEN TokenType.exception DO
@@ -3971,18 +3909,6 @@ FUNCTION dumpFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Nu
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpForeignFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
-    dumpNode(depth, "ForeignFunctionDeclaration(\(node->foreignfunctiondeclaration.name.text))")
-    dumpParseTree(node->foreignfunctiondeclaration.returntype, depth+1)
-    FOREACH a IN node->foreignfunctiondeclaration.args DO
-        FOREACH n IN a.names DO
-            dumpNode(depth+1, "\(string.upper(a.mode.toString())) \(n.text)")
-            dumpParseTree(a.type, depth+2)
-        END FOREACH
-    END FOREACH
-    dumpParseTree(node->foreignfunctiondeclaration.dict, depth+1)
-END FUNCTION
-
 FUNCTION dumpNativeFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "NativeFunctionDeclaration(\(node->functiondeclaration.name.text))")
     dumpParseTree(node->functiondeclaration.returntype, depth+1)
@@ -4249,7 +4175,6 @@ LET Dumper: IParseTreeVisitor := {
     "NativeVariableDeclaration":            dumpNativeVariableDeclaration,
     "LetDeclaration":                       dumpLetDeclaration,
     "FunctionDeclaration":                  dumpFunctionDeclaration,
-    "ForeignFunctionDeclaration":           dumpForeignFunctionDeclaration,
     "NativeFunctionDeclaration":            dumpNativeFunctionDeclaration,
     "ExtensionFunctionDeclaration":         dumpExtensionFunctionDeclaration,
     "ExceptionDeclaration":                 dumpExceptionDeclaration,

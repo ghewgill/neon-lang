@@ -104,8 +104,6 @@ public:
     const ast::Statement *analyze_body(const pt::LetDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
     const ast::Statement *analyze_body(const pt::FunctionDeclaration *declaration);
-    const ast::Statement *analyze_decl(const pt::ForeignFunctionDeclaration *declaration);
-    const ast::Statement *analyze_body(const pt::ForeignFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::ExtensionFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::ExceptionDeclaration *declaration);
@@ -211,7 +209,6 @@ public:
     virtual void visit(const pt::NativeVariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ForeignFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExtensionFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
@@ -307,7 +304,6 @@ public:
     virtual void visit(const pt::NativeVariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ForeignFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExtensionFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
@@ -402,7 +398,6 @@ public:
     virtual void visit(const pt::NativeVariableDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
-    virtual void visit(const pt::ForeignFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::NativeFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExtensionFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
@@ -497,7 +492,6 @@ public:
     virtual void visit(const pt::NativeVariableDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
-    virtual void visit(const pt::ForeignFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override {}
     virtual void visit(const pt::ExtensionFunctionDeclaration *) override {}
     virtual void visit(const pt::ExceptionDeclaration *) override {}
@@ -3558,72 +3552,6 @@ const ast::Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *decl
     return new ast::NullStatement(declaration->token.line);
 }
 
-const ast::Statement *Analyzer::analyze_decl(const pt::ForeignFunctionDeclaration *declaration)
-{
-    std::string name = declaration->name.text;
-    if (not scope.top()->allocateName(declaration->name, name)) {
-        error2(3092, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
-    }
-    const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
-    ast::ForeignFunction *function = new ast::ForeignFunction(declaration->name, name, ftype);
-    scope.top()->addName(declaration->name, name, function);
-    return new ast::NullStatement(declaration->token.line);
-}
-
-const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaration *declaration)
-{
-    std::string name = declaration->name.text;
-    ast::ForeignFunction *function = dynamic_cast<ast::ForeignFunction *>(scope.top()->lookupName(name));
-
-    const ast::DictionaryLiteralExpression *dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(analyze(declaration->dict.get()));
-    if (not dict->is_constant) {
-        error(3071, declaration->dict->token, "constant dictionary expected");
-    }
-    if (dynamic_cast<const ast::TypeDictionary *>(dict->elementtype) == nullptr) {
-        error(3073, declaration->dict->token, "top level dictionary element not dictionary");
-    }
-    for (auto elem: dict->dict) {
-        auto *d = dynamic_cast<const ast::DictionaryLiteralExpression *>(elem.second);
-        if (not d->dict.empty() && d->elementtype != ast::TYPE_STRING) {
-            error(3074, declaration->dict->token, "sub level dictionary must have string elements");
-        }
-    }
-
-    auto klibrary = dict->dict.find(utf8string("library"));
-    if (klibrary == dict->dict.end()) {
-        error(3075, declaration->dict->token, "\"library\" key not found");
-    }
-    auto &library_dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(klibrary->second)->dict;
-    auto kname = library_dict.find(utf8string("name"));
-    if (kname == library_dict.end()) {
-        error(3076, declaration->dict->token, "\"name\" key not found in library");
-    }
-    utf8string library_name = kname->second->eval_string(declaration->dict->token);
-
-    auto ktypes = dict->dict.find(utf8string("types"));
-    if (ktypes == dict->dict.end()) {
-        error(3077, declaration->dict->token, "\"types\" key not found");
-    }
-    auto &types_dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(ktypes->second)->dict;
-    std::map<utf8string, utf8string> param_types;
-    for (auto paramtype: types_dict) {
-        param_types[paramtype.first] = paramtype.second->eval_string(declaration->dict->token);
-    }
-    for (auto p: function->ftype->params) {
-        std::string pname = p->declaration.text;
-        if (p->mode == ast::ParameterType::Mode::OUT) {
-            error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + pname);
-        }
-        if (param_types.find(utf8string(pname)) == param_types.end()) {
-            error(3097, declaration->dict->token, "parameter type missing: " + pname);
-        }
-    }
-
-    function->library_name = library_name;
-    function->param_types = param_types;
-    return new ast::NullStatement(declaration->token.line);
-}
-
 const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
@@ -5512,7 +5440,6 @@ public:
         vc.check_out_parameters(node->end_function);
         vc.check_unused();
     }
-    virtual void visit(const pt::ForeignFunctionDeclaration *) {}
     virtual void visit(const pt::NativeFunctionDeclaration *) {}
     virtual void visit(const pt::ExtensionFunctionDeclaration *) {}
     virtual void visit(const pt::ExceptionDeclaration *) {}

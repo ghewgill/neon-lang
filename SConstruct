@@ -120,7 +120,6 @@ use_posix = os.name == "posix"
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
 libgmp = add_external(SConscript("external/SConscript-libgmp", exports=["env"]))
-libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
 libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
@@ -464,7 +463,6 @@ if use_go:
 
 buildenv.Depends("src/number.h", libbid)
 buildenv.Depends("src/number.h", libgmp)
-buildenv.Depends("src/exec.cpp", libffi)
 
 def UnitTest(env, target, source, **kwargs):
     t = env.Program(target, source, **kwargs)
@@ -541,11 +539,6 @@ buildenv.Program("bin/perf_lexer", [
 ] + coverage_lib,
 )
 
-if sys.platform == "win32":
-    test_ffi = buildenv.SharedLibrary("bin/libtest_ffi", "tests/test_ffi.c")
-else:
-    test_ffi = buildenv.SharedLibrary("bin/test_ffi", "tests/test_ffi.c")
-
 def filter_tests(tests, excludefile):
     with open(excludefile) as f:
         exclude = [re.sub(r"\s*(#.*)?$", "", x) for x in f.readlines()]
@@ -558,7 +551,6 @@ for m in modules:
     for f in Glob(os.path.join("lib", m, "t", "*.neon")):
         test_sources.append(f)
 tests = buildenv.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
-buildenv.Depends(tests, test_ffi)
 buildenv.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" " + " ".join(filter_tests((x.path for x in test_sources), "tools/helium-exclude.txt")))
 if use_node:
     tests_js = buildenv.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/js-exclude.txt")))

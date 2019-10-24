@@ -66,7 +66,6 @@ std::string reconstitute(const Token &t)
         case ELSIF:       return "ELSIF";
         case CASE:        return "CASE";
         case WHEN:        return "WHEN";
-        case FOREIGN:     return "FOREIGN";
         case EXIT:        return "EXIT";
         case NEXT:        return "NEXT";
         case LOOP:        return "LOOP";

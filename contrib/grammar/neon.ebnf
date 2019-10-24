@@ -28,7 +28,6 @@ Statement =
     NativeVariableDeclaration |
     LetDeclaration |
     FunctionDeclaration |
-    ForeignFunctionDeclaration |
     NativeFunctionDeclaration |
     ExtensionFunctionDeclaration |
     ExceptionDeclaration |
@@ -87,8 +86,6 @@ LetDeclaration = 'LET', Identifier, ':', Type, ':=', Expression;
 
 FunctionDeclaration = 'FUNCTION', FunctionHeader, {Statement}, 'END', 'FUNCTION';
 
-ForeignFunctionDeclaration = 'FOREIGN', 'FUNCTION', FunctionHeader, DictionaryLiteral, 'END', 'FUNCTION';
-
 NativeFunctionDeclaration = 'DECLARE', 'NATIVE', 'FUNCTION', FunctionHeader;
 
 ExtensionFunctionDeclaration = 'DECLARE', 'EXTENSION', 'FUNCTION', FunctionHeader;
@@ -103,7 +100,7 @@ ExceptionDeclaration = 'EXCEPTION', Identifier, {'.', Identifier};
 
 InterfaceDeclaration = 'INTERFACE', Identifier, {'FUNCTION', Identifier, FunctionParameterList}, 'END', 'INTERFACE';
 
-ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | ExtensionConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | ForeignFunctionDeclaration | NativeFunctionDeclaration | ExtensionFunctionDeclaration | ExceptionDeclaration | InterfaceDeclaration | Identifier);
+ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | ExtensionConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | NativeFunctionDeclaration | ExtensionFunctionDeclaration | ExceptionDeclaration | InterfaceDeclaration | Identifier);
 
 MainBlock = 'BEGIN', 'MAIN', {Statement}, 'END', 'MAIN';
 

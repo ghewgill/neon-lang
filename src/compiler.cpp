@@ -214,7 +214,6 @@ void Emitter::emit(Opcode b)
             case DUPX1:     stack_depth += 1; break;
             case DROP:      stack_depth -= 1; break;
             case RET:       break;
-            case CALLE:     break;
             case CONSA:     break;
             case CONSD:     break;
             case EXCEPT:    stack_depth = -1; break;
@@ -1269,43 +1268,6 @@ void ast::ModuleFunction::predeclare(Emitter &emitter) const
 void ast::ModuleFunction::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLMF, emitter.str(module), emitter.str(name + "," + descriptor));
-    emitter.adjust_stack_depth(ftype->get_stack_delta());
-}
-
-void ast::ForeignFunction::predeclare(Emitter &emitter) const
-{
-    BaseFunction::predeclare(emitter);
-    std::stringstream ss;
-    ss << library_name.str() << ":" << name << ":";
-    auto r = param_types.find(utf8string("return"));
-    if (r != param_types.end()) {
-        ss << r->second.str();
-    }
-    ss << ":";
-    bool first = true;
-    for (auto param: ftype->params) {
-        if (not first) {
-            ss << ",";
-        }
-        first = false;
-        if (param->mode == ParameterType::Mode::INOUT) {
-            ss << '*';
-        }
-        ss << param_types.at(utf8string(param->declaration.text)).str();
-    }
-    foreign_index = emitter.str(ss.str());
-}
-
-void ast::ForeignFunction::postdeclare(Emitter &emitter) const
-{
-    emitter.jump_target(emitter.function_info(function_index).entry_label);
-    generate_call(emitter);
-    emitter.emit(RET);
-}
-
-void ast::ForeignFunction::generate_call(Emitter &emitter) const
-{
-    emitter.emit(CALLE, foreign_index);
     emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 

@@ -713,9 +713,6 @@ class Executor:
         self.frames.pop()
         (_module, self.ip) = self.callstack.pop()
 
-    def CALLE(self):
-        assert False
-
     def CONSA(self):
         self.ip += 1
         val, self.ip = get_vint(self.object.code, self.ip)
@@ -914,7 +911,6 @@ Dispatch = [
     Executor.DUPX1,
     Executor.DROP,
     Executor.RET,
-    Executor.CALLE,
     Executor.CONSA,
     Executor.CONSD,
     Executor.EXCEPT,

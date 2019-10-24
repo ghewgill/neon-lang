@@ -107,7 +107,6 @@ const (
 	DUPX1   = iota // duplicate under second value
 	DROP    = iota // drop
 	RET     = iota // return
-	CALLE   = iota // call foreign
 	CONSA   = iota // construct array
 	CONSD   = iota // construct dictionary
 	EXCEPT  = iota // throw exception
@@ -1137,8 +1136,6 @@ func (self *executor) run() {
 			self.op_drop()
 		case RET:
 			self.op_ret()
-		case CALLE:
-			self.op_calle()
 		case CONSA:
 			self.op_consa()
 		case CONSD:
@@ -2682,10 +2679,6 @@ func (self *executor) op_ret() {
 	self.module = self.callstack[len(self.callstack)-1].module
 	self.ip = self.callstack[len(self.callstack)-1].ip
 	self.callstack = self.callstack[:len(self.callstack)-1]
-}
-
-func (self *executor) op_calle() {
-	assert(false, "unimplemented calle")
 }
 
 func (self *executor) op_consa() {

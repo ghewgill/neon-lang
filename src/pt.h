@@ -72,7 +72,6 @@ class VariableDeclaration;
 class NativeVariableDeclaration;
 class LetDeclaration;
 class FunctionDeclaration;
-class ForeignFunctionDeclaration;
 class NativeFunctionDeclaration;
 class ExtensionFunctionDeclaration;
 class ExceptionDeclaration;
@@ -167,7 +166,6 @@ public:
     virtual void visit(const NativeVariableDeclaration *) = 0;
     virtual void visit(const LetDeclaration *) = 0;
     virtual void visit(const FunctionDeclaration *) = 0;
-    virtual void visit(const ForeignFunctionDeclaration *) = 0;
     virtual void visit(const NativeFunctionDeclaration *) = 0;
     virtual void visit(const ExtensionFunctionDeclaration *) = 0;
     virtual void visit(const ExceptionDeclaration *) = 0;
@@ -755,13 +753,6 @@ public:
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::unique_ptr<Statement>> body;
     const Token end_function;
-};
-
-class ForeignFunctionDeclaration: public BaseFunctionDeclaration {
-public:
-    ForeignFunctionDeclaration(const Token &token, const Token &type, const Token &name, std::unique_ptr<Type> &&returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &&args, const Token &rparen, std::unique_ptr<Expression> &&dict): BaseFunctionDeclaration(token, type, name, std::move(returntype), std::move(args), rparen), dict(std::move(dict)) {}
-    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    std::unique_ptr<Expression> dict;
 };
 
 class NativeFunctionDeclaration: public BaseFunctionDeclaration {

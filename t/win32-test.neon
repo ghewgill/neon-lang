@@ -1,3 +1,4 @@
+% SKIP (win32 module needs reimplementation with extension module)
 % PLATFORM:win32
 
 IMPORT win32

@@ -52,7 +52,6 @@ Keyword         Description
 ``EXCEPTION``   exception declaration 
 ``EXIT``        early exit from loops 
 ``EXPORT``      export identifier from module 
-``FOREIGN``     foreign function declaration 
 ``FALSE``       boolean constant 
 ``FIRST``       indicates first value in array subscript 
 ``FOR``         loop with a sequential control variable 

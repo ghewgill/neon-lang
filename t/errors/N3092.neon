@@ -1,9 +1,0 @@
-FUNCTION foo()
-         %<2
-END FUNCTION
-
-FOREIGN FUNCTION foo()
-                 %<1
-{
-}
-END FUNCTION

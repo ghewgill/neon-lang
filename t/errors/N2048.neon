@@ -1,11 +1,2 @@
-FOREIGN FUNCTION Sleep(ms: Number)
-{
-     "library" {
-               %<
-          "name": "TestLib"
-     }
-     "types": {
-          "dwMilliseconds": "uint32"
-     }
-}
-END FUNCTION
+LET d: Dictionary<String> := {"foo" "bar"}
+                                    %<

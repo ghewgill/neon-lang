@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ffi.h>
 #include <minijson_writer.hpp>
 
 #include "bytecode.h"
@@ -69,127 +68,9 @@ std::string just_path(const std::string &name)
 
 } // namespace
 
-class ForeignCallInfo {
-public:
-    typedef void *(*marshal_f)(Cell &cell, void *&p, size_t &space);
-    typedef Cell (*unmarshal_f)(void *p);
-    ForeignCallInfo(): types(), marshal(), unmarshal(nullptr), cif(), fp(nullptr) {}
-    std::vector<ffi_type *> types;
-    std::vector<marshal_f> marshal;
-    unmarshal_f unmarshal;
-    ffi_cif cif;
-    void_function_t fp;
-};
-
 #ifdef _MSC_VER
 #define alignof(T) sizeof(T)
 #endif
-
-// This implementation of std::align from https://code.google.com/p/c-plus/source/browse/src/util.h
-// is provided for compilers that don't have this C++11 function yet.
-static void *align(std::size_t alignment, std::size_t size, void *&ptr, std::size_t &space)
-{
-    auto pn = reinterpret_cast< std::size_t >( ptr );
-    auto aligned = ( pn + alignment - 1 ) & - static_cast<long>(alignment);
-    auto new_space = space - ( aligned - pn );
-    if ( new_space < size ) return nullptr;
-    space = new_space;
-    return ptr = reinterpret_cast< void * >( aligned );
-}
-
-template <typename T> struct number_conversion {
-    static T convert_to_native(Number);
-    static Number convert_from_native(T);
-};
-
-template <> struct number_conversion<uint8_t > { static uint8_t  convert_to_native(Number x) { return number_to_uint8 (x); } static Number convert_from_native(uint8_t  x) { return number_from_uint8 (x); } };
-template <> struct number_conversion< int8_t > { static  int8_t  convert_to_native(Number x) { return number_to_sint8 (x); } static Number convert_from_native( int8_t  x) { return number_from_sint8 (x); } };
-template <> struct number_conversion<uint16_t> { static uint16_t convert_to_native(Number x) { return number_to_uint16(x); } static Number convert_from_native(uint16_t x) { return number_from_uint16(x); } };
-template <> struct number_conversion< int16_t> { static  int16_t convert_to_native(Number x) { return number_to_sint16(x); } static Number convert_from_native( int16_t x) { return number_from_sint16(x); } };
-template <> struct number_conversion<uint32_t> { static uint32_t convert_to_native(Number x) { return number_to_uint32(x); } static Number convert_from_native(uint32_t x) { return number_from_uint32(x); } };
-template <> struct number_conversion< int32_t> { static  int32_t convert_to_native(Number x) { return number_to_sint32(x); } static Number convert_from_native( int32_t x) { return number_from_sint32(x); } };
-template <> struct number_conversion<uint64_t> { static uint64_t convert_to_native(Number x) { return number_to_uint64(x); } static Number convert_from_native(uint64_t x) { return number_from_uint64(x); } };
-template <> struct number_conversion< int64_t> { static  int64_t convert_to_native(Number x) { return number_to_sint64(x); } static Number convert_from_native( int64_t x) { return number_from_sint64(x); } };
-template <> struct number_conversion<float   > { static float    convert_to_native(Number x) { return number_to_float (x); } static Number convert_from_native(float    x) { return number_from_float (x); } };
-template <> struct number_conversion<double  > { static double   convert_to_native(Number x) { return number_to_double(x); } static Number convert_from_native(double   x) { return number_from_double(x); } };
-
-template <typename T> static void *marshal_number(Cell &cell, void *&p, size_t &space)
-{
-    T *a = reinterpret_cast<T *>(align(alignof(T), sizeof(T), p, space));
-    *a = number_conversion<T>::convert_to_native(cell.number());
-    p = a + 1;
-    space -= sizeof(T);
-    return a;
-}
-
-static void *marshal_pointer(Cell &cell, void *&p, size_t &space)
-{
-    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = cell.other();
-    p = a + 1;
-    space -= sizeof(void *);
-    return a;
-}
-
-static void *marshal_pointer_a(Cell &cell, void *&p, size_t &space)
-{
-    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = cell.address()->other();
-    p = a + 1;
-    space -= sizeof(void *);
-    return a;
-}
-
-static void *marshal_string(Cell &cell, void *&p, size_t &space)
-{
-    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = const_cast<char *>(cell.string().data());
-    p = a + 1;
-    space -= sizeof(void *);
-    return a;
-}
-
-static void *marshal_string_a(Cell &cell, void *&p, size_t &space)
-{
-    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = const_cast<char *>(cell.address()->string().data());
-    p = a + 1;
-    space -= sizeof(void *);
-    return a;
-}
-
-static void *marshal_bytes(Cell &cell, void *&p, size_t &space)
-{
-    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = const_cast<unsigned char *>(cell.bytes().data());
-    p = a + 1;
-    space -= sizeof(void *);
-    return a;
-}
-
-static void *marshal_bytes_a(Cell &cell, void *&p, size_t &space)
-{
-    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = const_cast<unsigned char *>(cell.address()->bytes().data());
-    p = a + 1;
-    space -= sizeof(void *);
-    return a;
-}
-
-template <typename T> static Cell unmarshal_boolean(void *p)
-{
-    return Cell(*reinterpret_cast<T *>(p) != 0);
-}
-
-template <typename T> static Cell unmarshal_number(void *p)
-{
-    return Cell(number_conversion<T>::convert_from_native(*reinterpret_cast<T *>(p)));
-}
-
-static Cell unmarshal_pointer(void *p)
-{
-    return Cell::makeOther(*(reinterpret_cast<void **>(p)));
-}
 
 class ActivationFrame {
 public:
@@ -227,7 +108,6 @@ public:
     std::vector<Cell> globals;
     std::vector<size_t> rtl_call_tokens;
     std::vector<std::pair<bool, Number>> number_table;
-    std::vector<ForeignCallInfo *> foreign_functions;
     std::map<std::pair<std::string, std::string>, std::pair<Module *, int>> module_functions;
 };
 
@@ -372,7 +252,6 @@ public:
     void exec_DUPX1();
     void exec_DROP();
     void exec_RET();
-    void exec_CALLE();
     void exec_CONSA();
     void exec_CONSD();
     void exec_EXCEPT();
@@ -696,7 +575,6 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
     globals(object.global_size),
     rtl_call_tokens(object.strtable.size(), SIZE_MAX),
     number_table(object.strtable.size()),
-    foreign_functions(),
     module_functions()
 {
     for (auto i: object.imports) {
@@ -1558,94 +1436,6 @@ void Executor::exec_RET()
     callstack.pop_back();
 }
 
-void Executor::exec_CALLE()
-{
-    ip++;
-    uint32_t val = Bytecode::get_vint(module->object.code, ip);
-    ForeignCallInfo *fci = val < module->foreign_functions.size() ? module->foreign_functions.at(val) : nullptr;
-    if (fci == nullptr) {
-        fci = new ForeignCallInfo;
-        std::string func = module->object.strtable.at(val);
-        auto info = split(func, ':');
-        std::string library = info[0];
-        std::string name = info[1];
-        std::string rettype = info[2];
-        auto params = split(info[3], ',');
-        try {
-            fci->fp = rtl_foreign_function(library, name);
-        } catch (RtlException &x) {
-            raise(x);
-            return;
-        }
-        for (auto p: params) {
-                 if (p == "uint8" )   { fci->types.push_back(&ffi_type_uint8 );  fci->marshal.push_back(marshal_number<uint8_t >); }
-            else if (p == "sint8" )   { fci->types.push_back(&ffi_type_sint8 );  fci->marshal.push_back(marshal_number< int8_t >); }
-            else if (p == "uint16")   { fci->types.push_back(&ffi_type_uint16);  fci->marshal.push_back(marshal_number<uint16_t>); }
-            else if (p == "sint16")   { fci->types.push_back(&ffi_type_sint16);  fci->marshal.push_back(marshal_number< int16_t>); }
-            else if (p == "uint32")   { fci->types.push_back(&ffi_type_uint32);  fci->marshal.push_back(marshal_number<uint32_t>); }
-            else if (p == "sint32")   { fci->types.push_back(&ffi_type_sint32);  fci->marshal.push_back(marshal_number< int32_t>); }
-            else if (p == "uint64")   { fci->types.push_back(&ffi_type_uint64);  fci->marshal.push_back(marshal_number<uint64_t>); }
-            else if (p == "sint64")   { fci->types.push_back(&ffi_type_sint64);  fci->marshal.push_back(marshal_number< int64_t>); }
-            else if (p == "float" )   { fci->types.push_back(&ffi_type_float );  fci->marshal.push_back(marshal_number<float   >); }
-            else if (p == "double")   { fci->types.push_back(&ffi_type_double);  fci->marshal.push_back(marshal_number<double  >); }
-            else if (p == "string")   { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string          ); }
-            else if (p == "*string")  { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string_a        ); }
-            else if (p == "bytes")    { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_bytes           ); }
-            else if (p == "*bytes")   { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_bytes_a         ); }
-            else if (p == "pointer")  { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_pointer         ); }
-            else if (p == "*pointer") { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_pointer_a       ); }
-            else {
-                fprintf(stderr, "ffi type not supported: %s\n", p.c_str());
-                exit(1);
-            }
-        }
-        ffi_type *rtype;
-             if (rettype == "boolean"){ rtype = &ffi_type_uint32; fci->unmarshal = unmarshal_boolean<uint32_t>; }
-        else if (rettype == "uint8" ) { rtype = &ffi_type_uint8;  fci->unmarshal = unmarshal_number<uint8_t  >; }
-        else if (rettype == "sint8" ) { rtype = &ffi_type_sint8;  fci->unmarshal = unmarshal_number< int8_t  >; }
-        else if (rettype == "uint16") { rtype = &ffi_type_uint16; fci->unmarshal = unmarshal_number<uint16_t >; }
-        else if (rettype == "sint16") { rtype = &ffi_type_sint16; fci->unmarshal = unmarshal_number< int16_t >; }
-        else if (rettype == "uint32") { rtype = &ffi_type_uint32; fci->unmarshal = unmarshal_number<uint32_t >; }
-        else if (rettype == "sint32") { rtype = &ffi_type_sint32; fci->unmarshal = unmarshal_number< int32_t >; }
-        else if (rettype == "uint64") { rtype = &ffi_type_uint64; fci->unmarshal = unmarshal_number<uint64_t >; }
-        else if (rettype == "sint64") { rtype = &ffi_type_sint64; fci->unmarshal = unmarshal_number< int64_t >; }
-        else if (rettype == "float" ) { rtype = &ffi_type_float;  fci->unmarshal = unmarshal_number<float    >; }
-        else if (rettype == "double") { rtype = &ffi_type_double; fci->unmarshal = unmarshal_number<double   >; }
-        else if (rettype == "pointer"){ rtype = &ffi_type_pointer;fci->unmarshal = unmarshal_pointer; }
-        else if (rettype == ""      ) { rtype = &ffi_type_void;   fci->unmarshal = nullptr;                     }
-        else {
-            fprintf(stderr, "ffi return type not supported: %s\n", rettype.c_str());
-            exit(1);
-        }
-        ffi_status status = ffi_prep_cif(&fci->cif, FFI_DEFAULT_ABI, static_cast<unsigned int>(params.size()), rtype, fci->types.data());
-        if (status != FFI_OK) {
-            fprintf(stderr, "internal ffi error %d\n", status);
-            exit(1);
-        }
-        if (val >= module->foreign_functions.size()) {
-            module->foreign_functions.resize(val + 1);
-        }
-        module->foreign_functions[val] = fci;
-    }
-    std::vector<Cell> cells;
-    char buf[1024];
-    void *args[256];
-    size_t size = sizeof(buf);
-    void *p = buf;
-    void *r = align(fci->cif.rtype->alignment, fci->cif.rtype->size, p, size);
-    size_t i = fci->types.size();
-    for (auto m = fci->marshal.rbegin(); m != fci->marshal.rend(); ++m) {
-        i--;
-        cells.push_back(stack.top());
-        stack.pop();
-        args[i] = (*m)(cells[cells.size()-1], p, size);
-    }
-    ffi_call(&fci->cif, fci->fp, r, args);
-    if (fci->unmarshal != nullptr) {
-        stack.push(fci->unmarshal(r));
-    }
-}
-
 void Executor::exec_CONSA()
 {
     ip++;
@@ -2260,7 +2050,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case DUPX1:   exec_DUPX1(); break;
             case DROP:    exec_DROP(); break;
             case RET:     exec_RET(); break;
-            case CALLE:   exec_CALLE(); break;
             case CONSA:   exec_CONSA(); break;
             case CONSD:   exec_CONSD(); break;
             case EXCEPT:  exec_EXCEPT(); break;
