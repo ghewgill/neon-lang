@@ -1,8 +1,6 @@
 FUNCTION bar(): Number
+    RETURN 5
 END FUNCTION
 
-FOREIGN FUNCTION foo(x: Number DEFAULT bar())
-                                       %<
-{
-}
-END FUNCTION
+VAR p: FUNCTION(x: Number DEFAULT bar())
+                                  %<

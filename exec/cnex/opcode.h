@@ -89,7 +89,6 @@
     OPCODE(DUPX1)      /* duplicate under second value */\
     OPCODE(DROP)       /* drop */\
     OPCODE(RET)        /* return */\
-    OPCODE(CALLE)      /* call foreign */\
     OPCODE(CONSA)      /* construct array */\
     OPCODE(CONSD)      /* construct dictionary */\
     OPCODE(EXCEPT)     /* throw exception */\

@@ -262,7 +262,6 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_dupx1,
     f_drop,
     f_ret,
-    f_calle,
     f_consa,
     f_consd,
     f_except,
@@ -987,10 +986,6 @@ FUNCTION f_ret(INOUT self: Executor)
     self.frames[LAST TO LAST] := []
     self.ip := self.callstack[LAST]
     self.callstack[LAST TO LAST] := []
-END FUNCTION
-
-FUNCTION f_calle(INOUT self: Executor)
-    ASSERT FALSE
 END FUNCTION
 
 FUNCTION f_consa(INOUT self: Executor)

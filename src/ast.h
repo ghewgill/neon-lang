@@ -140,7 +140,6 @@ public:
     virtual void visit(const class PredefinedFunction *node) = 0;
     virtual void visit(const class ExtensionFunction *node) = 0;
     virtual void visit(const class ModuleFunction *node) = 0;
-    virtual void visit(const class ForeignFunction *node) = 0;
     virtual void visit(const class Module *node) = 0;
     virtual void visit(const class Program *node) = 0;
 };
@@ -2730,24 +2729,6 @@ public:
     int get_stack_delta() const;
 
     virtual std::string text() const override { return "ModuleFunction(" + module + "." + name + ", " + type->text() + ")"; }
-};
-
-class ForeignFunction: public BaseFunction {
-public:
-    ForeignFunction(const Token &declaration, const std::string &name, const TypeFunction *ftype): BaseFunction(declaration, name, ftype), library_name(), param_types(), foreign_index(-1) {}
-    ForeignFunction(const ForeignFunction &) = delete;
-    ForeignFunction &operator=(const ForeignFunction &) = delete;
-    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-
-    utf8string library_name;
-    std::map<utf8string, utf8string> param_types;
-    mutable int foreign_index;
-
-    virtual void reset() override { foreign_index = -1; }
-    virtual void predeclare(Emitter &) const override;
-    virtual void postdeclare(Emitter &) const override;
-    virtual void generate_address(Emitter &) const override { internal_error("ForeignFunction"); }
-    virtual void generate_call(Emitter &emitter) const override;
 };
 
 class Module: public Name {

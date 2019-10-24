@@ -90,7 +90,6 @@ enum Opcode {
     DUPX1,      // duplicate under second value
     DROP,       // drop
     RET,        // return
-    CALLE,      // call foreign
     CONSA,      // construct array
     CONSD,      // construct dictionary
     EXCEPT,     // throw exception
@@ -345,7 +344,6 @@ impl Executor {
                 x if x == Opcode::DUPX1 as u8 => self.op_dupx1(),
                 x if x == Opcode::DROP as u8 => self.op_drop(),
                 x if x == Opcode::RET as u8 => self.op_ret(),
-                x if x == Opcode::CALLE as u8 => self.op_calle(),
                 x if x == Opcode::CONSA as u8 => self.op_consa(),
                 x if x == Opcode::CONSD as u8 => self.op_consd(),
                 x if x == Opcode::EXCEPT as u8 => self.op_except(),
@@ -729,10 +727,6 @@ impl Executor {
         } else {
             assert!(false, "unexpected empty stack");
         }
-    }
-
-    fn op_calle(&mut self) {
-        assert!(false, "unimplemented");
     }
 
     fn op_consa(&mut self) {

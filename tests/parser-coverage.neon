@@ -59,9 +59,6 @@ FUNCTION name() END FUNCTION
 FUNCTION name() statement() END FUNCTION
 FUNCTION name() statement() statement() END FUNCTION
 
-% ForeignFunctionDeclaration
-FOREIGN FUNCTION name() {} END FUNCTION
-
 % NativeFunctionDeclaration
 DECLARE NATIVE FUNCTION name()
 

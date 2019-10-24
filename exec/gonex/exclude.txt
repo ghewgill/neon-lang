@@ -7,7 +7,6 @@ datetime-test.neon         # gmtime
 debug-example.neon         # debugger
 debug-server.neon          # net$tcpSocket
 decimal.neon               # decimal
-ffi.neon                   # calle
 file-filecopied2.neon      # copy
 fork.neon                  # posix$fork
 for.neon                   # decimal

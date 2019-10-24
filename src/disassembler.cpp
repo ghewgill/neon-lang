@@ -109,7 +109,6 @@ private:
     void disasm_DUPX1();
     void disasm_DROP();
     void disasm_RET();
-    void disasm_CALLE();
     void disasm_CONSA();
     void disasm_CONSD();
     void disasm_EXCEPT();
@@ -668,13 +667,6 @@ void InstructionDisassembler::disasm_RET()
     index++;
 }
 
-void InstructionDisassembler::disasm_CALLE()
-{
-    index++;
-    uint32_t val = Bytecode::get_vint(obj.code, index);
-    out << "CALLE " << obj.strtable[val];
-}
-
 void InstructionDisassembler::disasm_CONSA()
 {
     index++;
@@ -862,7 +854,6 @@ void InstructionDisassembler::disassemble()
         case DUPX1:   disasm_DUPX1(); break;
         case DROP:    disasm_DROP(); break;
         case RET:     disasm_RET(); break;
-        case CALLE:   disasm_CALLE(); break;
         case CONSA:   disasm_CONSA(); break;
         case CONSD:   disasm_CONSD(); break;
         case EXCEPT:  disasm_EXCEPT(); break;

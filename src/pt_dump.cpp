@@ -286,19 +286,6 @@ public:
             child(x.get());
         }
     }
-    virtual void visit(const ForeignFunctionDeclaration *node) override {
-        write("ForeignFunctionDeclaration(" + node->name.text + ")");
-        child(node->returntype.get());
-        depth++;
-        for (auto &x: node->args) {
-            for (auto name: x->names) {
-                write(FunctionParameterGroup::to_string(x->mode) + " " + name.text);
-                child(x->type.get());
-            }
-        }
-        depth--;
-        child(node->dict.get());
-    }
     virtual void visit(const NativeFunctionDeclaration *node) override {
         write("NativeFunctionDeclaration(" + node->name.text + ")");
         child(node->returntype.get());

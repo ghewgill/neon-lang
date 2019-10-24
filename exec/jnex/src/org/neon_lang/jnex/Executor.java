@@ -185,7 +185,6 @@ class Executor {
                     case DUPX1: doDUPX1(); break;
                     case DROP: doDROP(); break;
                     case RET: doRET(); break;
-                    //case CALLE
                     case CONSA: doCONSA(); break;
                     case CONSD: doCONSD(); break;
                     case EXCEPT: doEXCEPT(); break;
@@ -1061,7 +1060,6 @@ class Executor {
         DUPX1,
         DROP,
         RET,
-        CALLE,
         CONSA,
         CONSD,
         EXCEPT,

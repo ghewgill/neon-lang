@@ -96,7 +96,6 @@ std::string Token::tostring() const
         case ELSIF:       s << "ELSIF"; break;
         case CASE:        s << "CASE"; break;
         case WHEN:        s << "WHEN"; break;
-        case FOREIGN:     s << "FOREIGN"; break;
         case EXIT:        s << "EXIT"; break;
         case NEXT:        s << "NEXT"; break;
         case LOOP:        s << "LOOP"; break;
@@ -348,7 +347,6 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "ELSIF") t.type = ELSIF;
             else if (t.text == "CASE") t.type = CASE;
             else if (t.text == "WHEN") t.type = WHEN;
-            else if (t.text == "FOREIGN") t.type = FOREIGN;
             else if (t.text == "EXIT") t.type = EXIT;
             else if (t.text == "NEXT") t.type = NEXT;
             else if (t.text == "LOOP") t.type = LOOP;

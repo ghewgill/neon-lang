@@ -348,7 +348,7 @@ add_library(executor OBJECT
 #    src/support_exec.cpp
 #    PROPERTIES OBJECT_DEPENDS src/rtlx.inc
 #)
-target_compile_options(executor PRIVATE -DFFI_BUILDING)
+target_compile_options(executor PRIVATE)
 set_source_files_properties(
     src/exec.cpp
     PROPERTIES OBJECT_DEPENDS src/exceptions.inc
@@ -357,7 +357,6 @@ target_include_directories(executor
     PRIVATE common
     PRIVATE src
     PRIVATE external/IntelRDFPMathLib20U2/LIBRARY/src
-    PRIVATE external/lib/libffi-3.2.1/include
     PRIVATE external/minijson_writer-master
     PRIVATE external/sqlite-amalgamation-3080803
     PRIVATE external/utfcpp-master/source
@@ -409,7 +408,6 @@ endif ()
 target_link_libraries(neon
     bid
     gmp
-    ${ffi}
     hash-library
     sqlite3
 )
@@ -429,7 +427,6 @@ target_include_directories(neonx PRIVATE
 target_link_libraries(neonx
     bid
     gmp
-    ${ffi}
     hash-library
     minizip
     sqlite3
@@ -459,7 +456,6 @@ target_include_directories(neonstub PRIVATE
 target_link_libraries(neonstub
     bid
     gmp
-    ${ffi}
     hash-library
     minizip
     sqlite3
@@ -583,16 +579,6 @@ add_test(
     NAME test_number_to_string
     COMMAND test_number_to_string
 )
-
-if (WIN32)
-    add_library(libtest_ffi SHARED
-        tests/test_ffi.c
-    )
-else (WIN32)
-    add_library(test_ffi SHARED
-        tests/test_ffi.c
-    )
-endif (WIN32)
 
 add_custom_command(
     OUTPUT src/errors.txt

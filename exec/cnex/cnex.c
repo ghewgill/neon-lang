@@ -1233,11 +1233,6 @@ void exec_RET(TExecutor *self)
     self->callstacktop--;
 }
 
-void exec_CALLE(void)
-{
-    fatal_error("exec_CALLE not implemented");
-}
-
 void exec_CONSA(TExecutor *self)
 {
     self->ip++;
@@ -1561,7 +1556,6 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case DUPX1:   exec_DUPX1(self); break;
             case DROP:    exec_DROP(self); break;
             case RET:     exec_RET(self); break;
-            case CALLE:   exec_CALLE(); break;
             case CONSA:   exec_CONSA(self); break;
             case CONSD:   exec_CONSD(self); break;
             case EXCEPT:  exec_EXCEPT(self); break;

@@ -32,7 +32,6 @@ equality.neon               # pushy
 export-function-indent.neon # exportfunctionsize
 export-inline.neon          # typesize
 export.neon                 # typesize
-ffi.neon                    # calle
 file-exists.neon            # file$exists
 file-filecopied.neon        # file$delete
 file-filecopied1.neon       # file$delete

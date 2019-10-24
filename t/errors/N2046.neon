@@ -1,3 +1,0 @@
-FOREIGN FUNCTION Sleep(ms: Number)
-END FUNCTION
-%<
