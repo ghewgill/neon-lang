@@ -261,7 +261,7 @@ TExtensionModule *ext_findModule(const char *name)
 void ext_cleanup()
 {
     if (g_libraries) {
-        for (int i = 0; i < sizeof(g_libraries->modules) / sizeof(TExtensionModule); i++) {
+        for (int i = 0; i < g_libraries->size; i++) {
             free(g_libraries->modules->module);
         }
         free(g_libraries->modules);
