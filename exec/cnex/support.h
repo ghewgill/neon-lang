@@ -6,8 +6,8 @@
 struct tagTModule;
 
 typedef struct tagTExtensionModule {
-        char *module;
-        void *handle;
+    char *module;
+    void *handle;
 } TExtensionModule;
 
 typedef struct tagTExtensions {
