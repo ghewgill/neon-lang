@@ -519,6 +519,22 @@ add_test(
     COMMAND test_lexer tests/lexer_coverage.neon
 )
 
+add_executable(test_number
+    tests/test_number.cpp
+    src/number.cpp
+)
+target_include_directories(test_number PRIVATE
+    src
+)
+target_link_libraries(test_number
+    bid
+    gmp
+)
+add_test(
+    NAME test_number
+    COMMAND test_number
+)
+
 add_executable(test_parser
     tests/test_parser.cpp
     src/lexer.cpp

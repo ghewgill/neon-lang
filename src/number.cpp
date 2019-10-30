@@ -503,7 +503,24 @@ int64_t number_to_sint64(Number x)
         if (sls >= 8) {
             return x.get_mpz().get_si();
         } else {
-            return static_cast<int64_t>(x.get_mpz().get_si() & 0xFFFFFFFF) + (static_cast<int64_t>(mpz_class(x.get_mpz() >> 32).get_si() & 0xFFFFFFFF) << 32);
+            bool negative = false;
+            if (number_is_negative(x)) {
+                negative = true;
+                x = number_negate(x);
+            }
+            uint64_t ur = static_cast<uint64_t>(x.get_mpz().get_ui() & 0xFFFFFFFF) + (static_cast<uint64_t>(mpz_class(x.get_mpz() >> 32).get_ui() & 0xFFFFFFFF) << 32);
+            if (ur > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) {
+                if (negative) {
+                    return std::numeric_limits<int64_t>::min();
+                } else {
+                    return std::numeric_limits<int64_t>::max();
+                }
+            }
+            int64_t sr = static_cast<int64_t>(ur);
+            if (negative) {
+                sr = -sr;
+            }
+            return sr;
         }
     }
     return bid128_to_int64_int(x.get_bid());
@@ -580,6 +597,10 @@ Number number_from_sint64(int64_t x)
         mpz_class hi;
         mpz_mul_2exp(hi.get_mpz_t(), mpz_class(static_cast<uint32_t>(x >> 32)).get_mpz_t(), 32);
         return mpz_class(static_cast<uint32_t>(x & 0xFFFFFFFF) + hi);
+    } else if (x == std::numeric_limits<int64_t>::min()) {
+        mpz_class hi;
+        mpz_mul_2exp(hi.get_mpz_t(), mpz_class(0x80000000).get_mpz_t(), 32);
+        return mpz_class(-hi);
     } else {
         mpz_class hi;
         mpz_mul_2exp(hi.get_mpz_t(), mpz_class(static_cast<uint32_t>((-x) >> 32)).get_mpz_t(), 32);

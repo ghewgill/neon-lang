@@ -478,6 +478,12 @@ buildenv.Command("src/errors.txt", ["scripts/extract_errors.neon"] + Glob("src/*
 
 SConsEnvironment.UnitTest = UnitTest
 
+test_number = buildenv.Program("bin/test_number", [
+    "tests/test_number.cpp",
+    "src/number.cpp",
+] + coverage_lib,
+)
+
 test_number_to_string = buildenv.Program("bin/test_number_to_string", [
     "tests/test_number_to_string.cpp",
     "src/number.cpp",
@@ -575,7 +581,8 @@ if use_go:
 testenv = buildenv.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
-buildenv.Command("tests_number", test_number_to_string, test_number_to_string[0].path)
+buildenv.Command("tests_number", test_number, test_number[0].path)
+buildenv.Command("tests_number_to_string", test_number_to_string, test_number_to_string[0].path)
 for f in Glob("t/repl_*.neon"):
     result = f.abspath + ".result"
     t = buildenv.Command(result, [f, neon], neon[0].abspath + " --repl-no-prompt --repl-stop-on-any-error <$SOURCE")
