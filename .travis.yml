@@ -1,4 +1,5 @@
 language: cpp
+osx_image: xcode11 # at least until travis default osx version works
 jobs:
     include:
         - os: linux
