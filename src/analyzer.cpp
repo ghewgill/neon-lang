@@ -2295,7 +2295,8 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         } else if (ftype->params[p]->mode == ast::ParameterType::Mode::INOUT && a->mode.type != INOUT) {
             error(3185, a->expr->token, "INOUT keyword required");
         } else if ((a->mode.type == IN && ftype->params[p]->mode != ast::ParameterType::Mode::IN)
-                || (a->mode.type == INOUT && ftype->params[p]->mode != ast::ParameterType::Mode::INOUT)) {
+                || (a->mode.type == INOUT && ftype->params[p]->mode != ast::ParameterType::Mode::INOUT)
+                || (a->mode.type == OUT && ftype->params[p]->mode != ast::ParameterType::Mode::OUT)) {
             error(3186, a->mode, "parameter mode must match if specified");
         }
         if (in_varargs) {
