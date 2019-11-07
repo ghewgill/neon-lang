@@ -1,0 +1,146 @@
+%|
+ |  File: snake
+ |
+ |  Snake game in curses.
+ |%
+
+IMPORT curses
+IMPORT math
+IMPORT random
+IMPORT time
+
+CONSTANT Width: Number := 20
+CONSTANT Height: Number := 20
+
+VAR FieldWindow: curses.Window
+
+TYPE Point IS RECORD
+    x: Number
+    y: Number
+END RECORD
+
+FUNCTION play_again(): Boolean
+    curses.wattrset(FieldWindow, 0)
+    curses.mvwaddstr(FieldWindow,  8, 5, "           ")
+    curses.mvwaddstr(FieldWindow,  9, 5, "  G A M E  ")
+    curses.mvwaddstr(FieldWindow, 10, 5, "           ")
+    curses.mvwaddstr(FieldWindow, 11, 5, "  O V E R  ")
+    curses.mvwaddstr(FieldWindow, 12, 5, "           ")
+    curses.mvwaddstr(FieldWindow, 13, 5, "  again?   ")
+    curses.mvwaddstr(FieldWindow, 14, 5, "           ")
+    LOOP
+        LET k: Number := curses.wgetch(FieldWindow)
+        IF k >= 0 THEN
+            CASE chr(k)
+                WHEN "n", "q" DO
+                    RETURN FALSE
+                WHEN "y" DO
+                    RETURN TRUE
+            END CASE
+        END IF
+    END LOOP
+END FUNCTION
+
+FUNCTION main()
+    curses.attrset(curses.COLOR_PAIR(3))
+    FOREACH x IN [0 TO Width+1] DO
+        curses.mvaddstr(0, 2*x, "  ")
+        curses.mvaddstr(Height+1, 2*x, "  ")
+    END FOREACH
+    FOREACH y IN [0 TO Height+1] DO
+        curses.mvaddstr(y, 0, "  ")
+        curses.mvaddstr(y, 2*(Width+1), "  ")
+    END FOREACH
+    curses.refresh()
+    FieldWindow := curses.newwin(Height, 2*Width, 1, 2)
+    curses.wtimeout(FieldWindow, 100)
+    curses.keypad(FieldWindow, TRUE)
+    VAR quit: Boolean := FALSE
+    WHILE NOT quit DO
+        VAR snake: Array<Point> := []
+        FOREACH x IN [0 TO 4] DO
+            snake.append(Point(x WITH 5+x, y WITH 10))
+        END FOREACH
+        VAR food: Point
+        REPEAT
+            food := Point(x WITH random.uint32() MOD Width, y WITH random.uint32() MOD Height)
+        UNTIL food NOT IN snake
+        VAR dx: Number := 1
+        VAR dy: Number := 0
+        VAR step_time: Number := 1
+        VAR last_step: Number := 0
+        WHILE NOT quit LABEL game DO
+            curses.werase(FieldWindow)
+            curses.wattrset(FieldWindow, curses.COLOR_PAIR(1))
+            FOREACH s IN snake DO
+                curses.mvwaddstr(FieldWindow, s.y, 2*s.x, "  ")
+            END FOREACH
+            curses.wattrset(FieldWindow, curses.COLOR_PAIR(2))
+            curses.mvwaddstr(FieldWindow, food.y, 2*food.x, "  ")
+            step_time := 0.9 ^ math.floor(snake.size())
+            LOOP LABEL step
+                LET now: Number := time.now()
+                IF now - last_step >= step_time THEN
+                    EXIT step
+                END IF
+                LET k: Number := curses.wgetch(FieldWindow)
+                IF k >= 0 THEN
+                    IF k = curses.KEY_UP THEN
+                        dx := 0
+                        dy := -1
+                        EXIT step
+                    ELSIF k = curses.KEY_DOWN THEN
+                        dx := 0
+                        dy := 1
+                        EXIT step
+                    ELSIF k = curses.KEY_LEFT THEN
+                        dx := -1
+                        dy := 0
+                        EXIT step
+                    ELSIF k = curses.KEY_RIGHT THEN
+                        dx := 1
+                        dy := 0
+                        EXIT step
+                    ELSE
+                        CASE chr(k)
+                            WHEN "q" DO
+                                quit := TRUE
+                                EXIT step
+                        END CASE
+                    END IF
+                END IF
+            END LOOP
+            LET newx: Number := snake[LAST].x + dx
+            LET newy: Number := snake[LAST].y + dy
+            IF NOT (0 <= newx < Width AND 0 <= newy < Height) THEN
+                EXIT game
+            END IF
+            LET p: Point := Point(x WITH newx, y WITH newy)
+            IF p IN snake THEN
+                EXIT game
+            END IF
+            snake.append(p)
+            IF newx = food.x AND newy = food.y THEN
+                REPEAT
+                    food.x := random.uint32() MOD Width
+                    food.y := random.uint32() MOD Height
+                UNTIL food NOT IN snake
+                % increment score
+            ELSE
+                snake := snake[FIRST+1 TO LAST]
+            END IF
+            last_step := time.now()
+        END WHILE
+        quit := quit OR NOT play_again()
+    END WHILE
+END FUNCTION
+
+curses.initscr()
+curses.start_color()
+curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_GREEN)
+curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLUE)
+curses.noecho()
+curses.curs_set(0)
+main()
+curses.endwin()

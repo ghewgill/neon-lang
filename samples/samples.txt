@@ -17,6 +17,7 @@ Neon samples.
 - <net-services>    - Simple network services (daytime, discard, echo)
 - <othello>         - Othello game (curses)
 - <sieve>           - Sieve of Eratosthenes
+- <snake>           - Snake game (curses)
 - <spacedebris>     - Vector based space rocks game (SDL)
 - <sudoku>          - Sudoku game (curses)
 - <tetris>          - Tetris game (curses)
