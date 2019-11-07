@@ -62,7 +62,7 @@ EXPORT mkdir
 EXPORT mkfifo
 EXPORT open
 EXPORT pathconf
-%ECLARE NATIVE FUNCTION pipe
+EXPORT pipe
 EXPORT pread
 EXPORT pwrite
 EXPORT read
@@ -166,7 +166,7 @@ DECLARE NATIVE FUNCTION mkdir(path: String, mode: Number): Number
 DECLARE NATIVE FUNCTION mkfifo(path: String, mode: Number): Number
 DECLARE NATIVE FUNCTION open(path: String, oflag: Number, mode: Number DEFAULT 0): Number
 DECLARE NATIVE FUNCTION pathconf(path: String, name: Number): Number
-%ECLARE NATIVE FUNCTION pipe(OUT fildes: Array<Number>): Number
+DECLARE NATIVE FUNCTION pipe(OUT rfd: Number, OUT wfd: Number): Number
 DECLARE NATIVE FUNCTION pread(fildes: Number, OUT buf: Bytes, nbyte: Number, offset: Number): Number
 DECLARE NATIVE FUNCTION pwrite(fildes: Number, buf: Bytes, nbyte: Number, offset: Number): Number
 DECLARE NATIVE FUNCTION read(fildes: Number, OUT buf: Bytes, nbyte: Number): Number

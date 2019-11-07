@@ -279,14 +279,17 @@ Number pathconf(const utf8string &path, Number name)
     return wrap(::pathconf(path.c_str(), number_to_sint32(name)));
 }
 
-//Number pipe(std::vector<Number> *fildes)
-//{
-//    int fds[2];
-//    int r = wrap(::pipe(fds));
-//    fildes->push_back(fds[0]);
-//    fildes->push_back(fds[1]);
-//    return r;
-//}
+Number pipe(Number *rfd, Number *wfd)
+{
+    int fds[2];
+    int r = ::pipe(fds);
+    if (r < 0) {
+        return wrap(r);
+    }
+    *rfd = number_from_sint32(fds[0]);
+    *wfd = number_from_sint32(fds[1]);
+    return wrap(r);
+}
 
 Number pread(Number fildes, std::vector<unsigned char> *buf, Number nbyte, Number offset)
 {
