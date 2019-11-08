@@ -329,6 +329,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         sp -= 1;
     }
     fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
+    cell_freeCell(exceptionvar);
     // ToDo: Initiate a stack dump here...
 
     // Setting exit_code here will cause exec_loop to terminate and return this exit code.
