@@ -1,0 +1,26 @@
+%|
+ |  File: win32
+ |
+ |  Win32 API access functions.
+ |%
+
+EXPORT TYPE Handle IS POINTER
+
+EXPORT TYPE WIN32_FIND_DATA IS RECORD
+    dwFileAttributes: Number
+    ftCreationTime: Number
+    ftLastAccessTime: Number
+    ftLastWriteTime: Number
+    nFileSizeHigh: Number
+    nFileSizeLow: Number
+    dwReserved0: Number
+    dwReserved1: Number
+    cFileName: String
+    cAlternateFileName: String
+END RECORD
+
+EXPORT DECLARE EXTENSION FUNCTION Beep(dwFreq: Number, dwDuration: Number)
+EXPORT DECLARE EXTENSION FUNCTION DebugBreak()
+EXPORT DECLARE EXTENSION FUNCTION FindClose(hFindFile: Handle): Boolean
+EXPORT DECLARE EXTENSION FUNCTION FindFirstFile(lpFileName: String, OUT lpFindFileData: WIN32_FIND_DATA): Handle
+EXPORT DECLARE EXTENSION FUNCTION FindNextFile(hFindFile: Handle, OUT lpFindFileData: WIN32_FIND_DATA): Boolean
