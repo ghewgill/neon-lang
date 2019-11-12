@@ -112,8 +112,8 @@ const char *cell_get_string(const struct Ne_Cell *cell)
 
 void cell_set_string(struct Ne_Cell *cell, const char *value)
 {
-    cell_ensureString((Cell*)cell);
     ((Cell*)cell)->string = string_createCString(value);
+    cell_ensureString((Cell*)cell);
 }
 
 const unsigned char *cell_get_bytes(const struct Ne_Cell *cell)
@@ -130,9 +130,9 @@ int cell_get_bytes_size(const struct Ne_Cell *cell)
 
 void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
 {
-    cell_ensureBytes((Cell*)cell);
     ((Cell*)cell)->string = string_createString(size);
     memcpy(((Cell*)cell)->string->data, value, size);
+    cell_ensureBytes((Cell*)cell);
 }
 
 void *cell_get_pointer(const struct Ne_Cell *cell)

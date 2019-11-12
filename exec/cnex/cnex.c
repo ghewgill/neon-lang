@@ -133,11 +133,7 @@ BOOL ParseOptions(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-#ifdef __MS_HEAP_DBG
-    /* ToDo: Remove this!  This is only for debugging. */
-    /* gOptions.ExecutorDebugStats = TRUE; */
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    _CrtSetBreakAlloc(82);
+    int ret = 0;
     gOptions.pszExecutableName = path_getFileNameOnly(argv[0]);
 
     if (!ParseOptions(argc, argv)) {
@@ -1343,7 +1339,9 @@ void exec_CALLX(TExecutor *self)
     uint32_t out_param_count = exec_getOperand(self);
 
     char modname[256];
-    snprintf(modname, 256, "%s/%sneon_%s", path_getPathOnly(self->module->source_path), LIBRARY_NAME_PREFIX, self->module->bytecode->strings[mod]->data);
+    char *modpath = path_getPathOnly(self->module->source_path);
+    snprintf(modname, 256, "%s/%sneon_%s", modpath, LIBRARY_NAME_PREFIX, self->module->bytecode->strings[mod]->data);
+    free(modpath);
     TExtensionModule *exmod = ext_findModule(modname);
     if (exmod == NULL) {
         void_function_t init = rtl_foreign_function(self, modname, "Ne_INIT");
@@ -1378,12 +1376,14 @@ void exec_CALLX(TExecutor *self)
             const char *exceptionname = string_ensureNullTerminated(retval->array->data[0].string);
             const char *info = string_ensureNullTerminated(retval->array->data[1].string);
             Number code = retval->array->data[2].number;
+            cell_freeCell(retval);
             exec_rtl_raiseException(self, exceptionname, info, code);
             break;
         }
         default:
             fatal_error("neon: invalid return value %d from extension function %s.%s\n", r, modname, funcname);
     }
+    cell_freeCell(out_params);
 }
 
 void exec_SWAP(TExecutor *self)
