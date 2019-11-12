@@ -1357,7 +1357,7 @@ void exec_CALLX(TExecutor *self)
     snprintf(funcname, 256, "%s%s", "Ne_", self->module->bytecode->strings[name]->data);
     p = rtl_foreign_function(self, modname, funcname);
     if (p == NULL) {
-        fatal_error("neon_exec: function Ne_%s not found in %s\n", funcname, modname);
+        fatal_error("neon_exec: function %s not found in %s\n", funcname, modname);
     }
     Ne_ExtensionFunction f = (Ne_ExtensionFunction)(p);
     Cell *out_params = cell_createArrayCell(out_param_count);
