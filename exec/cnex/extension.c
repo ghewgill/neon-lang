@@ -112,8 +112,8 @@ const char *cell_get_string(const struct Ne_Cell *cell)
 
 void cell_set_string(struct Ne_Cell *cell, const char *value)
 {
-    cell_ensureString((Cell*)cell);
     ((Cell*)cell)->string = string_createCString(value);
+    cell_ensureString((Cell*)cell); // This check happens AFTER we set the string, so as to not cause a memory leak.
 }
 
 const unsigned char *cell_get_bytes(const struct Ne_Cell *cell)
@@ -130,9 +130,9 @@ int cell_get_bytes_size(const struct Ne_Cell *cell)
 
 void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
 {
-    cell_ensureBytes((Cell*)cell);
     ((Cell*)cell)->string = string_createString(size);
     memcpy(((Cell*)cell)->string->data, value, size);
+    cell_ensureBytes((Cell*)cell); // This check happens AFTER we set the string, so as to not cause a memory leak.
 }
 
 void *cell_get_pointer(const struct Ne_Cell *cell)
@@ -233,9 +233,22 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
 int raise_exception(struct Ne_Cell *retval, const char *name, const char *info, int code)
 {
     Cell *r = (Cell*)retval;
-    cell_arrayAppendElement(r, *cell_fromCString(name));
-    cell_arrayAppendElement(r, *cell_fromCString(info));
-    cell_arrayAppendElement(r, *cell_fromNumber(number_from_sint64(code)));
+    Cell e;
+
+    e.string = string_createCString(name);
+    e.type = cString;
+    cell_arrayAppendElement(r, e);
+    string_freeString(e.string);
+
+    e.string = string_createCString(info);
+    e.type = cString;
+    cell_arrayAppendElement(r, e);
+    string_freeString(e.string);
+
+    e.number = number_from_sint64(code);
+    e.type = cNumber;
+    cell_arrayAppendElement(r, e);
+
     return Ne_EXCEPTION;
 }
 

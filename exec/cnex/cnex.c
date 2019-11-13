@@ -1339,7 +1339,9 @@ void exec_CALLX(TExecutor *self)
     uint32_t out_param_count = exec_getOperand(self);
 
     char modname[256];
-    snprintf(modname, 256, "%s/%sneon_%s", path_getPathOnly(self->module->source_path), LIBRARY_NAME_PREFIX, self->module->bytecode->strings[mod]->data);
+    char *mod_path = path_getPathOnly(self->module->source_path);
+    snprintf(modname, 256, "%s/%sneon_%s", mod_path, LIBRARY_NAME_PREFIX, self->module->bytecode->strings[mod]->data);
+    free(mod_path);
     TExtensionModule *exmod = ext_findModule(modname);
     if (exmod == NULL) {
         void_function_t init = rtl_foreign_function(self, modname, "Ne_INIT");
@@ -1364,7 +1366,7 @@ void exec_CALLX(TExecutor *self)
     pop(self->stack);
     switch (r) {
         case Ne_SUCCESS: {
-            push(self->stack, retval);
+            push(self->stack, cell_fromCell(retval));
             for (size_t i = 0; i < out_params->array->size; i++) {
                 push(self->stack, cell_fromCell(&out_params->array->data[i]));
             }
@@ -1380,6 +1382,8 @@ void exec_CALLX(TExecutor *self)
         default:
             fatal_error("neon: invalid return value %d from extension function %s.%s\n", r, modname, funcname);
     }
+    cell_freeCell(retval);
+    cell_freeCell(out_params);
 }
 
 void exec_SWAP(TExecutor *self)
