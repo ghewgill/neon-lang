@@ -130,6 +130,7 @@ void path_readModule(TModule *m)
     fseek(fp, 0, SEEK_SET);
 
     m->source_path = strdup(modulePath);
+    m->path_only = path_getPathOnly(m->source_path);
     m->code = malloc(nSize);
     if (m->code == NULL) {
         fatal_error("Could not allocate %d bytes for bytecode from %s module.", nSize, m->name);
@@ -244,6 +245,7 @@ void ext_insertModule(const char *name, void *handle)
 
     g_libraries->modules->module = strdup(name);
     g_libraries->modules->handle = handle;
+    g_libraries->modules->methods = NULL;
 }
 
 TExtensionModule *ext_findModule(const char *name)
@@ -264,6 +266,7 @@ void ext_cleanup()
         for (int i = 0; i < g_libraries->size; i++) {
             free(g_libraries->modules[i].module);
         }
+        free(g_libraries->modules->methods);
         free(g_libraries->modules);
         free(g_libraries);
     }
