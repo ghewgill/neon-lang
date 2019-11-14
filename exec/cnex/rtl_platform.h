@@ -1,8 +1,6 @@
 #ifndef RTL_PLATFORM
 #define RTL_PLATFORM
 
-#include "number.h"
-
 struct tagTExecutor;
 typedef void (*void_function_t)();
 

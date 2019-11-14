@@ -7,6 +7,8 @@ struct tagTExecutor;
 typedef struct tagTModule {
     char *name;
     char *source_path;
+    char *path_only;
+    char *extension_path;
     uint8_t *code;
     unsigned int codelen;
     struct tagTBytecode *bytecode;

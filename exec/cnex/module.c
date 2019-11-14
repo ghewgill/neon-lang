@@ -41,6 +41,8 @@ TModule *module_newModule(const char *name)
     r->bytecode = bytecode_newBytecode();
     r->globals = NULL;
     r->code = NULL;
+    r->path_only = NULL;
+    r->extension_path = NULL;
     r->codelen = 0;
 
     return r;
@@ -72,6 +74,7 @@ TModule *module_loadNeonProgram(const char *neonxPath)
     TModule *pModule = module_newModule("");
 
     pModule->source_path = strdup(neonxPath);
+    pModule->path_only = path_getPathOnly(pModule->source_path);
     pModule->code = malloc(nSize);
     if (pModule->code == NULL) {
         fatal_error("Could not allocate memory for neon bytecode.");
@@ -133,6 +136,10 @@ void module_freeModule(TModule *m)
     free(m->globals);
     bytecode_freeBytecode(m->bytecode);
     free(m->source_path);
+    free(m->path_only);
+    if (m->extension_path) {
+        free(m->extension_path);
+    }
     free(m->name);
     free(m->code);
     free(m);

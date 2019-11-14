@@ -3,11 +3,18 @@
 
 #include <stdio.h>
 
+#include "rtl_platform.h"
+
 struct tagTModule;
+
+typedef struct tagTExtensionMethod {
+    void_function_t proc;
+} TExtensionMethod;
 
 typedef struct tagTExtensionModule {
     char *module;
     void *handle;
+    TExtensionMethod *methods;
 } TExtensionModule;
 
 typedef struct tagTExtensions {

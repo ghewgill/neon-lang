@@ -1338,28 +1338,39 @@ void exec_CALLX(TExecutor *self)
     uint32_t name = exec_getOperand(self);
     uint32_t out_param_count = exec_getOperand(self);
 
-    char modname[256];
-    char *mod_path = path_getPathOnly(self->module->source_path);
-    snprintf(modname, 256, "%s/%sneon_%s", mod_path, LIBRARY_NAME_PREFIX, self->module->bytecode->strings[mod]->data);
-    free(mod_path);
-    TExtensionModule *exmod = ext_findModule(modname);
-    if (exmod == NULL) {
-        void_function_t init = rtl_foreign_function(self, modname, "Ne_INIT");
-        if (init == NULL) {
-            fatal_error("neon_exec: function Ne_INIT not found in %s\n", modname);
+    if (self->module->extension_path == NULL) {
+        self->module->extension_path = malloc(256);
+        if (self->module->extension_path == NULL) {
+            fatal_error("Could not allocate extension module path memory for module %s.", self->module->bytecode->strings[mod]->data);
         }
+        snprintf(self->module->extension_path, 256, "%s/%sneon_%s", self->module->path_only, LIBRARY_NAME_PREFIX, self->module->bytecode->strings[mod]->data);
+    }
+    TExtensionModule *exmod = ext_findModule(self->module->extension_path);
+    if (exmod == NULL) {
+        void_function_t init = rtl_foreign_function(self, self->module->extension_path, "Ne_INIT");
+        if (init == NULL) {
+            fatal_error("neon_exec: function Ne_INIT not found in %s\n", self->module->extension_path);
+        }
+        exmod = ext_findModule(self->module->extension_path);
+        exmod->methods = malloc(sizeof(TExtensionMethod) * self->module->bytecode->strtablelen); // Alloc enough room to hold all the function pointers.
+        if (exmod->methods == NULL) {
+            fatal_error("Could not allocate method pointer table for module %s.", self->module->extension_path);
+        }
+        memset(exmod->methods, 0x00, sizeof(TExtensionMethod) * self->module->bytecode->strtablelen);
+        // Call Neon extensions Ne_INIT function only once, the first time we load this module.
         (init)(&ExtensionMethodTable);
     }
 
-    // ToDo: Lookup function in array, based on the string number, rather than building the strig name each time.
-    void_function_t p;
-    char funcname[256];
-    snprintf(funcname, 256, "%s%s", "Ne_", self->module->bytecode->strings[name]->data);
-    p = rtl_foreign_function(self, modname, funcname);
-    if (p == NULL) {
-        fatal_error("neon_exec: function Ne_%s not found in %s\n", funcname, modname);
+    if (exmod->methods[name].proc == NULL) {
+        char funcname[256];
+        snprintf(funcname, 256, "%s%s", "Ne_", self->module->bytecode->strings[name]->data);
+        exmod->methods[name].proc = rtl_foreign_function(self, self->module->extension_path, funcname);
+        if (exmod->methods[name].proc == NULL) {
+            fatal_error("neon_exec: function %s not found in %s\n", funcname, self->module->extension_path);
+        }
     }
-    Ne_ExtensionFunction f = (Ne_ExtensionFunction)(p);
+
+    Ne_ExtensionFunction f = (Ne_ExtensionFunction)(exmod->methods[name].proc);
     Cell *out_params = cell_createArrayCell(out_param_count);
     Cell *retval = cell_newCell();
     int r = (*f)((struct Ne_Cell*)retval, (struct Ne_ParameterList*)top(self->stack), (struct Ne_ParameterList*)out_params);
@@ -1380,7 +1391,7 @@ void exec_CALLX(TExecutor *self)
             break;
         }
         default:
-            fatal_error("neon: invalid return value %d from extension function %s.%s\n", r, modname, funcname);
+            fatal_error("neon: invalid return value %d from extension function %s.Ne_%s\n", r, exmod->module, self->module->bytecode->strings[name]->data);
     }
     cell_freeCell(retval);
     cell_freeCell(out_params);
