@@ -30,7 +30,8 @@ base-decimal.neon
 base-invalidchar.neon
 base-invalid-digit.neon
 base-invalid.neon
-base.neon
+base-test.neon
+bases.neon
 bigint.neon
 binary-test.neon
 boolean.neon

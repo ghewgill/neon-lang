@@ -7,6 +7,7 @@ array-tostring.neon        # array comparison
 array2d.neon               # copy semantics
 assert-enum.neon           # enum
 assert-multiline.neon      # stderr
+base-test.neon             # module
 bigint.neon                # bigint
 binary-test.neon           # module binary
 bytes-embed.neon           # bytes

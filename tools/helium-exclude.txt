@@ -1,4 +1,4 @@
-base.neon              # Won't need different base literals
+bases.neon             # Won't need different base literals
 binary-test.neon       # Module not required
 bytes-embed.neon       # Feature not required
 cal-test.neon          # Sample not required

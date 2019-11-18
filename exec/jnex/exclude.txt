@@ -7,6 +7,7 @@ array2d.neon               # copy semantics
 assert-enum.neon           # import
 assert-multiline.neon      # import
 assert.neon                # import
+base-test.neon             # import
 binary-test.neon           # binary
 bytes-index.neon           # index
 bytes-literal.neon         # array

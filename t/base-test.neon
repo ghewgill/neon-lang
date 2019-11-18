@@ -1,0 +1,127 @@
+IMPORT base
+
+% check zero functionality
+ASSERT base.from(2, "0") = 0
+ASSERT base.to(2, 0) = "0"
+
+% conversion from all valid bases
+ASSERT base.from(2, "101010") = 42
+ASSERT base.from(3, "1120") = 42
+ASSERT base.from(4, "222") = 42
+ASSERT base.from(5, "132") = 42
+ASSERT base.from(6, "110") = 42
+ASSERT base.from(7, "60") = 42
+ASSERT base.from(8, "52") = 42
+ASSERT base.from(9, "46") = 42
+ASSERT base.from(10, "42") = 42
+ASSERT base.from(11, "39") = 42
+ASSERT base.from(12, "36") = 42
+ASSERT base.from(13, "33") = 42
+ASSERT base.from(14, "30") = 42
+ASSERT base.from(15, "2c") = 42
+ASSERT base.from(16, "2a") = 42
+ASSERT base.from(17, "28") = 42
+ASSERT base.from(18, "26") = 42
+ASSERT base.from(19, "24") = 42
+ASSERT base.from(20, "22") = 42
+ASSERT base.from(21, "20") = 42
+ASSERT base.from(22, "1k") = 42
+ASSERT base.from(23, "1j") = 42
+ASSERT base.from(24, "1i") = 42
+ASSERT base.from(25, "1h") = 42
+ASSERT base.from(26, "1g") = 42
+ASSERT base.from(27, "1f") = 42
+ASSERT base.from(28, "1e") = 42
+ASSERT base.from(29, "1d") = 42
+ASSERT base.from(30, "1c") = 42
+ASSERT base.from(31, "1b") = 42
+ASSERT base.from(32, "1a") = 42
+ASSERT base.from(33, "19") = 42
+ASSERT base.from(34, "18") = 42
+ASSERT base.from(35, "17") = 42
+ASSERT base.from(36, "16") = 42
+
+% check that both upper and lower case is accepted
+ASSERT base.from(16, "beef") = 48879
+ASSERT base.from(16, "BEEF") = 48879
+
+ASSERT base.fromBinary("101010") = 42
+ASSERT base.fromOctal("52") = 42
+ASSERT base.fromHex("2a") = 42
+
+% conversion to all valid bases
+ASSERT base.to(2, 42) = "101010"
+ASSERT base.to(3, 42) = "1120"
+ASSERT base.to(4, 42) = "222"
+ASSERT base.to(5, 42) = "132"
+ASSERT base.to(6, 42) = "110"
+ASSERT base.to(7, 42) = "60"
+ASSERT base.to(8, 42) = "52"
+ASSERT base.to(9, 42) = "46"
+ASSERT base.to(10, 42) = "42"
+ASSERT base.to(11, 42) = "39"
+ASSERT base.to(12, 42) = "36"
+ASSERT base.to(13, 42) = "33"
+ASSERT base.to(14, 42) = "30"
+ASSERT base.to(15, 42) = "2c"
+ASSERT base.to(16, 42) = "2a"
+ASSERT base.to(17, 42) = "28"
+ASSERT base.to(18, 42) = "26"
+ASSERT base.to(19, 42) = "24"
+ASSERT base.to(20, 42) = "22"
+ASSERT base.to(21, 42) = "20"
+ASSERT base.to(22, 42) = "1k"
+ASSERT base.to(23, 42) = "1j"
+ASSERT base.to(24, 42) = "1i"
+ASSERT base.to(25, 42) = "1h"
+ASSERT base.to(26, 42) = "1g"
+ASSERT base.to(27, 42) = "1f"
+ASSERT base.to(28, 42) = "1e"
+ASSERT base.to(29, 42) = "1d"
+ASSERT base.to(30, 42) = "1c"
+ASSERT base.to(31, 42) = "1b"
+ASSERT base.to(32, 42) = "1a"
+ASSERT base.to(33, 42) = "19"
+ASSERT base.to(34, 42) = "18"
+ASSERT base.to(35, 42) = "17"
+ASSERT base.to(36, 42) = "16"
+
+ASSERT base.toBinary(42) = "101010"
+ASSERT base.toOctal(42) = "52"
+ASSERT base.toHex(42) = "2a"
+
+% check exceptional conditions
+TRY
+    _ := base.from(1.5, "0")
+    ASSERT FALSE
+TRAP ValueRangeException DO
+    % pass
+END TRY
+
+TRY
+    _ := base.from(-5, "0")
+    ASSERT FALSE
+TRAP ValueRangeException DO
+    % pass
+END TRY
+
+TRY
+    _ := base.to(1.5, 0)
+    ASSERT FALSE
+TRAP ValueRangeException DO
+    % pass
+END TRY
+
+TRY
+    _ := base.to(-5, 0)
+    ASSERT FALSE
+TRAP ValueRangeException DO
+    % pass
+END TRY
+
+TRY
+    _ := base.to(2, -1)
+    ASSERT FALSE
+TRAP ValueRangeException DO
+    % pass
+END TRY

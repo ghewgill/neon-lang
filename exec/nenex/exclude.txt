@@ -7,6 +7,7 @@ array-slice.neon            # array__slice
 array-tostring.neon         # array__toString__number
 array2d.neon                # value semantics
 assert-multiline.neon       # pushppg
+base-test.neon              # callmf
 bigint.neon                 # math$abs
 binary-test.neon            # exception Utf8DecodingException
 bytes-embed.neon            # bytes

@@ -1,0 +1,64 @@
+%|
+ |  Module: base
+ |
+ |  Conversions from numbers to and from arbitrary bases.
+ |%
+
+IMPORT string
+
+EXPORT CONSTANT Digits: String := "0123456789abcdefghijklmnopqrstuvwxyz"
+
+EXPORT FUNCTION from(base: Number, digits: String): Number
+    CHECK base = int(base) AND 2 <= base <= 36 ELSE
+        RAISE ValueRangeException(info WITH "invalid base: \(base)")
+    END CHECK
+    VAR r: Number := 0
+    FOREACH c IN digits INDEX i DO
+        LET d: Number := string.find(Digits, string.lower(c))
+        CHECK d >= 0 ELSE
+            RAISE ValueRangeException(info WITH "invalid digit: \(c) at index \(i)")
+        END CHECK
+        r := r * base + d
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+EXPORT FUNCTION to(base: Number, value: Number): String
+    CHECK base = int(base) AND 2 <= base <= 36 ELSE
+        RAISE ValueRangeException(info WITH "invalid base: \(base)")
+    END CHECK
+    CHECK value = int(value) AND value >= 0 ELSE
+        RAISE ValueRangeException(info WITH "value cannot be negative")
+    END CHECK
+    VAR r: String := ""
+    VAR x: Number := value
+    REPEAT
+        r := Digits[x MOD base] & r
+        x := x INTDIV base
+    UNTIL x = 0
+    RETURN r
+END FUNCTION
+
+EXPORT FUNCTION fromBinary(digits: String): Number
+    RETURN from(2, digits)
+END FUNCTION
+
+EXPORT FUNCTION fromOctal(digits: String): Number
+    RETURN from(8, digits)
+END FUNCTION
+
+EXPORT FUNCTION fromHex(digits: String): Number
+    RETURN from(16, digits)
+END FUNCTION
+
+EXPORT FUNCTION toBinary(value: Number): String
+    RETURN to(2, value)
+END FUNCTION
+
+EXPORT FUNCTION toOctal(value: Number): String
+    RETURN to(8, value)
+END FUNCTION
+
+EXPORT FUNCTION toHex(value: Number): String
+    RETURN to(16, value)
+END FUNCTION
