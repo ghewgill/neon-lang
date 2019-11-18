@@ -421,22 +421,6 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                     } else if (c == 'x') {
                         base = 16;
                         utf8::advance(i, 1, source.end());
-                    } else if (c == '#') {
-                        utf8::advance(i, 1, source.end());
-                        char *end = nullptr;
-                        if (i < source.end()) {
-                            base = strtol(&*i, &end, 10);
-                        }
-                        if (base < 2 || base > 36) {
-                            error(1001, t, "invalid base");
-                        }
-                        utf8::advance(i, (end - &*i), source.end());
-                        if (i != source.end()) {
-                            if (*i != '#') {
-                                error(1002, t, "'#' expected");
-                            }
-                            utf8::advance(i, 1, source.end());
-                        }
                     } else {
                         error(1003, t, "invalid base character");
                     }

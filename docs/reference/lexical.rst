@@ -120,7 +120,6 @@ Numbers may be specified in a variety of bases (these support integers only):
 * Binary preceded by ``0b``
 * Octal preceded by ``0o``
 * Hexadecimal preceded by ``0x``
-* Any base from 2 to 36 preceded by ``0#n#`` where ``n`` is the base
 
 For base 10 numbers, they may contain a fractional portion following a decimal point ``.``.
 Additionally, they may have an exponent following ``e`` or ``E``.

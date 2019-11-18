@@ -9,7 +9,7 @@ FUNCTION highlight(s: String): String
     VAR i: Number := 0
     WHILE i < s.length() DO
         VAR m: regex.Match
-        IF NOT regex.search(@@"([A-Z]+(?!\w))|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|0#[0-9]+#[0-9A-Za-z_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@\5@)|(%.*)"@@, s[i TO LAST], OUT m) THEN
+        IF NOT regex.search(@@"([A-Z]+(?!\w))|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@\5@)|(%.*)"@@, s[i TO LAST], OUT m) THEN
             EXIT WHILE
         END IF
         VAR n: Number := 0

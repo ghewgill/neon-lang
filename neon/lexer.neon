@@ -412,21 +412,6 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                     ELSIF b = "x" THEN
                         base := 16
                         INC i
-                    ELSIF b = "#" THEN
-                        INC i
-                        VAR j: Number := i
-                        WHILE "0" <= source[j] <= "9" DO
-                            INC j
-                        END WHILE
-                        base := num(source[i TO j-1])
-                        IF NOT (2 <= base <= 36) THEN
-                            error(1001, t, "invalid base")
-                        END IF
-                        i := j
-                        IF source[i] <> "#" THEN
-                            error(1002, t, "'#' expected")
-                        END IF
-                        INC i
                     ELSE
                         error(1003, t, "invalid base character")
                     END IF
