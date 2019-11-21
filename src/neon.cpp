@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
             a++;
             try {
                 debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
-            } catch(std::invalid_argument) {
+            } catch (std::invalid_argument &) {
                 fprintf(stderr, "%s: -d requires integer argument\n", argv[0]);
                 exit(1);
             }
