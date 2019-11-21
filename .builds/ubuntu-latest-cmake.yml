@@ -1,0 +1,18 @@
+image: ubuntu/latest
+packages:
+- cmake
+- libffi-dev
+- m4
+sources:
+- https://git.sr.ht/~ghewgill/neon-lang
+tasks:
+- prep: |
+    cd neon-lang
+    git submodule deinit .
+- build: |
+    cd neon-lang
+    cmake .
+    cmake --build .
+- test: |
+    cd neon-lang
+    ctest

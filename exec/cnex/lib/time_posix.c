@@ -1,4 +1,6 @@
+#ifndef __FreeBSD__
 #define _POSIX_C_SOURCE 200809L
+#endif
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>

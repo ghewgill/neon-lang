@@ -1,0 +1,20 @@
+image: fedora/latest
+packages:
+- g++
+- cmake
+- libffi-devel
+- ncurses
+- m4
+sources:
+- https://git.sr.ht/~ghewgill/neon-lang
+tasks:
+- prep: |
+    cd neon-lang
+    git submodule deinit .
+- build: |
+    cd neon-lang
+    cmake .
+    cmake --build .
+- test: |
+    cd neon-lang
+    ctest

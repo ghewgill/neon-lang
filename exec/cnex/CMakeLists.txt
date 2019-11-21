@@ -101,7 +101,10 @@ target_link_libraries(cnex
 
 if (WIN32)
 else (WIN32)
-    target_link_libraries(cnex m dl)
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+        target_link_libraries(cnex dl)
+    endif ()
+    target_link_libraries(cnex m)
     target_link_libraries(test_string_support m)
     target_link_libraries(test_number_to_string_c m)
     target_link_libraries(test_path_support m)

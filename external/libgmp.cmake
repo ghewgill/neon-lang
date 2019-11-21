@@ -193,7 +193,7 @@ if (WIN32)
 else (WIN32)
     add_custom_command(
         OUTPUT lib/libgmp.a
-        COMMAND cd gmp-6.1.2 && ./configure --prefix=`pwd`/.. && make && make install
+        COMMAND cd gmp-6.1.2 && ./configure --prefix=`pwd`/.. --with-pic && make && make install
     )
     add_custom_target(libgmp DEPENDS lib/libgmp.a)
     add_library(gmp STATIC IMPORTED GLOBAL)

@@ -1,0 +1,14 @@
+image: debian/stable
+packages:
+- scons
+- ncurses-dev
+- m4
+sources:
+- https://git.sr.ht/~ghewgill/neon-lang
+tasks:
+- prep: |
+    cd neon-lang
+    git submodule deinit .
+- build: |
+    cd neon-lang
+    scons
