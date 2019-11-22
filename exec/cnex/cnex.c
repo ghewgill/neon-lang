@@ -193,9 +193,20 @@ int exec_run(TExecutor *self, BOOL enable_assert)
     invoke(self, self->modules[0], 0);
 
     for (unsigned int m = 0; m < self->init_count; m++) {
+        // Allocate all of the modules globals
+        TModule *mod = self->modules[self->init_order[(self->init_count - 1) - m]];
+        mod->globals = malloc(sizeof(Cell) * mod->bytecode->global_size);
+        if (mod->globals == NULL) {
+            fatal_error("Failed to allocate global variables for module %s.", mod->name);
+        }
+        // Initialize the modules globals.
+        for (unsigned int i = 0; i < mod->bytecode->global_size; i++) {
+            cell_resetCell(&mod->globals[i]);
+        }
+        // Execute the module initialization code.
         invoke(self, self->modules[self->init_order[(self->init_count - 1) - m]], 0);
     }
-
+    // Execute main Neon program.
     int r = exec_loop(self, 0);
 
     if (r == 0 && gOptions.ExecutorDebugStats) {
@@ -249,18 +260,7 @@ TExecutor *exec_newExecutor(TModule *object)
 
     // Next, iterate the imports, loading all the module code recursively, as necessary.
     for (unsigned int m = 0; m < r->module->bytecode->importsize; m++) {
-        TModule *mod = module_loadModule(r, r->module->bytecode->strings[r->module->bytecode->imports[m].name]->data, r->module_count);
-        // mod will ALWAYS point to a module that has been pushed onto the module stack.
-        assert(mod->globals == NULL);
-        // Allocate the modules globals
-        mod->globals = malloc(sizeof(Cell) * mod->bytecode->global_size);
-        if (mod->globals == NULL) {
-            fatal_error("Failed to allocate memory for %s module global storage.", mod->name);
-        }
-        // Then, initialize the modules globals.
-        for (i = 0; i < mod->bytecode->global_size; i++) {
-            cell_resetCell(&mod->globals[i]);
-        }
+        module_loadModule(r, r->module->bytecode->strings[r->module->bytecode->imports[m].name]->data, r->module_count);
     }
 
     /* Debug / Diagnostic fields */
