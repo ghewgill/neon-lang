@@ -2,8 +2,13 @@ import os
 import subprocess
 import sys
 
-fullname = sys.argv[1]
+java = "java"
+i = 1
+if sys.argv[i] == "--java":
+    java = sys.argv[i+1]
+    i += 2
+fullname = sys.argv[i]
 path, name = os.path.split(fullname)
 
 subprocess.check_call([os.path.join("bin", "neonc"), "-q", fullname])
-subprocess.check_call(["java", "-enableassertions", "-cp", "exec/jnex/src", "org.neon_lang.jnex.Executor", fullname + "x"] + sys.argv[2:])
+subprocess.check_call([java, "-enableassertions", "-cp", "exec/jnex/src", "org.neon_lang.jnex.Executor", fullname + "x"] + sys.argv[2:])
