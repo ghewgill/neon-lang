@@ -1,0 +1,23 @@
+image: debian/stable
+packages:
+- scons
+- libffi-dev
+- ncurses-dev
+- m4
+- libxext-dev
+- default-jdk
+- mono-mcs
+- nodejs
+- rustc
+- golang
+sources:
+- https://github.com/ghewgill/neon-lang
+tasks:
+- prep: |
+    cd neon-lang
+    # The current included version of zeromq fails to build
+    # on sr.ht debian (gcc raises warning).
+    git submodule deinit lib/zeromq
+- build: |
+    cd neon-lang
+    scons

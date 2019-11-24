@@ -1,0 +1,21 @@
+image: debian/stable
+packages:
+- cmake
+- libffi-dev
+- ncurses-dev
+- m4
+- default-jdk
+- mono-mcs
+- nodejs
+- rustc
+- golang
+sources:
+- https://github.com/ghewgill/neon-lang
+tasks:
+- build: |
+    cd neon-lang
+    cmake .
+    cmake --build .
+- test: |
+    cd neon-lang
+    ctest
