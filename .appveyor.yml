@@ -19,7 +19,8 @@ matrix:
         - image: Visual Studio 2017
           WITH_SUBMODULES: 1
         - BUILDER: cmake
-          #WITH_SUBMODULES: 1
+          WITH_SUBMODULES: 1
+        - BUILDER: scons
 install:
 - ps: >-
     if (-not (Test-Path C:\Python38\Lib\site-packages\scons-3.0.0)){
@@ -32,4 +33,4 @@ build_script:
 - cmd: python3 scons-3.0.0\setup.py install
 - cmd: if %WITH_SUBMODULES%==1 git submodule update --init
 - cmd: if %BUILDER%==scons scons
-- cmd: if %BUILDER%==cmake scons external && cmake . && msbuild ALL_BUILD.vcxproj && ctest -C Debug -V
+- cmd: if %BUILDER%==cmake cmake . && msbuild ALL_BUILD.vcxproj && ctest -C Debug -V
