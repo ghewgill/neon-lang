@@ -1,7 +1,8 @@
+#!/usr/bin/env python3
+
 import os
 import sys
 
-print >>sys.stderr, sys.argv
 java = None
 i = 1
 if sys.argv[i] == "--java":

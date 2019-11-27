@@ -1,6 +1,6 @@
 if (NOT EXISTS external/IntelRDFPMathLib20U2)
     execute_process(
-        COMMAND python ../scripts/extract.py IntelRDFPMathLib20U2.tar.gz .
+        COMMAND python3 ../scripts/extract.py IntelRDFPMathLib20U2.tar.gz .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         RESULT_VARIABLE retcode
     )

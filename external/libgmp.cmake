@@ -1,6 +1,6 @@
 if (NOT EXISTS external/gmp-6.1.2)
     execute_process(
-        COMMAND python ../scripts/extract.py gmp-6.1.2.tar.bz2 .
+        COMMAND python3 ../scripts/extract.py gmp-6.1.2.tar.bz2 .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         RESULT_VARIABLE retcode
     )

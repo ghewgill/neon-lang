@@ -22,17 +22,14 @@ matrix:
           #WITH_SUBMODULES: 1
 install:
 - ps: >-
-    if (-not (Test-Path C:\Python27)){
-      Start-FileDownload "https://www.python.org/ftp/python/2.7.9/python-2.7.9.amd64.msi" -FileName python-2.7.9.amd64.msi
-      Start-Process "python-2.7.9.amd64.msi" -ArgumentList "/quiet" -Wait
-    }
-- ps: >-
-    if (-not (Test-Path C:\Python27\Lib\site-packages\scons-3.0.0)){
+    if (-not (Test-Path C:\Python38\Lib\site-packages\scons-3.0.0)){
       Start-FileDownload "https://downloads.sourceforge.net/project/scons/scons/3.0.0/scons-3.0.0.zip" -FileName "scons-3.0.0.zip"
       7z x -y scons-3.0.0.zip
     }
 build_script:
-- cmd: C:\Python27\python.exe scons-3.0.0\setup.py install
+- cmd: set PATH=c:\python38;%PATH%
+- cmd: copy c:\python38\python.exe c:\python38\python3.exe
+- cmd: python3 scons-3.0.0\setup.py install
 - cmd: if %WITH_SUBMODULES%==1 git submodule update --init
-- cmd: if %BUILDER%==scons c:\python27\scons
-- cmd: if %BUILDER%==cmake c:\python27\scons external/lib && cmake . && msbuild ALL_BUILD.vcxproj && ctest
+- cmd: if %BUILDER%==scons scons
+- cmd: if %BUILDER%==cmake scons external && cmake . && msbuild ALL_BUILD.vcxproj && ctest -C Debug -V

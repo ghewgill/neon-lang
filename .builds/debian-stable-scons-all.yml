@@ -1,6 +1,6 @@
 image: debian/stable
 packages:
-- scons
+- python3-pip
 - ncurses-dev
 - m4
 - libxext-dev
@@ -13,6 +13,8 @@ sources:
 - https://github.com/ghewgill/neon-lang
 tasks:
 - prep: |
+    sudo pip3 install scons
+    sudo sed -i -e '1s/python$/python3/' /usr/local/bin/scons
     cd neon-lang
     # The current included version of zeromq fails to build
     # on sr.ht debian (gcc raises warning).

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import codecs
 import difflib
 import os
@@ -5,19 +7,19 @@ import re
 import subprocess
 import sys
 
-class TestSkipped: pass
+class TestSkipped(BaseException): pass
 
 errors = None
 runner = ["bin/neon"]
 
 def run(fn):
-    print ("Running {} {}...".format(" ".join(runner), fn))
+    print("Running {} {}...".format(" ".join(runner), fn))
 
     try:
         src = codecs.open(fn, encoding="UTF-8").read().replace("\r\n", "\n")
     except UnicodeDecodeError:
         # One test has invalid UTF-8 data, so read it as the default encoding.
-        src = open(fn).read().replace("\r\n", "\n")
+        src = open(fn, encoding="latin-1").read().replace("\r\n", "\n")
 
     all_comments = re.findall("^%(.*)$", src, re.MULTILINE)
     todo = any("TODO" in x for x in all_comments)
@@ -207,9 +209,9 @@ def main():
                 skipped += 1
     print("{} tests, {} succeeded, {} failed, {} skipped".format(total, succeeded, failed, skipped))
     if errors:
-        print "Untested errors:"
+        print("Untested errors:")
         for number, message in sorted(errors.items()):
-            print number, message
+            print(number, message)
         sys.exit(1)
 
 main()

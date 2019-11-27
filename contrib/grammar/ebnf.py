@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # This module tries to implement ISO 14977 standard with pyparsing.
 # pyparsing version 1.1 or greater is required.
 
@@ -142,7 +144,7 @@ def parse(ebnf, given_table={}):
     forward_count.value = 0
     table = syntax.parseString(ebnf, parseAll=True)[0]
     if forward_count.value != 0:
-        print [k for k, v in symbol_table.items() if isinstance(v, Forward) and not v.expr]
+        print([k for k, v in symbol_table.items() if isinstance(v, Forward) and not v.expr])
         assert forward_count.value == 0, "Missing definition"
     for name in table:
         expr = table[name]

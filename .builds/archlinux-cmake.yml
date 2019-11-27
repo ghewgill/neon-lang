@@ -1,7 +1,7 @@
 image: archlinux
 packages:
 - cmake
-- python2
+- python3
 - ncurses
 - m4
 sources:
@@ -10,7 +10,6 @@ tasks:
 - prep: |
     cd neon-lang
     git submodule deinit .
-    sudo ln -s python2 /usr/bin/python
 - build: |
     cd neon-lang
     cmake .

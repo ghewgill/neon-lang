@@ -1,6 +1,6 @@
 if (NOT EXISTS external/hash-library)
     execute_process(
-        COMMAND python ../scripts/extract.py hash-library.zip hash-library
+        COMMAND python3 ../scripts/extract.py hash-library.zip hash-library
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         RESULT_VARIABLE retcode
     )

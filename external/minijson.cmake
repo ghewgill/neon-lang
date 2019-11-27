@@ -1,6 +1,6 @@
 if (NOT EXISTS external/minijson_writer-master)
     execute_process(
-        COMMAND python ../scripts/extract.py minijson_writer-master.zip .
+        COMMAND python3 ../scripts/extract.py minijson_writer-master.zip .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         RESULT_VARIABLE retcode
     )

@@ -1,6 +1,6 @@
 if (NOT EXISTS external/sqlite-amalgamation-3080803)
     execute_process(
-        COMMAND python ../scripts/extract.py sqlite-amalgamation-3080803.zip .
+        COMMAND python3 ../scripts/extract.py sqlite-amalgamation-3080803.zip .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         RESULT_VARIABLE retcode
     )

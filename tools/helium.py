@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+#!/usr/bin/env python3
 
 import codecs
 import copy
@@ -265,7 +265,7 @@ def tokenize_fragment(source):
                             i = close + 1
                         else:
                             width = 8 if c == "U" else 4
-                            c = unichr(int(source[i:i+width], 16))
+                            c = chr(int(source[i:i+width], 16))
                             i += width
                     elif c == "(":
                         r.append(String(string))
@@ -518,12 +518,12 @@ class InterpolatedStringExpression:
         r = ""
         for e, f in self.parts:
             x = e.eval(env)
-            s = (x if isinstance(x, (str, unicode))
+            s = (x if isinstance(x, str)
                   else ("TRUE" if x else "FALSE") if isinstance(x, bool)
                   else neon_str(env, x) if isinstance(x, (int, float))
                   else "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(b) for b in x.a)) if isinstance(x, bytes)
-                  else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in x)) if isinstance(x, list)
-                  else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, (str, unicode)) else str(v))) for k, v in x.items()))) if isinstance(x, dict)
+                  else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e)) for e in x)) if isinstance(x, list)
+                  else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, str) else str(v))) for k, v in sorted(x.items())))) if isinstance(x, dict)
                   else x.toString(env, x))
             r += neon_format(env, s, f) if f else s
         return r
@@ -625,14 +625,14 @@ class DotExpression:
             if self.field == "toString": return lambda env, self: "TRUE" if obj else "FALSE"
         elif isinstance(obj, int):
             if self.field == "toString": return lambda env, self: str(obj)
-        elif isinstance(obj, (str, unicode)):
+        elif isinstance(obj, str):
             if self.field == "append": return neon_string_append
             if self.field == "length": return lambda env, self: len(self)
             if self.field == "toArray": return lambda env, self: [ord(x) for x in obj]
-            if self.field == "toBytes": return lambda env, self: bytes([ord(x) for x in obj.encode("utf-8")])
+            if self.field == "toBytes": return lambda env, self: bytes([x for x in obj.encode("utf-8")])
             if self.field == "toString": return lambda env, self: obj
         elif isinstance(obj, bytes):
-            if self.field == "decodeToString": return lambda env, self: "".join(map(chr, obj.a)).decode("utf-8")
+            if self.field == "decodeToString": return lambda env, self: bytearray(obj.a).decode("utf-8")
             if self.field == "size": return lambda env, self: len(obj.a)
             if self.field == "toArray": return lambda env, self: obj.a
             if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj.a))
@@ -642,7 +642,7 @@ class DotExpression:
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
             if self.field == "size": return lambda env, self: len(obj)
             if self.field == "toBytes": return lambda env, self: bytes(obj)
-            if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
+            if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
             return obj[self.field] # Support a.b syntax where a is an object.
@@ -697,7 +697,7 @@ class AppendExpression:
     def eval(self, env):
         left = self.left.eval(env)
         right = self.right.eval(env)
-        if isinstance(left, (str, unicode)):
+        if isinstance(left, str):
             return left + right
         elif isinstance(left, list):
             return left + [right]
@@ -823,7 +823,7 @@ class TypeTestExpression:
             if self.target.name == "Number":
                 return isinstance(v, (int, float)) and not isinstance(v, bool)
             if self.target.name == "String":
-                return isinstance(v, (str, unicode))
+                return isinstance(v, str)
             if self.target.name == "Bytes":
                 return isinstance(v, bytes)
             if self.target.name == "Object":
@@ -895,11 +895,26 @@ class NativeVariable:
         if self.name == "args":
             env.declare(self.name, self.type.resolve(env), sys.argv[1:])
         elif self.name == "stdin":
-            env.declare(self.name, self.type.resolve(env), sys.stdin)
+            if env.module_name == "io":
+                env.declare(self.name, self.type.resolve(env), sys.stdin.buffer)
+            elif env.module_name == "textio":
+                env.declare(self.name, self.type.resolve(env), sys.stdin)
+            else:
+                assert False
         elif self.name == "stdout":
-            env.declare(self.name, self.type.resolve(env), sys.stdout)
+            if env.module_name == "io":
+                env.declare(self.name, self.type.resolve(env), sys.stdout.buffer)
+            elif env.module_name == "textio":
+                env.declare(self.name, self.type.resolve(env), sys.stdout)
+            else:
+                assert False
         elif self.name == "stderr":
-            env.declare(self.name, self.type.resolve(env), sys.stderr)
+            if env.module_name == "io":
+                env.declare(self.name, self.type.resolve(env), sys.stderr.buffer)
+            elif env.module_name == "textio":
+                env.declare(self.name, self.type.resolve(env), sys.stderr)
+            else:
+                assert False
         else:
             assert False, self.name
     def run(self, env):
@@ -1008,7 +1023,8 @@ class AssignmentStatement:
         pass
     def run(self, env):
         x = self.rhs.eval(env)
-        if not isinstance(x, file):
+        import _io
+        if not isinstance(x, (_io.TextIOWrapper, _io.BufferedWriter)):
             x = copy.deepcopy(x)
         self.var.set(env, x)
     def eval(self, env):
@@ -1040,7 +1056,7 @@ class CaseStatement:
                 if self.target.name == "Number":
                     return isinstance(x, (int, float))
                 if self.target.name == "String":
-                    return isinstance(x, (str, unicode))
+                    return isinstance(x, str)
             if isinstance(self.target, TypeParameterised):
                 if self.target.elementtype.name == "Number":
                     return all(isinstance(t, int) for t in x)
@@ -2383,7 +2399,7 @@ class ClassBytes(Class):
             def decodeToString(self, env, obj):
                 if isinstance(self.a, list):
                     # Convert bytes to string.
-                    self.a = "".join(map(chr, self.a))
+                    self.a = bytearray(self.a)
                 return self.a.decode("utf-8")
         return Bytes()
 
@@ -2506,11 +2522,11 @@ class Environment:
         else:
             assert False, name
 
-class ExitException:
+class ExitException(BaseException):
     def __init__(self, label):
         self.label = label
 
-class NeonException:
+class NeonException(BaseException):
     def __init__(self, name, info=None, code=None):
         if isinstance(name, str):
             self.name = [name]
@@ -2522,11 +2538,11 @@ class NeonException:
     def toString(self, env, obj):
         return "<ExceptionType:{},{},{},{}>".format(self.name[0], self.info, self.code, self.offset)
 
-class NextException:
+class NextException(BaseException):
     def __init__(self, label):
         self.label = label
 
-class ReturnException:
+class ReturnException(BaseException):
     def __init__(self, expr):
         self.expr = expr
 
@@ -2636,7 +2652,7 @@ def neon_chr(env, x):
         raise NeonException("ValueRangeException", "chr() argument not an integer")
     if not (0 <= x <= 0x10ffff):
         raise NeonException("ValueRangeException", "chr() argument out of range 0-0x10ffff")
-    return unichr(x)
+    return chr(x)
 
 def neon_concat(env, x, y):
     return x + y
@@ -2648,7 +2664,7 @@ def neon_format(env, s, fmt):
         return format(s, fmt)
 
 def neon_input(env, x):
-    return raw_input()
+    return input()
 
 def neon_int(env, x):
     return int(x)
@@ -2681,6 +2697,8 @@ def neon_round(env, places, value):
 def neon_str(env, x):
     r = str(x)
     if isinstance(x, float):
+        # Format with limited precision to avoid roundoff.
+        r = "{:.10}".format(x)
         if x == int(x):
             r = str(int(x))
         else:
@@ -2733,7 +2751,7 @@ def neon_file_mkdir(env, path):
 def neon_file_readBytes(env, fn):
     with open(fn, "rb") as f:
         r = ClassBytes().default(env)
-        r.fromArray(env, [ord(x) for x in f.read()])
+        r.fromArray(env, [x for x in f.read()])
         return r
 
 def neon_file_readLines(env, fn):
@@ -2760,7 +2778,7 @@ def neon_file_writeBytes(env, fn, bytes):
 
 def neon_file_writeLines(env, fn, lines):
     with open(fn, "wb") as f:
-        f.writelines(x.encode()+"\n" for x in lines)
+        f.writelines((x+"\n").encode() for x in lines)
 
 def neon_io_close(env, f):
     f.close()
@@ -2777,7 +2795,7 @@ def neon_io_open(env, fn, mode):
 
 def neon_io_readBytes(env, f, count):
     r = ClassBytes().default(env)
-    r.fromArray(env, [ord(x) for x in f.read(count)])
+    r.fromArray(env, bytearray(f.read(count)))
     return r
 
 def neon_io_readLine(env, f, r):
@@ -2794,7 +2812,7 @@ def neon_io_truncate(env, f):
     f.truncate()
 
 def neon_io_write(env, f, s):
-    f.write(s)
+    f.write(s.encode())
 
 def neon_io_writeBytes(env, f, buf):
     f.write(buf)

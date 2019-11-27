@@ -131,7 +131,7 @@ endif (WIN32)
 
 add_custom_command(
     OUTPUT src/thunks.inc src/functions_compile.inc src/functions_exec.inc src/enums.inc src/exceptions.inc
-    COMMAND python scripts/make_thunks.py ${RTL_NEON}
+    COMMAND python3 scripts/make_thunks.py ${RTL_NEON}
     DEPENDS scripts/make_thunks.py
     DEPENDS ${RTL_NEON}
 )
@@ -143,7 +143,7 @@ set_source_files_properties(
 
 add_custom_command(
     OUTPUT src/unicodedata.inc
-    COMMAND python tools/helium.py scripts/make_unicode.neon data/UnicodeData.txt >src/unicodedata.inc
+    COMMAND python3 tools/helium.py scripts/make_unicode.neon data/UnicodeData.txt >src/unicodedata.inc
     DEPENDS tools/helium.py
     DEPENDS scripts/make_unicode.neon
     DEPENDS data/UnicodeData.txt
@@ -228,7 +228,7 @@ add_dependencies(common
 
 add_custom_command(
     OUTPUT src/rtl.inc
-    COMMAND python scripts/build_rtl_inc.py ${RTL_NEON}
+    COMMAND python3 scripts/build_rtl_inc.py ${RTL_NEON}
     DEPENDS scripts/build_rtl_inc.py
     DEPENDS ${RTL_NEON}
 )
@@ -315,7 +315,7 @@ endif ()
 #endforeach ()
 #add_custom_command(
 #    OUTPUT src/rtlx.inc
-#    COMMAND python scripts/build_rtlx_inc.py ${RTL_NEONX}
+#    COMMAND python3 scripts/build_rtlx_inc.py ${RTL_NEONX}
 #    DEPENDS scripts/build_rtlx_inc.py
 #    DEPENDS ${RTL_NEONX}
 #)
@@ -583,7 +583,7 @@ add_test(
 
 add_custom_command(
     OUTPUT src/errors.txt
-    COMMAND python tools/helium.py scripts/extract_errors.neon
+    COMMAND python3 tools/helium.py scripts/extract_errors.neon
     DEPENDS src/lexer.cpp
     DEPENDS src/parser.cpp
     DEPENDS src/analyzer.cpp
@@ -596,7 +596,7 @@ add_custom_target(errors_txt ALL
 
 add_custom_command(
     OUTPUT contrib/grammar/neon.w3c.ebnf
-    COMMAND python tools/helium.py contrib/grammar/ebnf_w3c.neon <contrib/grammar/neon.ebnf >contrib/grammar/neon.w3c.ebnf
+    COMMAND python3 tools/helium.py contrib/grammar/ebnf_w3c.neon <contrib/grammar/neon.ebnf >contrib/grammar/neon.w3c.ebnf
     DEPENDS tools/helium.py
     DEPENDS contrib/grammar/ebnf_w3c.neon
     DEPENDS contrib/grammar/neon.ebnf
@@ -620,13 +620,13 @@ function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
             if (NOT ";${EXCLUDE};" MATCHES ";${T};")
                 add_test(
                     NAME "${TAG}:${T}"
-                    COMMAND python scripts/run_test.py --runner "python ${RUNNER}" ${TEST}
+                    COMMAND python3 scripts/run_test.py --runner "python3 ${RUNNER}" ${TEST}
                 )
             endif()
         else()
             add_test(
                 NAME "${T}"
-                COMMAND python scripts/run_test.py ${TEST}
+                COMMAND python3 scripts/run_test.py ${TEST}
             )
         endif()
     endforeach()
@@ -660,7 +660,7 @@ endif (GO)
 
 add_test(
     NAME "errors"
-    COMMAND python scripts/run_test.py --errors t/errors
+    COMMAND python3 scripts/run_test.py --errors t/errors
 )
 
 file(GLOB TESTS_REPL t/repl_*.neon)
@@ -678,16 +678,16 @@ file(GLOB_RECURSE SAMPLES samples/*.neon)
 # TODO: needs pyparsing
 #add_test(
 #    NAME "test_grammar"
-#    COMMAND python contrib/grammar/test-grammar.py lib/*.neon neon/*.neon tools/*.neon ${SAMPLES} t/*.neon t/errors/N3*.neon
+#    COMMAND python3 contrib/grammar/test-grammar.py lib/*.neon neon/*.neon tools/*.neon ${SAMPLES} t/*.neon t/errors/N3*.neon
 #)
 #add_test(
 #    NAME "test_grammar_random"
-#    COMMAND python contrib/grammar/test-random.py
+#    COMMAND python3 contrib/grammar/test-random.py
 #)
 
 add_test(
     NAME "test_doc"
-    COMMAND python scripts/test_doc.py
+    COMMAND python3 scripts/test_doc.py
 )
 
 # TODO: coverage tests

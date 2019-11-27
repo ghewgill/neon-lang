@@ -1,6 +1,6 @@
 if (NOT EXISTS external/minizip11)
     execute_process(
-        COMMAND python ../scripts/extract.py unzip11.zip minizip11
+        COMMAND python3 ../scripts/extract.py unzip11.zip minizip11
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         RESULT_VARIABLE retcode
     )

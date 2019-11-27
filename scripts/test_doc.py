@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import itertools
 import os
 import re
@@ -8,7 +10,7 @@ def test(code):
     if code:
         compile_only = (re.search(r"\binput\b", code) is not None) or ("% exception" in code)
         p = subprocess.Popen(["bin/neonc" if compile_only else "bin/neon", "-"], stdin=subprocess.PIPE)
-        p.communicate(code)
+        p.communicate(code.encode())
         p.wait()
         assert p.returncode == 0
 
@@ -66,7 +68,7 @@ def get_path_files(prefix):
         for f in files:
             if f.endswith((".md", ".neon", ".rst")):
                 fn = os.path.join(path, f)
-                yield (fn, open(fn).read())
+                yield (fn, open(fn, encoding="utf8").read())
 
 if len(sys.argv) < 2:
     paths = ["docs", "gh-pages", "lib"]
@@ -81,8 +83,8 @@ for path in paths:
         files = get_path_files(path)
 
     for fn, source in files:
-        print "Checking {}...".format(fn)
+        print("Checking {}...".format(fn))
         check_file(fn, source)
 
 for u in undocumented:
-    print "test_doc.py:", u
+    print("test_doc.py:", u)

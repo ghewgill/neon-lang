@@ -1,4 +1,4 @@
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import decimal
 import math
@@ -15,7 +15,7 @@ def is_integer(x):
 def get_vint(b, i):
     r = 0
     while True:
-        x = ord(b[i])
+        x = b[i]
         i += 1
         r = (r << 7) | (x & 0x7f)
         if (x & 0x80) == 0:
@@ -29,7 +29,7 @@ class Bytes:
     def __init__(self, s):
         self.s = s
     def literal(self):
-        return "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(ord(x)) for x in self.s))
+        return "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in self.s))
 
 class Type:
     def __init__(self):
@@ -181,7 +181,7 @@ class Value:
     def __repr__(self):
         return "Value({})".format(repr(self.value))
     def copy(self):
-        if self.value is None or isinstance(self.value, (bool, str, unicode, Bytes, decimal.Decimal)):
+        if self.value is None or isinstance(self.value, (bool, str, Bytes, decimal.Decimal)):
             return Value(self.value)
         elif isinstance(self.value, list):
             return Value([x.copy() for x in self.value])
@@ -215,23 +215,23 @@ class Executor:
         self.invoke(None, 0)
         while self.ip < len(self.object.code):
             #print("ip={}".format(self.ip)); print(repr(self.stack))
-            Dispatch[ord(self.object.code[self.ip])](self)
+            Dispatch[self.object.code[self.ip]](self)
 
     def PUSHB(self):
         self.ip += 1
         val = self.object.code[self.ip]
         self.ip += 1
-        self.stack.append(Value(ord(val) != 0))
+        self.stack.append(Value(val != 0))
 
     def PUSHN(self):
         self.ip += 1
         val, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(Value(decimal.Decimal(self.object.strtable[val])))
+        self.stack.append(Value(decimal.Decimal(self.object.strtable[val].decode())))
 
     def PUSHS(self):
         self.ip += 1
         val, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(Value(self.object.strtable[val]))
+        self.stack.append(Value(self.object.strtable[val].decode()))
 
     def PUSHY(self):
         self.ip += 1
@@ -651,7 +651,7 @@ class Executor:
         self.ip += 1
         val, self.ip = get_vint(self.object.code, self.ip)
         func = self.object.strtable[val]
-        f = globals()["neon_{}".format(func.replace("$", "_"))]
+        f = globals()["neon_{}".format(func.decode().replace("$", "_"))]
         f(self)
 
     def CALLF(self):
@@ -739,7 +739,7 @@ class Executor:
         a = self.stack.pop().value
         info = a[0].value if len(a) >= 1 else ""
         code = a[1].value if len(a) >= 2 else decimal.Decimal(0)
-        self.raise_literal(self.object.strtable[val], (info, code))
+        self.raise_literal(self.object.strtable[val].decode(), (info, code))
 
     def ALLOC(self):
         assert False
@@ -809,7 +809,7 @@ class Executor:
         while True:
             for e in self.object.exceptions:
                 if e.start <= tip < e.end:
-                    handler = self.object.strtable[e.excid]
+                    handler = self.object.strtable[e.excid].decode()
                     if name == handler or (len(name) > len(handler) and name.startswith(handler) and name[len(handler)] == "."):
                         self.ip = e.handler
                         self.callstack[sp:] = []
@@ -1004,7 +1004,7 @@ def neon_array__splice(self):
 
 def neon_array__toBytes__number(self):
     a = self.stack.pop().value
-    self.stack.append(Value(Bytes("".join(chr(int(x.value)) for x in a))))
+    self.stack.append(Value(Bytes(bytearray(int(x.value) for x in a))))
 
 def neon_array__toString__number(self):
     a = self.stack.pop().value
@@ -1024,7 +1024,7 @@ def neon_boolean__toString(self):
 
 def neon_bytes__decodeToString(self):
     b = self.stack.pop().value
-    self.stack.append(Value(b.s))
+    self.stack.append(Value(b.s.decode()))
 
 def neon_bytes__range(self):
     last_from_end = self.stack.pop().value
@@ -1058,11 +1058,12 @@ def neon_bytes__splice(self):
 
 def neon_bytes__toArray(self):
     b = self.stack.pop().value
-    self.stack.append(Value([Value(decimal.Decimal(ord(x))) for x in b.s]))
+    print(repr(b.s), file=sys.stderr)
+    self.stack.append(Value([Value(decimal.Decimal(x)) for x in b.s]))
 
 def neon_bytes__toString(self):
     b = self.stack.pop().value
-    self.stack.append(Value("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(ord(x)) for x in b.s))))
+    self.stack.append(Value("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in b.s))))
 
 def neon_chr(self):
     n = self.stack.pop().value
@@ -1072,7 +1073,7 @@ def neon_chr(self):
     if not (0 <= n <= 0x10ffff):
         self.raise_literal("ValueRangeException", ("chr() argument out of range 0-0x10ffff", 0))
         return
-    self.stack.append(Value(unichr(int(n))))
+    self.stack.append(Value(chr(int(n))))
 
 def neon_concat(self):
     b = self.stack.pop().value

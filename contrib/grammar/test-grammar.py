@@ -1,5 +1,6 @@
-from __future__ import print_function
+#!/usr/bin/env python3
 
+import functools
 import glob
 import sys
 
@@ -33,19 +34,24 @@ comments = blockComment | lineComment
 
 parser = grammar.parsers["Program"]
 parser.ignore(comments)
-for fn in reduce(lambda x, y: x + y, [glob.glob(x) for x in sys.argv[1:]]):
+for fn in functools.reduce(lambda x, y: x + y, [glob.glob(x) for x in sys.argv[1:]]):
     fn = fn.replace("\\", "/")
     print(fn)
-    if "%!" in open(fn).read():
-        print("skipped, failure")
-        if fn in KnownParseFailures:
-            print("Unneeded known failure:", fn)
+    print(fn, file=sys.stderr)
+    try:
+        if "%!" in open(fn, encoding="utf-8").read():
+            print("skipped, failure")
+            if fn in KnownParseFailures:
+                print("Unneeded known failure:", fn)
+            continue
+    except UnicodeDecodeError:
+        print("skipped, encoding")
         continue
     try:
-        parser.parseFile(fn, parseAll=True)
+        parser.parseFile(open(fn, encoding="utf-8"), parseAll=True)
         if fn in KnownParseFailures:
             print("Incorrect known failure:", fn)
-    except ParseException, e:
+    except ParseException as e:
         if fn in KnownParseFailures:
             print("Known failure:", e)
         else:

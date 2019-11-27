@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import random
 import re
 import subprocess
@@ -65,13 +67,15 @@ for _ in range(100):
     g = Generator()
     g.eval(grammar.parsers["Statement"])
     source = " ".join(map(str, g.tokens))
-    #print source
+    #print(source)
     p = subprocess.Popen(["bin/neonc", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = p.communicate(source)
+    out, err = p.communicate(source.encode())
+    out = out.decode()
+    err = err.decode()
     r = p.wait()
     if r < 0 or "Error N1" in err or "Error N2" in err:
         with open("tmp/random.out", "w") as f:
             f.write(source)
-        print err
-        print "Randomly generated source saved in tmp/random.out"
+        print(err)
+        print("Randomly generated source saved in tmp/random.out")
         sys.exit(1)
