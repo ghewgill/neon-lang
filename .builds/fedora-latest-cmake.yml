@@ -2,7 +2,6 @@ image: fedora/latest
 packages:
 - g++
 - cmake
-- libffi-devel
 - ncurses
 - m4
 sources:

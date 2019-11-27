@@ -2132,7 +2132,7 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
     //  - The function takes only IN parameters (it might also be possible
     //    to do this with some kinds of INOUT parameters, but not in general)
     //  - The function is an ordinary function that we can jump to (not a
-    //    predefined function or foreign function)
+    //    predefined function)
     //  - The nesting level of the next function is at the same level or
     //    further out than this function.
     // If possible, then generate the parameters for the next function,

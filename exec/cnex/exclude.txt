@@ -3,7 +3,6 @@ cal-test.neon              # os.system
 datetime-test.neon         # datetime
 debug-example.neon         # debugger
 debug-server.neon          # debugger
-ffi.neon                   # ffi
 file-exists.neon           # file
 file-filecopied.neon       # file
 file-filecopied1.neon      # file

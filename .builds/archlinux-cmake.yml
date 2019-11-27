@@ -2,7 +2,6 @@ image: archlinux
 packages:
 - cmake
 - python2
-- libffi
 - ncurses
 - m4
 sources:
@@ -12,7 +11,6 @@ tasks:
     cd neon-lang
     git submodule deinit .
     sudo ln -s python2 /usr/bin/python
-    sudo ln -s /usr/lib/libffi-3.2.1/include/ffi*.h /usr/include
 - build: |
     cd neon-lang
     cmake .

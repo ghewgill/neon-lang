@@ -13,7 +13,6 @@ decimal.neon           # Module not required
 encoding-base64.neon   # Module not required
 exception-as.neon      # Exception offset not supported
 export-inline.neon     # Native mul not required
-ffi.neon               # FFI not required
 file-symlink.neon      # Feature not required
 fork.neon              # fork not required
 forth-test.neon        # Sample not required

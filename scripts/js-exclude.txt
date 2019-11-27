@@ -34,7 +34,6 @@ exception-as.neon          # exception offset
 exception-subexception.neon# exception multiple handlers
 exception-tostring.neon    # exception tostring
 export.neon                # method
-ffi.neon                   # ffi
 file-exists.neon           # module file
 file-filecopied.neon       # module file
 file-filecopied1.neon      # module file

@@ -109,7 +109,6 @@ export-inline.neon
 export.neon
 export-recursive.neon
 expr.neon
-ffi.neon
 file-exists.neon
 file-filecopied1.neon
 file-filecopied2.neon

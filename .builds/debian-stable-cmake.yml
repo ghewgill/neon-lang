@@ -1,7 +1,6 @@
 image: debian/stable
 packages:
 - cmake
-- libffi-dev
 - ncurses-dev
 - m4
 sources:

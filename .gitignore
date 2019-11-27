@@ -27,7 +27,6 @@ test_grammar
 external/IntelRDFPMathLib20U2/
 external/gmp-6.1.2/
 external/utfcpp-master/
-external/libffi-3.2.1/
 external/hash-library/
 external/sqlite-amalgamation-3080803/
 external/zlib-1.2.8/

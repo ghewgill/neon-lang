@@ -22,7 +22,6 @@ exception-opstack-depth.neon    # exception
 export-inline.neon         # export
 export-recursive.neon      # export
 export.neon                # export
-ffi.neon                   # ffi
 file-filecopied.neon       # file
 file-filecopied1.neon      # file
 file-filecopied2.neon      # file

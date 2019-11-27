@@ -1,7 +1,6 @@
 image: debian/stable
 packages:
 - scons
-- libffi-dev
 - ncurses-dev
 - m4
 - libxext-dev

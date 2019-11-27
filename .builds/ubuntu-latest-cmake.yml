@@ -1,7 +1,6 @@
 image: ubuntu/latest
 packages:
 - cmake
-- libffi-dev
 - m4
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
