@@ -93,7 +93,7 @@ void showUsage(void)
     fprintf(stderr, "   %s [options] program.neonx\n", gOptions.pszExecutableName);
     fprintf(stderr, "\n Where [options] is one or more of the following:\n");
     fprintf(stderr, "     -d       Display executor debug stats.\n");
-    fprintf(stderr, "     -D       Display executor disassembly during run.\n");
+    fprintf(stderr, "     -t       Trace execution disassembly during run.\n");
     fprintf(stderr, "     -h       Display this help screen.\n");
     fprintf(stderr, "     -n       No Assertions\n");
 }
@@ -106,7 +106,7 @@ BOOL ParseOptions(int argc, char* argv[])
             if(argv[nIndex][1] == 'h' || argv[nIndex][1] == '?' || ((argv[nIndex][1] == '-' && argv[nIndex][2] != '\0') && (argv[nIndex][2] == 'h'))) {
                 showUsage();
                 exit(1);
-            } else if (argv[nIndex][1] == 'D') {
+            } else if (argv[nIndex][1] == 't') {
                 gOptions.ExecutorDisassembly = TRUE;
             } else if (argv[nIndex][1] == 'd') {
                 gOptions.ExecutorDebugStats = TRUE;
