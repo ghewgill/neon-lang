@@ -681,7 +681,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                     utf8::append(c, std::back_inserter(t.text));
                 }
             }
-        } else if (c == '%') {
+        } else if (c == '#') {
             if (i+1 == source.end()) {
                 break;
             }
@@ -689,12 +689,12 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 int level = 0;
                 do {
                     if (i == source.end() || i+1 == source.end()) {
-                        error(1006, t, "Missing closing comment '|%'");
+                        error(1006, t, "Missing closing comment '|#'");
                     }
-                    if (*i == '%' && *(i+1) == '|') {
+                    if (*i == '#' && *(i+1) == '|') {
                         level++;
                         utf8::advance(i, 2, source.end());
-                    } else if (*i == '|' && *(i+1) == '%') {
+                    } else if (*i == '|' && *(i+1) == '#') {
                         level--;
                         utf8::advance(i, 2, source.end());
                     } else if (*i == '\n') {

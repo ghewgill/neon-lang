@@ -3,4 +3,4 @@ END FUNCTION
 
 LET a: Array<Number> := []
 f(5, a...)
-     %<
+     #<

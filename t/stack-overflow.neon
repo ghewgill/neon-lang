@@ -4,4 +4,4 @@ END FUNCTION
 
 foo()
 
-%! StackOverflow
+#! StackOverflow

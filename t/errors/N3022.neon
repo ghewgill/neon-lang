@@ -1,6 +1,6 @@
 VAR a: Number := 0
 
 IF NOT a THEN
-       %<
+       #<
   print("Not true...")
 END IF

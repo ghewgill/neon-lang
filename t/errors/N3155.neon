@@ -1,4 +1,4 @@
 IMPORT sys
 
 VAR x: sys.bar
-           %<
+           #<

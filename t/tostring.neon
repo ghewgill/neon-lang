@@ -1,10 +1,10 @@
 VAR n: Number := 5
 print(n.toString())
-%= 5
+#= 5
 
 VAR b: Boolean := TRUE
 print(b.toString())
-%= TRUE
+#= TRUE
 
 TYPE Colour IS ENUM
     red
@@ -13,4 +13,4 @@ TYPE Colour IS ENUM
 END ENUM
 VAR c: Colour := Colour.green
 print(c.toString())
-%= green
+#= green

@@ -5,4 +5,4 @@ CASE a
     WHEN 1 DO
 END CASE
 
-%! overlapping case
+#! overlapping case

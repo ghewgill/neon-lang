@@ -6,4 +6,4 @@ VAR p2: P2
 
 p2 := p1
 
-%! type mismatch
+#! type mismatch

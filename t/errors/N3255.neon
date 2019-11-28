@@ -6,5 +6,5 @@ TYPE Cls IS CLASS IMPLEMENTS Int
 END CLASS
 
 FUNCTION Cls.foo(self: VALID POINTER TO Cls, x: Number)
-                                                      %<
+                                                      #<
 END FUNCTION

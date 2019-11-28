@@ -1,4 +1,4 @@
-% SKIP (requires stdin)
+# SKIP (requires stdin)
 VAR s: String
 
 s := input("Enter your name: ")

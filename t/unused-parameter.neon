@@ -4,4 +4,4 @@ END FUNCTION
 
 print(str(foo(5, 6)))
 
-%= 5
+#= 5

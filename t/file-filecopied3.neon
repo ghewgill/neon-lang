@@ -1,7 +1,7 @@
 IMPORT file
 
-% This ensures that the file.copyOverwriteIfExists() will 
-% actually CREATE the file if it does not exist already.
+# This ensures that the file.copyOverwriteIfExists() will 
+# actually CREATE the file if it does not exist already.
 file.delete("tmp/NEW_LICENSE.txt")
 
 TRY 
@@ -15,4 +15,4 @@ TRAP file.FileException.Exists DO
     print("Failed")
 END TRY
 
-%= File copied
+#= File copied

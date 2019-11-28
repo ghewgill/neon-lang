@@ -2,12 +2,12 @@ IMPORT "module-load-order-1" ALIAS module1
 IMPORT "module-load-order-2" ALIAS module2
 IMPORT "module-load-order-3" ALIAS module3
 
-% Module 2 depends on module 3, so make sure 3 is initialised before 2.
-%= module 1
-%= module 3
-%= module 2
+# Module 2 depends on module 3, so make sure 3 is initialised before 2.
+#= module 1
+#= module 3
+#= module 2
 
-% These are just to ensure each module is actually used.
+# These are just to ensure each module is actually used.
 module1.foo()
 module2.foo()
 module3.foo()

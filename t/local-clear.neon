@@ -6,5 +6,5 @@ END FUNCTION
 
 print(foo())
 print(foo())
-%= foo
-%= foo
+#= foo
+#= foo

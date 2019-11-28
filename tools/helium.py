@@ -295,9 +295,9 @@ def tokenize_fragment(source):
                         assert False, c
                 string += c
             r.append(String(string))
-        elif source[i] == "%":
+        elif source[i] == "#":
             if i+1 < len(source) and source[i+1] == "|":
-                while i < len(source) and (source[i] != "|" or source[i+1] != "%"):
+                while i < len(source) and (source[i] != "|" or source[i+1] != "#"):
                     i += 1
                 i += 2
             else:
@@ -2550,11 +2550,11 @@ g_Modules = {}
 
 def import_regex():
     return parse(tokenize("""
-%|
+#|
  |  File: regex
  |
  |  Functions for using regular expressions for text searching.
- |%
+ |#
 
 EXPORT Group
 EXPORT Match
@@ -2563,7 +2563,7 @@ EXPORT search
 
 EXPORT EXCEPTION SyntaxException
 
-%|
+#|
  |  Type: Group
  |
  |  Represents a matching group as part of a <Match> array.
@@ -2572,7 +2572,7 @@ EXPORT EXCEPTION SyntaxException
  |      start - starting index of group
  |      end - ending index of group
  |      group - text of group
- |%
+ |#
 TYPE Group IS RECORD
     matched: Boolean
     start: Number
@@ -2580,18 +2580,18 @@ TYPE Group IS RECORD
     group: String
 END RECORD
 
-%|
+#|
  |  Type: Match
  |
  |  Represents the result of a successful regex match.
- |%
+ |#
 TYPE Match IS Array<Group>
 
-%|
+#|
  |  Function: search
  |
  |  Search a string for a given subject regex.
- |%
+ |#
 DECLARE EXTENSION FUNCTION search(pattern: String, subject: String, OUT match: Match): Boolean
     """))
 
@@ -3025,6 +3025,6 @@ try:
     source = codecs.open(sys.argv[1], encoding="utf-8").read()
 except UnicodeDecodeError:
     sys.exit(99)
-if re.search(r"^%!", source, re.MULTILINE):
+if re.search(r"^#!", source, re.MULTILINE):
     sys.exit(99)
 run(parse(tokenize(source)))

@@ -1,12 +1,12 @@
 VAR a: Number
 a := 5
 print("a is \(a)")
-%= a is 5
+#= a is 5
 
 VAR s: String
 s := "world"
 print("hello \(s)")
-%= hello world
+#= hello world
 
 print("hello \(s:>6)")
-%= hello  world
+#= hello  world

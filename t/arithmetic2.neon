@@ -2,10 +2,10 @@ VAR a: Number
 a := 2
 
 print(str(a + a + a))
-%= 6
+#= 6
 
 print(str(a * a * a))
-%= 8
+#= 8
 
 print(str(a ^ a ^ a))
-%= 16
+#= 16

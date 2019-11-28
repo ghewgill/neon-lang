@@ -2,6 +2,6 @@ VAR a: Dictionary<Number> := {}
 VAR b: Dictionary<Number> := {}
 
 IF a <= b THEN
-     %<
+     #<
   print("Woah...")
 END IF

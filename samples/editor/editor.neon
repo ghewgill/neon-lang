@@ -9,7 +9,7 @@ FUNCTION highlight(s: String): String
     VAR i: Number := 0
     WHILE i < s.length() DO
         VAR m: regex.Match
-        IF NOT regex.search(@@"([A-Z]+(?!\w))|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@\5@)|(%.*)"@@, s[i TO LAST], OUT m) THEN
+        IF NOT regex.search(@@"([A-Z]+(?!\w))|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@\5@)|(#.*)"@@, s[i TO LAST], OUT m) THEN
             EXIT WHILE
         END IF
         VAR n: Number := 0
@@ -331,11 +331,11 @@ END FUNCTION
 testTextBuffer()
 curses.initscr()
 curses.start_color()
-curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)    % keyword
-curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)     % identifier
-curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_BLACK)   % number
-curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)      % string
-curses.init_pair(5, curses.COLOR_GREEN, curses.COLOR_BLACK)     % comment
+curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)    # keyword
+curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)     # identifier
+curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_BLACK)   # number
+curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)      # string
+curses.init_pair(5, curses.COLOR_GREEN, curses.COLOR_BLACK)     # comment
 curses.raw()
 curses.noecho()
 VAR editor: Editor := makeEditor(curses.stdscr())

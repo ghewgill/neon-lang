@@ -6,4 +6,4 @@ CASE 1
         s := "hola"
 END CASE
 print(s)
-%= hello
+#= hello

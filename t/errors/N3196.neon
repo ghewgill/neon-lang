@@ -1,2 +1,2 @@
 CONSTANT n: Number := ord("AA")
-                      %<
+                      #<

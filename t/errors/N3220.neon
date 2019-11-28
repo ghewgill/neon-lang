@@ -4,4 +4,4 @@ END CLASS
 
 LET p: POINTER TO Cls := NEW Cls
 p->hello()
-   %<
+   #<

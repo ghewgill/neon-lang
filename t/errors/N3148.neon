@@ -2,5 +2,5 @@ FUNCTION bar(): Number
 END FUNCTION
 
 FUNCTION foo(x: Number DEFAULT bar())
-                               %<
+                               #<
 END FUNCTION

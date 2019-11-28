@@ -10,10 +10,10 @@ EXEC SQL CONNECT TO "tmp/tmp2.db";
 EXEC SQL DISCONNECT CURRENT;
 ASSERT file.exists("tmp/tmp2.db")
 
-%file.delete("tmp/tmp3.db")
-%EXEC SQL CONNECT TO "tmp/tmp3.db" AS conn;
-%EXEC SQL DISCONNECT conn;
-%ASSERT file.exists("tmp/tmp3.db")
+#file.delete("tmp/tmp3.db")
+#EXEC SQL CONNECT TO "tmp/tmp3.db" AS conn;
+#EXEC SQL DISCONNECT conn;
+#ASSERT file.exists("tmp/tmp3.db")
 
 VAR conn: sqlite.Database
 file.delete("tmp/tmp4.db")
@@ -27,4 +27,4 @@ EXEC SQL CONNECT TO :tmp5;
 EXEC SQL DISCONNECT;
 ASSERT file.exists(tmp5)
 
-%EXEC SQL DISCONNECT ALL;
+#EXEC SQL DISCONNECT ALL;

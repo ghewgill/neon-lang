@@ -1,23 +1,23 @@
-%|
+#|
  |  File: debugger
  |
  |  Functions for interacting with an attached debugger.
  |  None of the functions in this module have any effect if a debugger is not attached.
- |%
+ |#
 
 EXPORT breakpoint
 EXPORT log
 
-%|
+#|
  |  Function: breakpoint
  |
  |  Stop the execution as if a breakpoint were reached.
- |%
+ |#
 DECLARE NATIVE FUNCTION breakpoint()
 
-%|
+#|
  |  Function: log
  |
  |  Display a message to the debugger output.
- |%
+ |#
 DECLARE NATIVE FUNCTION log(message: String)

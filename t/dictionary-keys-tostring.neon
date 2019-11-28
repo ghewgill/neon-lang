@@ -1,4 +1,4 @@
-% TODO
+# TODO
 TYPE Colour IS ENUM
     red
     green

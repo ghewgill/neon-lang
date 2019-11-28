@@ -1,4 +1,4 @@
 VAR i: Number
 UNUSED i
 i := 5
-%<
+#<

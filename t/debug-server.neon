@@ -1,4 +1,4 @@
-%IMPORT io
+#IMPORT io
 IMPORT json
 IMPORT os
 IMPORT simplehttp
@@ -7,14 +7,14 @@ IMPORT time
 CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): Object
-    %io.write(io.stderr(), "get \(url)\n")
+    #io.write(io.stderr(), "get \(url)\n")
     LET data: String := simplehttp.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString()
-    %io.write(io.stderr(), "\(data)\n")
+    #io.write(io.stderr(), "\(data)\n")
     RETURN json.decode(data)
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): Object
-    %io.write(io.stderr(), "post \(url)\n")
+    #io.write(io.stderr(), "post \(url)\n")
     LET data: String := simplehttp.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
@@ -50,14 +50,14 @@ ASSERT a[0].value = "hello world"
 r := post("/step/source/0", "")
 
 r := get("/status")
-ASSERT r.ip = 5 % Dependent on actual bytecode
+ASSERT r.ip = 5 # Dependent on actual bytecode
 
 r := get("/module/-/global/0")
 ASSERT r.type = "string"
 ASSERT r.value = "hello world"
 
 r := post("/step/source/0", "")
-%= hello world
+#= hello world
 r := get("/status")
 
 VAR entry_g: Number := 0
@@ -82,7 +82,7 @@ r := get("/status")
 ASSERT r.ip = entry_g
 
 r := post("/continue", "")
-%= 5
+#= 5
 
 r := get("/status")
 ASSERT r.log_messages = 1

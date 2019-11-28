@@ -3,4 +3,4 @@ CONSTANT b: Number := a
 
 print(str(b))
 
-%= 5
+#= 5

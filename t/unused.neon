@@ -2,4 +2,4 @@ FUNCTION foo()
     VAR i: Number
 END FUNCTION
 
-%! Unused variable
+#! Unused variable

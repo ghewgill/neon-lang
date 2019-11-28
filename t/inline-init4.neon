@@ -1,5 +1,5 @@
-% NOTE the following test case does not return any values, 
-% as this specific test is testing that the variable
-% is referenced once created.
+# NOTE the following test case does not return any values, 
+# as this specific test is testing that the variable
+# is referenced once created.
 
 VAR a: Number := 5

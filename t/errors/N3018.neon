@@ -1,8 +1,8 @@
 FUNCTION a(IN y: Number, INOUT z: Number) : Number
-                               %<2
+                               #<2
     z := y + 1
     RETURN 1
 END FUNCTION
 
 print(a(1, 2))
-           %<1
+           #<1

@@ -6,7 +6,7 @@ VAR s: struct.Struct := struct.make([
 ])
 
 print("\(s.sizeof())")
-%= 32
+#= 32
 
 VAR b: Bytes := s.pack({
     "field1": 500,
@@ -15,42 +15,42 @@ VAR b: Bytes := s.pack({
 })
 VAR a: Array<Number> := b.toArray()
 print("\(a.size())")
-%= 32
+#= 32
 print(str(a[0]))
-%= 0
+#= 0
 print(str(a[1]))
-%= 0
+#= 0
 print(str(a[2]))
-%= 1
+#= 1
 print(str(a[3]))
-%= 244
+#= 244
 print(str(a[4]))
-%= 104
+#= 104
 print(str(a[5]))
-%= 101
+#= 101
 print(str(a[6]))
-%= 108
+#= 108
 print(str(a[7]))
-%= 108
+#= 108
 print(str(a[8]))
-%= 111
+#= 111
 print(str(a[9]))
-%= 0
+#= 0
 print(str(a[30]))
-%= 240
+#= 240
 print(str(a[31]))
-%= 63
+#= 63
 
 LET v: Dictionary<Object> := s.unpack(b)
 print(str(v["field1"]))
-%= 500
+#= 500
 print(v["field2"])
-%= hello
+#= hello
 
 b := s.pack({"field2": "hi"})
 a := b.toArray()
 print("\(a.size())")
-%= 32
+#= 32
 
 LET range: struct.Struct := struct.make([
     struct.field("FE", struct.Type.uint8, 1),

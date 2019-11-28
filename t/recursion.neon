@@ -6,4 +6,4 @@ FUNCTION factorial(x: Number): Number
 END FUNCTION
 
 print(str(factorial(5)))
-%= 120
+#= 120

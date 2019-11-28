@@ -3,5 +3,5 @@ TYPE Cls IS CLASS
 END CLASS
 
 FUNCTION foo(c: Cls)
-                %<
+                #<
 END FUNCTION

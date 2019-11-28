@@ -1,8 +1,8 @@
-% TODO
+# TODO
 
 VAR a: Array<Number> := [1, 2, 3]
 FOREACH x IN a DO
     INC x
 END FOREACH
 print("\(a[0]) \(a[1]) \(a[2])")
-%= 2 3 4
+#= 2 3 4

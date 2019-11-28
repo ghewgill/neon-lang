@@ -12,4 +12,4 @@ VAR a: Colour
 
 a := Colour.red
 print(a.toString())
-%= red
+#= red

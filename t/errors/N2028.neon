@@ -1,4 +1,4 @@
 WHILE (TRUE)
-             %<
+             #<
     print("doing...")
 END WHILE

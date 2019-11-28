@@ -18,13 +18,13 @@ WHILE a < 10 DO
     a := a + 1
 END WHILE
 
-%= 0 less than two
-%= 1 less than two
-%= 2 is two
-%= 3 three to five
-%= 4 three to five
-%= 5 three to five
-%= 6 is something else
-%= 7 seven or nine
-%= 8 is something else
-%= 9 seven or nine
+#= 0 less than two
+#= 1 less than two
+#= 2 is two
+#= 3 three to five
+#= 4 three to five
+#= 5 three to five
+#= 6 is something else
+#= 7 seven or nine
+#= 8 is something else
+#= 9 seven or nine

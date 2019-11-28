@@ -1,14 +1,14 @@
-%|
+#|
  |  File: random
  |
  |  Functions for generating random numbers.
- |%
+ |#
 
 EXPORT uint32
 
-%|
+#|
  |  Function: uint32
  |
  |  Return a random 32-bit unsigned integer with a uniform distribution.
- |%
+ |#
 DECLARE NATIVE FUNCTION uint32(): Number

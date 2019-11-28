@@ -3,4 +3,4 @@ FUNCTION foo(): Array<Number>
 END FUNCTION
 
 print(str(foo().size()))
-%= 3
+#= 3

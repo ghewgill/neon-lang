@@ -1,4 +1,4 @@
 FUNCTION foo(x: Number): String
     RETURN x
-           %<
+           #<
 END FUNCTION

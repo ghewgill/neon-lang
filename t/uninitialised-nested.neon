@@ -3,4 +3,4 @@ REPEAT
     print(s)
 UNTIL TRUE
 
-%! Uninitialised
+#! Uninitialised

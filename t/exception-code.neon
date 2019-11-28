@@ -6,4 +6,4 @@ TRAP PrinterOnFireException AS x DO
     print("conflagration \(x.info) \(x.code)")
 END TRY
 
-%= conflagration error 404
+#= conflagration error 404

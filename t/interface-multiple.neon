@@ -46,17 +46,17 @@ LET p2: POINTER TO Cls2 := NEW Cls2
 VAR i1: POINTER TO Int1 := p1
 VAR i2: POINTER TO Int2 := p1
 i1->f1()
-%= Cls1.f1
+#= Cls1.f1
 i1->f2()
-%= Cls1.f2
+#= Cls1.f2
 i2->f3()
-%= Cls1.f3
+#= Cls1.f3
 
 i1 := p2
 i2 := p2
 i1->f1()
-%= Cls2.f1
+#= Cls2.f1
 i1->f2()
-%= Cls2.f2
+#= Cls2.f2
 i2->f3()
-%= Cls2.f3
+#= Cls2.f3

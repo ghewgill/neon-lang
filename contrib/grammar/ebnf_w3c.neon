@@ -1,8 +1,8 @@
-%|
+#|
  | This program converts the neon.ebnf grammar from EBNF format to
  | the W3C dialect of EBNF used by http://www.bottlecaps.de/rr/ui.
  | It is quick and dirty and is not a general solution.
- |%
+ |#
 
 IMPORT string
 
@@ -11,23 +11,23 @@ LOOP
     TRY
         s := input("")
 
-        % Skip over comment block at top.
+        # Skip over comment block at top.
         IF s[1] = "*" THEN
             NEXT LOOP
         END IF
 
-        % Remove semicolons from the end of each production.
+        # Remove semicolons from the end of each production.
         IF s[LAST] = ";" THEN
             s := s[FIRST TO LAST-1]
         END IF
 
-        % Convert = to ::=.
+        # Convert = to ::=.
         LET equals: Number := string.find(s, " =")
         IF equals >= 0 THEN
             s[equals+1] := "::="
         END IF
 
-        % Remove commas separating items.
+        # Remove commas separating items.
         LOOP
             LET comma: Number := string.find(s, ", ")
             IF comma < 0 THEN
@@ -36,7 +36,7 @@ LOOP
             s[comma] := ""
         END LOOP
 
-        % Convert [...] to (...)?.
+        # Convert [...] to (...)?.
         LOOP
             LET bracket: Number := string.find(s, " [")
             IF bracket < 0 THEN
@@ -48,7 +48,7 @@ LOOP
             s[rbracket] := ")?"
         END LOOP
 
-        % Convert {...} to (...)*.
+        # Convert {...} to (...)*.
         LOOP
             LET brace: Number := string.find(s, " {")
             IF brace < 0 THEN

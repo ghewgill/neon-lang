@@ -6,4 +6,4 @@ IF a THEN
 END IF
 print(s)
 
-%= true
+#= true

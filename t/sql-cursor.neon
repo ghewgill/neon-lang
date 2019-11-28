@@ -13,5 +13,5 @@ LOOP
 END LOOP
 EXEC SQL CLOSE foo;
 
-%= foo bar
-%= baz quux
+#= foo bar
+#= baz quux

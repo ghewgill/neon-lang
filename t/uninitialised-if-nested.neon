@@ -9,4 +9,4 @@ ELSE
     s := "hi"
 END IF
 print(s)
-%= hello
+#= hello

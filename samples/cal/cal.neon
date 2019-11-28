@@ -1,14 +1,14 @@
-%|
+#|
  |  File: cal
  |
  |  Implementation of the Unix cal command.
- |%
+ |#
 
 IMPORT datetime
 IMPORT sys
 
 CONSTANT MonthName: Array<String> := [
-    "", % Month numbers start at 1
+    "", # Month numbers start at 1
     "January",
     "February",
     "March",
@@ -26,10 +26,10 @@ CONSTANT MonthName: Array<String> := [
 FUNCTION build_month(year, month: Number, year_in_title: Boolean): Array<String>
     VAR dt: datetime.DateTime := datetime.DateTime()
     dt := dt.withDate(year, month, 1)
-    % TODO: module record constructor
+    # TODO: module record constructor
     VAR p: datetime.Period := datetime.Period()
     p.days := dt.weekday MOD 7
-    %dt := dt.minusPeriod(p)
+    #dt := dt.minusPeriod(p)
     dt := dt.minusDuration(86400 * p.days)
     LET title: String := (IF year_in_title THEN "\(MonthName[month]) \(year)" ELSE MonthName[month])
     VAR r: Array<String> := ["\(title:^21)", "Su Mo Tu We Th Fr Sa "]

@@ -10,8 +10,8 @@ END FUNCTION
 
 LET s: String := "hello world"
 f(s)
-%= hello world
+#= hello world
 print(str(g(2, 3)))
-%= 5
+#= 5
 debugger.log("hello debugger")
 debugger.breakpoint()

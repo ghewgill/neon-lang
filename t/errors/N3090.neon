@@ -1,4 +1,4 @@
 VAR foo: String
-    %<2
+    #<2
 RAISE foo
-      %<1
+      #<1

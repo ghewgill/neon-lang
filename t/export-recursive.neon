@@ -1,4 +1,4 @@
-% SKIP (segfault)
+# SKIP (segfault)
 EXPORT f
 
 TYPE Rec IS RECORD

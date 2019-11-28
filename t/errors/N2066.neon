@@ -7,5 +7,5 @@ VAR a: POINTER TO Recordset
 
 IF VALID a AS p THEN
     p->1
-       %<
+       #<
 END IF

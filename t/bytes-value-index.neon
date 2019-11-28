@@ -3,4 +3,4 @@ FUNCTION foo(): Bytes
 END FUNCTION
 
 print("\(foo()[1 TO 2])")
-%= HEXBYTES "02 03"
+#= HEXBYTES "02 03"

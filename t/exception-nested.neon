@@ -11,5 +11,5 @@ TRAP PrinterOnFireException DO
     print("three")
 END TRY
 
-%= one
-%= two
+#= one
+#= two

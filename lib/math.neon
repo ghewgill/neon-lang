@@ -1,8 +1,8 @@
-%|
+#|
  |  File: math
  |
  |  Mathemtical functions for real numbers.
- |%
+ |#
 
 EXPORT Pi
 
@@ -42,14 +42,14 @@ EXPORT tanh
 EXPORT tgamma
 EXPORT trunc
 
-%|
+#|
  |  Constant: Pi
  |
  |  The value of Pi to 34 significant digits.
- |%
+ |#
 CONSTANT Pi: Number := 3.141592653589793238462643383279503
 
-%|
+#|
  |  Function: abs
  |
  |  Absolute value.
@@ -59,70 +59,70 @@ CONSTANT Pi: Number := 3.141592653589793238462643383279503
  |
  |  Example:
  |      > ASSERT math.abs(-5) = 5
- |%
+ |#
 DECLARE NATIVE FUNCTION abs(x: Number): Number
 
-%|
+#|
  |  Function: acos
  |
  |  Inverse cosine (arc cos).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/InverseCosine.html
- |%
+ |#
 DECLARE NATIVE FUNCTION acos(x: Number): Number
 
-%|
+#|
  |  Function: acosh
  |
  |  Inverse hyperbolic cosine (arc cosh).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/InverseHyperbolicCosine.html
- |%
+ |#
 DECLARE NATIVE FUNCTION acosh(x: Number): Number
 
-%|
+#|
  |  Function: asin
  |
  |  Inverse sine (arc sin).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/InverseSine.html
- |%
+ |#
 DECLARE NATIVE FUNCTION asin(x: Number): Number
 
-%|
+#|
  |  Function: asinh
  |
  |  Inverse hyperbolic sine (arc sinh).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/InverseHyperbolicSine.html
- |%
+ |#
 DECLARE NATIVE FUNCTION asinh(x: Number): Number
 
-%|
+#|
  |  Function: atan
  |
  |  Inverse tangent (arc tan).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/InverseTangent.html
- |%
+ |#
 DECLARE NATIVE FUNCTION atan(x: Number): Number
 
-%|
+#|
  |  Function: atanh
  |
  |  Inverse hyperbolic tangent (arc tanh).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/InverseHyperbolicTangent.html
- |%
+ |#
 DECLARE NATIVE FUNCTION atanh(x: Number): Number
 
-%|
+#|
  |  Function: atan2
  |
  |  Inverse tangent (arc tan) of y/x.
@@ -130,90 +130,90 @@ DECLARE NATIVE FUNCTION atanh(x: Number): Number
  |
  |  Reference:
  |      http://mathworld.wolfram.com/InverseTangent.html
- |%
+ |#
 DECLARE NATIVE FUNCTION atan2(y, x: Number): Number
 
-%|
+#|
  |  Function: cbrt
  |
  |  Cube root.
  |
  |  Refrence:
  |      http://mathworld.wolfram.com/CubeRoot.html
- |%
+ |#
 DECLARE NATIVE FUNCTION cbrt(x: Number): Number
 
-%|
+#|
  |  Function: ceil
  |
  |  Ceiling function.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/CeilingFunction.html
- |%
+ |#
 DECLARE NATIVE FUNCTION ceil(x: Number): Number
 
-%|
+#|
  |  Function: cos
  |
  |  Cosine.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Cosine.html
- |%
+ |#
 DECLARE NATIVE FUNCTION cos(x: Number): Number
 
-%|
+#|
  |  Function: cosh
  |
  |  Hyperbolic cosine.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/HyperbolicCosine.html
- |%
+ |#
 DECLARE NATIVE FUNCTION cosh(x: Number): Number
 
-%|
+#|
  |  Function: erf
  |
  |  Error function.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Erf.html
- |%
+ |#
 DECLARE NATIVE FUNCTION erf(x: Number): Number
 
-%|
+#|
  |  Function: erfc
  |
  |  Complementary error function.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Erfc.html
- |%
+ |#
 DECLARE NATIVE FUNCTION erfc(x: Number): Number
 
-%|
+#|
  |  Function: exp
  |
  |  Exponentiation.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Exponentiation.html
- |%
+ |#
 DECLARE NATIVE FUNCTION exp(x: Number): Number
 
-%|
+#|
  |  Function: exp2
  |
  |  Exponentiation (base 2).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Exponentiation.html
- |%
+ |#
 DECLARE NATIVE FUNCTION exp2(x: Number): Number
 
-%|
+#|
  |  Function: expm1
  |
  |  Calculates exp(x)-1.0. This function avoids numeric accuracy problems
@@ -221,180 +221,180 @@ DECLARE NATIVE FUNCTION exp2(x: Number): Number
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Exponentiation.html
- |%
+ |#
 DECLARE NATIVE FUNCTION expm1(x: Number): Number
 
-%|
+#|
  |  Function: floor
  |
  |  Floor function.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/FloorFunction.html
- |%
+ |#
 DECLARE NATIVE FUNCTION floor(x: Number): Number
 
-%|
+#|
  |  Function: frexp
  |
  |  Decomposes a floating point number into a normalised fraction and an integral power of 10.
- |%
+ |#
 DECLARE NATIVE FUNCTION frexp(x: Number, OUT exp: Number): Number
 
-%|
+#|
  |  Function: hypot
  |
  |  Hypotenuse. Calcuates sqrt(x^2 + y^2).
- |%
+ |#
 DECLARE NATIVE FUNCTION hypot(x: Number, y: Number): Number
 
-%|
+#|
  |  Function: intdiv
  |
  |  Integer division with rounding toward zero.
- |%
+ |#
 DECLARE NATIVE FUNCTION intdiv(x: Number, y: Number): Number
 
-%|
+#|
  |  Function: ldexp
  |
  |  Multiplies a floating point value x by the number 10 raised to the exp power.
- |%
+ |#
 DECLARE NATIVE FUNCTION ldexp(x: Number, exp: Number): Number
 
-%|
+#|
  |  Function: lgamma
  |
  |  Log gamma function.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/LogGammaFunction.html
- |%
+ |#
 DECLARE NATIVE FUNCTION lgamma(x: Number): Number
 
-%|
+#|
  |  Function: log
  |
  |  Logarithm.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Logarithm.html
- |%
+ |#
 DECLARE NATIVE FUNCTION log(x: Number): Number
 
-%|
+#|
  |  Function: log10
  |
  |  Logarithm (base 10).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Logarithm.html
- |%
+ |#
 DECLARE NATIVE FUNCTION log10(x: Number): Number
 
-%|
+#|
  |  Function: log1p
  |
  |  Computes the natural (base e) logarithm of 1+arg. This function is more precise than the expression log(1+arg) if arg is close to zero.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Logarithm.html
- |%
+ |#
 DECLARE NATIVE FUNCTION log1p(x: Number): Number
 
-%|
+#|
  |  Function: log2
  |
  |  Logarithm (base 2).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Logarithm.html
- |%
+ |#
 DECLARE NATIVE FUNCTION log2(x: Number): Number
 
-%|
+#|
  |  Function: nearbyint
  |
  |  Returns an integer close to x by rounding.
- |%
+ |#
 DECLARE NATIVE FUNCTION nearbyint(x: Number): Number
 
-%|
+#|
  |  Function: sign
  |
  |  Returns -1 if x is negative, 0 if x is 0, or 1 if x is positive.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Sign.html
- |%
+ |#
 DECLARE NATIVE FUNCTION sign(x: Number): Number
 
-%|
+#|
  |  Function: sin
  |
  |  Sine.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Sine.html
- |%
+ |#
 DECLARE NATIVE FUNCTION sin(x: Number): Number
 
-%|
+#|
  |  Function: sinh
  |
  |  Hyperbolic sine.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/HyperbolicSine.html
- |%
+ |#
 DECLARE NATIVE FUNCTION sinh(x: Number): Number
 
-%|
+#|
  |  Function: sqrt
  |
  |  Square root.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/SquareRoot.html
- |%
+ |#
 DECLARE NATIVE FUNCTION sqrt(x: Number): Number
 
-%|
+#|
  |  Function: tan
  |
  |  Tangent.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Tangent.html
- |%
+ |#
 DECLARE NATIVE FUNCTION tan(x: Number): Number
 
-%|
+#|
  |  Function: tanh
  |
  |  Hyperbolic tangent.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/HyperbolicTangent.html
- |%
+ |#
 DECLARE NATIVE FUNCTION tanh(x: Number): Number
 
-%|
+#|
  |  Function: tgamma
  |
  |  Gamma function.
  |
  |  Reference:
  |      http://mathworld.wolfram.com/GammaFunction.html
- |%
+ |#
 DECLARE NATIVE FUNCTION tgamma(x: Number): Number
 
-%|
+#|
  |  Function: trunc
  |
  |  Truncate to integer (effectively, round toward zero).
  |
  |  Reference:
  |      http://mathworld.wolfram.com/Truncate.html
- |%
+ |#
 DECLARE NATIVE FUNCTION trunc(x: Number): Number

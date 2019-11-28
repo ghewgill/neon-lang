@@ -6,7 +6,7 @@ ELSE
     print("file does not exist")
 END IF
 
-%= file exists
+#= file exists
 
 IF file.exists("t/file-exist.neon") THEN
     print("file exists")
@@ -14,4 +14,4 @@ ELSE
     print("file does not exist")
 END IF
 
-%= file does not exist
+#= file does not exist

@@ -16,7 +16,7 @@ END RECORD
 TYPE Client IS RECORD
     socket: net.Socket
     buf: Bytes
-    handler: FUNCTION(INOUT self: Client, s: String) % ResponseHandler
+    handler: FUNCTION(INOUT self: Client, s: String) # ResponseHandler
     user: User
     chatting: Boolean
 END RECORD
@@ -226,7 +226,7 @@ LOOP
                     END IF
                 ELSE
                     clients[i].close()
-                    clients[i TO i] := [] % TODO: need an array remove method
+                    clients[i TO i] := [] # TODO: need an array remove method
                 END IF
             END IF
         END FOR

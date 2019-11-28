@@ -12,4 +12,4 @@ FUNCTION Rec.toString(self: Rec): String
     RETURN self.name & self.value.toString()
 END FUNCTION
 
-%= foo5
+#= foo5

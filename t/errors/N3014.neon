@@ -1,6 +1,6 @@
 VAR x: String
-    %<2
+    #<2
 x := "Hello"
 
 CONSTANT x: String := ", World!"
-         %<1
+         #<1

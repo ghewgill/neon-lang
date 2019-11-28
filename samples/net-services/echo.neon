@@ -22,7 +22,7 @@ LOOP
                     clients[i].send(buf)
                 ELSE
                     clients[i].close()
-                    clients[i TO i] := [] % TODO: need an array remove method
+                    clients[i TO i] := [] # TODO: need an array remove method
                 END IF
             END IF
         END FOR

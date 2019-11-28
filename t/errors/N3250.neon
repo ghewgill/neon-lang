@@ -4,4 +4,4 @@ END INTERFACE
 
 VAR f: POINTER TO Foo
 f->bar()
-   %<
+   #<

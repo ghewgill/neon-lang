@@ -1,4 +1,4 @@
 IMPORT cformat
 
-cformat.printf("We have %d of the %ss.", 5, "fork")
-%= We have 5 of the forks.
+cformat.printf("We have #d of the #ss.", 5, "fork")
+#= We have 5 of the forks.

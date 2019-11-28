@@ -8,7 +8,7 @@ import sys
 
 def test(code):
     if code:
-        compile_only = (re.search(r"\binput\b", code) is not None) or ("% exception" in code)
+        compile_only = (re.search(r"\binput\b", code) is not None) or ("# exception" in code)
         p = subprocess.Popen(["bin/neonc" if compile_only else "bin/neon", "-"], stdin=subprocess.PIPE)
         p.communicate(code.encode())
         p.wait()

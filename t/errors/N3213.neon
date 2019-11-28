@@ -1,5 +1,5 @@
 VAR foo: String
-    %<2
+    #<2
 FOR i := 1 TO 10 LABEL foo DO
-                       %<1
+                       #<1
 END FOR

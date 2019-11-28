@@ -1,8 +1,8 @@
-%|
+#|
  |  Module: base
  |
  |  Conversions from numbers to and from arbitrary bases.
- |%
+ |#
 
 IMPORT string
 

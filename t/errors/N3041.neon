@@ -1,5 +1,5 @@
 VAR Records: Array<Number> := []
-             %<2
+             #<2
 
 Records["UserName"]
-        %<1
+        #<1

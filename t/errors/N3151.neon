@@ -1,2 +1,2 @@
 VAR p: FUNCTION(x: Number DEFAULT 1, y: Number)
-                                     %<
+                                     #<

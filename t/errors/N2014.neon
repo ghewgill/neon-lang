@@ -5,6 +5,6 @@ END FUNCTION
 VAR b: Number
 
 b := (a(1, 2) + 5
-     %<2
+     #<2
 a
-%<1
+#<1

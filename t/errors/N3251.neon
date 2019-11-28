@@ -1,6 +1,6 @@
 TYPE Foo IS Number
-     %<2
+     #<2
 
 INTERFACE Foo
-          %<1
+          #<1
 END INTERFACE

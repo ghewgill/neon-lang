@@ -4,4 +4,4 @@ LOOP
     EXIT LOOP
 END LOOP
 print(s)
-%= hello
+#= hello

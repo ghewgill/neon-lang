@@ -1,3 +1,3 @@
 CHECK 0 ELSE
-      %<
+      #<
 END CHECK

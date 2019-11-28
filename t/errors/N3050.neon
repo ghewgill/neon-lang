@@ -1,5 +1,5 @@
 CASE TRUE
-     %<
+     #<
     WHEN FALSE DO
         print("False...")
     WHEN TRUE DO

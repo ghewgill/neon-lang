@@ -4,4 +4,4 @@ FUNCTION foo()
     VAR a: Number
 END FUNCTION
 
-%! duplicate identifier
+#! duplicate identifier

@@ -10,4 +10,4 @@ FUNCTION foo(x: Number): Number
 END FUNCTION
 
 print(str(foo(5)))
-%= 3
+#= 3

@@ -1,5 +1,5 @@
 VAR x: Number
-    %<2
+    #<2
 FOREACH x IN [] DO
-        %<1
+        #<1
 END FOREACH

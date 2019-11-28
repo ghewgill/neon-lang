@@ -1,10 +1,10 @@
 LET an: Array<Number> := [1,2,3]
 print("\(an)")
-%= [1, 2, 3]
+#= [1, 2, 3]
 
 LET as: Array<String> := ["foo","bar"]
 print("\(as)")
-%= ["foo", "bar"]
+#= ["foo", "bar"]
 
 FUNCTION f(): Array<Number>
     RETURN an

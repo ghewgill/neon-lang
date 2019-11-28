@@ -1,8 +1,8 @@
 TYPE Suit IS ENUM
     Heart
-    %<2
+    #<2
     Heart
-    %<1
+    #<1
     Club
     Spade
     Diamond

@@ -280,7 +280,7 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
 
 FUNCTION Executor.run(INOUT self: Executor)
     WHILE self.ip < self.bytecode.code.size() DO
-        %textio.writeLine(textio.stderr, "ip=\(self.ip) depth=\(self.stack.size())")
+        #textio.writeLine(textio.stderr, "ip=\(self.ip) depth=\(self.stack.size())")
         LET f: FUNCTION(INOUT self: Executor) := DispatchTable[self.bytecode.code[self.ip]]
         f(INOUT self)
     END WHILE
@@ -844,14 +844,14 @@ FUNCTION f_callp(INOUT self: Executor)
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
     LET f: String := self.bytecode.strtable[val]
     CASE f
-        %WHEN "array__append" DO
-        %    LET v: Value := self.pop()
-        %    LET addr: POINTER TO Variable := self.pop().p
-        %    IF VALID addr THEN
-        %        addr->v.aa.append(NEW Variable(v WITH v))
-        %    ELSE
-        %        ASSERT FALSE
-        %    END IF
+        #WHEN "array__append" DO
+        #    LET v: Value := self.pop()
+        #    LET addr: POINTER TO Variable := self.pop().p
+        #    IF VALID addr THEN
+        #        addr->v.aa.append(NEW Variable(v WITH v))
+        #    ELSE
+        #        ASSERT FALSE
+        #    END IF
         WHEN "array__size" DO
             LET a: VALID POINTER TO Value := self.pop()
             self.stack.append(NEW Value(n WITH a->a.size()))

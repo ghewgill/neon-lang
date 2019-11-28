@@ -3,4 +3,4 @@ FUNCTION bar(): Number
 END FUNCTION
 
 VAR p: FUNCTION(x: Number DEFAULT bar())
-                                  %<
+                                  #<

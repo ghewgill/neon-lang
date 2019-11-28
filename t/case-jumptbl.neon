@@ -4,4 +4,4 @@ CASE n
     WHEN 2 DO print("two")
     WHEN OTHERS DO print ("other")
 END CASE
-%= other
+#= other

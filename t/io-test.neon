@@ -4,14 +4,14 @@ LET stdout: io.File := io.stdout
 
 io.write(stdout, "Hello ")
 io.write(stdout, "World\n")
-%= Hello World
+#= Hello World
 
 VAR f: io.File := io.open("LICENSE.txt", io.Mode.read)
 io.seek(f, 4, io.SeekBase.absolute)
 print(io.readBytes(f, 5).decodeToString())
-%= MIT L
+#= MIT L
 print(str(io.tell(f)))
-%= 9
+#= 9
 io.close(f)
 
 f := io.open("tmp/io-test.tmp", io.Mode.write)

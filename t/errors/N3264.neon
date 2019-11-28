@@ -1,2 +1,2 @@
 TYPE Ptr IS POINTER TO Rec
-            %<
+            #<

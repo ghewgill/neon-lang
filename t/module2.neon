@@ -4,44 +4,44 @@ IMPORT module.enum
 VAR r: module.record := module.record()
 r.string := "hello"
 print(r.string)
-%= hello
+#= hello
 
 print("\(module.var2)")
-%= blue
+#= blue
 
 print(r.method())
-%= hellohello
+#= hellohello
 
 print("\(module.const)")
-%= 5
+#= 5
 
 print(module.var)
-%= test
+#= test
 
 print(module.let)
-%= green
+#= green
 
 print("\(module.function(5))")
-%= 25
+#= 25
 
 VAR x: Number := 7
 module.modify(INOUT x)
 print("\(x)")
-%= 14
+#= 14
 
 TRY
     RAISE module.Exception
 TRAP module.Exception DO
     print("exception 1")
 END TRY
-%= exception 1
+#= exception 1
 
 TRY
     module.raise()
 TRAP module.Exception DO
     print("exception 2")
 END TRY
-%= exception 2
+#= exception 2
 
 print(str(module.functionpointer(5)))
-%= 25
+#= 25

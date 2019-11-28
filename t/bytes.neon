@@ -1,10 +1,10 @@
 LET n: Array<Number> := [1, 2, 3, 0, 4]
 LET buf: Bytes := n.toBytes()
 print("\(buf.size())")
-%= 5
+#= 5
 
 VAR a: Array<Number> := buf.toArray()
 print("\(a.size())")
-%= 5
+#= 5
 print("\(a[0]), \(a[4])")
-%= 1, 4
+#= 1, 4

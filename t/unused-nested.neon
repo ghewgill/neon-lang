@@ -1,4 +1,4 @@
-% TODO
+# TODO
 FUNCTION foo()
     VAR s: String := "hello"
     FUNCTION bar()
@@ -7,4 +7,4 @@ FUNCTION foo()
     bar()
 END FUNCTION
 
-%= hello
+#= hello

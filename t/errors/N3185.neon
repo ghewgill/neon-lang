@@ -3,4 +3,4 @@ END FUNCTION
 
 VAR x: Number
 f(x)
-  %<
+  #<

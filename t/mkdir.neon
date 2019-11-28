@@ -7,4 +7,4 @@ TRAP file.FileException.DirectoryExists AS x DO
     print(x.info)
 END TRY
 
-%= tmp/dummy
+#= tmp/dummy

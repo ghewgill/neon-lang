@@ -26,7 +26,7 @@ The ``ASSERT`` statement evaluates an expression and if the expression is ``FALS
 For example::
 
     LET s: String := "foo"
-    ASSERT s[0] = "x"       % exception
+    ASSERT s[0] = "x"       # exception
 
 The output is::
 

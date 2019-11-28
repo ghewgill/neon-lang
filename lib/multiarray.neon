@@ -1,8 +1,8 @@
-%|
+#|
  |  File: multiarray
  |
  |  Functions and types for working with multidimensional arrays.
- |%
+ |#
 
 EXPORT ArrayBoolean2D
 EXPORT ArrayBoolean3D
@@ -17,53 +17,53 @@ EXPORT makeNumber3D
 EXPORT makeString2D
 EXPORT makeString3D
 
-%|
+#|
  |  Type: ArrayBoolean2D
  |
  |  A two-dimensional array of <Booleans>.
- |%
+ |#
 TYPE ArrayBoolean2D IS Array<Array<Boolean>>
 
-%|
+#|
  |  Type: ArrayBoolean3D
  |
  |  A three-dimensional array of <Booleans>.
- |%
+ |#
 TYPE ArrayBoolean3D IS Array<Array<Array<Boolean>>>
 
-%|
+#|
  |  Type: ArrayNumber2D
  |
  |  A two-dimensional array of <Numbers>.
- |%
+ |#
 TYPE ArrayNumber2D IS Array<Array<Number>>
 
-%|
+#|
  |  Type: ArrayNumber3D
  |
  |  A three-dimensional array of <Numbers>.
- |%
+ |#
 TYPE ArrayNumber3D IS Array<Array<Array<Number>>>
 
-%|
+#|
  |  Type: ArrayString2D
  |
  |  A two-dimensional array of <Strings>.
- |%
+ |#
 TYPE ArrayString2D IS Array<Array<String>>
 
-%|
+#|
  |  Type: ArrayString3D
  |
  |  A three-dimensional array of <Strings>.
- |%
+ |#
 TYPE ArrayString3D IS Array<Array<Array<String>>>
 
-%|
+#|
  |  Function: makeBoolean2D
  |
  |  Create a new <ArrayBoolean2D> with the given number of rows and columns.
- |%
+ |#
 FUNCTION makeBoolean2D(rows, columns: Number): ArrayBoolean2D
     VAR r: ArrayBoolean2D := []
     r.resize(rows)
@@ -73,11 +73,11 @@ FUNCTION makeBoolean2D(rows, columns: Number): ArrayBoolean2D
     RETURN r
 END FUNCTION
 
-%|
+#|
  |  Function: makeBoolean3D
  |
  |  Create a new <ArrayBoolean3D> with the given number of rows, columns, and depth.
- |%
+ |#
 FUNCTION makeBoolean3D(rows, columns, depth: Number): ArrayBoolean3D
     VAR r: ArrayBoolean3D := []
     r.resize(rows)
@@ -90,11 +90,11 @@ FUNCTION makeBoolean3D(rows, columns, depth: Number): ArrayBoolean3D
     RETURN r
 END FUNCTION
 
-%|
+#|
  |  Function: makeNumber2D
  |
  |  Create a new <ArrayNumber2D> with the given number of rows and columns.
- |%
+ |#
 FUNCTION makeNumber2D(rows, columns: Number, value: Number DEFAULT 0): ArrayNumber2D
     VAR r: ArrayNumber2D := []
     r.resize(rows)
@@ -109,11 +109,11 @@ FUNCTION makeNumber2D(rows, columns: Number, value: Number DEFAULT 0): ArrayNumb
     RETURN r
 END FUNCTION
 
-%|
+#|
  |  Function: makeNumber3D
  |
  |  Create a new <ArrayNumber3D> with the given number of rows, columns, and depth.
- |%
+ |#
 FUNCTION makeNumber3D(rows, columns, depth: Number): ArrayNumber3D
     VAR r: ArrayNumber3D := []
     r.resize(rows)
@@ -126,11 +126,11 @@ FUNCTION makeNumber3D(rows, columns, depth: Number): ArrayNumber3D
     RETURN r
 END FUNCTION
 
-%|
+#|
  |  Function: makeString2D
  |
  |  Create a new <ArrayString2D> with the given number of rows and columns.
- |%
+ |#
 FUNCTION makeString2D(rows, columns: Number): ArrayString2D
     VAR r: ArrayString2D := []
     r.resize(rows)
@@ -140,11 +140,11 @@ FUNCTION makeString2D(rows, columns: Number): ArrayString2D
     RETURN r
 END FUNCTION
 
-%|
+#|
  |  Function: makeString3D
  |
  |  Create a new <ArrayString3D> with the given number of rows, columns, and depth.
- |%
+ |#
 FUNCTION makeString3D(rows, columns, depth: Number): ArrayString3D
     VAR r: ArrayString3D := []
     r.resize(rows)

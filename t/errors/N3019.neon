@@ -1,7 +1,7 @@
 FUNCTION a(y: Number, z: Number) : Number
-           %<2
+           #<2
     RETURN 1
 END FUNCTION
 
 print(a("Hello", ", World!"))
-        %<1
+        #<1

@@ -1,4 +1,4 @@
 VAR a: Array<String> := ["bar"]
 a[LAST].append("foo")
 print(a[LAST])
-%= barfoo
+#= barfoo

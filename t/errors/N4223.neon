@@ -1,2 +1,2 @@
 EXEC SQL WHENEVER SQLERROR DO NEXT ZZZZ;
-                                   %<
+                                   #<

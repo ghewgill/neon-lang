@@ -3,4 +3,4 @@ FUNCTION f(): String
     END FOR
 END FUNCTION
 
-%! missing RETURN
+#! missing RETURN

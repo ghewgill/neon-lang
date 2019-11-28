@@ -4,4 +4,4 @@ TYPE Suit IS ENUM
     Spade
     Diamond
 END IF
-    %<
+    #<

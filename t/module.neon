@@ -64,4 +64,4 @@ functionpointer := function
 BEGIN MAIN
     print("module main")
 END MAIN
-%= module main
+#= module main

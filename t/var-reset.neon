@@ -3,6 +3,6 @@ FOR i := 1 TO 3 DO
     x := x + 1
     print(str(x))
 END FOR
-%= 1
-%= 1
-%= 1
+#= 1
+#= 1
+#= 1

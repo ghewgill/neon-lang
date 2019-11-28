@@ -1,4 +1,4 @@
-% TODO SKIP (unicode in python 2 run_test.py)
+# TODO SKIP (unicode in python 2 run_test.py)
 VAR 你好 = "世界"
 print 你好
-%= 世界
+#= 世界

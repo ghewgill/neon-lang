@@ -1,2 +1,2 @@
 print("five \(2+3)")
-%= five 5
+#= five 5

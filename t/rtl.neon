@@ -1,78 +1,78 @@
 print(chr(65))
-%= A
+#= A
 
 TRY
     print(chr(1.5))
 TRAP ValueRangeException AS x DO
     print(x.info)
 END TRY
-%= chr() argument not an integer
+#= chr() argument not an integer
 
 TRY
     print(chr(0x110000))
 TRAP ValueRangeException AS x DO
     print(x.info)
 END TRY
-%= chr() argument out of range 0-0x10ffff
+#= chr() argument out of range 0-0x10ffff
 
 print(concat("hello", " world"))
-%= hello world
+#= hello world
 
 print(str(max(45, 67)))
-%= 67
+#= 67
 
 print(str(min(45, 67)))
-%= 45
+#= 45
 
 print(str(num("45")))
-%= 45
+#= 45
 
 print("\(odd(3))")
-%= TRUE
+#= TRUE
 
 TRY
     print("\(odd(1.5))")
 TRAP ValueRangeException AS x DO
     print(x.info)
 END TRY
-%= odd() requires integer
+#= odd() requires integer
 
 print(str(ord("B")))
-%= 66
+#= 66
 
 print(str(round(0, 3.14159)))
-%= 3
+#= 3
 print(str(round(1, 3.14159)))
-%= 3.1
+#= 3.1
 print(str(round(2, 3.14159)))
-%= 3.14
+#= 3.14
 print(str(round(3, 3.14159)))
-%= 3.142
+#= 3.142
 print(str(round(4, 3.14159)))
-%= 3.1416
+#= 3.1416
 print(str(round(5, 3.14159)))
-%= 3.14159
+#= 3.14159
 print(str(round(6, 3.14159)))
-%= 3.14159
+#= 3.14159
 
 TRY
     print(str(ord("AB")))
 TRAP ArrayIndexException AS x DO
     print(x.info)
 END TRY
-%= ord() requires string of length 1
+#= ord() requires string of length 1
 
 print("hello")
-%= hello
+#= hello
 
 print(str(5))
-%= 5
+#= 5
 
 print(str(int(4)))
-%= 4
+#= 4
 
 print(str(int(3.9)))
-%= 3
+#= 3
 
 print(str(int(-3.9)))
-%= -3
+#= -3

@@ -12,4 +12,4 @@ r.name := "foo"
 r.value := 5
 print(r.toString())
 
-%= foo5
+#= foo5

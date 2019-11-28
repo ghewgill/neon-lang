@@ -1,2 +1,2 @@
 TYPE Func IS FUNCTION(a, b: Object...)
-                         %<
+                         #<

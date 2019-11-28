@@ -1,4 +1,4 @@
 IMPORT module
 
 module.let := "five"
-%! assignment to readonly
+#! assignment to readonly

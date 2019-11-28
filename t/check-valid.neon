@@ -11,4 +11,4 @@ FUNCTION f()
 END FUNCTION
 
 f()
-%= 5
+#= 5

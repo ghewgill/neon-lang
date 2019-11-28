@@ -4,5 +4,5 @@ END CLASS
 
 TYPE Rec IS RECORD
     c: Cls
-       %<
+       #<
 END RECORD

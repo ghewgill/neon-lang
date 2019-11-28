@@ -1,8 +1,8 @@
 LET s: String := "你好"
 LET b: Bytes := s.toBytes()
 print(b.toArray().toString())
-%= [228, 189, 160, 229, 165, 189]
+#= [228, 189, 160, 229, 165, 189]
 
 LET t: String := b.decodeToString()
 print("\(ord(t[0]):x) \(ord(t[1]):x)")
-%= 4f60 597d
+#= 4f60 597d

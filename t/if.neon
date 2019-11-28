@@ -4,7 +4,7 @@ a := 1
 IF a <> 0 THEN
     print("one")
 END IF
-%= one
+#= one
 
 a := 0
 IF a <> 0 THEN
@@ -12,7 +12,7 @@ IF a <> 0 THEN
 ELSE
     print("zero")
 END IF
-%= zero
+#= zero
 
 a := 1
 IF a = 0 THEN
@@ -22,4 +22,4 @@ ELSIF a = 1 THEN
 ELSE
     print("many")
 END IF
-%= one
+#= one

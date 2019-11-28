@@ -7,4 +7,4 @@ END FUNCTION
 
 print(str(sq()))
 
-%= 25
+#= 25

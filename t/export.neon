@@ -22,7 +22,7 @@ EXPORT va
 EXPORT vd
 EXPORT vr
 EXPORT ve
-%EXPORT vp
+#EXPORT vp
 
 EXCEPTION TestException
 
@@ -70,4 +70,4 @@ VAR va: Array<Number>
 VAR vd: Dictionary<Number>
 VAR vr: Record
 VAR ve: Enum
-%VAR vp: POINTER TO Record
+#VAR vp: POINTER TO Record

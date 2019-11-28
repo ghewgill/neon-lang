@@ -5,23 +5,23 @@ FUNCTION bstr(z: Boolean): String
 END FUNCTION
 
 print(str(string.find("hello world", "world")))
-%= 6
+#= 6
 
 print(string.join(["hello", "world"], " "))
-%= hello world
+#= hello world
 
 print(string.lower("Hello World"))
-%= hello world
+#= hello world
 
 LET a: Array<String> := string.split("Hello World Everybody", " ")
 print("\(a.size())")
-%= 3
+#= 3
 print(a[0])
-%= Hello
+#= Hello
 print(a[1])
-%= World
+#= World
 print(a[2])
-%= Everybody
+#= Everybody
 
 ASSERT string.splitLines("").size() = 0
 ASSERT string.splitLines("\n") = [""]
@@ -32,29 +32,29 @@ ASSERT string.splitLines("a\nb\n") = ["a", "b"]
 ASSERT string.splitLines("hello\nworld\r\neverybody\n") = ["hello", "world", "everybody"]
 
 print(string.trimCharacters("  Hello World  ", " ", " "))
-%= Hello World
+#= Hello World
 
 print(string.trimCharacters("  Hello World  ", " ", ""))
-%= Hello World  
+#= Hello World  
 
 print(string.trimCharacters("  Hello World  ", "", " "))
-%=   Hello World
+#=   Hello World
 
 print(string.trimCharacters(" ", " ", " "))
-%= 
+#= 
 
 print(string.upper("Hello World"))
-%= HELLO WORLD
+#= HELLO WORLD
 
 print(bstr(string.hasPrefix("Hello World", "He")))
 print(bstr(string.hasPrefix("Hello World", "he")))
-%= TRUE
-%= FALSE
+#= TRUE
+#= FALSE
 
 print(bstr(string.hasSuffix("Hello World", "orld")))
 print(bstr(string.hasSuffix("Hello World", "old")))
-%= TRUE
-%= FALSE
+#= TRUE
+#= FALSE
 
 ASSERT string.repeat("*", 5) = "*****"
 ASSERT string.repeat("XY", 2) = "XYXY"

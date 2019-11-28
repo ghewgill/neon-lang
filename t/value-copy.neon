@@ -1,7 +1,7 @@
-% Check value copy semantics. Objects of most types,
-% principally Array and Dictionary, must make a copy
-% of the value on assignment which is independent from
-% the original value.
+# Check value copy semantics. Objects of most types,
+# principally Array and Dictionary, must make a copy
+# of the value on assignment which is independent from
+# the original value.
 
 VAR b1: Boolean := TRUE
 VAR b2: Boolean := b1

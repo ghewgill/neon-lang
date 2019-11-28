@@ -35,7 +35,7 @@ FUNCTION hmac_sha1(key: Bytes, msg: Bytes): Bytes
     RETURN hash.sha1Raw(binary.xorBytes(k1, opad) & hash.sha1Raw(binary.xorBytes(k1, ipad) & msg))
 END FUNCTION
 
-% Test values from https://en.wikipedia.org/wiki/Hash-based_message_authentication_code
+# Test values from https://en.wikipedia.org/wiki/Hash-based_message_authentication_code
 ASSERT hmac_sha1(HEXBYTES "", HEXBYTES "")   = HEXBYTES "fbdb1d1b18aa6c08324b7d64b71fb76370690e1d"
 LET kk: String := "key"
 LET mm: String := "The quick brown fox jumps over the lazy dog"
@@ -54,7 +54,7 @@ FUNCTION hotp(sbytes: Bytes, movingFactor: Number): String
     RETURN "\(otp:06d)"
 END FUNCTION
 
-% Test values from https://tools.ietf.org/html/rfc4226
+# Test values from https://tools.ietf.org/html/rfc4226
 ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 0) = "755224"
 ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 1) = "287082"
 ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 2) = "359152"

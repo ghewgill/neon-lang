@@ -1,11 +1,11 @@
-% SKIP
+# SKIP
 LET n: Number := 5
 LET z: Number := -2
 
-ASSERT n = 0, z % failing assert
-%~ Assert failed \(t[\\/]assert-fail2.neon line 4\):
-%! ASSERT n = 0, z % failing assert
-%! Assert expression dump:
-%!   n is 5
-%!   n = 0 is FALSE
-%!   z is -2
+ASSERT n = 0, z # failing assert
+#~ Assert failed \(t[\\/]assert-fail2.neon line 4\):
+#! ASSERT n = 0, z # failing assert
+#! Assert expression dump:
+#!   n is 5
+#!   n = 0 is FALSE
+#!   z is -2

@@ -8,4 +8,4 @@ a := NIL
 IF a = NIL THEN
     print("nil")
 END IF
-%= nil
+#= nil

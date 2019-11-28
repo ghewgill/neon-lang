@@ -7,6 +7,6 @@ VAR a: lh := lh()
 VAR b: lh := lh()
 
 IF a <= b THEN
-     %<
+     #<
   print("Woah...")
 END IF

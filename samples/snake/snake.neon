@@ -1,8 +1,8 @@
-%|
+#|
  |  File: snake
  |
  |  Snake game in curses.
- |%
+ |#
 
 IMPORT curses
 IMPORT math
@@ -125,7 +125,7 @@ FUNCTION main()
                     food.x := random.uint32() MOD Width
                     food.y := random.uint32() MOD Height
                 UNTIL food NOT IN snake
-                % increment score
+                # increment score
             ELSE
                 snake := snake[FIRST+1 TO LAST]
             END IF

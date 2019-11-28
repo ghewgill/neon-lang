@@ -12,7 +12,7 @@ LET s: String := "GET / HTTP/1.0"
 client.send(s.toBytes())
 LET buf: Bytes := t.recv(1000)
 print(buf.decodeToString())
-%= GET / HTTP/1.0
+#= GET / HTTP/1.0
 
 client.close()
 server.close()

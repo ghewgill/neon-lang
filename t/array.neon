@@ -10,6 +10,6 @@ TRAP ArrayIndexException DO
     print("array index")
 END TRY
 
-%= 4
-%= 5
-%= array index
+#= 4
+#= 5
+#= array index

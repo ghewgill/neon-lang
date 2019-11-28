@@ -1,10 +1,10 @@
 IMPORT base
 
-% check zero functionality
+# check zero functionality
 ASSERT base.from(2, "0") = 0
 ASSERT base.to(2, 0) = "0"
 
-% conversion from all valid bases
+# conversion from all valid bases
 ASSERT base.from(2, "101010") = 42
 ASSERT base.from(3, "1120") = 42
 ASSERT base.from(4, "222") = 42
@@ -41,7 +41,7 @@ ASSERT base.from(34, "18") = 42
 ASSERT base.from(35, "17") = 42
 ASSERT base.from(36, "16") = 42
 
-% check that both upper and lower case is accepted
+# check that both upper and lower case is accepted
 ASSERT base.from(16, "beef") = 48879
 ASSERT base.from(16, "BEEF") = 48879
 
@@ -49,7 +49,7 @@ ASSERT base.fromBinary("101010") = 42
 ASSERT base.fromOctal("52") = 42
 ASSERT base.fromHex("2a") = 42
 
-% conversion to all valid bases
+# conversion to all valid bases
 ASSERT base.to(2, 42) = "101010"
 ASSERT base.to(3, 42) = "1120"
 ASSERT base.to(4, 42) = "222"
@@ -90,38 +90,38 @@ ASSERT base.toBinary(42) = "101010"
 ASSERT base.toOctal(42) = "52"
 ASSERT base.toHex(42) = "2a"
 
-% check exceptional conditions
+# check exceptional conditions
 TRY
     _ := base.from(1.5, "0")
     ASSERT FALSE
 TRAP ValueRangeException DO
-    % pass
+    # pass
 END TRY
 
 TRY
     _ := base.from(-5, "0")
     ASSERT FALSE
 TRAP ValueRangeException DO
-    % pass
+    # pass
 END TRY
 
 TRY
     _ := base.to(1.5, 0)
     ASSERT FALSE
 TRAP ValueRangeException DO
-    % pass
+    # pass
 END TRY
 
 TRY
     _ := base.to(-5, 0)
     ASSERT FALSE
 TRAP ValueRangeException DO
-    % pass
+    # pass
 END TRY
 
 TRY
     _ := base.to(2, -1)
     ASSERT FALSE
 TRAP ValueRangeException DO
-    % pass
+    # pass
 END TRY

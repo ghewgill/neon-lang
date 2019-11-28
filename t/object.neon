@@ -6,75 +6,75 @@ END FUNCTION
 
 x := TRUE
 print(bstr(x))
-%= TRUE
+#= TRUE
 
 x := 5
 print(str(x))
-%= 5
+#= 5
 
 x := "hello"
 print(x)
-%= hello
+#= hello
 
 LET one: Object := 1
 LET two: Object := 2
 LET three: Object := 3
 x := [one, two, three]
 print("\(x)")
-%= [1, 2, 3]
+#= [1, 2, 3]
 print(str(x[0]))
-%= 1
+#= 1
 
 x := {"one": one, "two": two, "three": three}
 print("\(x)")
-%= {"one": 1, "three": 3, "two": 2}
+#= {"one": 1, "three": 3, "two": 2}
 print(str(x["two"]))
-%= 2
+#= 2
 print(str(x.three))
-%= 3
+#= 3
 
 x := [1, 2, "three"]
 print("\(x)")
-%= [1, 2, "three"]
+#= [1, 2, "three"]
 
 x := [1, 2, 3]
 print("\(x)")
-%= [1, 2, 3]
+#= [1, 2, 3]
 
 LET an: Array<Number> := [1, 2, 3]
 x := an
 print("\(x)")
-%= [1, 2, 3]
+#= [1, 2, 3]
 
 x := {"one": 1, "two": 2, "three": "three"}
 print("\(x)")
-%= {"one": 1, "three": "three", "two": 2}
+#= {"one": 1, "three": "three", "two": 2}
 
 x := {"one": 1, "two": 2, "three": 3}
 print("\(x)")
-%= {"one": 1, "three": 3, "two": 2}
+#= {"one": 1, "three": 3, "two": 2}
 
 LET ad: Dictionary<Number> := {"one": 1, "two": 2, "three": 3}
 x := ad
 print("\(x)")
-%= {"one": 1, "three": 3, "two": 2}
+#= {"one": 1, "three": 3, "two": 2}
 
 x := [1, 2, 3]
 LET zo: Array<Object> := x
 print("\(zo)")
-%= [1, 2, 3]
+#= [1, 2, 3]
 LET zn: Array<Number> := x
 print("\(zn)")
-%= [1, 2, 3]
+#= [1, 2, 3]
 
 x := {"one": 1, "two": 2, "three": 3}
 LET yo: Dictionary<Object> := x
-%print("\(yo)")
-%%= {"one": 1, "three": 3, "two": 2}
+#print("\(yo)")
+##= {"one": 1, "three": 3, "two": 2}
 LET yn: Dictionary<Number> := x
-%print("\(yn)")
-%%= {"one": 1, "three": 3, "two": 2}
+#print("\(yn)")
+##= {"one": 1, "three": 3, "two": 2}
 
 LET b: Object := HEXBYTES "01 02 aa bb"
 print("\(b)")
-%= HEXBYTES "01 02 aa bb"
+#= HEXBYTES "01 02 aa bb"

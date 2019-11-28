@@ -11,5 +11,5 @@ END FUNCTION
 
 foo()
 
-%= one
-%= two
+#= one
+#= two

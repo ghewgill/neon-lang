@@ -1,8 +1,8 @@
-%|
+#|
  |  File: binary
  |
  |  Bitwise binary logical operations on 32-bit words.
- |%
+ |#
 
 EXPORT and32
 EXPORT and64
@@ -31,7 +31,7 @@ EXPORT xor32
 EXPORT xor64
 EXPORT xorBytes
 
-%|
+#|
  |  Function: and32
  |
  |  Bitwise logical "and" of two 32-bit words.
@@ -47,10 +47,10 @@ EXPORT xorBytes
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION and32(x, y: Number): Number
 
-%|
+#|
  |  Function: and64
  |
  |  Bitwise logical "and" of two 64-bit words.
@@ -66,10 +66,10 @@ DECLARE NATIVE FUNCTION and32(x, y: Number): Number
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION and64(x, y: Number): Number
 
-%|
+#|
  |  Function: andBytes
  |
  |  Bitwise logical "and" of two Bytes buffers. The size of
@@ -86,10 +86,10 @@ DECLARE NATIVE FUNCTION and64(x, y: Number): Number
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION andBytes(x, y: Bytes): Bytes
 
-%|
+#|
  |  Function: extract32
  |
  |  Extract a range of bits from a 32-bit word.
@@ -116,10 +116,10 @@ DECLARE NATIVE FUNCTION andBytes(x, y: Bytes): Bytes
  |      > +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  |      >                                                 |     |
  |      >                                                 +-----+
- |%
+ |#
 DECLARE NATIVE FUNCTION extract32(x, n, w: Number): Number
 
-%|
+#|
  |  Function: extract64
  |
  |  Extract a range of bits from a 64-bit word.
@@ -146,10 +146,10 @@ DECLARE NATIVE FUNCTION extract32(x, n, w: Number): Number
  |      > +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  |      >                                                 |     |
  |      >                                                 +-----+
- |%
+ |#
 DECLARE NATIVE FUNCTION extract64(x, n, w: Number): Number
 
-%|
+#|
  |  Function: get32
  |
  |  Get a specific bit from a 32-bit word.
@@ -161,10 +161,10 @@ DECLARE NATIVE FUNCTION extract64(x, n, w: Number): Number
  |  Description:
  |      This function returns a Boolean value indicting whether
  |      the indicated bit is set (TRUE) or not (FALSE).
- |%
+ |#
 DECLARE NATIVE FUNCTION get32(x, n: Number): Boolean
 
-%|
+#|
  |  Function: get64
  |
  |  Get a specific bit from a 64-bit word.
@@ -176,31 +176,31 @@ DECLARE NATIVE FUNCTION get32(x, n: Number): Boolean
  |  Description:
  |      This function returns a Boolean value indicting whether
  |      the indicated bit is set (TRUE) or not (FALSE).
- |%
+ |#
 DECLARE NATIVE FUNCTION get64(x, n: Number): Boolean
 
-%|
+#|
  |  Function: not32
  |
  |  Invert all bits in a 32-bit word.
- |%
+ |#
 DECLARE NATIVE FUNCTION not32(x: Number): Number
 
-%|
+#|
  |  Function: not64
  |
  |  Invert all bits in a 64-bit word.
- |%
+ |#
 DECLARE NATIVE FUNCTION not64(x: Number): Number
 
-%|
+#|
  |  Function: notBytes
  |
  |  Invert all bits in a Bytes buffer.
- |%
+ |#
 DECLARE NATIVE FUNCTION notBytes(x: Bytes): Bytes
 
-%|
+#|
  |  Function: or32
  |
  |  Bitwise logical "or" of two 32-bit words.
@@ -216,10 +216,10 @@ DECLARE NATIVE FUNCTION notBytes(x: Bytes): Bytes
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION or32(x, y: Number): Number
 
-%|
+#|
  |  Function: or64
  |
  |  Bitwise logical "or" of two 64-bit words.
@@ -235,10 +235,10 @@ DECLARE NATIVE FUNCTION or32(x, y: Number): Number
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION or64(x, y: Number): Number
 
-%|
+#|
  |  Function: orBytes
  |
  |  Bitwise logical "or" of two Bytes buffers. The size of
@@ -255,10 +255,10 @@ DECLARE NATIVE FUNCTION or64(x, y: Number): Number
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION orBytes(x, y: Bytes): Bytes
 
-%|
+#|
  |  Function: replace32
  |
  |  Replace a range of bits in a 32-bit word.
@@ -289,10 +289,10 @@ DECLARE NATIVE FUNCTION orBytes(x, y: Bytes): Bytes
  |
  |      Each of the bits numbered 5, 6, and 7 would be set to 1 (from the
  |      input value 7).
- |%
+ |#
 DECLARE NATIVE FUNCTION replace32(x, n, w, y: Number): Number
 
-%|
+#|
  |  Function: replace64
  |
  |  Replace a range of bits in a 64-bit word.
@@ -323,10 +323,10 @@ DECLARE NATIVE FUNCTION replace32(x, n, w, y: Number): Number
  |
  |      Each of the bits numbered 5, 6, and 7 would be set to 1 (from the
  |      input value 7).
- |%
+ |#
 DECLARE NATIVE FUNCTION replace64(x, n, w, y: Number): Number
 
-%|
+#|
  |  Function: set32
  |
  |  Set a specific bit in a 32-bit word.
@@ -339,10 +339,10 @@ DECLARE NATIVE FUNCTION replace64(x, n, w, y: Number): Number
  |  Description:
  |      This function returns a new value with the given bit
  |      set according to the parameter v.
- |%
+ |#
 DECLARE NATIVE FUNCTION set32(x, n: Number, v: Boolean): Number
 
-%|
+#|
  |  Function: set64
  |
  |  Set a specific bit in a 64-bit word.
@@ -355,10 +355,10 @@ DECLARE NATIVE FUNCTION set32(x, n: Number, v: Boolean): Number
  |  Description:
  |      This function returns a new value with the given bit
  |      set according to the parameter v.
- |%
+ |#
 DECLARE NATIVE FUNCTION set64(x, n: Number, v: Boolean): Number
 
-%|
+#|
  |  Function: shiftLeft32
  |
  |  Shift a 32-bit word left by a given number of bits.
@@ -369,10 +369,10 @@ DECLARE NATIVE FUNCTION set64(x, n: Number, v: Boolean): Number
  |
  |  Description:
  |      New bits shifted into the right hand side of the word are 0.
- |%
+ |#
 DECLARE NATIVE FUNCTION shiftLeft32(x, n: Number): Number
 
-%|
+#|
  |  Function: shiftLeft64
  |
  |  Shift a 64-bit word left by a given number of bits.
@@ -383,10 +383,10 @@ DECLARE NATIVE FUNCTION shiftLeft32(x, n: Number): Number
  |
  |  Description:
  |      New bits shifted into the right hand side of the word are 0.
- |%
+ |#
 DECLARE NATIVE FUNCTION shiftLeft64(x, n: Number): Number
 
-%|
+#|
  |  Function: shiftRight32
  |
  |  Shift a 32-bit word right by a given number of bits.
@@ -397,10 +397,10 @@ DECLARE NATIVE FUNCTION shiftLeft64(x, n: Number): Number
  |
  |  Description:
  |      New bits shifted into the left hand side of the word are 0.
- |%
+ |#
 DECLARE NATIVE FUNCTION shiftRight32(x, n: Number): Number
 
-%|
+#|
  |  Function: shiftRight64
  |
  |  Shift a 64-bit word right by a given number of bits.
@@ -411,10 +411,10 @@ DECLARE NATIVE FUNCTION shiftRight32(x, n: Number): Number
  |
  |  Description:
  |      New bits shifted into the left hand side of the word are 0.
- |%
+ |#
 DECLARE NATIVE FUNCTION shiftRight64(x, n: Number): Number
 
-%|
+#|
  |  Function: shiftRightSigned32
  |
  |  Shift a 32-bit word right by a given number of bits, preserving the sign bit.
@@ -425,10 +425,10 @@ DECLARE NATIVE FUNCTION shiftRight64(x, n: Number): Number
  |
  |  Description:
  |      New bits shifted into the left hand side of the word are the same as the original leftmost bit.
- |%
+ |#
 DECLARE NATIVE FUNCTION shiftRightSigned32(x, n: Number): Number
 
-%|
+#|
  |  Function: shiftRightSigned64
  |
  |  Shift a 64-bit word right by a given number of bits, preserving the sign bit.
@@ -439,10 +439,10 @@ DECLARE NATIVE FUNCTION shiftRightSigned32(x, n: Number): Number
  |
  |  Description:
  |      New bits shifted into the left hand side of the word are the same as the original leftmost bit.
- |%
+ |#
 DECLARE NATIVE FUNCTION shiftRightSigned64(x, n: Number): Number
 
-%|
+#|
  |  Function: xor32
  |
  |  Bitwise logical "exclusive-or" of two 32-bit words.
@@ -458,10 +458,10 @@ DECLARE NATIVE FUNCTION shiftRightSigned64(x, n: Number): Number
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION xor32(x, y: Number): Number
 
-%|
+#|
  |  Function: xor64
  |
  |  Bitwise logical "exclusive-or" of two 64-bit words.
@@ -477,10 +477,10 @@ DECLARE NATIVE FUNCTION xor32(x, y: Number): Number
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION xor64(x, y: Number): Number
 
-%|
+#|
  |  Function: xorBytes
  |
  |  Bitwise logical "exclusive-or" of two Bytes buffers. The size of
@@ -497,5 +497,5 @@ DECLARE NATIVE FUNCTION xor64(x, y: Number): Number
  |  > ---+---+---+
  |  >  ^
  |  >  y
- |%
+ |#
 DECLARE NATIVE FUNCTION xorBytes(x, y: Bytes): Bytes

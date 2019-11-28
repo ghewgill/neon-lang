@@ -1,3 +1,3 @@
 TRY
 TRAP TestException AS 5
-                      %<
+                      #<

@@ -1,8 +1,8 @@
-%|
+#|
  |  File: mandelbrot
  |
  |  Mandelbrot set generator.
- |%
+ |#
 
 IMPORT math
 IMPORT multiarray
@@ -79,7 +79,7 @@ FUNCTION update()
     END WHILE
     line := line + stride
     IF line >= 480 THEN
-        %print("done stride \(stride)")
+        #print("done stride \(stride)")
         IF stride > 1 THEN
             stride := stride / 2
             line := 0

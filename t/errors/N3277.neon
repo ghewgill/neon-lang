@@ -5,4 +5,4 @@ FUNCTION Foo.f(INOUT self: Foo)
 END FUNCTION
 
 Foo().f()
-%<
+#<

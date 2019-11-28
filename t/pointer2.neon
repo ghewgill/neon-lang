@@ -13,4 +13,4 @@ IF VALID a AS p THEN
         print(str(q->value))
     END IF
 END IF
-%= 5
+#= 5

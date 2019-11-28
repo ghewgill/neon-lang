@@ -1,4 +1,4 @@
-% PLATFORM:posix
+# PLATFORM:posix
 
 IMPORT posix
 IMPORT sys
@@ -6,13 +6,13 @@ IMPORT sys
 LET p: Number := posix.fork()
 IF p <> 0 THEN
     VAR stat: Number := 0
-    _ := posix.wait(INOUT stat) % Why does this need to be INOUT? Should be OUT.
+    _ := posix.wait(INOUT stat) # Why does this need to be INOUT? Should be OUT.
     print(str(stat INTDIV 256))
     print("parent")
 ELSE
     print("child")
     sys.exit(5)
 END IF
-%= child
-%= 5
-%= parent
+#= child
+#= 5
+#= parent

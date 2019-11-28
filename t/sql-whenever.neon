@@ -8,4 +8,4 @@ TRAP SqlException DO
     print("caught")
 END TRY
 
-%= caught
+#= caught

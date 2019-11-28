@@ -2,20 +2,20 @@ VAR s: String
 
 s := @"foo\bar"
 print(s)
-%= foo\bar
+#= foo\bar
 
 s := @@"foo\bar"@@
 print(s)
-%= foo\bar
+#= foo\bar
 
 s := @@"this is "quoted""@@
 print(s)
-%= this is "quoted"
+#= this is "quoted"
 
 s := @raw@"raw string syntax is @@"raw string"@@"@raw@
 print(s)
-%= raw string syntax is @@"raw string"@@
+#= raw string syntax is @@"raw string"@@
 
 s := @@""@@
 print("\(s.length())")
-%= 0
+#= 0

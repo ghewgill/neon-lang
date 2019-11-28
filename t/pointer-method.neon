@@ -9,4 +9,4 @@ END FUNCTION
 LET p: POINTER TO Cls := NEW Cls
 p->name := "hello"
 print(p->getName())
-%= hello
+#= hello

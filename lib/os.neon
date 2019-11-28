@@ -1,8 +1,8 @@
-%|
+#|
  |  File: os
  |
  |  Functions for operating system interfaces.
- |%
+ |#
 
 EXPORT Platform
 EXPORT Process
@@ -17,35 +17,35 @@ EXPORT kill
 EXPORT spawn
 EXPORT wait
 
-%|
+#|
  |  Exception: OsException
  |
  |  Error from os module.
- |%
+ |#
 EXCEPTION OsException
 
-%|
+#|
  |  Exception: OsException.InvalidProcess
  |
  |  Invalid process.
- |%
+ |#
 EXCEPTION OsException.InvalidProcess
 
-%|
+#|
  |  Exception: OsException.PathNotFound
  |
  |  Path not found during chdir.
- |%
+ |#
 EXCEPTION OsException.PathNotFound
 
-%|
+#|
  |  Exception: OsException.Spawn
  |
  |  Error occurred spawning new process.
- |%
+ |#
 EXCEPTION OsException.Spawn
 
-%|
+#|
  |  Enumeration: Platform
  |
  |  Platform type.
@@ -53,71 +53,71 @@ EXCEPTION OsException.Spawn
  |  Values:
  |      posix - posix
  |      win32 - win32
- |%
+ |#
 TYPE Platform IS ENUM
     posix
     win32
 END ENUM
 
-%|
+#|
  |  Type: Process
  |
  |  Opaque type representing a process.
- |%
+ |#
 TYPE Process IS Object
 
-%|
+#|
  |  Function: chdir
  |
  |  Change the current process working directory to the given path.
- |%
+ |#
 DECLARE NATIVE FUNCTION chdir(path: String)
 
-%|
+#|
  |  Function: getcwd
  |
  |  Return the working directory of the current process.
- |%
+ |#
 DECLARE NATIVE FUNCTION getcwd(): String
 
-%|
+#|
  |  Function: getenv
  |
  |  Return the value of an environment variable in the current process.
- |%
+ |#
 DECLARE NATIVE FUNCTION getenv(name: String): String
 
-%|
+#|
  |  Function: platform
  |
  |  Return the running platform type.
- |%
+ |#
 DECLARE NATIVE FUNCTION platform(): Platform
 
-%|
+#|
  |  Function: system
  |
  |  Execute a system (shell) command.
- |%
+ |#
 DECLARE NATIVE FUNCTION system(command: String): Number
 
-%|
+#|
  |  Function: kill
  |
  |  Kill a process.
- |%
+ |#
 DECLARE NATIVE FUNCTION kill(process: Process)
 
-%|
+#|
  |  Function: spawn
  |
  |  Create a new process with the given command line.
- |%
+ |#
 DECLARE NATIVE FUNCTION spawn(command: String): Process
 
-%|
+#|
  |  Function: wait
  |
  |  Wait for a process to terminate.
- |%
+ |#
 DECLARE NATIVE FUNCTION wait(process: Process): Number

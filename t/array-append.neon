@@ -1,6 +1,6 @@
 VAR a: Array<Number> := []
 print("\(a.size())")
-%= 0
+#= 0
 a.append(5)
 print("\(a.size()) \(a[0])")
-%= 1 5
+#= 1 5

@@ -15,5 +15,5 @@ foo(r)
 r := bar()
 foo(r)
 
-%= one
-%= two
+#= one
+#= two

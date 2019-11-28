@@ -4,17 +4,17 @@ IMPORT time
 VAR r: Number
 
 r := os.system("echo hello")
-%= hello
+#= hello
 print(str(r))
-%= 0
+#= 0
 
 VAR p: os.Process := os.spawn(@@"bin/neon -c "IMPORT time time.sleep(1)""@@)
 LET start: Number := time.now()
 r := os.wait(p)
 LET end: Number := time.now()
 print("\(end - start >= 1)")
-%= TRUE
+#= TRUE
 
 LET plat: os.Platform := os.platform()
 print("\(plat)")
-%? (posix|win32)
+#? (posix|win32)

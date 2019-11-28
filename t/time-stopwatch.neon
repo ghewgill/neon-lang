@@ -4,4 +4,4 @@ VAR timer: time.Stopwatch := time.Stopwatch()
 timer.start()
 time.sleep(0.2)
 LET e: Number := timer.elapsed()
-ASSERT 0.19 <= e < 0.4  % Wiggle room for Travis builds.
+ASSERT 0.19 <= e < 0.4  # Wiggle room for Travis builds.

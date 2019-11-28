@@ -8,4 +8,4 @@ REPEAT
 UNTIL TRUE
 print(s)
 
-%! Uninitialised
+#! Uninitialised

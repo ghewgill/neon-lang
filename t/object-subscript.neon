@@ -8,14 +8,14 @@ TRY
 TRAP DynamicConversionException AS dc DO
     print(dc.info)
 END TRY
-%= object is null
+#= object is null
 
 TRY
     print(str(a[n]))
 TRAP DynamicConversionException AS dc DO
     print(dc.info)
 END TRY
-%= index is null
+#= index is null
 
 TRY
     VAR y: Object := x[0]
@@ -23,39 +23,39 @@ TRY
 TRAP ObjectSubscriptException DO
     print("ObjectSubscriptException")
 END TRY
-%= ObjectSubscriptException
+#= ObjectSubscriptException
 
 TRY
     print(str(a["42"]))
 TRAP DynamicConversionException AS dc DO
     print(dc.info)
 END TRY
-%= to Number
+#= to Number
 
 TRY
     print(str(a[42]))
 TRAP ArrayIndexException AS ai DO
     print(ai.info)
 END TRY
-%= 42
+#= 42
 
 TRY
     print(str(d[2]))
 TRAP DynamicConversionException AS dc DO
     print(dc.info)
 END TRY
-%= to String
+#= to String
 
 TRY
     print(str(d["five"]))
 TRAP ObjectSubscriptException AS os DO
     print(os.info)
 END TRY
-%= "five"
+#= "five"
 
 TRY
     print(str(x[42]))
 TRAP ObjectSubscriptException AS os DO
     print(os.info)
 END TRY
-%= 42
+#= 42

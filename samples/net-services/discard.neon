@@ -19,10 +19,10 @@ LOOP
             IF clients[i] IN read THEN
                 LET buf: Bytes := clients[i].recv(1000)
                 IF buf.size() > 0 THEN
-                    % do nothing
+                    # do nothing
                 ELSE
                     clients[i].close()
-                    clients[i TO i] := [] % TODO: need an array remove method
+                    clients[i TO i] := [] # TODO: need an array remove method
                 END IF
             END IF
         END FOR

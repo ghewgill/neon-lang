@@ -3,19 +3,19 @@ VAR a: Array<Number> := []
 a[0] := 5
 a[1] := 6
 print("\(5 IN a)")
-%= TRUE
+#= TRUE
 print("\(7 IN a)")
-%= FALSE
+#= FALSE
 print("\(7 NOT IN a)")
-%= TRUE
+#= TRUE
 
 VAR d: Dictionary<Number> := {}
 
 d["foo"] := 5
 d["bar"] := 6
 print("\("foo" IN d)")
-%= TRUE
+#= TRUE
 print("\("baz" IN d)")
-%= FALSE
+#= FALSE
 print("\("baz" NOT IN d)")
-%= TRUE
+#= TRUE

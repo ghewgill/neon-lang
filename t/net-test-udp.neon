@@ -10,7 +10,7 @@ LET s: String := "UDP packet."
 client.send(s.toBytes())
 LET buf:Bytes := server.recv(1000)
 print(buf.decodeToString())
-%= UDP packet.
+#= UDP packet.
 
 client.close()
 server.close()

@@ -14,21 +14,21 @@ FUNCTION foo1(n: Number)
     print("ok \(x)")
 END FUNCTION
 
-%FUNCTION foo2(n: Number): Number
-%    LET x: Number := (TRY bar(n) TRAP InvalidValueException GIVES 0)
-%    RETURN x
-%END FUNCTION
+#FUNCTION foo2(n: Number): Number
+#    LET x: Number := (TRY bar(n) TRAP InvalidValueException GIVES 0)
+#    RETURN x
+#END FUNCTION
 
 foo1(5)
-%= ok 5
+#= ok 5
 foo1(-1)
-%= exception
+#= exception
 
 LET a: Array<Number> := [1]
 LET b: Number := (TRY a[1.5] TRAP ArrayIndexException GIVES 9999)
 ASSERT b = 9999
 
-%print(str(foo2(5)))
-%%= 5
-%print(str(foo2(-1)))
-%%= 0
+#print(str(foo2(5)))
+##= 5
+#print(str(foo2(-1)))
+##= 0

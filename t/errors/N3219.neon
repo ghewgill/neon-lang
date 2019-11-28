@@ -4,4 +4,4 @@ END CLASS
 
 VAR p: POINTER TO Cls
 p->hello()
-%<
+#<

@@ -6,4 +6,4 @@ TRAP PrinterOnFireException DO
     print("conflagration")
 END TRY
 
-%= conflagration
+#= conflagration

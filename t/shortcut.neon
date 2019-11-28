@@ -12,11 +12,11 @@ IF a() AND b() THEN
     print("hi")
 END IF
 
-%= a
+#= a
 
 IF b() OR a() THEN
     print("hi")
 END IF
 
-%= b
-%= hi
+#= b
+#= hi

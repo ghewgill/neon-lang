@@ -1,2 +1,2 @@
 CHECK x > 0 ELSE
-%$
+#$

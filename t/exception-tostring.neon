@@ -5,4 +5,4 @@ TRY
 TRAP TestException AS e DO
     print("\(e)")
 END TRY
-%? <ExceptionType:TestException,info,123,\d+>
+#? <ExceptionType:TestException,info,123,\d+>

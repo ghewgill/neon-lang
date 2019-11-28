@@ -24,22 +24,22 @@ VAR a: Number
 a := 5
 in(a)
 print(str(a))
-%= 5
-%= 5
+#= 5
+#= 5
 
 a := 5
 inout(INOUT a)
 print(str(a))
-%= 5
-%= 6
+#= 5
+#= 6
 
 a := 5
 out(OUT a)
 print(str(a))
-%= 0
-%= 1
+#= 0
+#= 1
 
 a := 5
 print(outf(OUT a))
-%= 0
-%= foo
+#= 0
+#= foo

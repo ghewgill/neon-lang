@@ -14,4 +14,4 @@ IF VALID a AS p2, b AS q2 THEN
     print("two")
 END IF
 
-%= two
+#= two

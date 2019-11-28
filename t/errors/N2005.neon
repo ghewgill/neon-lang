@@ -1,5 +1,5 @@
 TYPE Point IS RECORD
     x Number
-      %<
+      #<
 END RECORD
 

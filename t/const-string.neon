@@ -12,4 +12,4 @@ CASE x
         print("inbetween")
 END CASE
 
-%= inbetween
+#= inbetween

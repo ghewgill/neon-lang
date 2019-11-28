@@ -3,4 +3,4 @@ TYPE Cls IS CLASS
 END CLASS
 
 LET c: Cls := Cls()
-       %<
+       #<

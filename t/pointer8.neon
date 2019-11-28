@@ -9,4 +9,4 @@ IF VALID a THEN
     a->value := 5
     print(str(a->value))
 END IF
-%= 5
+#= 5

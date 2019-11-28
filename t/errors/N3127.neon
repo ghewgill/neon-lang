@@ -1,5 +1,5 @@
 VAR x: Number
-    %<2
+    #<2
 FUNCTION x.bar()
-         %<1
+         #<1
 END FUNCTION

@@ -4,4 +4,4 @@ FUNCTION foo()
     END IF
 END FUNCTION
 
-%! Unused variable
+#! Unused variable

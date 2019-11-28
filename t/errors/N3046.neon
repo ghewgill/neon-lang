@@ -7,4 +7,4 @@ VAR a: Recordset
 VAR b: Number := 0
 
 b.Id
-%<
+#<

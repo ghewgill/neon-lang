@@ -14,5 +14,5 @@ END FUNCTION
 print(str(sq()))
 print(str(y))
 
-%= 25
-%= 10
+#= 25
+#= 10

@@ -3,4 +3,4 @@ VAR a: Length
 a := 5
 print(str(a))
 
-%= 5
+#= 5

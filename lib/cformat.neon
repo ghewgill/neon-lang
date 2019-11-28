@@ -1,13 +1,13 @@
-%|
+#|
  |  File: cformat
  |
  |  Provide printf-like formatting similar to the C standard library.
- |%
+ |#
 
 EXPORT printf
 EXPORT sprintf
 
-%|
+#|
  |  Function: sprintf
  |
  |  Given a format string and an array of parameters, format the
@@ -20,23 +20,23 @@ EXPORT sprintf
  |  Description:
  |      The available formatting codes are
  |
- |          %d - decimal number
- |          %s - string
+ |          #d - decimal number
+ |          #s - string
  |
  |  Exceptions:
  |      - <TypeMismatch> - if the wrong type is supplied for a parameter
  |
  |  See Also:
  |      <printf>
- |%
+ |#
 FUNCTION sprintf(fmt: String, value: Object...): String
-    % TODO: This needs a lot more functionality, it is intended
-    % as a functional equivalent to the C sprintf function.
+    # TODO: This needs a lot more functionality, it is intended
+    # as a functional equivalent to the C sprintf function.
     VAR r: String := ""
     VAR a: Number := 0
     VAR i: Number := 0
     WHILE i < fmt.length() DO
-        IF fmt[i] = "%" THEN
+        IF fmt[i] = "#" THEN
             INC i
             CASE fmt[i]
                 WHEN "d" DO
@@ -54,7 +54,7 @@ FUNCTION sprintf(fmt: String, value: Object...): String
     RETURN r
 END FUNCTION
 
-%|
+#|
  |  Function: printf
  |
  |  Given a format string and an array of parameters, format the
@@ -69,7 +69,7 @@ END FUNCTION
  |
  |  See Also:
  |      <sprintf>
- |%
+ |#
 FUNCTION printf(fmt: String, value: Object...)
     print(sprintf(fmt, value...))
 END FUNCTION

@@ -3,8 +3,8 @@ FOREACH c IN s DO
     print(c)
 END FOREACH
 
-%= h
-%= e
-%= l
-%= l
-%= o
+#= h
+#= e
+#= l
+#= l
+#= o

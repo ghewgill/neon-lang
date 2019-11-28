@@ -1,8 +1,8 @@
-%|
+#|
  |  File: forth
  |
  |  Implementation of the Forth programming language.
- |%
+ |#
 
 IMPORT binary
 IMPORT io
@@ -591,7 +591,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             VAR ud1: Number := ud1h * 0x100000000 + ud1l
             WHILE u > 0 DO
                 LET char: String := chr(storage[addr])
-                VAR dig: Number := 0 % FIXME: shouldn't need init here
+                VAR dig: Number := 0 # FIXME: shouldn't need init here
                 IF "0" <= char <= "9" THEN
                     dig := ord(char) - ord("0")
                 ELSIF "A" <= char <= "Z" THEN
@@ -634,9 +634,9 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             END FOR
             stack.push(s.length())
         WHEN CORE_ALIGN DO
-            % no action required
+            # no action required
         WHEN CORE_ALIGNED DO
-            % no action required
+            # no action required
         WHEN CORE_ALLOT DO
             LET n: Number := signed32(stack.pop())
             storage.resize(storage.size() + n)
@@ -928,7 +928,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_WORD DO
             LET char: Number := stack.pop()
             LET s: String := parse(chr(char))
-            % TODO: use a real scratch area that is discarded
+            # TODO: use a real scratch area that is discarded
             stack.push(storage.size())
             storage.append(s.length())
             FOR i := 0 TO s.length()-1 DO
@@ -1015,7 +1015,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET prev: Number := return[last].index
             LET limit: Number := return[last].limit
             return[last].index := (return[last].index + n) MOD 0x100000000
-            % print("prev=\(prev) new=\(return[last].index) limit=\(limit) n=\(n)")
+            # print("prev=\(prev) new=\(return[last].index) limit=\(limit) n=\(n)")
             IF (n > 0 AND (IF limit <> 0 THEN prev < limit AND (return[last].index >= limit OR return[last].index < prev)
                                         ELSE return[last].index < prev))
             OR (n < 0 AND (IF limit <> 0 THEN prev >= limit AND (return[last].index < limit OR return[last].index > prev)
@@ -1056,7 +1056,7 @@ FUNCTION run_compiled(start_ip: Number)
     VAR ip: Number := start_ip
     return.append(ReturnEntry(ip WITH -1))
     WHILE ip > 0 DO
-        % print("ip=\(ip) instr=\(code[ip]) size=\(stack.stack.size()) ret=\(return.size()))")
+        # print("ip=\(ip) instr=\(code[ip]) size=\(stack.stack.size()) ret=\(return.size()))")
         LET prev_ip: Number := ip
         run_instruction(code[ip], INOUT ip)
         IF ip = prev_ip THEN
@@ -1230,7 +1230,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
                 END LOOP
             END IF
         WHEN TOOLS_EXT_THEN DO
-            % nothing
+            # nothing
         WHEN OTHERS DO
             IF interpreting THEN
                 IF instr > 0 THEN
@@ -1257,7 +1257,7 @@ FUNCTION digit(char: String): Number
     ELSIF "A" <= char <= "Z" THEN
         RETURN ord(char) - ord("A") + 10
     ELSE
-        ASSERT FALSE % invalid char
+        ASSERT FALSE # invalid char
     END IF
     RETURN 0
 END FUNCTION

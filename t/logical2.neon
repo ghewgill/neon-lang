@@ -7,8 +7,8 @@ b := TRUE
 c := TRUE
 
 print("\(a AND b AND c)")
-%= TRUE
+#= TRUE
 
 b := FALSE
 print("\(a OR b OR c)")
-%= TRUE
+#= TRUE

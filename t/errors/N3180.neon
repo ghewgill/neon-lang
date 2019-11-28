@@ -2,6 +2,6 @@ VAR a: FUNCTION(x: Number)
 VAR b: FUNCTION(x: Number)
 
 IF a <= b THEN
-     %<
+     #<
     print("bad")
 END IF

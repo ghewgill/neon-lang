@@ -1,9 +1,9 @@
 FUNCTION foo(OUT t: String)
     IF TRUE THEN
-        % Avoid unreachable code error
+        # Avoid unreachable code error
         EXIT FUNCTION
     END IF
     t := "hello world"
 END FUNCTION
 
-%! Uninitialised
+#! Uninitialised

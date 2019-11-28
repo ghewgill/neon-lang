@@ -8,4 +8,4 @@ FUNCTION outer(): Number
 END FUNCTION
 
 print(str(outer()))
-%= 25
+#= 25

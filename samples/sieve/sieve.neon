@@ -1,8 +1,8 @@
-%|
+#|
  |  File: sieve
  |
  |  Compute prime numbers up to 100 with the Sieve of Eratosthenes.
- |%
+ |#
 
 CONSTANT Max: Number := 100
 

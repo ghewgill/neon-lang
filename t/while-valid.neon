@@ -10,5 +10,5 @@ WHILE VALID p AS q DO
     p := q->next
 END WHILE
 
-%= foo
-%= bar
+#= foo
+#= bar

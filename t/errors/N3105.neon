@@ -1,4 +1,4 @@
 FUNCTION foo(x: Number)
     x := x + 1
-    %<
+    #<
 END FUNCTION

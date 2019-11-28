@@ -6,4 +6,4 @@ CASE a
         print(a)
 END CASE
 
-%= hello
+#= hello

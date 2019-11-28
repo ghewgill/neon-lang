@@ -7,22 +7,22 @@ b := 5
 c := 6
 
 print("\(a < b)")
-%= TRUE
+#= TRUE
 
 print("\(a <= b)")
-%= TRUE
+#= TRUE
 
 print("\(a = b)")
-%= FALSE
+#= FALSE
 
 print("\(a <> b)")
-%= TRUE
+#= TRUE
 
 print("\(a >= b)")
-%= FALSE
+#= FALSE
 
 print("\(a > b)")
-%= FALSE
+#= FALSE
 
-%print("\(a < b < c)")
-%% TRUE
+#print("\(a < b < c)")
+## TRUE
