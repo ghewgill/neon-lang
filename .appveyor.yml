@@ -33,4 +33,4 @@ build_script:
 - cmd: python3 scons-3.0.0\setup.py install
 - cmd: if %WITH_SUBMODULES%==1 git submodule update --init
 - cmd: if %BUILDER%==scons scons
-- cmd: if %BUILDER%==cmake cmake . && msbuild ALL_BUILD.vcxproj && ctest -C Debug -V
+- cmd: if %BUILDER%==cmake cmake . && msbuild ALL_BUILD.vcxproj && dir bin && ctest -C Debug -V
