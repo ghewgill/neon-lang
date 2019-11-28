@@ -26,5 +26,9 @@ ASSERT runtime.getAllocatedObjectCount() = 2
 b := NEW Node
 ASSERT runtime.getAllocatedObjectCount() = 3
 a := NIL
+runtime.garbageCollect()
+ASSERT runtime.getAllocatedObjectCount() = 1
 b := NEW Node
 ASSERT runtime.getAllocatedObjectCount() = 2
+runtime.garbageCollect()
+ASSERT runtime.getAllocatedObjectCount() = 1

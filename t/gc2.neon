@@ -24,5 +24,7 @@ IF VALID a THEN
 END IF
 ASSERT runtime.getAllocatedObjectCount() = 2
 a := NIL
+runtime.garbageCollect()
+ASSERT runtime.getAllocatedObjectCount() = 0
 b := NEW Node
 ASSERT runtime.getAllocatedObjectCount() = 1
