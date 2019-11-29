@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import subprocess
 import sys
 
 java = None
@@ -16,8 +17,6 @@ if java is None:
     if os.name == "nt" and os.path.exists(r"c:\ProgramData\Oracle\Java\javapath\java.exe"):
         java = r"c:\ProgramData\Oracle\Java\javapath\java.exe"
 
-if os.system("{} -q -t jvm {}".format(os.path.join("bin", "neonc"), fullname)) != 0:
-    sys.exit(1)
+subprocess.check_call([os.path.join("bin", "neonc"), "-q", "-t", "jvm", fullname])
 classpath = path if path else "."
-if os.system("{} -cp {} {} {}".format(java, os.pathsep.join([classpath, "rtl/jvm"]), name.replace(".neon", ""), " ".join(sys.argv[2:]))) != 0:
-    sys.exit(1)
+subprocess.check_call([java, "-cp", os.pathsep.join([classpath, "rtl/jvm"]), name.replace(".neon", ""), " ".join(sys.argv[2:])])
