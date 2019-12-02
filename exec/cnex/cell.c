@@ -324,14 +324,6 @@ void cell_setBoolean(Cell *c, BOOL b)
     c->type = cBoolean;
 }
 
-Cell *cell_createAddressCell(Cell *a)
-{
-    Cell *r = cell_newCell();
-    r->type = cAddress;
-    r->address = a;
-    return r;
-}
-
 Cell *cell_createArrayCell(size_t iElements)
 {
     Cell *c = cell_newCell();
