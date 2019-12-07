@@ -726,7 +726,30 @@ foreach (TEST ${TESTS_REPL})
 endforeach ()
 
 file(GLOB_RECURSE SAMPLES samples/*.neon)
-# TODO: Compile samples
+foreach (SAMPLE ${SAMPLES})
+    execute_process(
+        COMMAND python3 tools/helium.py tools/imports.neon ${SAMPLE}
+        OUTPUT_VARIABLE IMPORTS_NL
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    string(REPLACE "\n" ";" IMPORTS "${IMPORTS_NL}")
+    set(MISSING_IMPORT "")
+    foreach (IMPORT ${IMPORTS})
+        if (NOT EXISTS "lib/${IMPORT}.neon" AND NOT EXISTS "lib/${IMPORT}/${IMPORT}.neon")
+            set(MISSING_IMPORT ${IMPORT})
+            break()
+        endif()
+    endforeach()
+    if (NOT MISSING_IMPORT)
+        get_filename_component(X "${SAMPLE}" NAME)
+        add_test(
+            NAME "sample:${X}"
+            COMMAND neonc ${SAMPLE}
+        )
+    else()
+        message("skipping ${SAMPLE} due to missing ${MISSING_IMPORT}")
+    endif()
+endforeach()
 
 # TODO: needs pyparsing
 #add_test(
