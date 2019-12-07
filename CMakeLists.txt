@@ -504,6 +504,59 @@ target_link_libraries(neonbind
     minizip
 )
 
+add_executable(fuzz_lexer
+    tests/fuzz_lexer.cpp
+    src/lexer.cpp
+    src/number.cpp
+    src/util.cpp
+)
+target_include_directories(fuzz_lexer PRIVATE
+    src
+    external/minijson_writer-master
+    external/utfcpp-master/source
+)
+target_link_libraries(fuzz_lexer
+    bid
+    gmp
+    hash-library
+)
+
+add_executable(fuzz_parser
+    tests/fuzz_parser.cpp
+    src/lexer.cpp
+    src/number.cpp
+    src/parser.cpp
+    src/sql.cpp
+    src/util.cpp
+)
+target_include_directories(fuzz_parser PRIVATE
+    src
+    external/minijson_writer-master
+    external/utfcpp-master/source
+)
+target_link_libraries(fuzz_parser
+    bid
+    gmp
+    hash-library
+)
+
+add_executable(perf_lexer
+    tests/perf_lexer.cpp
+    src/lexer.cpp
+    src/number.cpp
+    src/util.cpp
+)
+target_include_directories(perf_lexer PRIVATE
+    src
+    external/minijson_writer-master
+    external/utfcpp-master/source
+)
+target_link_libraries(perf_lexer
+    bid
+    gmp
+    hash-library
+)
+
 add_executable(test_lexer
     tests/test_lexer.cpp
     src/lexer.cpp
