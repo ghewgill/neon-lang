@@ -766,4 +766,26 @@ add_test(
     COMMAND python3 scripts/test_doc.py
 )
 
+add_custom_command(
+    OUTPUT samples/hello/hello.neonx
+    COMMAND neonc samples/hello/hello.neon
+    DEPENDS neonc samples/hello/hello.neon
+)
+add_custom_target(hello_neb ALL
+    COMMAND neonbind tmp/hello.neb samples/hello/hello.neonx
+    DEPENDS neonbind samples/hello/hello.neonx
+)
+add_test(
+    NAME hello_neb
+    COMMAND neonx tmp/hello.neb
+)
+add_custom_target(hello_exe ALL
+    COMMAND neonbind -e tmp/hello.exe samples/hello/hello.neonx
+    DEPENDS neonbind neonstub samples/hello/hello.neonx
+)
+add_test(
+    NAME hello_exe
+    COMMAND tmp/hello.exe
+)
+
 # TODO: coverage tests
