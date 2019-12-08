@@ -34,12 +34,12 @@ Current master branch build status: [![Build Status](https://travis-ci.org/ghewg
 
 ## Documentation
 
-See [Neon Documentation](http://neon-lang.org/docs/) for full documentation including:
+See [Neon Documentation](http://neon-lang.dev/docs/) for full documentation including:
 
-- [Tutorial](http://neon-lang.org/docs/tutorial.html)
-- [Overview (for experienced programmers)](http://neon-lang.org/docs/overview.html)
-- [Language Reference](http://neon-lang.org/docs/reference/index.html)
-- [Standard Library](http://neon-lang.org/docs/library.html)
+- [Tutorial](http://neon-lang.dev/docs/tutorial.html)
+- [Overview (for experienced programmers)](http://neon-lang.dev/docs/overview.html)
+- [Language Reference](http://neon-lang.dev/docs/reference/index.html)
+- [Standard Library](http://neon-lang.dev/docs/library.html)
 
 <a name="common_errors"></a>
 ## Common Errors
