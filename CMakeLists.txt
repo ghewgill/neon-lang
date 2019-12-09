@@ -761,6 +761,21 @@ endforeach()
 #    COMMAND python3 contrib/grammar/test-random.py
 #)
 
+# TODO: This fails because cmake does not seem to accept the # on a COMMAND line.
+#add_custom_command(
+#    OUTPUT tmp/hello
+#    COMMAND echo '#!/usr/bin/env neon' | cat - samples/hello/hello.neon >tmp/hello && chmod +x tmp/hello
+#    DEPENDS samples/hello/hello.neon
+#)
+#add_custom_target(
+#    test_shebang ALL
+#    DEPENDS tmp/hello
+#)
+#add_test(
+#    NAME test_shebang
+#    COMMAND tmp/hello
+#)
+
 add_test(
     NAME "test_doc"
     COMMAND python3 scripts/test_doc.py
