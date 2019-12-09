@@ -788,4 +788,96 @@ add_test(
     COMMAND tmp/hello.exe
 )
 
-# TODO: coverage tests
+add_custom_command(
+    OUTPUT tmp/lexer-coverage.cpp.out
+    COMMAND test_lexer tests/lexer-coverage.neon >tmp/lexer-coverage.cpp.out
+    DEPENDS test_lexer
+    DEPENDS tests/lexer-coverage.neon
+)
+add_custom_target(
+    lexer_coverage_cpp_out ALL
+    DEPENDS tmp/lexer-coverage.cpp.out
+)
+add_test(
+    NAME lexer_coverage_cpp
+    COMMAND ${CMAKE_COMMAND} -E compare_files tests/lexer-coverage.expected tmp/lexer-coverage.cpp.out
+)
+
+add_custom_command(
+    OUTPUT tmp/lexer-coverage.neon.out
+    COMMAND neon neon/lexer.neon tests/lexer-coverage.neon >tmp/lexer-coverage.neon.out
+    DEPENDS neon
+    DEPENDS neon/lexer.neon
+    DEPENDS tests/lexer-coverage.neon
+)
+add_custom_target(
+    lexer_coverage_neon_out ALL
+    DEPENDS tmp/lexer-coverage.neon.out
+)
+add_test(
+    NAME lexer_coverage_neon
+    COMMAND ${CMAKE_COMMAND} -E compare_files tests/lexer-coverage.expected tmp/lexer-coverage.neon.out
+)
+
+add_custom_command(
+    OUTPUT tmp/lexer-coverage.helium.out
+    COMMAND python3 tools/helium.py neon/lexer.neon tests/lexer-coverage.neon >tmp/lexer-coverage.helium.out
+    DEPENDS tools/helium.py
+    DEPENDS neon/lexer.neon
+    DEPENDS tests/lexer-coverage.neon
+)
+add_custom_target(
+    lexer_coverage_helium_out ALL
+    DEPENDS tmp/lexer-coverage.helium.out
+)
+add_test(
+    NAME lexer_coverage_helium
+    COMMAND ${CMAKE_COMMAND} -E compare_files tests/lexer-coverage.expected tmp/lexer-coverage.helium.out
+)
+
+add_custom_command(
+    OUTPUT tmp/parser-coverage.cpp.out
+    COMMAND test_parser tests/parser-coverage.neon >tmp/parser-coverage.cpp.out
+    DEPENDS test_parser
+    DEPENDS tests/parser-coverage.neon
+)
+add_custom_target(
+    parser_coverage_cpp_out ALL
+    DEPENDS tmp/parser-coverage.cpp.out
+)
+add_test(
+    NAME parser_coverage_cpp
+    COMMAND ${CMAKE_COMMAND} -E compare_files tests/parser-coverage.expected tmp/parser-coverage.cpp.out
+)
+
+add_custom_command(
+    OUTPUT tmp/parser-coverage.neon.out
+    COMMAND neon neon/parser.neon tests/parser-coverage.neon >tmp/parser-coverage.neon.out
+    DEPENDS neon
+    DEPENDS neon/parser.neon
+    DEPENDS tests/parser-coverage.neon
+)
+add_custom_target(
+    parser_coverage_neon_out ALL
+    DEPENDS tmp/parser-coverage.neon.out
+)
+add_test(
+    NAME parser_coverage_neon
+    COMMAND ${CMAKE_COMMAND} -E compare_files tests/parser-coverage.expected tmp/parser-coverage.neon.out
+)
+
+#add_custom_command(
+#    OUTPUT tmp/parser-coverage.helium.out
+#    COMMAND python3 tools/helium.py neon/parser.neon tests/parser-coverage.neon >tmp/parser-coverage.helium.out
+#    DEPENDS tools/helium.py
+#    DEPENDS neon/parser.neon
+#    DEPENDS tests/parser-coverage.neon
+#)
+#add_custom_target(
+#    parser_coverage_helium_out ALL
+#    DEPENDS tmp/parser-coverage.helium.out
+#)
+#add_test(
+#    NAME parser_coverage_helium
+#    COMMAND ${CMAKE_COMMAND} -E compare_files tests/parser-coverage.expected tmp/parser-coverage.helium.out
+#)
