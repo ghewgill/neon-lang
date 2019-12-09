@@ -2602,7 +2602,10 @@ def import_module(name):
         if importer is not None:
             m = importer()
         else:
-            m = parse(tokenize(codecs.open("lib/{}.neon".format(name), encoding="utf-8").read()))
+            fn = os.path.join(os.path.dirname(sys.argv[1]), "{}.neon".format(name))
+            if not os.path.exists(fn):
+                fn = os.path.join("lib", "{}.neon".format(name))
+            m = parse(tokenize(codecs.open(fn, encoding="utf-8").read()))
         g_Modules[name] = m
         m.env.module_name = name
         run(m)
