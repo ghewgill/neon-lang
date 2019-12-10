@@ -448,6 +448,16 @@ uint64_t number_to_uint64(Number x)
  * Number FROM functions
  */
 
+Number number_from_sint8(int8_t x)
+{
+    return bid128_from_int32(x);
+}
+
+Number number_from_uint8(uint8_t x)
+{
+    return bid128_from_uint32(x);
+}
+
 Number number_from_sint32(int32_t x)
 {
     return bid128_from_int32(x);
