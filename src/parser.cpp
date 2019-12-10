@@ -505,7 +505,7 @@ std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
         }
         parts.push_back(std::make_pair(std::move(e), fmt));
         if (tokens[i].type != SUBEND) {
-            internal_error("parseInterpolatedStringExpression");
+            error(2137, tokens[i], "closing ')' expected");
         }
         ++i;
         if (tokens[i].type != STRING) {
