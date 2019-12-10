@@ -24,6 +24,7 @@ typedef struct tagTObject {
     void            *ptr;
 
     void (*release)(struct tagTObject*);
+    Cell *(*toString)(struct tagTObject*);
 } Object;
 
 Object *object_createObject(void);
@@ -40,6 +41,7 @@ Object *object_createNumberObject(Number n);
 Object *object_createStringObject(TString *s);
 
 Object *object_createFileObject(FILE *f);
+Object *object_createProcessObject(void *h);
 
 Object *object_fromCell(Cell *c);
 

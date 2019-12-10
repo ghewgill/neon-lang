@@ -36,6 +36,29 @@ Array *array_createArrayFromSize(size_t iElements)
     return a;
 }
 
+Array *array_expandArray(Array *self, size_t iElements)
+{
+    if (self == NULL) {
+        self = malloc(sizeof(Array));
+        if (self == NULL) {
+            fatal_error("Unable to allocate array for array expansion.");
+        }
+        self->size = 0;
+        self->data = NULL;
+    }
+
+    self->data = realloc(self->data, sizeof(Cell) * (self->size + iElements));
+    if (self->data == NULL) {
+        fatal_error("Unable to allocate memory for %d expanded array elements.", self->size + iElements);
+    }
+
+    for (size_t i = self->size; i < self->size + iElements; i++) {
+        cell_resetCell(&self->data[i]);
+    }
+    self->size += iElements;
+    return self;
+}
+
 void array_freeArray(Array *self)
 {
     if (self != NULL && self->data != NULL) {
@@ -45,6 +68,16 @@ void array_freeArray(Array *self)
         free(self->data);
     }
     free(self);
+}
+
+void array_removeItem(Array *self, size_t index)
+{
+    if (self != NULL && self->data != NULL) {
+        for(size_t i = index; i+1 < self->size; i++) {
+            cell_copyCell(&self->data[i], &self->data[i+1]);
+        }
+        self->size--;
+    }
 }
 
 Array *array_copyArray(Array *a)
@@ -71,3 +104,27 @@ int array_compareArray(Array *l, Array *r)
     return TRUE;
 }
 
+size_t array_appendElement(Array *self, Cell *element)
+{
+    if (self == NULL) {
+        fatal_error("Uninitialized array passed to array_appendElement!");
+    }
+    if (self->data) {
+        self->data = realloc(self->data, sizeof(Cell) * (self->size + 1));
+        if (self->data == NULL) {
+            fatal_error("Not enough memory to expand array.");
+        }
+        self->size++;
+    }
+    if (self->data == NULL) {
+        self->data = malloc(sizeof(Cell));
+        if (self->data == NULL) {
+            fatal_error("Failed to allocate memory array element.");
+        }
+        self->size = 1;
+    }
+    cell_resetCell(&self->data[self->size-1]);
+    cell_copyCell(&self->data[self->size-1], element);
+
+    return self->size;
+}

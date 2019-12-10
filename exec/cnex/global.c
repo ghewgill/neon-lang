@@ -21,6 +21,7 @@
 #include "lib/binary.h"
 #include "lib/io.h"
 #include "lib/math.h"
+#include "lib/os.h"
 #include "lib/random.h"
 #include "lib/runtime.h"
 #include "lib/string.h"
@@ -122,6 +123,13 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("math$tanh",                 math_tanh),
     PDFUNC("math$tgamma",               math_tgamma),
     PDFUNC("math$trunc",                math_trunc),
+
+    // OS - Operating System function calls
+    PDFUNC("os$getenv",                 os_getenv),
+    PDFUNC("os$platform",               os_platform),
+    PDFUNC("os$spawn",                  os_spawn),
+    PDFUNC("os$system",                 os_system),
+    PDFUNC("os$wait",                   os_wait),
 
     // random - Random Number module
     PDFUNC("random$uint32",             random_uint32),
@@ -245,6 +253,9 @@ void global_init(int argc, char *argv[], int iArgStart)
     VAR_iostdout.address = cell_fromObject(object_createFileObject(stdout));
     VAR_iostdout.type = cAddress;
 
+    // Init os module
+    os_initModule();
+
     // Init Random Module
     random_initModule();
 
@@ -274,6 +285,8 @@ void global_shutdown()
         cell_freeCell(BuiltinVariables[i].value->address);
         i++;
     }
+
+    os_shutdownModule();
 }
 
 Cell *global_getVariable(const char *pszVar)

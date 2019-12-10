@@ -1,5 +1,4 @@
 bigint.neon                # gmp
-cal-test.neon              # os.system
 datetime-test.neon         # datetime
 debug-example.neon         # debugger
 debug-server.neon          # debugger
@@ -29,7 +28,6 @@ net-test.neon              # net
 net-test-udp.neon          # net
 new-init-module.neon       # class
 new-init.neon              # class
-os-test.neon               # os
 outer-issue192.neon        # PUSHPOL
 outer-parameter.neon       # PUSHPOL
 outer-tail.neon            # PUSHPOL
@@ -52,6 +50,6 @@ unicode-char.neon          # unicode
 unicode-length.neon        # unicode
 win32-test.neon            # CALLE
 
-http-test.neon             # os$spawn
+http-test.neon             # string$split
 sodium-test.neon           # binary$shiftRight32() exception
 zeromq-test.neon           # module
