@@ -752,48 +752,30 @@ foreach (SAMPLE ${SAMPLES})
 endforeach()
 
 file(GLOB_RECURSE LIBS lib/*.neon)
-foreach(LIB ${LIBS})
-    add_test(
-        NAME "grammar:${LIB}"
-        COMMAND python3 contrib/grammar/test-grammar.py ${LIB}
-    )
-endforeach()
-file(GLOB TOOLS tools/*.neon)
-foreach(TOOL ${TOOLS})
-    add_test(
-        NAME "grammar:${TOOL}"
-        COMMAND python3 contrib/grammar/test-grammar.py ${TOOL}
-    )
-endforeach()
-foreach (SAMPLE ${SAMPLES})
-    add_test(
-        NAME "grammar:${SAMPLE}"
-        COMMAND python3 contrib/grammar/test-grammar.py ${SAMPLE}
-    )
-endforeach()
-foreach (TEST ${TESTS})
-    add_test(
-        NAME "grammar:${TEST}"
-        COMMAND python3 contrib/grammar/test-grammar.py ${TEST}
-    )
-endforeach()
-file(GLOB TESTS_N3 t/errors/N3*.neon)
-foreach (TEST ${TESTS_N3})
-    add_test(
-        NAME "grammar:${TEST}"
-        COMMAND python3 contrib/grammar/test-grammar.py ${TEST}
-    )
-endforeach()
-
-# TODO: needs pyparsing
-#add_test(
-#    NAME "test_grammar"
-#    COMMAND python3 contrib/grammar/test-grammar.py lib/*.neon neon/*.neon tools/*.neon ${SAMPLES} t/*.neon t/errors/N3*.neon
-#)
-#add_test(
-#    NAME "test_grammar_random"
-#    COMMAND python3 contrib/grammar/test-random.py
-#)
+add_test(
+    NAME test_grammar_libs
+    COMMAND python3 contrib/grammar/test-grammar.py ${LIBS}
+)
+add_test(
+    NAME test_grammar_tools
+    COMMAND python3 contrib/grammar/test-grammar.py tools/*.neon
+)
+add_test(
+    NAME test_grammar_samples
+    COMMAND python3 contrib/grammar/test-grammar.py ${SAMPLES}
+)
+add_test(
+    NAME test_grammar_tests
+    COMMAND python3 contrib/grammar/test-grammar.py t/*.neon
+)
+add_test(
+    NAME test_grammar_tests_n3
+    COMMAND python3 contrib/grammar/test-grammar.py t/errors/N3*.neon
+)
+add_test(
+    NAME test_grammar_random
+    COMMAND python3 contrib/grammar/test-random.py
+)
 
 # TODO: This fails because cmake does not seem to accept the # on a COMMAND line.
 #add_custom_command(
