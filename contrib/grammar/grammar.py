@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import sys
+
+sys.path.append("external/pyparsing-2.0.3")
 from pyparsing import *
 import ebnf
 

@@ -751,6 +751,40 @@ foreach (SAMPLE ${SAMPLES})
     endif()
 endforeach()
 
+file(GLOB_RECURSE LIBS lib/*.neon)
+foreach(LIB ${LIBS})
+    add_test(
+        NAME "grammar:${LIB}"
+        COMMAND python3 contrib/grammar/test-grammar.py ${LIB}
+    )
+endforeach()
+file(GLOB TOOLS tools/*.neon)
+foreach(TOOL ${TOOLS})
+    add_test(
+        NAME "grammar:${TOOL}"
+        COMMAND python3 contrib/grammar/test-grammar.py ${TOOL}
+    )
+endforeach()
+foreach (SAMPLE ${SAMPLES})
+    add_test(
+        NAME "grammar:${SAMPLE}"
+        COMMAND python3 contrib/grammar/test-grammar.py ${SAMPLE}
+    )
+endforeach()
+foreach (TEST ${TESTS})
+    add_test(
+        NAME "grammar:${TEST}"
+        COMMAND python3 contrib/grammar/test-grammar.py ${TEST}
+    )
+endforeach()
+file(GLOB TESTS_N3 t/errors/N3*.neon)
+foreach (TEST ${TESTS_N3})
+    add_test(
+        NAME "grammar:${TEST}"
+        COMMAND python3 contrib/grammar/test-grammar.py ${TEST}
+    )
+endforeach()
+
 # TODO: needs pyparsing
 #add_test(
 #    NAME "test_grammar"

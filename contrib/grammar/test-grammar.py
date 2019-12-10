@@ -2,22 +2,24 @@
 
 import functools
 import glob
+import os
 import sys
 
+sys.path.append("external/pyparsing-2.0.3")
 from pyparsing import *
 
 import grammar
 
 KnownParseFailures = [          # Reason:
-    "t/assign2.neon",           #
-    "t/comments.neon",          # nested block comments
-    "t/lexer-raw.neon",         # unicode
-    "t/lexer-unicode.neon",     # unicode
-    "t/os-test.neon",           # double-at raw string with embedded quote at end
-    "t/unicode-source.neon",    # unicode
-    "t/utf8-invalid.neon",      # invalid utf-8
-    "t/errors/N3060.neon",      #
-    "t/errors/N3061.neon",      #
+    "assign2.neon",             #
+    "comments.neon",            # nested block comments
+    "lexer-raw.neon",           # unicode
+    "lexer-unicode.neon",       # unicode
+    "os-test.neon",             # double-at raw string with embedded quote at end
+    "unicode-source.neon",      # unicode
+    "utf8-invalid.neon",        # invalid utf-8
+    "N3060.neon",               #
+    "N3061.neon",               #
 ]
 
 # blockComment is similar to cStyleComment form pyparsing
@@ -41,7 +43,7 @@ for fn in functools.reduce(lambda x, y: x + y, [glob.glob(x) for x in sys.argv[1
     try:
         if "%!" in open(fn, encoding="utf-8").read():
             print("skipped, failure")
-            if fn in KnownParseFailures:
+            if os.path.basename(fn) in KnownParseFailures:
                 print("Unneeded known failure:", fn)
             continue
     except UnicodeDecodeError:
@@ -49,10 +51,10 @@ for fn in functools.reduce(lambda x, y: x + y, [glob.glob(x) for x in sys.argv[1
         continue
     try:
         parser.parseFile(open(fn, encoding="utf-8"), parseAll=True)
-        if fn in KnownParseFailures:
+        if os.path.basename(fn) in KnownParseFailures:
             print("Incorrect known failure:", fn)
     except ParseException as e:
-        if fn in KnownParseFailures:
+        if os.path.basename(fn) in KnownParseFailures:
             print("Known failure:", e)
         else:
             print("Failure parsing:", fn, file=sys.stderr)

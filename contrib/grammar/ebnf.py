@@ -7,7 +7,9 @@
 # You can read a final draft version here:
 # http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html
 
+import sys
 
+sys.path.append("external/pyparsing-2.0.3")
 from pyparsing import *
 
 

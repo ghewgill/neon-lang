@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 
+sys.path.append("external/pyparsing-2.0.3")
 from pyparsing import *
 
 import grammar
