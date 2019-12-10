@@ -5,7 +5,7 @@ import glob
 import os
 import sys
 
-sys.path.append("external/pyparsing-2.0.3")
+sys.path.append("external/pyparsing-2.4.5")
 from pyparsing import *
 
 import grammar
