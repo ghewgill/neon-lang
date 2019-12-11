@@ -22,6 +22,7 @@
 #include "lib/datetime.h"
 #include "lib/io.h"
 #include "lib/math.h"
+#include "lib/net.h"
 #include "lib/os.h"
 #include "lib/random.h"
 #include "lib/runtime.h"
@@ -129,7 +130,19 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("math$tgamma",               math_tgamma),
     PDFUNC("math$trunc",                math_trunc),
 
-    // OS - Operating System function calls
+    // net - network module functions
+    PDFUNC("net$tcpSocket",             net_tcpSocket),
+    PDFUNC("net$udpSocket",             net_udpSocket),
+    PDFUNC("net$socket_accept",         net_socket_accept),
+    PDFUNC("net$socket_bind",           net_socket_bind),
+    PDFUNC("net$socket_close",          net_socket_close),
+    PDFUNC("net$socket_connect",        net_socket_connect),
+    PDFUNC("net$socket_listen",         net_socket_listen),
+    PDFUNC("net$socket_recv",           net_socket_recv),
+    PDFUNC("net$socket_send",           net_socket_send),
+    PDFUNC("net$socket_select",         net_socket_select),
+
+ // OS - Operating System function calls
     PDFUNC("os$getenv",                 os_getenv),
     PDFUNC("os$platform",               os_platform),
     PDFUNC("os$spawn",                  os_spawn),

@@ -23,8 +23,6 @@ interface-parameter-import.neon # unknown class name
 interface-parameter-import2.neon # CALLV
 mkdir.neon                 # file
 mmap-test.neon             # mmap
-net-test.neon              # net
-net-test-udp.neon          # net
 new-init-module.neon       # class
 new-init.neon              # class
 outer-issue192.neon        # PUSHPOL

@@ -70,6 +70,18 @@ void array_freeArray(Array *self)
     free(self);
 }
 
+void array_clearArray(Array *self)
+{
+    if (self != NULL && self->data != NULL) {
+        for (size_t i = 0; i < self->size; i++) {
+            cell_clearCell(&self->data[i]);
+        }
+        free(self->data);
+        self->data = NULL;
+        self->size = 0;
+    }
+}
+
 void array_removeItem(Array *self, size_t index)
 {
     if (self != NULL && self->data != NULL) {
