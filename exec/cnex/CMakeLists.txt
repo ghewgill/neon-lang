@@ -42,6 +42,7 @@ add_executable(cnex
     cell.c
     cnex.c
     dictionary.c
+    disassembly.c
     extension.c
     framestack.c
     global.c
