@@ -27,6 +27,7 @@ set(CNEX_RTL
     lib/binary.c
     lib/io.c
     lib/math.c
+    lib/net.c
     lib/os.c
     lib/random.c
     lib/runtime.c
