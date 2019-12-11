@@ -18,6 +18,7 @@
 #include "bytecode.h"
 #include "cell.h"
 #include "dictionary.h"
+#include "disassembly.h"
 #include "exec.h"
 #include "global.h"
 #include "framestack.h"
@@ -1465,8 +1466,8 @@ void invoke(TExecutor *self, TModule *m, int index)
 int exec_loop(TExecutor *self, int64_t min_callstack_depth)
 {
     while ((self->callstacktop +1) > min_callstack_depth && self->ip < self->module->bytecode->codelen && self->exit_code == 0) {
-        if (self->disassemble) { 
-            fprintf(stderr, "mod:%s\tip: %d\top: %s\tst: %d\n", self->module->name, self->ip, sOpcode[self->module->bytecode->code[self->ip]], self->stack->top); 
+        if (self->disassemble) {
+            fprintf(stderr, "mod %s ip %d (%d) %s\n", self->module->name, self->ip, self->stack->top, disasm_disassembleInstruction(self));
         }
         switch (self->module->bytecode->code[self->ip]) {
             case PUSHB:   exec_PUSHB(self); break;

@@ -111,8 +111,4 @@ enum Opcode {
     FOREACH_OPCODE(GENERATE_ENUM)
 };
 
-static const char *sOpcode[] = {
-    FOREACH_OPCODE(GENERATE_NAME)
-};
-
 #endif
