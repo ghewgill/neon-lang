@@ -868,6 +868,10 @@ void InstructionDisassembler::disassemble()
         case PUSHFP:  disasm_PUSHFP(); break;
         case CALLV:   disasm_CALLV(); break;
         case PUSHCI:  disasm_PUSHCI(); break;
+        default:
+            out << "Unknown opcode: " << static_cast<Opcode>(obj.code[index]) << "\n";
+            index++;
+            break;
     }
 }
 
