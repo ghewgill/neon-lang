@@ -43,7 +43,7 @@ An interface is declared using the ``INTERFACE`` declaration::
         FUNCTION voice(self: Animal)
     END INTERFACE
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%
+    #########################
 
     TYPE Cat IS CLASS IMPLEMENTS Animal
         furColour: String
@@ -53,7 +53,7 @@ An interface is declared using the ``INTERFACE`` declaration::
         print("meow")
     END FUNCTION
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%
+    #########################
 
     TYPE Bird IS CLASS IMPLEMENTS Animal
         featherColour: String
@@ -63,7 +63,7 @@ An interface is declared using the ``INTERFACE`` declaration::
         print("chirp")
     END FUNCTION
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%
+    #########################
 
     VAR animals: Array<VALID POINTER TO Animal> := []
     animals.append(NEW Cat)

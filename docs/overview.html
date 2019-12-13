@@ -38,8 +38,8 @@
 There are plenty of examples, because experienced programmers know how to read code, and can pick up concepts more quickly by reading code than by reading a description of code.</p>
 <p>Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and <a class="reference external" href="/motivation.html">others</a>.
 Program structure and modules are influenced by Python.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>% This sample program greets the user
-% until an empty line is entered.
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># This sample program greets the user
+# until an empty line is entered.
 
 LOOP
     LET name: String := input(&quot;What is your name? &quot;)
@@ -200,7 +200,7 @@ END WHILE
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>EXCEPTION PrinterOutOfPaperException
 
 FUNCTION printFile(name: String)
-    % Save the trees, don&#39;t print anything.
+    # Save the trees, don&#39;t print anything.
     RAISE PrinterOutOfPaperException
 END FUNCTION
 
@@ -215,7 +215,7 @@ END TRY
 Execution stops with a diagnostic dump if the condition is not satisfied.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>FUNCTION setRatio(percent: Number)
     ASSERT 0 &lt;= percent &lt;= 100
-    % ... use percent value
+    # ... use percent value
 END FUNCTION
 </pre></div>
 </div>
@@ -235,12 +235,12 @@ END FUNCTION
 VAR uname: String
 VAR n: Number := 0
 
-% The parameter mode (if not IN) must be explicitly indicated
-% on the function call.
+# The parameter mode (if not IN) must be explicitly indicated
+# on the function call.
 func(&quot;charlie&quot;, OUT uname, INOUT n)
 
-% The caller may choose to pass parameters in a different
-% order using the WITH keyword.
+# The caller may choose to pass parameters in a different
+# order using the WITH keyword.
 func(&quot;charlie&quot;, INOUT count WITH n, OUT result WITH uname)
 
 ASSERT uname = &quot;CHARLIE&quot;

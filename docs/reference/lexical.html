@@ -38,18 +38,18 @@
 All keywords and identifiers are case sensitive.</p>
 <div class="section" id="comments">
 <h2>5.1.1. Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h2>
-<p>The comment lead-in character is <code class="docutils literal notranslate"><span class="pre">%</span></code>.
-A single line comment is a <code class="docutils literal notranslate"><span class="pre">%</span></code> followed by arbitrary text to the end of the line.
-A block comment is introduced with <code class="docutils literal notranslate"><span class="pre">%|</span></code> and ends with <code class="docutils literal notranslate"><span class="pre">|%</span></code>.
+<p>The comment lead-in character is <code class="docutils literal notranslate"><span class="pre">#</span></code>.
+A single line comment is a <code class="docutils literal notranslate"><span class="pre">#</span></code> followed by arbitrary text to the end of the line.
+A block comment is introduced with <code class="docutils literal notranslate"><span class="pre">#|</span></code> and ends with <code class="docutils literal notranslate"><span class="pre">|#</span></code>.
 Block comments may span multiple lines.
 Block comments may be nested.</p>
 <p>Example:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>% The following line prints some text.
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># The following line prints some text.
 print(&quot;Hello, World.&quot;)
 
-%| This comment spans multiple
+#| This comment spans multiple
    lines of text until the comment
-   closing characters. |%
+   closing characters. |#
 </pre></div>
 </div>
 </div>

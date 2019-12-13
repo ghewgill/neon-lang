@@ -73,7 +73,7 @@ print(p-&gt;name)
     FUNCTION voice(self: Animal)
 END INTERFACE
 
-%%%%%%%%%%%%%%%%%%%%%%%%%
+#########################
 
 TYPE Cat IS CLASS IMPLEMENTS Animal
     furColour: String
@@ -83,7 +83,7 @@ FUNCTION Cat.voice(self: VALID POINTER TO Cat)
     print(&quot;meow&quot;)
 END FUNCTION
 
-%%%%%%%%%%%%%%%%%%%%%%%%%
+#########################
 
 TYPE Bird IS CLASS IMPLEMENTS Animal
     featherColour: String
@@ -93,7 +93,7 @@ FUNCTION Bird.voice(self: VALID POINTER TO Bird)
     print(&quot;chirp&quot;)
 END FUNCTION
 
-%%%%%%%%%%%%%%%%%%%%%%%%%
+#########################
 
 VAR animals: Array&lt;VALID POINTER TO Animal&gt; := []
 animals.append(NEW Cat)

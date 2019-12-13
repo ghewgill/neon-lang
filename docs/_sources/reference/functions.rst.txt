@@ -57,7 +57,7 @@ When calling a function, function parameters may be named using the ``WITH`` key
 Example::
 
     FUNCTION birthdayParty(name: String, balloons: Number, cake: String, clown: Boolean)
-        % ...
+        # ...
     END FUNCTION
 
     birthdayParty(name WITH "Helen", balloons WITH 10, cake WITH "Chocolate", clown WITH TRUE)
