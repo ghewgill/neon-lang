@@ -67,7 +67,7 @@ File: struct  (struct.neon)
 File: sys  (sys.neon)
 File: textio  (textio.neon)
 File: time  (time.neon)
-File: win32  (win32.neon)
+File: win32  (win32/win32.neon)
 File: xml  (xml.neon)
 
 Group: Index  {
