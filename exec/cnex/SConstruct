@@ -50,6 +50,7 @@ test_string_support_c = envcnex.Program("test_string_support", [
 
 rtl_c = ([
     "lib/binary.c",
+    "lib/datetime.c",
     "lib/io.c",
     "lib/math.c",
     "lib/os.c",

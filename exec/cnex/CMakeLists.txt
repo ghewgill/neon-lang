@@ -25,6 +25,7 @@ endif ()
 
 set(CNEX_RTL
     lib/binary.c
+    lib/datetime.c
     lib/io.c
     lib/math.c
     lib/os.c

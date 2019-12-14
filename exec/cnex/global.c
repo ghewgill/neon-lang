@@ -19,6 +19,7 @@
 #include "util.h"
 
 #include "lib/binary.h"
+#include "lib/datetime.h"
 #include "lib/io.h"
 #include "lib/math.h"
 #include "lib/os.h"
@@ -74,6 +75,10 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("binary$notBytes",           binary_notBytes),
     PDFUNC("binary$orBytes",            binary_orBytes),
     PDFUNC("binary$xorBytes",           binary_xorBytes),
+
+    // datetime - Date/Time module
+    PDFUNC("datetime$gmtime",           datetime_gmtime),
+    PDFUNC("datetime$timegm",           datetime_timegm),
 
     // io - InputOutput module
     PDFUNC("io$close",                  io_close),
