@@ -1,5 +1,4 @@
 bigint.neon                # gmp
-datetime-test.neon         # datetime
 debug-example.neon         # debugger
 debug-server.neon          # debugger
 file-exists.neon           # file
