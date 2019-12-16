@@ -220,7 +220,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
         if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &rfds)) {
             ++i;
         } else {
-            ra.erase(i);
+            i = ra.erase(i);
         }
     }
 
@@ -228,7 +228,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
         if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &wfds)) {
             ++i;
         } else {
-            wa.erase(i);
+            i = wa.erase(i);
         }
     }
 
@@ -236,7 +236,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
         if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &efds)) {
             ++i;
         } else {
-            ea.erase(i);
+            i = ea.erase(i);
         }
     }
 
