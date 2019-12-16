@@ -32,6 +32,7 @@ set(CNEX_RTL
     lib/random.c
     lib/runtime.c
     lib/string.c
+    lib/struct.c
     lib/sys.c
     lib/textio.c
     ${platform_cnex}

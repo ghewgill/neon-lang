@@ -26,6 +26,7 @@
 #include "lib/random.h"
 #include "lib/runtime.h"
 #include "lib/string.h"
+#include "lib/struct.h"
 #include "lib/sys.h"
 #include "lib/textio.h"
 #include "lib/time.h"
@@ -151,6 +152,12 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("string$splitLines",         string_splitLines),
     PDFUNC("string$trimCharacters",     string_trimCharacters),
     PDFUNC("string$upper",              string_upper),
+
+    // struct - C struct serialization functions
+    PDFUNC("struct$packIEEE32",         struct_packIEEE32),
+    PDFUNC("struct$packIEEE64",         struct_packIEEE64),
+    PDFUNC("struct$unpackIEEE32",       struct_unpackIEEE32),
+    PDFUNC("struct$unpackIEEE64",       struct_unpackIEEE64),
 
     // sys - System level calls
     PDFUNC("sys$exit",                  sys_exit),
