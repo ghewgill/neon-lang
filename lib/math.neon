@@ -1,7 +1,7 @@
 #|
  |  File: math
  |
- |  Mathemtical functions for real numbers.
+ |  Mathematical functions for real numbers.
  |#
 
 EXPORT Pi
