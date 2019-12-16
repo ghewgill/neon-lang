@@ -2,6 +2,7 @@ array-resize.neon          # array default item
 array2d.neon               # array copying semantics
 assert-multiline.neon      # exception
 base-test.neon             # module
+binary-test.neon           # verifier
 bytes-index.neon           # index
 cformat-test.neon          # object
 cmdline.neon               # PredefinedVariable sys$args

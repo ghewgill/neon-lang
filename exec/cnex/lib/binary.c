@@ -64,10 +64,10 @@ void binary_and32(TExecutor *exec)
     Number y = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec, x)) {
+    if (!range_checkU32(exec, x)) {
         return;
     }
-    if (!range_check32(exec, y)) {
+    if (!range_checkU32(exec, y)) {
         return;
     }
     push(exec->stack, cell_fromNumber(number_from_uint32(number_to_uint32(x) & number_to_uint32(y))));
@@ -79,7 +79,7 @@ void binary_extract32(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec, x)) {
+    if (!range_checkU32(exec, x)) {
         return;
     }
     if (!range_checkU32(exec, n)) {
@@ -110,7 +110,7 @@ void binary_get32(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec, x)) {
+    if (!range_checkU32(exec, x)) {
         return;
     }
     if (!range_checkU32(exec, n)) {
@@ -129,7 +129,7 @@ void binary_not32(TExecutor *exec)
 {
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec, x)) {
+    if (!range_checkU32(exec, x)) {
         return;
     }
 
@@ -141,10 +141,10 @@ void binary_or32(TExecutor *exec)
     Number y = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec, x)) {
+    if (!range_checkU32(exec, x)) {
         return;
     }
-    if (!range_check32(exec, y)) {
+    if (!range_checkU32(exec, y)) {
         return;
     }
 
@@ -158,7 +158,7 @@ void binary_replace32(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec, x)) {
+    if (!range_checkU32(exec, x)) {
         return;
     }
     if (!range_checkU32(exec, n)) {
@@ -167,7 +167,7 @@ void binary_replace32(TExecutor *exec)
     if (!range_checkU32(exec, w)) {
         return;
     }
-    if (!range_check32(exec, y)) {
+    if (!range_checkU32(exec, y)) {
         return;
     }
 
@@ -191,7 +191,7 @@ void binary_set32(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec, x)) {
+    if (!range_checkU32(exec, x)) {
         return;
     }
     if (!range_checkU32(exec, n)) {
@@ -215,7 +215,7 @@ void binary_shift_left32(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec,x)) {
+    if (!range_checkU32(exec,x)) {
         return;
     }
     if (!range_checkU32(exec,n)) {
@@ -235,7 +235,7 @@ void binary_shift_right32(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec,x)) {
+    if (!range_checkU32(exec,x)) {
         return;
     }
     if (!range_checkU32(exec,n)) {
@@ -275,10 +275,10 @@ void binary_xor32(TExecutor *exec)
     Number y = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check32(exec, x)) {
+    if (!range_checkU32(exec, x)) {
         return;
     }
-    if (!range_check32(exec, y)) {
+    if (!range_checkU32(exec, y)) {
         return;
     }
 
@@ -290,10 +290,10 @@ void binary_and64(TExecutor *exec)
     Number y = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec, x)) {
+    if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_check64(exec, y)) {
+    if (!range_checkU64(exec, y)) {
         return;
     }
 
@@ -306,13 +306,13 @@ void binary_extract64(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec, x)) {
+    if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_checkU64(exec, n)) {
+    if (!range_checkU32(exec, n)) {
         return;
     }
-    if (!range_checkU64(exec, w)) {
+    if (!range_checkU32(exec, w)) {
         return;
     }
 
@@ -337,10 +337,10 @@ void binary_get64(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec, x)) {
+    if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_checkU64(exec, n)) {
+    if (!range_checkU32(exec, n)) {
         return;
     }
 
@@ -356,7 +356,7 @@ void binary_not64(TExecutor *exec)
 {
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec, x)) {
+    if (!range_checkU64(exec, x)) {
         return;
     }
 
@@ -368,10 +368,10 @@ void binary_or64(TExecutor *exec)
     Number y = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec, x)) {
+    if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_check64(exec, y)) {
+    if (!range_checkU64(exec, y)) {
         return;
     }
 
@@ -385,16 +385,16 @@ void binary_replace64(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec, x)) {
+    if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_checkU64(exec, n)) {
+    if (!range_checkU32(exec, n)) {
         return;
     }
-    if (!range_checkU64(exec, w)) {
+    if (!range_checkU32(exec, w)) {
         return;
     }
-    if (!range_check64(exec, y)) {
+    if (!range_checkU64(exec, y)) {
         return;
     }
 
@@ -418,10 +418,10 @@ void binary_set64(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec, x)) {
+    if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_checkU64(exec, n)) {
+    if (!range_checkU32(exec, n)) {
         return;
     }
 
@@ -442,10 +442,10 @@ void binary_shift_left64(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec,x)) {
+    if (!range_checkU64(exec,x)) {
         return;
     }
-    if (!range_checkU64(exec,n)) {
+    if (!range_checkU32(exec,n)) {
         return;
     }
 
@@ -462,10 +462,10 @@ void binary_shift_right64(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec,x)) {
+    if (!range_checkU64(exec,x)) {
         return;
     }
-    if (!range_checkU64(exec,n)) {
+    if (!range_checkU32(exec,n)) {
         return;
     }
 
@@ -485,7 +485,7 @@ void binary_shift_right_signed64(TExecutor *exec)
     if (!range_check64(exec,x)) {
         return;
     }
-    if (!range_checkU64(exec,n)) {
+    if (!range_checkU32(exec,n)) {
         return;
     }
 
@@ -502,10 +502,10 @@ void binary_xor64(TExecutor *exec)
     Number y = top(exec->stack)->number; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (!range_check64(exec, x)) {
+    if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_check64(exec, y)) {
+    if (!range_checkU64(exec, y)) {
         return;
     }
 
