@@ -443,6 +443,16 @@ uint64_t number_to_uint64(Number x)
     return bid128_to_uint64_int(x);
 }
 
+float number_to_float(Number x)
+{
+    return bid128_to_binary32(x);
+}
+
+double number_to_double(Number x)
+{
+    return bid128_to_binary64(x);
+}
+
 
 /*
  * Number FROM functions
@@ -476,6 +486,16 @@ Number number_from_uint64(uint64_t x)
 Number number_from_sint64(int64_t x)
 {
     return bid128_from_int64(x);
+}
+
+Number number_from_float(float x)
+{
+    return binary32_to_bid128(x);
+}
+
+Number number_from_double(double x)
+{
+    return binary64_to_bid128(x);
 }
 
 

@@ -43,6 +43,8 @@ int32_t number_to_sint32(Number x);
 uint32_t number_to_uint32(Number x);
 int64_t number_to_sint64(Number x);
 uint64_t number_to_uint64(Number x);
+float number_to_float(Number x);
+double number_to_double(Number x);
 
 Number number_add(Number x, Number y);
 Number number_subtract(Number x, Number y);
@@ -100,8 +102,8 @@ Number number_from_uint32(uint32_t x);
 Number number_from_sint32(int32_t x);
 Number number_from_uint64(uint64_t x);
 Number number_from_sint64(int64_t x);
-//Number number_from_float(float x);
-//Number number_from_double(double x);
+Number number_from_float(float x);
+Number number_from_double(double x);
 
 BOOL number_is_zero(Number x);
 BOOL number_is_negative(Number x);

@@ -42,7 +42,6 @@ sqlite-test.neon           # sqlite
 stack-overflow.neon        # call stack size
 string-bytes.neon          # Cell Type assertion
 string-escape.neon         # utf8
-struct-test.neon           # struct$packIEEE64
 unicode-char.neon          # unicode
 unicode-length.neon        # unicode
 win32-test.neon            # CALLE
