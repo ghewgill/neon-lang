@@ -6,13 +6,14 @@
 #include <vector>
 
 #include "ast.h"
+#include "exec.h"
 #include "support.h"
 
 class Cell;
 
 class Repl {
 public:
-    Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool dump_listing);
+    Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool dump_listing, const ExecOptions &options);
     Repl(const Repl &) = delete;
     Repl operator=(const Repl &) = delete;
     void handle(const std::string &line);
@@ -21,6 +22,7 @@ private:
     char **argv;
     const bool stop_on_any_error;
     const bool dump_listing;
+    const ExecOptions options;
     CompilerSupport compiler_support;
     RuntimeSupport runtime_support;
     std::map<std::string, ast::ExternalGlobalInfo> globals_ast;

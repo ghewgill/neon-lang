@@ -11,11 +11,12 @@
 #include "lexer.h"
 #include "parser.h"
 
-Repl::Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool dump_listing)
+Repl::Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool dump_listing, const ExecOptions &options)
   : argc(argc),
     argv(argv),
     stop_on_any_error(stop_on_any_error),
     dump_listing(dump_listing),
+    options(options),
     compiler_support("", nullptr),
     runtime_support(""),
     globals_ast(),
@@ -106,9 +107,6 @@ void Repl::handle(const std::string &s)
             if (dump_listing) {
                 disassemble(bytecode, std::cerr, &debug);
             }
-            struct ExecOptions options;
-            options.enable_assert = true;
-            options.enable_trace = false;
             int r = exec("-", bytecode, &debug, &runtime_support, &options, 0, argc, argv, &globals_cells);
             if (r != 0) {
                 fprintf(stderr, "exit code %d\n", r);

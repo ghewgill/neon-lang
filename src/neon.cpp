@@ -51,9 +51,9 @@ static const ast::Program *dump(const ast::Program *program)
     return program;
 }
 
-static void repl(int argc, char *argv[])
+static void repl(int argc, char *argv[], const ExecOptions &options)
 {
-    Repl repl(argc, argv, repl_no_prompt, repl_stop_on_any_error, dump_listing);
+    Repl repl(argc, argv, repl_no_prompt, repl_stop_on_any_error, dump_listing, options);
     for (;;) {
         if (not repl_no_prompt) {
             std::cout << "> ";
@@ -113,8 +113,12 @@ int main(int argc, char *argv[])
         a++;
     }
 
+    struct ExecOptions options;
+    options.enable_assert = enable_assert;
+    options.enable_trace = enable_trace;
+
     if (a >= argc) {
-        repl(argc, argv);
+        repl(argc, argv, options);
     }
 
     const std::string name = argv[a];
@@ -189,8 +193,5 @@ int main(int argc, char *argv[])
 
     }
 
-    struct ExecOptions options;
-    options.enable_assert = enable_assert;
-    options.enable_trace = enable_trace;
     exit(exec(name, bytecode, debug.get(), &runtime_support, &options, debug_port, argc-a, argv+a));
 }
