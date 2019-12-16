@@ -12,7 +12,7 @@ namespace ne_datetime {
 
 Cell gmtime(Number t)
 {
-    time_t x = number_to_sint32(t);
+    time_t x = number_to_sint64(t);
     struct tm *tm = ::gmtime(&x);
     Cell r;
     r.array_index_for_write(0) = Cell(number_from_uint32(tm->tm_sec));
