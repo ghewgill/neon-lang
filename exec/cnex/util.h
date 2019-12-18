@@ -23,4 +23,8 @@ typedef int BOOL;
 #define TRUE (!FALSE)
 #endif
 
+#ifndef max
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+
 #endif
