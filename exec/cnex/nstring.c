@@ -162,6 +162,18 @@ TString *string_appendChar(TString *s, char c)
     return s;
 }
 
+TString *string_appendData(TString *s, char *buf, size_t len)
+{
+    s->data = realloc(s->data, s->length + len);
+    if (s->data == NULL) {
+        fatal_error("Could not reallocate string for append data.");
+    }
+
+    memcpy(&s->data[s->length], buf, len);
+    s->length += len;
+    return s;
+}
+
 void string_resizeString(TString *s, size_t n)
 {
     s->data = realloc(s->data, n);

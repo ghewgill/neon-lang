@@ -30,7 +30,6 @@ outer-parameter.neon       # PUSHPOL
 outer-tail.neon            # PUSHPOL
 outer.neon                 # PUSHPOL
 outer2.neon                # PUSHPOL
-process-test.neon          # process
 recursion-limit.neon       # runtime$setRecursionLimit
 sql-connect.neon           # file
 sql-cursor.neon            # sqlite

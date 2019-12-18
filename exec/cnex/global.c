@@ -24,6 +24,7 @@
 #include "lib/math.h"
 #include "lib/net.h"
 #include "lib/os.h"
+#include "lib/process.h"
 #include "lib/random.h"
 #include "lib/runtime.h"
 #include "lib/string.h"
@@ -143,12 +144,15 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("net$socket_send",           net_socket_send),
     PDFUNC("net$socket_select",         net_socket_select),
 
- // OS - Operating System function calls
+    // OS - Operating System function calls
     PDFUNC("os$getenv",                 os_getenv),
     PDFUNC("os$platform",               os_platform),
     PDFUNC("os$spawn",                  os_spawn),
     PDFUNC("os$system",                 os_system),
     PDFUNC("os$wait",                   os_wait),
+
+    // process - Function to execute other processes
+    PDFUNC("process$call",              process_call),
 
     // random - Random Number module
     PDFUNC("random$uint32",             random_uint32),
