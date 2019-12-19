@@ -330,7 +330,7 @@ unsigned int Emitter::next_function(const std::string &name)
 
 Emitter::FunctionInfo &Emitter::function_info(int index)
 {
-    return functions[index];
+    return functions.at(index);
 }
 
 Emitter::Label Emitter::create_label()
