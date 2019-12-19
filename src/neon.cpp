@@ -23,6 +23,7 @@ bool enable_assert = true;
 bool enable_trace = false;
 bool error_json = false;
 unsigned short debug_port = 0;
+const char *repl_input = nullptr;
 bool repl_no_prompt = false;
 bool repl_stop_on_any_error = false;
 
@@ -53,13 +54,23 @@ static const ast::Program *dump(const ast::Program *program)
 
 static void repl(int argc, char *argv[], const ExecOptions &options)
 {
+    std::istream *in = &std::cin;
+    std::ifstream repl_in;
+    if (repl_input != nullptr) {
+        repl_in.open(repl_input);
+        if (not repl_in) {
+            fprintf(stderr, "%s: could not open --repl-input file: %s\n", argv[0], repl_input);
+            exit(1);
+        }
+        in = &repl_in;
+    }
     Repl repl(argc, argv, repl_no_prompt, repl_stop_on_any_error, dump_listing, options);
     for (;;) {
         if (not repl_no_prompt) {
             std::cout << "> ";
         }
         std::string s;
-        if (not std::getline(std::cin, s)) {
+        if (not std::getline(*in, s)) {
             if (not repl_no_prompt) {
                 std::cout << std::endl;
             }
@@ -100,6 +111,13 @@ int main(int argc, char *argv[])
             dump_listing = true;
         } else if (arg == "-n") {
             enable_assert = false;
+        } else if (arg == "--repl-input") {
+            a++;
+            if (argv[a] == NULL) {
+                fprintf(stderr, "%s: --repl-input requires filename\n", argv[0]);
+                exit(1);
+            }
+            repl_input = argv[a];
         } else if (arg == "--repl-no-prompt") {
             repl_no_prompt = true;
         } else if (arg == "--repl-stop-on-any-error") {

@@ -725,7 +725,7 @@ foreach (TEST ${TESTS_REPL})
     get_filename_component(T "${TEST}" NAME)
     add_test(
         NAME "repl:${T}"
-        COMMAND neon --repl-no-prompt --repl-stop-on-any-error ${TEST}
+        COMMAND neon --repl-no-prompt --repl-stop-on-any-error --repl-input ${TEST}
     )
 endforeach ()
 
