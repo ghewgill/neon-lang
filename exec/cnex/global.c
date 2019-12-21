@@ -29,6 +29,7 @@
 #include "lib/process.h"
 #include "lib/random.h"
 #include "lib/runtime.h"
+#include "lib/sqlite.h"
 #include "lib/string.h"
 #include "lib/struct.h"
 #include "lib/sys.h"
@@ -186,6 +187,17 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("runtime$moduleIsMain",      runtime_moduleIsMain),
     PDFUNC("runtime$setRecursionLimit", runtime_setRecursionLimit),
 
+    // sqlite - SQLite module database functions
+    PDFUNC("sqlite$open",               sqlite_open),
+    PDFUNC("sqlite$exec",               sqlite_exec),
+    PDFUNC("sqlite$execOne",            sqlite_execOne),
+    PDFUNC("sqlite$execRaw",            sqlite_execRaw),
+    PDFUNC("sqlite$close",              sqlite_close),
+    PDFUNC("sqlite$cursorDeclare",      sqlite_cursorDeclare),
+    PDFUNC("sqlite$cursorOpen",         sqlite_cursorOpen),
+    PDFUNC("sqlite$cursorFetch",        sqlite_cursorFetch),
+    PDFUNC("sqlite$cursorClose",        sqlite_cursorClose),
+
     // string - string module functions
     PDFUNC("string$find",               string_find),
     PDFUNC("string$fromCodePoint",      string_fromCodePoint),
@@ -322,6 +334,9 @@ void global_init(int argc, char *argv[], int iArgStart)
     VAR_args.type = cAddress;
     sys_initModule(argc, argv, iArgStart, VAR_args.address);
 
+    // Init SQLite module
+    sqlite_initModule();
+
     // Init Textio module
     VAR_textiostderr.address = cell_fromObject(object_createFileObject(stderr));
     VAR_textiostderr.type = cAddress;
@@ -345,6 +360,7 @@ void global_shutdown()
     }
 
     os_shutdownModule();
+    sqlite_shutdownModule();
 }
 
 Cell *global_getVariable(const char *pszVar)

@@ -11,7 +11,7 @@ endif ()
 add_library(sqlite3
     sqlite-amalgamation-3080803/sqlite3.c
 )
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     target_link_libraries(sqlite3 pthread)
 endif ()
 target_include_directories(sqlite3

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "array.h"
 #include "cell.h"
@@ -52,6 +53,20 @@ int64_t dictionary_addDictionaryEntry(Dictionary *self, struct tagTString *key, 
     self->data[self->len].value = value;
     self->len++;
     return self->len - 1;
+}
+
+void dictionary_removeDictionaryEntry(Dictionary *self, TString *key)
+{
+    int64_t idx = dictionary_findIndex(self, key);
+    if (idx == -1) {
+        return;
+    }
+
+    cell_freeCell(self->data[idx].value);
+    string_freeString(self->data[idx].key);
+
+    memmove(&self->data[idx], &self->data[idx+1], sizeof(DictionaryEntry) * self->len-1);
+    self->len--;
 }
 
 Dictionary *dictionary_createDictionary(void)

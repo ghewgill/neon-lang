@@ -58,6 +58,7 @@ rtl_c = ([
     "lib/os.c",
     "lib/random.c",
     "lib/runtime.c",
+    "lib/sqlite.c",
     "lib/string.c",
     "lib/struct.c",
     "lib/sys.c",
