@@ -48,6 +48,7 @@ set(CNEX_RTL
     lib/os.c
     lib/random.c
     lib/runtime.c
+    lib/sqlite.c
     lib/string.c
     lib/struct.c
     lib/sys.c
@@ -122,6 +123,7 @@ endif ()
 
 target_link_libraries(cnex
     bid
+    sqlite3
 )
 
 if (WIN32)
