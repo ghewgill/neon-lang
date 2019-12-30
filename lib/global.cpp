@@ -525,7 +525,7 @@ public:
             } else {
                 first = false;
             }
-            r.append(x->toString());
+            r.append(x != nullptr ? x->toString() : utf8string("null"));
         }
         r.append("]");
         return r;
@@ -570,7 +570,7 @@ public:
             r.append("\"");
             r.append(x.first.c_str());
             r.append("\": ");
-            r.append(x.second->toString());
+            r.append(x.second != nullptr ? x.second->toString() : utf8string("null"));
         }
         r.append("}");
         return r;

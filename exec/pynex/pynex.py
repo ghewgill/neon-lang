@@ -1219,11 +1219,11 @@ def neon_object__subscript(self):
 def neon_object__toString(self):
     v = self.stack.pop().value
     if isinstance(v, list):
-        self.stack.append(Value("[{}]".format(", ".join(x.literal() for x in v))))
+        self.stack.append(Value("[{}]".format(", ".join(x.literal() if x.value is not None else "null" for x in v))))
     elif isinstance(v, dict):
-        self.stack.append(Value("{{{}}}".format(", ".join("{}: {}".format(quoted(k), x.literal()) for k, x in sorted(v.items())))))
+        self.stack.append(Value("{{{}}}".format(", ".join("{}: {}".format(quoted(k), x.literal() if x.value is not None else "null") for k, x in sorted(v.items())))))
     else:
-        self.stack.append(Value(v.literal()))
+        self.stack.append(Value(v.literal() if v is not None else "null"))
 
 def neon_odd(self):
     v = self.stack.pop().value

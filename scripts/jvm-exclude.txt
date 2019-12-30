@@ -68,6 +68,7 @@ object-isa.neon            # object
 object-isa-case.neon       # object
 object-isa-inconvertible.neon
 object-null.neon           # object
+object-null2.neon          # object
 object-operator.neon       # object
 object-record.neon         # object
 object-subscript.neon      # object

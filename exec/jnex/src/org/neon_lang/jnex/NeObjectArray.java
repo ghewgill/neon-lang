@@ -33,7 +33,7 @@ class NeObjectArray implements NeObject {
             } else {
                 r.append(", ");
             }
-            r.append(x.toString());
+            r.append(x != null ? x.toString() : "null");
         }
         r.append("]");
         return r.toString();

@@ -88,6 +88,7 @@ number-ceil.neon            # math$ceil
 object-isa-case.neon        # object__makeNumber
 object-isa.neon             # object__makeBoolean
 object-null.neon            # object__makeNull
+object-null2.neon           # object__makeNull
 object-operator.neon        # object__makeNumber
 object-record.neon          # object__makeString
 object-subscript.neon       # object__makeNumber

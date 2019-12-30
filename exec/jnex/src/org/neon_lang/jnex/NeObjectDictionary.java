@@ -37,7 +37,7 @@ class NeObjectDictionary implements NeObject {
             r.append("\"");
             r.append(x.getKey());
             r.append("\": ");
-            r.append(x.getValue().toString());
+            r.append(x.getValue() != null ? x.getValue().toString() : "null");
         }
         r.append("}");
         return r.toString();

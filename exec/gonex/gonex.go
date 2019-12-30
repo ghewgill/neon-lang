@@ -365,7 +365,11 @@ func (obj objectArray) toString() string {
 		if i > 0 {
 			r += ", "
 		}
-		r += x.toString()
+		if x != nil {
+			r += x.toString()
+		} else {
+			r += "null"
+		}
 	}
 	r += "]"
 	return r
@@ -425,7 +429,12 @@ func (obj objectDictionary) toString() string {
 		} else {
 			r += ", "
 		}
-		r += "\"" + k + "\": " + obj.dict[k].toString()
+		r += "\"" + k + "\": "
+		if obj.dict[k] != nil {
+			r += obj.dict[k].toString()
+		} else {
+			r += "null"
+		}
 	}
 	r += "}"
 	return r
@@ -2382,7 +2391,11 @@ func (self *executor) op_callp() {
 		}
 	case "object__toString":
 		o := self.pop().obj
-		self.push(make_cell_str(o.toString()))
+		if o != nil {
+			self.push(make_cell_str(o.toString()))
+		} else {
+			self.push(make_cell_str("null"))
+		}
 	case "odd":
 		n := self.pop().num
 		if n != math.Trunc(n) {

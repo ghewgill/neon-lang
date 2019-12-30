@@ -1,0 +1,11 @@
+LET z: Object := NIL
+print("\(z)")
+#= null
+
+LET a: Object := [NIL]
+print("\(a)")
+#= [null]
+
+LET d: Object := {"a": NIL}
+print("\(d)")
+#= {"a": null}

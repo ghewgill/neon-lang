@@ -1505,7 +1505,7 @@ class Executor {
     private void object__toString()
     {
         NeObject o = stack.removeFirst().getObject();
-        stack.addFirst(new Cell(o.toString()));
+        stack.addFirst(new Cell(o != null ? o.toString() : "null"));
     }
 
     private void odd()

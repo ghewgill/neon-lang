@@ -522,9 +522,9 @@ class InterpolatedStringExpression:
                   else ("TRUE" if x else "FALSE") if isinstance(x, bool)
                   else neon_str(env, x) if isinstance(x, (int, float))
                   else "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(b) for b in x.a)) if isinstance(x, bytes)
-                  else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e)) for e in x)) if isinstance(x, list)
-                  else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, str) else str(v))) for k, v in sorted(x.items())))) if isinstance(x, dict)
-                  else x.toString(env, x))
+                  else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e) if e is not None else "null") for e in x)) if isinstance(x, list)
+                  else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, str) else str(v) if v is not None else "null")) for k, v in sorted(x.items())))) if isinstance(x, dict)
+                  else x.toString(env, x)) if x is not None else "null"
             r += neon_format(env, s, f) if f else s
         return r
 
