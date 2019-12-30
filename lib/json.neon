@@ -215,7 +215,7 @@ END FUNCTION
  |  Encode a value in a <Object> to JSON data in a string.
  |#
 FUNCTION encode(data: Object): String
-    IF data.isNull() THEN
+    IF data = NIL THEN
         RETURN "null"
     END IF
     CASE data

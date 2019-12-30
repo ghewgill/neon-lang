@@ -1238,11 +1238,6 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_OBJECT, nullptr));
-        TYPE_OBJECT->methods["isNull"] = new PredefinedFunction("object__isNull", new TypeFunction(TYPE_BOOLEAN, params, false));
-    }
-    {
-        std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_OBJECT, nullptr));
         TYPE_OBJECT->methods["toString"] = new PredefinedFunction("object__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 

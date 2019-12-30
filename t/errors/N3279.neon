@@ -1,0 +1,3 @@
+VAR x: Object
+_ := x < NIL
+       #<

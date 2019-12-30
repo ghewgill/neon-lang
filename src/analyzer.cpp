@@ -2574,6 +2574,22 @@ ast::ComparisonExpression *Analyzer::analyze_comparison(const Token &token, cons
             }
         }
     }
+    if (left->type == ast::TYPE_OBJECT && dynamic_cast<const ast::TypePointer *>(right->type) != nullptr && dynamic_cast<const ast::TypePointer *>(right->type)->reftype == nullptr) {
+        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+            error(3279, token, "object can only be compared equal or not equal to NIL");
+        }
+        ast::Expression *r = new ast::FunctionCall(
+            new ast::VariableExpression(
+                dynamic_cast<const ast::PredefinedFunction *>(global_scope->lookupName("object__isNull"))
+            ),
+            {left}
+        );
+        if (comp == ast::ComparisonExpression::Comparison::NE) {
+            r = new ast::LogicalNotExpression(r);
+        }
+        // TODO: This cast is a terrible hack that will crash when used with chained comparisons.
+        return reinterpret_cast<ast::ComparisonExpression *>(r);
+    }
     error(3030, token, "type mismatch");
 }
 
