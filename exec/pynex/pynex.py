@@ -64,6 +64,10 @@ class Import:
 class Bytecode:
     def __init__(self, bytecode):
         i = 0
+
+        assert bytecode[i:i+4] == b"Ne\0n"
+        i += 4
+
         self.source_hash = bytecode[i:i+32]
         i += 32
         self.global_size, i = get_vint(bytecode, i)

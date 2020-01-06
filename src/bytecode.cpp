@@ -98,7 +98,16 @@ bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned
     try {
         size_t i = 0;
 
-        if (obj.size() < 32) {
+        if (i + 4 > obj.size()) {
+            throw BytecodeException();
+        }
+        std::string sig(&obj[i], &obj[i]+4);
+        if (sig != std::string("Ne\0n", 4)) {
+            throw BytecodeException();
+        }
+        i += 4;
+
+        if (i + 32 > obj.size()) {
             throw BytecodeException();
         }
         source_hash = std::string(&obj[i], &obj[i]+32);
@@ -249,6 +258,11 @@ bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned
 Bytecode::Bytes Bytecode::getBytes() const
 {
     std::vector<unsigned char> objret;
+
+    objret.push_back('N');
+    objret.push_back('e');
+    objret.push_back('\0');
+    objret.push_back('n');
 
     assert(source_hash.length() == 32);
     for (int i = 0; i < 32; i++) {

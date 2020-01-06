@@ -740,7 +740,12 @@ func get_strtable(bytes []byte) [][]byte {
 func make_bytecode(bytes []byte) bytecode {
 	r := bytecode{}
 	i := 0
-	r.source_hash = bytes[0:32]
+
+	sig := bytes[0:4]
+	assert(sig[0] == 0x4e && sig[1] == 0x65 && sig[2] == 0x00 && sig[3] == 0x6e, "signature not found")
+	i += 4
+
+	r.source_hash = bytes[i : i+32]
 	i += 32
 	r.global_size = get_vint(bytes, &i)
 	strtablesize := get_vint(bytes, &i)

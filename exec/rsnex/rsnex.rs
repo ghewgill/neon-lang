@@ -162,6 +162,9 @@ impl Bytecode {
             code: Vec::new(),
         };
         let mut i = 0;
+        let sig = &bytecode[i..i+4];
+        assert!(sig == b"Ne\0n");
+        i += 4;
         r.source_hash = bytecode[i..i+32].to_vec();
         i += 32;
         r.global_size = get_vint(&bytecode, &mut i);

@@ -108,7 +108,12 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
 
     assert(b != NULL);
 
-    memcpy(b->source_hash, bytecode, 32);
+    if (memcmp(bytecode, "Ne\0n", 4) != 0) {
+        fatal_error("Bytecode signature not found.");
+    }
+    i += 4;
+
+    memcpy(b->source_hash, bytecode+i, 32);
     i += 32;
     b->global_size = get_vint(bytecode, len, &i);
 

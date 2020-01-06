@@ -72,7 +72,10 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     LET a: Array<Number> := bytes.toArray()
     VAR i: Number := 0
 
-    r.sourceHash := bytes[0 TO 31]
+    ASSERT bytes[0 TO 3] = HEXBYTES "4e 65 00 6e"
+    i := i + 4
+
+    r.sourceHash := bytes[i TO i+31]
     i := i + 32
     r.globalSize := getVint(a, INOUT i)
 

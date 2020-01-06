@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 class Bytecode {
     class FunctionInfo {
@@ -31,6 +32,10 @@ class Bytecode {
     {
         int i;
         try {
+            byte[] sig = new byte[4];
+            in.readFully(sig);
+            assert Arrays.equals(sig, new byte[]{0x4e, 0x65, 0x00, 0x6e});
+
             in.readFully(new byte[32]);
             global_size = readVint(in);
             int strtablesize = readVint(in);
