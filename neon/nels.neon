@@ -1,0 +1,185 @@
+IMPORT json
+IMPORT net
+IMPORT string
+
+IMPORT lexer
+
+EXCEPTION JsonRpcException
+
+TYPE ClientState IS ENUM
+    header
+    body
+END ENUM
+
+TYPE Client IS RECORD
+    sock: net.Socket
+    state: ClientState
+    header: Bytes
+    remainingBody: Number
+    body: Bytes
+    tokens: Array<lexer.Token>
+END RECORD
+
+FUNCTION makeClient(sock: net.Socket): Client
+    VAR r: Client := Client()
+    r.sock := sock
+    r.state := ClientState.header
+    RETURN r
+END FUNCTION
+
+FUNCTION Client.handleRead(INOUT self: Client): Boolean
+    LET buf: Bytes := self.sock.recv(1000)
+    IF buf.size() <= 0 THEN
+        RETURN FALSE
+    END IF
+    VAR a: Array<Number> := buf.toArray()
+    WHILE a.size() > 0 DO
+        CASE self.state
+            WHEN ClientState.header DO
+                LET aa: Array<Number> := [a[0]]
+                self.header := self.header & aa.toBytes()
+                a := a[1 TO LAST]
+                IF self.header.size() > 4 AND self.header[LAST-3 TO LAST] = HEXBYTES "0d 0a 0d 0a" THEN
+                    LET headerlines: Array<String> := string.split(self.header.decodeToString(), "\r\n")
+                    VAR headers: Dictionary<String> := {}
+                    FOREACH h IN headerlines DO
+                        LET i: Number := string.find(h, ":")
+                        headers[string.lower(string.trim(h[FIRST TO i-1]))] := string.trim(h[i+1 TO LAST])
+                    END FOREACH
+                    self.remainingBody := num(headers["content-length"])
+                    self.body := HEXBYTES ""
+                    self.state := ClientState.body
+                END IF
+            WHEN ClientState.body DO
+                IF a.size() < self.remainingBody THEN
+                    self.body := self.body & a.toBytes()
+                    self.remainingBody := self.remainingBody - a.size()
+                    a := []
+                ELSE
+                    self.body := self.body & a[FIRST TO self.remainingBody-1].toBytes()
+                    a := a[self.remainingBody TO LAST]
+                    self.remainingBody := 0
+                END IF
+                IF self.remainingBody = 0 THEN
+                    LET request: Object := json.decode(self.body.decodeToString())
+                    print("\(request.method)")
+                    #print("request \(request)")
+                    VAR result: Object := NIL
+                    VAR error: Object := NIL
+                    TRY
+                        result := self.handleRequest(request)
+                    TRAP JsonRpcException AS ex DO
+                        error := {
+                            "code": ex.code,
+                            "message": ex.info
+                        }
+                    END TRY
+                    VAR response: Dictionary<Object> := {}
+                    TRY
+                        response["id"] := request.id
+                        IF NOT result.isNull() THEN
+                            response["result"] := result
+                        END IF
+                        IF NOT error.isNull() THEN
+                            response["error"] := error
+                        END IF
+                        LET buf2: Bytes := json.encode(response).toBytes()
+                        LET header: String := "Content-Length: \(buf.size())\r\n\r\n"
+                        self.sock.send(header.toBytes() & buf2)
+                    TRAP ObjectSubscriptException DO
+                    END TRY
+                    self.header := HEXBYTES ""
+                    self.state := ClientState.header
+                END IF
+        END CASE
+    END WHILE
+    RETURN TRUE
+END FUNCTION
+
+FUNCTION Client.handleRequest(INOUT self: Client, request: Object): Object
+    CHECK request.jsonrpc = "2.0" ELSE
+        RAISE JsonRpcException(info WITH "unknown jsonrpc version")
+    END CHECK
+    LET method: String := request.method
+    CASE method
+        WHEN "initialize" DO
+            RETURN self.handleInitialize(request)
+        WHEN "textDocument/definition" DO
+            RETURN self.handleDefinition(request)
+        WHEN "textDocument/didOpen" DO
+            RETURN self.handleDidOpen(request)
+        WHEN OTHERS DO
+            RAISE JsonRpcException(info WITH "unknown method")
+    END CASE
+END FUNCTION
+
+FUNCTION Client.handleInitialize(INOUT self: Client, request: Object): Object
+    print("processId \(request.params.processId)")
+    print("rootPath \(request.params.rootPath)")
+    print("rootUri \(request.params.rootUri)")
+    TRY
+        print("initializationOptions \(request.params.initializationOptions)")
+    TRAP ObjectSubscriptException DO
+        print("initializationOptions none")
+    END TRY
+    print("capabilities \(request.params.capabilities)")
+    RETURN {
+        "capabilities": {}
+    }
+END FUNCTION
+
+FUNCTION Client.handleDefinition(INOUT self: Client, request: Object): Object
+    FOREACH t IN self.tokens DO
+        IF t.line-1 = request.params.position.line AND
+           t.column-1 <= request.params.position.character <= t.column+t.text.length() THEN
+            print("\(t)")
+            EXIT FOREACH
+        END IF
+    END FOREACH
+    RETURN {
+        "uri": request.params.textDocument.uri,
+        "range": {
+            "start": {
+                "line": 0,
+                "character": 0
+            },
+            "end": {
+                "line": 0,
+                "character": 0
+            }
+        }
+    }
+END FUNCTION
+
+FUNCTION Client.handleDidOpen(INOUT self: Client, request: Object): Object
+    self.tokens := lexer.tokenize(request.params.textDocument.uri, request.params.textDocument.text)
+    print("tokens.size \(self.tokens.size())")
+    RETURN NIL
+END FUNCTION
+
+VAR clients: Array<Client> := []
+
+LET server: net.Socket := net.tcpSocket()
+server.listen(2090)
+LOOP
+    VAR read: Array<net.Socket> := [server]
+    FOREACH c IN clients DO
+        read.append(c.sock)
+    END FOREACH
+    VAR write: Array<net.Socket> := []
+    VAR error: Array<net.Socket> := []
+    IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN
+        IF server IN read THEN
+            print("new client")
+            clients.append(makeClient(server.accept()))
+        END IF
+        FOR i := clients.size()-1 TO 0 STEP -1 DO
+            IF clients[i].sock IN read THEN
+                IF NOT clients[i].handleRead() THEN
+                    clients[i].sock.close()
+                    clients[i TO i] := [] # TODO: array remove
+                END IF
+            END IF
+        END FOR
+    END IF
+END LOOP
