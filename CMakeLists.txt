@@ -750,6 +750,11 @@ foreach (SAMPLE ${SAMPLES})
             NAME "sample:${X}"
             COMMAND neonc ${SAMPLE}
         )
+        # TODO: various language features still not understood by neon/parser
+        #add_test(
+        #    NAME "sample.neon:${X}"
+        #    COMMAND neon neon/parser.neon ${SAMPLE}
+        #)
     else()
         message("skipping ${SAMPLE} due to missing ${MISSING_IMPORT}")
     endif()
