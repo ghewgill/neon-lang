@@ -1,0 +1,5 @@
+VAR a: Array<Number> := [1, 2, 3]
+a.remove(1)
+ASSERT a.size() = 2
+ASSERT a[0] = 1
+ASSERT a[1] = 3

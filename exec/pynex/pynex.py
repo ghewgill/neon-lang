@@ -963,6 +963,14 @@ def neon_array__range(self):
             i += step
     self.stack.append(Value(r))
 
+def neon_array__remove(self):
+    index = self.stack.pop().value
+    a = self.stack.pop().value
+    if not is_integer(index):
+        self.raise_literal("ArrayIndexException", (str(index), 0))
+        return
+    del a[int(index)]
+
 def neon_array__resize(self):
     size = self.stack.pop().value
     a = self.stack.pop().value

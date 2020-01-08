@@ -174,6 +174,12 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_NUMBER, nullptr));
+        methods["remove"] = new PredefinedFunction("array__remove", new TypeFunction(TYPE_NOTHING, params, false));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_NUMBER, nullptr));
         methods["resize"] = new PredefinedFunction("array__resize", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {

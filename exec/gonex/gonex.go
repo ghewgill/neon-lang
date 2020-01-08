@@ -1788,6 +1788,17 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_array(r))
 		}
+	case "array__remove":
+		index := self.pop().num
+		if index != math.Trunc(index) || index < 0 {
+			self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", index), 0})
+		} else {
+			index := int(index)
+			r := self.pop().ref
+			a := r.load().array
+			a = append(a[:index], a[index+1:]...)
+			r.store(make_cell_array(a))
+		}
 	case "array__resize":
 		size := self.pop().num
 		if size != math.Trunc(size) || size < 0 {

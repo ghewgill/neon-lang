@@ -294,7 +294,7 @@ FUNCTION Executor.pop(INOUT self: Executor): VALID POINTER TO Value
     CHECK VALID r ELSE
         RAISE InternalException
     END CHECK
-    self.stack[LAST TO LAST] := []
+    self.stack.resize(self.stack.size()-1)
     RETURN r
 END FUNCTION
 
@@ -341,7 +341,7 @@ FUNCTION Executor.raise_literal(INOUT self: Executor, exception: String, info: E
         END IF
         DEC sp
         IF self.frames.size() > 0 THEN
-            self.frames[LAST TO LAST] := []
+            self.frames.resize(self.frames.size()-1)
         END IF
         tip := self.callstack[sp]
     END LOOP
@@ -986,9 +986,11 @@ FUNCTION f_drop(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_ret(INOUT self: Executor)
-    self.frames[LAST TO LAST] := []
+    IF self.frames.size() > 0 THEN
+        self.frames.resize(self.frames.size()-1)
+    END IF
     self.ip := self.callstack[LAST]
-    self.callstack[LAST TO LAST] := []
+    self.callstack.resize(self.callstack.size()-1)
 END FUNCTION
 
 FUNCTION f_consa(INOUT self: Executor)

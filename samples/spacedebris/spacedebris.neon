@@ -171,7 +171,7 @@ FUNCTION update()
             INC s
         END WHILE
         IF gone THEN
-            rocks[i TO i] := []
+            rocks.remove(i)
         ELSE
             INC i
         END IF
@@ -184,7 +184,7 @@ FUNCTION update()
         IF shots[i].count > 0 THEN
             INC i
         ELSE
-            shots[i TO i] := []
+            shots.remove(i)
         END IF
     END WHILE
 END FUNCTION

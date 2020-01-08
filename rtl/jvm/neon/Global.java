@@ -50,6 +50,14 @@ public class Global {
         return r;
     }
 
+    public static Object[] array__remove(neon.type.Array self, neon.type.Number index) {
+        self.remove(index.intValue());
+        return new Object[] {
+            null,
+            self
+        };
+    }
+
     public static neon.type.Number array__size(neon.type.Array self) {
         return self.size_n();
     }

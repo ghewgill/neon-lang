@@ -23,6 +23,7 @@ class Executor {
         predefined.put("array__append", this::array__append);
         predefined.put("array__concat", this::array__concat);
         predefined.put("array__extend", this::array__extend);
+        predefined.put("array__remove", this::array__remove);
         predefined.put("array__size", this::array__size);
         predefined.put("array__slice", this::array__slice);
         predefined.put("array__splice", this::array__splice);
@@ -1112,6 +1113,13 @@ class Executor {
         List<Cell> v = stack.removeFirst().getArray();
         List<Cell> a = stack.removeFirst().getAddress().getArray();
         a.addAll(v);
+    }
+
+    private void array__remove()
+    {
+        int index = stack.removeFirst().getNumber().intValueExact();
+        List<Cell> a = stack.removeFirst().getAddress().getArray();
+        a.remove(index);
     }
 
     private void array__size()

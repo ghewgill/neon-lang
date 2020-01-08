@@ -22,6 +22,10 @@ neon = {
             return r;
         },
 
+        array__remove: function(self, index) {
+            array.splice(self, index);
+        },
+
         array__size: function(a) {
             return a.length;
         },

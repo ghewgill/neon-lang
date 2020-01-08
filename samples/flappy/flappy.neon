@@ -67,7 +67,7 @@ BEGIN MAIN
             pipes[i].x := pipes[i].x - 2
         END FOR
         WHILE pipes[0].x < -100 DO
-            pipes[0 TO 0] := []
+            pipes.remove(0)
         END WHILE
         WHILE pipes.size() < 5 DO
             VAR p: Pipe := Pipe()

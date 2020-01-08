@@ -62,7 +62,7 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
                 IF self.clients[i].socket IN read THEN
                     IF self.handle_incoming(INOUT self.clients[i]) THEN
                         self.clients[i].socket.close()
-                        self.clients[i TO i] := [] # TODO: need an array remove method
+                        self.clients.remove(i)
                     END IF
                 END IF
             END FOR

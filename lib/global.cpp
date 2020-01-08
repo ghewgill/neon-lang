@@ -57,6 +57,19 @@ std::vector<Number> array__range(Number first, Number last, Number step)
     return r;
 }
 
+void array__remove(Cell *self, Number index)
+{
+    if (not number_is_integer(index) || number_is_negative(index)) {
+        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(index)));
+    }
+    size_t i = number_to_uint64(index);
+    auto &a = self->array_for_write();
+    if (i >= a.size()) {
+        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(index)));
+    }
+    a.erase(a.begin() + i);
+}
+
 void array__resize(Cell *self, Number new_size)
 {
     if (not number_is_integer(new_size)) {

@@ -10,6 +10,7 @@ array-index-write.neon
 array-last-method.neon
 array-negative.neon
 array.neon
+array-remove.neon
 array-resize.neon
 arraysize.neon
 array-slice.neon

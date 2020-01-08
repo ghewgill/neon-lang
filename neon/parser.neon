@@ -781,7 +781,7 @@ END FUNCTION
 
 FUNCTION Parser.popMinimumIndent(INOUT self: Parser)
     self.minimumColumn := self.savedMinimumColumn[LAST]
-    self.savedMinimumColumn[LAST TO LAST] := []
+    self.savedMinimumColumn.resize(self.savedMinimumColumn.size()-1)
 END FUNCTION
 
 FUNCTION Parser.nextToken(INOUT self: Parser)

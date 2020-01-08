@@ -1,6 +1,7 @@
 array-fraction.neon        # exception
 array-last-method.neon     # string__append
 array-negative.neon        # exception
+array-remove.neon          # exception
 array-resize.neon          # array default item
 array-slice.neon           # ArrayReferenceRangeExpression
 array-tostring.neon        # array comparison

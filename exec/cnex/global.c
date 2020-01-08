@@ -200,6 +200,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("array__concat",             array__concat),
     PDFUNC("array__extend",             array__extend),
     PDFUNC("array__range",              array__range),
+    PDFUNC("array__remove",             array__remove),
     PDFUNC("array__resize",             array__resize),
     PDFUNC("array__size",               array__size),
     PDFUNC("array__slice",              array__slice),
@@ -560,6 +561,22 @@ void array__range(TExecutor *exec)
     }
 
     push(exec->stack, r);
+}
+
+void array__remove(TExecutor *exec)
+{
+    Number index = top(exec->stack)->number; pop(exec->stack);
+    Cell *addr = top(exec->stack)->address; pop(exec->stack);
+
+    if (!number_is_integer(index)) {
+        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(index), BID_ZERO);
+        return;
+    }
+
+    cell_ensureArray(addr);
+    size_t i = number_to_uint64(index);
+    cell_clearCell(&addr->array->data[i]);
+    array_removeItem(addr->array, i);
 }
 
 void array__resize(TExecutor *exec)

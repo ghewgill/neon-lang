@@ -2,6 +2,7 @@ array-append.neon           # array__append
 array-concat.neon           # array__concat
 array-extend.neon           # array__extend
 array-last-method.neon      # string__append
+array-remove.neon           # array__remove
 array-resize.neon           # array__resize
 array-slice.neon            # array__slice
 array-tostring.neon         # array__toString__number
