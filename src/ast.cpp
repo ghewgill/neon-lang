@@ -365,7 +365,13 @@ const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value
 
 const Expression *TypeRecord::make_default_value() const
 {
-    return new ArrayLiteralExpression(nullptr, {}, {});
+    std::vector<const Expression *> values;
+    std::vector<Token> tokens;
+    for (auto &f: fields) {
+        values.push_back(f.type->make_default_value());
+        tokens.push_back(Token());
+    }
+    return new ArrayLiteralExpression(nullptr, values, tokens);
 }
 
 std::string TypeRecord::serialize(const Expression *value) const
