@@ -141,7 +141,7 @@ const Expression *TypeBytes::deserialize_value(const Bytecode::Bytes &value, int
 
 const Expression *TypeObject::make_default_value() const
 {
-    return nullptr; // TODO
+    return new ConstantNilObject();
 }
 
 std::string TypeObject::serialize(const Expression *) const

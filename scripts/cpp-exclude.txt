@@ -240,6 +240,7 @@ object-null.neon
 object-null2.neon
 object-operator.neon
 object-record.neon
+object-record-default.neon
 object-subscript.neon
 os-test.neon
 outer2.neon

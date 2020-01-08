@@ -64,6 +64,7 @@ public:
     virtual void visit(const class ConstantEnumExpression *node) = 0;
     virtual void visit(const class ConstantNilExpression *node) = 0;
     virtual void visit(const class ConstantNowhereExpression *node) = 0;
+    virtual void visit(const class ConstantNilObject *node) = 0;
     virtual void visit(const class TypeConversionExpression *node) = 0;
     virtual void visit(const class ArrayLiteralExpression *node) = 0;
     virtual void visit(const class DictionaryLiteralExpression *node) = 0;
@@ -1119,6 +1120,19 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ConstantNowhereExpression"; }
+};
+
+class ConstantNilObject: public Expression {
+public:
+    ConstantNilObject(): Expression(new TypeObject(), true) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual bool eval_boolean() const override { internal_error("ConstantNilObject"); }
+    virtual Number eval_number() const override { internal_error("ConstantNilObject"); }
+    virtual utf8string eval_string() const override { internal_error("ConstantNilObject"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "ConstantNilObject"; }
 };
 
 class TypeConversionExpression: public Expression {

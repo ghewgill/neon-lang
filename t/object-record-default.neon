@@ -1,0 +1,5 @@
+TYPE Rec IS RECORD
+    a: Object
+END RECORD
+
+LET r: Rec := Rec()

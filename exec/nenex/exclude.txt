@@ -92,6 +92,7 @@ object-null.neon            # object__makeNull
 object-null2.neon           # object__makeNull
 object-operator.neon        # object__makeNumber
 object-record.neon          # object__makeString
+object-record-default.neon  # object__makeNull
 object-subscript.neon       # object__makeNumber
 object.neon                 # exception Utf8DecodingException
 os-test.neon                # os$system

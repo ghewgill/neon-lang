@@ -3204,6 +3204,7 @@ public:
     virtual void visit(const ast::ConstantEnumExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
+    virtual void visit(const ast::ConstantNilObject *) {}
     virtual void visit(const ast::TypeConversionExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
@@ -3328,6 +3329,7 @@ public:
     virtual void visit(const ast::ConstantEnumExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
+    virtual void visit(const ast::ConstantNilObject *) {}
     virtual void visit(const ast::TypeConversionExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
@@ -3452,6 +3454,7 @@ public:
     virtual void visit(const ast::ConstantEnumExpression *node) { r = new ConstantEnumExpression(node); }
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
     virtual void visit(const ast::ConstantNowhereExpression *node) { r = new ConstantNowhereExpression(node); }
+    virtual void visit(const ast::ConstantNilObject *) { internal_error("ConstantNilObject"); }
     virtual void visit(const ast::TypeConversionExpression *node) { r = new TypeConversionExpression(node); }
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
@@ -3576,6 +3579,7 @@ public:
     virtual void visit(const ast::ConstantEnumExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
+    virtual void visit(const ast::ConstantNilObject *) {}
     virtual void visit(const ast::TypeConversionExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}

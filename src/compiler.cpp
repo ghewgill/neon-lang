@@ -1339,6 +1339,11 @@ void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
     emitter.emit(PUSHFP, 0);
 }
 
+void ast::ConstantNilObject::generate_expr(Emitter &emitter) const
+{
+    emitter.emit(CALLP, emitter.str("object__makeNull"));
+}
+
 void ast::TypeConversionExpression::generate_expr(Emitter &emitter) const
 {
     expr->generate(emitter);
