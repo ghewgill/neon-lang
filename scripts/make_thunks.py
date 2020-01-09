@@ -15,7 +15,7 @@ AstFromNeon = {
     "Boolean": ("TYPE_BOOLEAN", VALUE),
     "Number": ("TYPE_NUMBER", VALUE),
     "INOUT Number": ("TYPE_NUMBER", REF),
-    "OUT Number": ("TYPE_NUMBER", REF),
+    "OUT Number": ("TYPE_NUMBER", OUT),
     "String": ("TYPE_STRING", VALUE),
     "INOUT String": ("TYPE_STRING", REF),
     "OUT String": ("TYPE_STRING", OUT),
@@ -47,6 +47,7 @@ CppFromAstParam = {
     ("TYPE_BOOLEAN", REF): "bool *",
     ("TYPE_NUMBER", VALUE): "Number",
     ("TYPE_NUMBER", REF): "Number *",
+    ("TYPE_NUMBER", OUT): "Number",
     ("TYPE_STRING", VALUE): "const utf8string &",
     ("TYPE_STRING", REF): "utf8string *",
     ("TYPE_STRING", OUT): "utf8string",
@@ -100,6 +101,7 @@ CppFromAstArg = {
     ("TYPE_BOOLEAN", REF): "bool *",
     ("TYPE_NUMBER", VALUE): "Number",
     ("TYPE_NUMBER", REF): "Number *",
+    ("TYPE_NUMBER", OUT): "Number *",
     ("TYPE_STRING", VALUE): "const utf8string &",
     ("TYPE_STRING", REF): "utf8string *",
     ("TYPE_STRING", OUT): "utf8string *",
@@ -129,6 +131,7 @@ JvmFromAst = {
     ("TYPE_BOOLEAN", VALUE): "Ljava/lang/Boolean;",
     ("TYPE_NUMBER", VALUE): "Lneon/type/Number;",
     ("TYPE_NUMBER", REF): "Lneon/type/Number;",
+    ("TYPE_NUMBER", OUT): "Lneon/type/Number;", # TODO
     ("TYPE_STRING", VALUE): "Ljava/lang/String;",
     ("TYPE_STRING", REF): "Ljava/lang/String;",
     ("TYPE_STRING", OUT): "Ljava/lang/String;", # TODO

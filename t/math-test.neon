@@ -74,7 +74,7 @@ print(str(math.exp2(3)))
 print(str(math.expm1(0)))
 #= 0
 
-print(str(math.frexp(1/80, INOUT exp)))
+print(str(math.frexp(1/80, OUT exp)))
 print(str(exp))
 #= 0.125
 #= -1

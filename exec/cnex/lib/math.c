@@ -137,14 +137,13 @@ void math_floor(TExecutor *exec)
 
 void math_frexp(TExecutor *exec)
 {
-    Cell *cexp = top(exec->stack)->address; pop(exec->stack);
     Number x = top(exec->stack)->number; pop(exec->stack);
 
     int iexp;
     Number r = number_frexp(x, &iexp);
-    cexp->number = number_from_sint32(iexp);
 
     push(exec->stack, cell_fromNumber(r));
+    push(exec->stack, cell_fromNumber(number_from_sint32(iexp)));
 }
 
 void math_hypot(TExecutor *exec)
