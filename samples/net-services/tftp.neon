@@ -1,0 +1,121 @@
+# Sample TFTP server.
+#
+# Only supports reading files (tftp "get").
+# TFTP is specified in RFC 1350.
+
+IMPORT io
+IMPORT net
+IMPORT string
+IMPORT struct
+
+CONSTANT Type_RRQ: Number := 1
+CONSTANT Type_WRQ: Number := 2
+CONSTANT Type_DATA: Number := 3
+CONSTANT Type_ACK: Number := 4
+CONSTANT Type_ERROR: Number := 5
+
+TYPE Client IS RECORD
+    remote_addr: String
+    remote_port: Number
+    file: io.File
+    socket: net.Socket
+    block_number: Number
+    packet: Bytes
+    last_packet: Boolean
+END RECORD
+
+FUNCTION makeClient(remote_address: String, remote_port: Number, filename: String, mode: String): Client
+    VAR c: Client := Client()
+    c.remote_addr := remote_address
+    c.remote_port := remote_port
+    c.file := io.open(filename, io.Mode.read)
+    c.socket := net.udpSocket()
+    c.socket.connect(remote_address, remote_port)
+    c.block_number := 0
+    c.last_packet := FALSE
+    c.sendNextBlock()
+    RETURN c
+END FUNCTION
+
+FUNCTION Client.close(INOUT self: Client)
+    self.socket.close()
+    io.close(self.file)
+END FUNCTION
+
+FUNCTION Client.handleRead(INOUT self: Client): Boolean
+    LET buf: Bytes := self.socket.recv(1024)
+    LET a: Array<Number> := buf.toArray()
+    IF a[0] = 0 THEN
+        IF a[1] = Type_ACK THEN
+            LET block: Number := struct.unpackInt16BE(a[2 TO 3].toBytes())
+            IF block = self.block_number THEN
+                IF NOT self.last_packet THEN
+                    self.sendNextBlock()
+                ELSE
+                    RETURN FALSE
+                END IF
+            ELSE
+                print("unexpected ack, got \(block) but expected \(self.block_number)")
+            END IF
+            RETURN TRUE
+        ELSE
+            print("unexpected packet type")
+        END IF
+    ELSE
+        print("unknown packet type")
+    END IF
+    RETURN FALSE
+END FUNCTION
+
+FUNCTION Client.sendNextBlock(INOUT self: Client)
+    INC self.block_number
+    LET block: Bytes := io.readBytes(self.file, 512)
+    self.packet := struct.packInt16BE(Type_DATA) & struct.packInt16BE(self.block_number) & block
+    self.socket.send(self.packet)
+    self.last_packet := block.size() < 512
+END FUNCTION
+
+VAR clients: Array<Client> := []
+
+LET server: net.Socket := net.udpSocket()
+server.bind("", 10069)
+LOOP
+    VAR read: Array<net.Socket> := [server]
+    FOREACH c IN clients DO
+        read.append(c.socket)
+    END FOREACH
+    VAR write: Array<net.Socket> := []
+    VAR error: Array<net.Socket> := []
+    IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN
+        IF server IN read THEN
+            VAR remote_address: String
+            VAR remote_port: Number
+            LET data: Bytes := server.recvfrom(1024, OUT remote_address, OUT remote_port)
+            LET a: Array<Number> := data.toArray()
+            IF a[0] = 0 THEN
+                IF a[1] = Type_RRQ THEN
+                    LET s: String := a[2 TO LAST].toBytes().decodeToString()
+                    LET args: Array<String> := string.split(s, chr(0))
+                    IF args.size() = 2 THEN
+                        VAR c: Client := makeClient(remote_address, remote_port, filename WITH args[0], mode WITH args[1])
+                        clients.append(c)
+                    ELSE
+                        print("invalid RRQ packet format")
+                    END IF
+                ELSE
+                    print("unsupported packet type")
+                END IF
+            ELSE
+                print("unknown packet type")
+            END IF
+        END IF
+        FOR i := clients.size()-1 TO 0 STEP -1 DO
+            IF clients[i].socket IN read THEN
+                IF NOT clients[i].handleRead() THEN
+                    clients[i].close()
+                    clients.remove(i)
+                END IF
+            END IF
+        END FOR
+    END IF
+END LOOP
