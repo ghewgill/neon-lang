@@ -43,6 +43,7 @@ DECLARE NATIVE FUNCTION socket_close(handle: Handle)
 DECLARE NATIVE FUNCTION socket_connect(handle: Handle, host: String, port: Number)
 DECLARE NATIVE FUNCTION socket_listen(handle: Handle, port: Number)
 DECLARE NATIVE FUNCTION socket_recv(handle: Handle, count: Number): Bytes
+DECLARE NATIVE FUNCTION socket_recvfrom(handle: Handle, count: Number, OUT remote_address: String, OUT remote_port: Number): Bytes
 DECLARE NATIVE FUNCTION socket_send(handle: Handle, data: Bytes)
 DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
 
@@ -109,6 +110,15 @@ END FUNCTION
  |#
 FUNCTION Socket.recv(self: Socket, count: Number): Bytes
     RETURN socket_recv(self.handle, count)
+END FUNCTION
+
+#|
+ |  Function: Socket.recvfrom
+ |
+ |  Receive (read) bytes from a socket, also returning the remote address where they came from.
+ |#
+FUNCTION Socket.recvfrom(self: Socket, count: Number, OUT remote_address: String, OUT remote_port: Number): Bytes
+    RETURN socket_recvfrom(self.handle, count, OUT remote_address, OUT remote_port)
 END FUNCTION
 
 #|

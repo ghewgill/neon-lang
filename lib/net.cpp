@@ -151,6 +151,24 @@ std::vector<unsigned char> socket_recv(Cell &handle, Number count)
     return buf;
 }
 
+std::vector<unsigned char> socket_recvfrom(Cell &handle, Number count, utf8string *remote_address, Number *remote_port)
+{
+    SOCKET s = number_to_sint32(handle.number());
+    int n = number_to_sint32(count);
+    std::vector<unsigned char> buf(n);
+    struct sockaddr_in sin;
+    socklen_t sin_len = sizeof(sin);
+    int r = recvfrom(s, reinterpret_cast<char *>(const_cast<unsigned char *>(buf.data())), n, 0, reinterpret_cast<sockaddr *>(&sin), &sin_len);
+    if (r < 0) {
+        perror("recvfrom");
+        return std::vector<unsigned char>();
+    }
+    buf.resize(r);
+    *remote_address = utf8string(inet_ntoa(sin.sin_addr));
+    *remote_port = number_from_uint32(ntohs(sin.sin_port));
+    return buf;
+}
+
 void socket_send(Cell &handle, const std::vector<unsigned char> &data)
 {
     SOCKET s = number_to_sint32(handle.number());
