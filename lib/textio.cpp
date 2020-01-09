@@ -4,6 +4,7 @@
 #ifdef _WIN32
 #include <io.h>
 #endif
+#include <errno.h>
 #include <iso646.h>
 #include <stdio.h>
 #include <string>
@@ -58,7 +59,11 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
         default:
             return NULL;
     }
-    return std::shared_ptr<Object> { new TextFileObject(fopen(name.c_str(), m)) };
+    FILE *f = fopen(name.c_str(), m);
+    if (f == NULL) {
+        throw RtlException(Exception_TextioException_Open, utf8string("open error"), errno);
+    }
+    return std::shared_ptr<Object> { new TextFileObject(f) };
 }
 
 bool readLine(const std::shared_ptr<Object> &pf, utf8string *s)

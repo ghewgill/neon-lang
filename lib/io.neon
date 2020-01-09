@@ -72,6 +72,13 @@ EXCEPTION IoException
 EXCEPTION IoException.InvalidFile
 
 #|
+ |  Exception: IoException.Open
+ |
+ |  File was unable to be opened.
+ |#
+EXCEPTION IoException.Open
+
+#|
  |  Exception: IoException.Write
  |
  |  An error occurred while writing to a file.

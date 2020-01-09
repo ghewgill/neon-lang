@@ -11,6 +11,7 @@
 #include <io.h>
 #endif
 #include <assert.h>
+#include <errno.h>
 #include <iso646.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,7 +70,12 @@ void textio_open(TExecutor *exec)
             return;
     }
 
-    Object *r = object_createFileObject(fopen(pszName, m));
+    FILE *f = fopen(pszName, m);
+    if (f == NULL) {
+        exec->rtl_raise(exec, "TextioException.Open", "", number_from_sint32(errno));
+        return;
+    }
+    Object *r = object_createFileObject(f);
     free(pszName);
 
     push(exec->stack, cell_fromObject(r));

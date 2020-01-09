@@ -53,6 +53,13 @@ EXCEPTION TextioException
 EXCEPTION TextioException.InvalidFile
 
 #|
+ |  Exception: TextioException.Open
+ |
+ |  File was unable to be opened.
+ |#
+EXCEPTION TextioException.Open
+
+#|
  |  Exception: TextioException.Write
  |
  |  An error occurred while writing to a file.

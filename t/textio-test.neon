@@ -4,6 +4,13 @@ IMPORT random
 textio.writeLine(textio.stdout, "Hello World")
 #= Hello World
 
+TRY
+    _ := textio.open("nonexistent.file", textio.Mode.read)
+    ASSERT FALSE
+TRAP textio.TextioException.Open DO
+    ASSERT TRUE
+END TRY
+
 VAR f: textio.TextFile := textio.open("LICENSE.txt", textio.Mode.read)
 VAR s: String := ""
 print("\(textio.readLine(f, OUT s))")

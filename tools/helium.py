@@ -2802,7 +2802,10 @@ def neon_io_fprint(env, f, s):
     print(s, file=f)
 
 def neon_io_open(env, fn, mode):
-    return open(fn, "wb" if mode.name == "write" else "rb")
+    try:
+        return open(fn, "wb" if mode.name == "write" else "rb")
+    except OSError:
+        raise NeonException(["IoException", "Open"], "open error")
 
 def neon_io_readBytes(env, f, count):
     r = ClassBytes().default(env)
@@ -3011,7 +3014,10 @@ def neon_textio_close(env, f):
     return (None, None)
 
 def neon_textio_open(env, fn, mode):
-    return open(fn, "w" if mode.name == "write" else "r")
+    try:
+        return open(fn, "w" if mode.name == "write" else "r")
+    except OSError:
+        raise NeonException(["TextioException", "Open"], "open error")
 
 def neon_textio_readLine(env, f, r):
     r = f.readline()
