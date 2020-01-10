@@ -285,6 +285,7 @@ repl_constant.neon
 repl_enum_tostring.neon
 repl_for.neon
 repl_function.neon
+repl_function2.neon
 repl_import.neon
 return-case2.neon
 return-case.neon
