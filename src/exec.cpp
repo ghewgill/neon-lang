@@ -125,6 +125,7 @@ public:
     // Module: runtime
     void garbage_collect();
     size_t get_allocated_object_count();
+    bool is_module_imported(const std::string &module);
     bool module_is_main();
     void set_garbage_collection_interval(size_t count);
     void set_recursion_limit(size_t depth);
@@ -1883,6 +1884,11 @@ size_t Executor::get_allocated_object_count()
     return allocs.size();
 }
 
+bool Executor::is_module_imported(const std::string &module)
+{
+    return module == "XXX";
+}
+
 bool Executor::module_is_main()
 {
     return module == modules[""];
@@ -2287,6 +2293,11 @@ void executor_garbage_collect()
 size_t executor_get_allocated_object_count()
 {
     return g_executor->get_allocated_object_count();
+}
+
+bool executor_is_module_imported(const std::string &module)
+{
+    return g_executor->is_module_imported(module);
 }
 
 bool executor_module_is_main()

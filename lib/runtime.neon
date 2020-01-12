@@ -8,6 +8,7 @@ EXPORT assertionsEnabled
 EXPORT executorName
 EXPORT garbageCollect
 EXPORT getAllocatedObjectCount
+EXPORT isModuleImported
 EXPORT moduleIsMain
 EXPORT setGarbageCollectionInterval
 EXPORT setRecursionLimit
@@ -43,6 +44,13 @@ DECLARE NATIVE FUNCTION garbageCollect()
  |  objects that may be eligible for garbage collection.
  |#
 DECLARE NATIVE FUNCTION getAllocatedObjectCount(): Number
+
+#|
+ |  Function: isModuleImported
+ |
+ |  Return TRUE if the named module is imported.
+ |#
+DECLARE NATIVE FUNCTION isModuleImported(module: String): Boolean
 
 #|
  |  Function: moduleIsMain

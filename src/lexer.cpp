@@ -150,6 +150,7 @@ std::string Token::tostring() const
         case ISA:         s << "ISA"; break;
         case ELLIPSIS:    s << "ELLIPSIS"; break;
         case OPTIONAL:    s << "OPTIONAL"; break;
+        case IMPORTED:    s << "IMPORTED"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -397,6 +398,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "UNUSED") t.type = UNUSED;
             else if (t.text == "ISA") t.type = ISA;
             else if (t.text == "OPTIONAL") t.type = OPTIONAL;
+            else if (t.text == "IMPORTED") t.type = IMPORTED;
             else if (all_upper(t.text)) {
                 t.type = UNKNOWN;
             } else if (t.text.find("__") != std::string::npos) {

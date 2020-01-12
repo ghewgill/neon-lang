@@ -1,2 +1,5 @@
-IMPORT OPTIONAL missing
-missing.foo()
+IMPORT OPTIONAL maybe
+IF IMPORTED maybe THEN
+    maybe.foo()
+END IF
+maybe.bar()

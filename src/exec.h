@@ -17,6 +17,7 @@ void executor_log(const std::string &message);
 bool executor_assertions_enabled();
 void executor_garbage_collect();
 size_t executor_get_allocated_object_count();
+bool executor_is_module_imported(const std::string &module);
 bool executor_module_is_main();
 void executor_set_garbage_collection_interval(size_t count);
 void executor_set_recursion_limit(size_t depth);

@@ -26,7 +26,7 @@ TypeDictionary *TYPE_DICTIONARY_OBJECT = new TypeDictionary(Token(), TYPE_OBJECT
 TypeModule *TYPE_MODULE = new TypeModule();
 TypeException *TYPE_EXCEPTION = new TypeException();
 TypeInterface *TYPE_INTERFACE = new TypeInterface();
-Module *MODULE_MISSING = new Module(Token(), new Scope(nullptr, nullptr), "");
+Module *MODULE_MISSING = new Module(Token(), new Scope(nullptr, nullptr), "", false);
 
 void AstNode::dump(std::ostream &out, int depth) const
 {

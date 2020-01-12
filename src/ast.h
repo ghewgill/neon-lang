@@ -2747,12 +2747,13 @@ public:
 
 class Module: public Name {
 public:
-    Module(const Token &declaration, Scope *scope, const std::string &name): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope, scope->frame)) {}
+    Module(const Token &declaration, Scope *scope, const std::string &name, bool optional): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope, scope->frame)), optional(optional) {}
     Module(const Module &) = delete;
     Module &operator=(const Module &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Scope *scope;
+    bool optional;
 
     virtual void reset() override { for (size_t i = 0; i < scope->frame->getCount(); i++) { scope->frame->getSlot(i).ref->reset(); } }
     virtual void predeclare(Emitter &emitter) const override;

@@ -61,6 +61,7 @@ class ConditionalExpression;
 class TryExpression;
 class NewClassExpression;
 class ValidPointerExpression;
+class ImportedModuleExpression;
 class RangeSubscriptExpression;
 
 class ImportDeclaration;
@@ -155,6 +156,7 @@ public:
     virtual void visit(const TryExpression *) = 0;
     virtual void visit(const NewClassExpression *) = 0;
     virtual void visit(const ValidPointerExpression *) = 0;
+    virtual void visit(const ImportedModuleExpression *) = 0;
     virtual void visit(const RangeSubscriptExpression *) = 0;
 
     virtual void visit(const ImportDeclaration *) = 0;
@@ -616,6 +618,13 @@ public:
     explicit ValidPointerExpression(const Token &token, std::vector<std::unique_ptr<Clause>> &&tests): Expression(token, tests.front()->expr->get_start_token(), tests.back()->expr->get_end_token()), tests(std::move(tests)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::unique_ptr<Clause>> tests;
+};
+
+class ImportedModuleExpression: public Expression {
+public:
+    explicit ImportedModuleExpression(const Token &token, const Token &module): Expression(token, token, module), module(module) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token module;
 };
 
 class ArrayRange {

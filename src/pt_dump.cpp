@@ -230,6 +230,9 @@ public:
             child(x->expr.get());
         }
     }
+    virtual void visit(const ImportedModuleExpression *node) override {
+        write("ImportedModuleExpression(" + node->module.text + ")");
+    }
     virtual void visit(const RangeSubscriptExpression *node) override {
         write("RangeSubscriptExpression");
         child(node->base.get());
