@@ -1884,9 +1884,9 @@ size_t Executor::get_allocated_object_count()
     return allocs.size();
 }
 
-bool Executor::is_module_imported(const std::string &module)
+bool Executor::is_module_imported(const std::string &mod)
 {
-    return module == "XXX";
+    return mod == "XXX";
 }
 
 bool Executor::module_is_main()
