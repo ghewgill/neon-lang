@@ -2023,7 +2023,7 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
     const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat")));
     const ast::Module *string = dynamic_cast<const ast::Module *>(scope.top()->lookupName("string"));
     if (string == nullptr) {
-        ast::Module *module = import_module(Token(), "string");
+        ast::Module *module = import_module(Token(), "string", false);
         rtl_import("string", module);
         global_scope->addName(Token(IDENTIFIER, "string"), "string", module, true);
         string = module;
