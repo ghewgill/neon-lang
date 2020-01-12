@@ -34,7 +34,7 @@ RuntimeSupport support(".");
 void get_modules(const Bytecode &obj, std::map<std::string, Bytecode> &modules)
 {
     for (auto x: obj.imports) {
-        std::string name = obj.strtable[x.first];
+        std::string name = obj.strtable[x.name];
         if (modules.find(name) == modules.end()) {
             Bytecode bytecode;
             if (support.loadBytecode(name, bytecode)) {

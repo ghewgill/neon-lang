@@ -962,7 +962,7 @@ void Disassembler::disassemble()
 
     out << "Imports " << obj.imports.size() << ":\n";
     for (auto i: obj.imports) {
-        out << "  " << obj.strtable[i.first] << "\n";
+        out << "  " << obj.strtable[i.name] << "\n";
     }
 
     out << "Functions:\n";

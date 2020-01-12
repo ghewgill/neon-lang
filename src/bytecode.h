@@ -63,6 +63,12 @@ public:
         std::vector<std::pair<unsigned int, unsigned int>> method_descriptors;
     };
 
+    struct ModuleImport {
+        ModuleImport(): name(0), hash() {}
+        unsigned int name;
+        std::string hash;
+    };
+
     struct FunctionInfo {
         FunctionInfo(): name(0), nest(0), params(0), locals(0), entry(0) {}
         FunctionInfo(unsigned int name, unsigned int nest, unsigned int params, unsigned int locals, unsigned int entry): name(name), nest(nest), params(params), locals(locals), entry(entry) {}
@@ -98,7 +104,7 @@ public:
     std::vector<Function> export_functions;
     std::vector<ExceptionExport> export_exceptions;
     std::vector<Interface> export_interfaces;
-    std::vector<std::pair<unsigned int, std::string>> imports;
+    std::vector<ModuleImport> imports;
     std::vector<FunctionInfo> functions;
     std::vector<ExceptionInfo> exceptions;
     std::vector<ClassInfo> classes;
