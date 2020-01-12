@@ -519,11 +519,14 @@ void Emitter::add_import(const std::string &name)
 {
     unsigned int index = str(name);
     for (auto i: object.imports) {
-        if (i.first == index) {
+        if (i.name == index) {
             return;
         }
     }
-    object.imports.push_back(std::make_pair(index, std::string(32, '0')));
+    Bytecode::ModuleImport imp;
+    imp.name = index;
+    imp.hash = std::string(32, '0');
+    object.imports.push_back(imp);
 }
 
 std::string Emitter::get_type_reference(const ast::Type *type)

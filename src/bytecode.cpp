@@ -192,12 +192,12 @@ bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned
 
         unsigned int importsize = get_vint(obj, i);
         while (importsize > 0) {
-            std::pair<unsigned int, std::string> imp;
-            imp.first = get_vint(obj, i);
+            ModuleImport imp;
+            imp.name = get_vint(obj, i);
             if (i+32 > obj.size()) {
                 throw BytecodeException();
             }
-            imp.second = std::string(&obj[i], &obj[i]+32);
+            imp.hash = std::string(&obj[i], &obj[i]+32);
             i += 32;
             imports.push_back(imp);
             importsize--;
@@ -324,10 +324,10 @@ Bytecode::Bytes Bytecode::getBytes() const
 
     put_vint_size(objret, imports.size());
     for (auto i: imports) {
-        put_vint(objret, i.first);
-        assert(i.second.length() == 32);
+        put_vint(objret, i.name);
+        assert(i.hash.length() == 32);
         for (int j = 0; j < 32; j++) {
-            objret.push_back(i.second[j]);
+            objret.push_back(i.hash[j]);
         }
     }
 

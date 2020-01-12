@@ -578,7 +578,7 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
     module_functions()
 {
     for (auto i: object.imports) {
-        std::string importname = object.strtable[i.first];
+        std::string importname = object.strtable[i.name];
         if (executor->modules.find(importname) != executor->modules.end()) {
             continue;
         }
