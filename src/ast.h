@@ -872,6 +872,8 @@ public:
 class ModuleVariable: public Variable {
 public:
     ModuleVariable(const Module *module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, true), module(module), index(index) {}
+    ModuleVariable(const ModuleVariable &) = delete;
+    ModuleVariable &operator=(const ModuleVariable &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Module *module;
     const int index;
@@ -2728,6 +2730,8 @@ public:
 class ModuleFunction: public BaseFunction {
 public:
     ModuleFunction(const ast::Module *module, const std::string &name, const TypeFunction *ftype, const std::string &descriptor): BaseFunction(Token(), name, ftype), module(module), name(name), descriptor(descriptor) {}
+    ModuleFunction(const ModuleFunction &) = delete;
+    ModuleFunction &operator=(const ModuleFunction &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ast::Module *module;
