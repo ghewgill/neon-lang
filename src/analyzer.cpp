@@ -36,7 +36,6 @@ public:
     std::stack<std::pair<const ast::Type *, const ast::TypeFunction *>> functiontypes;
     std::stack<std::list<std::pair<std::string, unsigned int>>> loops;
     std::stack<std::set<std::string>> imported_checked_stack;
-    std::set<std::string> imported_checked_modules;
 
     const ast::Type *analyze(const pt::Type *type, const std::string &name = std::string());
     const ast::Type *analyze(const pt::TypeSimple *type, const std::string &name);
@@ -1097,8 +1096,7 @@ Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::m
     exports(),
     functiontypes(),
     loops(),
-    imported_checked_stack(),
-    imported_checked_modules()
+    imported_checked_stack()
 {
 }
 
@@ -1838,7 +1836,7 @@ const ast::Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
         const ast::Name *name = scope.top()->lookupName(ident->name);
         const ast::Module *module = dynamic_cast<const ast::Module *>(name);
         if (module != nullptr) {
-            if (module == ast::MODULE_MISSING || (module->optional && imported_checked_modules.find(ident->name) == imported_checked_modules.end())) {
+            if (module == ast::MODULE_MISSING || (module->optional && (imported_checked_stack.empty() || imported_checked_stack.top().find(ident->name) == imported_checked_stack.top().end()))) {
                 error(3281, ident->token, "optional module not checked with IF IMPORTED");
             }
         }
@@ -2790,7 +2788,7 @@ const ast::Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*ex
 
 const ast::Expression *Analyzer::analyze(const pt::ImportedModuleExpression * /*expr*/)
 {
-    // This should never happend because ImportedModuleExpression is handled elsewhere.
+    // This should never happen because ImportedModuleExpression is handled elsewhere.
     internal_error("TODO pt::Expression");
 }
 
@@ -4917,8 +4915,12 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
                     new ast::VariableExpression(dynamic_cast<const ast::PredefinedFunction *>(runtime->scope->lookupName("isModuleImported"))),
                     { new ast::ConstantStringExpression(utf8string(imported->module.text)) }
                 );
-                imported_checked_stack.push(imported_checked_modules);
-                imported_checked_modules.insert(imported->module.text);
+                if (imported_checked_stack.empty()) {
+                    imported_checked_stack.push({});
+                } else {
+                    imported_checked_stack.push(imported_checked_stack.top());
+                }
+                imported_checked_stack.top().insert(imported->module.text);
                 imported_checked = true;
             } else {
                 cond = new ast::ConstantBooleanExpression(false);
@@ -4937,7 +4939,6 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         }
         scope.pop();
         if (imported_checked) {
-            imported_checked_modules = imported_checked_stack.top();
             imported_checked_stack.pop();
         }
     }
