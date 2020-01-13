@@ -1332,9 +1332,10 @@ class Program:
             s.declare(env)
         for s in self.statements:
             s.run(env)
-        main = env.names.get("MAIN")
-        if main is not None:
-            main[1](env)
+        if self.env.module_name is None:
+            main = env.names.get("MAIN")
+            if main is not None:
+                main[1](env)
 
 class Parser:
     def __init__(self, tokens):
