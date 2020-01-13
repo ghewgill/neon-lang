@@ -20,7 +20,7 @@ void runtime_isModuleImported(TExecutor *exec)
 {
     TString *name = top(exec->stack)->string;
     int r = 0;
-    for (int i = 0; i < exec->module_count; i++) {
+    for (unsigned int i = 0; i < exec->module_count; i++) {
         TString *modname = string_createCString(exec->modules[i]->name);
         r = string_compareString(name, modname);
         string_freeString(modname);
