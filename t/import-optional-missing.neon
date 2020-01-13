@@ -1,4 +1,5 @@
 IMPORT OPTIONAL missing
 IF IMPORTED missing THEN
+    missing.f()
     ASSERT FALSE
 END IF
