@@ -700,8 +700,9 @@ type function struct {
 }
 
 type imported struct {
-	name int
-	hash []byte
+	name     int
+	optional bool
+	hash     []byte
 }
 
 type classinfo struct {
@@ -819,6 +820,7 @@ func make_bytecode(bytes []byte) bytecode {
 	for importsize > 0 {
 		imp := imported{}
 		imp.name = get_vint(bytes, &i)
+		imp.optional = get_vint(bytes, &i) != 0
 		imp.hash = bytes[i : i+32]
 		i += 32
 		r.imports = append(r.imports, imp)
@@ -2473,6 +2475,10 @@ func (self *executor) op_callp() {
 		self.push(make_cell_bool(true)) // TODO: enable_assertions
 	case "runtime$executorName":
 		self.push(make_cell_str("gonex"))
+	case "runtime$isModuleImported":
+		name := self.pop().str
+		_, found := self.modules[name]
+		self.push(make_cell_bool(found))
 	case "runtime$moduleIsMain":
 		self.push(make_cell_bool(self.module == self.modules[""]))
 	case "runtime$setRecursionLimit":

@@ -1359,7 +1359,7 @@ std::unique_ptr<Statement> Parser::parseIfStatement()
             auto &tok_imported = tokens[i];
             ++i;
             if (tokens[i].type != IDENTIFIER) {
-                error(2999, tokens[i], "identifier expected");
+                error(2138, tokens[i], "identifier expected");
             }
             cond.reset(new ImportedModuleExpression(tok_imported, tokens[i]));
             ++i;

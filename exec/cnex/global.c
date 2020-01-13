@@ -160,6 +160,7 @@ TDispatch gfuncDispatch[] = {
     // runtime - runtime support services
     PDFUNC("runtime$assertionsEnabled", runtime_assertionsEnabled),
     PDFUNC("runtime$executorName",      runtime_executorName),
+    PDFUNC("runtime$isModuleImported",  runtime_isModuleImported),
     PDFUNC("runtime$moduleIsMain",      runtime_moduleIsMain),
 
     // string - string module functions

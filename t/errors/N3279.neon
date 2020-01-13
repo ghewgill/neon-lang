@@ -1,0 +1,3 @@
+IF IMPORTED foo THEN
+            #<
+END IF

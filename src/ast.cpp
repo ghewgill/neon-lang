@@ -654,6 +654,16 @@ const Expression *TypeEnum::deserialize_value(const Bytecode::Bytes &value, int 
     return new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i).str()));
 }
 
+std::string ModuleVariable::text() const
+{
+    return "ModuleVariable(" + module->name + "." + name + ")";
+}
+
+std::string ModuleFunction::text() const
+{
+    return "ModuleFunction(" + module->name + "." + name + ", " + type->text() + ")";
+}
+
 bool Expression::eval_boolean(const Token &token) const
 {
     try {

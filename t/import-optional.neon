@@ -1,5 +1,6 @@
-IMPORT OPTIONAL maybe
-IF IMPORTED maybe THEN
-    maybe.foo()
+IMPORT OPTIONAL module
+VAR x: Number := 0
+IF IMPORTED module THEN
+    x := module.function(5)
 END IF
-maybe.bar()
+ASSERT x = 25

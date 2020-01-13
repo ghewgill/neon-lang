@@ -871,15 +871,15 @@ public:
 
 class ModuleVariable: public Variable {
 public:
-    ModuleVariable(const std::string &module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, true), module(module), index(index) {}
+    ModuleVariable(const Module *module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, true), module(module), index(index) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-    const std::string module;
+    const Module *module;
     const int index;
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &emitter) const override;
 
-    virtual std::string text() const override { return "ModuleVariable(" + module + "." + name + ")"; }
+    virtual std::string text() const override;
 };
 
 class GlobalVariable: public Variable {
@@ -2727,10 +2727,10 @@ public:
 
 class ModuleFunction: public BaseFunction {
 public:
-    ModuleFunction(const std::string &module, const std::string &name, const TypeFunction *ftype, const std::string &descriptor): BaseFunction(Token(), name, ftype), module(module), name(name), descriptor(descriptor) {}
+    ModuleFunction(const ast::Module *module, const std::string &name, const TypeFunction *ftype, const std::string &descriptor): BaseFunction(Token(), name, ftype), module(module), name(name), descriptor(descriptor) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    const std::string module;
+    const ast::Module *module;
     const std::string name;
     const std::string descriptor;
 
@@ -2742,7 +2742,7 @@ public:
 
     int get_stack_delta() const;
 
-    virtual std::string text() const override { return "ModuleFunction(" + module + "." + name + ", " + type->text() + ")"; }
+    virtual std::string text() const override;
 };
 
 class Module: public Name {

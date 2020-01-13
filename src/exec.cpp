@@ -584,14 +584,17 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
             continue;
         }
         Bytecode code;
-        if (not support->loadBytecode(importname, code)) {
+        if (support->loadBytecode(importname, code)) {
+            // TODO: check hash of exports
+            executor->modules[importname] = nullptr; // Prevent unwanted recursion.
+            executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
+            executor->init_order.push_back(importname);
+        } else if (i.optional) {
+            continue;
+        } else {
             fprintf(stderr, "couldn't load module: %s\n", importname.c_str());
             exit(1);
         }
-        // TODO: check hash of exports
-        executor->modules[importname] = nullptr; // Prevent unwanted recursion.
-        executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
-        executor->init_order.push_back(importname);
     }
 }
 
@@ -1886,7 +1889,7 @@ size_t Executor::get_allocated_object_count()
 
 bool Executor::is_module_imported(const std::string &mod)
 {
-    return mod == "XXX";
+    return modules.find(mod) != modules.end();
 }
 
 bool Executor::module_is_main()

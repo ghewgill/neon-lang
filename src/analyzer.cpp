@@ -1355,7 +1355,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         module->scope->addName(Token(IDENTIFIER, ""), object.strtable[c.name], new ast::Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
     }
     for (auto v: object.export_variables) {
-        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
+        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(module, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
     }
     for (auto f: object.export_functions) {
         const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(deserialize_type(module->scope, object.strtable[f.descriptor]));
@@ -1366,9 +1366,9 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const std::string method = function_name.substr(i+1);
             ast::Name *n = module->scope->lookupName(typestr);
             ast::Type *type = dynamic_cast<ast::Type *>(n);
-            type->methods[method] = new ast::ModuleFunction(name, function_name, ftype, object.strtable[f.descriptor]);
+            type->methods[method] = new ast::ModuleFunction(module, function_name, ftype, object.strtable[f.descriptor]);
         } else {
-            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, ftype, object.strtable[f.descriptor]));
+            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(module, function_name, ftype, object.strtable[f.descriptor]));
         }
     }
     for (auto e: object.export_exceptions) {
@@ -1839,7 +1839,7 @@ const ast::Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
         const ast::Module *module = dynamic_cast<const ast::Module *>(name);
         if (module != nullptr) {
             if (module == ast::MODULE_MISSING || (module->optional && imported_checked_modules.find(ident->name) == imported_checked_modules.end())) {
-                error(3997, ident->token, "optional module not checked with IF IMPORTED");
+                error(3281, ident->token, "optional module not checked with IF IMPORTED");
             }
         }
         return name;
@@ -4899,11 +4899,11 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         } else if (imported != nullptr) {
             const ast::Name *name = scope.top()->lookupName(imported->module.text);
             if (name == nullptr) {
-                error(3999, imported->module, "unknown identifier");
+                error(3279, imported->module, "unknown identifier");
             }
             const ast::Module *mod = dynamic_cast<const ast::Module *>(name);
             if (mod == nullptr) {
-                error(3998, imported->module, "identifier is not a module");
+                error(3280, imported->module, "identifier is not a module");
             }
             if (mod != ast::MODULE_MISSING) {
                 const ast::Module *runtime = dynamic_cast<const ast::Module *>(scope.top()->lookupName("runtime"));
