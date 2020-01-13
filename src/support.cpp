@@ -77,6 +77,9 @@ std::pair<std::string, std::string> PathSupport::findModule(const std::string &n
     const std::string object_name = module_name + ".neonx";
     std::pair<std::string, std::string> r;
     for (auto p: use_paths) {
+        if (p.find_last_of("/\\") != p.length()-1) {
+            p.append("/");
+        }
         if (access((p + source_name).c_str(), R_OK) == 0) {
             r.first = p + source_name;
         }
