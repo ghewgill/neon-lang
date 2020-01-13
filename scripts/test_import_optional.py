@@ -2,10 +2,14 @@
 
 import os
 import subprocess
+import sys
 
-with open("t/missing.neon", "w") as f:
-    print("EXPORT FUNCTION f() END FUNCTION", file=f)
-subprocess.check_call(["bin/neonc", "t/import-optional-missing.neon"])
-os.unlink("t/missing.neon")
-os.unlink("t/missing.neonx")
-subprocess.check_call(["bin/neonx", "t/import-optional-missing.neonx"])
+neonc = sys.argv[1]
+executor = sys.argv[2:]
+
+out = subprocess.check_output([neonc, "t/import-optional-missing.neon"], env={"NEONPATH": "t/compile-time-only"}, universal_newlines=True)
+sys.stdout.write(out)
+if "not found" in out:
+    print("{}: Failed: expected compile step to find module2.neon".format(sys.argv[0]), file=sys.stderr)
+    sys.exit(1)
+subprocess.check_call(executor + ["t/import-optional-missing.neonx"])

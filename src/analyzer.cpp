@@ -1306,6 +1306,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     Bytecode object;
     if (not support->loadBytecode(name, object)) {
         if (optional) {
+            fprintf(stderr, "neonc: Note: Optional module %s not found at compile time\n", name.c_str());
             return ast::MODULE_MISSING;
         } else {
             error(3001, token, "module not found");

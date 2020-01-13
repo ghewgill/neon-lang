@@ -716,6 +716,41 @@ if (GO)
 endif (GO)
 
 add_test(
+    NAME "import-optional:neonx"
+    COMMAND python3 scripts/test_import_optional.py $<TARGET_FILE:neonc> $<TARGET_FILE:neonx>
+)
+
+# TODO: optional modules in nenex
+#add_test(
+#    NAME "import-optional:nenex"
+#    COMMAND python3 scripts/test_import_optional.py $<TARGET_FILE:neonc> $<TARGET_FILE:neon> exec/nenex/nenex.neon
+#)
+
+# TODO: optional modules in pynex
+#add_test(
+#    NAME "import-optional:pynex"
+#    COMMAND python3 scripts/test_import_optional.py $<TARGET_FILE:neonc> python3 exec/pynex/pynex.py
+#)
+
+# TODO: optional modules in jnex
+#add_test(
+#    NAME "import-optional:jnex"
+#    COMMAND python3 scripts/test_import_optional.py $<TARGET_FILE:neonc> java -cp exec/jnex/src org.neon_lang.jnex.Executor
+#)
+
+# TODO: optional modules in cnex
+#add_test(
+#    NAME "import-optional:cnex"
+#    COMMAND python3 scripts/test_import_optional.py $<TARGET_FILE:neonc> $<TARGET_FILE:cnex>
+#)
+
+# TODO: optional modules in gonex
+#add_test(
+#    NAME "import-optional:gonex"
+#    COMMAND python3 scripts/test_import_optional.py $<TARGET_FILE:neonc> exec/gonex/gonex
+#)
+
+add_test(
     NAME "errors"
     COMMAND python3 scripts/run_test.py --errors t/errors
 )
