@@ -4,6 +4,7 @@ IMPORT module.name
 IMPORT module ALIAS alias
 IMPORT module.name ALIAS alias
 IMPORT "module" ALIAS m
+IMPORT OPTIONAL module
 
 # TypeDeclaration
 TYPE name IS type
@@ -172,6 +173,7 @@ IF expr THEN statement() ELSIF expr THEN statement() ELSE statement() statement(
 IF VALID name THEN END IF
 IF VALID expr AS name THEN END IF
 IF VALID expr AS name, expr AS name THEN END IF
+IF IMPORTED mod THEN END IF
 
 # IncrementStatement
 INC expr

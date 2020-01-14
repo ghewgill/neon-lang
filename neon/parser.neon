@@ -148,6 +148,7 @@ TYPE Type IS ENUM
     TryExpression
     NewClassExpression
     ValidPointerExpression
+    ImportedModuleExpression
     RangeSubscriptExpression
     ImportDeclaration
     TypeDeclaration
@@ -384,6 +385,12 @@ TYPE ValidPointerExpression IS RECORD
     tests: Array<ValidPointerExpressionClause>
 END RECORD
 
+TYPE ImportedModuleExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    module: String
+END RECORD
+
 TYPE RangeSubscriptExpression IS RECORD
     startColumn: Number
     endColumn: Number
@@ -395,6 +402,7 @@ TYPE ImportDeclaration IS RECORD
     module: lexer.Token
     name: lexer.Token
     alias: lexer.Token
+    optional: Boolean
 END RECORD
 
 TYPE TypeDeclaration IS RECORD
@@ -598,6 +606,7 @@ TYPE ParseTreeNode IS CLASS
     tryexpression: TryExpression
     newclassexpression: NewClassExpression
     validpointerexpression: ValidPointerExpression
+    importedmoduleexpression: ImportedModuleExpression
     rangesubscriptexpression: RangeSubscriptExpression
     importdeclaration: ImportDeclaration
     typedeclaration: TypeDeclaration
@@ -709,6 +718,7 @@ FUNCTION getStartColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.TryExpression                DO RETURN node->tryexpression.startColumn
             WHEN Type.NewClassExpression           DO RETURN node->newclassexpression.startColumn
             WHEN Type.ValidPointerExpression       DO RETURN node->validpointerexpression.startColumn
+            WHEN Type.ImportedModuleExpression     DO RETURN node->importedmoduleexpression.startColumn
             WHEN Type.RangeSubscriptExpression     DO RETURN node->rangesubscriptexpression.startColumn
         END CASE
     END IF
@@ -758,6 +768,7 @@ FUNCTION getEndColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.TryExpression                DO RETURN node->tryexpression.endColumn
             WHEN Type.NewClassExpression           DO RETURN node->newclassexpression.endColumn
             WHEN Type.ValidPointerExpression       DO RETURN node->validpointerexpression.endColumn
+            WHEN Type.ImportedModuleExpression     DO RETURN node->importedmoduleexpression.endColumn
             WHEN Type.RangeSubscriptExpression     DO RETURN node->rangesubscriptexpression.endColumn
         END CASE
     END IF
@@ -1948,6 +1959,11 @@ END FUNCTION
 FUNCTION Parser.parseImport(INOUT self: Parser): POINTER TO ParseTreeNode
     LET tokImport: lexer.Token := self.token
     self.nextToken()
+    VAR optional: Boolean := FALSE
+    IF self.token.type = TokenType.optional THEN
+        optional := TRUE
+        self.nextToken()
+    END IF
     IF self.token.type NOT IN [TokenType.identifier, TokenType.string] THEN
         error(2032, self.token, "identifier or string expected")
     END IF
@@ -1979,7 +1995,8 @@ FUNCTION Parser.parseImport(INOUT self: Parser): POINTER TO ParseTreeNode
         importdeclaration WITH ImportDeclaration(
             module WITH module,
             name WITH name,
-            alias WITH alias
+            alias WITH alias,
+            optional WITH optional
         )
     )
 END FUNCTION
@@ -3005,6 +3022,20 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
                     tests WITH tests
                 )
             )
+        ELSIF self.token.type = TokenType.imported THEN
+            LET tokImported: lexer.Token := self.token
+            self.nextToken()
+            IF self.token.type <> TokenType.identifier THEN
+                error(2138, self.token, "identifier expected")
+            END IF
+            cond := NEW ParseTreeNode(
+                type WITH Type.ImportedModuleExpression,
+                token WITH tokImported,
+                importedmoduleexpression WITH ImportedModuleExpression(
+                    module WITH self.token.text
+                )
+            )
+            self.nextToken()
         ELSE
             cond := self.parseExpression()
         END IF
@@ -3842,6 +3873,10 @@ FUNCTION dumpValidPointerExpression(node: VALID POINTER TO ParseTreeNode, depth:
     END FOREACH
 END FUNCTION
 
+FUNCTION dumpImportedModuleExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ImportedModuleExpression(\(node->importedmoduleexpression.module))")
+END FUNCTION
+
 FUNCTION dumpRangeSubscriptExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "RangeSubscriptExpression")
     dumpParseTree(node->rangesubscriptexpression.base, depth+1)
@@ -3852,7 +3887,8 @@ FUNCTION dumpRangeSubscriptExpression(node: VALID POINTER TO ParseTreeNode, dept
 END FUNCTION
 
 FUNCTION dumpImportDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
-    dumpNode(depth, "ImportDeclaration(\(node->importdeclaration.module.text).\(node->importdeclaration.name.text), \(node->importdeclaration.alias.text))")
+    LET optional: String := (IF node->importdeclaration.optional THEN ", optional" ELSE "")
+    dumpNode(depth, "ImportDeclaration(\(node->importdeclaration.module.text).\(node->importdeclaration.name.text), \(node->importdeclaration.alias.text)\(optional))")
 END FUNCTION
 
 FUNCTION dumpTypeDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
@@ -4166,6 +4202,7 @@ LET Dumper: IParseTreeVisitor := {
     "TryExpression":                        dumpTryExpression,
     "NewClassExpression":                   dumpNewClassExpression,
     "ValidPointerExpression":               dumpValidPointerExpression,
+    "ImportedModuleExpression":             dumpImportedModuleExpression,
     "RangeSubscriptExpression":             dumpRangeSubscriptExpression,
     "ImportDeclaration":                    dumpImportDeclaration,
     "TypeDeclaration":                      dumpTypeDeclaration,

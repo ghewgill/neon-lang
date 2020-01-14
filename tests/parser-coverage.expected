@@ -4,6 +4,7 @@ Program
   ImportDeclaration(module., alias)
   ImportDeclaration(module.name, alias)
   ImportDeclaration(module., m)
+  ImportDeclaration(module., , optional)
   TypeDeclaration
     TypeSimple(type)
   TypeDeclaration
@@ -415,6 +416,8 @@ Program
     ValidPointerExpression
       IdentifierExpression(expr)
       IdentifierExpression(expr)
+  IfStatement
+    ImportedModuleExpression(mod)
   IncrementStatement(1)
     IdentifierExpression(expr)
   IncrementStatement(-1)
