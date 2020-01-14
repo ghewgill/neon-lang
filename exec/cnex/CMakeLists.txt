@@ -1,5 +1,11 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY .)
 
+# This is required for GCC 8+ because it doesn't like
+# casting function pointers between incompatible signatures.
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "8")
+    add_compile_options(-Wno-cast-function-type)
+endif ()
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(platform_cnex
         rtl_posix.c

@@ -251,7 +251,7 @@ void ext_insertModule(const char *name, void *handle)
 TExtensionModule *ext_findModule(const char *name)
 {
     if (g_libraries) {
-        for (int i = 0; i < g_libraries->size; i++) {
+        for (size_t i = 0; i < g_libraries->size; i++) {
             if (strcmp(g_libraries->modules[i].module, name) == 0) {
                 return &g_libraries->modules[i];
             }
@@ -263,7 +263,7 @@ TExtensionModule *ext_findModule(const char *name)
 void ext_cleanup()
 {
     if (g_libraries) {
-        for (int i = 0; i < g_libraries->size; i++) {
+        for (size_t i = 0; i < g_libraries->size; i++) {
             free(g_libraries->modules[i].module);
         }
         free(g_libraries->modules->methods);

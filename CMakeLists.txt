@@ -98,7 +98,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     add_compile_options(/EHsc)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-    add_compile_options(-Wall -Wextra -g)
+    add_compile_options(-Wall -Wextra -Werror -g)
 endif ()
 
 add_subdirectory(external)

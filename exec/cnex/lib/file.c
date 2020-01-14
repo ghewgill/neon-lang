@@ -104,7 +104,7 @@ void file_writeLines(TExecutor *exec)
         exec->rtl_raise(exec, "FileException.Open", filename, BID_ZERO);
         goto bail;
     }
-    for (int i = 0; i < lines->array->size; i++) {
+    for (size_t i = 0; i < lines->array->size; i++) {
         if (fwrite(lines->array->data[i].string->data, sizeof(char), lines->array->data[i].string->length, f) != lines->array->data[i].string->length) {
             exec->rtl_raise(exec, "FileException.Write", filename, BID_ZERO);
             goto bail;

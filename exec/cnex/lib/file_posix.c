@@ -57,7 +57,7 @@ void file_copy(TExecutor *exec)
             exec->rtl_raise(exec, "FileException.Exists", TCSTR(destination), BID_ZERO);
             goto bail;
         }
-        handle_error(exec, errno, filename);
+        handle_error(exec, errno, filename->data);
     }
     goto bail;
 #else
