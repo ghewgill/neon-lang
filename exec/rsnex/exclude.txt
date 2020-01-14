@@ -115,6 +115,7 @@ file-filecopied1.neon
 file-filecopied2.neon
 file-filecopied3.neon
 file-filecopied.neon
+file-linelength.neon
 file-symlink.neon
 file-test.neon
 file-writebytes.neon

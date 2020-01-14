@@ -38,6 +38,7 @@ file-filecopied.neon        # file$delete
 file-filecopied1.neon       # file$delete
 file-filecopied2.neon       # file$delete
 file-filecopied3.neon       # file$delete
+file-linelength.neon        # file$writeLines
 file-symlink.neon           # file$delete
 file-test.neon              # pushpmg
 file-writebytes.neon        # array__toBytes__number

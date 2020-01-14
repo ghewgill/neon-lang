@@ -40,6 +40,7 @@ file-filecopied.neon       # module file
 file-filecopied1.neon      # module file
 file-filecopied2.neon      # module file
 file-filecopied3.neon      # module file
+file-linelength.neon       # module file
 file-symlink.neon          # module file
 file-test.neon             # module file
 file-writebytes.neon       # module file

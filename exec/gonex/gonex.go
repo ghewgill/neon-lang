@@ -2213,10 +2213,14 @@ func (self *executor) op_callp() {
 			panic(err)
 		}
 		defer f.Close()
-		scanner := bufio.NewScanner(f)
+		reader := bufio.NewReader(f)
 		a := []cell{}
-		for scanner.Scan() {
-			a = append(a, make_cell_str(scanner.Text()))
+		for {
+			s, _ := reader.ReadString('\n')
+			if len(s) == 0 {
+				break
+			}
+			a = append(a, make_cell_str(s[:len(s)-1]))
 		}
 		self.push(make_cell_array(a))
 	case "file$removeEmptyDirectory":

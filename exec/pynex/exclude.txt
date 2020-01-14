@@ -26,6 +26,7 @@ file-filecopied.neon       # file
 file-filecopied1.neon      # file
 file-filecopied2.neon      # file
 file-filecopied3.neon      # file
+file-linelength.neon       # file
 file-symlink.neon          # file
 file-test.neon             # file
 file-writebytes.neon       # file
