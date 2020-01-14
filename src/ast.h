@@ -871,15 +871,17 @@ public:
 
 class ModuleVariable: public Variable {
 public:
-    ModuleVariable(const std::string &module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, true), module(module), index(index) {}
+    ModuleVariable(const Module *module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, true), module(module), index(index) {}
+    ModuleVariable(const ModuleVariable &) = delete;
+    ModuleVariable &operator=(const ModuleVariable &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-    const std::string module;
+    const Module *module;
     const int index;
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &emitter) const override;
 
-    virtual std::string text() const override { return "ModuleVariable(" + module + "." + name + ")"; }
+    virtual std::string text() const override;
 };
 
 class GlobalVariable: public Variable {
@@ -2727,10 +2729,12 @@ public:
 
 class ModuleFunction: public BaseFunction {
 public:
-    ModuleFunction(const std::string &module, const std::string &name, const TypeFunction *ftype, const std::string &descriptor): BaseFunction(Token(), name, ftype), module(module), name(name), descriptor(descriptor) {}
+    ModuleFunction(const Module *module, const std::string &name, const TypeFunction *ftype, const std::string &descriptor): BaseFunction(Token(), name, ftype), module(module), name(name), descriptor(descriptor) {}
+    ModuleFunction(const ModuleFunction &) = delete;
+    ModuleFunction &operator=(const ModuleFunction &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    const std::string module;
+    const Module *module;
     const std::string name;
     const std::string descriptor;
 
@@ -2742,17 +2746,18 @@ public:
 
     int get_stack_delta() const;
 
-    virtual std::string text() const override { return "ModuleFunction(" + module + "." + name + ", " + type->text() + ")"; }
+    virtual std::string text() const override;
 };
 
 class Module: public Name {
 public:
-    Module(const Token &declaration, Scope *scope, const std::string &name): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope, scope->frame)) {}
+    Module(const Token &declaration, Scope *scope, const std::string &name, bool optional): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope, scope->frame)), optional(optional) {}
     Module(const Module &) = delete;
     Module &operator=(const Module &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Scope *scope;
+    bool optional;
 
     virtual void reset() override { for (size_t i = 0; i < scope->frame->getCount(); i++) { scope->frame->getSlot(i).ref->reset(); } }
     virtual void predeclare(Emitter &emitter) const override;
@@ -2760,6 +2765,8 @@ public:
 
     virtual std::string text() const override { return "Module"; }
 };
+
+extern Module *MODULE_MISSING;
 
 class Program: public AstNode {
 public:

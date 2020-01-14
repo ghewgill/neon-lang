@@ -40,6 +40,7 @@ gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
 import.neon                # class
+import-optional.neon       # import
 interface.neon             # class
 interface-multiple.neon    # class
 interface-parameter-export.neon # export

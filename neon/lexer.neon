@@ -117,6 +117,8 @@ TYPE Type IS ENUM
     unused
     isa
     ellipsis
+    optional
+    imported
     unknown
     max_token
 END ENUM
@@ -386,6 +388,8 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "IMPLEMENTS" THEN t.type := Type.implements
             ELSIF t.text = "UNUSED" THEN t.type := Type.unused
             ELSIF t.text = "ISA" THEN t.type := Type.isa
+            ELSIF t.text = "OPTIONAL" THEN t.type := Type.optional
+            ELSIF t.text = "IMPORTED" THEN t.type := Type.imported
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN

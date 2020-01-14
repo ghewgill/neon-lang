@@ -26,6 +26,7 @@ TypeDictionary *TYPE_DICTIONARY_OBJECT = new TypeDictionary(Token(), TYPE_OBJECT
 TypeModule *TYPE_MODULE = new TypeModule();
 TypeException *TYPE_EXCEPTION = new TypeException();
 TypeInterface *TYPE_INTERFACE = new TypeInterface();
+Module *MODULE_MISSING = new Module(Token(), new Scope(nullptr, nullptr), "", false);
 
 void AstNode::dump(std::ostream &out, int depth) const
 {
@@ -651,6 +652,16 @@ std::string TypeEnum::serialize(const Expression *value) const
 const Expression *TypeEnum::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
     return new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i).str()));
+}
+
+std::string ModuleVariable::text() const
+{
+    return "ModuleVariable(" + module->name + "." + name + ")";
+}
+
+std::string ModuleFunction::text() const
+{
+    return "ModuleFunction(" + module->name + "." + name + ", " + type->text() + ")";
 }
 
 bool Expression::eval_boolean(const Token &token) const

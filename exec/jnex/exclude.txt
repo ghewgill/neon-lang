@@ -48,6 +48,7 @@ gc1.neon                   # import
 gc2.neon                   # import
 gc3.neon                   # import
 import-dup.neon            # sys
+import-optional.neon       # import
 import-string.neon         # import
 import.neon                # import
 in.neon                    # INA

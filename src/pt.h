@@ -61,6 +61,7 @@ class ConditionalExpression;
 class TryExpression;
 class NewClassExpression;
 class ValidPointerExpression;
+class ImportedModuleExpression;
 class RangeSubscriptExpression;
 
 class ImportDeclaration;
@@ -155,6 +156,7 @@ public:
     virtual void visit(const TryExpression *) = 0;
     virtual void visit(const NewClassExpression *) = 0;
     virtual void visit(const ValidPointerExpression *) = 0;
+    virtual void visit(const ImportedModuleExpression *) = 0;
     virtual void visit(const RangeSubscriptExpression *) = 0;
 
     virtual void visit(const ImportDeclaration *) = 0;
@@ -618,6 +620,13 @@ public:
     std::vector<std::unique_ptr<Clause>> tests;
 };
 
+class ImportedModuleExpression: public Expression {
+public:
+    explicit ImportedModuleExpression(const Token &token, const Token &module): Expression(token, token, module), module(module) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token module;
+};
+
 class ArrayRange {
 public:
     explicit ArrayRange(const Token &token, std::unique_ptr<Expression> &&first, bool first_from_end, std::unique_ptr<Expression> &&last, bool last_from_end): token(token), first(std::move(first)), first_from_end(first_from_end), last(std::move(last)), last_from_end(last_from_end) {}
@@ -673,11 +682,12 @@ public:
 
 class ImportDeclaration: public Declaration {
 public:
-    ImportDeclaration(const Token &token, const Token &module, const Token &name, const Token &alias): Declaration(token, {name}), module(module), name(name), alias(alias) {}
+    ImportDeclaration(const Token &token, const Token &module, const Token &name, const Token &alias, bool optional): Declaration(token, {name}), module(module), name(name), alias(alias), optional(optional) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token module;
     const Token name;
     const Token alias;
+    const bool optional;
 };
 
 class TypeDeclaration: public Declaration {

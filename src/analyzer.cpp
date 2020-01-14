@@ -35,6 +35,7 @@ public:
 
     std::stack<std::pair<const ast::Type *, const ast::TypeFunction *>> functiontypes;
     std::stack<std::list<std::pair<std::string, unsigned int>>> loops;
+    std::stack<std::set<std::string>> imported_checked_stack;
 
     const ast::Type *analyze(const pt::Type *type, const std::string &name = std::string());
     const ast::Type *analyze(const pt::TypeSimple *type, const std::string &name);
@@ -87,6 +88,7 @@ public:
     const ast::Expression *analyze(const pt::TryExpression *expr);
     const ast::Expression *analyze(const pt::NewClassExpression *expr);
     const ast::Expression *analyze(const pt::ValidPointerExpression *expr);
+    const ast::Expression *analyze(const pt::ImportedModuleExpression *expr);
     const ast::Expression *analyze(const pt::RangeSubscriptExpression *expr);
     const ast::Statement *analyze(const pt::ImportDeclaration *declaration);
     const ast::Statement *analyze(const pt::TypeDeclaration *declaration);
@@ -134,7 +136,7 @@ public:
     const ast::Program *analyze();
 private:
     static std::string extract_module_name(const pt::Program *program);
-    ast::Module *import_module(const Token &token, const std::string &name);
+    ast::Module *import_module(const Token &token, const std::string &name, bool optional);
     ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor, std::string::size_type &i);
     ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor);
     const ast::Expression *convert(const ast::Type *target, const ast::Expression *e);
@@ -199,6 +201,7 @@ public:
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ImportedModuleExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
@@ -294,6 +297,7 @@ public:
     virtual void visit(const pt::TryExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NewClassExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ValidPointerExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ImportedModuleExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::RangeSubscriptExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
@@ -388,6 +392,7 @@ public:
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ImportedModuleExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TypeDeclaration *p) override { v.push_back(a->analyze(p)); }
@@ -482,6 +487,7 @@ public:
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ImportedModuleExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) override {}
     virtual void visit(const pt::TypeDeclaration *) override {}
@@ -1089,7 +1095,8 @@ Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::m
     scope(),
     exports(),
     functiontypes(),
-    loops()
+    loops(),
+    imported_checked_stack()
 {
 }
 
@@ -1284,7 +1291,7 @@ std::string Analyzer::extract_module_name(const pt::Program *program)
     return module_name;
 }
 
-ast::Module *Analyzer::import_module(const Token &token, const std::string &name)
+ast::Module *Analyzer::import_module(const Token &token, const std::string &name, bool optional)
 {
     static std::vector<std::string> s_importing;
 
@@ -1298,9 +1305,14 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     s_importing.push_back(name);
     Bytecode object;
     if (not support->loadBytecode(name, object)) {
-        error(3001, token, "module not found");
+        if (optional) {
+            fprintf(stderr, "neonc: Note: Optional module %s not found at compile time\n", name.c_str());
+            return ast::MODULE_MISSING;
+        } else {
+            error(3001, token, "module not found");
+        }
     }
-    ast::Module *module = new ast::Module(Token(), global_scope, name);
+    ast::Module *module = new ast::Module(Token(), global_scope, name, optional);
     // Must do interfaces before types (so classes can refer to these).
     for (auto i: object.export_interfaces) {
         std::string interfacename = object.strtable[i.name];
@@ -1342,7 +1354,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         module->scope->addName(Token(IDENTIFIER, ""), object.strtable[c.name], new ast::Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
     }
     for (auto v: object.export_variables) {
-        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
+        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(module, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
     }
     for (auto f: object.export_functions) {
         const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(deserialize_type(module->scope, object.strtable[f.descriptor]));
@@ -1353,9 +1365,9 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const std::string method = function_name.substr(i+1);
             ast::Name *n = module->scope->lookupName(typestr);
             ast::Type *type = dynamic_cast<ast::Type *>(n);
-            type->methods[method] = new ast::ModuleFunction(name, function_name, ftype, object.strtable[f.descriptor]);
+            type->methods[method] = new ast::ModuleFunction(module, function_name, ftype, object.strtable[f.descriptor]);
         } else {
-            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, ftype, object.strtable[f.descriptor]));
+            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(module, function_name, ftype, object.strtable[f.descriptor]));
         }
     }
     for (auto e: object.export_exceptions) {
@@ -1822,7 +1834,14 @@ const ast::Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
 {
     const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(expr);
     if (ident != nullptr) {
-        return scope.top()->lookupName(ident->name);
+        const ast::Name *name = scope.top()->lookupName(ident->name);
+        const ast::Module *module = dynamic_cast<const ast::Module *>(name);
+        if (module != nullptr) {
+            if (module == ast::MODULE_MISSING || (module->optional && (imported_checked_stack.empty() || imported_checked_stack.top().find(ident->name) == imported_checked_stack.top().end()))) {
+                error(3281, ident->token, "optional module not checked with IF IMPORTED");
+            }
+        }
+        return name;
     }
     const pt::DotExpression *dotted = dynamic_cast<const pt::DotExpression *>(expr);
     if (dotted == nullptr) {
@@ -2019,7 +2038,7 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
     const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat")));
     const ast::Module *string = dynamic_cast<const ast::Module *>(scope.top()->lookupName("string"));
     if (string == nullptr) {
-        ast::Module *module = import_module(Token(), "string");
+        ast::Module *module = import_module(Token(), "string", false);
         rtl_import("string", module);
         global_scope->addName(Token(IDENTIFIER, "string"), "string", module, true);
         string = module;
@@ -2768,6 +2787,12 @@ const ast::Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*ex
     internal_error("TODO pt::Expression");
 }
 
+const ast::Expression *Analyzer::analyze(const pt::ImportedModuleExpression * /*expr*/)
+{
+    // This should never happen because ImportedModuleExpression is handled elsewhere.
+    internal_error("TODO pt::Expression");
+}
+
 const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
 {
     const ast::Expression *base = analyze(expr->base.get());
@@ -3045,7 +3070,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
             std::string localname = name;
             auto dot = name.find('.');
             if (dot != std::string::npos) {
-                const ast::Module *module = import_module(Token(), name.substr(0, dot));
+                const ast::Module *module = import_module(Token(), name.substr(0, dot), false);
                 t = module->scope;
                 localname = name.substr(dot+1);
             }
@@ -3105,11 +3130,13 @@ const ast::Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration
     if (not scope.top()->allocateName(localname, localname.text)) {
         error2(3114, localname, "duplicate definition of name", scope.top()->getDeclaration(localname.text), "first declaration here");
     }
-    ast::Module *module = import_module(declaration->module, declaration->module.text);
-    rtl_import(declaration->module.text, module);
+    ast::Module *module = import_module(declaration->module, declaration->module.text, declaration->optional);
+    if (module != ast::MODULE_MISSING) {
+        rtl_import(declaration->module.text, module);
+    }
     if (declaration->name.type == NONE) {
         scope.top()->addName(declaration->token, localname.text, module);
-    } else {
+    } else if (module != ast::MODULE_MISSING) {
         const ast::Name *name = module->scope->lookupName(declaration->name.text);
         if (name != nullptr) {
             scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));
@@ -3766,7 +3793,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     }
     const ast::Module *textio = dynamic_cast<const ast::Module *>(scope.top()->lookupName("textio"));
     if (textio == nullptr) {
-        ast::Module *module = import_module(Token(), "textio");
+        ast::Module *module = import_module(Token(), "textio", false);
         rtl_import("textio", module);
         global_scope->addName(Token(IDENTIFIER, "textio"), "textio", module, true);
         textio = module;
@@ -4215,7 +4242,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     }
     const ast::Module *sys = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sys"));
     if (sys == nullptr) {
-        ast::Module *module = import_module(Token(), "sys");
+        ast::Module *module = import_module(Token(), "sys", false);
         rtl_import("sys", module);
         global_scope->addName(Token(IDENTIFIER, "sys"), "sys", module, true);
         sys = module;
@@ -4406,7 +4433,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
 {
     const ast::Module *sqlite = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sqlite"));
     if (sqlite == nullptr) {
-        ast::Module *module = import_module(Token(), "sqlite");
+        ast::Module *module = import_module(Token(), "sqlite", false);
         rtl_import("sqlite", module);
         global_scope->addName(Token(IDENTIFIER, "sqlite"), "sqlite", module, true);
         sqlite = module;
@@ -4837,7 +4864,10 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
     std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
     for (auto &c: statement->condition_statements) {
         const ast::Expression *cond = nullptr;
+        bool skip_statements = false;
+        bool imported_checked = false;
         const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(c.first.get());
+        const pt::ImportedModuleExpression *imported = dynamic_cast<const pt::ImportedModuleExpression *>(c.first.get());
         if (valid != nullptr) {
             for (auto &v: valid->tests) {
                 if (not v->shorthand and scope.top()->lookupName(v->name.text) != nullptr) {
@@ -4865,6 +4895,38 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
                     cond = new ast::ConjunctionExpression(cond, ve);
                 }
             }
+        } else if (imported != nullptr) {
+            const ast::Name *name = scope.top()->lookupName(imported->module.text);
+            if (name == nullptr) {
+                error(3279, imported->module, "unknown identifier");
+            }
+            const ast::Module *mod = dynamic_cast<const ast::Module *>(name);
+            if (mod == nullptr) {
+                error(3280, imported->module, "identifier is not a module");
+            }
+            if (mod != ast::MODULE_MISSING) {
+                const ast::Module *runtime = dynamic_cast<const ast::Module *>(scope.top()->lookupName("runtime"));
+                if (runtime == nullptr) {
+                    ast::Module *module = import_module(Token(), "runtime", false);
+                    rtl_import("runtime", module);
+                    global_scope->addName(Token(IDENTIFIER, "runtime"), "runtime", module, true);
+                    runtime = module;
+                }
+                cond = new ast::FunctionCall(
+                    new ast::VariableExpression(dynamic_cast<const ast::PredefinedFunction *>(runtime->scope->lookupName("isModuleImported"))),
+                    { new ast::ConstantStringExpression(utf8string(imported->module.text)) }
+                );
+                if (imported_checked_stack.empty()) {
+                    imported_checked_stack.push({});
+                } else {
+                    imported_checked_stack.push(imported_checked_stack.top());
+                }
+                imported_checked_stack.top().insert(imported->module.text);
+                imported_checked = true;
+            } else {
+                cond = new ast::ConstantBooleanExpression(false);
+                skip_statements = true;
+            }
         } else {
             cond = analyze(c.first.get());
             cond = convert(ast::TYPE_BOOLEAN, cond);
@@ -4873,8 +4935,13 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
             }
         }
         scope.push(new ast::Scope(scope.top(), frame.top()));
-        condition_statements.push_back(std::make_pair(cond, analyze(c.second)));
+        if (not skip_statements) {
+            condition_statements.push_back(std::make_pair(cond, analyze(c.second)));
+        }
         scope.pop();
+        if (imported_checked) {
+            imported_checked_stack.pop();
+        }
     }
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
     scope.pop();
@@ -5400,6 +5467,7 @@ public:
     }
     virtual void visit(const pt::NewClassExpression *node) { node->expr->accept(this); }
     virtual void visit(const pt::ValidPointerExpression *node) { for (auto &x: node->tests) x->expr->accept(this); }
+    virtual void visit(const pt::ImportedModuleExpression *) {}
     virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->first.get()->accept(this); node->range->last.get()->accept(this); }
 
     virtual void visit(const pt::ImportDeclaration *) {}

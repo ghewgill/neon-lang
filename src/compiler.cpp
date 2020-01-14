@@ -89,7 +89,7 @@ public:
     void add_export_function(const std::string &name, const std::string &type, int index);
     void add_export_exception(const std::string &name);
     void add_export_interface(const std::string &name, const std::vector<std::pair<std::string, std::string>> &method_descriptors);
-    void add_import(const std::string &name);
+    void add_import(const ast::Module *module);
     std::string get_type_reference(const ast::Type *type);
     int get_stack_depth() { return stack_depth; }
     void set_stack_depth(int depth) { stack_depth = depth; }
@@ -515,9 +515,9 @@ void Emitter::add_export_interface(const std::string &name, const std::vector<st
     object.export_interfaces.push_back(interface);
 }
 
-void Emitter::add_import(const std::string &name)
+void Emitter::add_import(const ast::Module *module)
 {
-    unsigned int index = str(name);
+    unsigned int index = str(module->name);
     for (auto i: object.imports) {
         if (i.name == index) {
             return;
@@ -525,6 +525,7 @@ void Emitter::add_import(const std::string &name)
     }
     Bytecode::ModuleImport imp;
     imp.name = index;
+    imp.optional = module->optional;
     imp.hash = std::string(32, '0');
     object.imports.push_back(imp);
 }
@@ -1009,7 +1010,7 @@ void ast::ModuleVariable::predeclare(Emitter &emitter) const
 
 void ast::ModuleVariable::generate_address(Emitter &emitter) const
 {
-    emitter.emit(PUSHPMG, emitter.str(module), index);
+    emitter.emit(PUSHPMG, emitter.str(module->name), index);
 }
 
 void ast::GlobalVariable::predeclare(Emitter &emitter) const
@@ -1270,7 +1271,7 @@ void ast::ModuleFunction::predeclare(Emitter &emitter) const
 
 void ast::ModuleFunction::generate_call(Emitter &emitter) const
 {
-    emitter.emit(CALLMF, emitter.str(module), emitter.str(name + "," + descriptor));
+    emitter.emit(CALLMF, emitter.str(module->name), emitter.str(name + "," + descriptor));
     emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 

@@ -1355,6 +1355,14 @@ std::unique_ptr<Statement> Parser::parseIfStatement()
                 }
             }
             cond.reset(new ValidPointerExpression(tok_valid, std::move(tests)));
+        } else if (tokens[i].type == IMPORTED) {
+            auto &tok_imported = tokens[i];
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2138, tokens[i], "identifier expected");
+            }
+            cond.reset(new ImportedModuleExpression(tok_imported, tokens[i]));
+            ++i;
         } else {
             cond = parseExpression();
         }
@@ -1984,6 +1992,11 @@ std::unique_ptr<Statement> Parser::parseImport()
 {
     auto &tok_import = tokens[i];
     ++i;
+    bool optional = false;
+    if (tokens[i].type == OPTIONAL) {
+        optional = true;
+        ++i;
+    }
     if (tokens[i].type != IDENTIFIER && tokens[i].type != STRING) {
         error(2032, tokens[i], "identifier or string expected");
     }
@@ -2009,7 +2022,7 @@ std::unique_ptr<Statement> Parser::parseImport()
     } else if (module.type == STRING) {
         error(2087, module, "named import requires ALIAS");
     }
-    return std::unique_ptr<Statement> { new ImportDeclaration(tok_import, module, name, alias) };
+    return std::unique_ptr<Statement> { new ImportDeclaration(tok_import, module, name, alias, optional) };
 }
 
 std::unique_ptr<Statement> Parser::parseAssert()

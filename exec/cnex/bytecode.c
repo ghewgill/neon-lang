@@ -203,6 +203,7 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
     }
     for (uint32_t f = 0; f < b->importsize; f++) {
         b->imports[f].name = get_vint(bytecode, len, &i);
+        b->imports[f].optional = get_vint(bytecode, len, &i) != 0;
         memcpy(b->imports[f].hash, bytecode, 32);
         i+=32;
     }

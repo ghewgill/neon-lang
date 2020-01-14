@@ -64,8 +64,9 @@ public:
     };
 
     struct ModuleImport {
-        ModuleImport(): name(0), hash() {}
+        ModuleImport(): name(0), optional(false), hash() {}
         unsigned int name;
+        bool optional;
         std::string hash;
     };
 

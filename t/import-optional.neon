@@ -1,0 +1,6 @@
+IMPORT OPTIONAL module
+VAR x: Number := 0
+IF IMPORTED module THEN
+    x := module.function(5)
+END IF
+ASSERT x = 25

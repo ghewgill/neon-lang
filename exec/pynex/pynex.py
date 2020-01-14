@@ -59,6 +59,7 @@ class Function:
 class Import:
     def __init__(self):
         self.name = 0
+        self.optional = False
         self.hash = None
 
 class Bytecode:
@@ -134,6 +135,7 @@ class Bytecode:
         while importsize > 0:
             imp = Import()
             imp.name, i = get_vint(bytecode, i)
+            imp.optional, i = get_vint(bytecode, i)
             imp.hash = bytecode[i:i+32]
             i += 32
             self.imports.append(imp)

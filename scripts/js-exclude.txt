@@ -56,6 +56,7 @@ gc1.neon                   # gc
 gc2.neon                   # gc
 gc3.neon                   # gc
 import.neon                # import
+import-optional.neon       # import
 in.neon                    # ArrayInExpression
 inc-reference.neon         # actually works here so avoid the TODO
 index.neon                 # copy semantics

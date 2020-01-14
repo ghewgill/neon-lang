@@ -49,6 +49,7 @@ typedef struct tagTExportFunction {
 
 typedef struct tagTImport {
     unsigned int name;
+    unsigned int optional;
     unsigned int hash[32];
 } Import;
 

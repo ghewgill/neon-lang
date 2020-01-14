@@ -1,0 +1,5 @@
+IMPORT OPTIONAL missing2
+IF IMPORTED missing2 THEN
+    missing2.f()
+    ASSERT FALSE
+END IF

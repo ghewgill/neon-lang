@@ -32,6 +32,7 @@ END FUNCTION
 
 TYPE Import IS RECORD
     name: Number
+    optional: Boolean
     hash: Bytes
 END RECORD
 
@@ -105,6 +106,7 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     FOR z := 1 TO importsize DO
         VAR imp: Import := Import()
         imp.name := getVint(a, INOUT i)
+        imp.optional := getVint(a, INOUT i) <> 0
         imp.hash := bytes[i TO i+31]
         i := i + 32
         r.imports.append(imp)

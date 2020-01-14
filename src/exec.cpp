@@ -125,6 +125,7 @@ public:
     // Module: runtime
     void garbage_collect();
     size_t get_allocated_object_count();
+    bool is_module_imported(const std::string &module);
     bool module_is_main();
     void set_garbage_collection_interval(size_t count);
     void set_recursion_limit(size_t depth);
@@ -583,14 +584,17 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
             continue;
         }
         Bytecode code;
-        if (not support->loadBytecode(importname, code)) {
+        if (support->loadBytecode(importname, code)) {
+            // TODO: check hash of exports
+            executor->modules[importname] = nullptr; // Prevent unwanted recursion.
+            executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
+            executor->init_order.push_back(importname);
+        } else if (i.optional) {
+            continue;
+        } else {
             fprintf(stderr, "couldn't load module: %s\n", importname.c_str());
             exit(1);
         }
-        // TODO: check hash of exports
-        executor->modules[importname] = nullptr; // Prevent unwanted recursion.
-        executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
-        executor->init_order.push_back(importname);
     }
 }
 
@@ -1883,6 +1887,11 @@ size_t Executor::get_allocated_object_count()
     return allocs.size();
 }
 
+bool Executor::is_module_imported(const std::string &mod)
+{
+    return modules.find(mod) != modules.end();
+}
+
 bool Executor::module_is_main()
 {
     return module == modules[""];
@@ -2287,6 +2296,11 @@ void executor_garbage_collect()
 size_t executor_get_allocated_object_count()
 {
     return g_executor->get_allocated_object_count();
+}
+
+bool executor_is_module_imported(const std::string &module)
+{
+    return g_executor->is_module_imported(module);
 }
 
 bool executor_module_is_main()

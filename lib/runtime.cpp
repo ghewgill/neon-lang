@@ -26,6 +26,11 @@ Number getAllocatedObjectCount()
     return number_from_uint64(executor_get_allocated_object_count());
 }
 
+bool isModuleImported(const utf8string &module)
+{
+    return executor_is_module_imported(module.str());
+}
+
 bool moduleIsMain()
 {
     return executor_module_is_main();

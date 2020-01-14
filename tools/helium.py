@@ -148,6 +148,8 @@ INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
 ISA = Keyword("ISA")
+OPTIONAL = Keyword("OPTIONAL")
+IMPORTED = Keyword("IMPORTED")
 
 class bytes:
     def __init__(self, a):
@@ -367,14 +369,15 @@ class TypeFunction:
         return ClassFunctionPointer(self.returntype, self.args)
 
 class ImportDeclaration:
-    def __init__(self, module, name):
+    def __init__(self, module, name, optional):
         self.module = module
         self.name = name
+        self.optional = optional
     def declare(self, env):
         if self.name:
             assert False
         else:
-            env.declare(self.module, ClassModule(), import_module(self.module))
+            env.declare(self.module, ClassModule(), import_module(self.module, self.optional))
     def run(self, env):
         pass
 
@@ -1451,12 +1454,16 @@ class Parser:
 
     def parse_import(self):
         self.expect(IMPORT)
+        optional = False
+        if self.tokens[self.i] is OPTIONAL:
+            optional = True
+            self.i += 1
         module = self.identifier()
         name = None
         if self.tokens[self.i] is DOT:
             self.i += 1
             name = self.identifier()
-        return ImportDeclaration(module, name)
+        return ImportDeclaration(module, name, optional)
 
     def parse_type_definition(self):
         self.expect(TYPE)
@@ -2061,6 +2068,10 @@ class Parser:
                     if self.tokens[self.i] is not COMMA:
                         break
                 cond = ValidPointerExpression(tests)
+            elif self.tokens[self.i] is IMPORTED:
+                self.i += 1
+                name = self.identifier()
+                cond = FunctionCallExpression(StringLiteralExpression(neon_runtime_isModuleImported), [("name", StringLiteralExpression(name))])
             else:
                 cond = self.parse_expression()
             self.expect(THEN)
@@ -2550,7 +2561,7 @@ class ReturnException(BaseException):
 
 g_Modules = {}
 
-def import_regex():
+def import_local_regex():
     return parse(tokenize("""
 #|
  |  File: regex
@@ -2597,17 +2608,22 @@ TYPE Match IS Array<Group>
 DECLARE EXTENSION FUNCTION search(pattern: String, subject: String, OUT match: Match): Boolean
     """))
 
-def import_module(name):
+def import_module(name, optional):
     m = g_Modules.get(name)
     if m is None:
-        importer = globals().get("import_"+name)
+        importer = globals().get("import_local_"+name)
         if importer is not None:
             m = importer()
         else:
             fn = os.path.join(os.path.dirname(sys.argv[1]), "{}.neon".format(name))
             if not os.path.exists(fn):
                 fn = os.path.join("lib", "{}.neon".format(name))
-            m = parse(tokenize(codecs.open(fn, encoding="utf-8").read()))
+            try:
+                m = parse(tokenize(codecs.open(fn, encoding="utf-8").read()))
+            except IOError:
+                if optional:
+                    return None
+                raise
         g_Modules[name] = m
         m.env.module_name = name
         run(m)
@@ -2964,6 +2980,9 @@ def neon_runtime_garbageCollect(env):
 
 def neon_runtime_getAllocatedObjectCount(env):
     return 0
+
+def neon_runtime_isModuleImported(env, name):
+    return name in g_Modules
 
 def neon_runtime_moduleIsMain(env):
     return True # TODO

@@ -993,10 +993,10 @@ public:
 
     virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &context) const override {
-        context.ca.code << OP_getstatic << context.cf.Field(mv->module, mv->name, type->jtype);
+        context.ca.code << OP_getstatic << context.cf.Field(mv->module->name, mv->name, type->jtype);
     }
     virtual void generate_store(Context &context) const override {
-        context.ca.code << OP_putstatic << context.cf.Field(mv->module, mv->name, type->jtype);
+        context.ca.code << OP_putstatic << context.cf.Field(mv->module->name, mv->name, type->jtype);
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ModuleVariable"); }
 };
@@ -3065,7 +3065,7 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        context.ca.code << OP_invokestatic << context.cf.Method(mf->module, mf->name, signature);
+        context.ca.code << OP_invokestatic << context.cf.Method(mf->module->name, mf->name, signature);
         // TODO: out parameters
     }
 };

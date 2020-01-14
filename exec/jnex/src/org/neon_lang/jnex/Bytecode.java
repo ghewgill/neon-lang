@@ -68,6 +68,7 @@ class Bytecode {
             int importsize = readVint(in);
             while (importsize > 0) {
                 int name = readVint(in);
+                boolean imported = readVint(in) != 0;
                 byte[] hash = new byte[32];
                 in.readFully(hash);
                 importsize--;

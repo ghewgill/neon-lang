@@ -152,6 +152,8 @@ global-shadow.neon
 if.neon
 import-dup.neon
 import.neon
+import-optional.neon
+import-optional-missing.neon
 import-string.neon
 inc.neon
 inc-reference.neon
