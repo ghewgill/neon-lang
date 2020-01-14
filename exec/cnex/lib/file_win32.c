@@ -135,8 +135,6 @@ void file_getInfo(TExecutor *exec)
     }
     FindClose(ff);
 
-    // TODO: Implement OS level checks to validate if file is actually executable.  (.COM, .MSI, .HTA, .CMD, .BAT, etc.)
-    TString cexe = { 4, ".exe" };
     Cell *r = cell_createArrayCell(0);
     Cell t; t.type = cString;
     // name: String
@@ -153,7 +151,7 @@ void file_getInfo(TExecutor *exec)
     t.type = cBoolean; t.boolean = ((fd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) == 0);
     cell_arrayAppendElement(r, t);
     // executable: Boolean
-    t.type = cBoolean; t.boolean = name->length >= 4 && string_endsWithNoCase(name, &cexe);
+    t.type = cBoolean; t.boolean = FALSE;
     cell_arrayAppendElement(r, t);
     // type: FileType
     t.type = cNumber; t.number = number_from_uint32(

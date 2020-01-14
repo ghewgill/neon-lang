@@ -91,9 +91,9 @@ Cell getInfo(const utf8string &name)
     std::vector<Cell> r;
     r.push_back(Cell(fd.cFileName));
     r.push_back(Cell(number_from_uint64((static_cast<uint64_t>(fd.nFileSizeHigh) << 32) | fd.nFileSizeLow)));
-    r.push_back(Cell(TRUE));
+    r.push_back(Cell(true));
     r.push_back(Cell((fd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) == 0));
-    r.push_back(Cell(name.str().length() >= 4 && name.str().substr(name.str().length()-4) == ".exe"));
+    r.push_back(Cell(false));
     r.push_back(Cell(number_from_uint32(
         (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? ENUM_FileType_directory :
         (fd.dwFileAttributes & FILE_ATTRIBUTE_DEVICE) ? ENUM_FileType_special :
