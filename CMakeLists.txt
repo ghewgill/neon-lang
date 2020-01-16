@@ -208,7 +208,7 @@ add_custom_command(
 set_source_files_properties(
     src/ast.cpp
     src/intrinsic.cpp
-    PROPERTIES OBJECT_DEPENDS src/exceptions.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/src/exceptions.inc
 )
 
 add_custom_command(
@@ -225,28 +225,28 @@ set_source_files_properties(
 
 if (JAVAC)
     set(NEON_JVM
-        rtl/jvm/neon/Binary.java
-        rtl/jvm/neon/Datetime.java
-        rtl/jvm/neon/File.java
-        rtl/jvm/neon/Global.java
-        rtl/jvm/neon/Hash.java
-        rtl/jvm/neon/Io.java
-        rtl/jvm/neon/Math.java
-        rtl/jvm/neon/Os.java
-        rtl/jvm/neon/String.java
-        rtl/jvm/neon/Sys.java
-        rtl/jvm/neon/Textio.java
-        rtl/jvm/neon/Time.java
-        rtl/jvm/neon/type/Array.java
-        rtl/jvm/neon/type/NeonException.java
-        rtl/jvm/neon/type/Number.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Binary.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Datetime.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/File.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Global.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Hash.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Io.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Math.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Os.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/String.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Sys.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Textio.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Time.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/type/Array.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/type/NeonException.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/type/Number.java
     )
     string(REPLACE ".java" ".class" NEON_JVM_CLASSES "${NEON_JVM}")
     foreach (java ${NEON_JVM})
         string(REPLACE ".java" ".class" class ${java})
         add_custom_command(
             OUTPUT ${class}
-            COMMAND javac -cp rtl/jvm ${java}
+            COMMAND javac -cp ${CMAKE_SOURCE_DIR}/rtl/jvm ${java}
             DEPENDS ${java}
         )
     endforeach ()
@@ -271,7 +271,7 @@ endif (JAVAC)
 
 if (CSC)
     set(NEON_CLI
-        rtl/cli/Global.cs
+        ${CMAKE_SOURCE_DIR}/rtl/cli/Global.cs
     )
     # TODO: Use cmake C# support (3.8.2+)
     add_custom_command(
@@ -304,6 +304,7 @@ add_library(common STATIC
     src/version.cpp
 )
 target_include_directories(common
+    PRIVATE ${CMAKE_BINARY_DIR}/src
     INTERFACE external/hash-library
     INTERFACE external/minijson_writer-master
     PUBLIC external/utfcpp-master/source
@@ -434,11 +435,11 @@ add_library(executor STATIC
 target_compile_options(executor PRIVATE)
 set_source_files_properties(
     src/exec.cpp
-    PROPERTIES OBJECT_DEPENDS src/exceptions.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/src/exceptions.inc
 )
 target_include_directories(executor
     PRIVATE common
-    PRIVATE src
+    PRIVATE ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(executor
     common
@@ -495,6 +496,9 @@ target_link_libraries(neonstub
 add_executable(neondis
     src/neondis.cpp
 )
+target_include_directories(neondis PRIVATE
+    ${CMAKE_BINARY_DIR}/src
+)
 target_link_libraries(neondis
     compiler
 )
@@ -512,7 +516,7 @@ add_executable(fuzz_lexer
     tests/fuzz_lexer.cpp
 )
 target_include_directories(fuzz_lexer PRIVATE
-    src
+    ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(fuzz_lexer
     compiler
@@ -522,7 +526,7 @@ add_executable(fuzz_parser
     tests/fuzz_parser.cpp
 )
 target_include_directories(fuzz_parser PRIVATE
-    src
+    ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(fuzz_parser
     compiler
@@ -532,7 +536,7 @@ add_executable(perf_lexer
     tests/perf_lexer.cpp
 )
 target_include_directories(perf_lexer PRIVATE
-    src
+    ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(perf_lexer
     compiler
@@ -542,7 +546,7 @@ add_executable(test_lexer
     tests/test_lexer.cpp
 )
 target_include_directories(test_lexer PRIVATE
-    src
+    ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(test_lexer
     compiler
@@ -574,7 +578,7 @@ add_executable(test_parser
     tests/test_parser.cpp
 )
 target_include_directories(test_parser PRIVATE
-    src
+    ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(test_parser
     compiler
