@@ -4,13 +4,15 @@ IMPORT string
 IMPORT sys
 IMPORT textio
 
+LET src: String := sys.args[1]
+
 VAR errors: Dictionary<String> := {}
-LET sources: Array<String> := file.files("src")
+LET sources: Array<String> := file.files(src)
 FOREACH fn IN sources DO
     CHECK string.hasSuffix(fn, ".cpp") ELSE
         NEXT FOREACH
     END CHECK
-    VAR lines: Array<String> := file.readLines("src/" & fn)
+    VAR lines: Array<String> := file.readLines(src & "/" & fn)
     VAR enable: Boolean := TRUE
     FOREACH s IN lines DO
         IF string.hasPrefix(s, "#if 0") THEN

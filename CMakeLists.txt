@@ -171,37 +171,37 @@ foreach (extension_dir ${EXTENSION_DIRS})
 endforeach ()
 
 set(RTL_NEON
-    lib/base.neon
-    lib/binary.neon
-    lib/complex.neon
-    lib/console.neon
-    lib/datetime.neon
-    lib/debugger.neon
-    lib/file.neon
-    lib/global.neon
-    lib/io.neon
-    lib/math.neon
-    lib/mmap.neon
-    lib/net.neon
-    lib/os.neon
-    lib/process.neon
-    lib/random.neon
-    lib/runtime.neon
-    lib/sqlite.neon
-    lib/string.neon
-    lib/struct.neon
-    lib/sys.neon
-    lib/textio.neon
-    lib/time.neon
+    ${CMAKE_SOURCE_DIR}/lib/base.neon
+    ${CMAKE_SOURCE_DIR}/lib/binary.neon
+    ${CMAKE_SOURCE_DIR}/lib/complex.neon
+    ${CMAKE_SOURCE_DIR}/lib/console.neon
+    ${CMAKE_SOURCE_DIR}/lib/datetime.neon
+    ${CMAKE_SOURCE_DIR}/lib/debugger.neon
+    ${CMAKE_SOURCE_DIR}/lib/file.neon
+    ${CMAKE_SOURCE_DIR}/lib/global.neon
+    ${CMAKE_SOURCE_DIR}/lib/io.neon
+    ${CMAKE_SOURCE_DIR}/lib/math.neon
+    ${CMAKE_SOURCE_DIR}/lib/mmap.neon
+    ${CMAKE_SOURCE_DIR}/lib/net.neon
+    ${CMAKE_SOURCE_DIR}/lib/os.neon
+    ${CMAKE_SOURCE_DIR}/lib/process.neon
+    ${CMAKE_SOURCE_DIR}/lib/random.neon
+    ${CMAKE_SOURCE_DIR}/lib/runtime.neon
+    ${CMAKE_SOURCE_DIR}/lib/sqlite.neon
+    ${CMAKE_SOURCE_DIR}/lib/string.neon
+    ${CMAKE_SOURCE_DIR}/lib/struct.neon
+    ${CMAKE_SOURCE_DIR}/lib/sys.neon
+    ${CMAKE_SOURCE_DIR}/lib/textio.neon
+    ${CMAKE_SOURCE_DIR}/lib/time.neon
 )
 if (WIN32)
 else (WIN32)
-    set(RTL_NEON "${RTL_NEON};lib/posix.neon")
+    set(RTL_NEON "${RTL_NEON};${CMAKE_SOURCE_DIR}/lib/posix.neon")
 endif (WIN32)
 
 add_custom_command(
     OUTPUT src/thunks.inc src/functions_compile.inc src/functions_exec.inc src/enums.inc src/exceptions.inc
-    COMMAND python3 scripts/make_thunks.py ${RTL_NEON}
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/make_thunks.py ${RTL_NEON}
     DEPENDS scripts/make_thunks.py
     DEPENDS ${RTL_NEON}
 )
@@ -213,7 +213,7 @@ set_source_files_properties(
 
 add_custom_command(
     OUTPUT src/unicodedata.inc
-    COMMAND python3 tools/helium.py scripts/make_unicode.neon data/UnicodeData.txt >src/unicodedata.inc
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/scripts/make_unicode.neon ${CMAKE_SOURCE_DIR}/data/UnicodeData.txt >src/unicodedata.inc
     DEPENDS tools/helium.py
     DEPENDS scripts/make_unicode.neon
     DEPENDS data/UnicodeData.txt
@@ -316,7 +316,7 @@ target_link_libraries(common
 
 add_custom_command(
     OUTPUT src/rtl.inc
-    COMMAND python3 scripts/build_rtl_inc.py ${RTL_NEON}
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/build_rtl_inc.py ${RTL_NEON}
     DEPENDS scripts/build_rtl_inc.py
     DEPENDS ${RTL_NEON}
 )
@@ -600,7 +600,7 @@ add_test(
 
 add_custom_command(
     OUTPUT src/errors.txt
-    COMMAND python3 tools/helium.py scripts/extract_errors.neon
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/scripts/extract_errors.neon ${CMAKE_SOURCE_DIR}/src
     DEPENDS src/lexer.cpp
     DEPENDS src/parser.cpp
     DEPENDS src/analyzer.cpp
@@ -613,7 +613,7 @@ add_custom_target(errors_txt ALL
 
 add_custom_command(
     OUTPUT contrib/grammar/neon.w3c.ebnf
-    COMMAND python3 tools/helium.py contrib/grammar/ebnf_w3c.neon <contrib/grammar/neon.ebnf >contrib/grammar/neon.w3c.ebnf
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/contrib/grammar/ebnf_w3c.neon <${CMAKE_SOURCE_DIR}/contrib/grammar/neon.ebnf >contrib/grammar/neon.w3c.ebnf
     DEPENDS tools/helium.py
     DEPENDS contrib/grammar/ebnf_w3c.neon
     DEPENDS contrib/grammar/neon.ebnf
@@ -770,14 +770,14 @@ endforeach ()
 file(GLOB_RECURSE SAMPLES neon/*.neon samples/*.neon tools/*.neon)
 foreach (SAMPLE ${SAMPLES})
     execute_process(
-        COMMAND python3 tools/helium.py tools/imports.neon ${SAMPLE}
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/tools/imports.neon ${SAMPLE}
         OUTPUT_VARIABLE IMPORTS_NL
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     string(REPLACE "\n" ";" IMPORTS "${IMPORTS_NL}")
     set(MISSING_IMPORT "")
     foreach (IMPORT ${IMPORTS})
-        if (NOT EXISTS "lib/${IMPORT}.neon" AND NOT EXISTS "lib/${IMPORT}/${IMPORT}.neon")
+        if (NOT EXISTS "${CMAKE_SOURCE_DIR}/lib/${IMPORT}.neon" AND NOT EXISTS "${CMAKE_SOURCE_DIR}/lib/${IMPORT}/${IMPORT}.neon")
             set(MISSING_IMPORT ${IMPORT})
             break()
         endif()
@@ -845,10 +845,10 @@ add_test(
 )
 
 add_custom_target(docs ALL
-    COMMAND perl external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3
+    COMMAND perl ${CMAKE_SOURCE_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/lib -o HTML gh-pages/html -p ${CMAKE_SOURCE_DIR}/lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3
 )
 add_custom_target(docs_samples ALL
-    COMMAND perl external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro
+    COMMAND perl ${CMAKE_SOURCE_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/samples -o HTML gh-pages/samples -p ${CMAKE_SOURCE_DIR}/samples/nd.proj -ro
 )
 
 add_custom_command(
@@ -865,7 +865,7 @@ add_test(
     COMMAND neonx tmp/hello.neb
 )
 add_custom_target(hello_exe ALL
-    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e tmp/hello.exe samples/hello/hello.neonx
+    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e tmp/hello.exe ${CMAKE_SOURCE_DIR}/samples/hello/hello.neonx
     DEPENDS neonbind neonstub samples/hello/hello.neonx
 )
 add_test(

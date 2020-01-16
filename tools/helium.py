@@ -945,7 +945,7 @@ class NativeVariable:
         self.type = type
     def declare(self, env):
         if self.name == "args":
-            env.declare(self.name, self.type.resolve(env), sys.argv[1:])
+            env.declare(self.name, self.type.resolve(env), sys.argv[g_arg_start:])
         elif self.name == "stdin":
             if env.module_name == "io":
                 env.declare(self.name, self.type.resolve(env), sys.stdin.buffer)
@@ -2701,9 +2701,9 @@ def import_module(name, optional):
         if importer is not None:
             m = importer()
         else:
-            fn = os.path.join(os.path.dirname(sys.argv[1]), "{}.neon".format(name))
+            fn = os.path.join(os.path.dirname(sys.argv[g_arg_start]), "{}.neon".format(name))
             if not os.path.exists(fn):
-                fn = os.path.join("lib", "{}.neon".format(name))
+                fn = os.path.join(g_neonpath, "{}.neon".format(name))
             try:
                 m = parse(tokenize(codecs.open(fn, encoding="utf-8").read()))
             except IOError:
@@ -3219,8 +3219,25 @@ def neon_textio_truncate(env, f):
 def neon_textio_writeLine(env, f, s):
     print(s, file=f)
 
+g_neonpath = "lib"
+
+i = 1
+while i < len(sys.argv):
+    if sys.argv[i].startswith("-"):
+        if sys.argv[i] == "--neonpath":
+            i += 1
+            g_neonpath = sys.argv[i]
+        else:
+            print("{}: unknown option {}".format(sys.argv[0], sys.argv[i]), file=sys.stderr)
+            sys.exit(1)
+    else:
+        break
+    i += 1
+
+g_arg_start = i
+
 try:
-    source = codecs.open(sys.argv[1], encoding="utf-8").read()
+    source = codecs.open(sys.argv[g_arg_start], encoding="utf-8").read()
 except UnicodeDecodeError:
     sys.exit(99)
 if re.search(r"^--!", source, re.MULTILINE):

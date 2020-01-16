@@ -221,7 +221,7 @@ else ()
     else (WIN32)
         add_custom_command(
             OUTPUT lib/libgmp.a
-            COMMAND cd gmp-6.1.2 && ./configure --prefix=`pwd`/.. --with-pic --enable-cxx && make && make install
+            COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/gmp-6.1.2 && ./configure --prefix=${CMAKE_BINARY_DIR}/external --with-pic --enable-cxx && make && make install
         )
         add_custom_target(libgmp DEPENDS lib/libgmp.a)
         add_library(GMP STATIC IMPORTED GLOBAL)
