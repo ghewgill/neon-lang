@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 #endif
+// The following is needed for strdup on posix platforms
+#define _POSIX_C_SOURCE 200809L
 
 #include <assert.h>
 #include <inttypes.h>
@@ -17,6 +19,10 @@
 #include "array.h"
 #include "bytecode.h"
 #include "cell.h"
+#ifdef _WIN32
+#define CJSON_HIDE_SYMBOLS
+#endif
+#include "cJSON.h"
 #include "dictionary.h"
 #include "disassembly.h"
 #include "exec.h"
@@ -331,8 +337,83 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
     }
     fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
     cell_freeCell(exceptionvar);
-    // ToDo: Initiate a stack dump here...
+    cJSON *symbols = NULL;
+    cJSON *pStart = NULL;
+    while (self->ip < self->module->bytecode->codelen) {
+        char *dbgpath = strdup(self->module->source_path);
+        dbgpath[strlen(self->module->source_path)-1] = 'd';
 
+        FILE *fp = fopen(dbgpath, "rb");
+        // Don't report out of memory errors, let the stack unwinder report the best it can.
+        if (fp != NULL) {
+            fseek(fp, 0, SEEK_END);
+            long nSize = ftell(fp);
+            fseek(fp, 0, SEEK_SET);
+            char *debug = malloc(nSize);
+            if (debug != NULL) {
+                fread(debug, 1, nSize, fp);
+                fclose(fp);
+                free(dbgpath);
+                symbols = cJSON_Parse(debug);
+                // Remember the start of the symbols, so we can always go back to them.
+                pStart = symbols;
+                free(debug);
+            }
+        }
+
+        if (symbols != NULL) {
+            uint64_t p = self->ip;
+            cJSON *source = cJSON_GetObjectItem(symbols, "source");
+            char hash_string[65];
+            for (int i = 0; i < 32; i++) {
+                snprintf(&hash_string[i*2], 2, "%2.2x", self->module->bytecode->source_hash[i]);
+            }
+            hash_string[64] = '\0';
+            if (strcmp(hash_string, cJSON_GetObjectItem(symbols, "source_hash")->valuestring) != 0) {
+                fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug info available or debug symbols are out of date)\n", self->callstacktop+1, self->module->source_path, self->ip);
+                goto nextframe;
+            }
+            cJSON *jip = NULL;
+            cJSON *jln = NULL;
+            cJSON *lines = NULL;
+            for (;;) {
+                lines = cJSON_GetObjectItem(symbols, "line_numbers");
+                cJSON_ArrayForEach(symbols, lines)
+                {
+                    jip = cJSON_GetArrayItem(symbols, 0);
+                    if (jip->valueint == p) {
+                        jln = cJSON_GetArrayItem(symbols, 1);
+                        break;
+                    }
+                }
+                if (jip->valueint == p) {
+                    break;
+                }
+                if (p == 0) {
+                    fprintf(stderr, "No matching debug information found.\n");
+                    break;
+                }
+                p--;
+                symbols = pStart;
+            }
+            if (!cJSON_IsInvalid(jln)) {
+                fprintf(stderr, "  Stack frame #%d: file %s line %d address %d\n", self->callstacktop+1, self->module->source_path, jln->valueint, self->ip);
+                fprintf(stderr, "    %s\n", cJSON_GetArrayItem(source, jln->valueint)->valuestring);
+            } else {
+                fprintf(stderr, "  Stack frame #%d: file %s address %d (line number not found)\n", self->callstacktop+1, self->module->source_path, self->ip);
+            }
+            cJSON_Delete(symbols);
+        } else {
+            fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug info available)\n", self->callstacktop+1, self->module->source_path, self->ip);
+        }
+nextframe:
+        if (self->callstacktop == 0) {
+            break;
+        }
+        self->module = self->callstack[self->callstacktop].mod;
+        self->ip = self->callstack[self->callstacktop].ip;
+        self->callstacktop--;
+    }
     // Setting exit_code here will cause exec_loop to terminate and return this exit code.
     self->exit_code = 1;
 }

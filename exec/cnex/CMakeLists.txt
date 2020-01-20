@@ -50,6 +50,7 @@ add_executable(cnex
     array.c
     bytecode.c
     cell.c
+    cJSON.c
     cnex.c
     dictionary.c
     disassembly.c

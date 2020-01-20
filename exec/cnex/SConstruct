@@ -99,6 +99,7 @@ cnex = envcnex.Program("cnex", [
     "array.c",
     "bytecode.c",
     "cell.c",
+    "cJSON.c",
     "cnex.c",
     "dictionary.c",
     "disassembly.c",
