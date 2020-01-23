@@ -7,7 +7,7 @@
 
 class DatabaseObject: public Object {
 public:
-    DatabaseObject(sqlite3 *db): db(db) {}
+    explicit DatabaseObject(sqlite3 *db): db(db) {}
     DatabaseObject(const DatabaseObject &) = delete;
     DatabaseObject &operator=(const DatabaseObject &) = delete;
     virtual utf8string toString() const { return utf8string("<SQLITE " + std::to_string(reinterpret_cast<intptr_t>(db)) + ">"); }

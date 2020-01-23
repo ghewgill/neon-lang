@@ -19,7 +19,7 @@
 
 class TextFileObject: public Object {
 public:
-    TextFileObject(FILE *file): file(file) {}
+    explicit TextFileObject(FILE *file): file(file) {}
     TextFileObject(const TextFileObject &) = delete;
     TextFileObject &operator=(const TextFileObject &) = delete;
     virtual utf8string toString() const { return utf8string("<TEXTFILE:" + std::to_string(reinterpret_cast<intptr_t>(file)) + ">"); }

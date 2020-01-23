@@ -8,7 +8,7 @@
 
 class ProcessObject: public Object {
 public:
-    ProcessObject(HANDLE process): process(process) {}
+    explicit ProcessObject(HANDLE process): process(process) {}
     ProcessObject(const ProcessObject &) = delete;
     ProcessObject &operator=(const ProcessObject &) = delete;
     virtual utf8string toString() const { return utf8string("<PROCESS " + std::to_string(reinterpret_cast<intptr_t>(process)) + ">"); }

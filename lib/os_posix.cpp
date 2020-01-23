@@ -13,7 +13,7 @@
 
 class ProcessObject: public Object {
 public:
-    ProcessObject(pid_t pid): pid(pid) {}
+    explicit ProcessObject(pid_t pid): pid(pid) {}
     ProcessObject(const ProcessObject &) = delete;
     ProcessObject &operator=(const ProcessObject &) = delete;
     virtual utf8string toString() const { return utf8string("<PROCESS " + std::to_string(pid) + ">"); }

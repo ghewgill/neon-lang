@@ -297,7 +297,7 @@ private:
 
 class DummyExpression: public Expression {
 public:
-    DummyExpression(const Token &token): Expression(token, token, token) {}
+    explicit DummyExpression(const Token &token): Expression(token, token, token) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 

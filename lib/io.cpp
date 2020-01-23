@@ -20,7 +20,7 @@
 
 class FileObject: public Object {
 public:
-    FileObject(FILE *file): file(file) {}
+    explicit FileObject(FILE *file): file(file) {}
     FileObject(const FileObject &) = delete;
     FileObject &operator=(const FileObject &) = delete;
     virtual utf8string toString() const { return utf8string("<FILE:" + std::to_string(reinterpret_cast<intptr_t>(file)) + ">"); }

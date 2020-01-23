@@ -13,7 +13,7 @@
 
 class MmapObject: public Object {
 public:
-    MmapObject(int fd): fd(fd), len(0), view(NULL) {}
+    explicit MmapObject(int fd): fd(fd), len(0), view(NULL) {}
     MmapObject(const MmapObject &) = delete;
     MmapObject &operator=(const MmapObject &) = delete;
     virtual utf8string toString() const { return utf8string("<mmap " + std::to_string(fd) + ">"); }
