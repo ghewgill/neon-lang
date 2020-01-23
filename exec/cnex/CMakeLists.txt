@@ -10,6 +10,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(platform_cnex
         rtl_posix.c
         lib/file_posix.c
+        lib/mmap_posix.c
         lib/time_posix.c
         lib/time_darwin.c
         lib/os_posix.c
@@ -19,6 +20,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "
     set(platform_cnex
         rtl_posix.c
         lib/file_posix.c
+        lib/mmap_posix.c
         lib/time_posix.c
         lib/time_linux.c
         lib/os_posix.c
@@ -28,6 +30,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     set(platform_cnex
         rtl_win32.c
         lib/file_win32.c
+        lib/mmap_win32.c
         lib/time_win32.c
         lib/os_win32.c
         lib/process_win32.c
