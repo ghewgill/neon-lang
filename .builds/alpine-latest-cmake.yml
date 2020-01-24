@@ -1,7 +1,8 @@
-image: ubuntu/latest
+image: alpine/latest
 packages:
 - cmake
 - m4
+- perl
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 tasks:
