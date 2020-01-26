@@ -1,7 +1,7 @@
 #ifndef OPCODE_H
 #define OPCODE_H
 
-enum Opcode {
+enum class Opcode {
     PUSHB,      // push boolean immediate
     PUSHN,      // push number immediate
     PUSHS,      // push string immediate

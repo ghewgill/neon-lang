@@ -124,110 +124,110 @@ void Emitter::emit(Opcode b)
     emit_byte(static_cast<unsigned char>(b));
     if (stack_depth >= 0) {
         if (in_jumptbl) {
-            in_jumptbl = (b == JUMP);
+            in_jumptbl = (b == Opcode::JUMP);
         }
         switch (b) {
-            case PUSHB:     stack_depth += 1; break;
-            case PUSHN:     stack_depth += 1; break;
-            case PUSHS:     stack_depth += 1; break;
-            case PUSHY:     stack_depth += 1; break;
-            case PUSHPG:    stack_depth += 1; break;
-            case PUSHPPG:   stack_depth += 1; break;
-            case PUSHPMG:   stack_depth += 1; break;
-            case PUSHPL:    stack_depth += 1; break;
-            case PUSHPOL:   stack_depth += 1; break;
-            case PUSHI:     stack_depth += 1; break;
-            case LOADB:     break;
-            case LOADN:     break;
-            case LOADS:     break;
-            case LOADY:     break;
-            case LOADA:     break;
-            case LOADD:     break;
-            case LOADP:     break;
-            case LOADJ:     break;
-            case LOADV:     break;
-            case STOREB:    stack_depth -= 2; break;
-            case STOREN:    stack_depth -= 2; break;
-            case STORES:    stack_depth -= 2; break;
-            case STOREY:    stack_depth -= 2; break;
-            case STOREA:    stack_depth -= 2; break;
-            case STORED:    stack_depth -= 2; break;
-            case STOREP:    stack_depth -= 2; break;
-            case STOREJ:    stack_depth -= 2; break;
-            case STOREV:    stack_depth -= 2; break;
-            case NEGN:      break;
-            case ADDN:      stack_depth -= 1; break;
-            case SUBN:      stack_depth -= 1; break;
-            case MULN:      stack_depth -= 1; break;
-            case DIVN:      stack_depth -= 1; break;
-            case MODN:      stack_depth -= 1; break;
-            case EXPN:      stack_depth -= 1; break;
-            case EQB:       stack_depth -= 1; break;
-            case NEB:       stack_depth -= 1; break;
-            case EQN:       stack_depth -= 1; break;
-            case NEN:       stack_depth -= 1; break;
-            case LTN:       stack_depth -= 1; break;
-            case GTN:       stack_depth -= 1; break;
-            case LEN:       stack_depth -= 1; break;
-            case GEN:       stack_depth -= 1; break;
-            case EQS:       stack_depth -= 1; break;
-            case NES:       stack_depth -= 1; break;
-            case LTS:       stack_depth -= 1; break;
-            case GTS:       stack_depth -= 1; break;
-            case LES:       stack_depth -= 1; break;
-            case GES:       stack_depth -= 1; break;
-            case EQY:       stack_depth -= 1; break;
-            case NEY:       stack_depth -= 1; break;
-            case LTY:       stack_depth -= 1; break;
-            case GTY:       stack_depth -= 1; break;
-            case LEY:       stack_depth -= 1; break;
-            case GEY:       stack_depth -= 1; break;
-            case EQA:       stack_depth -= 1; break;
-            case NEA:       stack_depth -= 1; break;
-            case EQD:       stack_depth -= 1; break;
-            case NED:       stack_depth -= 1; break;
-            case EQP:       stack_depth -= 1; break;
-            case NEP:       stack_depth -= 1; break;
-            case EQV:       stack_depth -= 1; break;
-            case NEV:       stack_depth -= 1; break;
-            case ANDB:      stack_depth -= 1; break;
-            case ORB:       stack_depth -= 1; break;
-            case NOTB:      break;
-            case INDEXAR:   stack_depth -= 1; break;
-            case INDEXAW:   stack_depth -= 1; break;
-            case INDEXAV:   stack_depth -= 1; break;
-            case INDEXAN:   stack_depth -= 1; break;
-            case INDEXDR:   stack_depth -= 1; break;
-            case INDEXDW:   stack_depth -= 1; break;
-            case INDEXDV:   stack_depth -= 1; break;
-            case INA:       stack_depth -= 1; break;
-            case IND:       stack_depth -= 1; break;
-            case CALLP:     break;
-            case CALLF:     break;
-            case CALLMF:    break;
-            case CALLI:     break;
-            case JUMP:      break;
-            case JF:        stack_depth -= 1; break;
-            case JT:        stack_depth -= 1; break;
-            case JFCHAIN:   stack_depth -= 1; break;
-            case DUP:       stack_depth += 1; break;
-            case DUPX1:     stack_depth += 1; break;
-            case DROP:      stack_depth -= 1; break;
-            case RET:       break;
-            case CONSA:     break;
-            case CONSD:     break;
-            case EXCEPT:    stack_depth = -1; break;
-            case ALLOC:     stack_depth += 1; break;
-            case PUSHNIL:   stack_depth += 1; break;
-            case RESETC:    stack_depth -= 1; break;
-            case PUSHPEG:   stack_depth += 1; break;
-            case JUMPTBL:   stack_depth -= 1; in_jumptbl = true; break;
-            case CALLX:     break;
-            case SWAP:      break;
-            case DROPN:     break;
-            case PUSHFP:    stack_depth += 1; break;
-            case CALLV:     break;
-            case PUSHCI:    stack_depth += 1; break;
+            case Opcode::PUSHB:     stack_depth += 1; break;
+            case Opcode::PUSHN:     stack_depth += 1; break;
+            case Opcode::PUSHS:     stack_depth += 1; break;
+            case Opcode::PUSHY:     stack_depth += 1; break;
+            case Opcode::PUSHPG:    stack_depth += 1; break;
+            case Opcode::PUSHPPG:   stack_depth += 1; break;
+            case Opcode::PUSHPMG:   stack_depth += 1; break;
+            case Opcode::PUSHPL:    stack_depth += 1; break;
+            case Opcode::PUSHPOL:   stack_depth += 1; break;
+            case Opcode::PUSHI:     stack_depth += 1; break;
+            case Opcode::LOADB:     break;
+            case Opcode::LOADN:     break;
+            case Opcode::LOADS:     break;
+            case Opcode::LOADY:     break;
+            case Opcode::LOADA:     break;
+            case Opcode::LOADD:     break;
+            case Opcode::LOADP:     break;
+            case Opcode::LOADJ:     break;
+            case Opcode::LOADV:     break;
+            case Opcode::STOREB:    stack_depth -= 2; break;
+            case Opcode::STOREN:    stack_depth -= 2; break;
+            case Opcode::STORES:    stack_depth -= 2; break;
+            case Opcode::STOREY:    stack_depth -= 2; break;
+            case Opcode::STOREA:    stack_depth -= 2; break;
+            case Opcode::STORED:    stack_depth -= 2; break;
+            case Opcode::STOREP:    stack_depth -= 2; break;
+            case Opcode::STOREJ:    stack_depth -= 2; break;
+            case Opcode::STOREV:    stack_depth -= 2; break;
+            case Opcode::NEGN:      break;
+            case Opcode::ADDN:      stack_depth -= 1; break;
+            case Opcode::SUBN:      stack_depth -= 1; break;
+            case Opcode::MULN:      stack_depth -= 1; break;
+            case Opcode::DIVN:      stack_depth -= 1; break;
+            case Opcode::MODN:      stack_depth -= 1; break;
+            case Opcode::EXPN:      stack_depth -= 1; break;
+            case Opcode::EQB:       stack_depth -= 1; break;
+            case Opcode::NEB:       stack_depth -= 1; break;
+            case Opcode::EQN:       stack_depth -= 1; break;
+            case Opcode::NEN:       stack_depth -= 1; break;
+            case Opcode::LTN:       stack_depth -= 1; break;
+            case Opcode::GTN:       stack_depth -= 1; break;
+            case Opcode::LEN:       stack_depth -= 1; break;
+            case Opcode::GEN:       stack_depth -= 1; break;
+            case Opcode::EQS:       stack_depth -= 1; break;
+            case Opcode::NES:       stack_depth -= 1; break;
+            case Opcode::LTS:       stack_depth -= 1; break;
+            case Opcode::GTS:       stack_depth -= 1; break;
+            case Opcode::LES:       stack_depth -= 1; break;
+            case Opcode::GES:       stack_depth -= 1; break;
+            case Opcode::EQY:       stack_depth -= 1; break;
+            case Opcode::NEY:       stack_depth -= 1; break;
+            case Opcode::LTY:       stack_depth -= 1; break;
+            case Opcode::GTY:       stack_depth -= 1; break;
+            case Opcode::LEY:       stack_depth -= 1; break;
+            case Opcode::GEY:       stack_depth -= 1; break;
+            case Opcode::EQA:       stack_depth -= 1; break;
+            case Opcode::NEA:       stack_depth -= 1; break;
+            case Opcode::EQD:       stack_depth -= 1; break;
+            case Opcode::NED:       stack_depth -= 1; break;
+            case Opcode::EQP:       stack_depth -= 1; break;
+            case Opcode::NEP:       stack_depth -= 1; break;
+            case Opcode::EQV:       stack_depth -= 1; break;
+            case Opcode::NEV:       stack_depth -= 1; break;
+            case Opcode::ANDB:      stack_depth -= 1; break;
+            case Opcode::ORB:       stack_depth -= 1; break;
+            case Opcode::NOTB:      break;
+            case Opcode::INDEXAR:   stack_depth -= 1; break;
+            case Opcode::INDEXAW:   stack_depth -= 1; break;
+            case Opcode::INDEXAV:   stack_depth -= 1; break;
+            case Opcode::INDEXAN:   stack_depth -= 1; break;
+            case Opcode::INDEXDR:   stack_depth -= 1; break;
+            case Opcode::INDEXDW:   stack_depth -= 1; break;
+            case Opcode::INDEXDV:   stack_depth -= 1; break;
+            case Opcode::INA:       stack_depth -= 1; break;
+            case Opcode::IND:       stack_depth -= 1; break;
+            case Opcode::CALLP:     break;
+            case Opcode::CALLF:     break;
+            case Opcode::CALLMF:    break;
+            case Opcode::CALLI:     break;
+            case Opcode::JUMP:      break;
+            case Opcode::JF:        stack_depth -= 1; break;
+            case Opcode::JT:        stack_depth -= 1; break;
+            case Opcode::JFCHAIN:   stack_depth -= 1; break;
+            case Opcode::DUP:       stack_depth += 1; break;
+            case Opcode::DUPX1:     stack_depth += 1; break;
+            case Opcode::DROP:      stack_depth -= 1; break;
+            case Opcode::RET:       break;
+            case Opcode::CONSA:     break;
+            case Opcode::CONSD:     break;
+            case Opcode::EXCEPT:    stack_depth = -1; break;
+            case Opcode::ALLOC:     stack_depth += 1; break;
+            case Opcode::PUSHNIL:   stack_depth += 1; break;
+            case Opcode::RESETC:    stack_depth -= 1; break;
+            case Opcode::PUSHPEG:   stack_depth += 1; break;
+            case Opcode::JUMPTBL:   stack_depth -= 1; in_jumptbl = true; break;
+            case Opcode::CALLX:     break;
+            case Opcode::SWAP:      break;
+            case Opcode::DROPN:     break;
+            case Opcode::PUSHFP:    stack_depth += 1; break;
+            case Opcode::CALLV:     break;
+            case Opcode::PUSHCI:    stack_depth += 1; break;
         }
     }
 }
@@ -242,10 +242,10 @@ void Emitter::emit(Opcode b, uint32_t value)
     emit(b);
     emit_uint32(value);
     switch (b) {
-        case CONSA:     stack_depth -= value - 1; break;
-        case CONSD:     stack_depth -= 2*value - 1; break;
-        case DROPN:     stack_depth -= value - 1; break;
-        default:        break;
+        case Opcode::CONSA:     stack_depth -= value - 1; break;
+        case Opcode::CONSD:     stack_depth -= 2*value - 1; break;
+        case Opcode::DROPN:     stack_depth -= value - 1; break;
+        default:                break;
     }
 }
 
@@ -354,7 +354,7 @@ void Emitter::emit_jump(Opcode b, Label &label)
         emit_byte(0);
     }
     // Do not attempt to adjust the stack depth when calling an in-module function.
-    if (b != CALLF && b != PUSHI) {
+    if (b != Opcode::CALLF && b != Opcode::PUSHI) {
         if (stack_depth >= 0) {
             if (label.target_stack_depth < 0) {
                 label.target_stack_depth = stack_depth;
@@ -364,7 +364,7 @@ void Emitter::emit_jump(Opcode b, Label &label)
             }
         }
     }
-    if ((b == JUMP && not in_jumptbl) || b == RET || b == EXCEPT) {
+    if ((b == Opcode::JUMP && not in_jumptbl) || b == Opcode::RET || b == Opcode::EXCEPT) {
         stack_depth = -1;
     }
 }
@@ -582,12 +582,12 @@ void ast::Type::generate_export(Emitter &emitter, const std::string &export_name
 
 void ast::TypeBoolean::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADB);
+    emitter.emit(Opcode::LOADB);
 }
 
 void ast::TypeBoolean::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREB);
+    emitter.emit(Opcode::STOREB);
 }
 
 void ast::TypeBoolean::generate_call(Emitter &) const
@@ -597,12 +597,12 @@ void ast::TypeBoolean::generate_call(Emitter &) const
 
 void ast::TypeNumber::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADN);
+    emitter.emit(Opcode::LOADN);
 }
 
 void ast::TypeNumber::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREN);
+    emitter.emit(Opcode::STOREN);
 }
 
 void ast::TypeNumber::generate_call(Emitter &) const
@@ -612,12 +612,12 @@ void ast::TypeNumber::generate_call(Emitter &) const
 
 void ast::TypeString::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADS);
+    emitter.emit(Opcode::LOADS);
 }
 
 void ast::TypeString::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STORES);
+    emitter.emit(Opcode::STORES);
 }
 
 void ast::TypeString::generate_call(Emitter &) const
@@ -627,12 +627,12 @@ void ast::TypeString::generate_call(Emitter &) const
 
 void ast::TypeBytes::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADY);
+    emitter.emit(Opcode::LOADY);
 }
 
 void ast::TypeBytes::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREY);
+    emitter.emit(Opcode::STOREY);
 }
 
 void ast::TypeBytes::generate_call(Emitter &) const
@@ -642,12 +642,12 @@ void ast::TypeBytes::generate_call(Emitter &) const
 
 void ast::TypeObject::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADJ);
+    emitter.emit(Opcode::LOADJ);
 }
 
 void ast::TypeObject::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREJ);
+    emitter.emit(Opcode::STOREJ);
 }
 
 void ast::TypeObject::generate_call(Emitter &) const
@@ -714,12 +714,12 @@ void ast::TypeArray::predeclare(Emitter &emitter) const
 
 void ast::TypeArray::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADA);
+    emitter.emit(Opcode::LOADA);
 }
 
 void ast::TypeArray::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREA);
+    emitter.emit(Opcode::STOREA);
 }
 
 void ast::TypeArray::generate_call(Emitter &) const
@@ -749,12 +749,12 @@ void ast::TypeDictionary::predeclare(Emitter &emitter) const
 
 void ast::TypeDictionary::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADD);
+    emitter.emit(Opcode::LOADD);
 }
 
 void ast::TypeDictionary::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STORED);
+    emitter.emit(Opcode::STORED);
 }
 
 void ast::TypeDictionary::generate_call(Emitter &) const
@@ -799,12 +799,12 @@ void ast::TypeRecord::postdeclare(Emitter &emitter) const
 
 void ast::TypeRecord::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADA);
+    emitter.emit(Opcode::LOADA);
 }
 
 void ast::TypeRecord::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREA);
+    emitter.emit(Opcode::STOREA);
 }
 
 void ast::TypeRecord::generate_call(Emitter &) const
@@ -860,18 +860,18 @@ std::string ast::TypeClass::get_type_descriptor(Emitter &emitter) const
 void ast::TypePointer::generate_load(Emitter &emitter) const
 {
     if (reftype != nullptr) {
-        emitter.emit(LOADP);
+        emitter.emit(Opcode::LOADP);
     } else {
-        emitter.emit(LOADV);
+        emitter.emit(Opcode::LOADV);
     }
 }
 
 void ast::TypePointer::generate_store(Emitter &emitter) const
 {
     if (reftype != nullptr) {
-        emitter.emit(STOREP);
+        emitter.emit(Opcode::STOREP);
     } else {
-        emitter.emit(STOREV);
+        emitter.emit(Opcode::STOREV);
     }
 }
 
@@ -894,12 +894,12 @@ void ast::TypePointer::get_type_references(std::set<const Type *> &references) c
 
 void ast::TypeInterfacePointer::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADA);
+    emitter.emit(Opcode::LOADA);
 }
 
 void ast::TypeInterfacePointer::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREA);
+    emitter.emit(Opcode::STOREA);
 }
 
 void ast::TypeInterfacePointer::generate_call(Emitter &) const
@@ -922,17 +922,17 @@ void ast::TypeInterfacePointer::get_type_references(std::set<const Type *> &) co
 
 void ast::TypeFunctionPointer::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADA);
+    emitter.emit(Opcode::LOADA);
 }
 
 void ast::TypeFunctionPointer::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREA);
+    emitter.emit(Opcode::STOREA);
 }
 
 void ast::TypeFunctionPointer::generate_call(Emitter &emitter) const
 {
-    emitter.emit(CALLI);
+    emitter.emit(Opcode::CALLI);
     emitter.adjust_stack_depth(functype->get_stack_delta() - 1);
 }
 
@@ -950,12 +950,12 @@ void ast::TypeFunctionPointer::get_type_references(std::set<const Type *> &refer
 
 void ast::TypeEnum::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADN);
+    emitter.emit(Opcode::LOADN);
 }
 
 void ast::TypeEnum::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREN);
+    emitter.emit(Opcode::STOREN);
 }
 
 void ast::TypeEnum::generate_call(Emitter &) const
@@ -1000,7 +1000,7 @@ void ast::Variable::generate_call(Emitter &emitter) const
 
 void ast::PredefinedVariable::generate_address(Emitter &emitter) const
 {
-    emitter.emit(PUSHPPG, emitter.str(name));
+    emitter.emit(Opcode::PUSHPPG, emitter.str(name));
 }
 
 void ast::ModuleVariable::predeclare(Emitter &emitter) const
@@ -1010,7 +1010,7 @@ void ast::ModuleVariable::predeclare(Emitter &emitter) const
 
 void ast::ModuleVariable::generate_address(Emitter &emitter) const
 {
-    emitter.emit(PUSHPMG, emitter.str(module->name), index);
+    emitter.emit(Opcode::PUSHPMG, emitter.str(module->name), index);
 }
 
 void ast::GlobalVariable::predeclare(Emitter &emitter) const
@@ -1024,7 +1024,7 @@ void ast::GlobalVariable::generate_address(Emitter &emitter) const
     if (index < 0) {
         internal_error("invalid global index: " + name);
     }
-    emitter.emit(PUSHPG, index);
+    emitter.emit(Opcode::PUSHPG, index);
 }
 
 void ast::GlobalVariable::generate_export(Emitter &emitter, const std::string &export_name) const
@@ -1034,7 +1034,7 @@ void ast::GlobalVariable::generate_export(Emitter &emitter, const std::string &e
 
 void ast::ExternalGlobalVariable::generate_address(Emitter &emitter) const
 {
-    emitter.emit(PUSHPEG, emitter.str(name));
+    emitter.emit(Opcode::PUSHPEG, emitter.str(name));
 }
 
 void ast::LocalVariable::predeclare(Emitter &emitter, int slot)
@@ -1050,9 +1050,9 @@ void ast::LocalVariable::generate_address(Emitter &emitter) const
     }
     assert(emitter.get_function_depth() >= nesting_depth);
     if (emitter.get_function_depth() > nesting_depth) {
-        emitter.emit(PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
+        emitter.emit(Opcode::PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
     } else {
-        emitter.emit(PUSHPL, index);
+        emitter.emit(Opcode::PUSHPL, index);
     }
 }
 
@@ -1066,18 +1066,18 @@ void ast::FunctionParameter::generate_address(Emitter &emitter) const
         case ParameterType::Mode::IN:
         case ParameterType::Mode::OUT:
             if (emitter.get_function_depth() > nesting_depth) {
-                emitter.emit(PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
+                emitter.emit(Opcode::PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
             } else {
-                emitter.emit(PUSHPL, index);
+                emitter.emit(Opcode::PUSHPL, index);
             }
             break;
         case ParameterType::Mode::INOUT:
             if (emitter.get_function_depth() > nesting_depth) {
-                emitter.emit(PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
+                emitter.emit(Opcode::PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
             } else {
-                emitter.emit(PUSHPL, index);
+                emitter.emit(Opcode::PUSHPL, index);
             }
-            emitter.emit(LOADP);
+            emitter.emit(Opcode::LOADP);
             break;
     }
 }
@@ -1142,8 +1142,8 @@ void ast::Function::postdeclare(Emitter &emitter) const
                 (*p)->generate_store(emitter);
                 break;
             case ParameterType::Mode::INOUT:
-                emitter.emit(PUSHPL, (*p)->index);
-                emitter.emit(STOREP);
+                emitter.emit(Opcode::PUSHPL, (*p)->index);
+                emitter.emit(Opcode::STOREP);
                 break;
             case ParameterType::Mode::OUT:
                 break;
@@ -1167,7 +1167,7 @@ void ast::Function::postdeclare(Emitter &emitter) const
                 break;
         }
     }
-    emitter.emit(RET);
+    emitter.emit(Opcode::RET);
     if (exit.is_reachable() && emitter.get_stack_depth() >= 0) {
         if (dynamic_cast<const TypeFunction *>(type)->returntype != TYPE_NOTHING) {
             emitter.adjust_stack_depth(-1);
@@ -1201,12 +1201,12 @@ void ast::Function::postdeclare(Emitter &emitter) const
 void ast::Function::generate_load(Emitter &emitter) const
 {
     // Get the address of a function for function pointer support.
-    emitter.emit(PUSHFP, function_index);
+    emitter.emit(Opcode::PUSHFP, function_index);
 }
 
 void ast::Function::generate_call(Emitter &emitter) const
 {
-    emitter.emit(CALLF, function_index);
+    emitter.emit(Opcode::CALLF, function_index);
     emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 
@@ -1226,7 +1226,7 @@ void ast::PredefinedFunction::generate_call(Emitter &emitter) const
         predeclare(emitter);
         i = emitter.predefined_name_index.find(this);
     }
-    emitter.emit(CALLP, i->second);
+    emitter.emit(Opcode::CALLP, i->second);
     emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 
@@ -1235,7 +1235,7 @@ void ast::ExtensionFunction::postdeclare(Emitter &emitter) const
     emitter.jump_target(emitter.function_info(function_index).entry_label);
     emitter.set_stack_depth(count_in_parameters(ftype->params));
     generate_call(emitter);
-    emitter.emit(RET);
+    emitter.emit(Opcode::RET);
 }
 
 void ast::ExtensionFunction::generate_call(Emitter &emitter) const
@@ -1256,11 +1256,11 @@ void ast::ExtensionFunction::generate_call(Emitter &emitter) const
                 break;
         }
     }
-    emitter.emit(CONSA, static_cast<uint32_t>(in_param_count));
-    emitter.emit(CALLX, emitter.str(module), emitter.str(name), out_param_count);
+    emitter.emit(Opcode::CONSA, static_cast<uint32_t>(in_param_count));
+    emitter.emit(Opcode::CALLX, emitter.str(module), emitter.str(name), out_param_count);
     emitter.adjust_stack_depth(out_param_count);
     if (dynamic_cast<const TypeFunction *>(type)->returntype == TYPE_NOTHING) {
-        emitter.emit(DROPN, out_param_count);
+        emitter.emit(Opcode::DROPN, out_param_count);
     }
 }
 
@@ -1271,7 +1271,7 @@ void ast::ModuleFunction::predeclare(Emitter &emitter) const
 
 void ast::ModuleFunction::generate_call(Emitter &emitter) const
 {
-    emitter.emit(CALLMF, emitter.str(module->name), emitter.str(name + "," + descriptor));
+    emitter.emit(Opcode::CALLMF, emitter.str(module->name), emitter.str(name + "," + descriptor));
     emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 
@@ -1307,45 +1307,45 @@ void ast::Expression::generate(Emitter &emitter) const
 
 void ast::ConstantBooleanExpression::generate_expr(Emitter &emitter) const
 {
-    emitter.emit(PUSHB);
+    emitter.emit(Opcode::PUSHB);
     emitter.emit_byte(value ? 1 : 0);
 }
 
 void ast::ConstantNumberExpression::generate_expr(Emitter &emitter) const
 {
-    emitter.emit(PUSHN, value);
+    emitter.emit(Opcode::PUSHN, value);
 }
 
 void ast::ConstantStringExpression::generate_expr(Emitter &emitter) const
 {
     unsigned int index = emitter.str(value);
-    emitter.emit(PUSHS, index);
+    emitter.emit(Opcode::PUSHS, index);
 }
 
 void ast::ConstantBytesExpression::generate_expr(Emitter &emitter) const
 {
     unsigned int index = emitter.str(contents);
-    emitter.emit(PUSHY, index);
+    emitter.emit(Opcode::PUSHY, index);
 }
 
 void ast::ConstantEnumExpression::generate_expr(Emitter &emitter) const
 {
-    emitter.emit(PUSHN, number_from_uint32(value));
+    emitter.emit(Opcode::PUSHN, number_from_uint32(value));
 }
 
 void ast::ConstantNilExpression::generate_expr(Emitter &emitter) const
 {
-    emitter.emit(PUSHNIL);
+    emitter.emit(Opcode::PUSHNIL);
 }
 
 void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
 {
-    emitter.emit(PUSHFP, 0);
+    emitter.emit(Opcode::PUSHFP, 0);
 }
 
 void ast::ConstantNilObject::generate_expr(Emitter &emitter) const
 {
-    emitter.emit(CALLP, emitter.str("object__makeNull"));
+    emitter.emit(Opcode::CALLP, emitter.str("object__makeNull"));
 }
 
 void ast::TypeConversionExpression::generate_expr(Emitter &emitter) const
@@ -1358,16 +1358,16 @@ void ast::ArrayLiteralExpression::generate_expr(Emitter &emitter) const
     for (auto e = elements.rbegin(); e != elements.rend(); ++e) {
         (*e)->generate(emitter);
     }
-    emitter.emit(CONSA, static_cast<uint32_t>(elements.size()));
+    emitter.emit(Opcode::CONSA, static_cast<uint32_t>(elements.size()));
 }
 
 void ast::DictionaryLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto d = dict.rbegin(); d != dict.rend(); ++d) {
-        emitter.emit(PUSHS, emitter.str(d->first));
+        emitter.emit(Opcode::PUSHS, emitter.str(d->first));
         d->second->generate(emitter);
     }
-    emitter.emit(CONSD, static_cast<uint32_t>(dict.size()));
+    emitter.emit(Opcode::CONSD, static_cast<uint32_t>(dict.size()));
 }
 
 void ast::RecordLiteralExpression::generate_expr(Emitter &emitter) const
@@ -1378,7 +1378,7 @@ void ast::RecordLiteralExpression::generate_expr(Emitter &emitter) const
         (*v)->generate(emitter);
         f++;
     }
-    emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
+    emitter.emit(Opcode::CONSA, static_cast<uint32_t>(values.size()));
 }
 
 void ast::ClassLiteralExpression::generate_expr(Emitter &emitter) const
@@ -1386,8 +1386,8 @@ void ast::ClassLiteralExpression::generate_expr(Emitter &emitter) const
     for (size_t i = values.size()-1; i > 0; i--) {
         values[i]->generate(emitter);
     }
-    emitter.emit(PUSHCI, emitter.str(type->name));
-    emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
+    emitter.emit(Opcode::PUSHCI, emitter.str(type->name));
+    emitter.emit(Opcode::CONSA, static_cast<uint32_t>(values.size()));
 }
 
 void ast::NewClassExpression::generate_expr(Emitter &emitter) const
@@ -1395,33 +1395,33 @@ void ast::NewClassExpression::generate_expr(Emitter &emitter) const
     if (value != nullptr) {
         value->generate(emitter);
     }
-    emitter.emit(ALLOC, static_cast<uint32_t>(reftype->fields.size()));
+    emitter.emit(Opcode::ALLOC, static_cast<uint32_t>(reftype->fields.size()));
     if (value != nullptr) {
-        emitter.emit(DUPX1);
-        emitter.emit(STOREA);
+        emitter.emit(Opcode::DUPX1);
+        emitter.emit(Opcode::STOREA);
     }
 }
 
 void ast::UnaryMinusExpression::generate_expr(Emitter &emitter) const
 {
     value->generate(emitter);
-    emitter.emit(NEGN);
+    emitter.emit(Opcode::NEGN);
 }
 
 void ast::LogicalNotExpression::generate_expr(Emitter &emitter) const
 {
     value->generate(emitter);
-    emitter.emit(NOTB);
+    emitter.emit(Opcode::NOTB);
 }
 
 void ast::ConditionalExpression::generate_expr(Emitter &emitter) const
 {
     condition->generate(emitter);
     auto else_label = emitter.create_label();
-    emitter.emit_jump(JF, else_label);
+    emitter.emit_jump(Opcode::JF, else_label);
     left->generate(emitter);
     auto end_label = emitter.create_label();
-    emitter.emit_jump(JUMP, end_label);
+    emitter.emit_jump(Opcode::JUMP, end_label);
     emitter.jump_target(else_label);
     right->generate(emitter);
     emitter.jump_target(end_label);
@@ -1434,7 +1434,7 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
     ei.start = emitter.current_ip();
     expr->generate(emitter);
     auto skip = emitter.create_label();
-    emitter.emit_jump(JUMP, skip);
+    emitter.emit_jump(Opcode::JUMP, skip);
     ei.end = emitter.current_ip();
     for (auto &c: catches) {
         // Exception handling pushes the exception info onto the stack here.
@@ -1449,7 +1449,7 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
             c.name->generate_address(emitter);
             c.name->generate_store(emitter);
         } else {
-            emitter.emit(DROP);
+            emitter.emit(Opcode::DROP);
         }
         const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.handler);
         const Expression *e = dynamic_cast<const Expression *>(c.handler);
@@ -1462,7 +1462,7 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
         } else {
             internal_error("unexpected catch type");
         }
-        emitter.emit_jump(JUMP, skip);
+        emitter.emit_jump(Opcode::JUMP, skip);
     }
     emitter.jump_target(skip);
 }
@@ -1470,10 +1470,10 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
 void ast::DisjunctionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
-    emitter.emit(DUP);
+    emitter.emit(Opcode::DUP);
     auto true_label = emitter.create_label();
-    emitter.emit_jump(JT, true_label);
-    emitter.emit(DROP);
+    emitter.emit_jump(Opcode::JT, true_label);
+    emitter.emit(Opcode::DROP);
     right->generate(emitter);
     emitter.jump_target(true_label);
 }
@@ -1481,10 +1481,10 @@ void ast::DisjunctionExpression::generate_expr(Emitter &emitter) const
 void ast::ConjunctionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
-    emitter.emit(DUP);
+    emitter.emit(Opcode::DUP);
     auto false_label = emitter.create_label();
-    emitter.emit_jump(JF, false_label);
-    emitter.emit(DROP);
+    emitter.emit_jump(Opcode::JF, false_label);
+    emitter.emit(Opcode::DROP);
     right->generate(emitter);
     emitter.jump_target(false_label);
 }
@@ -1493,25 +1493,25 @@ void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
 {
     assert(expr_before_conversion->type == TYPE_OBJECT);
     if (expr_after_conversion == nullptr) {
-        emitter.emit(PUSHB, 0);
+        emitter.emit(Opcode::PUSHB, 0);
         return;
     }
     int start_stack_depth = emitter.get_stack_depth();
     Bytecode::ExceptionInfo ei;
     ei.start = emitter.current_ip();
     expr_after_conversion->generate(emitter);
-    emitter.emit(DROP);
-    emitter.emit(PUSHB, 1);
+    emitter.emit(Opcode::DROP);
+    emitter.emit(Opcode::PUSHB, 1);
     auto skip = emitter.create_label();
-    emitter.emit_jump(JUMP, skip);
+    emitter.emit_jump(Opcode::JUMP, skip);
     ei.end = emitter.current_ip();
     ei.excid = emitter.str("DynamicConversionException");
     ei.handler = emitter.current_ip();
     ei.stack_depth = start_stack_depth;
     emitter.add_exception(ei);
     emitter.set_stack_depth(start_stack_depth + 1);
-    emitter.emit(DROP);
-    emitter.emit(PUSHB, 0);
+    emitter.emit(Opcode::DROP);
+    emitter.emit(Opcode::PUSHB, 0);
     emitter.jump_target(skip);
 }
 
@@ -1519,14 +1519,14 @@ void ast::ArrayInExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(INA);
+    emitter.emit(Opcode::INA);
 }
 
 void ast::DictionaryInExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(IND);
+    emitter.emit(Opcode::IND);
 }
 
 void ast::ComparisonExpression::generate_expr(Emitter &emitter) const
@@ -1545,11 +1545,11 @@ void ast::ChainedComparisonExpression::generate_expr(Emitter &emitter) const
         bool last = i == comps.size() - 1;
         c->right->generate(emitter);
         if (not last) {
-            emitter.emit(DUPX1);
+            emitter.emit(Opcode::DUPX1);
         }
         c->generate_comparison_opcode(emitter);
         if (not last) {
-            emitter.emit_jump(JFCHAIN, skip_label);
+            emitter.emit_jump(Opcode::JFCHAIN, skip_label);
         }
         i++;
     }
@@ -1559,8 +1559,8 @@ void ast::ChainedComparisonExpression::generate_expr(Emitter &emitter) const
 void ast::BooleanComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQB); break;
-        case Comparison::NE: emitter.emit(NEB); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQB); break;
+        case Comparison::NE: emitter.emit(Opcode::NEB); break;
         default:
             internal_error("unexpected comparison type");
     }
@@ -1569,56 +1569,56 @@ void ast::BooleanComparisonExpression::generate_comparison_opcode(Emitter &emitt
 void ast::NumericComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQN); break;
-        case Comparison::NE: emitter.emit(NEN); break;
-        case Comparison::LT: emitter.emit(LTN); break;
-        case Comparison::GT: emitter.emit(GTN); break;
-        case Comparison::LE: emitter.emit(LEN); break;
-        case Comparison::GE: emitter.emit(GEN); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQN); break;
+        case Comparison::NE: emitter.emit(Opcode::NEN); break;
+        case Comparison::LT: emitter.emit(Opcode::LTN); break;
+        case Comparison::GT: emitter.emit(Opcode::GTN); break;
+        case Comparison::LE: emitter.emit(Opcode::LEN); break;
+        case Comparison::GE: emitter.emit(Opcode::GEN); break;
     }
 }
 
 void ast::EnumComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQN); break;
-        case Comparison::NE: emitter.emit(NEN); break;
-        case Comparison::LT: emitter.emit(LTN); break;
-        case Comparison::GT: emitter.emit(GTN); break;
-        case Comparison::LE: emitter.emit(LEN); break;
-        case Comparison::GE: emitter.emit(GEN); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQN); break;
+        case Comparison::NE: emitter.emit(Opcode::NEN); break;
+        case Comparison::LT: emitter.emit(Opcode::LTN); break;
+        case Comparison::GT: emitter.emit(Opcode::GTN); break;
+        case Comparison::LE: emitter.emit(Opcode::LEN); break;
+        case Comparison::GE: emitter.emit(Opcode::GEN); break;
     }
 }
 
 void ast::StringComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQS); break;
-        case Comparison::NE: emitter.emit(NES); break;
-        case Comparison::LT: emitter.emit(LTS); break;
-        case Comparison::GT: emitter.emit(GTS); break;
-        case Comparison::LE: emitter.emit(LES); break;
-        case Comparison::GE: emitter.emit(GES); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQS); break;
+        case Comparison::NE: emitter.emit(Opcode::NES); break;
+        case Comparison::LT: emitter.emit(Opcode::LTS); break;
+        case Comparison::GT: emitter.emit(Opcode::GTS); break;
+        case Comparison::LE: emitter.emit(Opcode::LES); break;
+        case Comparison::GE: emitter.emit(Opcode::GES); break;
     }
 }
 
 void ast::BytesComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQY); break;
-        case Comparison::NE: emitter.emit(NEY); break;
-        case Comparison::LT: emitter.emit(LTY); break;
-        case Comparison::GT: emitter.emit(GTY); break;
-        case Comparison::LE: emitter.emit(LEY); break;
-        case Comparison::GE: emitter.emit(GEY); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQY); break;
+        case Comparison::NE: emitter.emit(Opcode::NEY); break;
+        case Comparison::LT: emitter.emit(Opcode::LTY); break;
+        case Comparison::GT: emitter.emit(Opcode::GTY); break;
+        case Comparison::LE: emitter.emit(Opcode::LEY); break;
+        case Comparison::GE: emitter.emit(Opcode::GEY); break;
     }
 }
 
 void ast::ArrayComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQA); break;
-        case Comparison::NE: emitter.emit(NEA); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQA); break;
+        case Comparison::NE: emitter.emit(Opcode::NEA); break;
         default:
             internal_error("unexpected comparison type");
     }
@@ -1627,8 +1627,8 @@ void ast::ArrayComparisonExpression::generate_comparison_opcode(Emitter &emitter
 void ast::RecordComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQA); break;
-        case Comparison::NE: emitter.emit(NEA); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQA); break;
+        case Comparison::NE: emitter.emit(Opcode::NEA); break;
         default:
             internal_error("unexpected comparison type");
     }
@@ -1637,8 +1637,8 @@ void ast::RecordComparisonExpression::generate_comparison_opcode(Emitter &emitte
 void ast::DictionaryComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQD); break;
-        case Comparison::NE: emitter.emit(NED); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQD); break;
+        case Comparison::NE: emitter.emit(Opcode::NED); break;
         default:
             internal_error("unexpected comparison type");
     }
@@ -1647,8 +1647,8 @@ void ast::DictionaryComparisonExpression::generate_comparison_opcode(Emitter &em
 void ast::PointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQP); break;
-        case Comparison::NE: emitter.emit(NEP); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQP); break;
+        case Comparison::NE: emitter.emit(Opcode::NEP); break;
         default:
             internal_error("unexpected comparison type");
     }
@@ -1657,8 +1657,8 @@ void ast::PointerComparisonExpression::generate_comparison_opcode(Emitter &emitt
 void ast::FunctionPointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQA); break;
-        case Comparison::NE: emitter.emit(NEA); break;
+        case Comparison::EQ: emitter.emit(Opcode::EQA); break;
+        case Comparison::NE: emitter.emit(Opcode::NEA); break;
         default:
             internal_error("unexpected comparison type");
     }
@@ -1667,53 +1667,53 @@ void ast::FunctionPointerComparisonExpression::generate_comparison_opcode(Emitte
 void ast::ValidPointerExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
-    emitter.emit(DUP);
+    emitter.emit(Opcode::DUP);
     var->generate_address(emitter);
     var->generate_store(emitter);
     right->generate(emitter);
-    emitter.emit(NEP);
+    emitter.emit(Opcode::NEP);
 }
 
 void ast::AdditionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(ADDN);
+    emitter.emit(Opcode::ADDN);
 }
 
 void ast::SubtractionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(SUBN);
+    emitter.emit(Opcode::SUBN);
 }
 
 void ast::MultiplicationExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(MULN);
+    emitter.emit(Opcode::MULN);
 }
 
 void ast::DivisionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(DIVN);
+    emitter.emit(Opcode::DIVN);
 }
 
 void ast::ModuloExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(MODN);
+    emitter.emit(Opcode::MODN);
 }
 
 void ast::ExponentiationExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(EXPN);
+    emitter.emit(Opcode::EXPN);
 }
 
 void ast::ReferenceExpression::generate_load(Emitter &emitter) const
@@ -1730,7 +1730,7 @@ void ast::ReferenceExpression::generate_store(Emitter &emitter) const
 
 void ast::DummyExpression::generate_store(Emitter &emitter) const
 {
-    emitter.emit(DROP);
+    emitter.emit(Opcode::DROP);
 }
 
 void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter) const
@@ -1738,9 +1738,9 @@ void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter)
     array->generate_address_read(emitter);
     index->generate(emitter);
     if (always_create) {
-        emitter.emit(INDEXAW);
+        emitter.emit(Opcode::INDEXAW);
     } else {
-        emitter.emit(INDEXAR);
+        emitter.emit(Opcode::INDEXAR);
     }
 }
 
@@ -1748,7 +1748,7 @@ void ast::ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter
 {
     array->generate_address_write(emitter);
     index->generate(emitter);
-    emitter.emit(INDEXAW);
+    emitter.emit(Opcode::INDEXAW);
 }
 
 void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
@@ -1756,9 +1756,9 @@ void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
     array->generate(emitter);
     index->generate(emitter);
     if (always_create) {
-        emitter.emit(INDEXAN);
+        emitter.emit(Opcode::INDEXAN);
     } else {
-        emitter.emit(INDEXAV);
+        emitter.emit(Opcode::INDEXAV);
     }
 }
 
@@ -1766,21 +1766,21 @@ void ast::DictionaryReferenceIndexExpression::generate_address_read(Emitter &emi
 {
     dictionary->generate_address_read(emitter);
     index->generate(emitter);
-    emitter.emit(INDEXDR);
+    emitter.emit(Opcode::INDEXDR);
 }
 
 void ast::DictionaryReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
     dictionary->generate_address_write(emitter);
     index->generate(emitter);
-    emitter.emit(INDEXDW);
+    emitter.emit(Opcode::INDEXDW);
 }
 
 void ast::DictionaryValueIndexExpression::generate_expr(Emitter &emitter) const
 {
     dictionary->generate(emitter);
     index->generate(emitter);
-    emitter.emit(INDEXDV);
+    emitter.emit(Opcode::INDEXDV);
 }
 
 void ast::StringReferenceIndexExpression::generate_load(Emitter &emitter) const
@@ -1819,7 +1819,7 @@ void ast::ObjectSubscriptExpression::generate_expr(Emitter &emitter) const
 {
     obj->generate(emitter);
     index->generate(emitter);
-    emitter.emit(CALLP, emitter.str("object__subscript"));
+    emitter.emit(Opcode::CALLP, emitter.str("object__subscript"));
     emitter.adjust_stack_depth(-1);
 }
 
@@ -1834,11 +1834,11 @@ void ast::RecordReferenceFieldExpression::generate_address_read(Emitter &emitter
     if (f == rectype->field_names.end()) {
         internal_error("RecordReferenceFieldExpression");
     }
-    emitter.emit(PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
+    emitter.emit(Opcode::PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
     if (always_create) {
-        emitter.emit(INDEXAW);
+        emitter.emit(Opcode::INDEXAW);
     } else {
-        emitter.emit(INDEXAR);
+        emitter.emit(Opcode::INDEXAR);
     }
 }
 
@@ -1853,8 +1853,8 @@ void ast::RecordReferenceFieldExpression::generate_address_write(Emitter &emitte
     if (f == rectype->field_names.end()) {
         internal_error("RecordReferenceFieldExpression");
     }
-    emitter.emit(PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
-    emitter.emit(INDEXAW);
+    emitter.emit(Opcode::PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
+    emitter.emit(Opcode::INDEXAW);
 }
 
 void ast::RecordValueFieldExpression::generate_expr(Emitter &emitter) const
@@ -1868,11 +1868,11 @@ void ast::RecordValueFieldExpression::generate_expr(Emitter &emitter) const
     if (f == rectype->field_names.end()) {
         internal_error("RecordValueFieldExpression");
     }
-    emitter.emit(PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
+    emitter.emit(Opcode::PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
     if (always_create) {
-        emitter.emit(INDEXAN);
+        emitter.emit(Opcode::INDEXAN);
     } else {
-        emitter.emit(INDEXAV);
+        emitter.emit(Opcode::INDEXAV);
     }
 }
 
@@ -1910,23 +1910,23 @@ void ast::VariableExpression::generate_expr(Emitter &emitter) const
 
 void ast::InterfaceMethodExpression::generate_call(Emitter &emitter) const
 {
-    emitter.emit(CALLV, static_cast<uint32_t>(index));
+    emitter.emit(Opcode::CALLV, static_cast<uint32_t>(index));
     emitter.adjust_stack_depth(functype->get_stack_delta() - 1);
 }
 
 void ast::InterfacePointerConstructor::generate_expr(Emitter &emitter) const
 {
     expr->generate(emitter);
-    emitter.emit(PUSHI, static_cast<uint32_t>(index));
-    emitter.emit(SWAP);
-    emitter.emit(CONSA, 2);
+    emitter.emit(Opcode::PUSHI, static_cast<uint32_t>(index));
+    emitter.emit(Opcode::SWAP);
+    emitter.emit(Opcode::CONSA, 2);
 }
 
 void ast::InterfacePointerDeconstructor::generate_expr(Emitter &emitter) const
 {
     expr->generate(emitter);
-    emitter.emit(PUSHI, 0);
-    emitter.emit(INDEXAV);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAV);
 }
 
 void ast::FunctionCall::generate_parameters(Emitter &emitter) const
@@ -2069,17 +2069,17 @@ void ast::ExceptionHandlerStatement::generate_code(Emitter &emitter) const
 void ast::AssertStatement::generate_code(Emitter &emitter) const
 {
     auto skip_label = emitter.create_label();
-    emitter.emit(CALLP, emitter.str("runtime$assertionsEnabled"));
+    emitter.emit(Opcode::CALLP, emitter.str("runtime$assertionsEnabled"));
     emitter.adjust_stack_depth(1);
-    emitter.emit_jump(JF, skip_label);
+    emitter.emit_jump(Opcode::JF, skip_label);
     expr->generate(emitter);
-    emitter.emit_jump(JT, skip_label);
+    emitter.emit_jump(Opcode::JT, skip_label);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
-    emitter.emit(PUSHS, emitter.str(source));
-    emitter.emit(CONSA, 1);
-    emitter.emit(EXCEPT, emitter.str("AssertFailedException"));
+    emitter.emit(Opcode::PUSHS, emitter.str(source));
+    emitter.emit(Opcode::CONSA, 1);
+    emitter.emit(Opcode::EXCEPT, emitter.str("AssertFailedException"));
     emitter.jump_target(skip_label);
 }
 
@@ -2088,7 +2088,7 @@ void ast::AssignmentStatement::generate_code(Emitter &emitter) const
     assert(variables.size() > 0);
     expr->generate(emitter);
     for (size_t i = 0; i < variables.size() - 1; i++) {
-        emitter.emit(DUP);
+        emitter.emit(Opcode::DUP);
     }
     for (auto v: variables) {
          v->generate_store(emitter);
@@ -2103,12 +2103,12 @@ void ast::ExpressionStatement::generate_code(Emitter &emitter) const
 void ast::IncrementStatement::generate_code(Emitter &emitter) const
 {
     ref->generate_address_write(emitter);
-    emitter.emit(DUP);
-    emitter.emit(LOADN);
-    emitter.emit(PUSHN, number_from_sint32(delta));
-    emitter.emit(ADDN);
-    emitter.emit(SWAP);
-    emitter.emit(STOREN);
+    emitter.emit(Opcode::DUP);
+    emitter.emit(Opcode::LOADN);
+    emitter.emit(Opcode::PUSHN, number_from_sint32(delta));
+    emitter.emit(Opcode::ADDN);
+    emitter.emit(Opcode::SWAP);
+    emitter.emit(Opcode::STOREN);
 }
 
 void ast::IfStatement::generate_code(Emitter &emitter) const
@@ -2119,11 +2119,11 @@ void ast::IfStatement::generate_code(Emitter &emitter) const
         const std::vector<const Statement *> &statements = cs.second;
         condition->generate(emitter);
         auto else_label = emitter.create_label();
-        emitter.emit_jump(JF, else_label);
+        emitter.emit_jump(Opcode::JF, else_label);
         for (auto stmt: statements) {
             stmt->generate(emitter);
         }
-        emitter.emit_jump(JUMP, end_label);
+        emitter.emit_jump(Opcode::JUMP, end_label);
         emitter.jump_target(else_label);
     }
     for (auto stmt: else_statements) {
@@ -2160,8 +2160,8 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
                 if (func != nullptr) {
                     if (func->nesting_depth <= emitter.get_function_depth()) {
                         call->generate_parameters(emitter);
-                        emitter.emit(LEAVE);
-                        emitter.emit_jump(JUMP, emitter.function_info(func->function_index).entry_label);
+                        emitter.emit(Opcode::LEAVE);
+                        emitter.emit_jump(Opcode::JUMP, emitter.function_info(func->function_index).entry_label);
                         return;
                     }
                 }
@@ -2174,7 +2174,7 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
     if (expr != nullptr) {
         expr->generate(emitter);
     }
-    emitter.emit_jump(JUMP, emitter.get_function_exit());
+    emitter.emit_jump(Opcode::JUMP, emitter.get_function_exit());
 }
 
 void ast::CaseStatement::generate_code(Emitter &emitter) const
@@ -2213,10 +2213,10 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
             const int32_t range = max - min + 1;
             if (range < 10000 && values.size() > static_cast<size_t>(range)/10) {
                 if (min != 0) {
-                    emitter.emit(PUSHN, number_from_sint32(min));
-                    emitter.emit(SUBN);
+                    emitter.emit(Opcode::PUSHN, number_from_sint32(min));
+                    emitter.emit(Opcode::SUBN);
                 }
-                emitter.emit(JUMPTBL, range);
+                emitter.emit(Opcode::JUMPTBL, range);
                 std::map<const std::vector<const Statement *> *, Emitter::Label> labels;
                 auto others_label = emitter.create_label();
                 for (int32_t i = min; i <= max; i++) {
@@ -2226,18 +2226,18 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
                         if (label == labels.end()) {
                             labels[v->second] = emitter.create_label();
                         }
-                        emitter.emit_jump(JUMP, labels[v->second]);
+                        emitter.emit_jump(Opcode::JUMP, labels[v->second]);
                     } else {
-                        emitter.emit_jump(JUMP, others_label);
+                        emitter.emit_jump(Opcode::JUMP, others_label);
                     }
                 }
-                emitter.emit_jump(JUMP, others_label);
+                emitter.emit_jump(Opcode::JUMP, others_label);
                 for (auto &label: labels) {
                     emitter.jump_target(label.second);
                     for (auto stmt: *label.first) {
                         stmt->generate(emitter);
                     }
-                    emitter.emit_jump(JUMP, end_label);
+                    emitter.emit_jump(Opcode::JUMP, end_label);
                 }
                 emitter.jump_target(others_label);
                 for (auto stmt: when_others) {
@@ -2257,16 +2257,16 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
             auto match_label = emitter.create_label();
             for (auto *condition: conditions) {
                 condition->generate(emitter);
-                emitter.emit_jump(JT, match_label);
+                emitter.emit_jump(Opcode::JT, match_label);
             }
-            emitter.emit_jump(JUMP, next_label);
+            emitter.emit_jump(Opcode::JUMP, next_label);
             emitter.jump_target(match_label);
         }
-        emitter.emit(DROP);
+        emitter.emit(Opcode::DROP);
         for (auto stmt: statements) {
             stmt->generate(emitter);
         }
-        emitter.emit_jump(JUMP, end_label);
+        emitter.emit_jump(Opcode::JUMP, end_label);
         emitter.jump_target(next_label);
     }
     emitter.jump_target(end_label);
@@ -2274,8 +2274,8 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
 
 void ast::CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) const
 {
-    static const Opcode opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
-    static const Opcode ops[] = {EQS, NES, LTS, GTS, LES, GES};
+    static const Opcode opn[] = {Opcode::EQN, Opcode::NEN, Opcode::LTN, Opcode::GTN, Opcode::LEN, Opcode::GEN};
+    static const Opcode ops[] = {Opcode::EQS, Opcode::NES, Opcode::LTS, Opcode::GTS, Opcode::LES, Opcode::GES};
     const Opcode *op;
     if (expr->type == TYPE_NUMBER || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
         op = opn;
@@ -2285,15 +2285,15 @@ void ast::CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) con
         internal_error("when condition not number or string");
     }
 
-    emitter.emit(DUP);
+    emitter.emit(Opcode::DUP);
     expr->generate(emitter);
     emitter.emit(op[static_cast<int>(comp)]); // Casting enum to int for index.
 }
 
 void ast::CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
 {
-    static const Opcode opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
-    static const Opcode ops[] = {EQS, NES, LTS, GTS, LES, GES};
+    static const Opcode opn[] = {Opcode::EQN, Opcode::NEN, Opcode::LTN, Opcode::GTN, Opcode::LEN, Opcode::GEN};
+    static const Opcode ops[] = {Opcode::EQS, Opcode::NES, Opcode::LTS, Opcode::GTS, Opcode::LES, Opcode::GES};
     const Opcode *op;
     if (low_expr->type == TYPE_NUMBER || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
         op = opn;
@@ -2303,14 +2303,14 @@ void ast::CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
         internal_error("when condition not number or string");
     }
 
-    emitter.emit(DUP);
+    emitter.emit(Opcode::DUP);
     auto result_label = emitter.create_label();
     low_expr->generate(emitter);
     emitter.emit(op[static_cast<int>(ComparisonExpression::Comparison::GE)]);
-    emitter.emit(DUP);
-    emitter.emit_jump(JF, result_label);
-    emitter.emit(DROP);
-    emitter.emit(DUP);
+    emitter.emit(Opcode::DUP);
+    emitter.emit_jump(Opcode::JF, result_label);
+    emitter.emit(Opcode::DROP);
+    emitter.emit(Opcode::DUP);
     high_expr->generate(emitter);
     emitter.emit(op[static_cast<int>(ComparisonExpression::Comparison::LE)]);
     emitter.jump_target(result_label);
@@ -2322,18 +2322,18 @@ void ast::CaseStatement::TypeTestWhenCondition::generate(Emitter &emitter) const
     Bytecode::ExceptionInfo ei;
     ei.start = emitter.current_ip();
     expr->generate(emitter);
-    emitter.emit(DROP);
-    emitter.emit(PUSHB, 1);
+    emitter.emit(Opcode::DROP);
+    emitter.emit(Opcode::PUSHB, 1);
     auto skip = emitter.create_label();
-    emitter.emit_jump(JUMP, skip);
+    emitter.emit_jump(Opcode::JUMP, skip);
     ei.end = emitter.current_ip();
     ei.excid = emitter.str("DynamicConversionException");
     ei.handler = emitter.current_ip();
     ei.stack_depth = start_stack_depth;
     emitter.add_exception(ei);
     emitter.set_stack_depth(start_stack_depth + 1);
-    emitter.emit(DROP);
-    emitter.emit(PUSHB, 0);
+    emitter.emit(Opcode::DROP);
+    emitter.emit(Opcode::PUSHB, 0);
     emitter.jump_target(skip);
 }
 
@@ -2354,19 +2354,19 @@ void ast::BaseLoopStatement::generate_code(Emitter &emitter) const
     for (auto stmt: tail) {
         stmt->generate(emitter);
     }
-    emitter.emit_jump(JUMP, top);
+    emitter.emit_jump(Opcode::JUMP, top);
     emitter.jump_target(skip);
     emitter.remove_loop_labels(loop_id);
 }
 
 void ast::ExitStatement::generate_code(Emitter &emitter) const
 {
-    emitter.emit_jump(JUMP, emitter.get_exit_label(loop_id));
+    emitter.emit_jump(Opcode::JUMP, emitter.get_exit_label(loop_id));
 }
 
 void ast::NextStatement::generate_code(Emitter &emitter) const
 {
-    emitter.emit_jump(JUMP, emitter.get_next_label(loop_id));
+    emitter.emit_jump(Opcode::JUMP, emitter.get_next_label(loop_id));
 }
 
 void ast::TryStatement::generate_code(Emitter &emitter) const
@@ -2378,7 +2378,7 @@ void ast::TryStatement::generate_code(Emitter &emitter) const
         stmt->generate(emitter);
     }
     auto skip = emitter.create_label();
-    emitter.emit_jump(JUMP, skip);
+    emitter.emit_jump(Opcode::JUMP, skip);
     ei.end = emitter.current_ip();
     for (auto &c: catches) {
         // Exception handling pushes the exception info onto the stack here.
@@ -2393,7 +2393,7 @@ void ast::TryStatement::generate_code(Emitter &emitter) const
             c.name->generate_address(emitter);
             c.name->generate_store(emitter);
         } else {
-            emitter.emit(DROP);
+            emitter.emit(Opcode::DROP);
         }
         const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.handler);
         if (ehs != nullptr) {
@@ -2403,7 +2403,7 @@ void ast::TryStatement::generate_code(Emitter &emitter) const
         } else {
             internal_error("unexpected catch type");
         }
-        emitter.emit_jump(JUMP, skip);
+        emitter.emit_jump(Opcode::JUMP, skip);
     }
     emitter.jump_target(skip);
 }
@@ -2412,14 +2412,14 @@ void ast::RaiseStatement::generate_code(Emitter &emitter) const
 {
     info->generate(emitter);
     unsigned int index = emitter.str(exception->name);
-    emitter.emit(EXCEPT, index);
+    emitter.emit(Opcode::EXCEPT, index);
 }
 
 void ast::ResetStatement::generate_code(Emitter &emitter) const
 {
     for (auto v: variables) {
          v->generate_address_write(emitter);
-         emitter.emit(RESETC);
+         emitter.emit(Opcode::RESETC);
     }
 }
 
@@ -2520,15 +2520,15 @@ void ast::Program::generate(Emitter &emitter) const
     }
     const Function *main = dynamic_cast<const Function *>(scope->lookupName("MAIN"));
     if (main != nullptr) {
-        emitter.emit(CALLP, emitter.str("runtime$moduleIsMain"));
+        emitter.emit(Opcode::CALLP, emitter.str("runtime$moduleIsMain"));
         emitter.adjust_stack_depth(1);
         auto skip = emitter.create_label();
-        emitter.emit_jump(JF, skip);
-        emitter.emit(CALLF, main->function_index);
+        emitter.emit_jump(Opcode::JF, skip);
+        emitter.emit(Opcode::CALLF, main->function_index);
         emitter.adjust_stack_depth(0);
         emitter.jump_target(skip);
     }
-    emitter.emit(RET);
+    emitter.emit(Opcode::RET);
     frame->postdeclare(emitter);
 
     TYPE_BOOLEAN->postdeclare(emitter);
