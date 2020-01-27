@@ -101,6 +101,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" 
     add_compile_options(-Wall -Wextra -Werror -g)
 endif ()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+find_package(GMP)
+find_package(ZLIB)
 add_subdirectory(external)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
@@ -225,7 +228,7 @@ target_include_directories(common
 )
 target_link_libraries(common
     bid
-    gmp
+    ${GMP_TARGET}
 )
 
 add_custom_command(
@@ -264,7 +267,7 @@ target_include_directories(compiler
 )
 target_link_libraries(compiler
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
 )
 
@@ -362,7 +365,7 @@ target_include_directories(executor
 )
 target_link_libraries(executor
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
     sqlite3
 )
@@ -378,7 +381,7 @@ target_link_libraries(neonc
     compiler
     common
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
 )
 
@@ -396,7 +399,7 @@ target_link_libraries(neon
     executor
     common
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
     sqlite3
 )
@@ -424,7 +427,7 @@ target_link_libraries(neonx
     executor
     common
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
     minizip
     sqlite3
@@ -453,7 +456,7 @@ target_link_libraries(neonstub
     executor
     common
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
     minizip
     sqlite3
@@ -484,7 +487,7 @@ target_include_directories(neondis PRIVATE
 )
 target_link_libraries(neondis
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
 )
 
@@ -514,7 +517,7 @@ target_include_directories(fuzz_lexer PRIVATE
 )
 target_link_libraries(fuzz_lexer
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
 )
 
@@ -533,7 +536,7 @@ target_include_directories(fuzz_parser PRIVATE
 )
 target_link_libraries(fuzz_parser
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
 )
 
@@ -550,7 +553,7 @@ target_include_directories(perf_lexer PRIVATE
 )
 target_link_libraries(perf_lexer
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
 )
 
@@ -567,7 +570,7 @@ target_include_directories(test_lexer PRIVATE
 )
 target_link_libraries(test_lexer
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
 )
 add_test(
@@ -584,7 +587,7 @@ target_include_directories(test_number PRIVATE
 )
 target_link_libraries(test_number
     bid
-    gmp
+    ${GMP_TARGET}
 )
 add_test(
     NAME test_number
@@ -607,7 +610,7 @@ target_include_directories(test_parser PRIVATE
 )
 target_link_libraries(test_parser
     bid
-    gmp
+    ${GMP_TARGET}
     hash-library
 )
 add_test(
@@ -624,7 +627,7 @@ target_include_directories(test_number_to_string PRIVATE
 )
 target_link_libraries(test_number_to_string
     bid
-    gmp
+    ${GMP_TARGET}
 )
 add_test(
     NAME test_number_to_string
