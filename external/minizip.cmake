@@ -23,7 +23,6 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Fre
     set_source_files_properties(minizip11/ioapi.c PROPERTIES COMPILE_DEFINITIONS "fopen64=fopen;fseeko64=fseeko;ftello64=ftello")
 endif ()
 target_include_directories(minizip
-    PUBLIC minizip11
-    PRIVATE zlib-1.2.8
+    INTERFACE minizip11
 )
-target_link_libraries(minizip z)
+target_link_libraries(minizip ${ZLIB_TARGET})
