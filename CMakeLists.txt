@@ -221,9 +221,7 @@ add_library(common STATIC
     src/support.cpp
 )
 target_include_directories(common
-    PUBLIC external/IntelRDFPMathLib20U2/LIBRARY/src
     PRIVATE external/utfcpp-master/source
-    PRIVATE external/gmp-6.1.2
 )
 target_link_libraries(common
     bid
@@ -260,11 +258,9 @@ set_source_files_properties(
     PROPERTIES OBJECT_DEPENDS src/rtl.inc
 )
 target_include_directories(compiler
-    PRIVATE external/IntelRDFPMathLib20U2/LIBRARY/src
     PRIVATE external/hash-library
     PRIVATE external/minijson_writer-master
     PRIVATE external/utfcpp-master/source
-    PRIVATE external/gmp-6.1.2
 )
 target_link_libraries(compiler
     bid
@@ -361,11 +357,8 @@ set_source_files_properties(
 target_include_directories(executor
     PRIVATE common
     PRIVATE src
-    PRIVATE external/IntelRDFPMathLib20U2/LIBRARY/src
     PRIVATE external/minijson_writer-master
-    PRIVATE external/sqlite-amalgamation-3080803
     PRIVATE external/utfcpp-master/source
-    PRIVATE external/gmp-6.1.2
 )
 target_link_libraries(executor
     bid

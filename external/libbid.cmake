@@ -312,7 +312,7 @@ else (WIN32)
     target_compile_options(bid PRIVATE -Defi2)
 endif (WIN32)
 target_include_directories(bid
-    PUBLIC IntelRDFPMathLib20U2/LIBRARY/src
+    INTERFACE IntelRDFPMathLib20U2/LIBRARY/src
 )
 target_link_libraries(bid
     dpml
