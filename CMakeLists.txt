@@ -214,7 +214,7 @@ if (GO)
     add_subdirectory("exec/gonex")
 endif (GO)
 
-add_library(common OBJECT
+add_library(common STATIC
     src/bytecode.cpp
     src/intrinsic.cpp
     src/number.cpp
@@ -225,7 +225,7 @@ target_include_directories(common
     PRIVATE external/utfcpp-master/source
     PRIVATE external/gmp-6.1.2
 )
-add_dependencies(common
+target_link_libraries(common
     bid
     gmp
 )
@@ -236,7 +236,7 @@ add_custom_command(
     DEPENDS scripts/build_rtl_inc.py
     DEPENDS ${RTL_NEON}
 )
-add_library(compiler OBJECT
+add_library(compiler STATIC
     src/analyzer.cpp
     src/ast.cpp
     src/compiler.cpp
@@ -266,7 +266,7 @@ target_include_directories(compiler
     PRIVATE external/utfcpp-master/source
     PRIVATE external/gmp-6.1.2
 )
-add_dependencies(compiler
+target_link_libraries(compiler
     bid
     gmp
     hash-library
@@ -324,7 +324,7 @@ endif ()
 #    DEPENDS ${RTL_NEONX}
 #)
 
-add_library(executor OBJECT
+add_library(executor STATIC
     src/cell.cpp
     src/exec.cpp
     src/httpserver.cpp
@@ -367,7 +367,7 @@ target_include_directories(executor
     PRIVATE external/utfcpp-master/source
     PRIVATE external/gmp-6.1.2
 )
-add_dependencies(executor
+target_link_libraries(executor
     bid
     gmp
     hash-library
@@ -376,14 +376,14 @@ add_dependencies(executor
 
 add_executable(neonc
     src/neonc.cpp
-    $<TARGET_OBJECTS:common>
-    $<TARGET_OBJECTS:compiler>
 )
 target_include_directories(neonc
     PRIVATE external/minijson_writer-master
     PRIVATE external/utfcpp-master/source
 )
 target_link_libraries(neonc
+    compiler
+    common
     bid
     gmp
     hash-library
@@ -392,14 +392,20 @@ target_link_libraries(neonc
 add_executable(neon
     src/neon.cpp
     src/repl.cpp
-    $<TARGET_OBJECTS:common>
-    $<TARGET_OBJECTS:compiler>
-    $<TARGET_OBJECTS:executor>
 )
 target_include_directories(neon PRIVATE
     src
     external/minijson_writer-master
     external/utfcpp-master/source
+)
+target_link_libraries(neon
+    compiler
+    executor
+    common
+    bid
+    gmp
+    hash-library
+    sqlite3
 )
 if (WIN32)
     target_link_libraries(neon wsock32)
@@ -410,19 +416,11 @@ endif ()
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     target_link_libraries(neon pthread)
 endif ()
-target_link_libraries(neon
-    bid
-    gmp
-    hash-library
-    sqlite3
-)
 
 add_executable(neonx
     src/neonx.cpp
     src/bundle.cpp
     src/disassembler.cpp
-    $<TARGET_OBJECTS:common>
-    $<TARGET_OBJECTS:executor>
 )
 target_include_directories(neonx PRIVATE
     src
@@ -430,6 +428,8 @@ target_include_directories(neonx PRIVATE
     external/utfcpp-master/source
 )
 target_link_libraries(neonx
+    executor
+    common
     bid
     gmp
     hash-library
@@ -450,8 +450,6 @@ add_executable(neonstub
     src/neonstub.cpp
     src/bundle.cpp
     src/disassembler.cpp
-    $<TARGET_OBJECTS:common>
-    $<TARGET_OBJECTS:executor>
 )
 target_include_directories(neonstub PRIVATE
     src
@@ -459,6 +457,8 @@ target_include_directories(neonstub PRIVATE
     external/utfcpp-master/source
 )
 target_link_libraries(neonstub
+    executor
+    common
     bid
     gmp
     hash-library
