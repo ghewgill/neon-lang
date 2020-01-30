@@ -366,7 +366,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
             cJSON *source = cJSON_GetObjectItem(symbols, "source");
             char hash_string[65];
             for (int i = 0; i < 32; i++) {
-                snprintf(&hash_string[i*2], 2, "%2.2x", self->module->bytecode->source_hash[i]);
+                snprintf(&hash_string[i*2], 3, "%2.2x", self->module->bytecode->source_hash[i]);
             }
             hash_string[64] = '\0';
             if (strcmp(hash_string, cJSON_GetObjectItem(symbols, "source_hash")->valuestring) != 0) {
