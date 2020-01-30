@@ -1,7 +1,5 @@
-# Compile options from the top CMakeLists.txt file are all inherited,
-# including the -Werror option. So add -Wno-error here to disable errors
-# on warnings for external code.
-add_compile_options(-Wno-error)
+# Turn off all warnings for external code.
+add_compile_options(-w)
 
 include(libbid.cmake)
 include(libgmp.cmake)
