@@ -9,7 +9,7 @@ jobs:
                 command: apt update
             - run:
                 name: install packages
-                command: apt install -y python3 cmake make g++ m4 openjdk-8-jdk-headless mono-mcs nodejs rustc golang
+                command: apt install -y python3 cmake make g++ libgmp-dev zlib1g-dev openjdk-8-jdk-headless mono-mcs nodejs rustc golang
             - checkout
             - run:
                 name: Build
