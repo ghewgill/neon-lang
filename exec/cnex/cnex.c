@@ -344,16 +344,17 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         dbgpath[strlen(self->module->source_path)-1] = 'd';
 
         FILE *fp = fopen(dbgpath, "rb");
+        free(dbgpath);
         // Don't report out of memory errors, let the stack unwinder report the best it can.
         if (fp != NULL) {
             fseek(fp, 0, SEEK_END);
             long nSize = ftell(fp);
             fseek(fp, 0, SEEK_SET);
-            char *debug = malloc(nSize);
+            char *debug = malloc(nSize + 1);
             if (debug != NULL) {
                 fread(debug, 1, nSize, fp);
+                debug[nSize] = '\0';
                 fclose(fp);
-                free(dbgpath);
                 symbols = cJSON_Parse(debug);
                 // Remember the start of the symbols, so we can always go back to them.
                 pStart = symbols;
@@ -366,11 +367,12 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
             cJSON *source = cJSON_GetObjectItem(symbols, "source");
             char hash_string[65];
             for (int i = 0; i < 32; i++) {
-                snprintf(&hash_string[i*2], 2, "%2.2x", self->module->bytecode->source_hash[i]);
+                snprintf(&hash_string[i*2], 3, "%2.2x", (uint8_t)self->module->bytecode->source_hash[i] & 0xFF);
             }
-            hash_string[64] = '\0';
-            if (strcmp(hash_string, cJSON_GetObjectItem(symbols, "source_hash")->valuestring) != 0) {
-                fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug info available or debug symbols are out of date)\n", self->callstacktop+1, self->module->source_path, self->ip);
+            hash_string[64] = '\0'; // Make absolute certain that hash_string is null terminated.
+            const char *symbol_hash = cJSON_GetObjectItem(symbols, "source_hash")->valuestring;
+            if (strcmp(hash_string, symbol_hash) != 0) {
+                fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug information, symbols are out of date. %.7s..%.7s)\n", self->callstacktop+1, self->module->source_path, self->ip, hash_string, symbol_hash);
                 goto nextframe;
             }
             cJSON *jip = NULL;
@@ -381,12 +383,12 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 cJSON_ArrayForEach(symbols, lines)
                 {
                     jip = cJSON_GetArrayItem(symbols, 0);
-                    if (jip->valueint == p) {
+                    if (!cJSON_IsInvalid(jip) && jip->valueint == p) {
                         jln = cJSON_GetArrayItem(symbols, 1);
                         break;
                     }
                 }
-                if (jip->valueint == p) {
+                if (jln != NULL) {
                     break;
                 }
                 if (p == 0) {
@@ -397,12 +399,17 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 symbols = pStart;
             }
             if (!cJSON_IsInvalid(jln)) {
+                cJSON *source_line = cJSON_GetArrayItem(source, jln->valueint);
                 fprintf(stderr, "  Stack frame #%d: file %s line %d address %d\n", self->callstacktop+1, self->module->source_path, jln->valueint, self->ip);
-                fprintf(stderr, "    %s\n", cJSON_GetArrayItem(source, jln->valueint)->valuestring);
+                if (!cJSON_IsInvalid(source_line)) {
+                    fprintf(stderr, "    %s\n", source_line->valuestring);
+                } else {
+                    fprintf(stderr, "    *Source line missing from symbols file!*\n");
+                }
             } else {
                 fprintf(stderr, "  Stack frame #%d: file %s address %d (line number not found)\n", self->callstacktop+1, self->module->source_path, self->ip);
             }
-            cJSON_Delete(symbols);
+            cJSON_Delete(pStart);
         } else {
             fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug info available)\n", self->callstacktop+1, self->module->source_path, self->ip);
         }
