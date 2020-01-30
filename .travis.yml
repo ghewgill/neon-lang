@@ -46,5 +46,5 @@ before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:
   - if [ "$BUILDER" == "scons" ]; then if [ "$BID_GENERIC" == "" ]; then scons RELEASE=$RELEASE; else scons RELEASE=$RELEASE BID_GENERIC=$BID_GENERIC; fi; fi
-  - if [ "$BUILDER" == "cmake" ]; then cmake . && make && ctest -V; fi
+  - if [ "$BUILDER" == "cmake" ]; then cmake . && make && ctest --output-on-failure; fi
 sudo: false

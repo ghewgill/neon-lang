@@ -25,7 +25,7 @@ int64_t dictionary_findIndex(Dictionary *self, struct tagTString *key)
 
 struct tagTCell *dictionary_findDictionaryEntry(Dictionary *self, struct tagTString *key)
 {
-    size_t idx;
+    int64_t idx;
 
     idx = dictionary_findIndex(self, key);
     return idx == -1 ? NULL : self->data[idx].value;

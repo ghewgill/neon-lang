@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 #endif
-// The following is needed for strdup on posix platforms
+// The following is needed for strdup on Posix platforms.
 #define _POSIX_C_SOURCE 200809L
 
 #include <assert.h>
@@ -383,7 +383,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 cJSON_ArrayForEach(symbols, lines)
                 {
                     jip = cJSON_GetArrayItem(symbols, 0);
-                    if (!cJSON_IsInvalid(jip) && jip->valueint == p) {
+                    if (!cJSON_IsInvalid(jip) && (uint64_t)jip->valueint == p) {
                         jln = cJSON_GetArrayItem(symbols, 1);
                         break;
                     }

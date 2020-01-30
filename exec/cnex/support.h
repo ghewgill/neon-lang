@@ -20,7 +20,7 @@ typedef struct tagTExtensionModule {
 typedef struct tagTExtensions {
     TExtensionModule *modules;
     size_t size;
-} TExtenstions;
+} TExtensions;
 
 void path_initPaths(const char *source_path);
 void path_freePaths();

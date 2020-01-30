@@ -33,7 +33,7 @@ typedef struct tagTPath {
 // We only need to declare this once, in one location.
 static TPath *neon_paths;
 
-TExtenstions *g_libraries;
+TExtensions *g_libraries;
 
 static void path_pushPath(const char *source_path)
 {
@@ -230,7 +230,7 @@ char *path_getPathOnly(char *path)
 void ext_insertModule(const char *name, void *handle)
 {
     if (g_libraries == NULL) {
-        g_libraries = malloc(sizeof(TExtenstions));
+        g_libraries = malloc(sizeof(TExtensions));
         if (g_libraries == NULL) {
             fatal_error("Could not allocate memory for global extension module pointers.");
         }
@@ -251,7 +251,7 @@ void ext_insertModule(const char *name, void *handle)
 TExtensionModule *ext_findModule(const char *name)
 {
     if (g_libraries) {
-        for (int i = 0; i < g_libraries->size; i++) {
+        for (size_t i = 0; i < g_libraries->size; i++) {
             if (strcmp(g_libraries->modules[i].module, name) == 0) {
                 return &g_libraries->modules[i];
             }
@@ -263,7 +263,7 @@ TExtensionModule *ext_findModule(const char *name)
 void ext_cleanup()
 {
     if (g_libraries) {
-        for (int i = 0; i < g_libraries->size; i++) {
+        for (size_t i = 0; i < g_libraries->size; i++) {
             free(g_libraries->modules[i].module);
         }
         free(g_libraries->modules->methods);

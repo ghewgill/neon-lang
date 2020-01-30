@@ -268,7 +268,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("string__splice",            string__splice),
     PDFUNC("string__substring",         string__substring),
 
-    { 0 }
+    { 0, 0 }
 };
 
 static Cell VAR_args;
@@ -290,7 +290,7 @@ struct tagTVariables {
     { "textio$stderr",                  &VAR_textiostderr },
     { "textio$stdin",                   &VAR_textiostdin  },
     { "textio$stdout",                  &VAR_textiostdout },
-    { 0 },
+    { 0, 0 },
 };
 
 void global_init(int argc, char *argv[], int iArgStart)

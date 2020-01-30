@@ -12,6 +12,7 @@ public:
     utf8string(const utf8string &s): s(s.s), indexes(s.indexes), character_length(s.character_length) {}
     explicit utf8string(const std::string &s): s(s), indexes(), character_length(std::string::npos) {}
     explicit utf8string(const char *s): s(s), indexes(), character_length(std::string::npos) {}
+    utf8string &operator=(const utf8string &) = default;
     bool operator==(const utf8string &rhs) const { return s == rhs.s; }
     bool operator!=(const utf8string &rhs) const { return s != rhs.s; }
     bool operator<(const utf8string &rhs) const { return s < rhs.s; }

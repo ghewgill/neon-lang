@@ -8,7 +8,7 @@ int64_t string_findCString(TString *self, const char *p)
 {
     int64_t r = -1;
 
-    TString psz = { 0 };
+    TString psz = { 0, 0 };
     psz.data = (char*)p;
     psz.length = strlen(p);
     r = string_findString(self, 0, &psz);
