@@ -2,7 +2,8 @@ image: debian/stable
 packages:
 - cmake
 - ncurses-dev
-- m4
+- libgmp-dev
+- zlib1g-dev
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 tasks:

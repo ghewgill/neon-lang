@@ -35,6 +35,7 @@ git:
   submodules: false
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install scons; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install gmp; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which mcs || brew install mono; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt update; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install python3-pip; fi
@@ -42,6 +43,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo sed -i -e '1s/python$/python3/' $(which scons); fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then which mcs || sudo apt install mono-mcs; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install libncurses-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install libgmp-dev; fi
 before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:

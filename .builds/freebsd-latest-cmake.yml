@@ -2,6 +2,7 @@ image: freebsd/latest
 packages:
 - cmake
 - python3
+- gmp
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 tasks:

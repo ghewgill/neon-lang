@@ -3,7 +3,8 @@ packages:
 - g++
 - cmake
 - ncurses
-- m4
+- gmp-devel
+- zlib-devel
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 tasks:
