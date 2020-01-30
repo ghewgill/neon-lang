@@ -84,13 +84,6 @@ else (RUSTC)
     message("rustc not found")
 endif (RUSTC)
 
-find_program(GO go)
-if (GO)
-    message("go found: ${GO}")
-else (GO)
-    message("go not found")
-endif (GO)
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -109,6 +102,8 @@ add_subdirectory(external)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     include_directories(/usr/local/include)
 endif ()
+
+set(NEON_TEST_DIR "${CMAKE_CURRENT_LIST_DIR}/t")
 
 set(RTL_NEON
     lib/binary.neon
@@ -213,9 +208,7 @@ add_subdirectory("exec/cnex")
 if (RUSTC)
     add_subdirectory("exec/rsnex")
 endif (RUSTC)
-if (GO)
-    add_subdirectory("exec/gonex")
-endif (GO)
+add_subdirectory("exec/gonex")
 
 add_library(common STATIC
     src/bytecode.cpp
@@ -707,9 +700,6 @@ add_tests("${TESTS}" "cnex" "exec/cnex/run_test.py" "exec/cnex/exclude.txt")
 if (RUSTC)
     add_tests("${TESTS}" "rsnex" "exec/rsnex/run_test.py" "exec/rsnex/exclude.txt")
 endif (RUSTC)
-if (GO)
-    add_tests("${TESTS}" "gonex" "exec/gonex/run_test.py" "exec/gonex/exclude.txt")
-endif (GO)
 
 add_test(
     NAME "import-optional:neonx"
