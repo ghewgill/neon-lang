@@ -104,6 +104,8 @@ int main(int argc, char *argv[])
 
         CompilerSupport compiler_support(source_path, target_proc);
 
+        const std::string objname = std::string(argv[a]) + "x";
+        remove(objname.c_str());
         try {
             auto tokens = tokenize(name, buf.str());
             auto parsetree = parse(*tokens);
@@ -115,7 +117,7 @@ int main(int argc, char *argv[])
                     disassemble(bytecode, std::cerr, &debug);
                 }
                 if (name != "-") {
-                    std::ofstream outf(std::string(argv[a]) + "x", std::ios::binary);
+                    std::ofstream outf(objname, std::ios::binary);
                     outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
                 }
             } else {
