@@ -219,16 +219,20 @@ endif (GO)
 
 add_library(common STATIC
     src/bytecode.cpp
+    src/disassembler.cpp
     src/intrinsic.cpp
     src/number.cpp
     src/support.cpp
 )
 target_include_directories(common
-    PRIVATE external/utfcpp-master/source
+    INTERFACE external/hash-library
+    INTERFACE external/minijson_writer-master
+    PUBLIC external/utfcpp-master/source
 )
 target_link_libraries(common
     bid
     ${GMP_TARGET}
+    hash-library
 )
 
 add_custom_command(
@@ -241,12 +245,7 @@ add_library(compiler STATIC
     src/analyzer.cpp
     src/ast.cpp
     src/compiler.cpp
-    src/compiler_cli.cpp
-    src/compiler_cpp.cpp
-    src/compiler_js.cpp
-    src/compiler_jvm.cpp
     src/debuginfo.cpp
-    src/disassembler.cpp
     src/lexer.cpp
     src/parser.cpp
     src/pt_dump.cpp
@@ -260,15 +259,8 @@ set_source_files_properties(
     src/support_compiler.cpp
     PROPERTIES OBJECT_DEPENDS src/rtl.inc
 )
-target_include_directories(compiler
-    PRIVATE external/hash-library
-    PRIVATE external/minijson_writer-master
-    PRIVATE external/utfcpp-master/source
-)
 target_link_libraries(compiler
-    bid
-    ${GMP_TARGET}
-    hash-library
+    common
 )
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -360,48 +352,30 @@ set_source_files_properties(
 target_include_directories(executor
     PRIVATE common
     PRIVATE src
-    PRIVATE external/minijson_writer-master
-    PRIVATE external/utfcpp-master/source
 )
 target_link_libraries(executor
-    bid
-    ${GMP_TARGET}
-    hash-library
+    common
     sqlite3
 )
 
 add_executable(neonc
     src/neonc.cpp
-)
-target_include_directories(neonc
-    PRIVATE external/minijson_writer-master
-    PRIVATE external/utfcpp-master/source
+    src/compiler_cli.cpp
+    src/compiler_cpp.cpp
+    src/compiler_js.cpp
+    src/compiler_jvm.cpp
 )
 target_link_libraries(neonc
     compiler
-    common
-    bid
-    ${GMP_TARGET}
-    hash-library
 )
 
 add_executable(neon
     src/neon.cpp
     src/repl.cpp
 )
-target_include_directories(neon PRIVATE
-    src
-    external/minijson_writer-master
-    external/utfcpp-master/source
-)
 target_link_libraries(neon
     compiler
     executor
-    common
-    bid
-    ${GMP_TARGET}
-    hash-library
-    sqlite3
 )
 if (WIN32)
     target_link_libraries(neon wsock32)
@@ -416,21 +390,10 @@ endif ()
 add_executable(neonx
     src/neonx.cpp
     src/bundle.cpp
-    src/disassembler.cpp
-)
-target_include_directories(neonx PRIVATE
-    src
-    external/minijson_writer-master
-    external/utfcpp-master/source
 )
 target_link_libraries(neonx
     executor
-    common
-    bid
-    ${GMP_TARGET}
-    hash-library
     minizip
-    sqlite3
 )
 if (WIN32)
     target_link_libraries(neonx wsock32)
@@ -445,21 +408,10 @@ endif ()
 add_executable(neonstub
     src/neonstub.cpp
     src/bundle.cpp
-    src/disassembler.cpp
-)
-target_include_directories(neonstub PRIVATE
-    src
-    external/minijson_writer-master
-    external/utfcpp-master/source
 )
 target_link_libraries(neonstub
     executor
-    common
-    bid
-    ${GMP_TARGET}
-    hash-library
     minizip
-    sqlite3
 )
 if (WIN32)
     target_link_libraries(neonstub wsock32)
@@ -472,106 +424,59 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 endif ()
 
 add_executable(neondis
-    src/bytecode.cpp
-    src/debuginfo.cpp
-    src/disassembler.cpp
     src/neondis.cpp
-    src/number.cpp
-    # The following are just to support internal_error()
-    src/lexer.cpp
-    src/util.cpp
-)
-target_include_directories(neondis PRIVATE
-    external/minijson_writer-master
-    external/utfcpp-master/source
 )
 target_link_libraries(neondis
-    bid
-    ${GMP_TARGET}
-    hash-library
+    compiler
 )
 
 add_executable(neonbind
-    src/bytecode.cpp
     src/neonbind.cpp
-    src/support.cpp
     src/support_exec.cpp
 )
-target_include_directories(neonbind PRIVATE
-    src
-)
 target_link_libraries(neonbind
+    common
     minizip
 )
 
 add_executable(fuzz_lexer
     tests/fuzz_lexer.cpp
-    src/lexer.cpp
-    src/number.cpp
-    src/util.cpp
 )
 target_include_directories(fuzz_lexer PRIVATE
     src
-    external/minijson_writer-master
-    external/utfcpp-master/source
 )
 target_link_libraries(fuzz_lexer
-    bid
-    ${GMP_TARGET}
-    hash-library
+    compiler
 )
 
 add_executable(fuzz_parser
     tests/fuzz_parser.cpp
-    src/lexer.cpp
-    src/number.cpp
-    src/parser.cpp
-    src/sql.cpp
-    src/util.cpp
 )
 target_include_directories(fuzz_parser PRIVATE
     src
-    external/minijson_writer-master
-    external/utfcpp-master/source
 )
 target_link_libraries(fuzz_parser
-    bid
-    ${GMP_TARGET}
-    hash-library
+    compiler
 )
 
 add_executable(perf_lexer
     tests/perf_lexer.cpp
-    src/lexer.cpp
-    src/number.cpp
-    src/util.cpp
 )
 target_include_directories(perf_lexer PRIVATE
     src
-    external/minijson_writer-master
-    external/utfcpp-master/source
 )
 target_link_libraries(perf_lexer
-    bid
-    ${GMP_TARGET}
-    hash-library
+    compiler
 )
 
 add_executable(test_lexer
     tests/test_lexer.cpp
-    src/lexer.cpp
-    src/number.cpp
-    src/util.cpp
 )
 target_include_directories(test_lexer PRIVATE
     src
-    external/minijson_writer-master
-    external/utfcpp-master/source
 )
 target_link_libraries(test_lexer
-    bid
-    ${GMP_TARGET}
-    hash-library
+    compiler
 )
 add_test(
     NAME test_lexer
@@ -580,14 +485,12 @@ add_test(
 
 add_executable(test_number
     tests/test_number.cpp
-    src/number.cpp
 )
 target_include_directories(test_number PRIVATE
     src
 )
 target_link_libraries(test_number
-    bid
-    ${GMP_TARGET}
+    common
 )
 add_test(
     NAME test_number
@@ -596,22 +499,12 @@ add_test(
 
 add_executable(test_parser
     tests/test_parser.cpp
-    src/lexer.cpp
-    src/number.cpp
-    src/parser.cpp
-    src/pt_dump.cpp
-    src/sql.cpp
-    src/util.cpp
 )
 target_include_directories(test_parser PRIVATE
     src
-    external/minijson_writer-master
-    external/utfcpp-master/source
 )
 target_link_libraries(test_parser
-    bid
-    ${GMP_TARGET}
-    hash-library
+    compiler
 )
 add_test(
     NAME test_parser
@@ -620,14 +513,12 @@ add_test(
 
 add_executable(test_number_to_string
     tests/test_number_to_string.cpp
-    src/number.cpp
 )
 target_include_directories(test_number_to_string PRIVATE
     src
 )
 target_link_libraries(test_number_to_string
-    bid
-    ${GMP_TARGET}
+    common
 )
 add_test(
     NAME test_number_to_string
