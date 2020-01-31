@@ -357,6 +357,15 @@ target_link_libraries(executor
     common
     sqlite3
 )
+if (WIN32)
+    target_link_libraries(executor wsock32)
+endif (WIN32)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    target_link_libraries(executor dl)
+endif ()
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    target_link_libraries(executor pthread)
+endif ()
 
 add_executable(neonc
     src/neonc.cpp
@@ -377,15 +386,6 @@ target_link_libraries(neon
     compiler
     executor
 )
-if (WIN32)
-    target_link_libraries(neon wsock32)
-endif (WIN32)
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    target_link_libraries(neon dl)
-endif ()
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    target_link_libraries(neon pthread)
-endif ()
 
 add_executable(neonx
     src/neonx.cpp
@@ -395,15 +395,6 @@ target_link_libraries(neonx
     executor
     minizip
 )
-if (WIN32)
-    target_link_libraries(neonx wsock32)
-endif (WIN32)
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    target_link_libraries(neonx dl)
-endif ()
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    target_link_libraries(neonx pthread)
-endif ()
 
 add_executable(neonstub
     src/neonstub.cpp
@@ -413,15 +404,6 @@ target_link_libraries(neonstub
     executor
     minizip
 )
-if (WIN32)
-    target_link_libraries(neonstub wsock32)
-endif (WIN32)
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    target_link_libraries(neonstub dl)
-endif ()
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    target_link_libraries(neonstub pthread)
-endif ()
 
 add_executable(neondis
     src/neondis.cpp
