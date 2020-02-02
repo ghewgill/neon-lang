@@ -51,7 +51,7 @@ void get_modules(const Bytecode &obj, std::map<std::string, Bytecode> &modules)
 int main(int argc, char *argv[])
 {
     bool executable = false;
-    std::string stub_name = DEFAULT_STUB_NAME;
+    std::string stub_name = std::string("bin/") + DEFAULT_STUB_NAME;
 
     if (argc < 3) {
         fprintf(stderr, "Usage: %s [-e] bundle module\n", argv[0]);
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     }
 
     if (executable) {
-        FILE *stub = fopen(("bin/"+stub_name).c_str(), "rb");
+        FILE *stub = fopen(stub_name.c_str(), "rb");
         if (stub == NULL) {
             fprintf(stderr, "stub open (%s)\n", stub_name.c_str());
             exit(1);

@@ -723,7 +723,7 @@ add_custom_command(
     DEPENDS neonc samples/hello/hello.neon
 )
 add_custom_target(hello_neb ALL
-    COMMAND neonbind tmp/hello.neb samples/hello/hello.neonx
+    COMMAND neonbind -stub $<TARGET_FILE:neonstub> tmp/hello.neb samples/hello/hello.neonx
     DEPENDS neonbind samples/hello/hello.neonx
 )
 add_test(
@@ -731,7 +731,7 @@ add_test(
     COMMAND neonx tmp/hello.neb
 )
 add_custom_target(hello_exe ALL
-    COMMAND neonbind -e tmp/hello.exe samples/hello/hello.neonx
+    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e tmp/hello.exe samples/hello/hello.neonx
     DEPENDS neonbind neonstub samples/hello/hello.neonx
 )
 add_test(
