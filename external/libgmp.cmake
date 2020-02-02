@@ -191,7 +191,7 @@ else ()
         )
         add_dependencies(GMP config_h fib_table fac_table mp_bases)
         target_include_directories(GMP
-            INTERFACE gmp-6.1.2
+            PUBLIC gmp-6.1.2
         )
         set(GMP_TARGET "GMP")
     else (WIN32)
