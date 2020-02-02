@@ -552,14 +552,14 @@ function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
         else()
             add_test(
                 NAME "${T}"
-                COMMAND python3 scripts/run_test.py ${TEST}
+                COMMAND python3 scripts/run_test.py --runner ${RUNNER} ${TEST}
             )
         endif()
     endforeach()
 endfunction(add_tests)
 
 file(GLOB TESTS t/*.neon)
-add_tests("${TESTS}" "" "" "")
+add_tests("${TESTS}" "" $<TARGET_FILE:neon> "")
 add_tests("${TESTS}" "helium" "tools/helium.py" "tools/helium-exclude.txt")
 add_tests("${TESTS}" "cpp" "scripts/run_cpp.py" "scripts/cpp-exclude.txt")
 if (NODEJS)
