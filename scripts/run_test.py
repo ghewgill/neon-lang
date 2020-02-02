@@ -186,7 +186,7 @@ def main():
     succeeded = 0
     failed = 0
     skipped = 0
-    for a in sys.argv[1:]:
+    for a in sys.argv[i:]:
         if os.path.isdir(a):
             for fn in sorted(os.listdir(a)):
                 if fn.endswith(".neon"):
