@@ -546,43 +546,70 @@ function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
             if (NOT ";${EXCLUDE};" MATCHES ";${T};")
                 add_test(
                     NAME "${TAG}:${T}"
-                    COMMAND python3 scripts/run_test.py --runner "python3 ${RUNNER}" ${TEST}
+                    COMMAND python3 scripts/run_test.py --runner "${RUNNER}" ${TEST}
                 )
             endif()
         else()
             add_test(
                 NAME "${T}"
-                COMMAND python3 scripts/run_test.py --runner ${RUNNER} ${TEST}
+                COMMAND python3 scripts/run_test.py --runner "${RUNNER}" ${TEST}
             )
         endif()
     endforeach()
 endfunction(add_tests)
 
-file(GLOB TESTS t/*.neon)
+file(GLOB COMPILE_TESTS t/compile-only/*.neon)
+add_tests("${COMPILE_TESTS}" "compile" "$<TARGET_FILE:neonc> -q" "")
+
+file(GLOB RUN_TESTS t/*.neon)
+set(TESTS "")
+set(TESTSX "")
+foreach (TEST ${RUN_TESTS})
+    add_custom_command(
+        OUTPUT "${TEST}x"
+        COMMAND neonc -q ${TEST}
+        DEPENDS neonc ${TEST}
+    )
+    list(APPEND TESTS ${TEST})
+    list(APPEND TESTSX "${TEST}x")
+endforeach ()
+add_custom_target(testx ALL
+    DEPENDS ${TESTSX}
+)
 add_tests("${TESTS}" "" $<TARGET_FILE:neon> "")
-add_tests("${TESTS}" "helium" "tools/helium.py" "tools/helium-exclude.txt")
-add_tests("${TESTS}" "cpp" "scripts/run_cpp.py" "scripts/cpp-exclude.txt")
+add_tests("${TESTS}" "helium" "python3 tools/helium.py" "tools/helium-exclude.txt")
+add_tests("${TESTS}" "cpp" "python3 scripts/run_cpp.py" "scripts/cpp-exclude.txt")
 if (NODEJS)
-    add_tests("${TESTS}" "js" "scripts/run_js.py" "scripts/js-exclude.txt")
+    add_tests("${TESTS}" "js" "python3 scripts/run_js.py" "scripts/js-exclude.txt")
 endif (NODEJS)
 if (JAVAC)
-    add_tests("${TESTS}" "jvm" "scripts/run_jvm.py --java ${JAVA}" "scripts/jvm-exclude.txt")
+    add_tests("${TESTS}" "jvm" "python3 scripts/run_jvm.py --java ${JAVA}" "scripts/jvm-exclude.txt")
 endif (JAVAC)
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR MONO)
-    add_tests("${TESTS}" "cli" "scripts/run_cli.py" "scripts/cli-exclude.txt")
+    add_tests("${TESTS}" "cli" "python3 scripts/run_cli.py" "scripts/cli-exclude.txt")
 endif ()
-add_tests("${TESTS}" "nenex" "exec/nenex/run_test.py" "exec/nenex/exclude.txt")
-add_tests("${TESTS}" "pynex" "exec/pynex/run_test.py" "exec/pynex/exclude.txt")
+add_tests("${TESTS}" "nenex" "python3 exec/nenex/run_test.py" "exec/nenex/exclude.txt")
+add_tests("${TESTS}" "pynex" "python3 exec/pynex/run_test.py" "exec/pynex/exclude.txt")
 if (JAVAC)
-    add_tests("${TESTS}" "jnex" "exec/jnex/run_test.py --java ${JAVA}" "exec/jnex/exclude.txt")
+    add_tests("${TESTS}" "jnex" "python3 exec/jnex/run_test.py --java ${JAVA}" "exec/jnex/exclude.txt")
 endif (JAVAC)
-add_tests("${TESTS}" "cnex" "exec/cnex/run_test.py" "exec/cnex/exclude.txt")
+add_tests("${TESTS}" "cnex" "python3 exec/cnex/run_test.py" "exec/cnex/exclude.txt")
 if (RUSTC)
-    add_tests("${TESTS}" "rsnex" "exec/rsnex/run_test.py" "exec/rsnex/exclude.txt")
+    add_tests("${TESTS}" "rsnex" "python3 exec/rsnex/run_test.py" "exec/rsnex/exclude.txt")
 endif (RUSTC)
 if (GO)
-    add_tests("${TESTS}" "gonex" "exec/gonex/run_test.py" "exec/gonex/exclude.txt")
+    add_tests("${TESTS}" "gonex" "python3 exec/gonex/run_test.py" "exec/gonex/exclude.txt")
 endif (GO)
+
+if (NOT WIN32)
+    # Disabled for WIN32 because hard coded paths (to bin/neon etc) are different
+    # paths on in WIN32 cmake builds.
+    file(GLOB INTEGRATION_TESTS t/integration/*.neon)
+    add_tests("${INTEGRATION_TESTS}" "integration" "$<TARGET_FILE:neon>" "")
+endif (NOT WIN32)
+
+file(GLOB TESTS t/todo/*.neon)
+add_tests("${TESTS}" "" "$<TARGET_FILE:neon> -q" "")
 
 add_test(
     NAME "import-optional:neonx"
