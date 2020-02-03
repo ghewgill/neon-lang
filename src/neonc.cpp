@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
 {
     bool ignore_errors = false;
     bool listing = false;
+    std::string output;
     bool quiet = false;
     bool error_json = false;
     std::string target;
@@ -50,6 +51,13 @@ int main(int argc, char *argv[])
             listing = true;
         } else if (arg == "--json") {
             error_json = true;
+        } else if (arg == "-o") {
+            a++;
+            if (a >= argc) {
+                std::cerr << "Missing output name\n";
+                exit(1);
+            }
+            output = argv[a];
         } else if (arg == "-q") {
             quiet = true;
         } else if (arg == "-t") {
@@ -104,8 +112,10 @@ int main(int argc, char *argv[])
 
         CompilerSupport compiler_support(source_path, target_proc);
 
-        const std::string objname = std::string(argv[a]) + "x";
-        remove(objname.c_str());
+        const std::string objname = output.empty() ? std::string(argv[a]) + "x" : output;
+        if (target_proc == nullptr) {
+            remove(objname.c_str());
+        }
         try {
             auto tokens = tokenize(name, buf.str());
             auto parsetree = parse(*tokens);
