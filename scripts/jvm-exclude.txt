@@ -22,7 +22,6 @@ file-filecopied1.neon      # exception identification
 file-symlink.neon          # file.symlink
 file-test.neon             # stack size
 for.neon                   # number format (2 vs 2.0)
-fork.neon                  # module posix
 format.neon                # module string
 forth-test.neon            # module os
 function-default-out.neon  # DummyExpression
@@ -83,6 +82,7 @@ outer.neon                 # verifier
 outer2.neon                # verifier
 parameter-inout-array.neon # actually works here so avoid the TODO
 parameter-inout-string.neon# actually works here so avoid the TODO
+posix-fork.neon            # module posix
 predeclare1.neon           # something
 process-test.neon          # module process
 recursion-limit.neon       # module runtime

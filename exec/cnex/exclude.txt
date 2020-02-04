@@ -2,7 +2,6 @@ bigint.neon                # gmp
 debug-example.neon         # debugger
 debug-server.neon          # debugger
 file-linelength.neon       # buffer size
-fork.neon                  # posix
 gc-array.neon              # class
 gc-long-chain.neon         # class
 gc1.neon                   # class
@@ -14,6 +13,7 @@ outer-parameter.neon       # PUSHPOL
 outer-tail.neon            # PUSHPOL
 outer.neon                 # PUSHPOL
 outer2.neon                # PUSHPOL
+posix-fork.neon            # posix
 recursion-limit.neon       # runtime$setRecursionLimit
 sql-connect.neon           # file
 sql-cursor.neon            # sqlite

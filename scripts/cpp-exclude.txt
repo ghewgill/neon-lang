@@ -128,7 +128,6 @@ foreach.neon
 foreach-string.neon
 foreach-update.neon
 foreach-value.neon
-fork.neon
 for.neon
 for-nested2.neon
 for-nested.neon
@@ -270,6 +269,7 @@ pointer-mismatch.neon
 pointer.neon
 pointer-nil.neon
 pointer-valid.neon
+posix-fork.neon
 predeclare1.neon
 predeclare2.neon
 predeclare3.neon

@@ -31,7 +31,6 @@ file-symlink.neon          # file
 file-test.neon             # file
 file-writebytes.neon       # file
 file-writelines.neon       # file
-fork.neon                  # posix
 format.neon                # CALLMF
 function-pointer-nowhere.neon # functionpointer
 function-pointer.neon      # functionpointer
@@ -86,6 +85,7 @@ pointer5.neon              # class
 pointer6.neon              # class
 pointer7.neon              # class
 pointer8.neon              # class
+posix-fork.neon            # posix
 process-test.neon          # process
 recursion-limit.neon       # runtime
 repl_import.neon           # random

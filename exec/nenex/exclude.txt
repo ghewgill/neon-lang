@@ -44,7 +44,6 @@ file-test.neon              # pushpmg
 file-writebytes.neon        # array__toBytes__number
 file-writelines.neon        # file$writeLines
 foreach.neon                # format
-fork.neon                   # posix$fork
 format.neon                 # callmf
 function-pointer-nowhere.neon # pushfp
 function-pointer.neon       # pushfp
@@ -107,6 +106,7 @@ outer2.neon                 # pushpol
 parameter-out-array.neon    # array__splice
 parameter-out-string.neon   # string__splice
 parameters.neon             # storep
+posix-fork.neon             # posix$fork
 predeclare1.neon            # array__append
 process-test.neon           # process$call
 record-empty.neon           # indexan

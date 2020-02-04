@@ -565,6 +565,16 @@ file(GLOB RUN_TESTS t/*.neon)
 set(TESTS "")
 set(TESTSX "")
 foreach (TEST ${RUN_TESTS})
+    get_filename_component(TEST_NAME "${TEST}" NAME)
+    string(REGEX MATCH "^(posix|win32)-" TEST_PLATFORM ${TEST_NAME})
+    if (TEST_PLATFORM)
+        if (${TEST_PLATFORM} STREQUAL "posix-" AND NOT (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "OpenBSD"))
+            continue()
+        endif()
+        if (${TEST_PLATFORM} STREQUAL "win32-" AND NOT (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows"))
+            continue()
+        endif()
+    endif (TEST_PLATFORM)
     add_custom_command(
         OUTPUT "${TEST}x"
         COMMAND neonc -q ${TEST}

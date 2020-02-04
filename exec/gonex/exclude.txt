@@ -8,7 +8,6 @@ debug-example.neon         # debugger
 debug-server.neon          # net$tcpSocket
 decimal.neon               # decimal
 file-filecopied2.neon      # copy
-fork.neon                  # posix$fork
 for.neon                   # decimal
 gc1.neon                   # gc
 gc2.neon                   # gc
@@ -25,6 +24,7 @@ net-test.neon              # net$tcpSocket
 net-test-udp.neon          # net$udpSocket
 number-ceil.neon           # number formatting
 os-test.neon               # precision
+posix-fork.neon            # posix$fork
 process-test.neon          # process$call
 sql-connect.neon           # sqlite
 sql-cursor.neon            # sqlite
