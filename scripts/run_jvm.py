@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import subprocess
 import sys
 
 java = None
@@ -11,6 +12,12 @@ while i < len(sys.argv):
     if sys.argv[i] == "--java":
         i += 1
         java = sys.argv[i]
+        # This gathers a full path name which might contain spaces
+        # because through the multiple layers of shell and ctest
+        # on win32, a path with spaces tends to get broken up.
+        while not os.path.exists(java) and i+1 < len(sys.argv):
+            i += 1
+            java = java + " " + sys.argv[i]
     elif sys.argv[i] == "--neonc":
         i += 1
         neonc = sys.argv[i]
@@ -26,8 +33,6 @@ if java is None:
     if os.name == "nt" and os.path.exists(r"c:\ProgramData\Oracle\Java\javapath\java.exe"):
         java = r"c:\ProgramData\Oracle\Java\javapath\java.exe"
 
-if os.system("{} -q -t jvm {}".format(neonc, fullname)) != 0:
-    sys.exit(1)
+subprocess.check_call([neonc, "-q", "-t", "jvm", fullname])
 classpath = path if path else "."
-if os.system("{} -cp {} {} {}".format(java, os.pathsep.join([classpath, "rtl/jvm"]), name.replace(".neon", ""), " ".join(sys.argv[i+1:]))) != 0:
-    sys.exit(1)
+subprocess.check_call([java, "-cp", os.pathsep.join([classpath, "rtl/jvm"]), name.replace(".neon", "")] + sys.argv[i+1:])
