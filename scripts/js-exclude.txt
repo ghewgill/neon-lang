@@ -56,6 +56,7 @@ gc-long-chain.neon         # gc
 gc1.neon                   # gc
 gc2.neon                   # gc
 gc3.neon                   # gc
+gc-two-pointers.neon       # gc
 import.neon                # import
 import-optional.neon       # import
 in.neon                    # ArrayInExpression

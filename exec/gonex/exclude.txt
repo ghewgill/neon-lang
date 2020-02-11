@@ -15,6 +15,7 @@ gc2.neon                   # gc
 gc3.neon                   # gc
 gc-array.neon              # gc
 gc-long-chain.neon         # gc
+gc-two-pointers.neon       # gc
 index.neon                 # copy semantics
 io-test.neon               # io.File
 math-test.neon             # math

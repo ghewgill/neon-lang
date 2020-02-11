@@ -31,6 +31,7 @@ gc-long-chain.neon         # module runtime
 gc1.neon                   # PredefinedVariable
 gc2.neon                   # PredefinedVariable
 gc3.neon                   # PredefinedVariable
+gc-two-pointers.neon       # module runtime
 import.neon                # illegal character dot
 import-optional.neon       # import
 inc-reference.neon         # increment

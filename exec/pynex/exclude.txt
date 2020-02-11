@@ -40,6 +40,7 @@ gc-long-chain.neon         # class
 gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
+gc-two-pointers.neon       # class
 import.neon                # class
 import-optional.neon       # import
 interface.neon             # class
