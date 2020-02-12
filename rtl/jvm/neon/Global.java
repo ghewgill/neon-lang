@@ -263,35 +263,12 @@ public class Global {
         return x.trunc();
     }
 
-    public static neon.type.Number max(neon.type.Number a, neon.type.Number b)
-    {
-        if (a.compareTo(b) > 0) {
-            return a;
-        } else {
-            return b;
-        }
-    }
-
-    public static neon.type.Number min(neon.type.Number a, neon.type.Number b)
-    {
-        if (a.compareTo(b) < 0) {
-            return a;
-        } else {
-            return b;
-        }
-    }
-
     public static neon.type.Number num(String s) {
         return new neon.type.Number(s);
     }
 
     public static String number__toString(neon.type.Number x) {
         return x.toString();
-    }
-
-    public static Boolean odd(neon.type.Number x)
-    {
-        return !x.repr.remainder(new BigDecimal(2)).equals(BigDecimal.ZERO);
     }
 
     public static neon.type.Number ord(String s) {

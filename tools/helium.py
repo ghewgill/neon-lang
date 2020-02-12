@@ -2640,13 +2640,9 @@ def run(program):
     program.env.declare("format", None, neon_format)
     program.env.declare("input", None, neon_input)
     program.env.declare("int", None, neon_int)
-    program.env.declare("max", None, neon_max)
-    program.env.declare("min", None, neon_min)
     program.env.declare("num", None, neon_num)
-    program.env.declare("odd", None, neon_odd)
     program.env.declare("ord", None, neon_ord)
     program.env.declare("print", None, neon_print)
-    program.env.declare("round", None, neon_round)
     program.env.declare("str", None, neon_str)
     program.env.declare("substring", None, neon_substring)
     program.run(program.env)
@@ -2697,19 +2693,8 @@ def neon_input(env, x):
 def neon_int(env, x):
     return int(x)
 
-def neon_max(env, x, y):
-    return max(x, y)
-
-def neon_min(env, x, y):
-    return min(x, y)
-
 def neon_num(env, x):
     return int(x) if x.isdigit() else float(x)
-
-def neon_odd(env, x):
-    if x != int(x):
-        raise NeonException("ValueRangeException", "odd() requires integer")
-    return (x & 1) != 0
 
 def neon_ord(env, x):
     if len(x) != 1:
@@ -2718,9 +2703,6 @@ def neon_ord(env, x):
 
 def neon_print(env, x):
     print(x)
-
-def neon_round(env, places, value):
-    return round(value, places)
 
 def neon_str(env, x):
     r = str(x)
@@ -2929,8 +2911,22 @@ def neon_math_log1p(env, x):
 def neon_math_log2(env, x):
     return math.log2(x)
 
+def neon_math_max(env, x, y):
+    return max(x, y)
+
+def neon_math_min(env, x, y):
+    return min(x, y)
+
 def neon_math_nearbyint(env, x):
     return math.nearbyint(x)
+
+def neon_math_odd(env, x):
+    if x != int(x):
+        raise NeonException("ValueRangeException", "odd() requires integer")
+    return (x & 1) != 0
+
+def neon_math_round(env, places, value):
+    return round(value, places)
 
 def neon_math_sign(env, x):
     return math.copysign(1, x)

@@ -2,6 +2,7 @@
 
 #include <iso646.h>
 
+#include "intrinsic.h"
 #include "rtl_exec.h"
 
 namespace rtl {
@@ -150,9 +151,29 @@ Number log2(Number x)
     return number_log2(x);
 }
 
+Number max(Number a, Number b)
+{
+    return ne_global::max(a, b);
+}
+
+Number min(Number a, Number b)
+{
+    return ne_global::min(a, b);
+}
+
 Number nearbyint(Number x)
 {
     return number_nearbyint(x);
+}
+
+bool odd(Number x)
+{
+    return ne_global::odd(x);
+}
+
+Number round(Number places, Number value)
+{
+    return ne_global::round(places, value);
 }
 
 Number sign(Number x)

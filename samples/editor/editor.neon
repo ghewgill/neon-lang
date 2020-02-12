@@ -1,5 +1,6 @@
 IMPORT curses
 IMPORT file
+IMPORT math
 IMPORT regex
 IMPORT string
 IMPORT sys
@@ -248,7 +249,7 @@ FUNCTION Editor.refresh(self: Editor)
         CONSTANT attrs: String := " kinsc"
         LET code: String := self.buffer.getLine(i)
         LET h: String := highlight(code)
-        FOR j := 0 TO min(code.length(), maxx)-1 DO
+        FOR j := 0 TO math.min(code.length(), maxx)-1 DO
             curses.wattrset(self.window, curses.COLOR_PAIR(string.find(attrs, h[j])))
             curses.mvwaddstr(self.window, i - self.top, j, code[j])
         END FOR
@@ -309,7 +310,7 @@ FUNCTION Editor.run(INOUT self: Editor)
                 self.top := self.top + self.height
                 self.line := self.line + self.height
             ELSIF k = curses.KEY_PPAGE THEN
-                LET newtop: Number := max(0, self.top - self.height)
+                LET newtop: Number := math.max(0, self.top - self.height)
                 self.line := self.line - (self.top - newtop)
                 self.top := newtop
             ELSIF k = curses.KEY_RIGHT THEN

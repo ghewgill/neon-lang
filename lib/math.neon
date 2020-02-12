@@ -32,7 +32,11 @@ EXPORT log
 EXPORT log10
 EXPORT log1p
 EXPORT log2
+EXPORT max
+EXPORT min
 EXPORT nearbyint
+EXPORT odd
+EXPORT round
 EXPORT sign
 EXPORT sin
 EXPORT sinh
@@ -313,11 +317,48 @@ DECLARE NATIVE FUNCTION log1p(x: Number): Number
 DECLARE NATIVE FUNCTION log2(x: Number): Number
 
 #|
+ |  Function: max
+ |
+ |  Return the greater of two numbers.
+ |
+ |  Reference:
+ |      http://mathworld.wolfram.com/Maximum.html
+ |#
+DECLARE NATIVE FUNCTION max(a: Number, b: Number): Number
+
+#|
+ |  Function: min
+ |
+ |  Return the lesser of two numbers.
+ |
+ |  Reference:
+ |      http://mathworld.wolfram.com/Minimum.html
+ |#
+DECLARE NATIVE FUNCTION min(a: Number, b: Number): Number
+
+#|
  |  Function: nearbyint
  |
  |  Returns an integer close to x by rounding.
  |#
 DECLARE NATIVE FUNCTION nearbyint(x: Number): Number
+
+#|
+ |  Function: odd
+ |
+ |  Return TRUE if the given number is odd.
+ |
+ |  Reference:
+ |      http://mathworld.wolfram.com/OddNumber.html
+ |#
+DECLARE NATIVE FUNCTION odd(x: Number): Boolean
+
+#|
+ |  Function: round
+ |
+ |  Round a number to a specified number of decimal places.
+ |#
+DECLARE NATIVE FUNCTION round(places: Number, value: Number): Number
 
 #|
  |  Function: sign

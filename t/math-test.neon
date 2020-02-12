@@ -97,8 +97,39 @@ print(str(math.log1p(0)))
 print(str(math.log2(8)))
 #= 3
 
+print(str(math.max(45, 67)))
+#= 67
+
+print(str(math.min(45, 67)))
+#= 45
+
 print(str(math.nearbyint(5.2)))
 #= 5
+
+print("\(math.odd(3))")
+#= TRUE
+
+TRY
+    print("\(math.odd(1.5))")
+TRAP ValueRangeException AS x DO
+    print(x.info)
+END TRY
+#= odd() requires integer
+
+print(str(math.round(0, 3.14159)))
+#= 3
+print(str(math.round(1, 3.14159)))
+#= 3.1
+print(str(math.round(2, 3.14159)))
+#= 3.14
+print(str(math.round(3, 3.14159)))
+#= 3.142
+print(str(math.round(4, 3.14159)))
+#= 3.1416
+print(str(math.round(5, 3.14159)))
+#= 3.14159
+print(str(math.round(6, 3.14159)))
+#= 3.14159
 
 print(str(math.sinh(0)))
 #= 0

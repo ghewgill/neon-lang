@@ -928,7 +928,7 @@ bool FunctionCall::eval_boolean() const
 {
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
-    if (f->name == "odd") return rtl::ne_global::odd(args[0]->eval_number());
+    if (f->name == "math$odd") return rtl::ne_global::odd(args[0]->eval_number());
     internal_error("unexpected intrinsic");
 }
 
@@ -938,10 +938,10 @@ Number FunctionCall::eval_number() const
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
     if (f->name == "ord") return rtl::ne_global::ord(args[0]->eval_string());
     if (f->name == "int") return rtl::ne_global::int_(args[0]->eval_number());
-    if (f->name == "max") return rtl::ne_global::max(args[0]->eval_number(), args[1]->eval_number());
-    if (f->name == "min") return rtl::ne_global::min(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "math$max") return rtl::ne_global::max(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "math$min") return rtl::ne_global::min(args[0]->eval_number(), args[1]->eval_number());
     if (f->name == "num") return rtl::ne_global::num(args[0]->eval_string());
-    if (f->name == "round") return rtl::ne_global::round(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "math$round") return rtl::ne_global::round(args[0]->eval_number(), args[1]->eval_number());
     internal_error("unexpected intrinsic");
 }
 
@@ -973,12 +973,12 @@ bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const 
     if (f->name == "chr"
      || f->name == "concat"
      || f->name == "int"
-     || f->name == "max"
-     || f->name == "min"
+     || f->name == "math$max"
+     || f->name == "math$min"
      || f->name == "num"
-     || f->name == "odd"
+     || f->name == "math$odd"
      || f->name == "ord"
-     || f->name == "round"
+     || f->name == "math$round"
      || f->name == "str") {
         return true;
     }

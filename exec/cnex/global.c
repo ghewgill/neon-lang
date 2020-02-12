@@ -41,13 +41,9 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("concat",                    neon_concat),
     PDFUNC("concatBytes",               neon_concatBytes),
     PDFUNC("int",                       neon_int),
-    PDFUNC("max",                       neon_max),
-    PDFUNC("min",                       neon_min),
     PDFUNC("num",                       neon_num),
-    PDFUNC("odd",                       neon_odd),
     PDFUNC("ord",                       neon_ord),
     PDFUNC("print",                     neon_print),
-    PDFUNC("round",                     neon_round),
     PDFUNC("str",                       neon_str),
 
 
@@ -141,7 +137,11 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("math$log10",                math_log10),
     PDFUNC("math$log1p",                math_log1p),
     PDFUNC("math$log2",                 math_log2),
+    PDFUNC("math$max",                  math_max),
+    PDFUNC("math$min",                  math_min),
     PDFUNC("math$nearbyint",            math_nearbyint),
+    PDFUNC("math$odd",                  math_odd),
+    PDFUNC("math$round",                math_round),
     PDFUNC("math$sign",                 math_sign),
     PDFUNC("math$sin",                  math_sin),
     PDFUNC("math$sinh",                 math_sinh),
@@ -426,30 +426,6 @@ void neon_int(TExecutor *exec)
     push(exec->stack, cell_fromNumber(number_trunc(a)));
 }
 
-void neon_max(TExecutor *exec)
-{
-    Number b = top(exec->stack)->number; pop(exec->stack);
-    Number a = top(exec->stack)->number; pop(exec->stack);
-
-    if (number_is_greater(a, b)) {
-        push(exec->stack, cell_fromNumber(a));
-    } else {
-        push(exec->stack, cell_fromNumber(b));
-    }
-}
-
-void neon_min(TExecutor *exec)
-{
-    Number b = top(exec->stack)->number; pop(exec->stack);
-    Number a = top(exec->stack)->number; pop(exec->stack);
-
-    if (number_is_greater(a, b)) {
-        push(exec->stack, cell_fromNumber(b));
-    } else {
-        push(exec->stack, cell_fromNumber(a));
-    }
-}
-
 void neon_num(TExecutor *exec)
 {
     char *str = string_asCString(top(exec->stack)->string); pop(exec->stack);
@@ -461,18 +437,6 @@ void neon_num(TExecutor *exec)
         return;
     }
     push(exec->stack, cell_fromNumber(n));
-}
-
-void neon_odd(TExecutor *exec)
-{
-    Number n = top(exec->stack)->number; pop(exec->stack);
-
-    if (!number_is_integer(n)) {
-        exec->rtl_raise(exec, "ValueRangeException", "odd() requires integer", BID_ZERO);
-        return;
-    }
-
-    push(exec->stack, cell_fromBoolean(number_is_odd(n)));
 }
 
 void neon_ord(TExecutor *exec)
@@ -495,18 +459,6 @@ void neon_print(TExecutor *exec)
     fwrite(s->string->data, 1, s->string->length, stdout);
     puts("");
     pop(exec->stack);
-}
-
-void neon_round(TExecutor *exec)
-{
-    Number value = top(exec->stack)->number; pop(exec->stack);
-    Number places = top(exec->stack)->number; pop(exec->stack);
-
-    Number scale = number_from_uint32(1);
-    for (int i = number_to_sint32(places); i > 0; i--) {
-        scale = number_multiply(scale, number_from_uint32(10));
-    }
-    push(exec->stack, cell_fromNumber(number_divide(number_nearbyint(number_multiply(value, scale)), scale)));
 }
 
 void neon_str(TExecutor *exec)

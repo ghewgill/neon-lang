@@ -204,7 +204,7 @@ FUNCTION repeat(s: String, n: Number): String
     VAR t: String := s
     VAR b: Number := n
     WHILE b > 0 DO
-        IF odd(b) THEN
+        IF b MOD 2 = 1 THEN
             r.append(t)
         END IF
         t.append(t)

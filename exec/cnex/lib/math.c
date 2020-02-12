@@ -211,11 +211,59 @@ void math_log2(TExecutor *exec)
     push(exec->stack, cell_fromNumber(number_log2(x)));
 }
 
+void math_max(TExecutor *exec)
+{
+    Number b = top(exec->stack)->number; pop(exec->stack);
+    Number a = top(exec->stack)->number; pop(exec->stack);
+
+    if (number_is_greater(a, b)) {
+        push(exec->stack, cell_fromNumber(a));
+    } else {
+        push(exec->stack, cell_fromNumber(b));
+    }
+}
+
+void math_min(TExecutor *exec)
+{
+    Number b = top(exec->stack)->number; pop(exec->stack);
+    Number a = top(exec->stack)->number; pop(exec->stack);
+
+    if (number_is_greater(a, b)) {
+        push(exec->stack, cell_fromNumber(b));
+    } else {
+        push(exec->stack, cell_fromNumber(a));
+    }
+}
+
 void math_nearbyint(TExecutor *exec)
 {
     Number x = top(exec->stack)->number; pop(exec->stack);
 
     push(exec->stack, cell_fromNumber(number_nearbyint(x)));
+}
+
+void math_odd(TExecutor *exec)
+{
+    Number n = top(exec->stack)->number; pop(exec->stack);
+
+    if (!number_is_integer(n)) {
+        exec->rtl_raise(exec, "ValueRangeException", "odd() requires integer", BID_ZERO);
+        return;
+    }
+
+    push(exec->stack, cell_fromBoolean(number_is_odd(n)));
+}
+
+void math_round(TExecutor *exec)
+{
+    Number value = top(exec->stack)->number; pop(exec->stack);
+    Number places = top(exec->stack)->number; pop(exec->stack);
+
+    Number scale = number_from_uint32(1);
+    for (int i = number_to_sint32(places); i > 0; i--) {
+        scale = number_multiply(scale, number_from_uint32(10));
+    }
+    push(exec->stack, cell_fromNumber(number_divide(number_nearbyint(number_multiply(value, scale)), scale)));
 }
 
 void math_sign(TExecutor *exec)

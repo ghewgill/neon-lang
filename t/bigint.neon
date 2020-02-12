@@ -30,4 +30,4 @@ ASSERT math.ceil(a) = a
 ASSERT math.floor(a) = a
 ASSERT math.trunc(a) = a
 
-ASSERT odd(b)
+ASSERT math.odd(b)
