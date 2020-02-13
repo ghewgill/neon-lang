@@ -2012,6 +2012,10 @@ func (self *executor) op_callp() {
 			r[i] = a[i] ^ b[i]
 		}
 		self.push(make_cell_bytes(r))
+	case "bytes__concat":
+		b := self.pop().bytes
+		a := self.pop().bytes
+		self.push(make_cell_bytes(append(a, b...)))
 	case "bytes__decodeToString":
 		b := self.pop().bytes
 		self.push(make_cell_str(string(b)))
@@ -2087,14 +2091,6 @@ func (self *executor) op_callp() {
 		} else {
 			self.push(make_cell_str(string([]byte{byte(c)})))
 		}
-	case "concat":
-		b := self.pop().str
-		a := self.pop().str
-		self.push(make_cell_str(a + b))
-	case "concatBytes":
-		b := self.pop().bytes
-		a := self.pop().bytes
-		self.push(make_cell_bytes(append(a, b...)))
 	case "dictionary__keys":
 		d := self.pop().dict
 		i := 0
@@ -2547,6 +2543,10 @@ func (self *executor) op_callp() {
 		s := r.load()
 		s.str = s.str + t
 		r.store(s)
+	case "string__concat":
+		b := self.pop().str
+		a := self.pop().str
+		self.push(make_cell_str(a + b))
 	case "string__length":
 		s := self.pop().str
 		self.push(make_cell_num(float64(len(s))))

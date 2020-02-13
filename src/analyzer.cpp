@@ -2035,7 +2035,7 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
 
 const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr)
 {
-    const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat")));
+    const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat")));
     const ast::Module *string = dynamic_cast<const ast::Module *>(scope.top()->lookupName("string"));
     if (string == nullptr) {
         ast::Module *module = import_module(Token(), "string", false);
@@ -2474,13 +2474,13 @@ const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
-        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat"))), args);
+        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat"))), args);
     }
     if (convert2(ast::TYPE_BYTES, left, right)) {
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
-        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concatBytes"))), args);
+        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("bytes__concat"))), args);
     } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr
             && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr
             && dynamic_cast<const ast::TypeArray *>(left->type)->elementtype == dynamic_cast<const ast::TypeArray *>(right->type)->elementtype) {

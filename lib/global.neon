@@ -207,11 +207,13 @@ DECLARE NATIVE FUNCTION dictionary__size(self: Dictionary): Number
 DECLARE NATIVE FUNCTION dictionary__keys(self: Dictionary): Array<String>
 DECLARE NATIVE FUNCTION number__toString(self: Number): String
 DECLARE NATIVE FUNCTION string__append(INOUT self: String, t: String)
+DECLARE NATIVE FUNCTION string__concat(a: String, b: String): String
 DECLARE NATIVE FUNCTION string__length(self: String): Number
 DECLARE NATIVE FUNCTION string__splice(t: String, s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
 DECLARE NATIVE FUNCTION string__substring(s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
 DECLARE NATIVE FUNCTION string__toBytes(self: String): Bytes
 DECLARE NATIVE FUNCTION string__toString(self: String): String
+DECLARE NATIVE FUNCTION bytes__concat(a: Bytes, b: Bytes): Bytes
 DECLARE NATIVE FUNCTION bytes__range(s: Bytes, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Bytes
 DECLARE NATIVE FUNCTION bytes__size(self: Bytes): Number
 DECLARE NATIVE FUNCTION bytes__splice(t: Bytes, s: Bytes, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Bytes
@@ -245,20 +247,6 @@ DECLARE NATIVE FUNCTION exceptiontype__toString(ei: ExceptionType): String
  |  Convert a number to the corresponding Unicode character.
  |#
 DECLARE NATIVE FUNCTION chr(x: Number): String
-
-#|
- |  Function: concat
- |
- |  Concatenate two strings. Same as the & operator.
- |#
-DECLARE NATIVE FUNCTION concat(a: String, b: String): String
-
-#|
- |  Function: concatBytes
- |
- |  Concatenate two bytes. Same as the & operator for <Bytes>.
- |#
-DECLARE NATIVE FUNCTION concatBytes(a: Bytes, b: Bytes): Bytes
 
 #|
  |  Function: input

@@ -52,10 +52,6 @@ neon = {
             return String.fromCharCode(x);
         },
 
-        concat: function(a, b) {
-            return a + b;
-        },
-
         dictionary__keys: function(self) {
             return Object.keys(self).sort();
         },
@@ -116,6 +112,10 @@ neon = {
 
         str: function(x) {
             return x.toString();
+        },
+
+        string__concat: function(a, b) {
+            return a + b;
         },
 
         string__length: function(self) {

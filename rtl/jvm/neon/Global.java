@@ -159,6 +159,13 @@ public class Global {
         return 0;
     }
 
+    public static byte[] bytes__concat(byte[] a, byte[] b) {
+        byte[] r = new byte[a.length + b.length];
+        System.arraycopy(a, 0, r, 0, a.length);
+        System.arraycopy(b, 0, r, a.length, b.length);
+        return r;
+    }
+
     public static String bytes__decodeToString(byte[] self) {
         return new String(self, java.nio.charset.StandardCharsets.UTF_8);
     }
@@ -227,17 +234,6 @@ public class Global {
         return new String(new char[] {(char)x.intValue()});
     }
 
-    public static String concat(String a, String b) {
-        return a.concat(b);
-    }
-
-    public static byte[] concatBytes(byte[] a, byte[] b) {
-        byte[] r = new byte[a.length + b.length];
-        System.arraycopy(a, 0, r, 0, a.length);
-        System.arraycopy(b, 0, r, a.length, b.length);
-        return r;
-    }
-
     public static Object dictionary__get(java.util.Map<String, Object> self, String index) {
         Object r = self.get(index);
         if (r == null) {
@@ -291,6 +287,10 @@ public class Global {
             null,
             self + t
         };
+    }
+
+    public static String string__concat(String a, String b) {
+        return a.concat(b);
     }
 
     public static String string__substring(String str, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {

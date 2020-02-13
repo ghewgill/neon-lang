@@ -38,8 +38,6 @@
 
 TDispatch gfuncDispatch[] = {
     PDFUNC("chr",                       neon_chr),
-    PDFUNC("concat",                    neon_concat),
-    PDFUNC("concatBytes",               neon_concatBytes),
     PDFUNC("int",                       neon_int),
     PDFUNC("num",                       neon_num),
     PDFUNC("ord",                       neon_ord),
@@ -232,6 +230,7 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("boolean__toString",         boolean__toString),
 
+    PDFUNC("bytes__concat",             bytes__concat),
     PDFUNC("bytes__decodeToString",     bytes__decodeToString),
     PDFUNC("bytes__range",              bytes__range),
     PDFUNC("bytes__size",               bytes__size),
@@ -263,6 +262,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("object__toString",          object__toString),
 
     PDFUNC("string__append",            string__append),
+    PDFUNC("string__concat",            string__concat),
     PDFUNC("string__toBytes",           string__toBytes),
     PDFUNC("string__length",            string__length),
     PDFUNC("string__splice",            string__splice),
@@ -384,37 +384,6 @@ void neon_chr(TExecutor *exec)
     Cell *r = cell_createStringCell(0);
     // ToDo: Implement UTF8 strings here!!
     string_appendChar(r->string, (char)number_to_uint32(x));
-
-    push(exec->stack, r);
-}
-
-void neon_concat(TExecutor *exec)
-{
-    Cell *b = peek(exec->stack, 0);
-    Cell *a = peek(exec->stack, 1);
-    Cell *r = cell_createStringCell(b->string->length + a->string->length);
-
-    memcpy(r->string->data, a->string->data, a->string->length);
-    memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
-
-    pop(exec->stack);
-    pop(exec->stack);
-
-    push(exec->stack, r);
-}
-
-void neon_concatBytes(TExecutor *exec)
-{
-    Cell *b = peek(exec->stack, 0);
-    Cell *a = peek(exec->stack, 1);
-    Cell *r = cell_createStringCell(b->string->length + a->string->length);
-    r->type = cBytes;
-
-    memcpy(r->string->data, a->string->data, a->string->length);
-    memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
-
-    pop(exec->stack);
-    pop(exec->stack);
 
     push(exec->stack, r);
 }
@@ -734,6 +703,22 @@ void boolean__toString(TExecutor *exec)
 }
 
 
+
+void bytes__concat(TExecutor *exec)
+{
+    Cell *b = peek(exec->stack, 0);
+    Cell *a = peek(exec->stack, 1);
+    Cell *r = cell_createStringCell(b->string->length + a->string->length);
+    r->type = cBytes;
+
+    memcpy(r->string->data, a->string->data, a->string->length);
+    memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
+
+    pop(exec->stack);
+    pop(exec->stack);
+
+    push(exec->stack, r);
+}
 
 void bytes__decodeToString(TExecutor *exec)
 {
@@ -1174,6 +1159,21 @@ void string__append(TExecutor *exec)
     addr->string->length += b->string->length;
 
     cell_freeCell(b);
+}
+
+void string__concat(TExecutor *exec)
+{
+    Cell *b = peek(exec->stack, 0);
+    Cell *a = peek(exec->stack, 1);
+    Cell *r = cell_createStringCell(b->string->length + a->string->length);
+
+    memcpy(r->string->data, a->string->data, a->string->length);
+    memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
+
+    pop(exec->stack);
+    pop(exec->stack);
+
+    push(exec->stack, r);
 }
 
 void string__toBytes(TExecutor *exec)

@@ -1,7 +1,7 @@
 IMPORT math
 
 CONSTANT fchr: String := chr(97)
-CONSTANT fconcat: String := concat("a", "b")
+CONSTANT fconcat: String := "a" & "b"
 CONSTANT fint: Number := int(1.5)
 CONSTANT fmax: Number := math.max(1, 2)
 CONSTANT fmin: Number := math.min(3, 4)

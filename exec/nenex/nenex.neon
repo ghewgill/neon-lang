@@ -866,10 +866,6 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "chr" DO
             LET n: Number := self.pop()->n
             self.stack.append(NEW Value(s WITH chr(n)))
-        WHEN "concat" DO
-            LET b: String := self.pop()->s
-            LET a: String := self.pop()->s
-            self.stack.append(NEW Value(s WITH a & b))
         WHEN "dictionary__keys" DO
             LET d: Dictionary<POINTER TO Value> := self.pop()->d
             LET a: Array<POINTER TO Value> := []
@@ -906,6 +902,10 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "str", "number__toString" DO
             LET n: Number := self.pop()->n
             self.stack.append(NEW Value(s WITH str(n)))
+        WHEN "string__concat" DO
+            LET b: String := self.pop()->s
+            LET a: String := self.pop()->s
+            self.stack.append(NEW Value(s WITH a & b))
         WHEN "string__length" DO
             LET s: String := self.pop()->s
             self.stack.append(NEW Value(n WITH s.length()))

@@ -14,8 +14,6 @@ void global_callFunction(const char *pszFunc, struct tagTExecutor *exec);
 struct tagTCell *global_getVariable(const char *pszVar);
 
 void neon_chr(struct tagTExecutor *exec);
-void neon_concat(struct tagTExecutor *exec);
-void neon_concatBytes(struct tagTExecutor *exec);
 void neon_int(struct tagTExecutor *exec);
 void neon_num(struct tagTExecutor *exec);
 void neon_ord(struct tagTExecutor *exec);
@@ -40,6 +38,7 @@ void array__toString__string(struct tagTExecutor *exec);
 
 void boolean__toString(struct tagTExecutor *exec);
 
+void bytes__concat(struct tagTExecutor *exec);
 void bytes__decodeToString(struct tagTExecutor *exec);
 void bytes__range(struct tagTExecutor *exec);
 void bytes__size(struct tagTExecutor *exec);
@@ -72,6 +71,7 @@ void object__toString(struct tagTExecutor *exec);
 
 
 void string__append(struct tagTExecutor *exec);
+void string__concat(struct tagTExecutor *exec);
 void string__toBytes(struct tagTExecutor *exec);
 void string__length(struct tagTExecutor *exec);
 void string__splice(struct tagTExecutor *exec);

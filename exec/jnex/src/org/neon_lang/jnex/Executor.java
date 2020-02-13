@@ -38,7 +38,6 @@ class Executor {
         predefined.put("bytes__toArray", this::bytes__toArray);
         predefined.put("bytes__toString", this::bytes__toString);
         predefined.put("chr", this::chr);
-        predefined.put("concat", this::concat);
         predefined.put("dictionary__keys", this::dictionary__keys);
         predefined.put("exceptiontype__toString", this::exceptiontype__toString);
         predefined.put("number__toString", this::number__toString);
@@ -62,6 +61,7 @@ class Executor {
         predefined.put("print", this::print);
         predefined.put("str", this::number__toString);
         predefined.put("string__append", this::string__append);
+        predefined.put("string__concat", this::string__concat);
         predefined.put("string__length", this::string__length);
         predefined.put("string__substring", this::string__substring);
         predefined.put("string__toBytes", this::string__toBytes);
@@ -1299,13 +1299,6 @@ class Executor {
         stack.addFirst(new Cell(new String(new int[] {n.intValue()}, 0, 1)));
     }
 
-    private void concat()
-    {
-        String b = stack.removeFirst().getString();
-        String a = stack.removeFirst().getString();
-        stack.addFirst(new Cell(a + b));
-    }
-
     private void dictionary__keys()
     {
         Map<String, Cell> d = stack.removeFirst().getDictionary();
@@ -1532,6 +1525,13 @@ class Executor {
         String b = stack.removeFirst().getString();
         Cell a = stack.removeFirst().getAddress();
         a.set(a.getString() + b);
+    }
+
+    private void string__concat()
+    {
+        String b = stack.removeFirst().getString();
+        String a = stack.removeFirst().getString();
+        stack.addFirst(new Cell(a + b));
     }
 
     private void string__length()

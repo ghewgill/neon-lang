@@ -26,7 +26,7 @@ utf8string chr(Number x)
     return utf8string(r);
 }
 
-utf8string concat(const utf8string &a, const utf8string &b)
+utf8string string__concat(const utf8string &a, const utf8string &b)
 {
     return a + b;
 }

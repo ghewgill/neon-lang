@@ -403,7 +403,7 @@ utf8string exceptiontype__toString(Cell &ei)
          + utf8string(">");
 }
 
-std::vector<unsigned char> concatBytes(const std::vector<unsigned char> &a, const std::vector<unsigned char> &b)
+std::vector<unsigned char> bytes__concat(const std::vector<unsigned char> &a, const std::vector<unsigned char> &b)
 {
     std::vector<unsigned char> r = a;
     std::copy(b.begin(), b.end(), std::back_inserter(r));

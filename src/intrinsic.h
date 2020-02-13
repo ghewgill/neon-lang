@@ -6,7 +6,7 @@ namespace rtl {
 namespace ne_global {
 
 utf8string chr(Number x);
-utf8string concat(const utf8string &a, const utf8string &b);
+utf8string string__concat(const utf8string &a, const utf8string &b);
 Number int_(Number a);
 Number max(Number a, Number b);
 Number min(Number a, Number b);

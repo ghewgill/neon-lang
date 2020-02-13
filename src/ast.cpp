@@ -950,7 +950,7 @@ utf8string FunctionCall::eval_string() const
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
     if (f->name == "chr") return rtl::ne_global::chr(args[0]->eval_number());
-    if (f->name == "concat") return rtl::ne_global::concat(args[0]->eval_string(), args[1]->eval_string());
+    if (f->name == "string__concat") return rtl::ne_global::string__concat(args[0]->eval_string(), args[1]->eval_string());
     if (f->name == "str") return rtl::ne_global::str(args[0]->eval_number());
     internal_error("unexpected intrinsic");
 }
@@ -971,7 +971,7 @@ bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const 
         return false;
     }
     if (f->name == "chr"
-     || f->name == "concat"
+     || f->name == "string__concat"
      || f->name == "int"
      || f->name == "math$max"
      || f->name == "math$min"

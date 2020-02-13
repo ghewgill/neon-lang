@@ -15,9 +15,6 @@ TRAP ValueRangeException AS x DO
 END TRY
 #= chr() argument out of range 0-0x10ffff
 
-print(concat("hello", " world"))
-#= hello world
-
 print(str(num("45")))
 #= 45
 

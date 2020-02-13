@@ -1036,6 +1036,11 @@ def neon_boolean__toString(self):
     x = self.stack.pop().value
     self.stack.append(Value("TRUE" if x else "FALSE"))
 
+def neon_bytes__concat(self):
+    b = self.stack.pop().value
+    a = self.stack.pop().value
+    self.stack.append(Value(Bytes(a.s + b.s)))
+
 def neon_bytes__decodeToString(self):
     b = self.stack.pop().value
     self.stack.append(Value(b.s.decode()))
@@ -1088,16 +1093,6 @@ def neon_chr(self):
         self.raise_literal("ValueRangeException", ("chr() argument out of range 0-0x10ffff", 0))
         return
     self.stack.append(Value(chr(int(n))))
-
-def neon_concat(self):
-    b = self.stack.pop().value
-    a = self.stack.pop().value
-    self.stack.append(Value(a + b))
-
-def neon_concatBytes(self):
-    b = self.stack.pop().value
-    a = self.stack.pop().value
-    self.stack.append(Value(Bytes(a.s + b.s)))
 
 def neon_dictionary__keys(self):
     d = self.stack.pop().value
@@ -1276,6 +1271,11 @@ def neon_string__append(self):
     b = self.stack.pop().value
     a = self.stack.pop()
     a.value = a.value + b
+
+def neon_string__concat(self):
+    b = self.stack.pop().value
+    a = self.stack.pop().value
+    self.stack.append(Value(a + b))
 
 def neon_string__length(self):
     s = self.stack.pop().value
