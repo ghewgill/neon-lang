@@ -33,12 +33,3 @@ print("hello")
 
 print(str(5))
 #= 5
-
-print(str(int(4)))
-#= 4
-
-print(str(int(3.9)))
-#= 3
-
-print(str(int(-3.9)))
-#= -3

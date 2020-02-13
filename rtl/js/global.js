@@ -63,10 +63,6 @@ neon = {
             return a / b;
         },
 
-        int: function(x) {
-            return x < 0 ? Math.ceil(x) : Math.floor(x);
-        },
-
         max: function(x, y) {
             return Math.max(x, y);
         },

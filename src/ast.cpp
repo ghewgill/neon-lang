@@ -937,7 +937,7 @@ Number FunctionCall::eval_number() const
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
     if (f->name == "ord") return rtl::ne_global::ord(args[0]->eval_string());
-    if (f->name == "int") return rtl::ne_global::int_(args[0]->eval_number());
+    if (f->name == "math$trunc") return rtl::ne_global::int_(args[0]->eval_number());
     if (f->name == "math$max") return rtl::ne_global::max(args[0]->eval_number(), args[1]->eval_number());
     if (f->name == "math$min") return rtl::ne_global::min(args[0]->eval_number(), args[1]->eval_number());
     if (f->name == "num") return rtl::ne_global::num(args[0]->eval_string());
@@ -972,7 +972,7 @@ bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const 
     }
     if (f->name == "chr"
      || f->name == "string__concat"
-     || f->name == "int"
+     || f->name == "math$trunc"
      || f->name == "math$max"
      || f->name == "math$min"
      || f->name == "num"

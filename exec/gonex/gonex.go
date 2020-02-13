@@ -2255,9 +2255,6 @@ func (self *executor) op_callp() {
 		for _, s := range a {
 			f.WriteString(s.str + "\n")
 		}
-	case "int":
-		x := self.pop().num
-		self.push(make_cell_num(math.Trunc(x)))
 	case "math$abs":
 		x := self.pop().num
 		self.push(make_cell_num(math.Abs(x)))
@@ -2290,6 +2287,9 @@ func (self *executor) op_callp() {
 	case "math$tan":
 		x := self.pop().num
 		self.push(make_cell_num(math.Tan(x)))
+	case "math$trunc":
+		x := self.pop().num
+		self.push(make_cell_num(math.Trunc(x)))
 	case "max":
 		y := self.pop().num
 		x := self.pop().num

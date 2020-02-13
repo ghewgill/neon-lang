@@ -14,7 +14,6 @@ void global_callFunction(const char *pszFunc, struct tagTExecutor *exec);
 struct tagTCell *global_getVariable(const char *pszVar);
 
 void neon_chr(struct tagTExecutor *exec);
-void neon_int(struct tagTExecutor *exec);
 void neon_num(struct tagTExecutor *exec);
 void neon_ord(struct tagTExecutor *exec);
 void neon_print(struct tagTExecutor *exec);

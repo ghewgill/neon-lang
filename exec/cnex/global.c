@@ -38,7 +38,6 @@
 
 TDispatch gfuncDispatch[] = {
     PDFUNC("chr",                       neon_chr),
-    PDFUNC("int",                       neon_int),
     PDFUNC("num",                       neon_num),
     PDFUNC("ord",                       neon_ord),
     PDFUNC("print",                     neon_print),
@@ -386,13 +385,6 @@ void neon_chr(TExecutor *exec)
     string_appendChar(r->string, (char)number_to_uint32(x));
 
     push(exec->stack, r);
-}
-
-void neon_int(TExecutor *exec)
-{
-    Number a = top(exec->stack)->number; pop(exec->stack);
-
-    push(exec->stack, cell_fromNumber(number_trunc(a)));
 }
 
 void neon_num(TExecutor *exec)

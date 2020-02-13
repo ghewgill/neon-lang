@@ -4,12 +4,13 @@
  |  Conversions from numbers to and from arbitrary bases.
  |#
 
+IMPORT math
 IMPORT string
 
 EXPORT CONSTANT Digits: String := "0123456789abcdefghijklmnopqrstuvwxyz"
 
 EXPORT FUNCTION from(base: Number, digits: String): Number
-    CHECK base = int(base) AND 2 <= base <= 36 ELSE
+    CHECK base = math.trunc(base) AND 2 <= base <= 36 ELSE
         RAISE ValueRangeException(info WITH "invalid base: \(base)")
     END CHECK
     VAR r: Number := 0
@@ -24,10 +25,10 @@ EXPORT FUNCTION from(base: Number, digits: String): Number
 END FUNCTION
 
 EXPORT FUNCTION to(base: Number, value: Number): String
-    CHECK base = int(base) AND 2 <= base <= 36 ELSE
+    CHECK base = math.trunc(base) AND 2 <= base <= 36 ELSE
         RAISE ValueRangeException(info WITH "invalid base: \(base)")
     END CHECK
-    CHECK value = int(value) AND value >= 0 ELSE
+    CHECK value = math.trunc(value) AND value >= 0 ELSE
         RAISE ValueRangeException(info WITH "value cannot be negative")
     END CHECK
     VAR r: String := ""
