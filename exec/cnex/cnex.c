@@ -402,7 +402,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
             } else {
                 fprintf(stderr, "  Stack frame #%d: file %s address %d (line number not found)\n", self->callstacktop+1, self->module->source_path, self->ip);
             }
-            cJSON_Delete(symbols);
+            cJSON_Delete(pStart);
         } else {
             fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug info available)\n", self->callstacktop+1, self->module->source_path, self->ip);
         }
