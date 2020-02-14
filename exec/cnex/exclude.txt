@@ -9,13 +9,6 @@ gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
 gc-two-pointers.neon       # class
-import.neon                # CALLV
-interface.neon             # CALLV
-interface-multiple.neon    # CALLV
-interface-parameter-import.neon # unknown class name
-interface-parameter-import2.neon # CALLV
-new-init-module.neon       # class
-new-init.neon              # class
 outer-issue192.neon        # PUSHPOL
 outer-parameter.neon       # PUSHPOL
 outer-tail.neon            # PUSHPOL
