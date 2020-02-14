@@ -370,8 +370,9 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 snprintf(&hash_string[i*2], 3, "%2.2x", self->module->bytecode->source_hash[i]);
             }
             hash_string[64] = '\0';
-            if (strcmp(hash_string, cJSON_GetObjectItem(symbols, "source_hash")->valuestring) != 0) {
-                fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug info available or debug symbols are out of date)\n", self->callstacktop+1, self->module->source_path, self->ip);
+            const char *symbol_hash = cJSON_GetObjectItem(symbols, "source_hash")->valuestring;
+            if (strcmp(hash_string, symbol_hash) == 0) {
+                fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug information, symbols are out of date. %.7s..%.7s)\n", self->callstacktop+1, self->module->source_path, self->ip, hash_string, symbol_hash);
                 goto nextframe;
             }
             cJSON *jip = NULL;
@@ -382,7 +383,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 cJSON_ArrayForEach(symbols, lines)
                 {
                     jip = cJSON_GetArrayItem(symbols, 0);
-                     if (!cJSON_IsInvalid(jip) && jip->valueint == p) {
+                    if (!cJSON_IsInvalid(jip) && (uint64_t)jip->valueint == p) {
                         jln = cJSON_GetArrayItem(symbols, 1);
                         break;
                     }
