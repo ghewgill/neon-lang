@@ -349,10 +349,11 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
             fseek(fp, 0, SEEK_END);
             long nSize = ftell(fp);
             fseek(fp, 0, SEEK_SET);
-            char *debug = malloc(nSize);
+            char *debug = malloc(nSize + 1);
             if (debug != NULL) {
                 fread(debug, 1, nSize, fp);
                 fclose(fp);
+                debug[nSize] = '\0'; // Ensure data is null-terminated.
                 symbols = cJSON_Parse(debug);
                 // Remember the start of the symbols, so we can always go back to them.
                 pStart = symbols;
@@ -361,7 +362,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         }
         free(dbgpath);
 
-        if (symbols != NULL) {
+        if (!cJSON_IsInvalid(symbols)) {
             uint64_t p = self->ip;
             cJSON *source = cJSON_GetObjectItem(symbols, "source");
             char hash_string[65];
@@ -381,7 +382,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 cJSON_ArrayForEach(symbols, lines)
                 {
                     jip = cJSON_GetArrayItem(symbols, 0);
-                    if ((uint64_t)jip->valueint == p) {
+                     if (!cJSON_IsInvalid(jip) && jip->valueint == p) {
                         jln = cJSON_GetArrayItem(symbols, 1);
                         break;
                     }
@@ -397,8 +398,13 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 symbols = pStart;
             }
             if (!cJSON_IsInvalid(jln)) {
+                cJSON *source_line = cJSON_GetArrayItem(source, jln->valueint);
                 fprintf(stderr, "  Stack frame #%d: file %s line %d address %d\n", self->callstacktop+1, self->module->source_path, jln->valueint, self->ip);
-                fprintf(stderr, "    %s\n", cJSON_GetArrayItem(source, jln->valueint)->valuestring);
+                if (!cJSON_IsInvalid(source_line)) {
+                    fprintf(stderr, "    %s\n", source_line->valuestring);
+                } else {
+                    fprintf(stderr, "    *Source line missing from symbols file!*\n");
+                }
             } else {
                 fprintf(stderr, "  Stack frame #%d: file %s address %d (line number not found)\n", self->callstacktop+1, self->module->source_path, self->ip);
             }
