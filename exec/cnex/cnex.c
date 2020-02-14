@@ -1501,9 +1501,23 @@ void exec_PUSHFP(TExecutor *self)
     push(self->stack, a);
 }
 
-void exec_CALLV(void)
+void exec_CALLV(TExecutor *self)
 {
-    fatal_error("exec_CALLV not implemented");
+    self->ip++;
+    uint32_t val = exec_getOperand(self);
+    if (self->callstacktop >= self->param_recursion_limit) {
+        self->rtl_raise(self, "StackOverflowException", "", BID_ZERO);
+        return;
+    }
+
+    Cell *pi = top(self->stack);
+    Cell *instance = pi->array->data[0].address;
+    size_t interface_index = number_to_uint32(pi->array->data[1].number);
+    TModule *m = (TModule*)instance->array->data[0].array->data[0].other;
+    Class *classinfo = instance->array->data[0].array->data[1].other;
+    pop(self->stack);
+
+    invoke(self, m, classinfo->interfaces[interface_index].methods[val]);
 }
 
 void exec_PUSHCI(TExecutor *self)
@@ -1515,12 +1529,36 @@ void exec_PUSHCI(TExecutor *self)
     if (dot == NPOS) {
         for (unsigned int c = 0; c < self->module->bytecode->classsize; c++) {
             if (self->module->bytecode->classes[c].name == val) {
-                push(self->stack, cell_newCell());
+                Cell *ci = cell_createArrayCell(2);
+                ci->array->data[0].other = self->module;
+                ci->array->data[0].type = cOther;
+                ci->array->data[1].other = &self->module->bytecode->classes[c];
+                ci->array->data[1].type = cOther;
+                push(self->stack, ci);
                 return;
             }
         }
     } else {
-        // Locate class interface in module
+        TString *modname = string_subString(self->module->bytecode->strings[val], 0, dot);
+        TString *methodname = string_subString(self->module->bytecode->strings[val], dot+1, self->module->bytecode->strings[val]->length - dot - 1);
+        TModule *mod = module_findModule(self, TCSTR(modname));
+        if (mod != NULL) {
+            for (unsigned int c = 0; c < mod->bytecode->classsize; c++) {
+                if (string_compareString(mod->bytecode->strings[mod->bytecode->classes[c].name], methodname) == 0) {
+                    Cell *ci = cell_createArrayCell(2);
+                    ci->array->data[0].other = mod;
+                    ci->array->data[0].type = cOther;
+                    ci->array->data[1].other = &mod->bytecode->classes[c];
+                    ci->array->data[1].type = cOther;
+                    push(self->stack, ci);
+                    string_freeString(modname);
+                    string_freeString(methodname);
+                    return;
+                }
+            }
+        }
+        string_freeString(modname);
+        string_freeString(methodname);
     }
     fatal_error("cnex: unknown class name %s\n", TCSTR(self->module->bytecode->strings[val]));
 }
@@ -1650,7 +1688,7 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case SWAP:    exec_SWAP(self); break;
             case DROPN:   exec_DROPN(self); break;
             case PUSHFP:  exec_PUSHFP(self); break;
-            case CALLV:   exec_CALLV(); break;
+            case CALLV:   exec_CALLV(self); break;
             case PUSHCI:  exec_PUSHCI(self); break;
             default:
                 fatal_error("exec: Unexpected opcode: %d\n", self->module->bytecode->code[self->ip]);
