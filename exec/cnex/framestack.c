@@ -87,7 +87,7 @@ TFrame *framestack_topFrame(TFrameStack *framestack)
     return framestack->data[framestack->top];
 }
 
-TFrame *frame_createFrame(uint32_t size, int stack_depth)
+TFrame *frame_createFrame(uint32_t nest, TFrame *outer, uint32_t size, int stack_depth)
 {
     uint32_t i;
     TFrame *f = malloc(sizeof(TFrame));
@@ -95,8 +95,10 @@ TFrame *frame_createFrame(uint32_t size, int stack_depth)
         fatal_error("Could not allocate memory for stack frames.");
     }
 
+    f->nesting_depth = nest;
+    f->outer = outer;
     f->frame_size = size;
-    f->stack_depth = stack_depth;
+    f->opstack_depth = stack_depth;
     f->locals = malloc(sizeof(Cell) * f->frame_size);
     if (f->locals == NULL) {
         fatal_error("Could not allocate memory for framne local storage.");
