@@ -316,7 +316,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 if ((string_compareString(name, handler) == 0) || (name->length > handler->length && string_startsWith(name, handler) && name->data[handler->length] == '.')) {
                     self->ip = tmodule->bytecode->exceptions[i].handler;
                     self->module = tmodule;
-                    while (self->stack->top > (((framestack_isEmpty(self->framestack) ? -1 : framestack_topFrame(self->framestack)->stack_depth) + (int32_t)self->module->bytecode->exceptions[i].stack_depth))) {
+                    while (self->stack->top > (((framestack_isEmpty(self->framestack) ? -1 : framestack_topFrame(self->framestack)->opstack_depth) + (int32_t)self->module->bytecode->exceptions[i].stack_depth))) {
                         pop(self->stack);
                     }
                     self->callstacktop = sp;
@@ -508,9 +508,18 @@ void exec_PUSHPL(TExecutor *self)
     push(self->stack, cell_fromAddress(&framestack_topFrame(self->framestack)->locals[addr]));
 }
 
-void exec_PUSHPOL(void)
+void exec_PUSHPOL(TExecutor *self)
 {
-    fatal_error("exec_PUSHPOL not implemented");
+    self->ip++;
+    unsigned int back = exec_getOperand(self);
+    unsigned int addr = exec_getOperand(self);
+    TFrame *frame = framestack_topFrame(self->framestack);
+    while (back > 0) {
+        frame = frame->outer;
+        back--;
+    }
+
+    push(self->stack, cell_fromAddress(&frame->locals[addr]));
 }
 
 void exec_PUSHI(TExecutor *self)
@@ -1577,13 +1586,21 @@ void invoke(TExecutor *self, TModule *m, int index)
     self->callstack[self->callstacktop].mod = self->module;
     self->diagnostics.callstack_max_height = self->callstacktop;
 
-    // ToDo: Fix function nesting
-    framestack_pushFrame(self->framestack, frame_createFrame(m->bytecode->functions[index].locals, self->stack->top - m->bytecode->functions[index].params));
+    TFrame *outer = NULL;
+    unsigned int nest = m->bytecode->functions[index].nest;
+    unsigned int params = m->bytecode->functions[index].params;
+    unsigned int locals = m->bytecode->functions[index].locals;
+    if (self->framestack->top >= 0) {
+        assert(nest <= self->framestack->data[self->framestack->top]->nesting_depth+1);
+        outer = self->framestack->data[self->framestack->top];
+        while (outer != NULL && nest <= outer->nesting_depth) {
+            assert(outer->outer == NULL || outer->nesting_depth == outer->outer->nesting_depth+1);
+            outer = outer->outer;
+        }
+    }
+
+    framestack_pushFrame(self->framestack, frame_createFrame(nest, outer, locals, self->stack->top - params));
     dump_frames(self);
-    /* ToDo: Implement Activiation frame support */
-    //add(frame_newFrame(val));
-    //nested_frames.resize(nest-1);
-    //nested_frames.push_back(&frames.back());
 
     self->module = m;
     self->ip = self->module->bytecode->functions[index].entry;
@@ -1604,7 +1621,7 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case PUSHPPG: exec_PUSHPPG(self); break;
             case PUSHPMG: exec_PUSHPMG(self); break;
             case PUSHPL:  exec_PUSHPL(self); break;
-            case PUSHPOL: exec_PUSHPOL(); break;
+            case PUSHPOL: exec_PUSHPOL(self); break;
             case PUSHI:   exec_PUSHI(self); break;
             case LOADB:   exec_LOADB(self); break;
             case LOADN:   exec_LOADN(self); break;
