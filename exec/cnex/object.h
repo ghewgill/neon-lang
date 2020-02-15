@@ -8,6 +8,8 @@
 #include "nstring.h"
 #include "util.h"
 
+struct MmapObject;
+
 typedef enum tagNObjectType {
     oNone,
     oArray,
@@ -42,6 +44,7 @@ Object *object_createStringObject(TString *s);
 
 Object *object_createFileObject(FILE *f);
 Object *object_createProcessObject(void *h);
+Object *object_createMMapObject(struct MmapObject *m);
 
 Object *object_fromCell(Cell *c);
 

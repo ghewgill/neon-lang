@@ -9,7 +9,6 @@ gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
 gc-two-pointers.neon       # class
-mmap-test.neon             # mmap
 outer-issue192.neon        # PUSHPOL
 outer-parameter.neon       # PUSHPOL
 outer-tail.neon            # PUSHPOL

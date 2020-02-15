@@ -23,6 +23,7 @@
 #include "lib/io.h"
 #include "lib/file.h"
 #include "lib/math.h"
+#include "lib/mmap.h"
 #include "lib/net.h"
 #include "lib/os.h"
 #include "lib/process.h"
@@ -147,6 +148,13 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("math$tanh",                 math_tanh),
     PDFUNC("math$tgamma",               math_tgamma),
     PDFUNC("math$trunc",                math_trunc),
+
+    // mmap - memory mapped file module functions
+    PDFUNC("mmap$close",                mmap_close),
+    PDFUNC("mmap$open",                 mmap_open),
+    PDFUNC("mmap$read",                 mmap_read),
+    PDFUNC("mmap$size",                 mmap_size),
+    PDFUNC("mmap$write",                mmap_write),
 
     // net - network module functions
     PDFUNC("net$tcpSocket",             net_tcpSocket),
