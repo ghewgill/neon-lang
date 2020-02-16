@@ -12,4 +12,4 @@ if sys.argv[i] == "--java":
 fullname = sys.argv[i]
 path, name = os.path.split(fullname)
 
-subprocess.check_call([java, "-enableassertions", "-cp", "exec/jnex/src", "org.neon_lang.jnex.Executor", fullname + "x"] + sys.argv[2:])
+subprocess.check_call([java, "-enableassertions", "-cp", "exec/jnex/src", "org.neon_lang.jnex.Executor", fullname + "x"] + sys.argv[i+1:])

@@ -588,22 +588,22 @@ add_custom_target(testx ALL
 )
 add_tests("${TESTS}" "" $<TARGET_FILE:neon> "")
 add_tests("${TESTS}" "helium" "python3 tools/helium.py" "tools/helium-exclude.txt")
-add_tests("${TESTS}" "cpp" "python3 scripts/run_cpp.py" "scripts/cpp-exclude.txt")
+add_tests("${TESTS}" "cpp" "python3 scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "scripts/cpp-exclude.txt")
 if (NODEJS)
-    add_tests("${TESTS}" "js" "python3 scripts/run_js.py" "scripts/js-exclude.txt")
+    add_tests("${TESTS}" "js" "python3 scripts/run_js.py --neonc $<TARGET_FILE:neonc>" "scripts/js-exclude.txt")
 endif (NODEJS)
 if (JAVAC)
-    add_tests("${TESTS}" "jvm" "python3 scripts/run_jvm.py --java ${JAVA}" "scripts/jvm-exclude.txt")
+    add_tests("${TESTS}" "jvm" "python3 scripts/run_jvm.py  --neonc $<TARGET_FILE:neonc> --java ${JAVA}" "scripts/jvm-exclude.txt")
 endif (JAVAC)
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR MONO)
-    add_tests("${TESTS}" "cli" "python3 scripts/run_cli.py" "scripts/cli-exclude.txt")
+    add_tests("${TESTS}" "cli" "python3 scripts/run_cli.py --neonc $<TARGET_FILE:neonc>" "scripts/cli-exclude.txt")
 endif ()
-add_tests("${TESTS}" "nenex" "python3 exec/nenex/run_test.py" "exec/nenex/exclude.txt")
+add_tests("${TESTS}" "nenex" "python3 exec/nenex/run_test.py --neon $<TARGET_FILE:neon>" "exec/nenex/exclude.txt")
 add_tests("${TESTS}" "pynex" "python3 exec/pynex/run_test.py" "exec/pynex/exclude.txt")
 if (JAVAC)
     add_tests("${TESTS}" "jnex" "python3 exec/jnex/run_test.py --java ${JAVA}" "exec/jnex/exclude.txt")
 endif (JAVAC)
-add_tests("${TESTS}" "cnex" "python3 exec/cnex/run_test.py" "exec/cnex/exclude.txt")
+add_tests("${TESTS}" "cnex" "python3 exec/cnex/run_test.py --cnex $<TARGET_FILE:cnex>" "exec/cnex/exclude.txt")
 if (RUSTC)
     add_tests("${TESTS}" "rsnex" "python3 exec/rsnex/run_test.py" "exec/rsnex/exclude.txt")
 endif (RUSTC)
@@ -658,7 +658,7 @@ add_test(
 
 add_test(
     NAME "errors"
-    COMMAND python3 scripts/run_test.py --errors t/errors
+    COMMAND python3 scripts/run_test.py --runner "$<TARGET_FILE:neonc> -q" --errors t/errors
 )
 
 file(GLOB TESTS_REPL t/repl_*.neon)
@@ -724,7 +724,7 @@ add_test(
 )
 add_test(
     NAME test_grammar_random
-    COMMAND python3 contrib/grammar/test-random.py
+    COMMAND python3 contrib/grammar/test-random.py --neonc $<TARGET_FILE:neonc>
 )
 
 # TODO: This fails because cmake does not seem to accept the # on a COMMAND line.
@@ -744,7 +744,7 @@ add_test(
 
 add_test(
     NAME "test_doc"
-    COMMAND python3 scripts/test_doc.py
+    COMMAND python3 scripts/test_doc.py --neon $<TARGET_FILE:neon> --neonc $<TARGET_FILE:neonc>
 )
 
 add_custom_target(docs ALL

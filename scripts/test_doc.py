@@ -6,10 +6,13 @@ import re
 import subprocess
 import sys
 
+neon = "bin/neon"
+neonc = "bin/neonc"
+
 def test(code):
     if code:
         compile_only = (re.search(r"\binput\b", code) is not None) or ("# exception" in code)
-        p = subprocess.Popen(["bin/neonc" if compile_only else "bin/neon", "-"], stdin=subprocess.PIPE)
+        p = subprocess.Popen([neonc if compile_only else neon, "-"], stdin=subprocess.PIPE)
         p.communicate(code.encode())
         p.wait()
         assert p.returncode == 0
@@ -70,10 +73,26 @@ def get_path_files(prefix):
                 fn = os.path.join(path, f)
                 yield (fn, open(fn, encoding="utf8").read())
 
-if len(sys.argv) < 2:
-    paths = ["docs", "gh-pages", "lib"]
+i = 1
+while i < len(sys.argv):
+    if sys.argv[i].startswith("-"):
+        if sys.argv[i] == "--neon":
+            i += 1
+            neon = sys.argv[i]
+        elif sys.argv[i] == "--neonc":
+            i += 1
+            neonc = sys.argv[i]
+        else:
+            print("test_doc: unknown option {}".format(sys.argv[i]))
+            sys.exit(1)
+    else:
+        break
+    i += 1
+
+if i < len(sys.argv):
+    paths = [sys.argv[i]]
 else:
-    paths = [sys.argv[1]]
+    paths = ["docs", "gh-pages", "lib"]
 
 undocumented = []
 for path in paths:

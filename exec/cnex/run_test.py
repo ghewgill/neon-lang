@@ -4,7 +4,17 @@ import os
 import subprocess
 import sys
 
-fullname = sys.argv[1]
-path, name = os.path.split(fullname)
+cnex = os.path.join("exec", "cnex", "cnex")
 
-subprocess.check_call(["exec/cnex/cnex", fullname + "x"] + sys.argv[2:])
+i = 1
+while i < len(sys.argv):
+    if sys.argv[i] == "--cnex":
+        i += 1
+        cnex = sys.argv[i]
+    else:
+        break
+    i += 1
+
+fullname = sys.argv[i]
+
+subprocess.check_call([cnex, fullname + "x"] + sys.argv[i+1:])

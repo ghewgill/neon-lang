@@ -63,13 +63,28 @@ class Generator:
             assert False, type(node)
         self.depth -= 1
 
+neonc = "bin/neonc"
+
+i = 1
+while i < len(sys.argv):
+    if sys.argv[i].startswith("-"):
+        if sys.argv[i] == "--neonc":
+            i += 1
+            neonc = sys.argv[i]
+        else:
+            print("test-random: unknown option {}".format(sys.argv[i]))
+            sys.exit(1)
+    else:
+        break
+    i += 1
+
 sys.setrecursionlimit(5000)
 for _ in range(100):
     g = Generator()
     g.eval(grammar.parsers["Statement"])
     source = " ".join(map(str, g.tokens))
     #print(source)
-    p = subprocess.Popen(["bin/neonc", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen([neonc, "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate(source.encode())
     out = out.decode()
     err = err.decode()
