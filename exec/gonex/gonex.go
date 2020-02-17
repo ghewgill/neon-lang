@@ -2082,15 +2082,6 @@ func (self *executor) op_callp() {
 		}
 		s += "\""
 		self.push(make_cell_str(s))
-	case "chr":
-		c := self.pop().num
-		if c != math.Trunc(c) {
-			self.raise_literal("ValueRangeException", exceptioninfo{"chr() argument not an integer", 0})
-		} else if c < 0 || c > 0x10ffff {
-			self.raise_literal("ValueRangeException", exceptioninfo{"chr() argument out of range 0-0x10ffff", 0})
-		} else {
-			self.push(make_cell_str(string([]byte{byte(c)})))
-		}
 	case "dictionary__keys":
 		d := self.pop().dict
 		i := 0
@@ -2421,13 +2412,6 @@ func (self *executor) op_callp() {
 		} else {
 			self.push(make_cell_bool((int(n) & 1) != 0))
 		}
-	case "ord":
-		s := self.pop().str
-		if len(s) != 1 {
-			self.raise_literal("ArrayIndexException", exceptioninfo{"ord() requires string of length 1", 0})
-		} else {
-			self.push(make_cell_num(float64(s[0])))
-		}
 	case "os$platform":
 		self.push(make_cell_str(runtime.GOOS))
 	case "os$spawn":
@@ -2497,6 +2481,15 @@ func (self *executor) op_callp() {
 		t := self.pop().str
 		s := self.pop().str
 		self.push(make_cell_num(float64(strings.Index(s, t))))
+	case "string$fromCodePoint":
+		c := self.pop().num
+		if c != math.Trunc(c) {
+			self.raise_literal("ValueRangeException", exceptioninfo{"fromCodePoint() argument not an integer", 0})
+		} else if c < 0 || c > 0x10ffff {
+			self.raise_literal("ValueRangeException", exceptioninfo{"fromCodePoint() argument out of range 0-0x10ffff", 0})
+		} else {
+			self.push(make_cell_str(string([]byte{byte(c)})))
+		}
 	case "string$lower":
 		s := self.pop().str
 		self.push(make_cell_str(strings.ToLower(s)))
@@ -2529,6 +2522,13 @@ func (self *executor) op_callp() {
 			}
 		}
 		self.push(make_cell_array(r))
+	case "string$toCodePoint":
+		s := self.pop().str
+		if len(s) != 1 {
+			self.raise_literal("ArrayIndexException", exceptioninfo{"toCodePoint() requires string of length 1", 0})
+		} else {
+			self.push(make_cell_num(float64(s[0])))
+		}
 	case "string$trimCharacters":
 		trailing := self.pop().str
 		leading := self.pop().str

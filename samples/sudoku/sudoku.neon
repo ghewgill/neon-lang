@@ -4,6 +4,8 @@
  |  Sudoku solver and puzzle generator.
  |#
 
+IMPORT string
+
 EXPORT solveSudoku
 EXPORT makeSolution
 EXPORT makePuzzle
@@ -556,7 +558,7 @@ BEGIN MAIN
             ELSIF k = curses.KEY_UP THEN
                 cy := (cy - 1) MOD 9
             ELSE
-                CASE chr(k)
+                CASE string.fromCodePoint(k)
                     WHEN " ", "0" DO
                         IF start[cy, cx] = 0 THEN
                             moves.append(grid)
@@ -565,7 +567,7 @@ BEGIN MAIN
                     WHEN "1" TO "9" DO
                         IF start[cy, cx] = 0 THEN
                             moves.append(grid)
-                            grid[cy, cx] := k - ord("0")
+                            grid[cy, cx] := k - string.toCodePoint("1")
                         END IF
                     WHEN "c" DO
                         moves := []

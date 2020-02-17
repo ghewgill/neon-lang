@@ -37,7 +37,6 @@ class Executor {
         predefined.put("bytes__splice", this::bytes__splice);
         predefined.put("bytes__toArray", this::bytes__toArray);
         predefined.put("bytes__toString", this::bytes__toString);
-        predefined.put("chr", this::chr);
         predefined.put("dictionary__keys", this::dictionary__keys);
         predefined.put("exceptiontype__toString", this::exceptiontype__toString);
         predefined.put("number__toString", this::number__toString);
@@ -57,7 +56,6 @@ class Executor {
         predefined.put("object__makeString", this::object__makeString);
         predefined.put("object__subscript", this::object__subscript);
         predefined.put("object__toString", this::object__toString);
-        predefined.put("ord", this::ord);
         predefined.put("print", this::print);
         predefined.put("str", this::number__toString);
         predefined.put("string__append", this::string__append);
@@ -73,6 +71,8 @@ class Executor {
         predefined.put("math$trunc", this::math$trunc);
         predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
         predefined.put("runtime$executorName", this::runtime$executorName);
+        predefined.put("string$fromCodePoint", this::string$fromCodePoint);
+        predefined.put("string$toCodePoint", this::string$toCodePoint);
 
         object = new Bytecode(in);
         ip = 0;
@@ -1293,12 +1293,6 @@ class Executor {
         stack.addFirst(new Cell(r.toString()));
     }
 
-    private void chr()
-    {
-        BigDecimal n = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(new String(new int[] {n.intValue()}, 0, 1)));
-    }
-
     private void dictionary__keys()
     {
         Map<String, Cell> d = stack.removeFirst().getDictionary();
@@ -1509,12 +1503,6 @@ class Executor {
         stack.addFirst(new Cell(o != null ? o.toString() : "null"));
     }
 
-    private void ord()
-    {
-        String s = stack.removeFirst().getString();
-        stack.addFirst(new Cell(BigDecimal.valueOf(s.charAt(0))));
-    }
-
     private void print()
     {
         System.out.println(stack.removeFirst().getString());
@@ -1606,5 +1594,17 @@ class Executor {
     private void runtime$executorName()
     {
         stack.addFirst(new Cell("jnex"));
+    }
+
+    private void string$fromCodePoint()
+    {
+        BigDecimal n = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(new String(new int[] {n.intValue()}, 0, 1)));
+    }
+
+    private void string$toCodePoint()
+    {
+        String s = stack.removeFirst().getString();
+        stack.addFirst(new Cell(BigDecimal.valueOf(s.charAt(0))));
     }
 }

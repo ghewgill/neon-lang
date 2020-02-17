@@ -38,9 +38,7 @@
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
 TDispatch gfuncDispatch[] = {
-    PDFUNC("chr",                       neon_chr),
     PDFUNC("num",                       neon_num),
-    PDFUNC("ord",                       neon_ord),
     PDFUNC("print",                     neon_print),
     PDFUNC("str",                       neon_str),
 
@@ -189,9 +187,11 @@ TDispatch gfuncDispatch[] = {
 
     // string - string module functions
     PDFUNC("string$find",               string_find),
+    PDFUNC("string$fromCodePoint",      string_fromCodePoint),
     PDFUNC("string$lower",              string_lower),
     PDFUNC("string$split",              string_split),
     PDFUNC("string$splitLines",         string_splitLines),
+    PDFUNC("string$toCodePoint",        string_toCodePoint),
     PDFUNC("string$trimCharacters",     string_trimCharacters),
     PDFUNC("string$upper",              string_upper),
 
@@ -375,26 +375,6 @@ void global_callFunction(const char *pszFunc, struct tagTExecutor *exec)
     fatal_error("global_callFunction(): \"%s\" - invalid or unsupported predefined function call.", pszFunc);
 }
 
-void neon_chr(TExecutor *exec)
-{
-    Number x = top(exec->stack)->number; pop(exec->stack);
-
-    if (!number_is_integer(x)) {
-        exec->rtl_raise(exec, "ValueRangeException", "chr() argument not an integer", BID_ZERO);
-        return;
-    }
-    if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
-        exec->rtl_raise(exec, "ValueRangeException", "chr() argument out of range 0-0x10ffff", BID_ZERO);
-        return;
-    }
-
-    Cell *r = cell_createStringCell(0);
-    // ToDo: Implement UTF8 strings here!!
-    string_appendChar(r->string, (char)number_to_uint32(x));
-
-    push(exec->stack, r);
-}
-
 void neon_num(TExecutor *exec)
 {
     char *str = string_asCString(top(exec->stack)->string); pop(exec->stack);
@@ -406,20 +386,6 @@ void neon_num(TExecutor *exec)
         return;
     }
     push(exec->stack, cell_fromNumber(n));
-}
-
-void neon_ord(TExecutor *exec)
-{
-    Cell *s = top(exec->stack);
-
-    if (s->string->length != 1) {
-        exec->rtl_raise(exec, "ArrayIndexException", "ord() requires string of length 1", BID_ZERO);
-        return;
-    }
-    Number r = number_from_uint32((uint32_t)s->string->data[0]);
-
-    pop(exec->stack);
-    push(exec->stack, cell_fromNumber(r));
 }
 
 void neon_print(TExecutor *exec)

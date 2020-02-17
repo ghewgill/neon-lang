@@ -1,6 +1,7 @@
 IMPORT binary
 IMPORT file
 IMPORT math
+IMPORT string
 IMPORT sys
 IMPORT textio
 
@@ -863,9 +864,6 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "boolean__toString" DO
             LET b: Boolean := self.pop()->b
             self.stack.append(NEW Value(s WITH b.toString()))
-        WHEN "chr" DO
-            LET n: Number := self.pop()->n
-            self.stack.append(NEW Value(s WITH chr(n)))
         WHEN "dictionary__keys" DO
             LET d: Dictionary<POINTER TO Value> := self.pop()->d
             LET a: Array<POINTER TO Value> := []
@@ -892,9 +890,6 @@ FUNCTION f_callp(INOUT self: Executor)
                 offset := p->n
             END IF
             self.stack.append(NEW Value(s WITH "<ExceptionType:\(name),\(info),\(code),\(offset)>"))
-        WHEN "ord" DO
-            LET s: String := self.pop()->s
-            self.stack.append(NEW Value(n WITH ord(s)))
         WHEN "print" DO
             print(self.pop()->s)
         WHEN "runtime$assertionsEnabled" DO
@@ -918,6 +913,12 @@ FUNCTION f_callp(INOUT self: Executor)
             LET first: Number := self.pop()->n
             LET s: String := self.pop()->s
             self.stack.append(NEW Value(s WITH s[first TO last]))
+        WHEN "string$fromCodePoint" DO
+            LET n: Number := self.pop()->n
+            self.stack.append(NEW Value(s WITH string.fromCodePoint(n)))
+        WHEN "string$toCodePoint" DO
+            LET s: String := self.pop()->s
+            self.stack.append(NEW Value(n WITH string.toCodePoint(s)))
         WHEN OTHERS DO
             textio.writeLine(textio.stderr, "unexpected function: \(f)")
             sys.exit(1)

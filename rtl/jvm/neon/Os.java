@@ -2,7 +2,7 @@ package neon;
 
 public class Os {
 
-    public static neon.type.Number system(String command) {
+    public static neon.type.Number system(java.lang.String command) {
         Process p;
         try {
             p = Runtime.getRuntime().exec(command);

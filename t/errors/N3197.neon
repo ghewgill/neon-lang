@@ -1,2 +1,3 @@
-CONSTANT s: String := chr(ord("AA"))
-                      #<
+IMPORT string
+CONSTANT s: String := string.fromCodePoint(string.toCodePoint("AA"))
+                            #<

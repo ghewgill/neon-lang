@@ -403,7 +403,7 @@ VAR cell_in: Number := cell_normal_in
 FUNCTION get_string_len(addr, len: Number): String
     VAR r: String := ""
     FOR i := 0 TO len-1 DO
-        r.append(chr(storage[addr+i]))
+        r.append(string.fromCodePoint(storage[addr+i]))
     END FOR
     RETURN r
 END FUNCTION
@@ -436,7 +436,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(ud2 MOD 0x100000000)
             stack.push(math.floor(ud2 / 0x100000000))
             INC number_buffer_size
-            storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
+            storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := string.toCodePoint(Digits[dig])
         WHEN CORE_NUMBER_GT DO
             stack.drop(2)
             stack.push(cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size)
@@ -449,7 +449,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
                 LET dig: Number := ud1 MOD storage[cell_base]
                 ud1 := math.floor(ud1 / storage[cell_base])
                 INC number_buffer_size
-                storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
+                storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := string.toCodePoint(Digits[dig])
             UNTIL ud1 = 0
             stack.push(0)
             stack.push(0)
@@ -590,12 +590,12 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET ud1l: Number := stack.pop()
             VAR ud1: Number := ud1h * 0x100000000 + ud1l
             WHILE u > 0 DO
-                LET char: String := chr(storage[addr])
+                LET char: String := string.fromCodePoint(storage[addr])
                 VAR dig: Number := 0 # FIXME: shouldn't need init here
                 IF "0" <= char <= "9" THEN
-                    dig := ord(char) - ord("0")
+                    dig := string.toCodePoint(char) - string.toCodePoint("0")
                 ELSIF "A" <= char <= "Z" THEN
-                    dig := ord(char) - ord("A") + 10
+                    dig := string.toCodePoint(char) - string.toCodePoint("A") + 10
                 ELSE
                     EXIT WHILE
                 END IF
@@ -630,7 +630,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET addr: Number := stack.pop()
             LET s: String := input("")
             FOR i := 0 TO math.min(n-1, s.length()-1) DO
-                storage[addr+i] := ord(s[i])
+                storage[addr+i] := string.toCodePoint(s[i])
             END FOR
             stack.push(s.length())
         WHEN CORE_ALIGN DO
@@ -647,7 +647,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_BASE DO
             stack.push(cell_base)
         WHEN CORE_BL DO
-            stack.push(ord(" "))
+            stack.push(string.toCodePoint(" "))
         WHEN CORE_C_STORE DO
             LET addr: Number := stack.pop()
             LET x: Number := stack.pop()
@@ -666,7 +666,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(n)
         WHEN CORE_CHAR DO
             LET s: String := next_word()
-            stack.push(ord(s[FIRST]))
+            stack.push(string.toCodePoint(s[FIRST]))
         WHEN CORE_CHAR_PLUS DO
             LET addr: Number := stack.pop()
             stack.push(addr+1)
@@ -706,7 +706,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(x)
         WHEN CORE_EMIT DO
             LET x: Number := stack.pop()
-            io.write(io.stdout, chr(x))
+            io.write(io.stdout, string.fromCodePoint(x))
         WHEN CORE_ENVIRONMENT_Q DO
             LET u: Number := stack.pop()
             LET addr: Number := stack.pop()
@@ -858,7 +858,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET n: Number := signed32(stack.pop())
             IF n < 0 THEN
                 INC number_buffer_size
-                storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord("-")
+                storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := string.toCodePoint("-")
             END IF
         WHEN CORE_SM_REM DO
             LET n1: Number := signed32(stack.pop())
@@ -927,14 +927,14 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             storage.append(0)
         WHEN CORE_WORD DO
             LET char: Number := stack.pop()
-            LET s: String := parse(chr(char))
+            LET s: String := parse(string.fromCodePoint(char))
             # TODO: use a real scratch area that is discarded
             stack.push(storage.size())
             storage.append(s.length())
             FOR i := 0 TO s.length()-1 DO
-                storage.append(ord(s[i]))
+                storage.append(string.toCodePoint(s[i]))
             END FOR
-            storage.append(ord(" "))
+            storage.append(string.toCodePoint(" "))
         WHEN CORE_XOR DO
             LET x2: Number := stack.pop()
             LET x1: Number := stack.pop()
@@ -1091,7 +1091,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
                 code.append(storage.size())
                 storage.append(s.length())
                 FOR i := 0 TO s.length()-1 DO
-                    storage.append(ord(s[i]))
+                    storage.append(string.toCodePoint(s[i]))
                 END FOR
             END IF
         WHEN CORE_SEMICOLON DO
@@ -1163,7 +1163,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
             code.append(storage.size())
             storage.append(s.length())
             FOR i := 0 TO s.length()-1 DO
-                storage.append(ord(s[i]))
+                storage.append(string.toCodePoint(s[i]))
             END FOR
         WHEN CORE_THEN DO
             ASSERT NOT interpreting
@@ -1193,7 +1193,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
             ASSERT NOT interpreting
             LET s: String := next_word()
             code.append(INT_LITERAL)
-            code.append(ord(s[FIRST]))
+            code.append(string.toCodePoint(s[FIRST]))
         WHEN CORE_COMPILE DO
             storage[cell_state] := -1
         WHEN TOOLS_EXT_ELSE DO
@@ -1246,16 +1246,16 @@ FUNCTION run(instr: Number, interpreting: Boolean)
 END FUNCTION
 
 FUNCTION skip()
-    WHILE storage[cell_in] < storage[cell_input_length] AND chr(storage[cell_input+storage[cell_in]]) <= " " DO
+    WHILE storage[cell_in] < storage[cell_input_length] AND string.fromCodePoint(storage[cell_input+storage[cell_in]]) <= " " DO
         INC storage[cell_in]
     END WHILE
 END FUNCTION
 
 FUNCTION digit(char: String): Number
     IF "0" <= char <= "9" THEN
-        RETURN ord(char) - ord("0")
+        RETURN string.toCodePoint(char) - string.toCodePoint("0")
     ELSIF "A" <= char <= "Z" THEN
-        RETURN ord(char) - ord("A") + 10
+        RETURN string.toCodePoint(char) - string.toCodePoint("A") + 10
     ELSE
         ASSERT FALSE # invalid char
     END IF
@@ -1295,7 +1295,7 @@ FUNCTION execute(word: String)
         ELSIF regex.search(@"^%-?[01]+$", word, OUT _) THEN
             n := convert(word[1 TO LAST], 0b10)
         ELSIF regex.search(@"'.'?$", word, OUT _) THEN
-            n := ord(word[1])
+            n := string.toCodePoint(word[1])
         ELSE
             print("Unknown word: \(word)")
             sys.exit(1)
@@ -1340,7 +1340,7 @@ FUNCTION refill(): Boolean
         RETURN FALSE
     END IF
     FOR i := 0 TO s.length()-1 DO
-        storage[cell_input+i] := ord(s[i])
+        storage[cell_input+i] := string.toCodePoint(s[i])
     END FOR
     storage[cell_input_length] := s.length()
     storage[cell_in] := 0
@@ -1350,7 +1350,7 @@ END FUNCTION
 FUNCTION parse(delimiter: String): String
     VAR r: String := ""
     WHILE storage[cell_in] < storage[cell_input_length] DO
-        LET c: String := chr(storage[cell_input+storage[cell_in]])
+        LET c: String := string.fromCodePoint(storage[cell_input+storage[cell_in]])
         INC storage[cell_in]
         IF c = delimiter OR (delimiter = " " AND c <= delimiter) THEN
             EXIT WHILE

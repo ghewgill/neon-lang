@@ -16,10 +16,10 @@ namespace ne_global {
 utf8string chr(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(Exception_ValueRangeException, utf8string("chr() argument not an integer"));
+        throw RtlException(Exception_ValueRangeException, utf8string("fromCodePoint() argument not an integer"));
     }
     if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
-        throw RtlException(Exception_ValueRangeException, utf8string("chr() argument out of range 0-0x10ffff"));
+        throw RtlException(Exception_ValueRangeException, utf8string("fromCodePoint() argument out of range 0-0x10ffff"));
     }
     std::string r;
     utf8::append(number_to_uint32(x), std::back_inserter(r));
@@ -75,7 +75,7 @@ Number ord(const utf8string &ss)
 {
     std::string s = ss.str(); // TODO
     if (utf8::distance(s.begin(), s.end()) != 1) {
-        throw RtlException(Exception_ArrayIndexException, utf8string("ord() requires string of length 1"));
+        throw RtlException(Exception_ArrayIndexException, utf8string("toCodePoint() requires string of length 1"));
     }
     auto it = s.begin();
     return number_from_uint32(utf8::next(it, s.end()));

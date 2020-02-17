@@ -2635,13 +2635,11 @@ def run(program):
     program.env.declare("String", Class(), ClassString())
     program.env.declare("Bytes", Class(), ClassBytes())
     program.env.declare("Object", Class(), ClassObject())
-    program.env.declare("chr", None, neon_chr)
     program.env.declare("concat", None, neon_concat)
     program.env.declare("format", None, neon_format)
     program.env.declare("input", None, neon_input)
     program.env.declare("int", None, neon_int)
     program.env.declare("num", None, neon_num)
-    program.env.declare("ord", None, neon_ord)
     program.env.declare("print", None, neon_print)
     program.env.declare("str", None, neon_str)
     program.env.declare("substring", None, neon_substring)
@@ -2671,13 +2669,6 @@ def neon_array_resize(a, n):
     elif n > len(a):
         a.extend([0] * (n - len(a)))
 
-def neon_chr(env, x):
-    if x != int(x):
-        raise NeonException("ValueRangeException", "chr() argument not an integer")
-    if not (0 <= x <= 0x10ffff):
-        raise NeonException("ValueRangeException", "chr() argument out of range 0-0x10ffff")
-    return chr(x)
-
 def neon_concat(env, x, y):
     return x + y
 
@@ -2695,11 +2686,6 @@ def neon_int(env, x):
 
 def neon_num(env, x):
     return int(x) if x.isdigit() else float(x)
-
-def neon_ord(env, x):
-    if len(x) != 1:
-        raise NeonException("ArrayIndexException", "ord() requires string of length 1")
-    return ord(x)
 
 def neon_print(env, x):
     print(x)
@@ -2992,6 +2978,13 @@ def neon_runtime_setRecursionLimit(env, depth):
 def neon_string_find(env, s, t):
     return s.find(t)
 
+def neon_string_fromCodePoint(env, x):
+    if x != int(x):
+        raise NeonException("ValueRangeException", "fromCodePoint() argument not an integer")
+    if not (0 <= x <= 0x10ffff):
+        raise NeonException("ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff")
+    return chr(x)
+
 def neon_string_hasPrefix(env, s, t):
     return s.startswith(t)
 
@@ -3013,6 +3006,11 @@ def neon_string_splitLines(env, s):
     s = re.sub("\r\n", "\n", s)
     s = re.sub("\n$", "", s, 1)
     return s.split("\n")
+
+def neon_string_toCodePoint(env, x):
+    if len(x) != 1:
+        raise NeonException("ArrayIndexException", "toCodePoint() requires string of length 1")
+    return ord(x)
 
 def neon_string_trimCharacters(env, s, leading, trailing):
     return s.lstrip(leading).rstrip(trailing)

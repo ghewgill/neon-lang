@@ -4,6 +4,8 @@
  |  Functions for working with fixed-size structures.
  |#
 
+IMPORT string
+
 EXPORT Struct
 EXPORT Field
 EXPORT Type
@@ -645,7 +647,7 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<Object>): Bytes
                 WHEN Type.string DO
                     LET s: String := values[self.fields[f].name]
                     FOR i := 0 TO self.fields[f].width-1 DO
-                        buf.append((IF i < s.length() THEN ord(s[i]) ELSE 0))
+                        buf.append((IF i < s.length() THEN string.toCodePoint(s[i]) ELSE 0))
                     END FOR
                 WHEN Type.bytes DO
                     LET b: Bytes := values[self.fields[f].name]
@@ -743,7 +745,7 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<Object>
                     IF a[i+j] = 0 THEN
                         EXIT FOR
                     END IF
-                    s.append(chr(a[i+j]))
+                    s.append(string.fromCodePoint(a[i+j]))
                 END FOR
                 v := s
                 i := i + self.fields[f].width

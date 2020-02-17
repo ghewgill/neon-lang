@@ -7,6 +7,7 @@
 IMPORT curses
 IMPORT math
 IMPORT random
+IMPORT string
 IMPORT time
 
 CONSTANT Width: Number := 20
@@ -31,7 +32,7 @@ FUNCTION play_again(): Boolean
     LOOP
         LET k: Number := curses.wgetch(FieldWindow)
         IF k >= 0 THEN
-            CASE chr(k)
+            CASE string.fromCodePoint(k)
                 WHEN "n", "q" DO
                     RETURN FALSE
                 WHEN "y" DO
@@ -102,7 +103,7 @@ FUNCTION main()
                         dy := 0
                         EXIT step
                     ELSE
-                        CASE chr(k)
+                        CASE string.fromCodePoint(k)
                             WHEN "q" DO
                                 quit := TRUE
                                 EXIT step

@@ -1,11 +1,13 @@
+IMPORT string
+
 VAR s: String
 s := "你好世界"
 
-print(str(ord(s[0])))
+print(str(string.toCodePoint(s[0])))
 #= 20320
-print(str(ord(s[1])))
+print(str(string.toCodePoint(s[1])))
 #= 22909
 
-s := chr(19990)
-print(str(ord(s[0])))
+s := string.fromCodePoint(19990)
+print(str(string.toCodePoint(s[0])))
 #= 19990

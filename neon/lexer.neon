@@ -158,11 +158,11 @@ FUNCTION error(number: Number, token: Token, message: String)
 END FUNCTION
 
 FUNCTION identifier_start(c: String): Boolean
-    RETURN ord(c) < 256 AND ("A" <= c <= "Z" OR "a" <= c <= "z" OR c = "_")
+    RETURN string.toCodePoint(c) < 256 AND ("A" <= c <= "Z" OR "a" <= c <= "z" OR c = "_")
 END FUNCTION
 
 FUNCTION identifier_body(c: String): Boolean
-    RETURN ord(c) < 256 AND ("0" <= c <= "9" OR "A" <= c <= "Z" OR "a" <= c <= "z" OR c = "_")
+    RETURN string.toCodePoint(c) < 256 AND ("0" <= c <= "9" OR "A" <= c <= "Z" OR "a" <= c <= "z" OR c = "_")
 END FUNCTION
 
 FUNCTION all_upper(s: String): Boolean
@@ -428,7 +428,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                             EXIT LOOP
                         END IF
                         IF d <> "_" THEN
-                            LET x: Number := (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
+                            LET x: Number := (IF "0" <= d <= "9" THEN string.toCodePoint(d) - string.toCodePoint("0") ELSE (IF "a" <= d <= "z" THEN string.toCodePoint(d) - string.toCodePoint("a") + 10 ELSE -1))
                             IF x < 0 OR x >= base THEN
                                 error(1005, t, "invalid digit for given base")
                             END IF
@@ -536,9 +536,9 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                                     IF NOT hex_char(d) THEN
                                         error(1013, t, "invalid hex character")
                                     END IF
-                                    x := x * 16 + (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
+                                    x := x * 16 + (IF "0" <= d <= "9" THEN string.toCodePoint(d) - string.toCodePoint("0") ELSE (IF "a" <= d <= "z" THEN string.toCodePoint(d) - string.toCodePoint("a") + 10 ELSE -1))
                                 END FOR
-                                c := chr(x)
+                                c := string.fromCodePoint(x)
                                 i := i + len
                             END IF
                         WHEN "(" DO

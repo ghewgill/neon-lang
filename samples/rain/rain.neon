@@ -30,6 +30,7 @@
 
 IMPORT curses
 IMPORT random
+IMPORT string
 
 # rain 11/3/1980 EPS/CITHEP
 
@@ -120,7 +121,7 @@ FUNCTION main()
 
         k := curses.getch()
         IF k >= 0 THEN
-            CASE chr(k)
+            CASE string.fromCodePoint(k)
             WHEN "q", "Q" DO
                 curses.curs_set(1)
                 curses.endwin()

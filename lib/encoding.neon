@@ -4,6 +4,7 @@
  |  Functions for encoding and decoding ASCII or Binary data in various formats.
  |#
 IMPORT binary
+IMPORT string
 
 EXPORT base64Encode
 EXPORT base64Decode
@@ -107,7 +108,7 @@ FUNCTION base64Decode(encoded: String): Bytes
             EXIT FOR
         END IF
         
-        LET bits: Number := Base64DecodeTable[ord(char)]
+        LET bits: Number := Base64DecodeTable[string.toCodePoint(char)]
         IF bits = -1 THEN   
             # Eat chars that are not part of the Base64 alphabet, 
             # including \r and \n, and whitespace.

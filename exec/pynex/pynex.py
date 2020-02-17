@@ -1084,16 +1084,6 @@ def neon_bytes__toString(self):
     b = self.stack.pop().value
     self.stack.append(Value("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in b.s))))
 
-def neon_chr(self):
-    n = self.stack.pop().value
-    if n != int(n):
-        self.raise_literal("ValueRangeException", ("chr() argument not an integer", 0))
-        return
-    if not (0 <= n <= 0x10ffff):
-        self.raise_literal("ValueRangeException", ("chr() argument out of range 0-0x10ffff", 0))
-        return
-    self.stack.append(Value(chr(int(n))))
-
 def neon_dictionary__keys(self):
     d = self.stack.pop().value
     self.stack.append(Value([Value(x) for x in d.keys()]))
@@ -1240,13 +1230,6 @@ def neon_odd(self):
         self.raise_literal("ValueRangeException", ("odd() requires integer", 0))
         return
     self.stack.append(Value((v % 2) != 0))
-
-def neon_ord(self):
-    s = self.stack.pop().value
-    if len(s) != 1:
-        self.raise_literal("ArrayIndexException", ("ord() requires string of length 1", 0))
-        return
-    self.stack.append(Value(decimal.Decimal(ord(s))))
 
 def neon_print(self):
     s = self.stack.pop().value
@@ -1499,6 +1482,16 @@ def neon_string_hasSuffix(self):
     s = self.stack.pop().value
     self.stack.append(Value(s.endswith(prefix)))
 
+def neon_string_fromCodePoint(self):
+    n = self.stack.pop().value
+    if n != int(n):
+        self.raise_literal("ValueRangeException", ("fromCodePoint() argument not an integer", 0))
+        return
+    if not (0 <= n <= 0x10ffff):
+        self.raise_literal("ValueRangeException", ("fromCodePoint() argument out of range 0-0x10ffff", 0))
+        return
+    self.stack.append(Value(chr(int(n))))
+
 def neon_string_join(self):
     d = self.stack.pop().value
     a = self.stack.pop().value
@@ -1522,6 +1515,13 @@ def neon_string_splitLines(self):
         if s.endswith("\n"):
             r[-1:] = []
         self.stack.append(Value(r))
+
+def neon_string_toCodePoint(self):
+    s = self.stack.pop().value
+    if len(s) != 1:
+        self.raise_literal("ArrayIndexException", ("toCodePoint() requires string of length 1", 0))
+        return
+    self.stack.append(Value(decimal.Decimal(ord(s))))
 
 def neon_string_trim(self):
     s = self.stack.pop().value

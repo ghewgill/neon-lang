@@ -6,6 +6,7 @@
 
 EXPORT find
 EXPORT format
+EXPORT fromCodePoint
 EXPORT hasPrefix
 EXPORT hasSuffix
 EXPORT isBlank
@@ -16,6 +17,7 @@ EXPORT replaceAll
 EXPORT replaceOne
 EXPORT split
 EXPORT splitLines
+EXPORT toCodePoint
 EXPORT trim
 EXPORT trimCharacters
 EXPORT upper
@@ -135,6 +137,13 @@ FUNCTION format(s: String, fmt: String): String
     END IF
     RETURN r
 END FUNCTION
+
+#|
+ |  Function: fromCodePoint
+ |
+ |  Return a string containing the single code point.
+ |#
+DECLARE NATIVE FUNCTION fromCodePoint(code: Number): String
 
 #|
  |  Function: hasPrefix
@@ -261,6 +270,14 @@ DECLARE NATIVE FUNCTION split(s: String, d: String): Array<String>
  |  Split a string into lines using any of CRLF or CR or LF line endings.
  |#
 DECLARE NATIVE FUNCTION splitLines(s: String): Array<String>
+
+#|
+ |  Function: toCodePoint
+ |
+ |  Return the Unicode code point of a given character.
+ |  The input string must be a single character.
+ |#
+DECLARE NATIVE FUNCTION toCodePoint(s: String): Number
 
 #|
  |  Function: trimCharacters

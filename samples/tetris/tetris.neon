@@ -8,6 +8,7 @@ IMPORT curses
 IMPORT math
 IMPORT multiarray
 IMPORT random
+IMPORT string
 IMPORT time
 
 CONSTANT BOARD_WIDTH: Number := 10
@@ -229,7 +230,7 @@ FUNCTION play_again(): Boolean
     LOOP
         LET k: Number := curses.wgetch(BoardWindow)
         IF k >= 0 THEN
-            CASE chr(k)
+            CASE string.fromCodePoint(k)
                 WHEN "n", "q" DO
                     RETURN FALSE
                 WHEN "y" DO
@@ -295,7 +296,7 @@ FUNCTION main()
                 END IF
                 LET k: Number := curses.wgetch(BoardWindow)
                 IF k >= 0 THEN
-                    CASE chr(k)
+                    CASE string.fromCodePoint(k)
                         WHEN " " DO
                             WHILE piece_fits(p, x, y+1, r) DO
                                 INC y

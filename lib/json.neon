@@ -4,6 +4,8 @@
  |  Functions for reading and writing files in JSON format (<http://json.org>).
  |#
 
+IMPORT string
+
 EXPORT decode
 EXPORT encode
 
@@ -86,7 +88,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                 INC index
                 VAR t: String := ""
                 WHILE index < json.length() AND json[index] <> "\"" DO
-                    CHECK 0x20 <= ord(json[index]) <= 0x10ffff ELSE
+                    CHECK 0x20 <= string.toCodePoint(json[index]) <= 0x10ffff ELSE
                         RAISE JsonFormatException(info WITH "invalid character")
                     END CHECK
                     IF json[index] = "\\" THEN
@@ -111,16 +113,16 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                                 VAR char: Number := 0
                                 FOR i := 1 TO 4 DO
                                     IF "0" <= json[index+i] <= "9" THEN
-                                        char := char * 0x10 + (ord(json[index+i]) - ord("0"))
+                                        char := char * 0x10 + (string.toCodePoint(json[index+i]) - string.toCodePoint("0"))
                                     ELSIF "a" <= json[index+i] <= "f" THEN
-                                        char := char * 0x10 + (ord(json[index+i]) - ord("a"))
+                                        char := char * 0x10 + (string.toCodePoint(json[index+i]) - string.toCodePoint("a"))
                                     ELSIF "A" <= json[index+i] <= "F" THEN
-                                        char := char * 0x10 + (ord(json[index+i]) - ord("A"))
+                                        char := char * 0x10 + (string.toCodePoint(json[index+i]) - string.toCodePoint("A"))
                                     ELSE
                                         RAISE JsonFormatException(info WITH "invalid hex character")
                                     END IF
                                 END FOR
-                                t.append(chr(char))
+                                t.append(string.fromCodePoint(char))
                                 index := index + 4
                             WHEN OTHERS DO
                                 RAISE JsonFormatException(info WITH "invalid escape sequence")

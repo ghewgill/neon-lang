@@ -26,6 +26,26 @@ void string_find(TExecutor *exec)
     push(exec->stack, cell_fromNumber(number_from_sint64(ret)));
 }
 
+void string_fromCodePoint(TExecutor *exec)
+{
+    Number x = top(exec->stack)->number; pop(exec->stack);
+
+    if (!number_is_integer(x)) {
+        exec->rtl_raise(exec, "ValueRangeException", "fromCodePoint() argument not an integer", BID_ZERO);
+        return;
+    }
+    if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
+        exec->rtl_raise(exec, "ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff", BID_ZERO);
+        return;
+    }
+
+    Cell *r = cell_createStringCell(0);
+    // ToDo: Implement UTF8 strings here!!
+    string_appendChar(r->string, (char)number_to_uint32(x));
+
+    push(exec->stack, r);
+}
+
 void string_lower(TExecutor *exec)
 {
     TString *ss = top(exec->stack)->string;
@@ -101,6 +121,20 @@ void string_splitLines(TExecutor *exec)
     pop(exec->stack);
 
     push(exec->stack, r);
+}
+
+void string_toCodePoint(TExecutor *exec)
+{
+    Cell *s = top(exec->stack);
+
+    if (s->string->length != 1) {
+        exec->rtl_raise(exec, "ArrayIndexException", "toCodePoint() requires string of length 1", BID_ZERO);
+        return;
+    }
+    Number r = number_from_uint32((uint32_t)s->string->data[0]);
+
+    pop(exec->stack);
+    push(exec->stack, cell_fromNumber(r));
 }
 
 void string_trimCharacters(TExecutor *exec)

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "intrinsic.h"
 #include "number.h"
 #include "utf8string.h"
 
@@ -17,6 +18,11 @@ Number find(const utf8string &s, const utf8string &t)
         return number_from_sint64(-1);
     }
     return number_from_uint64(i);
+}
+
+utf8string fromCodePoint(Number code)
+{
+    return ne_global::chr(code);
 }
 
 utf8string lower(const utf8string &ss)
@@ -68,6 +74,11 @@ std::vector<utf8string> splitLines(const utf8string &ss)
         }
     }
     return r;
+}
+
+Number toCodePoint(const utf8string &s)
+{
+    return ne_global::ord(s);
 }
 
 utf8string trimCharacters(const utf8string &ss, const utf8string &trimLeadingChars, const utf8string &trimTrailingChars)

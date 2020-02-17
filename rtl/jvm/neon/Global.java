@@ -120,11 +120,11 @@ public class Global {
         return r;
     }
 
-    public static String array__toString__number(neon.type.Array self) {
+    public static java.lang.String array__toString__number(neon.type.Array self) {
         return self.toString();
     }
 
-    public static String array__toString__string(neon.type.Array self) {
+    public static java.lang.String array__toString__string(neon.type.Array self) {
         StringBuilder r = new StringBuilder("[");
         for (int i = 0; i < self.size(); i++) {
             if (i > 0) {
@@ -139,7 +139,7 @@ public class Global {
         return r.toString();
     }
 
-    public static String boolean__toString(Boolean x) {
+    public static java.lang.String boolean__toString(Boolean x) {
         return x.toString().toUpperCase();
     }
 
@@ -166,8 +166,8 @@ public class Global {
         return r;
     }
 
-    public static String bytes__decodeToString(byte[] self) {
-        return new String(self, java.nio.charset.StandardCharsets.UTF_8);
+    public static java.lang.String bytes__decodeToString(byte[] self) {
+        return new java.lang.String(self, java.nio.charset.StandardCharsets.UTF_8);
     }
 
     public static neon.type.Number bytes__size(byte[] self) {
@@ -216,7 +216,7 @@ public class Global {
         return r;
     }
 
-    public static String bytes__toString(byte[] self) {
+    public static java.lang.String bytes__toString(byte[] self) {
         StringBuilder r = new StringBuilder("HEXBYTES \"");
         boolean first = true;
         for (byte b: self) {
@@ -224,17 +224,13 @@ public class Global {
                 r.append(' ');
             }
             first = false;
-            r.append(String.format("%02x", b & 0xff));
+            r.append(java.lang.String.format("%02x", b & 0xff));
         }
         r.append('"');
         return r.toString();
     }
 
-    public static String chr(neon.type.Number x) {
-        return new String(new char[] {(char)x.intValue()});
-    }
-
-    public static Object dictionary__get(java.util.Map<String, Object> self, String index) {
+    public static Object dictionary__get(java.util.Map<java.lang.String, Object> self, java.lang.String index) {
         Object r = self.get(index);
         if (r == null) {
             throw new neon.type.NeonException("DictionaryIndexException");
@@ -242,16 +238,16 @@ public class Global {
         return r;
     }
 
-    public static neon.type.Array dictionary__keys(java.util.Map<String, Object> self) {
+    public static neon.type.Array dictionary__keys(java.util.Map<java.lang.String, Object> self) {
         neon.type.Array r = new neon.type.Array();
-        for (String k: self.keySet()) {
+        for (java.lang.String k: self.keySet()) {
             r.add(k);
         }
         java.util.Collections.sort(r);
         return r;
     }
 
-    public static String format(String str, String fmt) {
+    public static java.lang.String format(java.lang.String str, java.lang.String fmt) {
         return " foo";
     }
 
@@ -259,41 +255,34 @@ public class Global {
         return x.trunc();
     }
 
-    public static neon.type.Number num(String s) {
+    public static neon.type.Number num(java.lang.String s) {
         return new neon.type.Number(s);
     }
 
-    public static String number__toString(neon.type.Number x) {
+    public static java.lang.String number__toString(neon.type.Number x) {
         return x.toString();
     }
 
-    public static neon.type.Number ord(String s) {
-        if (s.length() != 1) {
-            throw new neon.type.NeonException("ArrayInExpression", "ord() requires string of length 1");
-        }
-        return new neon.type.Number(s.charAt(0));
-    }
-
-    public static void print(String s) {
+    public static void print(java.lang.String s) {
         System.out.println(s);
     }
 
-    public static String str(neon.type.Number x) {
+    public static java.lang.String str(neon.type.Number x) {
         return x.toString();
     }
 
-    public static Object[] string__append(String self, String t) {
+    public static Object[] string__append(java.lang.String self, java.lang.String t) {
         return new Object[] {
             null,
             self + t
         };
     }
 
-    public static String string__concat(String a, String b) {
+    public static java.lang.String string__concat(java.lang.String a, java.lang.String b) {
         return a.concat(b);
     }
 
-    public static String string__substring(String str, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
+    public static java.lang.String string__substring(java.lang.String str, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
         assert(first.isInteger());
         assert(last.isInteger());
         int f = first.intValue();
@@ -307,11 +296,11 @@ public class Global {
         return str.substring(f, l + 1);
     }
 
-    public static neon.type.Number string__length(String s) {
+    public static neon.type.Number string__length(java.lang.String s) {
         return new neon.type.Number(s.length());
     }
 
-    public static String string__splice(String t, String s, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
+    public static java.lang.String string__splice(java.lang.String t, java.lang.String s, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
         int f = first.intValue();
         int l = last.intValue();
         if (first_from_end) {
@@ -323,11 +312,11 @@ public class Global {
         return s.substring(0, f) + t + s.substring(l + 1);
     }
 
-    public static byte[] string__toBytes(String self) {
+    public static byte[] string__toBytes(java.lang.String self) {
         return self.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }
 
-    public static String substring(String s, neon.type.Number offset, neon.type.Number length) {
+    public static java.lang.String substring(java.lang.String s, neon.type.Number offset, neon.type.Number length) {
         int off = offset.intValue();
         int len = length.intValue();
         return s.substring(off, off+len);

@@ -1,12 +1,13 @@
 IMPORT math
+IMPORT string
 
-CONSTANT fchr: String := chr(97)
+CONSTANT fchr: String := string.fromCodePoint(97)
 CONSTANT fconcat: String := "a" & "b"
 CONSTANT fint: Number := math.trunc(1.5)
 CONSTANT fmax: Number := math.max(1, 2)
 CONSTANT fmin: Number := math.min(3, 4)
 CONSTANT fnum: Number := num("4")
 CONSTANT fodd: Boolean := math.odd(5)
-CONSTANT ford: Number := ord("b")
+CONSTANT ford: Number := string.toCodePoint("b")
 CONSTANT fround: Number := math.round(2, 1.234)
 CONSTANT fstr: String := str(5)

@@ -1,32 +1,5 @@
-print(chr(65))
-#= A
-
-TRY
-    print(chr(1.5))
-TRAP ValueRangeException AS x DO
-    print(x.info)
-END TRY
-#= chr() argument not an integer
-
-TRY
-    print(chr(0x110000))
-TRAP ValueRangeException AS x DO
-    print(x.info)
-END TRY
-#= chr() argument out of range 0-0x10ffff
-
 print(str(num("45")))
 #= 45
-
-print(str(ord("B")))
-#= 66
-
-TRY
-    print(str(ord("AB")))
-TRAP ArrayIndexException AS x DO
-    print(x.info)
-END TRY
-#= ord() requires string of length 1
 
 print("hello")
 #= hello

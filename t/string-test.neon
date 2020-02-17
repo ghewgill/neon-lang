@@ -7,6 +7,23 @@ END FUNCTION
 print(str(string.find("hello world", "world")))
 #= 6
 
+print(string.fromCodePoint(65))
+#= A
+
+TRY
+    print(string.fromCodePoint(1.5))
+TRAP ValueRangeException AS x DO
+    print(x.info)
+END TRY
+#= fromCodePoint() argument not an integer
+
+TRY
+    print(string.fromCodePoint(0x110000))
+TRAP ValueRangeException AS x DO
+    print(x.info)
+END TRY
+#= fromCodePoint() argument out of range 0-0x10ffff
+
 print(string.join(["hello", "world"], " "))
 #= hello world
 
@@ -30,6 +47,16 @@ ASSERT string.splitLines("a\n") = ["a"]
 ASSERT string.splitLines("a\nb") = ["a", "b"]
 ASSERT string.splitLines("a\nb\n") = ["a", "b"]
 ASSERT string.splitLines("hello\nworld\r\neverybody\n") = ["hello", "world", "everybody"]
+
+print(str(string.toCodePoint("B")))
+#= 66
+
+TRY
+    print(str(string.toCodePoint("AB")))
+TRAP ArrayIndexException AS x DO
+    print(x.info)
+END TRY
+#= toCodePoint() requires string of length 1
 
 print(string.trimCharacters("  Hello World  ", " ", " "))
 #= Hello World

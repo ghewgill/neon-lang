@@ -42,16 +42,6 @@ neon = {
             return x ? "TRUE" : "FALSE";
         },
 
-        chr: function(x) {
-            if (x != Math.trunc(x)) {
-                throw new neon.NeonException("ValueRangeException", {info: "chr() argument not an integer"});
-            }
-            if (x < 0 || x > 0x10ffff) {
-                throw new neon.NeonException("ValueRangeException", {info: "chr() argument out of range 0-0x10ffff"});
-            }
-            return String.fromCharCode(x);
-        },
-
         dictionary__keys: function(self) {
             return Object.keys(self).sort();
         },
@@ -88,13 +78,6 @@ neon = {
                 throw new neon.NeonException("ValueRangeException", {info: "odd() requires integer"});
             }
             return (n % 2) != 0;
-        },
-
-        ord: function(s) {
-            if (s.length != 1) {
-                throw new neon.NeonException("ArrayIndexException", {info: "ord() requires string of length 1"});
-            }
-            return s.charCodeAt(0);
         },
 
         print: function(s) {
@@ -236,6 +219,25 @@ neon = {
         system: function(command) {
             var exec = require("child_process").exec;
             child = exec(command);
+        }
+    },
+
+    string: {
+        fromCodePoint: function(x) {
+            if (x != Math.trunc(x)) {
+                throw new neon.NeonException("ValueRangeException", {info: "fromCodePoint() argument not an integer"});
+            }
+            if (x < 0 || x > 0x10ffff) {
+                throw new neon.NeonException("ValueRangeException", {info: "fromCodePoint() argument out of range 0-0x10ffff"});
+            }
+            return String.fromCharCode(x);
+        },
+
+        toCodePoint: function(s) {
+            if (s.length != 1) {
+                throw new neon.NeonException("ArrayIndexException", {info: "toCodePoint() requires string of length 1"});
+            }
+            return s.charCodeAt(0);
         }
     },
 

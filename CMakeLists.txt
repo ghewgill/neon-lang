@@ -170,6 +170,7 @@ if (JAVAC)
         rtl/jvm/neon/Io.java
         rtl/jvm/neon/Math.java
         rtl/jvm/neon/Os.java
+        rtl/jvm/neon/String.java
         rtl/jvm/neon/Sys.java
         rtl/jvm/neon/Textio.java
         rtl/jvm/neon/Time.java

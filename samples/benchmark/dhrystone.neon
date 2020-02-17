@@ -346,6 +346,7 @@
  |#
 
 IMPORT math
+IMPORT string
 
 TYPE Enumeration IS ENUM
     Ident_1
@@ -709,7 +710,7 @@ FUNCTION main()
         Int_2_Loc := Run_Index
         Int_Glob := Run_Index
       END IF
-      Ch_Index := chr(ord(Ch_Index) + 1)
+      Ch_Index := string.fromCodePoint(string.toCodePoint(Ch_Index) + 1)
     END WHILE
       # Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7
     Int_2_Loc := Int_2_Loc * Int_1_Loc

@@ -1,2 +1,3 @@
-CONSTANT b: Boolean := ord("AA") = 1
-                                 #<
+IMPORT string
+CONSTANT b: Boolean := string.toCodePoint("AA") = 1
+                                                #<

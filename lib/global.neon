@@ -242,13 +242,6 @@ DECLARE NATIVE FUNCTION object__toString(obj: Object): String
 DECLARE NATIVE FUNCTION exceptiontype__toString(ei: ExceptionType): String
 
 #|
- |  Function: chr
- |
- |  Convert a number to the corresponding Unicode character.
- |#
-DECLARE NATIVE FUNCTION chr(x: Number): String
-
-#|
  |  Function: input
  |
  |  Read a line of input from the terminal after printing a prompt.
@@ -261,14 +254,6 @@ DECLARE NATIVE FUNCTION input(prompt: String): String
  |  Convert a decimal number as a string to a number.
  |#
 DECLARE NATIVE FUNCTION num(s: String): Number
-
-#|
- |  Function: ord
- |
- |  Return the Unicode value of a given character.
- |  The input string must be a single character.
- |#
-DECLARE NATIVE FUNCTION ord(s: String): Number
 
 #|
  |  Function: print

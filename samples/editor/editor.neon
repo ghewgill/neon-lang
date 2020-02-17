@@ -266,8 +266,8 @@ FUNCTION Editor.run(INOUT self: Editor)
     LOOP
         self.refresh()
         LET k: Number := curses.wgetch(self.window)
-        IF ord(" ") <= k < 0x7f THEN
-            self.buffer.insertText(self.line, self.column, chr(k))
+        IF string.toCodePoint(" ") <= k < 0x7f THEN
+            self.buffer.insertText(self.line, self.column, string.fromCodePoint(k))
             INC self.column
         ELSE
             IF k = curses.KEY_F(9) THEN

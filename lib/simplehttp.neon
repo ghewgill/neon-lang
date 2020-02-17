@@ -114,8 +114,8 @@ FUNCTION nextLine(buf: Bytes, INOUT i: Number): String
     LET a: Array<Number> := buf.toArray()
     LET start: Number := i
     VAR lastchar: Number := i-1
-    WHILE chr(a[i]) <> "\n" DO
-        IF chr(a[i]) <> "\r" THEN
+    WHILE string.fromCodePoint(a[i]) <> "\n" DO
+        IF string.fromCodePoint(a[i]) <> "\r" THEN
             lastchar := i
         END IF
         INC i

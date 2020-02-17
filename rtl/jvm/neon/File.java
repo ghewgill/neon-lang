@@ -2,7 +2,7 @@ package neon;
 
 public class File {
 
-    public static void copy(String filename, String destination) {
+    public static void copy(java.lang.String filename, java.lang.String destination) {
         try {
             java.nio.file.Files.copy(
                 java.nio.file.FileSystems.getDefault().getPath(filename),
@@ -13,7 +13,7 @@ public class File {
         }
     }
 
-    public static void copyOverwriteIfExists(String filename, String destination) {
+    public static void copyOverwriteIfExists(java.lang.String filename, java.lang.String destination) {
         try {
             java.nio.file.Files.copy(
                 java.nio.file.FileSystems.getDefault().getPath(filename),
@@ -25,19 +25,19 @@ public class File {
         }
     }
 
-    public static void delete(String filename) {
+    public static void delete(java.lang.String filename) {
         new java.io.File(filename).delete();
     }
 
-    public static Boolean exists(String filename) {
+    public static Boolean exists(java.lang.String filename) {
         return Boolean.valueOf(new java.io.File(filename).exists());
     }
 
-    public static void mkdir(String path) {
+    public static void mkdir(java.lang.String path) {
         new java.io.File(path).mkdir();
     }
 
-    public static byte[] readBytes(String filename) {
+    public static byte[] readBytes(java.lang.String filename) {
         java.io.InputStream in;
         try {
             in = new java.io.FileInputStream(filename);
@@ -68,7 +68,7 @@ public class File {
         return r;
     }
 
-    public static neon.type.Array readLines(String filename) {
+    public static neon.type.Array readLines(java.lang.String filename) {
         java.io.BufferedReader br;
         try {
             br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(filename)));
@@ -78,7 +78,7 @@ public class File {
         neon.type.Array r = new neon.type.Array();
         try {
             while (true) {
-                String s = br.readLine();
+                java.lang.String s = br.readLine();
                 if (s == null) {
                     break;
                 }
@@ -91,7 +91,7 @@ public class File {
         return r;
     }
 
-    public static void writeBytes(String filename, byte[] data) {
+    public static void writeBytes(java.lang.String filename, byte[] data) {
         java.io.OutputStream out;
         try {
             out = new java.io.FileOutputStream(filename);
@@ -106,7 +106,7 @@ public class File {
         }
     }
 
-    public static void writeLines(String filename, neon.type.Array data) {
+    public static void writeLines(java.lang.String filename, neon.type.Array data) {
         java.io.PrintWriter pw;
         try {
             pw = new java.io.PrintWriter(new java.io.FileOutputStream(filename));

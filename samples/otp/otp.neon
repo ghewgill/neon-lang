@@ -1,6 +1,7 @@
 IMPORT binary
 IMPORT hash
 IMPORT math
+IMPORT string
 IMPORT sys
 IMPORT time
 
@@ -10,9 +11,9 @@ FUNCTION b32decode(s: String): Bytes
     FOR i := 0 TO 15 DO
         VAR x: Number := 0
         IF "A" <= s[i] <= "Z" THEN
-            x := ord(s[i]) - ord("A")
+            x := string.toCodePoint(s[i]) - string.toCodePoint("A")
         ELSIF "0" <= s[i] <= "7" THEN
-            x := ord(s[i]) - ord("2") + 26
+            x := string.toCodePoint(s[i]) - string.toCodePoint("2") + 26
         ELSE
             RAISE InvalidValueException
         END IF

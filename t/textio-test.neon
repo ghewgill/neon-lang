@@ -1,5 +1,6 @@
 IMPORT textio
 IMPORT random
+IMPORT string
 
 textio.writeLine(textio.stdout, "Hello World")
 #= Hello World
@@ -35,7 +36,7 @@ textio.close(f)
 
 s := ""
 FOR i := 1 TO 100000 DO
-    s.append(chr(32 + random.uint32() MOD 96))
+    s.append(string.fromCodePoint(32 + random.uint32() MOD 96))
 END FOR
 f := textio.open("tmp/textio-test.tmp", textio.Mode.write)
 textio.writeLine(f, s)
