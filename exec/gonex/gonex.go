@@ -2249,26 +2249,91 @@ func (self *executor) op_callp() {
 	case "math$abs":
 		x := self.pop().num
 		self.push(make_cell_num(math.Abs(x)))
-	case "math$atan2":
-		y := self.pop().num
+	case "math$acos":
 		x := self.pop().num
+		self.push(make_cell_num(math.Acos(x)))
+	case "math$acosh":
+		x := self.pop().num
+		self.push(make_cell_num(math.Acosh(x)))
+	case "math$asin":
+		x := self.pop().num
+		self.push(make_cell_num(math.Asin(x)))
+	case "math$asinh":
+		x := self.pop().num
+		self.push(make_cell_num(math.Asinh(x)))
+	case "math$atan":
+		x := self.pop().num
+		self.push(make_cell_num(math.Atan(x)))
+	case "math$atanh":
+		x := self.pop().num
+		self.push(make_cell_num(math.Atanh(x)))
+	case "math$atan2":
+		x := self.pop().num
+		y := self.pop().num
 		self.push(make_cell_num(math.Atan2(y, x)))
+	case "math$cbrt":
+		x := self.pop().num
+		self.push(make_cell_num(math.Cbrt(x)))
 	case "math$ceil":
 		x := self.pop().num
 		self.push(make_cell_num(math.Ceil(x)))
 	case "math$cos":
 		x := self.pop().num
 		self.push(make_cell_num(math.Cos(x)))
+	case "math$cosh":
+		x := self.pop().num
+		self.push(make_cell_num(math.Cosh(x)))
+	case "math$erf":
+		x := self.pop().num
+		self.push(make_cell_num(math.Erf(x)))
+	case "math$erfc":
+		x := self.pop().num
+		self.push(make_cell_num(math.Erfc(x)))
 	case "math$exp":
 		x := self.pop().num
 		self.push(make_cell_num(math.Exp(x)))
+	case "math$exp2":
+		x := self.pop().num
+		self.push(make_cell_num(math.Exp2(x)))
+	case "math$expm1":
+		x := self.pop().num
+		self.push(make_cell_num(math.Expm1(x)))
+	case "math$floor":
+		x := self.pop().num
+		self.push(make_cell_num(math.Floor(x)))
+	case "math$frexp":
+		x := self.pop().num
+		frac, exp := math.Frexp(x)
+		self.push(make_cell_num(frac))
+		self.push(make_cell_num(float64(exp)))
+	case "math$hypot":
+		y := self.pop().num
+		x := self.pop().num
+		self.push(make_cell_num(math.Hypot(x, y)))
 	case "math$intdiv":
 		y := self.pop().num
 		x := self.pop().num
 		self.push(make_cell_num(math.Trunc(x / y)))
+	case "math$ldexp":
+		exp := self.pop().num
+		x := self.pop().num
+		self.push(make_cell_num(math.Ldexp(x, int(exp))))
+	case "math$lgamma":
+		x := self.pop().num
+		r, _ := math.Lgamma(x)
+		self.push(make_cell_num(r))
 	case "math$log":
 		x := self.pop().num
 		self.push(make_cell_num(math.Log(x)))
+	case "math$log10":
+		x := self.pop().num
+		self.push(make_cell_num(math.Log10(x)))
+	case "math$log1p":
+		x := self.pop().num
+		self.push(make_cell_num(math.Log1p(x)))
+	case "math$log2":
+		x := self.pop().num
+		self.push(make_cell_num(math.Log2(x)))
 	case "math$max":
 		y := self.pop().num
 		x := self.pop().num
@@ -2277,6 +2342,10 @@ func (self *executor) op_callp() {
 		y := self.pop().num
 		x := self.pop().num
 		self.push(make_cell_num(math.Min(x, y)))
+	case "math$nearbyint":
+		x := self.pop().num
+		// TODO self.push(make_cell_num(math.Round(x)))
+                self.push(make_cell_num(x))
 	case "math$odd":
 		n := self.pop().num
 		if n != math.Trunc(n) {
@@ -2289,15 +2358,27 @@ func (self *executor) op_callp() {
 		n := int(self.pop().num)
 		p := math.Pow10(n)
 		self.push(make_cell_num(math.Trunc(x*p+0.5) / p))
+	case "math$sign":
+		x := self.pop().num
+		self.push(make_cell_num(math.Copysign(1, x)))
 	case "math$sin":
 		x := self.pop().num
 		self.push(make_cell_num(math.Sin(x)))
+	case "math$sinh":
+		x := self.pop().num
+		self.push(make_cell_num(math.Sinh(x)))
 	case "math$sqrt":
 		x := self.pop().num
 		self.push(make_cell_num(math.Sqrt(x)))
 	case "math$tan":
 		x := self.pop().num
 		self.push(make_cell_num(math.Tan(x)))
+	case "math$tanh":
+		x := self.pop().num
+		self.push(make_cell_num(math.Tanh(x)))
+	case "math$tgamma":
+		x := self.pop().num
+		self.push(make_cell_num(math.Gamma(x)))
 	case "math$trunc":
 		x := self.pop().num
 		self.push(make_cell_num(math.Trunc(x)))
