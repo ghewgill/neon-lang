@@ -53,14 +53,6 @@ neon = {
             return a / b;
         },
 
-        max: function(x, y) {
-            return Math.max(x, y);
-        },
-
-        min: function(x, y) {
-            return Math.min(x, y);
-        },
-
         num: function(s) {
             return parseFloat(s);
         },
@@ -73,20 +65,8 @@ neon = {
             return x.toString();
         },
 
-        odd: function(n) {
-            if (n != Math.trunc(n)) {
-                throw new neon.NeonException("ValueRangeException", {info: "odd() requires integer"});
-            }
-            return (n % 2) != 0;
-        },
-
         print: function(s) {
             console.log(s);
-        },
-
-        round: function(places, value) {
-            var scale = Math.pow(10, places);
-            return Math.round(value * scale) / scale;
         },
 
         str: function(x) {
@@ -196,6 +176,26 @@ neon = {
 
         log: function(x) {
             return Math.log(x);
+        },
+
+        max: function(x, y) {
+            return Math.max(x, y);
+        },
+
+        min: function(x, y) {
+            return Math.min(x, y);
+        },
+
+        odd: function(n) {
+            if (n != Math.trunc(n)) {
+                throw new neon.NeonException("ValueRangeException", {info: "odd() requires integer"});
+            }
+            return (n % 2) != 0;
+        },
+
+        round: function(places, value) {
+            var scale = Math.pow(10, places);
+            return Math.round(value * scale) / scale;
         },
 
         sign: function(x) {

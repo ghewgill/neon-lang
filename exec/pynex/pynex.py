@@ -1092,20 +1092,6 @@ def neon_exceptiontype__toString(self):
     ei = self.stack.pop().value
     self.stack.append(Value("<ExceptionType:{},{},{},{}>".format(ei[0].value, ei[1].value, ei[2].value, ei[3].value)))
 
-def neon_int(self):
-    x = self.stack.pop().value
-    self.stack.append(Value(decimal.Decimal(int(x))))
-
-def neon_max(self):
-    b = self.stack.pop().value
-    a = self.stack.pop().value
-    self.stack.append(Value(max(a, b)))
-
-def neon_min(self):
-    b = self.stack.pop().value
-    a = self.stack.pop().value
-    self.stack.append(Value(min(a, b)))
-
 def neon_num(self):
     s = self.stack.pop().value
     self.stack.append(Value(decimal.Decimal(s)))
@@ -1224,24 +1210,9 @@ def neon_object__toString(self):
     else:
         self.stack.append(Value(v.literal() if v is not None else "null"))
 
-def neon_odd(self):
-    v = self.stack.pop().value
-    if v != int(v):
-        self.raise_literal("ValueRangeException", ("odd() requires integer", 0))
-        return
-    self.stack.append(Value((v % 2) != 0))
-
 def neon_print(self):
     s = self.stack.pop().value
     print(s)
-
-def neon_round(self):
-    value = self.stack.pop().value
-    places = self.stack.pop().value
-    if places == 0:
-        self.stack.append(Value(decimal.Decimal(int(value))))
-    else:
-        self.stack.append(Value(value.quantize(decimal.Decimal("1."+("0"*int(places)))).normalize()))
 
 def neon_str(self):
     v = self.stack.pop().value
@@ -1418,9 +1389,34 @@ def neon_math_log2(self):
     x = self.stack.pop().value
     self.stack.append(Value(decimal.Decimal(math.log(float(x))/math.log(2))))
 
+def neon_math_max(self):
+    b = self.stack.pop().value
+    a = self.stack.pop().value
+    self.stack.append(Value(max(a, b)))
+
+def neon_math_min(self):
+    b = self.stack.pop().value
+    a = self.stack.pop().value
+    self.stack.append(Value(min(a, b)))
+
 def neon_math_nearbyint(self):
     x = self.stack.pop().value
     self.stack.append(Value(decimal.Decimal(round(float(x)))))
+
+def neon_math_odd(self):
+    v = self.stack.pop().value
+    if v != int(v):
+        self.raise_literal("ValueRangeException", ("odd() requires integer", 0))
+        return
+    self.stack.append(Value((v % 2) != 0))
+
+def neon_math_round(self):
+    value = self.stack.pop().value
+    places = self.stack.pop().value
+    if places == 0:
+        self.stack.append(Value(decimal.Decimal(int(value))))
+    else:
+        self.stack.append(Value(value.quantize(decimal.Decimal("1."+("0"*int(places)))).normalize()))
 
 def neon_math_sign(self):
     x = self.stack.pop().value

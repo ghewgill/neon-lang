@@ -2269,6 +2269,26 @@ func (self *executor) op_callp() {
 	case "math$log":
 		x := self.pop().num
 		self.push(make_cell_num(math.Log(x)))
+	case "math$max":
+		y := self.pop().num
+		x := self.pop().num
+		self.push(make_cell_num(math.Max(x, y)))
+	case "math$min":
+		y := self.pop().num
+		x := self.pop().num
+		self.push(make_cell_num(math.Min(x, y)))
+	case "math$odd":
+		n := self.pop().num
+		if n != math.Trunc(n) {
+			self.raise_literal("ValueRangeException", exceptioninfo{"odd() requires integer", 0})
+		} else {
+			self.push(make_cell_bool((int(n) & 1) != 0))
+		}
+	case "math$round":
+		x := self.pop().num
+		n := int(self.pop().num)
+		p := math.Pow10(n)
+		self.push(make_cell_num(math.Trunc(x*p+0.5) / p))
 	case "math$sin":
 		x := self.pop().num
 		self.push(make_cell_num(math.Sin(x)))
@@ -2281,14 +2301,6 @@ func (self *executor) op_callp() {
 	case "math$trunc":
 		x := self.pop().num
 		self.push(make_cell_num(math.Trunc(x)))
-	case "max":
-		y := self.pop().num
-		x := self.pop().num
-		self.push(make_cell_num(math.Max(x, y)))
-	case "min":
-		y := self.pop().num
-		x := self.pop().num
-		self.push(make_cell_num(math.Min(x, y)))
 	case "num":
 		s := self.pop().str
 		n, err := strconv.ParseFloat(s, 64)
@@ -2405,13 +2417,6 @@ func (self *executor) op_callp() {
 		} else {
 			self.push(make_cell_str("null"))
 		}
-	case "odd":
-		n := self.pop().num
-		if n != math.Trunc(n) {
-			self.raise_literal("ValueRangeException", exceptioninfo{"odd() requires integer", 0})
-		} else {
-			self.push(make_cell_bool((int(n) & 1) != 0))
-		}
 	case "os$platform":
 		self.push(make_cell_str(runtime.GOOS))
 	case "os$spawn":
@@ -2450,11 +2455,6 @@ func (self *executor) op_callp() {
 		fmt.Println(str.str)
 	case "random$uint32":
 		self.push(make_cell_num(float64(rand.Uint32())))
-	case "round":
-		x := self.pop().num
-		n := int(self.pop().num)
-		p := math.Pow10(n)
-		self.push(make_cell_num(math.Trunc(x*p+0.5) / p))
 	case "runtime$assertionsEnabled":
 		self.push(make_cell_bool(true)) // TODO: enable_assertions
 	case "runtime$executorName":
