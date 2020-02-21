@@ -1,5 +1,7 @@
 #include "net.h"
 
+// Needed for gethostbyname() on some Linux platforms.
+#define _DEFAULT_SOURCE
 #include <errno.h>
 #include <iso646.h>
 #include <stdio.h>
@@ -270,7 +272,7 @@ void net_socket_select(TExecutor *exec)
     } while (FALSE);
 
     if (r < 0) {
-        exec->rtl_raise(exec, "SocketException", "", number_from_sint32(h_errno));
+        exec->rtl_raise(exec, "SocketException", "", number_from_sint32(errno));
         return;
     }
 
