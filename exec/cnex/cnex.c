@@ -88,6 +88,9 @@ void exec_freeExecutor(TExecutor *e)
     framestack_destroyFrameStack(e->framestack);
     free(e->framestack);
 
+    // Destroy the callstack.
+    free(e->callstack);
+
     // Finally, free the TExecutor object.
     free(e);
 }
@@ -235,10 +238,15 @@ TExecutor *exec_newExecutor(TModule *object)
     r->callstacktop = -1;
     r->exit_code = 0;
     r->param_recursion_limit = 1000;
+    r->callstacksize = 10;
+    r->callstack = malloc(sizeof(struct CallStack) * r->callstacksize);
+    if (r->callstack == NULL) {
+        fatal_error("Failed to allocate Call stack memory.");
+    }
     r->enable_assert = TRUE;
     r->debug = gOptions.ExecutorDebugStats;
     r->disassemble = gOptions.ExecutorDisassembly;
-    r->framestack = framestack_createFrameStack(r->param_recursion_limit);
+    r->framestack = framestack_createFrameStack(r->callstacksize);
 
     // Load and initialize all the module code.  Note that there is always at least
     // one module!  See: runtime$moduleIsMain() call.
@@ -1573,6 +1581,13 @@ void exec_PUSHCI(TExecutor *self)
 void invoke(TExecutor *self, TModule *m, int index)
 {
     self->callstacktop++;
+    if (self->callstacktop + 1 > self->callstacksize) {
+        self->callstacksize *= 2;
+        self->callstack = realloc(self->callstack, sizeof(struct CallStack) * self->callstacksize);
+        if (self->callstack == NULL) {
+            fatal_error("Could not allocate %d callstack space.", self->callstacksize);
+        }
+    }
     self->callstack[self->callstacktop].ip = self->ip;
     self->callstack[self->callstacktop].mod = self->module;
     self->diagnostics.callstack_max_height = self->callstacktop;

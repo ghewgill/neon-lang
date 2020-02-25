@@ -184,6 +184,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("runtime$executorName",      runtime_executorName),
     PDFUNC("runtime$isModuleImported",  runtime_isModuleImported),
     PDFUNC("runtime$moduleIsMain",      runtime_moduleIsMain),
+    PDFUNC("runtime$setRecursionLimit", runtime_setRecursionLimit),
 
     // string - string module functions
     PDFUNC("string$find",               string_find),

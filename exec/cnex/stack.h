@@ -21,28 +21,4 @@ struct tagTCell *peek(TStack *stack, int element);
 void drop(TStack *stack, int element);
 void dump(TStack* stack);
 
-typedef struct tagTCallStack {
-    struct {
-        int top;
-        int capacity;
-        int max;
-        int len;
-        size_t *data;
-    } CallStack;
-
-    void (*push)(struct tagTCallStack *,size_t);
-    void (*pop)(struct tagTCallStack *);
-    size_t (*top)(struct tagTCallStack *);
-    size_t (*peek)(struct tagTCallStack *, int);
-    int (*isEmpty)(struct tagTCallStack *);
-} TCallStack;
-
-TCallStack *createCallStack(int capacity);
-void destroyCallStack(struct tagTCallStack *stack);
-void callstack_push(struct tagTCallStack *stack, size_t data);
-void callstack_pop(struct tagTCallStack *stack);
-size_t callstack_top(struct tagTCallStack *stack);
-size_t callstack_peek(struct tagTCallStack *stack, int depth);
-int callstack_isEmpty(struct tagTCallStack *stack);
-
 #endif

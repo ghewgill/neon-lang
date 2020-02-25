@@ -51,7 +51,11 @@ int framestack_isEmpty(TFrameStack *framestack)
 void framestack_pushFrame(TFrameStack *framestack, TFrame *item)
 {
     if (framestack_isFull(framestack)) {
-        fatal_error("FrameStack overflow error.");
+        framestack->capacity *= 2;
+        framestack->data = realloc(framestack->data, framestack->capacity * sizeof(TFrame *));
+        if (framestack->data == NULL) {
+            fatal_error("Failed to allocate frame stack of %d elements.", framestack->capacity);
+        }
     }
 
     if (framestack->max < (framestack->top + 1)) {
