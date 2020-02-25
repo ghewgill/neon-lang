@@ -9,12 +9,12 @@
 typedef struct tagTExecutor {
     unsigned int ip;
     struct tagTStack *stack;
-    /*struct tagTStack *callstack; */
     struct CallStack {
         struct tagTModule *mod;
         unsigned int ip;
-    } callstack[300];
+    } *callstack;
     int32_t callstacktop;
+    int32_t callstacksize;
     int32_t param_recursion_limit;
     struct tagTFrameStack *framestack;
     BOOL enable_assert;

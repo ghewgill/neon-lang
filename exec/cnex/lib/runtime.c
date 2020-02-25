@@ -36,3 +36,10 @@ void runtime_moduleIsMain(TExecutor *exec)
 {
     push(exec->stack, cell_fromBoolean(exec->module == exec->modules[0]));
 }
+
+void runtime_setRecursionLimit(TExecutor *exec)
+{
+    Number n = top(exec->stack)->number; pop(exec->stack);
+
+    exec->param_recursion_limit = number_to_sint32(n);
+}
