@@ -373,6 +373,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
             const char *symbol_hash = cJSON_GetObjectItem(symbols, "source_hash")->valuestring;
             if (strcmp(hash_string, symbol_hash) != 0) {
                 fprintf(stderr, "  Stack frame #%d: file %s address %d (no debug information, symbols are out of date. %.7s..%.7s)\n", self->callstacktop+1, self->module->source_path, self->ip, hash_string, symbol_hash);
+                cJSON_Delete(pStart);
                 goto nextframe;
             }
             cJSON *jip = NULL;
