@@ -7,20 +7,15 @@ on:
     branches: [ master ]
 
 jobs:
-  build: |
-    cmake .
-    cmake --build .
-    ctest
-
+  build:
+    
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v2
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    - name: prep
+      run: cmake .
+    - name: build
+      run: cmake --build .
+    - name: test
+      run: ctest
