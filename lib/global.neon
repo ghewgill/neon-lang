@@ -242,13 +242,6 @@ DECLARE NATIVE FUNCTION object__toString(obj: Object): String
 DECLARE NATIVE FUNCTION exceptiontype__toString(ei: ExceptionType): String
 
 #|
- |  Function: input
- |
- |  Read a line of input from the terminal after printing a prompt.
- |#
-DECLARE NATIVE FUNCTION input(prompt: String): String
-
-#|
  |  Function: num
  |
  |  Convert a decimal number as a string to a number.

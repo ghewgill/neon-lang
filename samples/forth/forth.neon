@@ -5,6 +5,7 @@
  |#
 
 IMPORT binary
+IMPORT console
 IMPORT io
 IMPORT math
 IMPORT regex
@@ -628,7 +629,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_ACCEPT DO
             LET n: Number := signed32(stack.pop())
             LET addr: Number := stack.pop()
-            LET s: String := input("")
+            LET s: String := console.input("")
             FOR i := 0 TO math.min(n-1, s.length()-1) DO
                 storage[addr+i] := string.toCodePoint(s[i])
             END FOR

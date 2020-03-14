@@ -112,6 +112,7 @@ endif ()
 
 set(RTL_NEON
     lib/binary.neon
+    lib/console.neon
     lib/datetime.neon
     lib/debugger.neon
     lib/file.neon
@@ -323,6 +324,7 @@ add_library(executor STATIC
     src/rtl_exec.cpp
     src/support_exec.cpp
     lib/binary.cpp
+    lib/console.cpp
     lib/datetime.cpp
     lib/debugger.cpp
     lib/global.cpp

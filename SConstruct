@@ -212,6 +212,7 @@ buildenv.Command("src/unicodedata.inc", ["tools/helium.py", "scripts/make_unicod
 
 rtl_cpp = squeeze([
     "lib/binary.cpp",
+    "lib/console.cpp",
     "lib/datetime.cpp",
     "lib/debugger.cpp",
     "lib/global.cpp",
@@ -233,6 +234,7 @@ rtl_cpp = squeeze([
 
 rtl_neon = squeeze([
     "lib/binary.neon",
+    "lib/console.neon",
     "lib/datetime.neon",
     "lib/debugger.neon",
     "lib/file.neon",

@@ -1,5 +1,7 @@
 # SKIP (requires stdin)
+IMPORT console
+
 VAR s: String
 
-s := input("Enter your name: ")
+s := console.input("Enter your name: ")
 print(s)

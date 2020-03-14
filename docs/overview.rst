@@ -12,8 +12,10 @@ Program structure and modules are influenced by Python.
     # This sample program greets the user
     # until an empty line is entered.
 
+    IMPORT console
+
     LOOP
-        LET name: String := input("What is your name? ")
+        LET name: String := console.input("What is your name? ")
         IF name = "" THEN
             EXIT LOOP
         END IF

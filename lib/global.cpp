@@ -410,16 +410,6 @@ std::vector<unsigned char> bytes__concat(const std::vector<unsigned char> &a, co
     return r;
 }
 
-utf8string input(const utf8string &prompt)
-{
-    std::cout << prompt.str();
-    std::string r;
-    if (not std::getline(std::cin, r)) {
-        throw RtlException(Exception_EndOfFileException, utf8string(""));
-    }
-    return utf8string(r);
-}
-
 void print(const utf8string &s)
 {
     std::cout << s.str() << "\n";

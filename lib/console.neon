@@ -1,0 +1,18 @@
+EXPORT input
+EXPORT output
+
+#|
+ |  Function: input
+ |
+ |  Read a line of input from the terminal after printing a prompt.
+ |#
+DECLARE NATIVE FUNCTION input(prompt: String): String
+
+#|
+ |  Function: output
+ |
+ |  Print a string to standard output followed by a newline.
+ |#
+FUNCTION output(s: String)
+    print(s)
+END FUNCTION
