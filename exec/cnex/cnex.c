@@ -1409,7 +1409,7 @@ void exec_RESETC(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
-    cell_initCell(addr);
+    cell_clearCell(addr);
 }
 
 void exec_PUSHPEG(void)
