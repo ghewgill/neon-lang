@@ -211,7 +211,7 @@ int exec_run(TExecutor *self, BOOL enable_assert)
         }
         // Initialize the modules globals.
         for (unsigned int i = 0; i < mod->bytecode->global_size; i++) {
-            cell_resetCell(&mod->globals[i]);
+            cell_initCell(&mod->globals[i]);
         }
         // Execute the module initialization code.
         invoke(self, self->modules[self->init_order[(self->init_count - 1) - m]], 0);
@@ -267,7 +267,7 @@ TExecutor *exec_newExecutor(TModule *object)
         fatal_error("Failed to allocate memory for global storage.");
     }
     for (i = 0; i < r->modules[0]->bytecode->global_size; i++) {
-        cell_resetCell(&r->modules[0]->globals[i]);
+        cell_initCell(&r->modules[0]->globals[i]);
     }
 
     // Set current module to module::main.
@@ -1409,7 +1409,7 @@ void exec_RESETC(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
-    cell_resetCell(addr);
+    cell_initCell(addr);
 }
 
 void exec_PUSHPEG(void)

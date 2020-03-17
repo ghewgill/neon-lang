@@ -31,7 +31,7 @@ Array *array_createArrayFromSize(size_t iElements)
         fatal_error("Unable to allocate memory for %d array elements.", a->size);
     }
     for (size_t i = 0; i < a->size; i++) {
-        cell_resetCell(&a->data[i]);
+        cell_initCell(&a->data[i]);
     }
     return a;
 }
@@ -53,7 +53,7 @@ Array *array_expandArray(Array *self, size_t iElements)
     }
 
     for (size_t i = self->size; i < self->size + iElements; i++) {
-        cell_resetCell(&self->data[i]);
+        cell_initCell(&self->data[i]);
     }
     self->size += iElements;
     return self;
@@ -135,7 +135,7 @@ size_t array_appendElement(Array *self, Cell *element)
         }
         self->size = 1;
     }
-    cell_resetCell(&self->data[self->size-1]);
+    cell_initCell(&self->data[self->size-1]);
     cell_copyCell(&self->data[self->size-1], element);
 
     return self->size;
