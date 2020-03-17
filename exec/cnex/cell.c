@@ -374,7 +374,7 @@ void cell_arrayAppendElement(Cell *c, const Cell e)
         }
         c->array->size = 1;
     }
-    cell_resetCell(&c->array->data[c->array->size-1]);
+    cell_initCell(&c->array->data[c->array->size-1]);
     cell_copyCell(&c->array->data[c->array->size-1], &e);
 }
 
@@ -402,7 +402,7 @@ void cell_arrayAppendElementPointer(Cell *c, Cell *e)
         }
         c->array->size = 1;
     }
-    cell_resetCell(&c->array->data[c->array->size-1]);
+    cell_initCell(&c->array->data[c->array->size-1]);
     cell_copyCell(&c->array->data[c->array->size-1], e);
     cell_freeCell(e);
 }
@@ -517,7 +517,7 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
             fatal_error("Unable to reallcoate memory for write array.");
         }
         for (size_t n = c->array->size; n < i+1; n++) {
-            cell_resetCell(&c->array->data[n]);
+            cell_initCell(&c->array->data[n]);
         }
         c->array->size = i+1;
     }
@@ -668,7 +668,7 @@ Cell *cell_newCellType(CellType t)
     return c;
 }
 
-void cell_resetCell(Cell *c)
+void cell_initCell(Cell *c)
 {
     c->number = number_from_uint32(0);
     c->object = NULL;
@@ -696,7 +696,7 @@ void cell_clearCell(Cell *c)
             c->object->release(c->object);
         }
     }
-    cell_resetCell(c);
+    cell_initCell(c);
 }
 
 void cell_freeCell(Cell *c)

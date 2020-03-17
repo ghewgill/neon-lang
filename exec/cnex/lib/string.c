@@ -68,7 +68,7 @@ void string_split(TExecutor *exec)
     size_t i = 0;
     while (i < s->length) {
         Cell e;
-        cell_resetCell(&e);
+        cell_initCell(&e);
         e.type = cString;
         int64_t nd = string_findString(s, i, d);
         if (nd == -1) {
@@ -99,7 +99,7 @@ void string_splitLines(TExecutor *exec)
     size_t i = 0;
     while (i < s->length) {
         Cell e;
-        cell_resetCell(&e);
+        cell_initCell(&e);
         e.type = cString;
         int64_t nl = string_findFirstOf(s, i, &eol);
         if (nl == -1) {

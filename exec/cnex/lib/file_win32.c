@@ -109,7 +109,7 @@ void file_files(TExecutor *exec)
     HANDLE ff = FindFirstFile(path->data, &fd);
     if (ff != INVALID_HANDLE_VALUE) {
         do {
-            Cell l; cell_resetCell(&l); l.type = cString;
+            Cell l; cell_initCell(&l); l.type = cString;
             l.string = string_createCString(fd.cFileName);
             cell_arrayAppendElement(r, l);
             string_freeString(l.string);

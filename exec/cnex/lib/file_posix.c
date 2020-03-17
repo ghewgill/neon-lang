@@ -254,7 +254,7 @@ void file_files(TExecutor *exec)
     DIR *d = opendir(path->data);
     if (d != NULL) {
         for (;;) {
-            Cell l; cell_resetCell(&l); l.type = cString;
+            Cell l; cell_initCell(&l); l.type = cString;
             struct dirent *de = readdir(d);
             if (de == NULL) {
                 break;
@@ -289,7 +289,7 @@ void file_getInfo(TExecutor *exec)
         fname = string_fromString(name);
     }
 
-    Cell t; cell_resetCell(&t); t.type = cString;
+    Cell t; cell_initCell(&t); t.type = cString;
     t.string = fname;
     cell_arrayAppendElement(r, t);
     string_freeString(t.string);

@@ -51,7 +51,7 @@ void cell_ensureString(Cell *s);
 
 void cell_clearCell(Cell *c);
 void cell_freeCell(Cell *c);
-void cell_resetCell(Cell *c);
+void cell_initCell(Cell *c);
 
 Cell *cell_fromAddress(Cell *c);
 Cell *cell_fromBoolean(BOOL b);

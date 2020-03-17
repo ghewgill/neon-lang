@@ -506,7 +506,7 @@ void array__resize(TExecutor *exec)
     }
 
     for (size_t i = array_size; i < addr->array->size; i++) {
-        cell_resetCell(&addr->array->data[i]);
+        cell_initCell(&addr->array->data[i]);
     }
 }
 

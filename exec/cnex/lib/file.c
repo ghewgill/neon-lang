@@ -50,7 +50,7 @@ void file_readLines(TExecutor *exec)
 
     Cell *r = cell_createArrayCell(0);
     for (;;) {
-        Cell l; cell_resetCell(&l); l.type = cString;
+        Cell l; cell_initCell(&l); l.type = cString;
 
         // TODO: Fix the following code to deal with lines longer than 16k.
         char line[16384];

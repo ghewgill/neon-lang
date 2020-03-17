@@ -105,7 +105,7 @@ TFrame *frame_createFrame(uint32_t nest, TFrame *outer, uint32_t size, int stack
     }
 
     for (i = 0; i < f->frame_size; i++) {
-        cell_resetCell(&f->locals[i]);
+        cell_initCell(&f->locals[i]);
     }
     return f;
 }
