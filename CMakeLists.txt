@@ -110,6 +110,13 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Op
     include_directories(/usr/local/include)
 endif ()
 
+file(GLOB EXTENSION_DIRS "${CMAKE_CURRENT_LIST_DIR}/lib/*")
+foreach (extension_dir ${EXTENSION_DIRS})
+    if (EXISTS "${extension_dir}/CMakeLists.txt")
+        add_subdirectory(${extension_dir})
+    endif ()
+endforeach ()
+
 set(RTL_NEON
     lib/binary.neon
     lib/console.neon

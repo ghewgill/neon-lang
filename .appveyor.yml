@@ -19,7 +19,7 @@ matrix:
         - image: Visual Studio 2017
           WITH_SUBMODULES: 1
         - BUILDER: cmake
-          #WITH_SUBMODULES: 1
+          WITH_SUBMODULES: 1
 install:
 - ps: >-
     if (-not (Test-Path C:\Python38\Lib\site-packages\scons-3.0.0)){
@@ -32,4 +32,6 @@ build_script:
 - cmd: python3 scons-3.0.0\setup.py install
 - cmd: if %WITH_SUBMODULES%==1 git submodule update --init
 - cmd: if %BUILDER%==scons scons
+#- cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+- cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
 - cmd: if %BUILDER%==cmake cmake . && cmake --build . && ctest -C Debug --output-on-failure
