@@ -10,6 +10,10 @@ environment:
           WITH_SUBMODULES: 1
         - BUILDER: cmake
           WITH_SUBMODULES: 0
+          NEON_ARCH: 32
+        - BUILDER: cmake
+          WITH_SUBMODULES: 0
+          NEON_ARCH: 64
         - BUILDER: cmake
           WITH_SUBMODULES: 1
 matrix:
@@ -31,7 +35,16 @@ build_script:
 - cmd: copy c:\python38\python.exe c:\python38\python3.exe
 - cmd: python3 scons-3.0.0\setup.py install
 - cmd: if %WITH_SUBMODULES%==1 git submodule update --init
+
 - cmd: if %BUILDER%==scons scons
-#- cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-- cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+
+- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
+
+- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+
+- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+
+- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="64" call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
+
 - cmd: if %BUILDER%==cmake cmake . && cmake --build . && ctest -C Debug --output-on-failure
