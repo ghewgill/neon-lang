@@ -1,5 +1,9 @@
 # Turn off all warnings for external code.
-add_compile_options(-w)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    add_compile_options(/w)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    add_compile_options(-w)
+endif ()
 
 include(libbid.cmake)
 include(libgmp.cmake)
