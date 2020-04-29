@@ -8,7 +8,6 @@ gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
 gc-two-pointers.neon       # class
-posix-fork.neon            # posix
 string-bytes.neon          # Cell Type assertion
 string-escape.neon         # utf8
 unicode-char.neon          # unicode

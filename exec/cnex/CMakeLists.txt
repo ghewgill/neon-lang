@@ -14,6 +14,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         lib/time_posix.c
         lib/time_darwin.c
         lib/os_posix.c
+        lib/posix.c
         lib/process_posix.c
     )
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
@@ -24,6 +25,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "
         lib/time_posix.c
         lib/time_linux.c
         lib/os_posix.c
+        lib/posix.c
         lib/process_posix.c
     )
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

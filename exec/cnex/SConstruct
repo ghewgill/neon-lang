@@ -71,6 +71,7 @@ if os.name == "posix":
         "lib/file_posix.c",
         "lib/mmap_posix.c",
         "lib/os_posix.c",
+        "lib/posix.c",
         "lib/process_posix.c",
         "lib/time_posix.c",
     ])
