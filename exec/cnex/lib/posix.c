@@ -81,7 +81,7 @@ void posix_chown(struct tagTExecutor *exec)
     free(path);
 }
 
-void posix_close(struct tagTExecutor *exec)
+void posix_close_(struct tagTExecutor *exec)
 {
     Number fildes = top(exec->stack)->number; pop(exec->stack);
 

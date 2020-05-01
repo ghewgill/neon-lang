@@ -183,7 +183,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("posix$chdir",               posix_chdir),
     PDFUNC("posix$chmod",               posix_chmod),
     PDFUNC("posix$chown",               posix_chown),
-    PDFUNC("posix$close",               posix_close),
+    PDFUNC("posix$close",               posix_close_),
     PDFUNC("posix$dup",                 posix_dup),
     PDFUNC("posix$dup2",                posix_dup2),
     PDFUNC("posix$exit",                posix_exit),

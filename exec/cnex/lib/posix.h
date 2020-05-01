@@ -19,7 +19,7 @@ void posix_access(struct tagTExecutor *exec);
 void posix_chdir(struct tagTExecutor *exec);
 void posix_chmod(struct tagTExecutor *exec);
 void posix_chown(struct tagTExecutor *exec);
-void posix_close(struct tagTExecutor *exec);
+void posix_close_(struct tagTExecutor *exec);
 void posix_dup(struct tagTExecutor *exec);
 void posix_dup2(struct tagTExecutor *exec);
 void posix_exit(struct tagTExecutor *exec);
