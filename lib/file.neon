@@ -70,7 +70,7 @@ EXCEPTION FileException.PathNotFound
 #|
  |  Exception: FileException.PermissionDenied
  |
- |  Indicates that an operation was denied due to filesystem permisssions.
+ |  Indicates that an operation was denied due to filesystem permissions.
  |#
 EXCEPTION FileException.PermissionDenied
 
