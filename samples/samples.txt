@@ -16,6 +16,7 @@ Neon samples.
 - <mandelbrot>      - Mandelbrot set generator (SDL)
 - <net-services>    - Simple network services (daytime, discard, echo)
 - <othello>         - Othello game (curses)
+- <quine>           - Example quine (program that prints its own source code)
 - <sieve>           - Sieve of Eratosthenes
 - <snake>           - Snake game (curses)
 - <spacedebris>     - Vector based space rocks game (SDL)
