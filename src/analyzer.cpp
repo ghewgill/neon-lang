@@ -142,7 +142,7 @@ private:
     const ast::Expression *convert(const ast::Type *target, const ast::Expression *e);
     bool convert2(const ast::Type *target, const ast::Expression *&left, const ast::Expression *&right);
     const ast::TypeFunction *analyze_function_type(const std::unique_ptr<pt::Type> &returntype, const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args);
-    std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
+    std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches, const ast::Type *expression_match_type);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
     ast::ComparisonExpression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
@@ -2734,7 +2734,7 @@ const ast::Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::TryExpression *expr)
 {
     const ast::Expression *e = analyze(expr->expr.get());
-    auto catches = analyze_catches(expr->catches);
+    auto catches = analyze_catches(expr->catches, e->type);
     auto eci = expr->catches.begin();
     for (auto &c: catches) {
         const ast::ExceptionHandlerStatement *ehs = dynamic_cast<const ast::ExceptionHandlerStatement *>(c.handler);
@@ -5088,7 +5088,7 @@ const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     return new ast::ReturnStatement(statement->token.line, expr);
 }
 
-std::vector<ast::TryTrap> Analyzer::analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches)
+std::vector<ast::TryTrap> Analyzer::analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches, const ast::Type *expression_match_type)
 {
     std::vector<ast::TryTrap> r;
     for (auto &x: catches) {
@@ -5145,6 +5145,9 @@ std::vector<ast::TryTrap> Analyzer::analyze_catches(const std::vector<std::uniqu
             r.push_back(ast::TryTrap(exceptions, var, new ast::ExceptionHandlerStatement(0 /*TODO*/, statements)));
         } else if (e != nullptr) {
             const ast::Expression *g = analyze(e);
+            if (g->type != expression_match_type) {
+                error(3282, e->token, "type mismatch");
+            }
             r.push_back(ast::TryTrap(exceptions, var, g));
         } else {
             internal_error("unexpected catch type");
@@ -5159,7 +5162,7 @@ const ast::Statement *Analyzer::analyze(const pt::TryStatement *statement)
     scope.push(new ast::Scope(scope.top(), frame.top()));
     std::vector<const ast::Statement *> statements = analyze(statement->body);
     scope.pop();
-    auto catches = analyze_catches(statement->catches);
+    auto catches = analyze_catches(statement->catches, nullptr);
     return new ast::TryStatement(statement->token.line, statements, catches);
 }
 
