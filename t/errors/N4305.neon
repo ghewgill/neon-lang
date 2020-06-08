@@ -1,3 +1,2 @@
-# TODO
 EXEC SQL INSERT INTO t VALUES (:foo);
-                                #<
+                               #<

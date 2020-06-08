@@ -597,7 +597,7 @@ public:
         lexer.rest();
     }
 
-    void extractParameters(const std::string &query)
+    void extractParameters(size_t query_offset, const std::string &query)
     {
         std::string name;
         std::string sql = query + " "; // add a non-identifier terminator for scanning this
@@ -610,8 +610,7 @@ public:
                     name.push_back(sql[i]);
                 } else {
                     ::Token tok = ::Token(lexer.token);
-                    // Not sure exactly why this offset of 2 needs to be here.
-                    tok.column = tok.column + i - name.length() + 2;
+                    tok.column = tok.column + query_offset + i - name.length();
                     tok.text = name;
                     parameters.push_back(tok);
                     name = std::string();
@@ -626,6 +625,7 @@ public:
         if (not check_next(SQL)) {
             error(4212, lexer.get_last_token(), "SQL expected");
         }
+        auto query_offset = lexer.position();
         auto query = lexer.peek_rest();
         switch (lexer.peek()) {
             case CLOSE:
@@ -653,11 +653,11 @@ public:
             case DROP:
             case INSERT:
                 lexer.rest();
-                extractParameters(query);
+                extractParameters(query_offset, query);
                 return std::unique_ptr<SqlStatement> { new SqlQueryStatement(query) };
             case SELECT:
                 extractIntoClause(query);
-                extractParameters(query);
+                extractParameters(query_offset, query);
                 return std::unique_ptr<SqlStatement> { new SqlQueryStatement(query) };
             default:
                 lexer.rest();
