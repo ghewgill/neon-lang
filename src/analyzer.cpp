@@ -4621,6 +4621,10 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             if (var == nullptr) {
                 error(4305, p, "variable not found");
             }
+            // TODO: Call toString() on the parameter to convert it into a string.
+            if (var->type != ast::TYPE_STRING) {
+                error(4308, p, "query parameter "+p.text+" must be of type String (current implementation limitation)");
+            }
             binding_vars.push_back(std::make_pair(utf8string(p.text), new ast::VariableExpression(var)));
         }
         process_into_results(
