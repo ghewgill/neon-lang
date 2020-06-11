@@ -97,6 +97,7 @@ outer.neon                 # PUSHPOL
 outer2.neon                # PUSHPOL
 parameter-out-array.neon   # array__splice
 parameter-out-string.neon  # string__splice
+pointer-print.neon         # pointer__toString
 posix-fork.neon            # posix
 process-test.neon          # process
 recursion-limit.neon       # runtime

@@ -360,6 +360,8 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("object__subscript",         object__subscript),
     PDFUNC("object__toString",          object__toString),
 
+    PDFUNC("pointer__toString",         pointer__toString),
+
     PDFUNC("string__append",            string__append),
     PDFUNC("string__concat",            string__concat),
     PDFUNC("string__toBytes",           string__toBytes),
@@ -1205,7 +1207,13 @@ void object__toString(TExecutor *exec)
     push(exec->stack, s);
 }
 
-
+void pointer__toString(TExecutor *exec)
+{
+    void *p = top(exec->stack)->address; pop(exec->stack);
+    char buf[40];
+    snprintf(buf, sizeof(buf), "<p:%p>", p);
+    push(exec->stack, cell_fromCString(buf));
+}
 
 
 void string__append(TExecutor *exec)

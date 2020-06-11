@@ -66,6 +66,7 @@ void object__isNull(struct tagTExecutor *exec);
 void object__subscript(struct tagTExecutor *exec);
 void object__toString(struct tagTExecutor *exec);
 
+void pointer__toString(struct tagTExecutor *exec);
 
 void string__append(struct tagTExecutor *exec);
 void string__concat(struct tagTExecutor *exec);

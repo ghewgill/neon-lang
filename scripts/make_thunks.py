@@ -150,8 +150,8 @@ JvmFromAst = {
 }
 
 CellField = {
-    ("TYPE_POINTER", VALUE): "other()",
-    ("TYPE_POINTER", REF): "address()->other()",
+    ("TYPE_POINTER", VALUE): "address()",
+    ("TYPE_POINTER", REF): "address()->address()",
     ("TYPE_BOOLEAN", VALUE): "boolean()",
     ("TYPE_BOOLEAN", REF): "address()->boolean()",
     ("TYPE_NUMBER", VALUE): "number()",
@@ -382,7 +382,7 @@ with open("src/thunks.inc", "w") as inc:
                 print("        for (auto x: r) t[x.first] = Cell(x.second);", file=inc)
                 print("        stack.push(Cell(t));", file=inc)
             elif rtype[0] == "TYPE_POINTER":
-                print("        stack.push(Cell::makeOther(r));", file=inc)
+                print("        stack.push(Cell::makeAddress(r));", file=inc)
             else:
                 print("        stack.push(Cell(r));", file=inc)
         for i, a in reversed(list(enumerate(params))):

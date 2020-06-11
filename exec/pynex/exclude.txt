@@ -75,6 +75,7 @@ outer2.neon                # PUSHPOL
 parameters.neon            # INOUT
 pointer-method.neon        # class
 pointer-nil.neon           # class
+pointer-print.neon         # class
 pointer-valid.neon         # class
 pointer.neon               # class
 pointer1.neon              # class

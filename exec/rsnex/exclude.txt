@@ -263,6 +263,7 @@ pointer-method.neon
 pointer-mismatch.neon
 pointer.neon
 pointer-nil.neon
+pointer-print.neon
 pointer-valid.neon
 posix-fork.neon
 predeclare1.neon

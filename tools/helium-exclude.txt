@@ -131,6 +131,7 @@ module-assign-var.neon
 module-scope.neon
 pointer6.neon
 pointer-mismatch.neon
+pointer-print.neon
 return.neon
 shadow2.neon
 shadow.neon

@@ -2345,7 +2345,7 @@ func (self *executor) op_callp() {
 	case "math$nearbyint":
 		x := self.pop().num
 		// TODO self.push(make_cell_num(math.Round(x)))
-                self.push(make_cell_num(x))
+		self.push(make_cell_num(x))
 	case "math$odd":
 		n := self.pop().num
 		if n != math.Trunc(n) {
@@ -2531,6 +2531,9 @@ func (self *executor) op_callp() {
 		} else {
 			self.push(make_cell_num(0))
 		}
+	case "pointer__toString":
+		p := self.pop().ref.(referenceDirect).addr
+		self.push(make_cell_str(fmt.Sprintf("<p:%p>", p)))
 	case "print":
 		str := self.pop()
 		fmt.Println(str.str)

@@ -1210,6 +1210,10 @@ def neon_object__toString(self):
     else:
         self.stack.append(Value(v.literal() if v is not None else "null"))
 
+def neon_pointer__toString(self):
+    v = self.stack.pop().value
+    return "<p:{}>".format(id(v))
+
 def neon_print(self):
     s = self.stack.pop().value
     print(s)

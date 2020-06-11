@@ -107,6 +107,7 @@ parameter-out-string.neon  # StringReferenceIndexExpression
 parameters-ignore.neon     # DummyExpression
 parameters.neon            # keyword in
 pointer-method.neon        # methods
+pointer-print.neon         # pointer__toString
 posix-fork.neon            # module posix
 predeclare1.neon           # something
 process-test.neon          # module process

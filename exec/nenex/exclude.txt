@@ -106,6 +106,7 @@ outer2.neon                 # pushpol
 parameter-out-array.neon    # array__splice
 parameter-out-string.neon   # string__splice
 parameters.neon             # storep
+pointer-print.neon          # pointer__toString
 posix-fork.neon             # posix$fork
 predeclare1.neon            # array__append
 process-test.neon           # process$call
