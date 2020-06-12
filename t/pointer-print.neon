@@ -1,0 +1,3 @@
+TYPE Cls IS CLASS END CLASS
+VAR p: POINTER TO Cls := NEW Cls
+VAR s: String := "\(p)"
