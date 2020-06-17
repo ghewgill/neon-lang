@@ -91,6 +91,17 @@ else (GO)
     message("go not found")
 endif (GO)
 
+execute_process(
+    COMMAND git describe --always --long --dirty
+    OUTPUT_VARIABLE GIT_DESCRIBE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+set_property(DIRECTORY APPEND
+    PROPERTY CMAKE_CONFIGURE_DEPENDS
+    ${CMAKE_SOURCE_DIR}/.git/index
+)
+configure_file("src/version.cpp.in" "src/version.cpp")
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -232,6 +243,7 @@ add_library(common STATIC
     src/intrinsic.cpp
     src/number.cpp
     src/support.cpp
+    src/version.cpp
 )
 target_include_directories(common
     INTERFACE external/hash-library

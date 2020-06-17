@@ -10,6 +10,7 @@
 #include "exec.h"
 #include "lexer.h"
 #include "parser.h"
+#include "version.h"
 
 Repl::Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool dump_listing, const ExecOptions &options)
   : argc(argc),
@@ -24,7 +25,7 @@ Repl::Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool 
     input()
 {
     if (not no_prompt) {
-        std::cout << "Neon 0.1\n";
+        std::cout << "Neon 0.1 (" << GIT_DESCRIBE << ")\n";
         std::cout << "Type \"help\" for more information, or \"exit\" to leave.\n";
     }
 }

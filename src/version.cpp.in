@@ -1,0 +1,1 @@
+const char *GIT_DESCRIBE = "${GIT_DESCRIBE}";

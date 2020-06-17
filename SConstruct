@@ -119,6 +119,10 @@ libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
+version_cpp = open("src/version.cpp.in").read()
+version_cpp = version_cpp.replace("${GIT_DESCRIBE}", subprocess.check_output(["git", "describe", "--always", "--long", "--dirty"]).decode().strip())
+open("src/version.cpp", "w").write(version_cpp)
+
 modules = []
 for module in os.listdir("lib"):
     sconstruct = os.path.join("lib", module, "SConstruct")
@@ -392,6 +396,7 @@ neon = buildenv.Program("bin/neon", [
     "src/support_compiler.cpp",
     "src/support_exec.cpp",
     "src/util.cpp",
+    "src/version.cpp",
 ] + coverage_lib,
 )
 
