@@ -1399,6 +1399,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         }
     }
     s_importing.pop_back();
+    rtl_import(name, module);
     modules[name] = module;
     return module;
 }
@@ -2039,7 +2040,6 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
     const ast::Module *string = dynamic_cast<const ast::Module *>(scope.top()->lookupName("string"));
     if (string == nullptr) {
         ast::Module *module = import_module(Token(), "string", false);
-        rtl_import("string", module);
         global_scope->addName(Token(IDENTIFIER, "string"), "string", module, true);
         string = module;
     }
@@ -3131,9 +3131,6 @@ const ast::Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration
         error2(3114, localname, "duplicate definition of name", scope.top()->getDeclaration(localname.text), "first declaration here");
     }
     ast::Module *module = import_module(declaration->module, declaration->module.text, declaration->optional);
-    if (module != ast::MODULE_MISSING) {
-        rtl_import(declaration->module.text, module);
-    }
     if (declaration->name.type == NONE) {
         scope.top()->addName(declaration->token, localname.text, module);
     } else if (module != ast::MODULE_MISSING) {
@@ -3794,7 +3791,6 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     const ast::Module *textio = dynamic_cast<const ast::Module *>(scope.top()->lookupName("textio"));
     if (textio == nullptr) {
         ast::Module *module = import_module(Token(), "textio", false);
-        rtl_import("textio", module);
         global_scope->addName(Token(IDENTIFIER, "textio"), "textio", module, true);
         textio = module;
     }
@@ -4243,7 +4239,6 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     const ast::Module *sys = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sys"));
     if (sys == nullptr) {
         ast::Module *module = import_module(Token(), "sys", false);
-        rtl_import("sys", module);
         global_scope->addName(Token(IDENTIFIER, "sys"), "sys", module, true);
         sys = module;
     }
@@ -4434,7 +4429,6 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     const ast::Module *sqlite = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sqlite"));
     if (sqlite == nullptr) {
         ast::Module *module = import_module(Token(), "sqlite", false);
-        rtl_import("sqlite", module);
         global_scope->addName(Token(IDENTIFIER, "sqlite"), "sqlite", module, true);
         sqlite = module;
     }
@@ -4912,7 +4906,6 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
                 const ast::Module *runtime = dynamic_cast<const ast::Module *>(scope.top()->lookupName("runtime"));
                 if (runtime == nullptr) {
                     ast::Module *module = import_module(Token(), "runtime", false);
-                    rtl_import("runtime", module);
                     global_scope->addName(Token(IDENTIFIER, "runtime"), "runtime", module, true);
                     runtime = module;
                 }
