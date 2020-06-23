@@ -2037,11 +2037,9 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr)
 {
     const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat")));
-    const ast::Module *string = dynamic_cast<const ast::Module *>(scope.top()->lookupName("string"));
+    const ast::Module *string = import_module(Token(), "string", false);
     if (string == nullptr) {
-        ast::Module *module = import_module(Token(), "string", false);
-        global_scope->addName(Token(IDENTIFIER, "string"), "string", module, true);
-        string = module;
+        internal_error("need module string");
     }
     const ast::VariableExpression *format = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(string->scope->lookupName("format")));
     const ast::Expression *r = nullptr;
@@ -3788,11 +3786,9 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     for (auto x = statement->exprs.begin()+1; x != statement->exprs.end(); ++x) {
         parts.push_back(x->get());
     }
-    const ast::Module *textio = dynamic_cast<const ast::Module *>(scope.top()->lookupName("textio"));
+    const ast::Module *textio = import_module(Token(), "textio", false);
     if (textio == nullptr) {
-        ast::Module *module = import_module(Token(), "textio", false);
-        global_scope->addName(Token(IDENTIFIER, "textio"), "textio", module, true);
-        textio = module;
+        internal_error("need module textio");
     }
     std::vector<const ast::Statement *> statements;
     const ast::Variable *textio_stderr = dynamic_cast<const ast::Variable *>(textio->scope->lookupName("stderr"));
@@ -4236,17 +4232,15 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     if (print == nullptr) {
         internal_error("where's the print function");
     }
-    const ast::Module *sys = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sys"));
+    const ast::Module *sys = import_module(Token(), "sys", false);
     if (sys == nullptr) {
-        ast::Module *module = import_module(Token(), "sys", false);
-        global_scope->addName(Token(IDENTIFIER, "sys"), "sys", module, true);
-        sys = module;
+        internal_error("need module sys");
     }
     const ast::PredefinedFunction *fexit = dynamic_cast<const ast::PredefinedFunction *>(sys->scope->lookupName("exit"));
     if (fexit == nullptr) {
         internal_error("where's the exit function");
     }
-    const ast::Module *sqlite = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sqlite"));
+    const ast::Module *sqlite = import_module(Token(), "sqlite", false);
     if (sqlite == nullptr) {
         internal_error("need module sqlite");
     }
@@ -4426,11 +4420,9 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
 
 const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
 {
-    const ast::Module *sqlite = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sqlite"));
+    const ast::Module *sqlite = import_module(Token(), "sqlite", false);
     if (sqlite == nullptr) {
-        ast::Module *module = import_module(Token(), "sqlite", false);
-        global_scope->addName(Token(IDENTIFIER, "sqlite"), "sqlite", module, true);
-        sqlite = module;
+        internal_error("need module sqlite");
     }
     const ast::PredefinedFunction *exec = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("exec"));
     if (exec == nullptr) {
@@ -4903,11 +4895,9 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
                 error(3280, imported->module, "identifier is not a module");
             }
             if (mod != ast::MODULE_MISSING) {
-                const ast::Module *runtime = dynamic_cast<const ast::Module *>(scope.top()->lookupName("runtime"));
+                const ast::Module *runtime = import_module(Token(), "runtime", false);
                 if (runtime == nullptr) {
-                    ast::Module *module = import_module(Token(), "runtime", false);
-                    global_scope->addName(Token(IDENTIFIER, "runtime"), "runtime", module, true);
-                    runtime = module;
+                    internal_error("need module runtime");
                 }
                 cond = new ast::FunctionCall(
                     new ast::VariableExpression(dynamic_cast<const ast::PredefinedFunction *>(runtime->scope->lookupName("isModuleImported"))),
