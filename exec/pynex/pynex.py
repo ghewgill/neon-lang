@@ -1094,7 +1094,11 @@ def neon_exceptiontype__toString(self):
 
 def neon_num(self):
     s = self.stack.pop().value
-    self.stack.append(Value(decimal.Decimal(s)))
+    try:
+        self.stack.append(Value(decimal.Decimal(s)))
+    except decimal.InvalidOperation:
+        self.raise_literal("ValueRangeException", (s, 0))
+        return
 
 def neon_number__toString(self):
     neon_str(self)

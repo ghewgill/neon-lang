@@ -549,7 +549,15 @@ Number number_from_string(const std::string &s)
         i++;
     }
     if (s.find_first_not_of("0123456789", i) == std::string::npos) {
-        return mpz_class(s, 10);
+        try {
+            return mpz_class(s, 10);
+        } catch (std::invalid_argument &) {
+            return bid128_nan(NULL);
+        }
+    }
+    // Require at least one digit so strings like "." are not accepted.
+    if (s.find_first_of("0123456789") == std::string::npos) {
+        return bid128_nan(NULL);
     }
     return bid128_from_string(const_cast<char *>(s.c_str()));
 }

@@ -2685,6 +2685,8 @@ def neon_int(env, x):
     return int(x)
 
 def neon_num(env, x):
+    if not any(c.isdigit() for c in x):
+        raise NeonException("ValueRangeException", x)
     return int(x) if x.isdigit() else float(x)
 
 def neon_print(env, x):

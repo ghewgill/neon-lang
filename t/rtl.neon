@@ -1,6 +1,23 @@
 print(str(num("45")))
 #= 45
 
+# Check for behaviour of various strings that are not numbers.
+TRY
+    _ := num("")
+    ASSERT FALSE
+TRAP ValueRangeException DO
+END TRY
+TRY
+    _ := num("-")
+    ASSERT FALSE
+TRAP ValueRangeException DO
+END TRY
+TRY
+    _ := num(".")
+    ASSERT FALSE
+TRAP ValueRangeException DO
+END TRY
+
 print("hello")
 #= hello
 

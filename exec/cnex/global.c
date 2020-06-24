@@ -476,6 +476,12 @@ void global_callFunction(const char *pszFunc, struct tagTExecutor *exec)
 void neon_num(TExecutor *exec)
 {
     char *str = string_asCString(top(exec->stack)->string); pop(exec->stack);
+    // Require at least one digit in the input.
+    if (strcspn(str, "0123456789") == strlen(str)) {
+        free(str);
+        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number", BID_ZERO);
+        return;
+    }
     Number n = number_from_string(str);
     free(str);
 
