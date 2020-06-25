@@ -1,0 +1,328 @@
+IMPORT console
+IMPORT string
+IMPORT sys
+IMPORT textio
+
+EXCEPTION SyntaxException
+
+TYPE TokenType IS ENUM
+    value
+    name
+    plus
+    minus
+    multiply
+    divide
+    power
+    lparen
+    rparen
+END ENUM
+
+TYPE Token IS RECORD
+    type: TokenType
+    value: Number
+    name: String
+END RECORD
+
+FUNCTION tokenise(s: String): Array<Token>
+
+    FUNCTION isNumber(c: String): Boolean
+        RETURN "0" <= c <= "9" OR c IN [".","e","E"]
+    END FUNCTION
+
+    FUNCTION isName(c: String): Boolean
+        RETURN "a" <= c <= "z"
+    END FUNCTION
+
+    VAR r: Array<Token> := []
+    VAR i: Number := 0
+    WHILE i < s.length() DO
+        CASE s[i]
+            WHEN "0" TO "9" DO
+                VAR j: Number := i
+                WHILE j+1 < s.length() AND isNumber(s[j+1]) DO
+                    INC j
+                END WHILE
+                r.append(Token(type WITH TokenType.value, value WITH num(s[i TO j])))
+                i := j
+            WHEN "a" TO "z" DO
+                VAR j: Number := i
+                WHILE j+1 < s.length() AND isName(s[j+1]) DO
+                    INC j
+                END WHILE
+                r.append(Token(type WITH TokenType.name, name WITH s[i TO j]))
+                i := j
+            WHEN "+" DO
+                r.append(Token(type WITH TokenType.plus))
+            WHEN "-" DO
+                r.append(Token(type WITH TokenType.minus))
+            WHEN "*" DO
+                r.append(Token(type WITH TokenType.multiply))
+            WHEN "/" DO
+                r.append(Token(type WITH TokenType.divide))
+            WHEN "^" DO
+                r.append(Token(type WITH TokenType.power))
+            WHEN "(" DO
+                r.append(Token(type WITH TokenType.lparen))
+            WHEN ")" DO
+                r.append(Token(type WITH TokenType.rparen))
+            WHEN " " DO
+                # Skip whitespace.
+            WHEN OTHERS DO
+                RAISE SyntaxException(info WITH "unexpected character")
+        END CASE
+        INC i
+    END WHILE
+    RETURN r
+END FUNCTION
+
+# TODO: Fix toString() so this works with regular ASSERT.
+IF tokenise("").size() <> 0 THEN ASSERT FALSE END IF
+IF tokenise("1") <> [Token(type WITH TokenType.value, value WITH 1)] THEN ASSERT FALSE END IF
+IF tokenise("a") <> [Token(type WITH TokenType.name, name WITH "a")] THEN ASSERT FALSE END IF
+IF tokenise("+") <> [Token(type WITH TokenType.plus)] THEN ASSERT FALSE END IF
+IF tokenise("a+1") <> [Token(type WITH TokenType.name, name WITH "a"), Token(type WITH TokenType.plus), Token(type WITH TokenType.value, value WITH 1)] THEN ASSERT FALSE END IF
+IF tokenise("a + 1") <> [Token(type WITH TokenType.name, name WITH "a"), Token(type WITH TokenType.plus), Token(type WITH TokenType.value, value WITH 1)] THEN ASSERT FALSE END IF
+
+# TODO: Improve type checking for interface methods so this alias isn't necessary.
+TYPE Variables IS Dictionary<Number>
+
+INTERFACE Node
+    FUNCTION eval(self: Node, vars: Variables): Number
+END INTERFACE
+
+TYPE NodeValue IS CLASS IMPLEMENTS Node
+    value: Number
+END CLASS
+
+FUNCTION NodeValue.eval(self: VALID POINTER TO NodeValue, vars: Variables): Number
+    RETURN self->value
+END FUNCTION
+
+TYPE NodeName IS CLASS IMPLEMENTS Node
+    name: String
+END CLASS
+
+FUNCTION NodeName.eval(self: VALID POINTER TO NodeName, vars: Variables): Number
+    RETURN vars[self->name]
+END FUNCTION
+
+TYPE NodePlus IS CLASS IMPLEMENTS Node
+    left: POINTER TO Node
+    right: POINTER TO Node
+END CLASS
+
+FUNCTION NodePlus.eval(self: VALID POINTER TO NodePlus, vars: Variables): Number
+    # TODO: Should this require valid pointer checks for left and right?
+    RETURN self->left->eval(vars) + self->right->eval(vars)
+END FUNCTION
+
+TYPE NodeMinus IS CLASS IMPLEMENTS Node
+    left: POINTER TO Node
+    right: POINTER TO Node
+END CLASS
+
+FUNCTION NodeMinus.eval(self: VALID POINTER TO NodeMinus, vars: Variables): Number
+    RETURN self->left->eval(vars) - self->right->eval(vars)
+END FUNCTION
+
+TYPE NodeMultiply IS CLASS IMPLEMENTS Node
+    left: POINTER TO Node
+    right: POINTER TO Node
+END CLASS
+
+FUNCTION NodeMultiply.eval(self: VALID POINTER TO NodeMultiply, vars: Variables): Number
+    RETURN self->left->eval(vars) * self->right->eval(vars)
+END FUNCTION
+
+TYPE NodeDivide IS CLASS IMPLEMENTS Node
+    left: POINTER TO Node
+    right: POINTER TO Node
+END CLASS
+
+FUNCTION NodeDivide.eval(self: VALID POINTER TO NodeDivide, vars: Variables): Number
+    RETURN self->left->eval(vars) / self->right->eval(vars)
+END FUNCTION
+
+TYPE NodePower IS CLASS IMPLEMENTS Node
+    left: POINTER TO Node
+    right: POINTER TO Node
+END CLASS
+
+FUNCTION NodePower.eval(self: VALID POINTER TO NodePower, vars: Variables): Number
+    RETURN self->left->eval(vars) ^ self->right->eval(vars)
+END FUNCTION
+
+TYPE Expression IS RECORD
+    vars: Array<String>
+    top: POINTER TO Node
+END RECORD
+
+FUNCTION parse(tokens: Array<Token>): Expression
+    VAR e: Expression := Expression()
+
+    FUNCTION parseAtom(INOUT i: Number): POINTER TO Node
+        CHECK i < tokens.size() ELSE
+            RAISE SyntaxException(info WITH "unexpected end of input")
+        END CHECK
+        # TODO: Can't assign literal NIL to interface pointer.
+        # TODO: Variable initialisation checker doesn't seem to work here.
+        VAR r: POINTER TO Node := NEW NodeValue(value WITH 0)
+        CASE tokens[i].type
+            WHEN TokenType.value DO
+                r := NEW NodeValue(value WITH tokens[i].value)
+                INC i
+            WHEN TokenType.plus DO
+                INC i
+                r := parseExpr(INOUT i)
+            WHEN TokenType.minus DO
+                INC i
+                r := parseExpr(INOUT i)
+                r := NEW NodeMinus(left WITH NEW NodeValue(value WITH 0), right WITH r)
+            WHEN TokenType.name DO
+                LET name: String := tokens[i].name
+                IF name NOT IN e.vars THEN
+                    e.vars.append(name)
+                END IF
+                r := NEW NodeName(name WITH name)
+                INC i
+            WHEN TokenType.lparen DO
+                INC i
+                r := parseExpr(INOUT i)
+                CHECK i < tokens.size() AND tokens[i].type = TokenType.rparen ELSE
+                    RAISE SyntaxException(info WITH "right parenthesis expected")
+                END CHECK
+                INC i
+            WHEN OTHERS DO
+                RAISE SyntaxException(info WITH "expected number, name, or '('")
+        END CASE
+        RETURN r
+    END FUNCTION
+
+    FUNCTION parsePower(INOUT i: Number): POINTER TO Node
+        VAR left: POINTER TO Node := parseAtom(INOUT i)
+        WHILE i < tokens.size() AND tokens[i].type = TokenType.power DO
+            INC i
+            LET right: POINTER TO Node := parseAtom(INOUT i)
+            left := NEW NodePower(left WITH left, right WITH right)
+        END WHILE
+        RETURN left
+    END FUNCTION
+
+    FUNCTION parseMulDiv(INOUT i: Number): POINTER TO Node
+        VAR left: POINTER TO Node := parsePower(INOUT i)
+        WHILE i < tokens.size() AND tokens[i].type IN [TokenType.multiply, TokenType.divide] DO
+            LET op: TokenType := tokens[i].type
+            INC i
+            LET right: POINTER TO Node := parsePower(INOUT i)
+            CASE op
+                WHEN TokenType.multiply DO
+                    left := NEW NodeMultiply(left WITH left, right WITH right)
+                WHEN TokenType.divide DO
+                    left := NEW NodeDivide(left WITH left, right WITH right)
+            END CASE
+        END WHILE
+        RETURN left
+    END FUNCTION
+
+    FUNCTION parseAddSub(INOUT i: Number): POINTER TO Node
+        VAR left: POINTER TO Node := parseMulDiv(INOUT i)
+        WHILE i < tokens.size() AND tokens[i].type IN [TokenType.plus, TokenType.minus] DO
+            LET op: TokenType := tokens[i].type
+            INC i
+            LET right: POINTER TO Node := parseMulDiv(INOUT i)
+            CASE op
+                WHEN TokenType.plus DO
+                    left := NEW NodePlus(left WITH left, right WITH right)
+                WHEN TokenType.minus DO
+                    left := NEW NodeMinus(left WITH left, right WITH right)
+            END CASE
+        END WHILE
+        RETURN left
+    END FUNCTION
+
+    FUNCTION parseExpr(INOUT i: Number): POINTER TO Node
+        RETURN parseAddSub(INOUT i)
+    END FUNCTION
+
+    VAR index: Number := 0
+    e.top := parseExpr(INOUT index)
+    CHECK index = tokens.size() ELSE
+        RAISE SyntaxException(info WITH "extra input after expression")
+    END CHECK
+    RETURN e
+END FUNCTION
+
+FUNCTION eval(e: Expression, vars: Dictionary<Number>): Number
+    RETURN e.top->eval(vars)
+END FUNCTION
+
+ASSERT eval(parse(tokenise("1")), {}) = 1
+ASSERT eval(parse(tokenise("a")), {"a": 2}) = 2
+ASSERT eval(parse(tokenise("1 + 2")), {}) = 3
+ASSERT eval(parse(tokenise("a + 3")), {"a": 2}) = 5
+
+BEGIN MAIN
+    IF sys.args.size() >= 2 THEN
+        VAR s: String := sys.args[1]
+        FOR i := 2 TO sys.args.size()-1 DO
+            s := s & " " & sys.args[i]
+        END FOR
+        TRY
+            LET tokens: Array<Token> := tokenise(s)
+            LET expr: Expression := parse(tokens)
+            LET r: Number := eval(expr, {})
+            print("\(r)")
+            sys.exit(0)
+        TRAP SyntaxException AS e DO
+            textio.writeLine(textio.stderr, e.info)
+            sys.exit(1)
+        END TRY
+    END IF
+    print("Calculator")
+    VAR vars: Dictionary<Number> := {}
+    LOOP
+        LET s: String := (TRY console.input("> ") TRAP EndOfFileException DO EXIT LOOP)
+        TRY
+            LET tokens: Array<Token> := tokenise(s)
+            IF tokens.size() = 0 THEN
+                NEXT LOOP
+            END IF
+            CASE string.lower(tokens[0].name)
+                WHEN "help" DO
+                    print("Commands:")
+                    print("    help     This message")
+                    print("    quit     Exit calculator")
+                    print("    vars     Print variables")
+                    print("If not a command, then the input is an arithmetic expression")
+                    print("which may include named variables.")
+                    NEXT LOOP
+                WHEN "quit" DO
+                    EXIT LOOP
+                WHEN "vars" DO
+                    FOREACH var IN vars.keys() DO
+                        print("\(var) = \(vars[var])")
+                    END FOREACH
+                    NEXT LOOP
+            END CASE
+            LET expr: Expression := parse(tokens)
+            FOREACH var IN expr.vars DO
+                IF var NOT IN vars THEN
+                    LOOP
+                        LET v: String := (TRY console.input("... \(var) := ") TRAP EndOfFileException DO EXIT FUNCTION)
+                        TRY
+                            vars[var] := num(v)
+                        TRAP ValueRangeException AS e DO
+                            print(e.info)
+                            NEXT LOOP
+                        END TRY
+                        EXIT LOOP
+                    END LOOP
+                END IF
+            END FOREACH
+            LET r: Number := eval(expr, vars)
+            print("= \(r)")
+        TRAP SyntaxException AS e DO
+            print(e.info)
+        END TRY
+    END LOOP
+END MAIN
