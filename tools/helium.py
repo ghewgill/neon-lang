@@ -2706,6 +2706,12 @@ def neon_str(env, x):
 def neon_substring(env, s, start, length):
     return s[start:start+length]
 
+def neon_console_input(env, prompt):
+    try:
+        return input(prompt)
+    except EOFError:
+        raise NeonException(["EndOfFileException"])
+
 def neon_file_copy(env, src, dest):
     if neon_file_exists(env, dest):
         raise NeonException(["FileException", "Exists"])
