@@ -92,6 +92,7 @@ class Executor {
         predefined.put("runtime$executorName", this::runtime$executorName);
         predefined.put("string$fromCodePoint", this::string$fromCodePoint);
         predefined.put("string$toCodePoint", this::string$toCodePoint);
+        predefined.put("textio$writeLine", this::textio$writeLine);
 
         this.args = new ArrayList<Cell>();
         for (String x: args) {
@@ -305,6 +306,9 @@ class Executor {
         switch (s) {
             case "sys$args":
                 stack.addFirst(new Cell(new Cell(args)));
+                break;
+            case "textio$stderr":
+                stack.addFirst(new Cell(new Cell(new NeObjectNative(System.err))));
                 break;
             default:
                 assert false : s;
@@ -1798,5 +1802,12 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(BigDecimal.valueOf(s.charAt(0))));
+    }
+
+    private void textio$writeLine()
+    {
+        String s = stack.removeFirst().getString();
+        java.io.PrintStream f = (java.io.PrintStream)stack.removeFirst().getObject().getNative();
+        f.println(s);
     }
 }

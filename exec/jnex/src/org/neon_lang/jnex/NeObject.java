@@ -11,5 +11,6 @@ interface NeObject {
     default byte[] getBytes() { return null; }
     default List<NeObject> getArray() { return null; }
     default Map<String, NeObject> getDictionary() { return null; }
+    default Object getNative() { return null; }
     default NeObject subscript(NeObject index) { return null; }
 }

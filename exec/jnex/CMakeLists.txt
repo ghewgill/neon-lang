@@ -15,6 +15,7 @@ set(JNEX
     src/org/neon_lang/jnex/NeObjectBoolean.java
     src/org/neon_lang/jnex/NeObjectBytes.java
     src/org/neon_lang/jnex/NeObjectDictionary.java
+    src/org/neon_lang/jnex/NeObjectNative.java
     src/org/neon_lang/jnex/NeObjectNumber.java
     src/org/neon_lang/jnex/NeObjectString.java
     src/org/neon_lang/jnex/NeonException.java
