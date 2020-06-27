@@ -890,6 +890,13 @@ FUNCTION f_callp(INOUT self: Executor)
                 offset := p->n
             END IF
             self.stack.append(NEW Value(s WITH "<ExceptionType:\(name),\(info),\(code),\(offset)>"))
+        WHEN "num" DO
+            LET s: String := self.pop()->s
+            TRY
+                self.stack.append(NEW Value(n WITH num(s)))
+            TRAP ValueRangeException DO
+                self.raise_literal("ValueRangeException", ExceptionInfo(info WITH s))
+            END TRY
         WHEN "print" DO
             print(self.pop()->s)
         WHEN "runtime$assertionsEnabled" DO

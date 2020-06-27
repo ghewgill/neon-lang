@@ -193,6 +193,5 @@ number-underscore.neon
 predefined-generation.neon
 record-empty.neon
 record-init2.neon
-rtl.neon
 unary-plus.neon
 var-declaration.neon

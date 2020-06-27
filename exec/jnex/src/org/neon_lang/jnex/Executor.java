@@ -39,6 +39,7 @@ class Executor {
         predefined.put("bytes__toString", this::bytes__toString);
         predefined.put("dictionary__keys", this::dictionary__keys);
         predefined.put("exceptiontype__toString", this::exceptiontype__toString);
+        predefined.put("num", this::num);
         predefined.put("number__toString", this::number__toString);
         predefined.put("object__getArray", this::object__getArray);
         predefined.put("object__getBoolean", this::object__getBoolean);
@@ -1307,6 +1308,23 @@ class Executor {
     {
         List<Cell> a = stack.removeFirst().getArray();
         stack.addFirst(new Cell("<ExceptionType:" + a.get(0).getString() + "," + a.get(1).getString() + "," + a.get(2).getNumber() + "," + a.get(3).getNumber() + ">"));
+    }
+
+    private void num()
+    {
+        String s = stack.removeFirst().getString();
+        boolean any_digits = false;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) >= '0' && s.charAt(i) <= '9') {
+                any_digits = true;
+                break;
+            }
+        }
+        if (any_digits) {
+            stack.addFirst(new Cell(new BigDecimal(s)));
+        } else {
+            raiseLiteral("ValueRangeException");
+        }
     }
 
     private void number__toString()

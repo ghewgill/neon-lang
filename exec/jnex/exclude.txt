@@ -102,7 +102,6 @@ posix-fork.neon            # posix
 process-test.neon          # process
 recursion-limit.neon       # runtime
 repl_import.neon           # random
-rtl.neon                   # max
 sql-connect.neon           # file
 sql-cursor.neon            # sqlite
 sql-embed.neon             # sqlite

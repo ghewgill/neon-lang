@@ -256,7 +256,18 @@ public class Global {
     }
 
     public static neon.type.Number num(java.lang.String s) {
-        return new neon.type.Number(s);
+        boolean any_digits = false;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) >= '0' && s.charAt(i) <= '9') {
+                any_digits = true;
+                break;
+            }
+        }
+        if (any_digits) {
+            return new neon.type.Number(s);
+        } else {
+            throw new neon.type.NeonException("ValueRangeException", s);
+        }
     }
 
     public static java.lang.String number__toString(neon.type.Number x) {

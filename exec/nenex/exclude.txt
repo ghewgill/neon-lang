@@ -114,7 +114,6 @@ record-empty.neon           # indexan
 record-private.neon         # storep
 recursion-limit.neon        # runtime$setRecursionLimit
 repl_import.neon            # random$uint32
-rtl.neon                    # exception ValueRangeException
 runtime-test.neon           # runtime$executorName
 sql-connect.neon            # file$delete
 sql-cursor.neon             # sqlite$open
