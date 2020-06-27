@@ -106,32 +106,10 @@ class Cell {
                 return bytes.equals(rhs.bytes);
             case OBJECT:
                 return object == rhs.object;
-            case ARRAY: {
-                if (array.size() != rhs.array.size()) {
-                    return false;
-                }
-                for (int i = 0; i < array.size(); i++) {
-                    if (!array.get(i).equals(rhs.array.get(i))) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            case DICTIONARY: {
-                if (dictionary.size() != rhs.dictionary.size()) {
-                    return false;
-                }
-                for (String k: dictionary.keySet()) {
-                    Object x = rhs.dictionary.get(k);
-                    if (x == null) {
-                        return false;
-                    }
-                    if (!dictionary.get(k).equals(x)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
+            case ARRAY:
+                return array.equals(rhs.array);
+            case DICTIONARY:
+                return dictionary.equals(rhs.dictionary);
             case GENERIC:
                 return false;
         }
