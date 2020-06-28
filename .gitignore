@@ -23,6 +23,7 @@ bin/
 errors.txt
 config.cache
 test_grammar
+src/version.cpp
 
 external/IntelRDFPMathLib20U2/
 external/gmp-6.1.2/
