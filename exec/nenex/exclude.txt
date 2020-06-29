@@ -11,19 +11,11 @@ assert-multiline.neon       # pushppg
 base-test.neon              # callmf
 bigint.neon                 # math$abs
 binary-test.neon            # exception Utf8DecodingException
-bytes-embed.neon            # bytes
-bytes-index.neon            # pushy
-bytes-literal.neon          # exception Utf8DecodingException
-bytes-slice.neon            # exception Utf8DecodingException
-bytes-tostring.neon         # exception Utf8DecodingException
-bytes-value-index.neon      # pushy
-bytes.neon                  # array__toBytes__number
 cal-test.neon               # os$system
 cformat-test.neon           # object__makeString
 cmdline.neon                # pushppg
 comparison2.neon            # dupx1
 complex-test.neon           # callmf
-concat-bytes.neon           # exception Utf8DecodingException
 datetime-test.neon          # callmf
 debug-example.neon          # debugger$log
 debug-server.neon           # os$spawn

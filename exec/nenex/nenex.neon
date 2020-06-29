@@ -20,12 +20,12 @@ FUNCTION getVint(a: Array<Number>, INOUT i: Number): Number
     RETURN r
 END FUNCTION
 
-FUNCTION getStringTable(a: Array<Number>): Array<String>
-    VAR r: Array<String> := []
+FUNCTION getBytesTable(a: Array<Number>): Array<Bytes>
+    VAR r: Array<Bytes> := []
     VAR i: Number := 0
     WHILE i < a.size() DO
         LET len: Number := getVint(a, INOUT i)
-        r.append(a[i TO i+len-1].toBytes().decodeToString())
+        r.append(a[i TO i+len-1].toBytes())
         i := i + len
     END WHILE
     RETURN r
@@ -62,6 +62,7 @@ TYPE Bytecode IS RECORD
     sourceHash: Bytes
     globalSize: Number
     strtable: Array<String>
+    bytestable: Array<Bytes>
     imports: Array<Import>
     functions: Array<Function>
     exceptions: Array<Exception>
@@ -82,7 +83,14 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     r.globalSize := getVint(a, INOUT i)
 
     LET strtablesize: Number := getVint(a, INOUT i)
-    r.strtable := getStringTable(a[i TO i+strtablesize-1])
+    r.bytestable := getBytesTable(a[i TO i+strtablesize-1])
+    FOR j := 0 TO r.bytestable.size()-1 DO
+        TRY
+            r.strtable[j] := r.bytestable[j].decodeToString()
+        TRAP Utf8DecodingException DO
+            # Leave the strtable entry empty if it can't be decoded.
+        END TRY
+    END FOR
     i := i + strtablesize
 
     LET typesize: Number := getVint(a, INOUT i)
@@ -161,6 +169,7 @@ TYPE Value IS CLASS
     b: Boolean
     n: Number
     s: String
+    y: Bytes
     a: Array<POINTER TO Value>
     d: Dictionary<POINTER TO Value>
     ci: ClassInfo
@@ -203,7 +212,7 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_storeb,
     f_storen,
     f_stores,
-    f_storet,
+    f_storey,
     f_storea,
     f_stored,
     f_storep,
@@ -372,7 +381,9 @@ FUNCTION f_pushs(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_pushy(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
+    self.stack.append(NEW Value(y WITH self.bytecode.bytestable[val]))
 END FUNCTION
 
 FUNCTION f_pushpg(INOUT self: Executor)
@@ -432,7 +443,12 @@ FUNCTION f_loads(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_loady(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    self.stack.append(NEW Value(y WITH addr->y))
 END FUNCTION
 
 FUNCTION f_loada(INOUT self: Executor)
@@ -499,8 +515,13 @@ FUNCTION f_stores(INOUT self: Executor)
     addr->s := self.pop()->s
 END FUNCTION
 
-FUNCTION f_storet(INOUT self: Executor)
-    ASSERT FALSE
+FUNCTION f_storey(INOUT self: Executor)
+    INC self.ip
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    addr->y := self.pop()->y
 END FUNCTION
 
 FUNCTION f_storea(INOUT self: Executor)
@@ -678,7 +699,10 @@ FUNCTION f_ges(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_eqy(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: Bytes := self.pop()->y
+    LET a: Bytes := self.pop()->y
+    self.stack.append(NEW Value(b WITH a = b))
 END FUNCTION
 
 FUNCTION f_ney(INOUT self: Executor)
@@ -861,9 +885,95 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "array__size" DO
             LET a: VALID POINTER TO Value := self.pop()
             self.stack.append(NEW Value(n WITH a->a.size()))
+        WHEN "array__toBytes__number" DO
+            LET a: Array<POINTER TO Value> := self.pop()->a
+            VAR an: Array<Number> := []
+            FOREACH p IN a DO
+                IF VALID p THEN
+                    an.append(p->n)
+                END IF
+            END FOREACH
+            self.stack.append(NEW Value(y WITH an.toBytes()))
+        WHEN "array__toString__number" DO
+            LET a: Array<POINTER TO Value> := self.pop()->a
+            VAR r: String := "["
+            FOR i := 0 TO a.size()-1 DO
+                IF i > 0 THEN
+                    r.append(", ")
+                END IF
+                IF VALID a[i] AS x THEN
+                    r.append(str(x->n))
+                END IF
+            END FOR
+            r.append("]")
+            self.stack.append(NEW Value(s WITH r))
         WHEN "boolean__toString" DO
             LET b: Boolean := self.pop()->b
             self.stack.append(NEW Value(s WITH b.toString()))
+        WHEN "bytes__concat" DO
+            LET b: Bytes := self.pop()->y
+            LET a: Bytes := self.pop()->y
+            self.stack.append(NEW Value(y WITH a & b))
+        WHEN "bytes__decodeToString" DO
+            LET y: Bytes := self.pop()->y
+            self.stack.append(NEW Value(s WITH y.decodeToString()))
+        WHEN "bytes__range" DO
+            LET last_from_end: Boolean := self.pop()->b
+            VAR last: Number := self.pop()->n
+            LET first_from_end: Boolean := self.pop()->b
+            VAR first: Number := self.pop()->n
+            LET y: Bytes := self.pop()->y
+            IF first_from_end THEN
+                first := first + y.size() - 1
+            END IF
+            IF last_from_end THEN
+                last := last + y.size() - 1
+            END IF
+            IF first < 0 THEN
+                self.raise_literal("BytesIndexException", ExceptionInfo(info WITH str(first)))
+            ELSIF first >= y.size() THEN
+                self.raise_literal("BytesIndexException", ExceptionInfo(info WITH str(first)))
+            ELSIF last >= y.size() THEN
+                self.raise_literal("BytesIndexException", ExceptionInfo(info WITH str(last)))
+            ELSE
+                IF last < 0 THEN
+                    last := -1
+                END IF
+                IF last < first THEN
+                    self.stack.append(NEW Value(y WITH HEXBYTES ""))
+                ELSE
+                    self.stack.append(NEW Value(y WITH y[first TO last]))
+                END IF
+            END IF
+        WHEN "bytes__size" DO
+            LET y: Bytes := self.pop()->y
+            self.stack.append(NEW Value(n WITH y.size()))
+        WHEN "bytes__splice" DO
+            LET last_from_end: Boolean := self.pop()->b
+            VAR last: Number := self.pop()->n
+            LET first_from_end: Boolean := self.pop()->b
+            VAR first: Number := self.pop()->n
+            LET a: Bytes := self.pop()->y
+            LET b: Bytes := self.pop()->y
+            IF first_from_end THEN
+                first := first + a.size() - 1
+            END IF
+            IF last_from_end THEN
+                last := last + a.size() - 1
+            END IF
+            LET r: Bytes := a[0 TO first-1] & b & a[last+1 TO LAST]
+            self.stack.append(NEW Value(y WITH r))
+        WHEN "bytes__toArray" DO
+            LET y: Bytes := self.pop()->y
+            LET a: Array<Number> := y.toArray()
+            VAR r: Array<POINTER TO Value> := []
+            FOR i := 0 TO a.size()-1 DO
+                r.append(NEW Value(n WITH a[i]))
+            END FOR
+            self.stack.append(NEW Value(a WITH r))
+        WHEN "bytes__toString" DO
+            LET y: Bytes := self.pop()->y
+            self.stack.append(NEW Value(s WITH y.toString()))
         WHEN "dictionary__keys" DO
             LET d: Dictionary<POINTER TO Value> := self.pop()->d
             LET a: Array<POINTER TO Value> := []
@@ -1069,6 +1179,7 @@ FUNCTION f_resetc(INOUT self: Executor)
         addr->b := FALSE
         addr->n := 0
         addr->s := ""
+        addr->y := HEXBYTES ""
         addr->a := []
         addr->d := {}
         addr->ci := ClassInfo()
