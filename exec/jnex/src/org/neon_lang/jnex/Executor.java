@@ -199,7 +199,7 @@ class Executor {
                     case SWAP: doSWAP(); break;
                     //case DROPN
                     //case PUSHFP
-                    //case CALLV
+                    case CALLV: doCALLV(); break;
                     case PUSHCI: doPUSHCI(); break;
                     default:
                         System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
@@ -970,6 +970,18 @@ class Executor {
         Cell b = stack.removeFirst();
         stack.addFirst(a);
         stack.addFirst(b);
+    }
+
+    private void doCALLV()
+    {
+        ip++;
+        int val = getVint();
+        List<Cell> pi = stack.removeFirst().getArray();
+        Cell instance = pi.get(0).getAddress();
+        int interface_index = pi.get(1).getNumber().intValueExact();
+        //Module *m = reinterpret_cast<Module *>(instance->array_for_write()[0].array_for_write()[0].other());
+        Bytecode.ClassInfo classinfo = (Bytecode.ClassInfo)instance.getArray().get(0).getGeneric()[1];
+        invoke(classinfo.interfaces[interface_index][val]);
     }
 
     private void doPUSHCI()
