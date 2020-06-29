@@ -82,6 +82,62 @@ class Cell {
         return r;
     }
 
+    public boolean equals(Object o)
+    {
+        Cell rhs = (Cell)o;
+        if (rhs == null) {
+            return false;
+        }
+        if (type != rhs.type) {
+            return false;
+        }
+        switch (type) {
+            case NONE:
+                return false;
+            case ADDRESS:
+                return addr == rhs.addr;
+            case BOOLEAN:
+                return bool == rhs.bool;
+            case NUMBER:
+                return num.equals(rhs.num);
+            case STRING:
+                return str.equals(rhs.str);
+            case BYTES:
+                return bytes.equals(rhs.bytes);
+            case OBJECT:
+                return object == rhs.object;
+            case ARRAY: {
+                if (array.size() != rhs.array.size()) {
+                    return false;
+                }
+                for (int i = 0; i < array.size(); i++) {
+                    if (!array.get(i).equals(rhs.array.get(i))) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            case DICTIONARY: {
+                if (dictionary.size() != rhs.dictionary.size()) {
+                    return false;
+                }
+                for (String k: dictionary.keySet()) {
+                    Object x = rhs.dictionary.get(k);
+                    if (x == null) {
+                        return false;
+                    }
+                    if (!dictionary.get(k).equals(x)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            case GENERIC:
+                return false;
+        }
+        return false;
+    }
+
     public void reset()
     {
         type = Type.NONE;

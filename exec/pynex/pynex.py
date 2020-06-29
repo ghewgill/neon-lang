@@ -490,7 +490,10 @@ class Executor:
         self.stack.append(Value(a == b))
 
     def NES(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a != b))
 
     def LTS(self):
         self.ip += 1
@@ -505,10 +508,16 @@ class Executor:
         self.stack.append(Value(a > b))
 
     def LES(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a <= b))
 
     def GES(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a >= b))
 
     def EQY(self):
         self.ip += 1
@@ -517,10 +526,16 @@ class Executor:
         self.stack.append(Value(a.s == b.s))
 
     def NEY(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a.s != b.s))
 
     def LTY(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a.s < b.s))
 
     def GTY(self):
         assert False
@@ -539,7 +554,11 @@ class Executor:
         self.stack.append(Value(len(a) == len(b) and all(a[x].value == b[x].value for x in range(len(a)))))
 
     def NEA(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        # TODO: equality check needs to recurse
+        self.stack.append(Value(not (len(a) == len(b) and all(a[x].value == b[x].value for x in range(len(a))))))
 
     def EQD(self):
         assert False

@@ -673,7 +673,10 @@ FUNCTION f_eqs(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_nes(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: String := self.pop()->s
+    LET a: String := self.pop()->s
+    self.stack.append(NEW Value(b WITH a <> b))
 END FUNCTION
 
 FUNCTION f_lts(INOUT self: Executor)
@@ -691,11 +694,17 @@ FUNCTION f_gts(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_les(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: String := self.pop()->s
+    LET a: String := self.pop()->s
+    self.stack.append(NEW Value(b WITH a <= b))
 END FUNCTION
 
 FUNCTION f_ges(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: String := self.pop()->s
+    LET a: String := self.pop()->s
+    self.stack.append(NEW Value(b WITH a >= b))
 END FUNCTION
 
 FUNCTION f_eqy(INOUT self: Executor)
@@ -706,11 +715,17 @@ FUNCTION f_eqy(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_ney(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: Bytes := self.pop()->y
+    LET a: Bytes := self.pop()->y
+    self.stack.append(NEW Value(b WITH a <> b))
 END FUNCTION
 
 FUNCTION f_lty(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: Bytes := self.pop()->y
+    LET a: Bytes := self.pop()->y
+    self.stack.append(NEW Value(b WITH a < b))
 END FUNCTION
 
 FUNCTION f_gty(INOUT self: Executor)
@@ -726,11 +741,19 @@ FUNCTION f_gey(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_eqa(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: Array<POINTER TO Value> := self.pop()->a
+    LET a: Array<POINTER TO Value> := self.pop()->a
+    # TODO: This needs to compare actual values, not just pointers.
+    self.stack.append(NEW Value(b WITH a = b))
 END FUNCTION
 
 FUNCTION f_nea(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: Array<POINTER TO Value> := self.pop()->a
+    LET a: Array<POINTER TO Value> := self.pop()->a
+    # TODO: This needs to compare actual values, not just pointers.
+    self.stack.append(NEW Value(b WITH a <> b))
 END FUNCTION
 
 FUNCTION f_eqd(INOUT self: Executor)

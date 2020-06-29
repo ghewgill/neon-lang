@@ -144,19 +144,19 @@ class Executor {
                     case LEN: doLEN(); break;
                     case GEN: doGEN(); break;
                     case EQS: doEQS(); break;
-                    //case NES
-                    //case LTS
+                    case NES: doNES(); break;
+                    case LTS: doLTS(); break;
                     case GTS: doGTS(); break;
-                    //case LES
-                    //case GES
-                    //case EQY
-                    //case NEY
-                    //case LTY
+                    case LES: doLES(); break;
+                    case GES: doGES(); break;
+                    case EQY: doEQY(); break;
+                    case NEY: doNEY(); break;
+                    case LTY: doLTY(); break;
                     //case GTY
                     //case LEY
                     //case GEY
-                    //case EQA
-                    //case NEA
+                    case EQA: doEQA(); break;
+                    case NEA: doNEA(); break;
                     //case EQD
                     //case NED
                     case EQP: doEQP(); break;
@@ -560,12 +560,97 @@ class Executor {
         stack.addFirst(new Cell(a.equals(b)));
     }
 
+    private void doNES()
+    {
+        ip++;
+        String b = stack.removeFirst().getString();
+        String a = stack.removeFirst().getString();
+        stack.addFirst(new Cell(!a.equals(b)));
+    }
+
+    private void doLTS()
+    {
+        ip++;
+        String b = stack.removeFirst().getString();
+        String a = stack.removeFirst().getString();
+        stack.addFirst(new Cell(a.compareTo(b) < 0));
+    }
+
     private void doGTS()
     {
         ip++;
         String b = stack.removeFirst().getString();
         String a = stack.removeFirst().getString();
         stack.addFirst(new Cell(a.compareTo(b) > 0));
+    }
+
+    private void doLES()
+    {
+        ip++;
+        String b = stack.removeFirst().getString();
+        String a = stack.removeFirst().getString();
+        stack.addFirst(new Cell(a.compareTo(b) <= 0));
+    }
+
+    private void doGES()
+    {
+        ip++;
+        String b = stack.removeFirst().getString();
+        String a = stack.removeFirst().getString();
+        stack.addFirst(new Cell(a.compareTo(b) >= 0));
+    }
+
+    private void doEQY()
+    {
+        ip++;
+        byte[] b = stack.removeFirst().getBytes();
+        byte[] a = stack.removeFirst().getBytes();
+        stack.addFirst(new Cell(a.equals(b)));
+    }
+
+    private void doNEY()
+    {
+        ip++;
+        byte[] b = stack.removeFirst().getBytes();
+        byte[] a = stack.removeFirst().getBytes();
+        stack.addFirst(new Cell(!a.equals(b)));
+    }
+
+    private void doLTY()
+    {
+        ip++;
+        byte[] b = stack.removeFirst().getBytes();
+        byte[] a = stack.removeFirst().getBytes();
+        boolean r = a.length < b.length;
+        for (int i = 0; i < a.length; i++) {
+            if (i >= b.length) {
+                break;
+            }
+            if (a[i] < b[i]) {
+                r = true;
+                break;
+            } else if (a[i] > b[i]) {
+                r = false;
+                break;
+            }
+        }
+        stack.addFirst(new Cell(r));
+    }
+
+    private void doEQA()
+    {
+        ip++;
+        Cell b = stack.removeFirst();
+        Cell a = stack.removeFirst();
+        stack.addFirst(new Cell(a.equals(b)));
+    }
+
+    private void doNEA()
+    {
+        ip++;
+        Cell b = stack.removeFirst();
+        Cell a = stack.removeFirst();
+        stack.addFirst(new Cell(!a.equals(b)));
     }
 
     private void doEQP()

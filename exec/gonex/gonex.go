@@ -1545,8 +1545,9 @@ func (self *executor) op_eqy() {
 	self.ip++
 	b := self.pop().bytes
 	a := self.pop().bytes
-	r := true
+	r := false
 	if len(a) == len(b) {
+		r = true
 		for i := range a {
 			if a[i] != b[i] {
 				r = false
@@ -1558,11 +1559,40 @@ func (self *executor) op_eqy() {
 }
 
 func (self *executor) op_ney() {
-	assert(false, "unimplemented ney")
+	self.ip++
+	b := self.pop().bytes
+	a := self.pop().bytes
+	r := true
+	if len(a) == len(b) {
+		r = false
+		for i := range a {
+			if a[i] != b[i] {
+				r = true
+				break
+			}
+		}
+	}
+	self.push(make_cell_bool(r))
 }
 
 func (self *executor) op_lty() {
-	assert(false, "unimplemented lty")
+	self.ip++
+	b := self.pop().bytes
+	a := self.pop().bytes
+	r := len(a) < len(b)
+	for i, _ := range a {
+		if i >= len(b) {
+			break
+		}
+		if a[i] < b[i] {
+			r = true
+			break
+		} else if a[i] > b[i] {
+			r = false
+			break
+		}
+	}
+	self.push(make_cell_bool(r))
 }
 
 func (self *executor) op_gty() {
@@ -1585,7 +1615,10 @@ func (self *executor) op_eqa() {
 }
 
 func (self *executor) op_nea() {
-	assert(false, "unimplemented nea")
+	self.ip++
+	b := self.pop()
+	a := self.pop()
+	self.push(make_cell_bool(!a.Equal(b)))
 }
 
 func (self *executor) op_eqd() {
