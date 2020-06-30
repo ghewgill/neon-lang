@@ -35,7 +35,7 @@ class Executor {
         }
     }
 
-    Executor(DataInput in)
+    Executor(DataInput in, String[] args)
     {
         predefined = new HashMap<String, GenericFunction>();
         predefined.put("array__append", this::array__append);
@@ -93,6 +93,11 @@ class Executor {
         predefined.put("string$fromCodePoint", this::string$fromCodePoint);
         predefined.put("string$toCodePoint", this::string$toCodePoint);
 
+        this.args = new ArrayList<Cell>();
+        for (String x: args) {
+            this.args.add(new Cell(x));
+        }
+
         object = new Bytecode(in);
         ip = 0;
         callstack = new ArrayDeque<Integer>();
@@ -123,7 +128,7 @@ class Executor {
                     case PUSHS: doPUSHS(); break;
                     case PUSHY: doPUSHY(); break;
                     case PUSHPG: doPUSHPG(); break;
-                    //case PUSHPPG
+                    case PUSHPPG: doPUSHPPG(); break;
                     //case PUSHPMG
                     case PUSHPL: doPUSHPL(); break;
                     case PUSHPOL: doPUSHPOL(); break;
@@ -232,7 +237,7 @@ class Executor {
     public static void main(String[] args)
     {
         try {
-            new Executor(new DataInputStream(new FileInputStream(args[0]))).run();
+            new Executor(new DataInputStream(new FileInputStream(args[0])), args).run();
         } catch (java.io.FileNotFoundException x) {
             System.err.println(x);
             System.exit(1);
@@ -290,6 +295,20 @@ class Executor {
         ip++;
         int addr = getVint();
         stack.addFirst(new Cell(globals[addr]));
+    }
+
+    private void doPUSHPPG()
+    {
+        ip++;
+        int val = getVint();
+        String s = object.strtable[val];
+        switch (s) {
+            case "sys$args":
+                stack.addFirst(new Cell(new Cell(args)));
+                break;
+            default:
+                assert false : s;
+        }
     }
 
     private void doPUSHPL()
@@ -1217,6 +1236,7 @@ class Executor {
     private Opcode[] opcodes = Opcode.values();
     private Map<String, GenericFunction> predefined;
 
+    private List<Cell> args;
     private Bytecode object;
     private int ip;
     private ArrayDeque<Integer> callstack;

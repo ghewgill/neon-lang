@@ -13,7 +13,6 @@ bytes-index.neon           # index
 bytes-literal.neon         # array
 cal-test.neon              # import
 cformat-test.neon          # import
-cmdline.neon               # PUSHPPG
 complex-test.neon          # import
 concat-bytes.neon          # import
 datetime-test.neon         # import
