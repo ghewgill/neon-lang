@@ -51,7 +51,6 @@ import-dup.neon            # sys
 import-optional.neon       # import
 import-string.neon         # import
 import.neon                # import
-in.neon                    # INA
 index.neon                 # copy semantics
 intdiv.neon                # import
 interface-parameter-export.neon    # types
@@ -61,7 +60,6 @@ interface-parameter-import2.neon   # types
 intrinsic.neon             # format
 io-test.neon               # import
 json-test.neon             # import
-lexer-unicode.neon         # INA
 literal-array.neon         # import
 math-test.neon             # math
 mkdir.neon                 # file

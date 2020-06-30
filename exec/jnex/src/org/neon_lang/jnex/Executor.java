@@ -196,8 +196,8 @@ class Executor {
                     case INDEXDR: doINDEXDR(); break;
                     case INDEXDW: doINDEXDW(); break;
                     case INDEXDV: doINDEXDV(); break;
-                    //case INA
-                    //case IND
+                    case INA: doINA(); break;
+                    case IND: doIND(); break;
                     case CALLP: doCALLP(); break;
                     case CALLF: doCALLF(); break;
                     //case CALLMF
@@ -839,6 +839,28 @@ class Executor {
             return;
         }
         stack.addFirst(r);
+    }
+
+    private void doINA()
+    {
+        ip++;
+        List<Cell> array = stack.removeFirst().getArray();
+        Cell val = stack.removeFirst();
+        for (Cell x: array) {
+            if (x.equals(val)) {
+                stack.addFirst(new Cell(true));
+                return;
+            }
+        }
+        stack.addFirst(new Cell(false));
+    }
+
+    private void doIND()
+    {
+        ip++;
+        Map<String, Cell> dict = stack.removeFirst().getDictionary();
+        String val = stack.removeFirst().getString();
+        stack.addFirst(new Cell(dict.containsKey(val)));
     }
 
     private void doCALLP()
