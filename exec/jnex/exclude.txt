@@ -88,11 +88,6 @@ new-init-module.neon       # module
 number-ceil.neon           # math
 object-record.neon         # EQA
 os-test.neon               # os
-outer-issue192.neon        # PUSHPOL
-outer-parameter.neon       # PUSHPOL
-outer-tail.neon            # PUSHPOL
-outer.neon                 # PUSHPOL
-outer2.neon                # PUSHPOL
 parameter-out-array.neon   # array__splice
 parameter-out-string.neon  # string__splice
 pointer-print.neon         # pointer__toString

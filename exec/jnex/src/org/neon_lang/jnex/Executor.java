@@ -17,6 +17,24 @@ import org.nevec.rjm.BigDecimalMath;
 class Executor {
     private final boolean enable_assert = true;
 
+    private class ActivationFrame {
+        int nesting_depth;
+        ActivationFrame outer;
+        Cell[] locals;
+        int opstack_depth;
+
+        ActivationFrame(int nesting_depth, ActivationFrame outer, int count, int opstack_depth)
+        {
+            this.nesting_depth = nesting_depth;
+            this.outer = outer;
+            locals = new Cell[count];
+            for (int i = 0; i < count; i++) {
+                locals[i] = new Cell();
+            }
+            this.opstack_depth = opstack_depth;
+        }
+    }
+
     Executor(DataInput in)
     {
         predefined = new HashMap<String, GenericFunction>();
@@ -83,7 +101,7 @@ class Executor {
         for (int i = 0; i < object.global_size; i++) {
             globals[i] = new Cell();
         }
-        frames = new ArrayDeque<Cell[]>();
+        frames = new ArrayDeque<ActivationFrame>();
     }
 
     void run()
@@ -278,12 +296,20 @@ class Executor {
     {
         ip++;
         int addr = getVint();
-        stack.addFirst(new Cell(frames.getFirst()[addr]));
+        stack.addFirst(new Cell(frames.getFirst().locals[addr]));
     }
 
     private void doPUSHPOL()
     {
-        assert false : "PUSHPOL";
+        ip++;
+        int back = getVint();
+        int addr = getVint();
+        ActivationFrame frame = frames.getFirst();
+        while (back > 0) {
+            frame = frame.outer;
+            back--;
+        }
+        stack.addFirst(new Cell(frame.locals[addr]));
     }
 
     private void doPUSHI()
@@ -1007,10 +1033,19 @@ class Executor {
     private void invoke(int index)
     {
         callstack.addFirst(ip);
-        Cell[] frame = new Cell[object.functions[index].locals];
-        for (int i = 0; i < frame.length; i++) {
-            frame[i] = new Cell();
+        ActivationFrame outer = null;
+        int nest = object.functions[index].nest;
+        int params = object.functions[index].params;
+        int locals = object.functions[index].locals;
+        if (frames.size() > 0) {
+            assert nest <= frames.getFirst().nesting_depth+1;
+            outer = frames.getFirst();
+            while (outer != null && nest <= outer.nesting_depth) {
+                assert outer.outer == null || outer.nesting_depth == outer.outer.nesting_depth+1;
+                outer = outer.outer;
+            }
         }
+        ActivationFrame frame = new ActivationFrame(nest, outer, locals, stack.size() - params);
         frames.addFirst(frame);
         ip = object.functions[index].entry;
     }
@@ -1187,7 +1222,7 @@ class Executor {
     private ArrayDeque<Integer> callstack;
     private ArrayDeque<Cell> stack;
     private Cell[] globals;
-    private ArrayDeque<Cell[]> frames;
+    private ArrayDeque<ActivationFrame> frames;
 
     private void array__append()
     {
