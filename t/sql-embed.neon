@@ -8,6 +8,6 @@ LET password: String := "password"
 EXEC SQL INSERT INTO user (name, password) VALUES (:name, :password);
 #EXEC SQL INSERT INTO user (name, password) VALUES (:(name&name), :password);
 
-VAR pw: String
-EXEC SQL SELECT password INTO :pw FROM user WHERE name = :name;
-ASSERT pw = "password"
+VAR pw_tmp: String
+EXEC SQL SELECT password INTO :pw_tmp FROM user WHERE name = :name;
+ASSERT pw_tmp = "password"

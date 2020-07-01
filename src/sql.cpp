@@ -177,7 +177,7 @@ public:
         } else if (isalpha(statement[index])) {
             current = IDENTIFIER;
             auto start = index;
-            while (index < statement.length() && isalnum(statement[index])) {
+            while (index < statement.length() && (isalnum(statement[index]) || statement[index] == '_')) {
                 index++;
             }
             current_value = statement.substr(start, index-start);
