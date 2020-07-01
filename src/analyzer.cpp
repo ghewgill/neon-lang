@@ -4224,10 +4224,6 @@ static unsigned int get_loop_id(const Token &token, const std::stack<std::list<s
 
 void Analyzer::process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements)
 {
-    const ast::Exception *sql_exception = dynamic_cast<const ast::Exception *>(scope.top()->lookupName("SqlException"));
-    if (sql_exception == nullptr) {
-        internal_error("need exception SqlException");
-    }
     const ast::PredefinedFunction *print = dynamic_cast<const ast::PredefinedFunction *>(scope.top()->lookupName("print"));
     if (print == nullptr) {
         internal_error("where's the print function");
@@ -4290,10 +4286,10 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         );
         column++;
     }
-    switch (scope.top()->sql_whenever[NotFound]) {
-        case SqlWheneverAction::Continue:
+    switch (scope.top()->sql_whenever[NotFound].type) {
+        case SqlWheneverActionType::Continue:
             break;
-        case SqlWheneverAction::SqlPrint:
+        case SqlWheneverActionType::SqlPrint:
             else_statements.push_back(
                 new ast::ExpressionStatement(
                     statement->token.line,
@@ -4304,7 +4300,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::Stop:
+        case SqlWheneverActionType::Stop:
             else_statements.push_back(
                 new ast::ExpressionStatement(
                     statement->token.line,
@@ -4315,7 +4311,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoExitLoop:
+        case SqlWheneverActionType::DoExitLoop:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -4323,7 +4319,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoExitFor:
+        case SqlWheneverActionType::DoExitFor:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -4331,7 +4327,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoExitForeach:
+        case SqlWheneverActionType::DoExitForeach:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -4339,7 +4335,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoExitRepeat:
+        case SqlWheneverActionType::DoExitRepeat:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -4347,7 +4343,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoExitWhile:
+        case SqlWheneverActionType::DoExitWhile:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -4355,7 +4351,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoNextLoop:
+        case SqlWheneverActionType::DoNextLoop:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -4363,7 +4359,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoNextFor:
+        case SqlWheneverActionType::DoNextFor:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -4371,7 +4367,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoNextForeach:
+        case SqlWheneverActionType::DoNextForeach:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -4379,7 +4375,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoNextRepeat:
+        case SqlWheneverActionType::DoNextRepeat:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -4387,7 +4383,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoNextWhile:
+        case SqlWheneverActionType::DoNextWhile:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -4395,17 +4391,35 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case SqlWheneverAction::DoRaiseException:
+        case SqlWheneverActionType::DoRaiseException: {
+            auto &info = scope.top()->sql_whenever[NotFound].info;
+            Token token = info[0];
+            const ast::Exception *exception = dynamic_cast<const ast::Exception *>(scope.top()->lookupName(info[0].text));
+            if (exception != nullptr) {
+                for (size_t i = 1; i < info.size(); i++) {
+                    auto s = exception->subexceptions.find(info[i].text);
+                    if (s == exception->subexceptions.end()) {
+                        token = info[i];
+                        exception = nullptr;
+                        break;
+                    }
+                    exception = s->second;
+                }
+            }
+            if (exception == nullptr) {
+                error(4309, token, "exception not found");
+            }
             else_statements.push_back(
                 new ast::RaiseStatement(
                     statement->token.line,
-                    sql_exception,
+                    exception,
                     new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionInfo")), {
                         new ast::ConstantStringExpression(utf8string("No records found"))
                     })
                 )
             );
             break;
+        }
         default:
             internal_error("unexpected whenever condition");
     }

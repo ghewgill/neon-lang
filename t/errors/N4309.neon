@@ -1,0 +1,3 @@
+EXEC SQL WHENEVER NOT FOUND DO RAISE UnknownException;
+                                     #<
+EXEC SQL SELECT column FROM table;

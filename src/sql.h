@@ -14,7 +14,7 @@ enum SqlWheneverCondition {
     SqlWheneverConditionCount
 };
 
-enum class SqlWheneverAction {
+enum class SqlWheneverActionType {
     Continue,
     SqlPrint,
     Stop,
@@ -29,6 +29,15 @@ enum class SqlWheneverAction {
     DoNextRepeat,
     DoNextWhile,
     DoRaiseException
+};
+
+class SqlWheneverAction {
+public:
+    SqlWheneverActionType type;
+    std::vector<Token> info;
+
+    SqlWheneverAction(): type(SqlWheneverActionType::Continue), info() {}
+    SqlWheneverAction(SqlWheneverActionType type): type(type), info() {}
 };
 
 class SqlValue {

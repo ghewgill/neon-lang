@@ -259,7 +259,7 @@ class Scope {
 public:
     Scope(Scope *parent, Frame *frame): parent(parent), frame(frame), names(), forwards() {
         for (int x = 0; x < SqlWheneverConditionCount; x++) {
-            sql_whenever[x] = parent != nullptr ? parent->sql_whenever[x] : SqlWheneverAction::Continue;
+            sql_whenever[x] = parent != nullptr ? parent->sql_whenever[x] : SqlWheneverAction();
         }
     }
     Scope(const Scope &) = delete;

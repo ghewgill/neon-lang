@@ -1,10 +1,13 @@
+EXCEPTION TestException
+EXCEPTION TestException.NotFound
+
 EXEC SQL CONNECT TO "tmp/tmp.db";
 EXEC SQL DROP TABLE IF EXISTS user;
 EXEC SQL CREATE TABLE user(name STRING PRIMARY KEY, password STRING);
-EXEC SQL WHENEVER NOT FOUND DO RAISE SqlException;
+EXEC SQL WHENEVER NOT FOUND DO RAISE TestException.NotFound;
 TRY
     EXEC SQL SELECT * FROM user WHERE name = 'none';
-TRAP SqlException DO
+TRAP TestException.NotFound DO
     print("caught")
 END TRY
 

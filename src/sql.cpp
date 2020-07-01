@@ -247,7 +247,7 @@ public:
         this_token = ::Token(token.source);
         this_token.line = token.line;
         this_token.column = token.column + current_index;
-        this_token.text = statement.substr(current_index, index);
+        this_token.text = statement.substr(current_index, index-current_index);
     }
 };
 
@@ -519,39 +519,45 @@ public:
         }
         SqlWheneverAction action;
         switch (lexer.next()) {
-            case CONTINUE: action = SqlWheneverAction::Continue; break;
-            case SQLPRINT: action = SqlWheneverAction::SqlPrint; break;
-            case STOP:     action = SqlWheneverAction::Stop;     break;
+            case CONTINUE: action.type = SqlWheneverActionType::Continue; break;
+            case SQLPRINT: action.type = SqlWheneverActionType::SqlPrint; break;
+            case STOP:     action.type = SqlWheneverActionType::Stop;     break;
             case DO:
                 switch (lexer.next()) {
                     case EXIT:
                         switch (lexer.next()) {
-                            case LOOP:      action = SqlWheneverAction::DoExitLoop;    break;
-                            case FOR:       action = SqlWheneverAction::DoExitFor;     break;
-                            case FOREACH:   action = SqlWheneverAction::DoExitForeach; break;
-                            case REPEAT:    action = SqlWheneverAction::DoExitRepeat;  break;
-                            case WHILE:     action = SqlWheneverAction::DoExitWhile;   break;
+                            case LOOP:      action.type = SqlWheneverActionType::DoExitLoop;    break;
+                            case FOR:       action.type = SqlWheneverActionType::DoExitFor;     break;
+                            case FOREACH:   action.type = SqlWheneverActionType::DoExitForeach; break;
+                            case REPEAT:    action.type = SqlWheneverActionType::DoExitRepeat;  break;
+                            case WHILE:     action.type = SqlWheneverActionType::DoExitWhile;   break;
                             default:
                                 error(4222, lexer.get_last_token(), "loop type expected");
                         }
                         break;
                     case NEXT:
                         switch (lexer.next()) {
-                            case LOOP:      action = SqlWheneverAction::DoNextLoop;    break;
-                            case FOR:       action = SqlWheneverAction::DoNextFor;     break;
-                            case FOREACH:   action = SqlWheneverAction::DoNextForeach; break;
-                            case REPEAT:    action = SqlWheneverAction::DoNextRepeat;  break;
-                            case WHILE:     action = SqlWheneverAction::DoNextWhile;   break;
+                            case LOOP:      action.type = SqlWheneverActionType::DoNextLoop;    break;
+                            case FOR:       action.type = SqlWheneverActionType::DoNextFor;     break;
+                            case FOREACH:   action.type = SqlWheneverActionType::DoNextForeach; break;
+                            case REPEAT:    action.type = SqlWheneverActionType::DoNextRepeat;  break;
+                            case WHILE:     action.type = SqlWheneverActionType::DoNextWhile;   break;
                             default:
                                 error(4223, lexer.get_last_token(), "loop type expected");
                         }
                         break;
                     case RAISE:
-                        if (lexer.peek() == IDENTIFIER && lexer.value() == "SqlException") {
+                        action.type = SqlWheneverActionType::DoRaiseException;
+                        for (;;) {
+                            if (lexer.peek() != IDENTIFIER) {
+                                error(4224, lexer.get_this_token(), "exception identifier expected");
+                            }
+                            action.info.push_back(lexer.get_this_token());
                             lexer.next();
-                            action = SqlWheneverAction::DoRaiseException;
-                        } else {
-                            error(4224, lexer.get_this_token(), "SqlException expected");
+                            if (not (lexer.peek() == SYMBOL && lexer.value() == ".")) {
+                                break;
+                            }
+                            lexer.next();
                         }
                         break;
                     default:
