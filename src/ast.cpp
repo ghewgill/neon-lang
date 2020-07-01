@@ -530,7 +530,7 @@ TypeInterfacePointer::TypeInterfacePointer(const Token &declaration, const Inter
 
 const Expression *TypeInterfacePointer::make_default_value() const
 {
-    return new ConstantNilExpression();
+    return new InterfacePointerConstructor(nullptr, new ConstantNilExpression(), 0);
 }
 
 std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeInterfacePointer::make_converter(const Type *from) const
@@ -539,7 +539,9 @@ std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeI
         return identity_conversion;
     }
     if (dynamic_cast<const TypePointerNil *>(from) != nullptr) {
-        return identity_conversion;
+        return [this](Analyzer *, const Expression *) {
+            return new InterfacePointerConstructor(this, new ConstantNilExpression(), 0);
+        };
     }
     const TypeInterfacePointer *p = dynamic_cast<const TypeInterfacePointer *>(from);
     if (p != nullptr && interface == p->interface) {

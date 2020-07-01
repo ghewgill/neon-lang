@@ -35,6 +35,8 @@ FUNCTION printShapeInfo(s: VALID POINTER TO Shape)
     print("perimeter \(s->perimeter())")
 END FUNCTION
 
+VAR q: POINTER TO Shape := NIL
+
 LET r: POINTER TO Rectangle := NEW Rectangle(width WITH 3, height WITH 4)
 printShapeInfo(r)
 #= area 12
