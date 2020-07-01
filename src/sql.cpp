@@ -442,7 +442,8 @@ public:
         }
         std::unique_ptr<SqlIdentifier> name = identifier();
         std::string query;
-        extractIntoClause(query);
+        auto query_offset = lexer.position();
+        extractIntoClause(query_offset, query);
         lexer.rest(); // TODO: USING
         return std::unique_ptr<SqlFetchStatement> { new SqlFetchStatement(std::move(name)) };
     }
@@ -563,7 +564,7 @@ public:
         return std::unique_ptr<SqlWheneverStatement> { new SqlWheneverStatement(condition, action) };
     }
 
-    void extractIntoClause(std::string &query)
+    void extractIntoClause(size_t &query_offset, std::string &query)
     {
         auto start = lexer.position();
         while (lexer.peek() != NONE && lexer.peek() != INTO) {
@@ -594,6 +595,7 @@ public:
         }
         auto end = lexer.position();
         query = lexer.statement.substr(start, into-start) + lexer.statement.substr(end);
+        query_offset += end - into;
         lexer.rest();
     }
 
@@ -656,7 +658,7 @@ public:
                 extractParameters(query_offset, query);
                 return std::unique_ptr<SqlStatement> { new SqlQueryStatement(query) };
             case SELECT:
-                extractIntoClause(query);
+                extractIntoClause(query_offset, query);
                 extractParameters(query_offset, query);
                 return std::unique_ptr<SqlStatement> { new SqlQueryStatement(query) };
             default:
