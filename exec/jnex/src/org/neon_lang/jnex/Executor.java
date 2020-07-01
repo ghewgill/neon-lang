@@ -88,10 +88,14 @@ class Executor {
         predefined.put("math$odd", this::math$odd);
         predefined.put("math$sign", this::math$sign);
         predefined.put("math$trunc", this::math$trunc);
+        predefined.put("random$uint32", this::random$uint32);
         predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
         predefined.put("runtime$executorName", this::runtime$executorName);
         predefined.put("string$fromCodePoint", this::string$fromCodePoint);
         predefined.put("string$toCodePoint", this::string$toCodePoint);
+        predefined.put("textio$close", this::textio$close);
+        predefined.put("textio$open", this::textio$open);
+        predefined.put("textio$readLine", this::textio$readLine);
         predefined.put("textio$writeLine", this::textio$writeLine);
 
         this.args = new ArrayList<Cell>();
@@ -309,6 +313,9 @@ class Executor {
                 break;
             case "textio$stderr":
                 stack.addFirst(new Cell(new Cell(new NeObjectNative(System.err))));
+                break;
+            case "textio$stdout":
+                stack.addFirst(new Cell(new Cell(new NeObjectNative(System.out))));
                 break;
             default:
                 assert false : s;
@@ -1269,6 +1276,7 @@ class Executor {
     private ArrayDeque<Cell> stack;
     private Cell[] globals;
     private ArrayDeque<ActivationFrame> frames;
+    java.util.Random gen = new java.util.Random();
 
     private void array__append()
     {
@@ -1782,6 +1790,11 @@ class Executor {
         stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_DOWN)));
     }
 
+    private void random$uint32()
+    {
+        stack.addFirst(new Cell(BigDecimal.valueOf(gen.nextInt(0x10000000))));
+    }
+
     private void runtime$assertionsEnabled()
     {
         stack.addFirst(new Cell(enable_assert));
@@ -1802,6 +1815,51 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(BigDecimal.valueOf(s.charAt(0))));
+    }
+
+    private void textio$close()
+    {
+        NeObject f = stack.removeFirst().getObject();
+        try {
+            ((java.io.Closeable)f.getNative()).close();
+        } catch (java.io.IOException e) {
+            raiseLiteral("TextioException");
+        }
+    }
+
+    private void textio$open()
+    {
+        int mode = stack.removeFirst().getNumber().intValueExact();
+        String name = stack.removeFirst().getString();
+        try {
+            Object f;
+            switch (mode) {
+                case 0: // TODO: enum read
+                    f = new java.io.BufferedReader(new java.io.FileReader(name));
+                    break;
+                case 1: // TODO: enum write
+                    f = new java.io.PrintStream(new java.io.FileOutputStream(name));
+                    break;
+                default:
+                    raiseLiteral("TextioException.Open", "open error");
+                    return;
+            }
+            stack.addFirst(new Cell(new NeObjectNative(f)));
+        } catch (java.io.FileNotFoundException e) {
+            raiseLiteral("TextioException.Open", "open error");
+        }
+    }
+
+    private void textio$readLine()
+    {
+        NeObject f = stack.removeFirst().getObject();
+        try {
+            String s = ((java.io.BufferedReader)f.getNative()).readLine();
+            stack.addFirst(new Cell(true));
+            stack.addFirst(new Cell(s));
+        } catch (java.io.IOException e) {
+            raiseLiteral("TextioException");
+        }
     }
 
     private void textio$writeLine()
