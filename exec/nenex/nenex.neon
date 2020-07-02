@@ -164,16 +164,71 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     RETURN r
 END FUNCTION
 
+TYPE Type IS ENUM
+    none
+    pointer
+    boolean
+    number
+    string
+    bytes
+    object
+    array
+    dictionary
+    classinfo
+END ENUM
+
 TYPE Value IS CLASS
+    type: Type
     p: POINTER TO Value
     b: Boolean
     n: Number
     s: String
     y: Bytes
+    o: Object
     a: Array<POINTER TO Value>
     d: Dictionary<POINTER TO Value>
     ci: ClassInfo
 END CLASS
+
+FUNCTION makeValueNone(): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.none)
+END FUNCTION
+
+FUNCTION makeValuePointer(p: POINTER TO Value): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.pointer, p WITH p)
+END FUNCTION
+
+FUNCTION makeValueBoolean(b: Boolean): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.boolean, b WITH b)
+END FUNCTION
+
+FUNCTION makeValueNumber(n: Number): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.number, n WITH n)
+END FUNCTION
+
+FUNCTION makeValueString(s: String): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.string, s WITH s)
+END FUNCTION
+
+FUNCTION makeValueBytes(y: Bytes): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.bytes, y WITH y)
+END FUNCTION
+
+FUNCTION makeValueObject(o: Object): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.object, o WITH o)
+END FUNCTION
+
+FUNCTION makeValueArray(a: Array<POINTER TO Value>): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.array, a WITH a)
+END FUNCTION
+
+FUNCTION makeValueDictionary(d: Dictionary<POINTER TO Value>): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.dictionary, d WITH d)
+END FUNCTION
+
+FUNCTION makeValueClassInfo(ci: ClassInfo): VALID POINTER TO Value
+    RETURN NEW Value(type WITH Type.classinfo, ci WITH ci)
+END FUNCTION
 
 TYPE Frame IS RECORD
     locals: Array<POINTER TO Value>
@@ -316,7 +371,7 @@ FUNCTION Executor.invoke(INOUT self: Executor, index: Number)
     LET locals: Number := self.bytecode.functions[index].locals
     VAR frame: Frame := Frame()
     WHILE frame.locals.size() < locals DO
-        frame.locals.append(NEW Value)
+        frame.locals.append(makeValueNone())
     END WHILE
     frame.opstack_depth := self.stack.size() - params
     self.frames.append(frame)
@@ -325,10 +380,10 @@ END FUNCTION
 
 FUNCTION Executor.raise_literal(INOUT self: Executor, exception: String, info: ExceptionInfo)
     VAR exceptionvar: Array<POINTER TO Value> := [
-        NEW Value(s WITH exception),
-        NEW Value(s WITH info.info),
-        NEW Value(n WITH info.code),
-        NEW Value(n WITH self.ip),
+        makeValueString(exception),
+        makeValueString(info.info),
+        makeValueNumber(info.code),
+        makeValueNumber(self.ip),
     ]
     VAR tip: Number := self.ip
     VAR sp: Number := self.callstack.size()
@@ -343,7 +398,7 @@ FUNCTION Executor.raise_literal(INOUT self: Executor, exception: String, info: E
                         _ := self.pop()
                     END WHILE
                     self.callstack.resize(sp)
-                    self.stack.append(NEW Value(a WITH exceptionvar))
+                    self.stack.append(makeValueArray(exceptionvar))
                     EXIT FUNCTION
                 END IF
             END IF
@@ -365,31 +420,31 @@ FUNCTION f_pushb(INOUT self: Executor)
     INC self.ip
     LET val: Number := self.bytecode.code[self.ip]
     INC self.ip
-    self.stack.append(NEW Value(b WITH val <> 0))
+    self.stack.append(makeValueBoolean(val <> 0))
 END FUNCTION
 
 FUNCTION f_pushn(INOUT self: Executor)
     INC self.ip
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
-    self.stack.append(NEW Value(n WITH num(self.bytecode.strtable[val])))
+    self.stack.append(makeValueNumber(num(self.bytecode.strtable[val])))
 END FUNCTION
 
 FUNCTION f_pushs(INOUT self: Executor)
     INC self.ip
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
-    self.stack.append(NEW Value(s WITH self.bytecode.strtable[val]))
+    self.stack.append(makeValueString(self.bytecode.strtable[val]))
 END FUNCTION
 
 FUNCTION f_pushy(INOUT self: Executor)
     INC self.ip
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
-    self.stack.append(NEW Value(y WITH self.bytecode.bytestable[val]))
+    self.stack.append(makeValueBytes(self.bytecode.bytestable[val]))
 END FUNCTION
 
 FUNCTION f_pushpg(INOUT self: Executor)
     INC self.ip
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
-    self.stack.append(NEW Value(p WITH self.globals[val]))
+    self.stack.append(makeValuePointer(self.globals[val]))
 END FUNCTION
 
 FUNCTION f_pushppg(INOUT self: Executor)
@@ -403,7 +458,7 @@ END FUNCTION
 FUNCTION f_pushpl(INOUT self: Executor)
     INC self.ip
     LET addr: Number := getVint(self.bytecode.code, INOUT self.ip)
-    self.stack.append(NEW Value(p WITH self.frames[LAST].locals[addr]))
+    self.stack.append(makeValuePointer(self.frames[LAST].locals[addr]))
 END FUNCTION
 
 FUNCTION f_pushpol(INOUT self: Executor)
@@ -420,14 +475,14 @@ FUNCTION f_loadb(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
-    self.stack.append(NEW Value(b WITH addr->b))
+    self.stack.append(makeValueBoolean(addr->b))
 END FUNCTION
 
 FUNCTION f_loadn(INOUT self: Executor)
     INC self.ip
     LET addr: POINTER TO Value := self.pop()->p
     IF VALID addr THEN
-        self.stack.append(NEW Value(n WITH addr->n))
+        self.stack.append(makeValueNumber(addr->n))
     ELSE
         ASSERT FALSE
     END IF
@@ -439,7 +494,7 @@ FUNCTION f_loads(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
-    self.stack.append(NEW Value(s WITH addr->s))
+    self.stack.append(makeValueString(addr->s))
 END FUNCTION
 
 FUNCTION f_loady(INOUT self: Executor)
@@ -448,14 +503,14 @@ FUNCTION f_loady(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
-    self.stack.append(NEW Value(y WITH addr->y))
+    self.stack.append(makeValueBytes(addr->y))
 END FUNCTION
 
 FUNCTION f_loada(INOUT self: Executor)
     INC self.ip
     LET addr: POINTER TO Value := self.pop()->p
     IF VALID addr THEN
-        self.stack.append(NEW Value(a WITH addr->a))
+        self.stack.append(makeValueArray(addr->a))
     ELSE
         ASSERT FALSE
     END IF
@@ -467,7 +522,7 @@ FUNCTION f_loadd(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
-    self.stack.append(NEW Value(d WITH addr->d))
+    self.stack.append(makeValueDictionary(addr->d))
 END FUNCTION
 
 FUNCTION f_loadp(INOUT self: Executor)
@@ -476,7 +531,7 @@ FUNCTION f_loadp(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
-    self.stack.append(NEW Value(p WITH addr->p))
+    self.stack.append(makeValuePointer(addr->p))
 END FUNCTION
 
 FUNCTION f_loadj(INOUT self: Executor)
@@ -563,28 +618,28 @@ END FUNCTION
 FUNCTION f_negn(INOUT self: Executor)
     INC self.ip
     LET x: Number := self.pop()->n
-    self.stack.append(NEW Value(n WITH -x))
+    self.stack.append(makeValueNumber(-x))
 END FUNCTION
 
 FUNCTION f_addn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(n WITH a + b))
+    self.stack.append(makeValueNumber(a + b))
 END FUNCTION
 
 FUNCTION f_subn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(n WITH a - b))
+    self.stack.append(makeValueNumber(a - b))
 END FUNCTION
 
 FUNCTION f_muln(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(n WITH a * b))
+    self.stack.append(makeValueNumber(a * b))
 END FUNCTION
 
 FUNCTION f_divn(INOUT self: Executor)
@@ -595,28 +650,28 @@ FUNCTION f_divn(INOUT self: Executor)
         self.raise_literal("DivideByZeroException", ExceptionInfo())
         EXIT FUNCTION
     END CHECK
-    self.stack.append(NEW Value(n WITH a / b))
+    self.stack.append(makeValueNumber(a / b))
 END FUNCTION
 
 FUNCTION f_modn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(n WITH a MOD b))
+    self.stack.append(makeValueNumber(a MOD b))
 END FUNCTION
 
 FUNCTION f_expn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(n WITH a ^ b))
+    self.stack.append(makeValueNumber(a ^ b))
 END FUNCTION
 
 FUNCTION f_eqb(INOUT self: Executor)
     INC self.ip
     LET b: Boolean := self.pop()->b
     LET a: Boolean := self.pop()->b
-    self.stack.append(NEW Value(b WITH a = b))
+    self.stack.append(makeValueBoolean(a = b))
 END FUNCTION
 
 FUNCTION f_neb(INOUT self: Executor)
@@ -627,105 +682,105 @@ FUNCTION f_eqn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(b WITH a = b))
+    self.stack.append(makeValueBoolean(a = b))
 END FUNCTION
 
 FUNCTION f_nen(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(b WITH a <> b))
+    self.stack.append(makeValueBoolean(a <> b))
 END FUNCTION
 
 FUNCTION f_ltn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(b WITH a < b))
+    self.stack.append(makeValueBoolean(a < b))
 END FUNCTION
 
 FUNCTION f_gtn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(b WITH a > b))
+    self.stack.append(makeValueBoolean(a > b))
 END FUNCTION
 
 FUNCTION f_len(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(b WITH a <= b))
+    self.stack.append(makeValueBoolean(a <= b))
 END FUNCTION
 
 FUNCTION f_gen(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
-    self.stack.append(NEW Value(b WITH a >= b))
+    self.stack.append(makeValueBoolean(a >= b))
 END FUNCTION
 
 FUNCTION f_eqs(INOUT self: Executor)
     INC self.ip
     LET b: String := self.pop()->s
     LET a: String := self.pop()->s
-    self.stack.append(NEW Value(b WITH a = b))
+    self.stack.append(makeValueBoolean(a = b))
 END FUNCTION
 
 FUNCTION f_nes(INOUT self: Executor)
     INC self.ip
     LET b: String := self.pop()->s
     LET a: String := self.pop()->s
-    self.stack.append(NEW Value(b WITH a <> b))
+    self.stack.append(makeValueBoolean(a <> b))
 END FUNCTION
 
 FUNCTION f_lts(INOUT self: Executor)
     INC self.ip
     LET b: String := self.pop()->s
     LET a: String := self.pop()->s
-    self.stack.append(NEW Value(b WITH a < b))
+    self.stack.append(makeValueBoolean(a < b))
 END FUNCTION
 
 FUNCTION f_gts(INOUT self: Executor)
     INC self.ip
     LET b: String := self.pop()->s
     LET a: String := self.pop()->s
-    self.stack.append(NEW Value(b WITH a > b))
+    self.stack.append(makeValueBoolean(a > b))
 END FUNCTION
 
 FUNCTION f_les(INOUT self: Executor)
     INC self.ip
     LET b: String := self.pop()->s
     LET a: String := self.pop()->s
-    self.stack.append(NEW Value(b WITH a <= b))
+    self.stack.append(makeValueBoolean(a <= b))
 END FUNCTION
 
 FUNCTION f_ges(INOUT self: Executor)
     INC self.ip
     LET b: String := self.pop()->s
     LET a: String := self.pop()->s
-    self.stack.append(NEW Value(b WITH a >= b))
+    self.stack.append(makeValueBoolean(a >= b))
 END FUNCTION
 
 FUNCTION f_eqy(INOUT self: Executor)
     INC self.ip
     LET b: Bytes := self.pop()->y
     LET a: Bytes := self.pop()->y
-    self.stack.append(NEW Value(b WITH a = b))
+    self.stack.append(makeValueBoolean(a = b))
 END FUNCTION
 
 FUNCTION f_ney(INOUT self: Executor)
     INC self.ip
     LET b: Bytes := self.pop()->y
     LET a: Bytes := self.pop()->y
-    self.stack.append(NEW Value(b WITH a <> b))
+    self.stack.append(makeValueBoolean(a <> b))
 END FUNCTION
 
 FUNCTION f_lty(INOUT self: Executor)
     INC self.ip
     LET b: Bytes := self.pop()->y
     LET a: Bytes := self.pop()->y
-    self.stack.append(NEW Value(b WITH a < b))
+    self.stack.append(makeValueBoolean(a < b))
 END FUNCTION
 
 FUNCTION f_gty(INOUT self: Executor)
@@ -768,14 +823,14 @@ FUNCTION f_eqp(INOUT self: Executor)
     INC self.ip
     LET b: POINTER TO Value := self.pop()->p
     LET a: POINTER TO Value := self.pop()->p
-    self.stack.append(NEW Value(b WITH a = b))
+    self.stack.append(makeValueBoolean(a = b))
 END FUNCTION
 
 FUNCTION f_nep(INOUT self: Executor)
     INC self.ip
     LET b: POINTER TO Value := self.pop()->p
     LET a: POINTER TO Value := self.pop()->p
-    self.stack.append(NEW Value(b WITH a <> b))
+    self.stack.append(makeValueBoolean(a <> b))
 END FUNCTION
 
 FUNCTION f_eqv(INOUT self: Executor)
@@ -797,7 +852,7 @@ END FUNCTION
 FUNCTION f_notb(INOUT self: Executor)
     INC self.ip
     LET x: Boolean := self.pop()->b
-    self.stack.append(NEW Value(b WITH NOT x))
+    self.stack.append(makeValueBoolean(NOT x))
 END FUNCTION
 
 FUNCTION f_indexar(INOUT self: Executor)
@@ -811,7 +866,7 @@ FUNCTION f_indexar(INOUT self: Executor)
         self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH str(index)))
         EXIT FUNCTION
     END CHECK
-    self.stack.append(NEW Value(p WITH addr->a[index]))
+    self.stack.append(makeValuePointer(addr->a[index]))
 END FUNCTION
 
 FUNCTION f_indexaw(INOUT self: Executor)
@@ -828,7 +883,7 @@ FUNCTION f_indexaw(INOUT self: Executor)
     WHILE index >= addr->a.size() DO
         addr->a.append(NEW Value())
     END WHILE
-    self.stack.append(NEW Value(p WITH addr->a[index]))
+    self.stack.append(makeValuePointer(addr->a[index]))
 END FUNCTION
 
 FUNCTION f_indexav(INOUT self: Executor)
@@ -857,7 +912,7 @@ FUNCTION f_indexdr(INOUT self: Executor)
         self.raise_literal("DictionaryIndexException", ExceptionInfo(info WITH key))
         EXIT FUNCTION
     END CHECK
-    self.stack.append(NEW Value(p WITH addr->d[key]))
+    self.stack.append(makeValuePointer(addr->d[key]))
 END FUNCTION
 
 FUNCTION f_indexdw(INOUT self: Executor)
@@ -870,7 +925,7 @@ FUNCTION f_indexdw(INOUT self: Executor)
     IF key NOT IN addr->d THEN
         addr->d[key] := NEW Value()
     END IF
-    self.stack.append(NEW Value(p WITH addr->d[key]))
+    self.stack.append(makeValuePointer(addr->d[key]))
 END FUNCTION
 
 FUNCTION f_indexdv(INOUT self: Executor)
@@ -907,7 +962,7 @@ FUNCTION f_callp(INOUT self: Executor)
         #    END IF
         WHEN "array__size" DO
             LET a: VALID POINTER TO Value := self.pop()
-            self.stack.append(NEW Value(n WITH a->a.size()))
+            self.stack.append(makeValueNumber(a->a.size()))
         WHEN "array__toBytes__number" DO
             LET a: Array<POINTER TO Value> := self.pop()->a
             VAR an: Array<Number> := []
@@ -916,7 +971,7 @@ FUNCTION f_callp(INOUT self: Executor)
                     an.append(p->n)
                 END IF
             END FOREACH
-            self.stack.append(NEW Value(y WITH an.toBytes()))
+            self.stack.append(makeValueBytes(an.toBytes()))
         WHEN "array__toString__number" DO
             LET a: Array<POINTER TO Value> := self.pop()->a
             VAR r: String := "["
@@ -929,17 +984,17 @@ FUNCTION f_callp(INOUT self: Executor)
                 END IF
             END FOR
             r.append("]")
-            self.stack.append(NEW Value(s WITH r))
+            self.stack.append(makeValueString(r))
         WHEN "boolean__toString" DO
             LET b: Boolean := self.pop()->b
-            self.stack.append(NEW Value(s WITH b.toString()))
+            self.stack.append(makeValueString(b.toString()))
         WHEN "bytes__concat" DO
             LET b: Bytes := self.pop()->y
             LET a: Bytes := self.pop()->y
-            self.stack.append(NEW Value(y WITH a & b))
+            self.stack.append(makeValueBytes(a & b))
         WHEN "bytes__decodeToString" DO
             LET y: Bytes := self.pop()->y
-            self.stack.append(NEW Value(s WITH y.decodeToString()))
+            self.stack.append(makeValueString(y.decodeToString()))
         WHEN "bytes__range" DO
             LET last_from_end: Boolean := self.pop()->b
             VAR last: Number := self.pop()->n
@@ -963,14 +1018,14 @@ FUNCTION f_callp(INOUT self: Executor)
                     last := -1
                 END IF
                 IF last < first THEN
-                    self.stack.append(NEW Value(y WITH HEXBYTES ""))
+                    self.stack.append(makeValueBytes(HEXBYTES ""))
                 ELSE
-                    self.stack.append(NEW Value(y WITH y[first TO last]))
+                    self.stack.append(makeValueBytes(y[first TO last]))
                 END IF
             END IF
         WHEN "bytes__size" DO
             LET y: Bytes := self.pop()->y
-            self.stack.append(NEW Value(n WITH y.size()))
+            self.stack.append(makeValueNumber(y.size()))
         WHEN "bytes__splice" DO
             LET last_from_end: Boolean := self.pop()->b
             VAR last: Number := self.pop()->n
@@ -985,25 +1040,25 @@ FUNCTION f_callp(INOUT self: Executor)
                 last := last + a.size() - 1
             END IF
             LET r: Bytes := a[0 TO first-1] & b & a[last+1 TO LAST]
-            self.stack.append(NEW Value(y WITH r))
+            self.stack.append(makeValueBytes(r))
         WHEN "bytes__toArray" DO
             LET y: Bytes := self.pop()->y
             LET a: Array<Number> := y.toArray()
             VAR r: Array<POINTER TO Value> := []
             FOR i := 0 TO a.size()-1 DO
-                r.append(NEW Value(n WITH a[i]))
+                r.append(makeValueNumber(a[i]))
             END FOR
-            self.stack.append(NEW Value(a WITH r))
+            self.stack.append(makeValueArray(r))
         WHEN "bytes__toString" DO
             LET y: Bytes := self.pop()->y
-            self.stack.append(NEW Value(s WITH y.toString()))
+            self.stack.append(makeValueString(y.toString()))
         WHEN "dictionary__keys" DO
             LET d: Dictionary<POINTER TO Value> := self.pop()->d
             LET a: Array<POINTER TO Value> := []
             FOREACH k IN d.keys() DO
-                a.append(NEW Value(s WITH k))
+                a.append(makeValueString(k))
             END FOREACH
-            self.stack.append(NEW Value(a WITH a))
+            self.stack.append(makeValueArray(a))
         WHEN "exceptiontype__toString" DO
             LET ei: Array<POINTER TO Value> := self.pop()->a
             VAR name: String := ""
@@ -1022,28 +1077,28 @@ FUNCTION f_callp(INOUT self: Executor)
             IF VALID ei[3] AS p THEN
                 offset := p->n
             END IF
-            self.stack.append(NEW Value(s WITH "<ExceptionType:\(name),\(info),\(code),\(offset)>"))
+            self.stack.append(makeValueString("<ExceptionType:\(name),\(info),\(code),\(offset)>"))
         WHEN "num" DO
             LET s: String := self.pop()->s
             TRY
-                self.stack.append(NEW Value(n WITH num(s)))
+                self.stack.append(makeValueNumber(num(s)))
             TRAP ValueRangeException DO
                 self.raise_literal("ValueRangeException", ExceptionInfo(info WITH s))
             END TRY
         WHEN "print" DO
             print(self.pop()->s)
         WHEN "runtime$assertionsEnabled" DO
-            self.stack.append(NEW Value(b WITH TRUE))
+            self.stack.append(makeValueBoolean(TRUE))
         WHEN "str", "number__toString" DO
             LET n: Number := self.pop()->n
-            self.stack.append(NEW Value(s WITH str(n)))
+            self.stack.append(makeValueString(str(n)))
         WHEN "string__concat" DO
             LET b: String := self.pop()->s
             LET a: String := self.pop()->s
-            self.stack.append(NEW Value(s WITH a & b))
+            self.stack.append(makeValueString(a & b))
         WHEN "string__length" DO
             LET s: String := self.pop()->s
-            self.stack.append(NEW Value(n WITH s.length()))
+            self.stack.append(makeValueNumber(s.length()))
         WHEN "string__substring" DO
             LET last_from_end: Boolean := self.pop()->b
             ASSERT last_from_end = last_from_end
@@ -1052,13 +1107,13 @@ FUNCTION f_callp(INOUT self: Executor)
             ASSERT first_from_end = first_from_end
             LET first: Number := self.pop()->n
             LET s: String := self.pop()->s
-            self.stack.append(NEW Value(s WITH s[first TO last]))
+            self.stack.append(makeValueString(s[first TO last]))
         WHEN "string$fromCodePoint" DO
             LET n: Number := self.pop()->n
-            self.stack.append(NEW Value(s WITH string.fromCodePoint(n)))
+            self.stack.append(makeValueString(string.fromCodePoint(n)))
         WHEN "string$toCodePoint" DO
             LET s: String := self.pop()->s
-            self.stack.append(NEW Value(n WITH string.toCodePoint(s)))
+            self.stack.append(makeValueNumber(string.toCodePoint(s)))
         WHEN OTHERS DO
             textio.writeLine(textio.stderr, "unexpected function: \(f)")
             sys.exit(1)
@@ -1143,7 +1198,7 @@ FUNCTION f_consa(INOUT self: Executor)
     FOR i := 1 TO val DO
         a.append(self.pop())
     END FOR
-    self.stack.append(NEW Value(a WITH a))
+    self.stack.append(makeValueArray(a))
 END FUNCTION
 
 FUNCTION f_consd(INOUT self: Executor)
@@ -1155,7 +1210,7 @@ FUNCTION f_consd(INOUT self: Executor)
         LET k: String := self.pop()->s
         d[k] := v
     END FOR
-    self.stack.append(NEW Value(d WITH d))
+    self.stack.append(makeValueDictionary(d))
 END FUNCTION
 
 FUNCTION f_except(INOUT self: Executor)
@@ -1186,12 +1241,12 @@ FUNCTION f_alloc(INOUT self: Executor)
     FOR i := 1 TO val DO
         a.append(NEW Value())
     END FOR
-    self.stack.append(NEW Value(p WITH NEW Value(a WITH a)))
+    self.stack.append(makeValuePointer(makeValueArray(a)))
 END FUNCTION
 
 FUNCTION f_pushnil(INOUT self: Executor)
     INC self.ip
-    self.stack.append(NEW Value(p WITH NIL))
+    self.stack.append(makeValuePointer(NIL))
 END FUNCTION
 
 FUNCTION f_resetc(INOUT self: Executor)
@@ -1260,7 +1315,7 @@ FUNCTION f_pushci(INOUT self: Executor)
                 LET a: Array<POINTER TO Value> := [
                     NEW Value(ci WITH c)
                 ]
-                self.stack.append(NEW Value(a WITH a))
+                self.stack.append(makeValueArray(a))
                 EXIT FUNCTION
             END IF
         END FOREACH
