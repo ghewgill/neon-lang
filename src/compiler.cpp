@@ -1346,6 +1346,7 @@ void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
 void ast::ConstantNilObject::generate_expr(Emitter &emitter) const
 {
     emitter.emit(Opcode::CALLP, emitter.str("object__makeNull"));
+    emitter.adjust_stack_depth(1);
 }
 
 void ast::TypeConversionExpression::generate_expr(Emitter &emitter) const
