@@ -1,7 +1,8 @@
 image:
-    #- Visual Studio 2013
-    - Visual Studio 2015
+    - Visual Studio 2019
     - Visual Studio 2017
+    - Visual Studio 2015
+    #- Visual Studio 2013
 environment:
     matrix:
         - BUILDER: scons
@@ -26,17 +27,21 @@ matrix:
           WITH_SUBMODULES: 1
 install:
 - ps: >-
-    if (-not (Test-Path C:\Python38\Lib\site-packages\scons-3.0.0)){
-      Start-FileDownload "https://downloads.sourceforge.net/project/scons/scons/3.0.0/scons-3.0.0.zip" -FileName "scons-3.0.0.zip"
-      7z x -y scons-3.0.0.zip
+    if (-not (Test-Path C:\Python38\Lib\site-packages\scons-3.1.2)){
+      Start-FileDownload "https://downloads.sourceforge.net/project/scons/scons/3.1.2/scons-3.1.2.zip" -FileName "scons-3.1.2.zip"
+      7z x -y scons-3.1.2.zip
     }
 build_script:
 - cmd: set PATH=c:\python38;%PATH%
 - cmd: copy c:\python38\python.exe c:\python38\python3.exe
-- cmd: python3 scons-3.0.0\setup.py install
+- cmd: python3 scons-3.1.2\setup.py install
 - cmd: if %WITH_SUBMODULES%==1 git submodule update --init
 
 - cmd: if %BUILDER%==scons scons
+
+- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
+
+- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 
 - cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
 
