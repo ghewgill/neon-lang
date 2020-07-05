@@ -205,6 +205,13 @@ Globals = {
     "textio$stderr": Value(None),
 }
 
+class ActivationFrame:
+    def __init__(self, nesting_depth, outer, count, opstack_depth):
+        self.nesting_depth = nesting_depth
+        self.outer = outer
+        self.locals = [Value(None) for _ in range(count)]
+        self.opstack_depth = opstack_depth
+
 class Executor:
     def __init__(self, bytecode):
         self.object = Bytecode(bytecode)
@@ -260,10 +267,17 @@ class Executor:
     def PUSHPL(self):
         self.ip += 1
         addr, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(self.frames[-1][addr])
+        self.stack.append(self.frames[-1].locals[addr])
 
     def PUSHPOL(self):
-        assert False
+        self.ip += 1
+        back, self.ip = get_vint(self.object.code, self.ip)
+        addr, self.ip = get_vint(self.object.code, self.ip)
+        frame = self.frames[-1]
+        while back > 0:
+            frame = frame.outer
+            back -= 1
+        self.stack.append(frame.locals[addr])
 
     def PUSHI(self):
         self.ip += 1
@@ -815,10 +829,17 @@ class Executor:
 
     def invoke(self, module, index):
         self.callstack.append((None, self.ip))
-        f = [None] * self.object.functions[index].locals
-        for i in range(len(f)):
-            f[i] = Value(None)
-        self.frames.append(f)
+        outer = None
+        nest = self.object.functions[index].nest
+        params = self.object.functions[index].params
+        locals = self.object.functions[index].locals
+        if self.frames:
+            assert nest <= self.frames[-1].nesting_depth + 1
+            outer = self.frames[-1]
+            while outer is not None and nest <= outer.nesting_depth:
+                assert outer.outer is None or outer.nesting_depth == outer.outer.nesting_depth + 1
+                outer = outer.outer
+        self.frames.append(ActivationFrame(nest, outer, locals, len(self.stack) - params))
         self.ip = self.object.functions[index].entry
 
     def raise_literal(self, name, info):
