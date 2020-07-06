@@ -201,6 +201,13 @@ class Bytecode:
             i += strlen
         return r
 
+def equals(a, b):
+    if isinstance(a, list):
+        return len(a) == len(b) and all(equals(a[x].value, b[x].value) for x in range(len(a)))
+    if isinstance(a, dict):
+        return len(a) == len(b) and all(k in b and v.value.equals(b[k].value) for k, v in a.items())
+    return a == b
+
 class Value:
     def __init__(self, value):
         self.value = value
@@ -215,7 +222,6 @@ class Value:
             return Value({k: v.copy() for k, v in self.value.items()})
         else:
             return self
-            #assert False, " ".join([str(type(self.value)), repr(self.value)])
     def literal(self):
         if isinstance(self.value, str):
             return quoted(self.value)
@@ -586,21 +592,25 @@ class Executor:
         self.ip += 1
         b = self.stack.pop()
         a = self.stack.pop()
-        # TODO: equality check needs to recurse
-        self.stack.append(len(a) == len(b) and all(a[x].value == b[x].value for x in range(len(a))))
+        self.stack.append(equals(a, b))
 
     def NEA(self):
         self.ip += 1
         b = self.stack.pop()
         a = self.stack.pop()
-        # TODO: equality check needs to recurse
-        self.stack.append(not (len(a) == len(b) and all(a[x].value == b[x].value for x in range(len(a)))))
+        self.stack.append(not equals(a, b))
 
     def EQD(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop()
+        a = self.stack.pop()
+        self.stack.append(equals(a, b))
 
     def NED(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop()
+        a = self.stack.pop()
+        self.stack.append(not equals(a, b))
 
     def EQP(self):
         self.ip += 1
