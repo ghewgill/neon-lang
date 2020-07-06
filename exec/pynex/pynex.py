@@ -1181,6 +1181,11 @@ def neon_bytes__toString(self):
     b = self.stack.pop()
     self.stack.append("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in b.s)))
 
+def neon_console_input(self):
+    prompt = self.stack.pop()
+    s = input(prompt)
+    self.stack.append(s)
+
 def neon_dictionary__keys(self):
     d = self.stack.pop()
     self.stack.append([Value(x) for x in d.keys()])
