@@ -3,6 +3,7 @@
 import decimal
 import math
 import os
+import random
 import re
 import sys
 import time
@@ -222,7 +223,8 @@ class Value:
             return str(self.value)
 
 Globals = {
-    "textio$stderr": Value(None),
+    "textio$stderr": Value(sys.stderr),
+    "textio$stdout": Value(sys.stdout),
 }
 
 class ActivationFrame:
@@ -279,7 +281,7 @@ class Executor:
     def PUSHPPG(self):
         self.ip += 1
         name, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(Globals[self.object.strtable[name]])
+        self.stack.append(Globals[self.object.strtable[name].decode()])
 
     def PUSHPMG(self):
         assert False
@@ -1552,6 +1554,9 @@ def neon_os_system(self):
 def neon_posix_fork(self):
     self.stack.append(decimal.Decimal(os.fork()))
 
+def neon_random_uint32(self):
+    self.stack.append(decimal.Decimal(random.randrange(0x100000000)))
+
 def neon_runtime_assertionsEnabled(self):
     self.stack.append(Value(enable_assert))
 
@@ -1629,13 +1634,32 @@ def neon_sys_exit(self):
         return
     sys.exit(int(x))
 
+def neon_textio_close(self):
+    f = self.stack.pop()
+    f.close()
+
+def neon_textio_open(self):
+    mode = int(self.stack.pop())
+    fn = self.stack.pop()
+    try:
+        f = open(fn, "r" if mode == 0 else "w")
+        self.stack.append(f)
+    except FileNotFoundError:
+        self.raise_literal("TextioException.Open", fn)
+
+def neon_textio_readLine(self):
+    f = self.stack.pop()
+    try:
+        s = f.readline().rstrip("\n")
+        self.stack.append(True)
+        self.stack.append(s)
+    except IOError:
+        self.raise_literal("TextioException")
+
 def neon_textio_writeLine(self):
     s = self.stack.pop()
     f = self.stack.pop()
-    if f is Globals["textio$stderr"]:
-        sys.stderr.write(s)
-    else:
-        assert False, f
+    f.write(s + "\n")
 
 def neon_time_now(self):
     self.stack.append(decimal.Decimal(time.time()))

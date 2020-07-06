@@ -81,7 +81,6 @@ string-format.neon         # format
 string-index.neon          # index
 string-test.neon           # module
 struct-test.neon           # module
-textio-test.neon           # module
 time-stopwatch.neon        # module
 unicode-char.neon          # utf8
 unicode-length.neon        # utf8
