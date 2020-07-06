@@ -6,7 +6,6 @@ bigint.neon                # bigint
 bytes-index.neon           # index
 cal-test.neon              # os.system
 cformat-test.neon          # module
-cmdline.neon               # module
 complex-test.neon          # module
 datetime-test.neon         # module
 debug-example.neon         # module

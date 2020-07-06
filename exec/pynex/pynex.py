@@ -229,6 +229,7 @@ class Value:
             return str(self.value)
 
 Globals = {
+    "sys$args": Value([Value(x) for x in sys.argv[1:]]),
     "textio$stderr": Value(sys.stderr),
     "textio$stdout": Value(sys.stdout),
 }
