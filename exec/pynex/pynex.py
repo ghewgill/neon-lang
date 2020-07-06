@@ -1127,7 +1127,7 @@ def neon_array__toString__object(self):
 
 def neon_array__toString__string(self):
     a = self.stack.pop()
-    self.stack.append("[{}]".format(", ".join(x.value for x in a)))
+    self.stack.append("[{}]".format(", ".join('"{}"'.format(x.value) for x in a)))
 
 def neon_boolean__toString(self):
     x = self.stack.pop()

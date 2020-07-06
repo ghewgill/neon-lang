@@ -1,23 +1,18 @@
-array-tostring.neon        # module
 assert-multiline.neon      # stderr
 base-test.neon             # module
-binary-test.neon           # module
+binary-test.neon           # binary
 bigint.neon                # bigint
 bytes-index.neon           # index
-cal-test.neon              # os.system
 cformat-test.neon          # module
 complex-test.neon          # module
 datetime-test.neon         # module
 debug-example.neon         # module
-debug-server.neon          # module
 decimal.neon               # arithmetic
-dictionary-sorted.neon     # module
+dictionary-sorted.neon     # sort
 encoding-base64.neon       # module
 equality.neon              # PUSHFP
 exception-opstack.neon     # exception
-exception-opstack-depth.neon    # exception
 export-inline.neon         # export
-export-recursive.neon      # export
 export.neon                # export
 file-filecopied.neon       # file
 file-filecopied1.neon      # file
@@ -43,7 +38,6 @@ interface-parameter-export.neon # module
 interface-parameter-export2.neon # module
 interface-parameter-import.neon # module
 interface-parameter-import2.neon # module
-intrinsic.neon             # format
 io-test.neon               # module
 json-test.neon             # module
 math-test.neon             # precision
@@ -60,12 +54,8 @@ net-test.neon              # net
 net-test-udp.neon          # net
 new-init-module.neon       # module
 number-ceil.neon           # precision
-os-test.neon               # os
-parameters.neon            # INOUT
 posix-fork.neon            # posix
-process-test.neon          # process
 recursion-limit.neon       # runtime
-repl_import.neon           # random
 sql-connect.neon           # file
 sql-cursor.neon            # sqlite
 sql-embed.neon             # sqlite
@@ -75,16 +65,13 @@ sql-whenever.neon          # sqlite
 sqlite-test.neon           # sqlite
 stack-overflow.neon        # stack
 string-bytes.neon          # format
-string-escape.neon         # utf8
 string-format.neon         # format
 string-index.neon          # index
 string-test.neon           # module
 struct-test.neon           # module
 time-stopwatch.neon        # module
-unicode-char.neon          # utf8
-unicode-length.neon        # utf8
 varargs-functionpointer.neon # functionpointer
-win32-test.neon            # module
+win32-test.neon            # win32
 
 compress-test.neon
 extsample-test.neon
