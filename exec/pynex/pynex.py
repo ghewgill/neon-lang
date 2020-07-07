@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import calendar
 import decimal
 import math
 import os
@@ -1278,6 +1279,29 @@ def neon_console_input(self):
     prompt = self.stack.pop()
     s = input(prompt)
     self.stack.append(s)
+
+def neon_datetime_gmtime(self):
+    t = int(self.stack.pop())
+    tm = time.gmtime(t)
+    r = [
+        tm.tm_sec,
+        tm.tm_min,
+        tm.tm_hour,
+        tm.tm_mday,
+        tm.tm_mon - 1,
+        tm.tm_year - 1900,
+        tm.tm_wday + 1,
+        tm.tm_yday,
+        tm.tm_isdst,
+    ]
+    self.stack.append([Value(x) for x in r])
+
+def neon_datetime_timegm(self):
+    a = self.stack.pop()
+    a = [x.value for x in a]
+    tm = time.struct_time([1900 + a[5], 1 + a[4], a[3], a[2], a[1], a[0], 0, 0, 0])
+    r = calendar.timegm(tm)
+    self.stack.append(r)
 
 def neon_dictionary__keys(self):
     d = self.stack.pop()

@@ -2,7 +2,6 @@ binary-test.neon           # binary
 bigint.neon                # bigint
 bytes-index.neon           # index
 complex-test.neon          # precision
-datetime-test.neon         # datetime
 debug-example.neon         # debugger
 decimal.neon               # arithmetic
 encoding-base64.neon       # binary
