@@ -966,13 +966,22 @@ class Executor:
     def PUSHCI(self):
         self.ip += 1
         val, self.ip = get_vint(self.module.object.code, self.ip)
-        if "." not in self.module.object.strtable[val].decode():
+        classname = self.module.object.strtable[val].decode()
+        if "." not in classname:
             for c in self.module.object.classes:
                 if c.name == val:
                     self.stack.append(c)
                     return
         else:
-            assert False
+            dot = classname.find(".")
+            modname = classname[:dot]
+            methodname = classname[dot+1:]
+            m = self.modules.get(modname)
+            if m is not None:
+                for c in m.object.classes:
+                    if m.object.strtable[c.name].decode() == methodname:
+                        self.stack.append(c)
+                        return
         print("neon: unknown class name {0}".format(self.module.object.strtable[val].decode()), file=sys.stderr)
         sys.exit(1)
 
