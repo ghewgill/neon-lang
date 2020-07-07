@@ -1926,4 +1926,11 @@ def neon_textio_writeLine(self):
 def neon_time_now(self):
     self.stack.append(decimal.Decimal(time.time()))
 
+def neon_time_sleep(self):
+    t = self.stack.pop()
+    time.sleep(float(t))
+
+def neon_time_tick(self):
+    self.stack.append(decimal.Decimal(time.monotonic()))
+
 Executor(sys.argv[1], open(sys.argv[1], "rb").read()).run()

@@ -34,7 +34,6 @@ stack-overflow.neon        # stack
 string-bytes.neon          # format
 string-index.neon          # index
 struct-test.neon           # binary
-time-stopwatch.neon        # time
 win32-test.neon            # win32
 
 compress-test.neon
