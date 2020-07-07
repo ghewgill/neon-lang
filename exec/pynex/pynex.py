@@ -1816,6 +1816,10 @@ def neon_runtime_assertionsEnabled(self):
 def neon_runtime_executorName(self):
     self.stack.append("pynex")
 
+def neon_runtime_isModuleImported(self):
+    mod = self.stack.pop()
+    self.stack.append(mod in self.modules)
+
 def neon_runtime_moduleIsMain(self):
     self.stack.append(self.module is self.modules[""])
 

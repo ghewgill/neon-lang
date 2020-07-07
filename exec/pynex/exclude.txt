@@ -13,7 +13,6 @@ gc2.neon                   # gc
 gc3.neon                   # gc
 gc-two-pointers.neon       # gc
 import.neon                # interfaces
-import-optional.neon       # import
 interface-parameter-import2.neon # value
 io-test.neon               # io
 math-test.neon             # precision
