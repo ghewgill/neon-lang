@@ -10,16 +10,7 @@ dictionary-sorted.neon     # sort
 encoding-base64.neon       # binary
 equality.neon              # PUSHFP
 exception-opstack.neon     # exception
-file-exists.neon           # file
-file-filecopied.neon       # file
-file-filecopied1.neon      # file
-file-filecopied2.neon      # file
-file-filecopied3.neon      # file
-file-linelength.neon       # file
-file-symlink.neon          # file
-file-test.neon             # file
-file-writebytes.neon       # file
-file-writelines.neon       # file
+file-symlink.neon          # symlink win32
 function-pointer-nowhere.neon # functionpointer
 function-pointer.neon      # functionpointer
 gc-array.neon              # gc
@@ -34,7 +25,6 @@ interface-parameter-import.neon # PUSHCI
 interface-parameter-import2.neon # value
 io-test.neon               # io
 math-test.neon             # precision
-mkdir.neon                 # file
 mmap-test.neon             # mmap
 module-alias2.neon         # PUSHFP
 module-import-name-alias2.neon # PUSHFP
@@ -48,7 +38,7 @@ new-init-module.neon       # PUSHFP
 number-ceil.neon           # precision
 posix-fork.neon            # posix
 recursion-limit.neon       # runtime
-sql-connect.neon           # file
+sql-connect.neon           # sqlite
 sql-cursor.neon            # sqlite
 sql-embed.neon             # sqlite
 sql-execute.neon           # sqlite

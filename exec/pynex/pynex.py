@@ -5,6 +5,8 @@ import math
 import os
 import random
 import re
+import shutil
+import stat
 import sys
 import time
 
@@ -352,7 +354,15 @@ class Executor:
         self.stack.append(Globals[self.module.object.strtable[name].decode()])
 
     def PUSHPMG(self):
-        assert False
+        self.ip += 1
+        mod, self.ip = get_vint(self.module.object.code, self.ip)
+        addr, self.ip = get_vint(self.module.object.code, self.ip)
+        module_name = self.module.object.strtable[mod].decode()
+        for m in self.modules.values():
+            if m.name == module_name:
+                self.stack.append(m.globals[addr])
+                return
+        print("module not found: {}".format(module_name), file=sys.stderr)
 
     def PUSHPL(self):
         self.ip += 1
@@ -1461,9 +1471,116 @@ def neon_substring(self):
     s = self.stack.pop().value
     self.stack.append(s[offset:offset+length])
 
+def neon_file__CONSTANT_Separator(self):
+    self.stack.append(os.sep)
+
+def neon_file_copy(self):
+    dest = self.stack.pop()
+    src = self.stack.pop()
+    try:
+        destf = open(dest, "xb")
+    except FileExistsError:
+        self.raise_literal("FileException.Exists", (dest, 0))
+        return
+    srcf = open(src, "rb")
+    shutil.copyfileobj(srcf, destf)
+    destf.close()
+    srcf.close()
+
+def neon_file_copyOverwriteIfExists(self):
+    dest = self.stack.pop()
+    src = self.stack.pop()
+    shutil.copyfile(src, dest)
+
+def neon_file_delete(self):
+    fn = self.stack.pop()
+    try:
+        os.remove(fn)
+    except FileNotFoundError:
+        pass
+
 def neon_file_exists(self):
     n = self.stack.pop()
     self.stack.append(os.path.exists(n))
+
+def neon_file_files(self):
+    path = self.stack.pop()
+    self.stack.append([Value(x) for x in os.listdir(path)])
+
+def neon_file_getInfo(self):
+    fn = self.stack.pop()
+    st = os.stat(fn)
+    r = [
+        os.path.basename(fn),
+        decimal.Decimal(st.st_size),
+        (st.st_mode & stat.S_IRUSR) != 0,
+        (st.st_mode & stat.S_IWUSR) != 0,
+        (st.st_mode & stat.S_IXUSR) != 0,
+        decimal.Decimal(0 if stat.S_ISREG(st.st_mode) else 1 if stat.S_ISDIR(st.st_mode) else 2),
+        st.st_ctime,
+        st.st_atime,
+        st.st_mtime,
+    ]
+    self.stack.append([Value(x) for x in r])
+
+def neon_file_isDirectory(self):
+    fn = self.stack.pop()
+    try:
+        st = os.stat(fn)
+        self.stack.append(stat.S_ISDIR(st.st_mode))
+    except FileNotFoundError:
+        self.stack.append(False)
+
+def neon_file_mkdir(self):
+    fn = self.stack.pop()
+    try:
+        os.mkdir(fn)
+    except FileExistsError:
+        self.raise_literal("FileException.DirectoryExists", (fn, 0))
+
+def neon_file_readBytes(self):
+    fn = self.stack.pop()
+    r = open(fn, "rb").read()
+    self.stack.append(Bytes(r))
+
+def neon_file_readLines(self):
+    fn = self.stack.pop()
+    r = [Value(x.rstrip("\n")) for x in open(fn).readlines()]
+    self.stack.append(r)
+
+def neon_file_removeEmptyDirectory(self):
+    fn = self.stack.pop()
+    try:
+        os.rmdir(fn)
+    except OSError:
+        self.raise_literal("FileException", ("", 0))
+
+def neon_file_rename(self):
+    newname = self.stack.pop()
+    oldname = self.stack.pop()
+    os.rename(oldname, newname)
+
+def neon_file_symlink(self):
+    targetIsDirectory = self.stack.pop()
+    newlink = self.stack.pop()
+    target = self.stack.pop()
+    try:
+        os.symlink(target, newlink, targetIsDirectory)
+    except OSError:
+        self.raise_literal("FileException.Open", ("", 0))
+
+def neon_file_writeBytes(self):
+    data = self.stack.pop()
+    fn = self.stack.pop()
+    with open(fn, "wb") as f:
+        f.write(data.s)
+
+def neon_file_writeLines(self):
+    data = self.stack.pop()
+    fn = self.stack.pop()
+    with open(fn, "w") as f:
+        for s in data:
+            print(s.value, file=f)
 
 def neon_math_abs(self):
     x = self.stack.pop()
