@@ -1017,7 +1017,7 @@ class Executor:
             sp -= 1
             (tmodule, tip) = self.callstack[sp]
 
-        print("Unhandled exception {} ({}) code {})".format(name, info[0], info[1]), file=sys.stderr)
+        print("Unhandled exception {} ({}) (code {})".format(name, info[0], info[1]), file=sys.stderr)
         sys.exit(1)
 
 Dispatch = [

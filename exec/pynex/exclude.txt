@@ -1,4 +1,3 @@
-assert-multiline.neon      # stderr
 binary-test.neon           # binary
 bigint.neon                # bigint
 bytes-index.neon           # index
