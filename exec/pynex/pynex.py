@@ -43,11 +43,26 @@ class Constant:
         self.type = 0
         self.value = 0
 
+class Variable:
+    def __init__(self):
+        self.name = 0
+        self.type = 0
+        self.value = 0
+
 class ExportFunction:
     def __init__(self):
         self.name = 0
         self.descriptor = 0
         self.index = 0
+
+class ExceptionExport:
+    def __init__(self):
+        self.name = 0
+
+class ExportInterface:
+    def __init__(self):
+        self.name = 0
+        self.method_descriptors = []
 
 class Function:
     def __init__(self):
@@ -133,8 +148,18 @@ class Bytecode:
             exceptionexportsize -= 1
 
         interfaceexportsize, i = get_vint(bytecode, i)
+        self.export_interfaces = []
         while interfaceexportsize > 0:
-            assert False, interfaceexportsize
+            iface = ExportInterface()
+            iface.name, i = get_vint(bytecode, i)
+            methoddescriptorsize, i = get_vint(bytecode, i)
+            while methoddescriptorsize > 0:
+                # TODO
+                first, i = get_vint(bytecode, i)
+                second, i = get_vint(bytecode, i)
+                methoddescriptorsize -= 1
+            self.export_interfaces.append(iface)
+            interfaceexportsize -= 1
 
         importsize, i = get_vint(bytecode, i)
         self.imports = []
@@ -208,6 +233,17 @@ def equals(a, b):
         return len(a) == len(b) and all(k in b and v.value.equals(b[k].value) for k, v in a.items())
     return a == b
 
+def literal(v):
+    if v is None:
+        return "null"
+    if isinstance(v, bool):
+        return "TRUE" if v else "FALSE"
+    if isinstance(v, str):
+        return quoted(v)
+    if isinstance(v, Bytes):
+        return v.literal()
+    return str(v)
+
 class Value:
     def __init__(self, value):
         self.value = value
@@ -222,11 +258,6 @@ class Value:
             return Value({k: v.copy() for k, v in self.value.items()})
         else:
             return self
-    def literal(self):
-        if isinstance(self.value, str):
-            return quoted(self.value)
-        else:
-            return str(self.value)
 
 Globals = {
     "sys$args": Value([Value(x) for x in sys.argv[1:]]),
@@ -241,67 +272,97 @@ class ActivationFrame:
         self.locals = [Value(None) for _ in range(count)]
         self.opstack_depth = opstack_depth
 
-class Executor:
-    def __init__(self, bytecode):
+class Module:
+    def __init__(self, name, bytecode):
+        self.name = name
         self.object = Bytecode(bytecode)
+        self.globals = [Value(None) for _ in range(self.object.global_size)]
+
+class Executor:
+    def __init__(self, modulefilename, bytecode):
+        self.modulefilename = modulefilename
+        self.modules = {}
+        self.init_order = []
+        self.module = None
         self.ip = 0
         self.stack = []
         self.callstack = []
         self.frames = []
-        self.globals = [None] * self.object.global_size
-        for i in range(len(self.globals)):
-            self.globals[i] = Value(None)
+
+        self.import_module("", bytecode)
+        self.module = self.modules[""]
+
+    def import_module(self, name, bytecode):
+        m = self.modules.get(name)
+        if m is not None:
+            return
+        m = Module(name, bytecode)
+        self.modules[name] = m
+        for imp in m.object.imports:
+            imported_name = m.object.strtable[imp.name].decode()
+            if "/" in imported_name:
+                bytes = open(imported_name + ".neonx", "rb").read()
+            else:
+                try:
+                    bytes = open(os.path.join("lib", imported_name + ".neonx"), "rb").read()
+                except FileNotFoundError:
+                    bytes = open(os.path.join(os.path.dirname(self.modulefilename), imported_name + ".neonx"), "rb").read()
+            self.import_module(imported_name, bytes)
+        if name:
+            self.init_order.insert(0, m)
 
     def run(self):
-        self.ip = len(self.object.code)
-        self.invoke(None, 0)
-        while self.ip < len(self.object.code):
-            #print(repr(self.stack)); print("ip={} op={}".format(self.ip, Dispatch[self.object.code[self.ip]]));
-            Dispatch[self.object.code[self.ip]](self)
+        self.ip = len(self.module.object.code)
+        self.invoke(self.module, 0)
+        for m in self.init_order:
+            self.invoke(m, 0)
+        while self.ip < len(self.module.object.code):
+            #print(repr(self.stack)); print("ip={} op={}".format(self.ip, Dispatch[self.module.object.code[self.ip]]))
+            Dispatch[self.module.object.code[self.ip]](self)
 
     def PUSHB(self):
         self.ip += 1
-        val = self.object.code[self.ip]
+        val = self.module.object.code[self.ip]
         self.ip += 1
         self.stack.append(val != 0)
 
     def PUSHN(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(decimal.Decimal(self.object.strtable[val].decode()))
+        val, self.ip = get_vint(self.module.object.code, self.ip)
+        self.stack.append(decimal.Decimal(self.module.object.strtable[val].decode()))
 
     def PUSHS(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(self.object.strtable[val].decode())
+        val, self.ip = get_vint(self.module.object.code, self.ip)
+        self.stack.append(self.module.object.strtable[val].decode())
 
     def PUSHY(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(Bytes(self.object.strtable[val]))
+        val, self.ip = get_vint(self.module.object.code, self.ip)
+        self.stack.append(Bytes(self.module.object.strtable[val]))
 
     def PUSHPG(self):
         self.ip += 1
-        addr, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(self.globals[addr])
+        addr, self.ip = get_vint(self.module.object.code, self.ip)
+        self.stack.append(self.module.globals[addr])
 
     def PUSHPPG(self):
         self.ip += 1
-        name, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(Globals[self.object.strtable[name].decode()])
+        name, self.ip = get_vint(self.module.object.code, self.ip)
+        self.stack.append(Globals[self.module.object.strtable[name].decode()])
 
     def PUSHPMG(self):
         assert False
 
     def PUSHPL(self):
         self.ip += 1
-        addr, self.ip = get_vint(self.object.code, self.ip)
+        addr, self.ip = get_vint(self.module.object.code, self.ip)
         self.stack.append(self.frames[-1].locals[addr])
 
     def PUSHPOL(self):
         self.ip += 1
-        back, self.ip = get_vint(self.object.code, self.ip)
-        addr, self.ip = get_vint(self.object.code, self.ip)
+        back, self.ip = get_vint(self.module.object.code, self.ip)
+        addr, self.ip = get_vint(self.module.object.code, self.ip)
         frame = self.frames[-1]
         while back > 0:
             frame = frame.outer
@@ -310,7 +371,7 @@ class Executor:
 
     def PUSHI(self):
         self.ip += 1
-        x, self.ip = get_vint(self.object.code, self.ip)
+        x, self.ip = get_vint(self.module.object.code, self.ip)
         self.stack.append(decimal.Decimal(x))
 
     def LOADB(self):
@@ -727,44 +788,58 @@ class Executor:
 
     def CALLP(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
-        func = self.object.strtable[val]
+        val, self.ip = get_vint(self.module.object.code, self.ip)
+        func = self.module.object.strtable[val]
         f = globals()["neon_{}".format(func.decode().replace("$", "_"))]
         f(self)
 
     def CALLF(self):
         self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
-        self.invoke(None, target)
+        target, self.ip = get_vint(self.module.object.code, self.ip)
+        self.invoke(self.module, target)
 
     def CALLMF(self):
-        assert False
+        self.ip += 1
+        mod, self.ip = get_vint(self.module.object.code, self.ip)
+        fun, self.ip = get_vint(self.module.object.code, self.ip)
+        module_name = self.module.object.strtable[mod].decode()
+        m = self.modules.get(module_name)
+        if m is None:
+            print("module not found: {}".format(module_name), file=sys.stderr);
+            sys.exit(1)
+        function_name = self.module.object.strtable[fun]
+        for ef in m.object.export_functions:
+            if m.object.strtable[ef.name] + b"," + m.object.strtable[ef.descriptor] == function_name:
+                self.invoke(m, ef.index)
+                return
+        print("function not found: {}".format(function_name))
+        sys.exit(1)
 
     def CALLI(self):
         assert False
 
     def JUMP(self):
         self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
+        target, self.ip = get_vint(self.module.object.code, self.ip)
         self.ip = target
 
     def JF(self):
         self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
+        target, self.ip = get_vint(self.module.object.code, self.ip)
         a = self.stack.pop()
         if not a:
             self.ip = target
 
     def JT(self):
         self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
+        target, self.ip = get_vint(self.module.object.code, self.ip)
         a = self.stack.pop()
         if a:
             self.ip = target
 
     def JFCHAIN(self):
         self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
+        target, self.ip = get_vint(self.module.object.code, self.ip)
         a = self.stack.pop()
         if not a:
             self.ip = target
@@ -789,11 +864,11 @@ class Executor:
 
     def RET(self):
         self.frames.pop()
-        (_module, self.ip) = self.callstack.pop()
+        (self.module, self.ip) = self.callstack.pop()
 
     def CONSA(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
+        val, self.ip = get_vint(self.module.object.code, self.ip)
         a = []
         for _ in range(val):
             a.append(Value(self.stack.pop()))
@@ -801,7 +876,7 @@ class Executor:
 
     def CONSD(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
+        val, self.ip = get_vint(self.module.object.code, self.ip)
         d = {}
         for _ in range(val):
             value = self.stack.pop()
@@ -812,16 +887,16 @@ class Executor:
     def EXCEPT(self):
         start_ip = self.ip
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
+        val, self.ip = get_vint(self.module.object.code, self.ip)
         self.ip = start_ip
         a = self.stack.pop()
         info = a[0].value if len(a) >= 1 else ""
         code = a[1].value if len(a) >= 2 else decimal.Decimal(0)
-        self.raise_literal(self.object.strtable[val].decode(), (info, code))
+        self.raise_literal(self.module.object.strtable[val].decode(), (info, code))
 
     def ALLOC(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
+        val, self.ip = get_vint(self.module.object.code, self.ip)
         self.stack.append(Value([Value(None) for _ in range(val)]))
 
     def PUSHNIL(self):
@@ -838,7 +913,7 @@ class Executor:
 
     def JUMPTBL(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
+        val, self.ip = get_vint(self.module.object.code, self.ip)
         n = self.stack.pop()
         if is_integer(n):
             i = int(n)
@@ -864,32 +939,32 @@ class Executor:
 
     def CALLV(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
+        val, self.ip = get_vint(self.module.object.code, self.ip)
         pi = self.stack.pop()
         instance = pi[0].value.value
         interface_index = int(pi[1].value)
         classinfo = instance[0].value
-        self.invoke(None, classinfo.interfaces[interface_index][val])
+        self.invoke(self.module, classinfo.interfaces[interface_index][val])
 
     def PUSHCI(self):
         self.ip += 1
-        val, self.ip = get_vint(self.object.code, self.ip)
-        if "." not in self.object.strtable[val].decode():
-            for c in self.object.classes:
+        val, self.ip = get_vint(self.module.object.code, self.ip)
+        if "." not in self.module.object.strtable[val].decode():
+            for c in self.module.object.classes:
                 if c.name == val:
                     self.stack.append(c)
                     return
         else:
             assert False
-        print("neon: unknown class name {0}".format(self.object.strtable[val].decode()), file=sys.stderr)
+        print("neon: unknown class name {0}".format(self.module.object.strtable[val].decode()), file=sys.stderr)
         sys.exit(1)
 
     def invoke(self, module, index):
-        self.callstack.append((None, self.ip))
+        self.callstack.append((self.module, self.ip))
         outer = None
-        nest = self.object.functions[index].nest
-        params = self.object.functions[index].params
-        locals = self.object.functions[index].locals
+        nest = module.object.functions[index].nest
+        params = module.object.functions[index].params
+        locals = module.object.functions[index].locals
         if self.frames:
             assert nest <= self.frames[-1].nesting_depth + 1
             outer = self.frames[-1]
@@ -897,7 +972,8 @@ class Executor:
                 assert outer.outer is None or outer.nesting_depth == outer.outer.nesting_depth + 1
                 outer = outer.outer
         self.frames.append(ActivationFrame(nest, outer, locals, len(self.stack) - params))
-        self.ip = self.object.functions[index].entry
+        self.module = module
+        self.ip = self.module.object.functions[index].entry
 
     def raise_literal(self, name, info):
         exceptionvar = [
@@ -907,13 +983,15 @@ class Executor:
             Value(decimal.Decimal(self.ip))
         ]
 
+        tmodule = self.module
         tip = self.ip
         sp = len(self.callstack)
         while True:
-            for e in self.object.exceptions:
+            for e in tmodule.object.exceptions:
                 if e.start <= tip < e.end:
-                    handler = self.object.strtable[e.excid].decode()
+                    handler = tmodule.object.strtable[e.excid].decode()
                     if name == handler or (len(name) > len(handler) and name.startswith(handler) and name[len(handler)] == "."):
+                        self.module = tmodule
                         self.ip = e.handler
                         self.callstack[sp:] = []
                         self.stack.append(exceptionvar)
@@ -921,7 +999,7 @@ class Executor:
             if sp == 0:
                 break
             sp -= 1
-            tip = self.callstack[sp][1]
+            (tmodule, tip) = self.callstack[sp]
 
         print("Unhandled exception {} ({}) code {})".format(name, info[0], info[1]), file=sys.stderr)
         sys.exit(1)
@@ -1127,7 +1205,7 @@ def neon_array__toString__object(self):
 
 def neon_array__toString__string(self):
     a = self.stack.pop()
-    self.stack.append("[{}]".format(", ".join('"{}"'.format(x.value) for x in a)))
+    self.stack.append("[{}]".format(", ".join(quoted(x.value) for x in a)))
 
 def neon_boolean__toString(self):
     x = self.stack.pop()
@@ -1174,7 +1252,6 @@ def neon_bytes__splice(self):
 
 def neon_bytes__toArray(self):
     b = self.stack.pop()
-    print(repr(b.s), file=sys.stderr)
     self.stack.append([Value(decimal.Decimal(x)) for x in b.s])
 
 def neon_bytes__toString(self):
@@ -1188,7 +1265,7 @@ def neon_console_input(self):
 
 def neon_dictionary__keys(self):
     d = self.stack.pop()
-    self.stack.append([Value(x) for x in d.keys()])
+    self.stack.append([Value(x) for x in sorted(d.keys())])
 
 def neon_exceptiontype__toString(self):
     ei = self.stack.pop()
@@ -1310,11 +1387,11 @@ def neon_object__subscript(self):
 def neon_object__toString(self):
     v = self.stack.pop()
     if isinstance(v, list):
-        self.stack.append("[{}]".format(", ".join(x.literal() if x.value is not None else "null" for x in v)))
+        self.stack.append("[{}]".format(", ".join(literal(x.value) for x in v)))
     elif isinstance(v, dict):
-        self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), x.literal() if x.value is not None else "null") for k, x in sorted(v.items()))))
+        self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(x.value)) for k, x in sorted(v.items()))))
     else:
-        self.stack.append(v.literal() if v is not None else "null")
+        self.stack.append(literal(v))
 
 def neon_pointer__toString(self):
     v = self.stack.pop()
@@ -1579,6 +1656,9 @@ def neon_runtime_assertionsEnabled(self):
 def neon_runtime_executorName(self):
     self.stack.append("pynex")
 
+def neon_runtime_moduleIsMain(self):
+    self.stack.append(self.module is self.modules[""])
+
 def neon_string_find(self):
     t = self.stack.pop()
     s = self.stack.pop()
@@ -1635,9 +1715,11 @@ def neon_string_toCodePoint(self):
         return
     self.stack.append(decimal.Decimal(ord(s)))
 
-def neon_string_trim(self):
+def neon_string_trimCharacters(self):
+    trailing = self.stack.pop()
+    leading = self.stack.pop()
     s = self.stack.pop()
-    self.stack.append(s.strip())
+    self.stack.append(s.lstrip(leading).rstrip(trailing))
 
 def neon_string_upper(self):
     s = self.stack.pop()
@@ -1680,4 +1762,4 @@ def neon_textio_writeLine(self):
 def neon_time_now(self):
     self.stack.append(decimal.Decimal(time.time()))
 
-Executor(open(sys.argv[1], "rb").read()).run()
+Executor(sys.argv[1], open(sys.argv[1], "rb").read()).run()
