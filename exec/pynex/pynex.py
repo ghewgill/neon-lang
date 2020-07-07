@@ -1010,12 +1010,16 @@ class Executor:
                     if name == handler or (len(name) > len(handler) and name.startswith(handler) and name[len(handler)] == "."):
                         self.module = tmodule
                         self.ip = e.handler
+                        while len(self.stack) > (self.frames[-1].opstack_depth if self.frames else 0) + e.stack_depth:
+                            self.stack.pop()
                         self.callstack[sp:] = []
                         self.stack.append(exceptionvar)
                         return
             if sp == 0:
                 break
             sp -= 1
+            if self.frames:
+                self.frames.pop()
             (tmodule, tip) = self.callstack[sp]
 
         print("Unhandled exception {} ({}) (code {})".format(name, info[0], info[1]), file=sys.stderr)
