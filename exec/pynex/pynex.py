@@ -826,7 +826,11 @@ class Executor:
         sys.exit(1)
 
     def CALLI(self):
-        assert False
+        self.ip += 1
+        a = self.stack.pop()
+        m = a[0].value
+        index = a[1].value
+        self.invoke(m, index)
 
     def JUMP(self):
         self.ip += 1
@@ -945,7 +949,9 @@ class Executor:
         assert False
 
     def PUSHFP(self):
-        assert False
+        self.ip += 1
+        val, self.ip = get_vint(self.module.object.code, self.ip)
+        self.stack.append([Value(self.module), Value(val)])
 
     def CALLV(self):
         self.ip += 1

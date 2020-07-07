@@ -6,13 +6,9 @@ complex-test.neon          # precision
 datetime-test.neon         # datetime
 debug-example.neon         # debugger
 decimal.neon               # arithmetic
-dictionary-sorted.neon     # sort
 encoding-base64.neon       # binary
-equality.neon              # PUSHFP
 exception-opstack.neon     # exception
 file-symlink.neon          # symlink win32
-function-pointer-nowhere.neon # functionpointer
-function-pointer.neon      # functionpointer
 gc-array.neon              # gc
 gc-long-chain.neon         # gc
 gc1.neon                   # gc
@@ -26,15 +22,10 @@ interface-parameter-import2.neon # value
 io-test.neon               # io
 math-test.neon             # precision
 mmap-test.neon             # mmap
-module-alias2.neon         # PUSHFP
-module-import-name-alias2.neon # PUSHFP
-module-import-name2.neon   # PUSHFP
-module.neon                # PUSHFP
-module2.neon               # PUSHFP
 multiarray-test.neon       # array__resize
 net-test.neon              # net
 net-test-udp.neon          # net
-new-init-module.neon       # PUSHFP
+new-init-module.neon       # PUSHCI
 number-ceil.neon           # precision
 posix-fork.neon            # posix
 recursion-limit.neon       # runtime
@@ -50,7 +41,6 @@ string-bytes.neon          # format
 string-index.neon          # index
 struct-test.neon           # binary
 time-stopwatch.neon        # time
-varargs-functionpointer.neon # functionpointer
 win32-test.neon            # win32
 
 compress-test.neon
