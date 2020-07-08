@@ -22,13 +22,6 @@ net-test-udp.neon          # net
 number-ceil.neon           # precision
 posix-fork.neon            # posix
 recursion-limit.neon       # runtime
-sql-connect.neon           # sqlite
-sql-cursor.neon            # sqlite
-sql-embed.neon             # sqlite
-sql-execute.neon           # sqlite
-sql-query.neon             # sqlite
-sql-whenever.neon          # sqlite
-sqlite-test.neon           # sqlite
 stack-overflow.neon        # stack
 string-bytes.neon          # format
 string-index.neon          # index

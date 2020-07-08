@@ -7,6 +7,7 @@ import os
 import random
 import re
 import shutil
+import sqlite3
 import stat
 import sys
 import time
@@ -285,6 +286,7 @@ class Executor:
         self.stack = []
         self.callstack = []
         self.frames = []
+        self.cursors = {}
 
         self.import_module("", bytecode)
         self.module = self.modules[""]
@@ -2131,6 +2133,87 @@ def neon_runtime_isModuleImported(self):
 
 def neon_runtime_moduleIsMain(self):
     self.stack.append(self.module is self.modules[""])
+
+def neon_sqlite_close(self):
+    db = self.stack.pop()
+    db.close()
+
+class Cursor:
+    def __init__(self, db, query):
+        self.db = db
+        self.query = query
+        self.cursor = None
+
+def neon_sqlite_cursorClose(self):
+    name = self.stack.pop()
+    self.cursors[name].cursor.close()
+
+def neon_sqlite_cursorDeclare(self):
+    query = self.stack.pop()
+    name = self.stack.pop()
+    db = self.stack.pop()
+    self.cursors[name] = Cursor(db, query)
+    self.stack.append(name)
+
+def neon_sqlite_cursorFetch(self):
+    name = self.stack.pop()
+    r = self.cursors[name].cursor.fetchone()
+    if r is not None:
+        self.stack.append(True)
+        self.stack.append([Value(str(x)) for x in r])
+    else:
+        self.stack.append(False)
+        self.stack.append([])
+
+def neon_sqlite_cursorOpen(self):
+    name = self.stack.pop()
+    self.cursors[name].cursor = self.cursors[name].db.execute(self.cursors[name].query)
+
+def neon_sqlite_exec(self):
+    params = self.stack.pop()
+    sql = self.stack.pop()
+    db = self.stack.pop()
+    cur = db.execute(sql, {k[1:]: v.value for k, v in params.items()})
+    r = []
+    while True:
+        row = cur.fetchone()
+        if row is None:
+            break
+        r.append(Value([Value(str(x)) for x in row]))
+    cur.close()
+    self.stack.append(r)
+
+def neon_sqlite_execOne(self):
+    params = self.stack.pop()
+    sql = self.stack.pop()
+    db = self.stack.pop()
+    cur = db.execute(sql, {k[1:]: v.value for k, v in params.items()})
+    row = cur.fetchone()
+    cur.close()
+    if row is not None:
+        self.stack.append(True)
+        self.stack.append([Value(str(x)) for x in row])
+    else:
+        self.stack.append(False)
+        self.stack.append([])
+
+def neon_sqlite_execRaw(self):
+    sql = self.stack.pop()
+    db = self.stack.pop()
+    cur = db.execute(sql)
+    r = []
+    while True:
+        row = cur.fetchone()
+        if row is None:
+            break
+        r.append(Value([Value(str(x)) for x in row]))
+    cur.close()
+    self.stack.append(r)
+
+def neon_sqlite_open(self):
+    fn = self.stack.pop()
+    r = sqlite3.connect(fn)
+    self.stack.append(r)
 
 def neon_string_find(self):
     t = self.stack.pop()
