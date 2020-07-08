@@ -173,7 +173,7 @@ void binary_replace32(TExecutor *exec)
 
     unsigned int b = number_to_uint32(n);
     if (b >= 32) {
-        push(exec->stack, cell_fromNumber(BID_ZERO));
+        push(exec->stack, cell_fromNumber(x));
         return;
     }
     unsigned int v = number_to_uint32(w);
@@ -400,7 +400,7 @@ void binary_replace64(TExecutor *exec)
 
     unsigned int b = number_to_uint32(n);
     if (b >= 64) {
-        push(exec->stack, cell_fromNumber(BID_ZERO));
+        push(exec->stack, cell_fromNumber(x));
         return;
     }
     unsigned int v = number_to_uint32(w);

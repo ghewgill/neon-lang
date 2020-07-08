@@ -126,7 +126,7 @@ template <typename T> Number binary_replace(Number x, Number n, Number w, Number
     range_check<T>(y);
     unsigned int b = number_to_uint32(n);
     if (b >= traits<T>::BITS) {
-        return traits<T>::to_number(0);
+        return x;
     }
     unsigned int v = number_to_uint32(w);
     if (b + v > traits<T>::BITS) {

@@ -124,7 +124,7 @@ a := FALSE TRY _ := binary.or64(0x10000000000000000, 0xffffffffffffffff) TRAP Va
 a := FALSE TRY _ := binary.or64(0xffffffffffffffff, 0x10000000000000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
 
 ASSERT binary.replace32(0, 0, 0, 0) = 0
-ASSERT binary.replace32(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) = 0
+ASSERT binary.replace32(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) = 0xffffffff
 a := FALSE TRY _ := binary.replace32(-1, 0, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
 a := FALSE TRY _ := binary.replace32(0, -1, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
 a := FALSE TRY _ := binary.replace32(0, 0, -1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
@@ -135,7 +135,7 @@ a := FALSE TRY _ := binary.replace32(0xffffffff, 0xffffffff, 0x100000000, 0xffff
 a := FALSE TRY _ := binary.replace32(0xffffffff, 0xffffffff, 0xffffffff, 0x100000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
 
 ASSERT binary.replace64(0, 0, 0, 0) = 0
-ASSERT binary.replace64(0xffffffffffffffff, 0xffffffff, 0xffffffff, 0xffffffffffffffff) = 0
+ASSERT binary.replace64(0xffffffffffffffff, 0xffffffff, 0xffffffff, 0xffffffffffffffff) = 0xffffffffffffffff
 a := FALSE TRY _ := binary.replace64(-1, 0, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
 a := FALSE TRY _ := binary.replace64(0, -1, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
 a := FALSE TRY _ := binary.replace64(0, 0, -1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
