@@ -1,7 +1,6 @@
 bytes-index.neon           # index
 complex-test.neon          # precision
 decimal.neon               # arithmetic
-encoding-base64.neon       # decimal.ConversionSyntax
 file-symlink.neon          # symlink win32
 gc-array.neon              # gc
 gc-long-chain.neon         # gc
@@ -21,7 +20,6 @@ number-ceil.neon           # precision
 posix-fork.neon            # posix
 recursion-limit.neon       # runtime
 stack-overflow.neon        # stack
-string-bytes.neon          # format
 string-index.neon          # index
 struct-test.neon           # struct
 win32-test.neon            # win32
