@@ -29,12 +29,6 @@ def get_vint(b, i):
 def quoted(s):
     return '"' + s.replace('"', r'\"') + '"'
 
-class Bytes:
-    def __init__(self, s):
-        self.s = s
-    def literal(self):
-        return "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in self.s))
-
 class Type:
     def __init__(self):
         self.name = 0
@@ -243,8 +237,8 @@ def literal(v):
         return "TRUE" if v else "FALSE"
     if isinstance(v, str):
         return quoted(v)
-    if isinstance(v, Bytes):
-        return v.literal()
+    if isinstance(v, bytes):
+        return "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in v))
     return str(v)
 
 class Value:
@@ -253,7 +247,7 @@ class Value:
     def __repr__(self):
         return "Value({}:{})".format(id(self), repr(self.value))
     def copy(self):
-        if self.value is None or isinstance(self.value, (bool, str, Bytes, decimal.Decimal)):
+        if self.value is None or isinstance(self.value, (bool, str, bytes, decimal.Decimal)):
             return Value(self.value)
         elif isinstance(self.value, list):
             return Value([x.copy() for x in self.value])
@@ -342,7 +336,7 @@ class Executor:
     def PUSHY(self):
         self.ip += 1
         val, self.ip = get_vint(self.module.object.code, self.ip)
-        self.stack.append(Bytes(self.module.object.strtable[val]))
+        self.stack.append(self.module.object.strtable[val])
 
     def PUSHPG(self):
         self.ip += 1
@@ -638,19 +632,19 @@ class Executor:
         self.ip += 1
         b = self.stack.pop()
         a = self.stack.pop()
-        self.stack.append(a.s == b.s)
+        self.stack.append(a == b)
 
     def NEY(self):
         self.ip += 1
         b = self.stack.pop()
         a = self.stack.pop()
-        self.stack.append(a.s != b.s)
+        self.stack.append(a != b)
 
     def LTY(self):
         self.ip += 1
         b = self.stack.pop()
         a = self.stack.pop()
-        self.stack.append(a.s < b.s)
+        self.stack.append(a < b)
 
     def GTY(self):
         assert False
@@ -1223,7 +1217,7 @@ def neon_array__splice(self):
 
 def neon_array__toBytes__number(self):
     a = self.stack.pop()
-    self.stack.append(Bytes(bytearray(int(x.value) for x in a)))
+    self.stack.append(bytearray(int(x.value) for x in a))
 
 def neon_array__toString__number(self):
     a = self.stack.pop()
@@ -1262,7 +1256,7 @@ def neon_binary_and64(self):
 def neon_binary_andBytes(self):
     b = self.stack.pop()
     a = self.stack.pop()
-    self.stack.append(Bytes([x & y for x, y in zip(a.s, b.s)]))
+    self.stack.append(bytearray([x & y for x, y in zip(a, b)]))
 
 def neon_binary_extract32(self):
     w = int(self.stack.pop())
@@ -1344,7 +1338,7 @@ def neon_binary_not64(self):
 
 def neon_binary_notBytes(self):
     a = self.stack.pop()
-    self.stack.append(Bytes([x ^ 0xFF for x in a.s]))
+    self.stack.append(bytearray([x ^ 0xFF for x in a]))
 
 def neon_binary_or32(self):
     b = int(self.stack.pop())
@@ -1371,7 +1365,7 @@ def neon_binary_or64(self):
 def neon_binary_orBytes(self):
     b = self.stack.pop()
     a = self.stack.pop()
-    self.stack.append(Bytes([x | y for x, y in zip(a.s, b.s)]))
+    self.stack.append(bytearray([x | y for x, y in zip(a, b)]))
 
 def neon_binary_replace32(self):
     y = int(self.stack.pop())
@@ -1550,7 +1544,7 @@ def neon_binary_xor64(self):
 def neon_binary_xorBytes(self):
     b = self.stack.pop()
     a = self.stack.pop()
-    self.stack.append(Bytes([x ^ y for x, y in zip(a.s, b.s)]))
+    self.stack.append(bytearray([x ^ y for x, y in zip(a, b)]))
 
 def neon_boolean__toString(self):
     x = self.stack.pop()
@@ -1559,11 +1553,11 @@ def neon_boolean__toString(self):
 def neon_bytes__concat(self):
     b = self.stack.pop()
     a = self.stack.pop()
-    self.stack.append(Bytes(a.s + b.s))
+    self.stack.append(a + b)
 
 def neon_bytes__decodeToString(self):
     b = self.stack.pop()
-    self.stack.append(b.s.decode())
+    self.stack.append(b.decode())
 
 def neon_bytes__range(self):
     last_from_end = self.stack.pop()
@@ -1572,14 +1566,14 @@ def neon_bytes__range(self):
     first = int(self.stack.pop())
     b = self.stack.pop()
     if first_from_end:
-        first += len(b.s) - 1
+        first += len(b) - 1
     if last_from_end:
-        last += len(b.s) - 1
-    self.stack.append(Bytes(b.s[first:last+1]))
+        last += len(b) - 1
+    self.stack.append(b[first:last+1])
 
 def neon_bytes__size(self):
     b = self.stack.pop()
-    self.stack.append(decimal.Decimal(len(b.s)))
+    self.stack.append(decimal.Decimal(len(b)))
 
 def neon_bytes__splice(self):
     last_from_end = self.stack.pop()
@@ -1589,19 +1583,19 @@ def neon_bytes__splice(self):
     a = self.stack.pop()
     b = self.stack.pop()
     if first_from_end:
-        first += len(a.s) - 1
+        first += len(a) - 1
     if last_from_end:
-        last += len(a.s) - 1
-    r = a.s[:first] + b.s + a.s[last+1:]
-    self.stack.append(Bytes(r))
+        last += len(a) - 1
+    r = a[:first] + b + a[last+1:]
+    self.stack.append(r)
 
 def neon_bytes__toArray(self):
     b = self.stack.pop()
-    self.stack.append([Value(decimal.Decimal(x)) for x in b.s])
+    self.stack.append([Value(decimal.Decimal(x)) for x in b])
 
 def neon_bytes__toString(self):
     b = self.stack.pop()
-    self.stack.append("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in b.s)))
+    self.stack.append("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in b)))
 
 def neon_console_input(self):
     prompt = self.stack.pop()
@@ -1666,7 +1660,7 @@ def neon_object__getBoolean(self):
 
 def neon_object__getBytes(self):
     v = self.stack.pop()
-    if not isinstance(v, Bytes):
+    if not isinstance(v, bytes):
         self.raise_literal("DynamicConversionException", ("to Bytes", 0))
         return
     self.stack.append(v)
@@ -1821,7 +1815,7 @@ def neon_string__substring(self):
 
 def neon_string__toBytes(self):
     s = self.stack.pop()
-    self.stack.append(Bytes(s))
+    self.stack.append(s.encode())
 
 def neon_substring(self):
     length = int(self.stack.pop())
@@ -1899,7 +1893,7 @@ def neon_file_mkdir(self):
 def neon_file_readBytes(self):
     fn = self.stack.pop()
     r = open(fn, "rb").read()
-    self.stack.append(Bytes(r))
+    self.stack.append(r)
 
 def neon_file_readLines(self):
     fn = self.stack.pop()
@@ -1931,7 +1925,7 @@ def neon_file_writeBytes(self):
     data = self.stack.pop()
     fn = self.stack.pop()
     with open(fn, "wb") as f:
-        f.write(data.s)
+        f.write(data)
 
 def neon_file_writeLines(self):
     data = self.stack.pop()
