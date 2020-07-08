@@ -9,6 +9,7 @@ import re
 import shutil
 import sqlite3
 import stat
+import struct
 import sys
 import time
 
@@ -1231,7 +1232,7 @@ def neon_array__splice(self):
 
 def neon_array__toBytes__number(self):
     a = self.stack.pop()
-    self.stack.append(bytearray(int(x.value) for x in a))
+    self.stack.append(bytearray(int(x.value) if x.value is not None else 0 for x in a))
 
 def neon_array__toString__number(self):
     a = self.stack.pop()
@@ -1484,7 +1485,7 @@ def neon_binary_shiftLeft64(self):
     if not (0 <= n <= 0xFFFFFFFF):
         self.raise_literal("ValueRangeException", (n, 0))
         return
-    if n < 32:
+    if n < 64:
         self.stack.append(x << n)
     else:
         self.stack.append(0)
@@ -1839,6 +1840,16 @@ def neon_string__substring(self):
 def neon_string__toBytes(self):
     s = self.stack.pop()
     self.stack.append(s.encode())
+
+def neon_struct_packIEEE64(self):
+    n = self.stack.pop()
+    r = struct.pack("d", n)
+    self.stack.append(r)
+
+def neon_struct_unpackIEEE64(self):
+    b = self.stack.pop()
+    r = decimal.Decimal(struct.unpack("d", b)[0])
+    self.stack.append(r)
 
 def neon_substring(self):
     length = int(self.stack.pop())

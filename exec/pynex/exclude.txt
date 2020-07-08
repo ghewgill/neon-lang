@@ -21,7 +21,6 @@ posix-fork.neon            # posix
 recursion-limit.neon       # runtime
 stack-overflow.neon        # stack
 string-index.neon          # index
-struct-test.neon           # struct
 win32-test.neon            # win32
 
 compress-test.neon
