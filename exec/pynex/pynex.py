@@ -1639,6 +1639,13 @@ def neon_datetime_timegm(self):
     r = calendar.timegm(tm)
     self.stack.append(r)
 
+def neon_debugger_breakpoint(self):
+    pass
+
+def neon_debugger_log(self):
+    message = self.stack.pop()
+    pass
+
 def neon_dictionary__keys(self):
     d = self.stack.pop()
     self.stack.append([Value(x) for x in sorted(d.keys())])

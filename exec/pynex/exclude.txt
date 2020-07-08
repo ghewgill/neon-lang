@@ -1,6 +1,5 @@
 bytes-index.neon           # index
 complex-test.neon          # precision
-debug-example.neon         # debugger
 decimal.neon               # arithmetic
 encoding-base64.neon       # decimal.ConversionSyntax
 file-symlink.neon          # symlink win32
