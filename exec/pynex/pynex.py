@@ -17,6 +17,11 @@ enable_assert = True
 def is_integer(x):
     return x == int(x)
 
+def is_signed(x):
+    if isinstance(x, decimal.Decimal):
+        return x.is_signed()
+    return x < 0
+
 def get_vint(b, i):
     r = 0
     while True:
@@ -248,7 +253,7 @@ class Value:
     def __repr__(self):
         return "Value({}:{})".format(id(self), repr(self.value))
     def copy(self):
-        if self.value is None or isinstance(self.value, (bool, str, bytes, decimal.Decimal)):
+        if self.value is None or isinstance(self.value, (bool, int, decimal.Decimal, str, bytes)):
             return Value(self.value)
         elif isinstance(self.value, list):
             return Value([x.copy() for x in self.value])
@@ -328,7 +333,11 @@ class Executor:
     def PUSHN(self):
         self.ip += 1
         val, self.ip = get_vint(self.module.object.code, self.ip)
-        self.stack.append(decimal.Decimal(self.module.object.strtable[val].decode()))
+        n = decimal.Decimal(self.module.object.strtable[val].decode())
+        i = int(n)
+        if i == n:
+            n = i
+        self.stack.append(n)
 
     def PUSHS(self):
         self.ip += 1
@@ -379,7 +388,7 @@ class Executor:
     def PUSHI(self):
         self.ip += 1
         x, self.ip = get_vint(self.module.object.code, self.ip)
-        self.stack.append(decimal.Decimal(x))
+        self.stack.append(x)
 
     def LOADB(self):
         self.ip += 1
@@ -392,7 +401,7 @@ class Executor:
         self.ip += 1
         addr = self.stack.pop()
         if addr.value is None:
-            addr.value = decimal.Decimal(0)
+            addr.value = 0
         self.stack.append(addr.value)
 
     def LOADS(self):
@@ -522,7 +531,10 @@ class Executor:
         if b == 0:
             self.raise_literal("DivideByZeroException", ("", 0))
             return
-        self.stack.append(a / b)
+        if isinstance(a, int) and isinstance(b, int) and a % b == 0:
+            self.stack.append(a // b)
+        else:
+            self.stack.append(a / b)
 
     def MODN(self):
         self.ip += 1
@@ -532,11 +544,11 @@ class Executor:
             self.raise_literal("DivideByZeroException", ("", 0))
             return
         m = abs(b)
-        if a.is_signed():
+        if is_signed(a):
             q = decimal.Decimal(math.ceil(float(abs(a) / m)))
             a += m * q
         r = a % m
-        if b.is_signed():
+        if is_signed(b):
             r -= m
         self.stack.append(r)
 
@@ -714,7 +726,7 @@ class Executor:
         self.ip += 1
         index = self.stack.pop()
         addr = self.stack.pop().value
-        if not is_integer(index) or index.is_signed() or int(index) >= len(addr):
+        if not is_integer(index) or is_signed(index) or int(index) >= len(addr):
             self.raise_literal("ArrayIndexException", (str(index), 0))
             return
         self.stack.append(addr[int(index)])
@@ -725,7 +737,7 @@ class Executor:
         addr = self.stack.pop()
         if addr.value is None:
             addr.value = []
-        if not is_integer(index) or index.is_signed():
+        if not is_integer(index) or is_signed(index):
             self.raise_literal("ArrayIndexException", (str(index), 0))
             return
         a = addr.value
@@ -738,7 +750,7 @@ class Executor:
         self.ip += 1
         index = self.stack.pop()
         addr = self.stack.pop()
-        if not is_integer(index) or index.is_signed():
+        if not is_integer(index) or is_signed(index):
             self.raise_literal("ArrayIndexException", (str(index), 0))
             return
         self.stack.append(addr[int(index)].value)
@@ -747,7 +759,7 @@ class Executor:
         self.ip += 1
         index = self.stack.pop()
         addr = self.stack.pop()
-        if not is_integer(index) or index.is_signed():
+        if not is_integer(index) or is_signed(index):
             self.raise_literal("ArrayIndexException", (str(index), 0))
             return
         self.stack.append(addr[int(index)].value)
@@ -902,7 +914,7 @@ class Executor:
         self.ip = start_ip
         a = self.stack.pop()
         info = a[0].value if len(a) >= 1 else ""
-        code = a[1].value if len(a) >= 2 else decimal.Decimal(0)
+        code = a[1].value if len(a) >= 2 else 0
         self.raise_literal(self.module.object.strtable[val].decode(), (info, code))
 
     def ALLOC(self):
@@ -1002,7 +1014,7 @@ class Executor:
             Value(name),
             Value(info[0]),
             Value(info[1]),
-            Value(decimal.Decimal(self.ip))
+            Value(self.ip)
         ]
 
         tmodule = self.module
@@ -1189,7 +1201,7 @@ def neon_array__resize(self):
 
 def neon_array__size(self):
     a = self.stack.pop()
-    self.stack.append(decimal.Decimal(len(a)))
+    self.stack.append(len(a))
 
 def neon_array__slice(self):
     last_from_end = self.stack.pop()
@@ -1575,7 +1587,7 @@ def neon_bytes__range(self):
 
 def neon_bytes__size(self):
     b = self.stack.pop()
-    self.stack.append(decimal.Decimal(len(b)))
+    self.stack.append(len(b))
 
 def neon_bytes__splice(self):
     last_from_end = self.stack.pop()
@@ -1593,7 +1605,7 @@ def neon_bytes__splice(self):
 
 def neon_bytes__toArray(self):
     b = self.stack.pop()
-    self.stack.append([Value(decimal.Decimal(x)) for x in b])
+    self.stack.append([Value(x) for x in b])
 
 def neon_bytes__toString(self):
     b = self.stack.pop()
@@ -1676,7 +1688,9 @@ def neon_object__getDictionary(self):
 
 def neon_object__getNumber(self):
     v = self.stack.pop()
-    if not isinstance(v, decimal.Decimal):
+    # Check against False and True explicitly,
+    # because isinstance(False, int) is true.
+    if v is False or v is True or not isinstance(v, (int, decimal.Decimal)):
         self.raise_literal("DynamicConversionException", ("to Number", 0))
         return
     self.stack.append(v)
@@ -1787,7 +1801,7 @@ def neon_string__concat(self):
 
 def neon_string__length(self):
     s = self.stack.pop()
-    self.stack.append(decimal.Decimal(len(s)))
+    self.stack.append(len(s))
 
 def neon_string__splice(self):
     last_from_end = self.stack.pop()
@@ -1866,11 +1880,11 @@ def neon_file_getInfo(self):
     st = os.stat(fn)
     r = [
         os.path.basename(fn),
-        decimal.Decimal(st.st_size),
+        st.st_size,
         (st.st_mode & stat.S_IRUSR) != 0,
         (st.st_mode & stat.S_IWUSR) != 0,
         (st.st_mode & stat.S_IXUSR) != 0,
-        decimal.Decimal(0 if stat.S_ISREG(st.st_mode) else 1 if stat.S_ISDIR(st.st_mode) else 2),
+        0 if stat.S_ISREG(st.st_mode) else 1 if stat.S_ISDIR(st.st_mode) else 2,
         st.st_ctime,
         st.st_atime,
         st.st_mtime,
@@ -2023,7 +2037,13 @@ def neon_math_hypot(self):
 def neon_math_intdiv(self):
     y = self.stack.pop()
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(x // y))
+    sign = is_signed(x) ^ is_signed(y)
+    x = abs(x)
+    y = abs(y)
+    r = x // y
+    if sign:
+        r = -r
+    self.stack.append(r)
 
 def neon_math_ldexp(self):
     i = self.stack.pop()
@@ -2081,7 +2101,7 @@ def neon_math_round(self):
 
 def neon_math_sign(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(0 if x == 0 else -1 if x.is_signed() else 1))
+    self.stack.append(decimal.Decimal(0 if x == 0 else -1 if is_signed(x) else 1))
 
 def neon_math_sin(self):
     x = self.stack.pop()
@@ -2116,10 +2136,10 @@ def neon_os_system(self):
     self.stack.append(decimal.Decimal(os.system(s)))
 
 def neon_posix_fork(self):
-    self.stack.append(decimal.Decimal(os.fork()))
+    self.stack.append(os.fork())
 
 def neon_random_uint32(self):
-    self.stack.append(decimal.Decimal(random.randrange(0x100000000)))
+    self.stack.append(random.randrange(0x100000000))
 
 def neon_runtime_assertionsEnabled(self):
     self.stack.append(Value(enable_assert))
@@ -2218,7 +2238,7 @@ def neon_sqlite_open(self):
 def neon_string_find(self):
     t = self.stack.pop()
     s = self.stack.pop()
-    self.stack.append(decimal.Decimal(s.find(t)))
+    self.stack.append(s.find(t))
 
 def neon_string_hasPrefix(self):
     prefix = self.stack.pop()
@@ -2269,7 +2289,7 @@ def neon_string_toCodePoint(self):
     if len(s) != 1:
         self.raise_literal("ArrayIndexException", ("toCodePoint() requires string of length 1", 0))
         return
-    self.stack.append(decimal.Decimal(ord(s)))
+    self.stack.append(ord(s))
 
 def neon_string_trimCharacters(self):
     trailing = self.stack.pop()

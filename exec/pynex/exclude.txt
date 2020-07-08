@@ -1,4 +1,3 @@
-bigint.neon                # bigint
 bytes-index.neon           # index
 complex-test.neon          # precision
 debug-example.neon         # debugger
