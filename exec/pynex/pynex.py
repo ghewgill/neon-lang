@@ -1237,6 +1237,321 @@ def neon_array__toString__string(self):
     a = self.stack.pop()
     self.stack.append("[{}]".format(", ".join(quoted(x.value) for x in a)))
 
+def neon_binary_and32(self):
+    b = int(self.stack.pop())
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (a, 0))
+        return
+    if not (0 <= b <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (b, 0))
+        return
+    self.stack.append(a & b)
+
+def neon_binary_and64(self):
+    b = int(self.stack.pop())
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (a, 0))
+        return
+    if not (0 <= b <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (b, 0))
+        return
+    self.stack.append(a & b)
+
+def neon_binary_andBytes(self):
+    b = self.stack.pop()
+    a = self.stack.pop()
+    self.stack.append(Bytes([x & y for x, y in zip(a.s, b.s)]))
+
+def neon_binary_extract32(self):
+    w = int(self.stack.pop())
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if not (0 <= w <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (w, 0))
+        return
+    if n < 32:
+        self.stack.append((x >> n) & ((1 << w) - 1))
+    else:
+        self.stack.append(0)
+
+def neon_binary_extract64(self):
+    w = int(self.stack.pop())
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if not (0 <= w <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (w, 0))
+        return
+    if n < 64:
+        self.stack.append((x >> n) & ((1 << w) - 1))
+    else:
+        self.stack.append(0)
+
+def neon_binary_get32(self):
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if n < 32:
+        self.stack.append((x & (1 << n)) != 0)
+    else:
+        self.stack.append(False)
+
+def neon_binary_get64(self):
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if n < 64:
+        self.stack.append((x & (1 << n)) != 0)
+    else:
+        self.stack.append(False)
+
+def neon_binary_not32(self):
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    self.stack.append(x ^ 0xFFFFFFFF)
+
+def neon_binary_not64(self):
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    self.stack.append(x ^ 0xFFFFFFFFFFFFFFFF)
+
+def neon_binary_notBytes(self):
+    a = self.stack.pop()
+    self.stack.append(Bytes([x ^ 0xFF for x in a.s]))
+
+def neon_binary_or32(self):
+    b = int(self.stack.pop())
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (a, 0))
+        return
+    if not (0 <= b <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (b, 0))
+        return
+    self.stack.append(a | b)
+
+def neon_binary_or64(self):
+    b = int(self.stack.pop())
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (a, 0))
+        return
+    if not (0 <= b <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (b, 0))
+        return
+    self.stack.append(a | b)
+
+def neon_binary_orBytes(self):
+    b = self.stack.pop()
+    a = self.stack.pop()
+    self.stack.append(Bytes([x | y for x, y in zip(a.s, b.s)]))
+
+def neon_binary_replace32(self):
+    y = int(self.stack.pop())
+    w = int(self.stack.pop())
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if not (0 <= w <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (w, 0))
+        return
+    if not (0 <= y <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (y, 0))
+        return
+    if n < 32:
+        self.stack.append(x & ((((1 << w) - 1) << n) ^ 0xFFFFFFFF) | (y << n))
+    else:
+        self.stack.append(x)
+
+def neon_binary_replace64(self):
+    y = int(self.stack.pop())
+    w = int(self.stack.pop())
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if not (0 <= w <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (w, 0))
+        return
+    if not (0 <= y <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (y, 0))
+        return
+    if n < 64:
+        self.stack.append(x & ((((1 << w) - 1) << n) ^ 0xFFFFFFFFFFFFFFFF) | (y << n))
+    else:
+        self.stack.append(x)
+
+def neon_binary_set32(self):
+    v = self.stack.pop()
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if n < 32:
+        if v:
+            self.stack.append(x | (1 << n))
+        else:
+            self.stack.append(x & ((1 << n) ^ 0xFFFFFFFF))
+    else:
+        self.stack.append(x)
+
+def neon_binary_set64(self):
+    v = self.stack.pop()
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if n < 64:
+        if v:
+            self.stack.append(x | (1 << n))
+        else:
+            self.stack.append(x & ((1 << n) ^ 0xFFFFFFFFFFFFFFFF))
+    else:
+        self.stack.append(x)
+
+def neon_binary_shiftLeft32(self):
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if n < 32:
+        self.stack.append(x << n)
+    else:
+        self.stack.append(0)
+
+def neon_binary_shiftLeft64(self):
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    if n < 32:
+        self.stack.append(x << n)
+    else:
+        self.stack.append(0)
+
+def neon_binary_shiftRight32(self):
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    self.stack.append(x >> n)
+
+def neon_binary_shiftRight64(self):
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    self.stack.append(x >> n)
+
+def neon_binary_shiftRightSigned32(self):
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (-0x80000000 <= x <= 0x7FFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    self.stack.append(x >> n)
+
+def neon_binary_shiftRightSigned64(self):
+    n = int(self.stack.pop())
+    x = int(self.stack.pop())
+    if not (-0x8000000000000000 <= x <= 0x7FFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (x, 0))
+        return
+    if not (0 <= n <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (n, 0))
+        return
+    self.stack.append(x >> n)
+
+def neon_binary_xor32(self):
+    b = int(self.stack.pop())
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (a, 0))
+        return
+    if not (0 <= b <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", (b, 0))
+        return
+    self.stack.append(a ^ b)
+
+def neon_binary_xor64(self):
+    b = int(self.stack.pop())
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (a, 0))
+        return
+    if not (0 <= b <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", (b, 0))
+        return
+    self.stack.append(a ^ b)
+
+def neon_binary_xorBytes(self):
+    b = self.stack.pop()
+    a = self.stack.pop()
+    self.stack.append(Bytes([x ^ y for x, y in zip(a.s, b.s)]))
+
 def neon_boolean__toString(self):
     x = self.stack.pop()
     self.stack.append("TRUE" if x else "FALSE")

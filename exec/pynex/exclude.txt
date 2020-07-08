@@ -1,10 +1,9 @@
-binary-test.neon           # binary
 bigint.neon                # bigint
 bytes-index.neon           # index
 complex-test.neon          # precision
 debug-example.neon         # debugger
 decimal.neon               # arithmetic
-encoding-base64.neon       # binary
+encoding-base64.neon       # decimal.ConversionSyntax
 file-symlink.neon          # symlink win32
 gc-array.neon              # gc
 gc-long-chain.neon         # gc
@@ -33,7 +32,7 @@ sqlite-test.neon           # sqlite
 stack-overflow.neon        # stack
 string-bytes.neon          # format
 string-index.neon          # index
-struct-test.neon           # binary
+struct-test.neon           # struct
 win32-test.neon            # win32
 
 compress-test.neon
