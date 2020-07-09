@@ -2156,6 +2156,11 @@ def neon_os_system(self):
 def neon_posix_fork(self):
     self.stack.append(os.fork())
 
+def neon_posix_wait(self):
+    (pid, status) = os.wait()
+    self.stack.append(pid)
+    self.stack.append(status)
+
 def neon_random_uint32(self):
     self.stack.append(random.randrange(0x100000000))
 
