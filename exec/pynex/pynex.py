@@ -8,6 +8,7 @@ import os
 import random
 import re
 import shutil
+import socket
 import sqlite3
 import stat
 import struct
@@ -2240,6 +2241,53 @@ def neon_mmap_read(self):
     m = self.stack.pop()[1]
     r = m[offset:offset+count]
     self.stack.append(r)
+
+def neon_net_socket_accept(self):
+    sock = self.stack.pop()
+    (t, _) = sock.accept()
+    self.stack.append([Value(t)])
+
+def neon_net_socket_bind(self):
+    port = int(self.stack.pop())
+    address = self.stack.pop()
+    sock = self.stack.pop()
+    sock.bind((address, port))
+
+def neon_net_socket_close(self):
+    sock = self.stack.pop()
+    sock.close()
+
+def neon_net_socket_connect(self):
+    port = int(self.stack.pop())
+    host = self.stack.pop()
+    sock = self.stack.pop()
+    sock.connect((host, port))
+
+def neon_net_socket_listen(self):
+    port = int(self.stack.pop())
+    sock = self.stack.pop()
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(("", port))
+    sock.listen(5)
+
+def neon_net_socket_recv(self):
+    count = int(self.stack.pop())
+    sock = self.stack.pop()
+    r = sock.recv(count)
+    self.stack.append(r)
+
+def neon_net_socket_send(self):
+    b = self.stack.pop()
+    sock = self.stack.pop()
+    sock.send(b)
+
+def neon_net_tcpSocket(self):
+    r = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.stack.append([Value(r)])
+
+def neon_net_udpSocket(self):
+    r = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    self.stack.append([Value(r)])
 
 def neon_os_system(self):
     s = self.stack.pop()
