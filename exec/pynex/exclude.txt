@@ -9,7 +9,6 @@ gc3.neon                   # gc
 gc-two-pointers.neon       # gc
 import.neon                # interfaces
 interface-parameter-import2.neon # value
-io-test.neon               # io
 math-test.neon             # precision
 mmap-test.neon             # mmap
 multiarray-test.neon       # array__resize

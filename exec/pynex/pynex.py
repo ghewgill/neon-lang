@@ -265,6 +265,8 @@ class Value:
 
 Globals = {
     "sys$args": Value([Value(x) for x in sys.argv[1:]]),
+    "io$stderr": Value(sys.stderr.buffer),
+    "io$stdout": Value(sys.stdout.buffer),
     "textio$stderr": Value(sys.stderr),
     "textio$stdout": Value(sys.stdout),
 }
@@ -1994,6 +1996,45 @@ def neon_file_writeLines(self):
     with open(fn, "w") as f:
         for s in data:
             print(s.value, file=f)
+
+def neon_io_close(self):
+    f = self.stack.pop()
+    f.close()
+
+def neon_io_open(self):
+    mode = int(self.stack.pop())
+    fn = self.stack.pop()
+    try:
+        f = open(fn, "rb" if mode == 0 else "wb")
+        self.stack.append(f)
+    except FileNotFoundError:
+        self.raise_literal("IoException.Open", fn)
+
+def neon_io_flush(self):
+    f = self.stack.pop()
+    f.flush()
+
+def neon_io_readBytes(self):
+    count = int(self.stack.pop())
+    f = self.stack.pop()
+    r = f.read(count)
+    self.stack.append(r)
+
+def neon_io_seek(self):
+    whence = int(self.stack.pop())
+    offset = int(self.stack.pop())
+    f = self.stack.pop()
+    f.seek(offset, whence)
+
+def neon_io_tell(self):
+    f = self.stack.pop()
+    r = f.tell()
+    self.stack.append(r)
+
+def neon_io_write(self):
+    s = self.stack.pop()
+    f = self.stack.pop()
+    f.write(s.encode())
 
 def neon_math_abs(self):
     x = self.stack.pop()
