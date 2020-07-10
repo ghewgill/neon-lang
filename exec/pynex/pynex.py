@@ -3,6 +3,7 @@
 import calendar
 import decimal
 import math
+import mmap
 import os
 import random
 import re
@@ -2216,6 +2217,26 @@ def neon_math_tgamma(self):
 def neon_math_trunc(self):
     x = self.stack.pop()
     self.stack.append(decimal.Decimal(math.trunc(float(x))))
+
+def neon_mmap_close(self):
+    m = self.stack.pop()
+    m[1].close()
+    os.close(m[0])
+
+def neon_mmap_open(self):
+    mode = int(self.stack.pop())
+    name = self.stack.pop()
+    f = os.open(name, os.O_RDONLY)
+    size = os.fstat(f).st_size
+    m = mmap.mmap(f, size, access=mmap.ACCESS_READ)
+    self.stack.append((f, m))
+
+def neon_mmap_read(self):
+    count = int(self.stack.pop())
+    offset = int(self.stack.pop())
+    m = self.stack.pop()[1]
+    r = m[offset:offset+count]
+    self.stack.append(r)
 
 def neon_os_system(self):
     s = self.stack.pop()

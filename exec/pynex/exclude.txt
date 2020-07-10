@@ -10,7 +10,6 @@ gc-two-pointers.neon       # gc
 import.neon                # interfaces
 interface-parameter-import2.neon # value
 math-test.neon             # precision
-mmap-test.neon             # mmap
 multiarray-test.neon       # array__resize
 net-test.neon              # net
 net-test-udp.neon          # net
