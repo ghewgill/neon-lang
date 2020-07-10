@@ -1584,6 +1584,17 @@ def neon_bytes__range(self):
         first += len(b) - 1
     if last_from_end:
         last += len(b) - 1
+    if first < 0:
+        self.raise_literal("BytesIndexException", (str(first), 0))
+        return
+    if first >= len(b):
+        self.raise_literal("BytesIndexException", (str(first), 0))
+        return
+    if last >= len(b):
+        self.raise_literal("BytesIndexException", (str(last), 0))
+        return
+    if last < 0:
+        last = -1
     self.stack.append(b[first:last+1])
 
 def neon_bytes__size(self):
@@ -1835,6 +1846,17 @@ def neon_string__substring(self):
         first += len(s) - 1
     if last_from_end:
         last += len(s) - 1
+    if first < 0:
+        self.raise_literal("StringIndexException", (str(first), 0))
+        return
+    if first >= len(s):
+        self.raise_literal("StringIndexException", (str(first), 0))
+        return
+    if last >= len(s):
+        self.raise_literal("StringIndexException", (str(last), 0))
+        return
+    if last < 0:
+        last = -1
     self.stack.append(s[first:last+1])
 
 def neon_string__toBytes(self):

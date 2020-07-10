@@ -1,4 +1,3 @@
-bytes-index.neon           # index
 complex-test.neon          # precision
 decimal.neon               # arithmetic
 file-symlink.neon          # symlink win32
@@ -19,7 +18,6 @@ net-test-udp.neon          # net
 number-ceil.neon           # precision
 recursion-limit.neon       # runtime
 stack-overflow.neon        # stack
-string-index.neon          # index
 win32-test.neon            # win32
 
 compress-test.neon
