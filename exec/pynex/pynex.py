@@ -1197,7 +1197,10 @@ def neon_array__remove(self):
 
 def neon_array__resize(self):
     size = self.stack.pop()
-    a = self.stack.pop().value
+    a = self.stack.pop()
+    if a.value is None:
+        a.value = []
+    a = a.value
     if not is_integer(size):
         self.raise_literal("ArrayIndexException", (str(size), 0))
         return
