@@ -7,8 +7,6 @@ gc1.neon                   # gc
 gc2.neon                   # gc
 gc3.neon                   # gc
 gc-two-pointers.neon       # gc
-import.neon                # interfaces
-interface-parameter-import2.neon # value
 math-test.neon             # precision
 net-test.neon              # net
 net-test-udp.neon          # net

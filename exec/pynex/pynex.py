@@ -253,7 +253,7 @@ class Value:
     def __init__(self, value):
         self.value = value
     def __repr__(self):
-        return "Value({}:{})".format(id(self), repr(self.value))
+        return "Value({})".format(repr(self.value))
     def copy(self):
         if self.value is None or isinstance(self.value, (bool, int, decimal.Decimal, str, bytes)):
             return Value(self.value)
@@ -975,7 +975,7 @@ class Executor:
         instance = pi[0].value.value
         interface_index = int(pi[1].value)
         classinfo = instance[0].value
-        self.invoke(self.module, classinfo.interfaces[interface_index][val])
+        self.invoke(classinfo[0], classinfo[1].interfaces[interface_index][val])
 
     def PUSHCI(self):
         self.ip += 1
@@ -984,7 +984,7 @@ class Executor:
         if "." not in classname:
             for c in self.module.object.classes:
                 if c.name == val:
-                    self.stack.append(c)
+                    self.stack.append((self.module, c))
                     return
         else:
             dot = classname.find(".")
@@ -994,7 +994,7 @@ class Executor:
             if m is not None:
                 for c in m.object.classes:
                     if m.object.strtable[c.name].decode() == methodname:
-                        self.stack.append(c)
+                        self.stack.append((m, c))
                         return
         print("neon: unknown class name {0}".format(self.module.object.strtable[val].decode()), file=sys.stderr)
         sys.exit(1)
