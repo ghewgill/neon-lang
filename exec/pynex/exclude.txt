@@ -16,8 +16,6 @@ multiarray-test.neon       # array__resize
 net-test.neon              # net
 net-test-udp.neon          # net
 number-ceil.neon           # precision
-recursion-limit.neon       # runtime
-stack-overflow.neon        # stack
 win32-test.neon            # win32
 
 compress-test.neon

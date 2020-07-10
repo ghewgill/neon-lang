@@ -294,6 +294,8 @@ class Executor:
         self.frames = []
         self.cursors = {}
 
+        self.param_recursion_limit = 1000
+
         self.import_module("", bytecode)
         self.module = self.modules[""]
 
@@ -995,6 +997,9 @@ class Executor:
         sys.exit(1)
 
     def invoke(self, module, index):
+        if len(self.callstack) >= self.param_recursion_limit:
+            self.raise_literal("StackOverflowException", ("", 0))
+            return
         self.callstack.append((self.module, self.ip))
         outer = None
         nest = module.object.functions[index].nest
@@ -2198,6 +2203,9 @@ def neon_runtime_isModuleImported(self):
 
 def neon_runtime_moduleIsMain(self):
     self.stack.append(self.module is self.modules[""])
+
+def neon_runtime_setRecursionLimit(self):
+    self.param_recursion_limit = self.stack.pop()
 
 def neon_sqlite_close(self):
     db = self.stack.pop()
