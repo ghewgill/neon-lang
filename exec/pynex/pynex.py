@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import calendar
+import ctypes
 import decimal
 import math
 import mmap
@@ -15,7 +16,188 @@ import struct
 import sys
 import time
 
+if os.name == "nt":
+    LIBRARY_NAME_PREFIX = ""
+    LIBRARY_NAME_EXTENSION = ".dll"
+elif os.name == "posix":
+    if sys.platform == "darwin":
+        LIBRARY_NAME_PREFIX = "lib"
+        LIBRARY_NAME_EXTENSION = ".dylib"
+    else:
+        LIBRARY_NAME_PREFIX = "lib"
+        LIBRARY_NAME_EXTENSION = ".so"
+else:
+    print("warning: unknown platform for extension modules", file=sys.stderr)
+    LIBRARY_NAME_PREFIX = ""
+    LIBRARY_NAME_EXTENSION = ""
+
 enable_assert = True
+
+g_ExtensionModules = {}
+
+class Ne_Cell:
+    def __init__(self, value=None):
+        self.value = value
+    def __repr__(self):
+        return "Ne_Cell({})".format(repr(self.value))
+
+def Ne_parameterlist_alloc(n):
+    return [Ne_Cell() for _ in range(n)]
+
+def Ne_parameterlist_free(params):
+    pass
+
+def Ne_parameterlist_get_size(params):
+    return len(params)
+
+def Ne_parameterlist_check_types(params, types):
+    return 0
+
+def Ne_parameterlist_get_cell(params, i):
+    return params[i]
+
+def Ne_parameterlist_set_cell(params, i):
+    return params[i]
+
+def Ne_cell_alloc():
+    return Ne_Cell()
+
+def Ne_cell_free(cell):
+    pass
+
+def Ne_cell_copy(dest, src):
+    assert False
+
+def Ne_cell_get_boolean(cell):
+    return 1 if cell.value else 0
+
+def Ne_cell_set_boolean(cell, value):
+    cell.value = (value != 0)
+
+def Ne_cell_get_number_int(cell):
+    return cell.value
+
+def Ne_cell_get_number_uint(cell):
+    return cell.value
+
+def Ne_cell_set_number_int(cell, value):
+    cell.value = value
+
+def Ne_cell_set_number_uint(cell, value):
+    cell.value = value
+
+def Ne_cell_get_string(cell):
+    return cell.value.encode()
+
+def Ne_cell_set_string(cell, value):
+    cell.value = value.decode()
+
+def Ne_cell_get_bytes(cell):
+    return cell.value
+
+def Ne_cell_get_bytes_size(cell):
+    return len(cell.value)
+
+def Ne_cell_set_bytes(cell, value, size):
+    assert False, size
+    cell.bytes = value
+
+def Ne_cell_get_pointer(cell):
+    return cell.value
+
+def Ne_cell_set_pointer(cell, p):
+    cell.value = p
+
+def Ne_cell_get_array_size(cell):
+    if cell.value is None:
+        cell.value = []
+    return len(cell.value)
+
+def Ne_cell_array_clear(cell):
+    cell.value = []
+
+def Ne_cell_get_array_cell(cell, index):
+    print(cell, index)
+    if cell.value is None:
+        cell.value = []
+    return cell.value[index]
+
+def Ne_cell_set_array_cell(cell, index):
+    if cell.value is None:
+        cell.value = []
+    while index >= len(cell.value):
+        cell.value.append(Ne_Cell())
+    return cell.value[index]
+
+def Ne_cell_get_dictionary_size(cell):
+    if cell.value is None:
+        cell.value = {}
+    return len(cell.value)
+
+def Ne_cell_get_dictionary_key(cell, n):
+    if cell.value is None:
+        cell.value = {}
+    return cell.value.keys()[n]
+
+def Ne_cell_get_dictionary_cell(cell, key):
+    if cell.value is None:
+        cell.value = {}
+    return cell.value[key.decode()]
+
+def Ne_cell_set_dictionary_cell(cell, key):
+    if cell.value is None:
+        cell.value = {}
+    r = cell.value.get(key.decode())
+    if r is None:
+        r = Ne_Cell()
+        cell.value[key.decode()] = r
+    return r
+
+def Ne_exec_callback(callback, params, retval):
+    assert False
+
+def Ne_raise_exception(retval, name, info, code):
+    retval.value = [name.decode(), info.decode(), code]
+    return 1
+
+NeMethodThunks = [
+    ctypes.CFUNCTYPE(ctypes.py_object, ctypes.c_int)(Ne_parameterlist_alloc),
+    ctypes.CFUNCTYPE(None, ctypes.py_object)(Ne_parameterlist_free),
+    ctypes.CFUNCTYPE(ctypes.c_int, ctypes.py_object)(Ne_parameterlist_get_size),
+    ctypes.CFUNCTYPE(ctypes.c_int, ctypes.py_object, ctypes.c_char_p)(Ne_parameterlist_check_types),
+    ctypes.CFUNCTYPE(ctypes.py_object, ctypes.py_object, ctypes.c_int)(Ne_parameterlist_get_cell),
+    ctypes.CFUNCTYPE(ctypes.py_object, ctypes.py_object, ctypes.c_int)(Ne_parameterlist_set_cell),
+
+    ctypes.CFUNCTYPE(ctypes.py_object)(Ne_cell_alloc),
+    ctypes.CFUNCTYPE(None, ctypes.py_object)(Ne_cell_free),
+    ctypes.CFUNCTYPE(None, ctypes.py_object, ctypes.py_object)(Ne_cell_copy),
+    ctypes.CFUNCTYPE(ctypes.c_int, ctypes.py_object)(Ne_cell_get_boolean),
+    ctypes.CFUNCTYPE(None, ctypes.py_object, ctypes.c_int)(Ne_cell_set_boolean),
+    ctypes.CFUNCTYPE(ctypes.c_int, ctypes.py_object)(Ne_cell_get_number_int),
+    ctypes.CFUNCTYPE(ctypes.c_uint, ctypes.py_object)(Ne_cell_get_number_uint),
+    ctypes.CFUNCTYPE(None, ctypes.py_object, ctypes.c_int)(Ne_cell_set_number_int),
+    ctypes.CFUNCTYPE(None, ctypes.py_object, ctypes.c_uint)(Ne_cell_set_number_uint),
+    ctypes.CFUNCTYPE(ctypes.c_char_p, ctypes.py_object)(Ne_cell_get_string),
+    ctypes.CFUNCTYPE(None, ctypes.py_object, ctypes.c_char_p)(Ne_cell_set_string),
+    ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.py_object)(Ne_cell_get_bytes),
+    ctypes.CFUNCTYPE(ctypes.c_int, ctypes.py_object)(Ne_cell_get_bytes_size),
+    ctypes.CFUNCTYPE(None, ctypes.py_object, ctypes.c_void_p, ctypes.c_int)(Ne_cell_set_bytes),
+    ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.py_object)(Ne_cell_get_pointer),
+    ctypes.CFUNCTYPE(None, ctypes.py_object, ctypes.c_void_p)(Ne_cell_set_pointer),
+    ctypes.CFUNCTYPE(ctypes.c_int, ctypes.py_object)(Ne_cell_get_array_size),
+    ctypes.CFUNCTYPE(None, ctypes.py_object)(Ne_cell_array_clear),
+    ctypes.CFUNCTYPE(ctypes.py_object, ctypes.py_object, ctypes.c_int)(Ne_cell_get_array_cell),
+    ctypes.CFUNCTYPE(ctypes.py_object, ctypes.py_object, ctypes.c_int)(Ne_cell_set_array_cell),
+    ctypes.CFUNCTYPE(ctypes.c_int, ctypes.py_object)(Ne_cell_get_dictionary_size),
+    ctypes.CFUNCTYPE(ctypes.c_char_p, ctypes.py_object)(Ne_cell_get_dictionary_key),
+    ctypes.CFUNCTYPE(ctypes.py_object, ctypes.py_object, ctypes.c_char_p)(Ne_cell_get_dictionary_cell),
+    ctypes.CFUNCTYPE(ctypes.py_object, ctypes.py_object, ctypes.c_char_p)(Ne_cell_set_dictionary_cell),
+
+    ctypes.CFUNCTYPE(None, ctypes.py_object, ctypes.py_object, ctypes.py_object)(Ne_exec_callback),
+    ctypes.CFUNCTYPE(ctypes.c_int, ctypes.py_object, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int)(Ne_raise_exception),
+]
+
+NeMethodTable = b"".join(bytes(x) if x is not None else bytearray([0] * 8) for x in NeMethodThunks)
 
 def is_integer(x):
     return x == int(x)
@@ -90,7 +272,8 @@ class ClassInfo:
         self.interfaces = []
 
 class Bytecode:
-    def __init__(self, bytecode):
+    def __init__(self, source_path, bytecode):
+        self.source_path = source_path
         i = 0
 
         assert bytecode[i:i+4] == b"Ne\0n"
@@ -282,9 +465,9 @@ class ActivationFrame:
         self.opstack_depth = opstack_depth
 
 class Module:
-    def __init__(self, name, bytecode):
+    def __init__(self, name, source_path, bytecode):
         self.name = name
-        self.object = Bytecode(bytecode)
+        self.object = Bytecode(source_path, bytecode)
         self.globals = [Value(None) for _ in range(self.object.global_size)]
 
 class Executor:
@@ -301,25 +484,33 @@ class Executor:
 
         self.param_recursion_limit = 1000
 
-        self.import_module("", bytecode)
+        self.import_module("", modulefilename, bytecode)
         self.module = self.modules[""]
 
-    def import_module(self, name, bytecode):
+    def import_module(self, name, source_path, bytecode):
         m = self.modules.get(name)
         if m is not None:
             return
-        m = Module(name, bytecode)
+        m = Module(name, source_path, bytecode)
         self.modules[name] = m
         for imp in m.object.imports:
             imported_name = m.object.strtable[imp.name].decode()
             if "/" in imported_name:
-                bytes = open(imported_name + ".neonx", "rb").read()
+                fn = imported_name + ".neonx"
+                f = open(fn, "rb")
             else:
                 try:
-                    bytes = open(os.path.join("lib", imported_name + ".neonx"), "rb").read()
+                    fn = os.path.join("lib", imported_name + ".neonx")
+                    f = open(fn, "rb")
                 except FileNotFoundError:
-                    bytes = open(os.path.join(os.path.dirname(self.modulefilename), imported_name + ".neonx"), "rb").read()
-            self.import_module(imported_name, bytes)
+                    try:
+                        fn = os.path.join("lib", imported_name, imported_name + ".neonx")
+                        f = open(fn, "rb")
+                    except FileNotFoundError:
+                        fn = os.path.join(os.path.dirname(self.modulefilename), imported_name + ".neonx")
+                        f = open(fn, "rb")
+            self.import_module(imported_name, fn, f.read())
+            f.close()
         if name:
             self.init_order.insert(0, m)
 
@@ -956,14 +1147,44 @@ class Executor:
             self.ip += 6 * val
 
     def CALLX(self):
-        assert False
+        self.ip += 1
+        mod, self.ip = get_vint(self.module.object.code, self.ip)
+        name, self.ip = get_vint(self.module.object.code, self.ip)
+        out_param_count, self.ip = get_vint(self.module.object.code, self.ip)
+        modname = self.module.object.strtable[mod].decode()
+        lib = g_ExtensionModules.get(modname)
+        if lib is None:
+            modlib = os.path.join(os.path.dirname(self.module.object.source_path), LIBRARY_NAME_PREFIX + "neon_" + modname + LIBRARY_NAME_EXTENSION)
+            lib = ctypes.cdll.LoadLibrary(modlib)
+            r = lib.Ne_INIT(NeMethodTable)
+            assert r == 0
+            g_ExtensionModules[modname] = lib
+        funcname = self.module.object.strtable[name].decode()
+        retval = Ne_Cell()
+        in_params = [Ne_Cell(x.value) for x in self.stack.pop()]
+        out_params = [Ne_Cell() for _ in range(out_param_count)]
+        f = getattr(lib, "Ne_" + funcname)
+        f.restype = ctypes.c_int
+        f.argtypes = [ctypes.py_object, ctypes.py_object, ctypes.py_object]
+        r = f(retval, in_params, out_params)
+        if r == 0:
+            self.stack.append(retval.value)
+            for p in reversed(out_params):
+                self.stack.append(p.value)
+        elif r == 1:
+            name, info, code = retval.value
+            self.raise_literal(name, (info, code))
+        else:
+            assert False
 
     def SWAP(self):
         self.ip += 1
         self.stack = self.stack[:-2] + [self.stack[-1], self.stack[-2]]
 
     def DROPN(self):
-        assert False
+        self.ip += 1
+        val, self.ip = get_vint(self.module.object.code, self.ip)
+        del self.stack[-1-val]
 
     def PUSHFP(self):
         self.ip += 1
