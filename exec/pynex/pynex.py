@@ -268,6 +268,7 @@ class Value:
 Globals = {
     "sys$args": Value([Value(x) for x in sys.argv[1:]]),
     "io$stderr": Value(sys.stderr.buffer),
+    "io$stdin": Value(sys.stdin.buffer),
     "io$stdout": Value(sys.stdout.buffer),
     "textio$stderr": Value(sys.stderr),
     "textio$stdout": Value(sys.stdout),
@@ -1158,8 +1159,10 @@ Dispatch = [
 
 def neon_array__append(self):
     v = self.stack.pop()
-    a = self.stack.pop().value
-    a.append(Value(v))
+    a = self.stack.pop()
+    if a.value is None:
+        a.value = []
+    a.value.append(Value(v))
 
 def neon_array__concat(self):
     b = self.stack.pop()
