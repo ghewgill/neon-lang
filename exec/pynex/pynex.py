@@ -54,10 +54,10 @@ def Ne_parameterlist_check_types(params, types):
     return 0
 
 def Ne_parameterlist_get_cell(params, i):
-    return params[i]
+    return params[-1-i]
 
 def Ne_parameterlist_set_cell(params, i):
-    return params[i]
+    return params[-1-i]
 
 def Ne_cell_alloc():
     return Ne_Cell()
@@ -924,11 +924,14 @@ class Executor:
     def INDEXAR(self):
         self.ip += 1
         index = self.stack.pop()
-        addr = self.stack.pop().value
-        if not is_integer(index) or is_signed(index) or int(index) >= len(addr):
+        addr = self.stack.pop()
+        if addr.value is None:
+            addr.value = []
+        a = addr.value
+        if not is_integer(index) or is_signed(index) or int(index) >= len(a):
             self.raise_literal("ArrayIndexException", (str(index), 0))
             return
-        self.stack.append(addr[int(index)])
+        self.stack.append(a[int(index)])
 
     def INDEXAW(self):
         self.ip += 1
@@ -1169,7 +1172,7 @@ class Executor:
         r = f(retval, in_params, out_params)
         if r == 0:
             self.stack.append(retval.value)
-            for p in reversed(out_params):
+            for p in out_params:
                 self.stack.append(p.value)
         elif r == 1:
             name, info, code = retval.value
