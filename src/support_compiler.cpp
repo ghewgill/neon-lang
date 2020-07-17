@@ -12,10 +12,13 @@
 #include "parser.h"
 #include "compiler.h"
 
+#ifdef USE_RTLX
 #include "rtl.inc"
+#endif
 
 void CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
 {
+#ifdef USE_RTLX
     for (size_t i = 0; i < sizeof(rtl_sources)/sizeof(rtl_sources[0]); i++) {
         if (name == rtl_sources[i].name) {
             auto tokens = tokenize(name, rtl_sources[i].source);
@@ -26,6 +29,7 @@ void CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
             return;
         }
     }
+#endif
 
     std::pair<std::string, std::string> names = findModule(name);
     if (names.first.empty() && names.second.empty()) {
