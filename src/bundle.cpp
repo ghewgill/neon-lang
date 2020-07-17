@@ -17,21 +17,18 @@ std::map<std::string, std::vector<unsigned char>> g_Contents;
 
 class ZipSupport: public ICompilerSupport {
 public:
-    virtual bool loadBytecode(const std::string &module, Bytecode &bytecode) override;
+    virtual void loadBytecode(const std::string &module, Bytecode &bytecode) override;
     virtual void writeOutput(const std::string &, const std::vector<unsigned char> &) override {}
 };
 
-bool ZipSupport::loadBytecode(const std::string &module, Bytecode &bytecode)
+void ZipSupport::loadBytecode(const std::string &module, Bytecode &bytecode)
 {
     const std::string module_name = module + ".neonx";
     auto i = g_Contents.find(module_name);
     if (i == g_Contents.end()) {
-        return false;
+        throw BytecodeException("file not found");
     }
-    if (not bytecode.load(module_name, i->second)) {
-        return false;
-    }
-    return true;
+    bytecode.load(module_name, i->second);
 }
 
 void run_from_bundle(const std::string &name, bool enable_assert, unsigned short debug_port, int argc, char *argv[])

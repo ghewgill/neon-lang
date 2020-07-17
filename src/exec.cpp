@@ -555,8 +555,10 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     assert(g_executor == nullptr);
     g_executor = this;
     Bytecode b;
-    if (not b.load(source_path, bytes)) {
-        fprintf(stderr, "error loading bytecode\n");
+    try {
+        b.load(source_path, bytes);
+    } catch (BytecodeException &e) {
+        fprintf(stderr, "error loading bytecode: %s\n", e.what());
         exit(1);
     }
     module = new Module(source_path, b, debuginfo, this, support);
@@ -584,17 +586,20 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
             continue;
         }
         Bytecode code;
-        if (support->loadBytecode(importname, code)) {
-            // TODO: check hash of exports
-            executor->modules[importname] = nullptr; // Prevent unwanted recursion.
-            executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
-            executor->init_order.push_back(importname);
-        } else if (i.optional) {
-            continue;
-        } else {
-            fprintf(stderr, "couldn't load module: %s\n", importname.c_str());
-            exit(1);
+        try {
+            support->loadBytecode(importname, code);
+        } catch (BytecodeException &e) {
+            if (i.optional) {
+                continue;
+            } else {
+                fprintf(stderr, "couldn't load module: %s: %s\n", importname.c_str(), e.what());
+                exit(1);
+            }
         }
+        // TODO: check hash of exports
+        executor->modules[importname] = nullptr; // Prevent unwanted recursion.
+        executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
+        executor->init_order.push_back(importname);
     }
 }
 

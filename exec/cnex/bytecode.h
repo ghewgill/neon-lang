@@ -73,6 +73,7 @@ typedef struct tagTClass {
 } Class;
 
 typedef struct tagTBytecode {
+    int version;
     uint8_t source_hash[32];
     unsigned int global_size;
     unsigned int strtablesize;

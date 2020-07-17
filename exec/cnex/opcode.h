@@ -1,6 +1,8 @@
 #ifndef OPCODE_H
 #define OPCODE_H
 
+#define OPCODE_VERSION 1
+
 #define FOREACH_OPCODE(OPCODE) \
     OPCODE(PUSHB)      /* push boolean immediate */\
     OPCODE(PUSHN)      /* push number immediate */\

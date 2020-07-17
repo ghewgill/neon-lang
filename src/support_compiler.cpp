@@ -14,7 +14,7 @@
 
 #include "rtl.inc"
 
-bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
+void CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
 {
     for (size_t i = 0; i < sizeof(rtl_sources)/sizeof(rtl_sources[0]); i++) {
         if (name == rtl_sources[i].name) {
@@ -23,13 +23,13 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
             auto ast = analyze(this, parsetree.get());
             auto bytecode = compile(ast, nullptr);
             object.load("-builtin-", bytecode);
-            return true;
+            return;
         }
     }
 
     std::pair<std::string, std::string> names = findModule(name);
     if (names.first.empty() && names.second.empty()) {
-        return false;
+        throw BytecodeException("file not found");
     }
 
     std::ifstream obj_file(names.second, std::ios::binary);
@@ -58,7 +58,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
             object.load(name, bytecode);
 
             if (object.source_hash == hash) {
-                return true;
+                return;
             }
             object = Bytecode();
         }
@@ -78,7 +78,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
         }
         obj_file.open(objname, std::ios::binary);
         if (not obj_file.good()) {
-            return false;
+            throw BytecodeException("file not found");
         }
     }
 
@@ -87,10 +87,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
     std::vector<unsigned char> bytecode;
     std::string s = buf.str();
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
-    if (not object.load(names.first.empty() ? names.second : names.first, bytecode)) {
-        return false;
-    }
-    return true;
+    object.load(names.first.empty() ? names.second : names.first, bytecode);
 }
 
 void CompilerSupport::writeOutput(const std::string &name, const std::vector<unsigned char> &content)

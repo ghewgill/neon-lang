@@ -1,13 +1,19 @@
 #ifndef BYTECODE_H
 #define BYTECODE_H
 
+#include <stdexcept>
 #include <string>
 #include <vector>
+
+class BytecodeException: public std::runtime_error {
+public:
+    BytecodeException(const char *what): std::runtime_error(what) {}
+};
 
 class Bytecode {
 public:
     Bytecode();
-    bool load(const std::string &source_path, const std::vector<unsigned char> &bytes);
+    void load(const std::string &source_path, const std::vector<unsigned char> &bytes);
 
     typedef std::vector<unsigned char> Bytes;
 
@@ -97,6 +103,7 @@ public:
     Bytes obj;
     std::string source_path;
     std::string source_hash;
+    int version;
     size_t global_size;
     std::vector<std::string> strtable;
     std::vector<Type> export_types;

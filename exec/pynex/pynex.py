@@ -279,6 +279,9 @@ class Bytecode:
         assert bytecode[i:i+4] == b"Ne\0n"
         i += 4
 
+        self.version, i = get_vint(bytecode, i)
+        assert self.version == OPCODE_VERSION
+
         self.source_hash = bytecode[i:i+32]
         i += 32
         self.global_size, i = get_vint(bytecode, i)
@@ -1276,6 +1279,8 @@ class Executor:
 
         print("Unhandled exception {} ({}) (code {})".format(name, info[0], info[1]), file=sys.stderr)
         sys.exit(1)
+
+OPCODE_VERSION = 1
 
 Dispatch = [
     Executor.PUSHB,

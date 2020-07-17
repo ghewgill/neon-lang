@@ -1304,12 +1304,14 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     }
     s_importing.push_back(name);
     Bytecode object;
-    if (not support->loadBytecode(name, object)) {
+    try {
+        support->loadBytecode(name, object);
+    } catch (BytecodeException &e) {
         if (optional) {
             fprintf(stderr, "neonc: Note: Optional module %s not found at compile time\n", name.c_str());
             return ast::MODULE_MISSING;
         } else {
-            error(3001, token, "module not found");
+            error(3001, token, std::string("module not found: ") + e.what());
         }
     }
     ast::Module *module = new ast::Module(Token(), global_scope, name, optional);

@@ -19,6 +19,8 @@ import (
 	"time"
 )
 
+const OPCODE_VERSION int = 1
+
 const (
 	PUSHB   = iota // push boolean immediate
 	PUSHN   = iota // push number immediate
@@ -711,6 +713,7 @@ type classinfo struct {
 }
 
 type bytecode struct {
+	version           int
 	source_hash       []byte
 	global_size       int
 	strtable          [][]byte
@@ -745,6 +748,9 @@ func make_bytecode(bytes []byte) bytecode {
 	sig := bytes[0:4]
 	assert(sig[0] == 0x4e && sig[1] == 0x65 && sig[2] == 0x00 && sig[3] == 0x6e, "signature not found")
 	i += 4
+
+	r.version = get_vint(bytes, &i)
+	assert(r.version == OPCODE_VERSION, "bytecode version mismatch")
 
 	r.source_hash = bytes[i : i+32]
 	i += 32

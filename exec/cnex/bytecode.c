@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "nstring.h"
+#include "opcode.h"
 #include "util.h"
 
 unsigned int get_vint(const uint8_t *pobj, unsigned int nBuffSize, unsigned int *i)
@@ -112,6 +113,11 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
         fatal_error("Bytecode signature not found.");
     }
     i += 4;
+
+    b->version = get_vint(bytecode, len, &i);
+    if (b->version != OPCODE_VERSION) {
+        fatal_error("Bytecode version mismatch");
+    }
 
     memcpy(b->source_hash, bytecode+i, 32);
     i += 32;

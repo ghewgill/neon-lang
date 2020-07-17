@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-class BytecodeException: public std::exception {};
+#include "opcode.h"
 
 void Bytecode::put_vint(std::vector<unsigned char> &obj, unsigned int x)
 {
@@ -74,6 +74,7 @@ Bytecode::Bytecode()
   : obj(),
     source_path(),
     source_hash(),
+    version(0),
     global_size(0),
     strtable(),
     export_types(),
@@ -90,170 +91,169 @@ Bytecode::Bytecode()
 {
 }
 
-bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned char> &bytes)
+void Bytecode::load(const std::string &a_source_path, const std::vector<unsigned char> &bytes)
 {
     source_path = a_source_path;
     obj = bytes;
 
-    try {
-        size_t i = 0;
+    size_t i = 0;
 
-        if (i + 4 > obj.size()) {
-            throw BytecodeException();
-        }
-        std::string sig(&obj[i], &obj[i]+4);
-        if (sig != std::string("Ne\0n", 4)) {
-            throw BytecodeException();
-        }
-        i += 4;
+    if (i + 4 > obj.size()) {
+        throw BytecodeException("unexpected end of bytecode");
+    }
+    std::string sig(&obj[i], &obj[i]+4);
+    if (sig != std::string("Ne\0n", 4)) {
+        throw BytecodeException("bytecode signature missing");
+    }
+    i += 4;
 
-        if (i + 32 > obj.size()) {
-            throw BytecodeException();
-        }
-        source_hash = std::string(&obj[i], &obj[i]+32);
-        i += 32;
-
-        global_size = get_vint(obj, i);
-
-        unsigned int strtablesize = get_vint(obj, i);
-        if (i+strtablesize > obj.size()) {
-            throw BytecodeException();
-        }
-        strtable = getstrtable(obj, i, strtablesize);
-        i += strtablesize;
-
-        unsigned int typesize = get_vint(obj, i);
-        while (typesize > 0) {
-            Type t;
-            t.name = get_vint(obj, i);
-            t.descriptor = get_vint(obj, i);
-            export_types.push_back(t);
-            typesize--;
-        }
-
-        unsigned int constantsize = get_vint(obj, i);
-        while (constantsize > 0) {
-            Constant c;
-            c.name = get_vint(obj, i);
-            c.type = get_vint(obj, i);
-            unsigned int size = get_vint(obj, i);
-            if (i+size > obj.size()) {
-                throw BytecodeException();
-            }
-            c.value = Bytes(&obj[i], &obj[i+size]);
-            i += size;
-            export_constants.push_back(c);
-            constantsize--;
-        }
-
-        unsigned int variablesize = get_vint(obj, i);
-        while (variablesize > 0) {
-            Variable v;
-            v.name = get_vint(obj, i);
-            v.type = get_vint(obj, i);
-            v.index = get_vint(obj, i);
-            export_variables.push_back(v);
-            variablesize--;
-        }
-
-        unsigned int functionsize = get_vint(obj, i);
-        while (functionsize > 0) {
-            Function f;
-            f.name = get_vint(obj, i);
-            f.descriptor = get_vint(obj, i);
-            f.index = get_vint(obj, i);
-            export_functions.push_back(f);
-            functionsize--;
-        }
-
-        unsigned int exceptionexportsize = get_vint(obj, i);
-        while (exceptionexportsize > 0) {
-            ExceptionExport e;
-            e.name = get_vint(obj, i);
-            export_exceptions.push_back(e);
-            exceptionexportsize--;
-        }
-
-        unsigned int interfaceexportsize = get_vint(obj, i);
-        while (interfaceexportsize > 0) {
-            Interface iface;
-            iface.name = get_vint(obj, i);
-            unsigned int methoddescriptorsize = get_vint(obj, i);
-            while (methoddescriptorsize > 0) {
-                std::pair<unsigned int, unsigned int> m;
-                m.first = get_vint(obj, i);
-                m.second = get_vint(obj, i);
-                iface.method_descriptors.push_back(m);
-                methoddescriptorsize--;
-            }
-            export_interfaces.push_back(iface);
-            interfaceexportsize--;
-        }
-
-        unsigned int importsize = get_vint(obj, i);
-        while (importsize > 0) {
-            ModuleImport imp;
-            imp.name = get_vint(obj, i);
-            imp.optional = get_vint(obj, i) != 0;
-            if (i+32 > obj.size()) {
-                throw BytecodeException();
-            }
-            imp.hash = std::string(&obj[i], &obj[i]+32);
-            i += 32;
-            imports.push_back(imp);
-            importsize--;
-        }
-
-        /*unsigned int*/ functionsize = get_vint(obj, i);
-        while (functionsize > 0) {
-            FunctionInfo f;
-            f.name = get_vint(obj, i);
-            f.nest = get_vint(obj, i);
-            f.params = get_vint(obj, i);
-            f.locals = get_vint(obj, i);
-            f.entry = get_vint(obj, i);
-            functions.push_back(f);
-            functionsize--;
-        }
-
-        unsigned int exceptionsize = get_vint(obj, i);
-        while (exceptionsize > 0) {
-            ExceptionInfo e;
-            e.start = get_vint(obj, i);
-            e.end = get_vint(obj, i);
-            e.excid = get_vint(obj, i);
-            e.handler = get_vint(obj, i);
-            e.stack_depth = get_vint(obj, i);
-            exceptions.push_back(e);
-            exceptionsize--;
-        }
-
-        unsigned int classsize = get_vint(obj, i);
-        while (classsize > 0) {
-            ClassInfo c;
-            c.name = get_vint(obj, i);
-            unsigned int interfacecount = get_vint(obj, i);
-            while (interfacecount > 0) {
-                std::vector<unsigned int> methods;
-                unsigned int methodcount = get_vint(obj, i);
-                while (methodcount > 0) {
-                    methods.push_back(get_vint(obj, i));
-                    methodcount--;
-                }
-                c.interfaces.push_back(methods);
-                interfacecount--;
-            }
-            classes.push_back(c);
-            classsize--;
-        }
-
-        code = Bytes(obj.begin() + i, obj.end());
-
-    } catch (BytecodeException &) {
-        return false;
+    version = get_vint(obj, i);
+    if (version != OPCODE_VERSION) {
+        throw BytecodeException("bytecode version mismatch");
     }
 
-    return true;
+    if (i + 32 > obj.size()) {
+        throw BytecodeException("unexpected end of bytecode");
+    }
+    source_hash = std::string(&obj[i], &obj[i]+32);
+    i += 32;
+
+    global_size = get_vint(obj, i);
+
+    unsigned int strtablesize = get_vint(obj, i);
+    if (i+strtablesize > obj.size()) {
+        throw BytecodeException("unexpected end of bytecode");
+    }
+    strtable = getstrtable(obj, i, strtablesize);
+    i += strtablesize;
+
+    unsigned int typesize = get_vint(obj, i);
+    while (typesize > 0) {
+        Type t;
+        t.name = get_vint(obj, i);
+        t.descriptor = get_vint(obj, i);
+        export_types.push_back(t);
+        typesize--;
+    }
+
+    unsigned int constantsize = get_vint(obj, i);
+    while (constantsize > 0) {
+        Constant c;
+        c.name = get_vint(obj, i);
+        c.type = get_vint(obj, i);
+        unsigned int size = get_vint(obj, i);
+        if (i+size > obj.size()) {
+            throw BytecodeException("unexpected end of bytecode");
+        }
+        c.value = Bytes(&obj[i], &obj[i+size]);
+        i += size;
+        export_constants.push_back(c);
+        constantsize--;
+    }
+
+    unsigned int variablesize = get_vint(obj, i);
+    while (variablesize > 0) {
+        Variable v;
+        v.name = get_vint(obj, i);
+        v.type = get_vint(obj, i);
+        v.index = get_vint(obj, i);
+        export_variables.push_back(v);
+        variablesize--;
+    }
+
+    unsigned int functionsize = get_vint(obj, i);
+    while (functionsize > 0) {
+        Function f;
+        f.name = get_vint(obj, i);
+        f.descriptor = get_vint(obj, i);
+        f.index = get_vint(obj, i);
+        export_functions.push_back(f);
+        functionsize--;
+    }
+
+    unsigned int exceptionexportsize = get_vint(obj, i);
+    while (exceptionexportsize > 0) {
+        ExceptionExport e;
+        e.name = get_vint(obj, i);
+        export_exceptions.push_back(e);
+        exceptionexportsize--;
+    }
+
+    unsigned int interfaceexportsize = get_vint(obj, i);
+    while (interfaceexportsize > 0) {
+        Interface iface;
+        iface.name = get_vint(obj, i);
+        unsigned int methoddescriptorsize = get_vint(obj, i);
+        while (methoddescriptorsize > 0) {
+            std::pair<unsigned int, unsigned int> m;
+            m.first = get_vint(obj, i);
+            m.second = get_vint(obj, i);
+            iface.method_descriptors.push_back(m);
+            methoddescriptorsize--;
+        }
+        export_interfaces.push_back(iface);
+        interfaceexportsize--;
+    }
+
+    unsigned int importsize = get_vint(obj, i);
+    while (importsize > 0) {
+        ModuleImport imp;
+        imp.name = get_vint(obj, i);
+        imp.optional = get_vint(obj, i) != 0;
+        if (i+32 > obj.size()) {
+            throw BytecodeException("unexpected end of bytecode");
+        }
+        imp.hash = std::string(&obj[i], &obj[i]+32);
+        i += 32;
+        imports.push_back(imp);
+        importsize--;
+    }
+
+    /*unsigned int*/ functionsize = get_vint(obj, i);
+    while (functionsize > 0) {
+        FunctionInfo f;
+        f.name = get_vint(obj, i);
+        f.nest = get_vint(obj, i);
+        f.params = get_vint(obj, i);
+        f.locals = get_vint(obj, i);
+        f.entry = get_vint(obj, i);
+        functions.push_back(f);
+        functionsize--;
+    }
+
+    unsigned int exceptionsize = get_vint(obj, i);
+    while (exceptionsize > 0) {
+        ExceptionInfo e;
+        e.start = get_vint(obj, i);
+        e.end = get_vint(obj, i);
+        e.excid = get_vint(obj, i);
+        e.handler = get_vint(obj, i);
+        e.stack_depth = get_vint(obj, i);
+        exceptions.push_back(e);
+        exceptionsize--;
+    }
+
+    unsigned int classsize = get_vint(obj, i);
+    while (classsize > 0) {
+        ClassInfo c;
+        c.name = get_vint(obj, i);
+        unsigned int interfacecount = get_vint(obj, i);
+        while (interfacecount > 0) {
+            std::vector<unsigned int> methods;
+            unsigned int methodcount = get_vint(obj, i);
+            while (methodcount > 0) {
+                methods.push_back(get_vint(obj, i));
+                methodcount--;
+            }
+            c.interfaces.push_back(methods);
+            interfacecount--;
+        }
+        classes.push_back(c);
+        classsize--;
+    }
+
+    code = Bytes(obj.begin() + i, obj.end());
+
 }
 
 Bytecode::Bytes Bytecode::getBytes() const
@@ -264,6 +264,8 @@ Bytecode::Bytes Bytecode::getBytes() const
     objret.push_back('e');
     objret.push_back('\0');
     objret.push_back('n');
+
+    put_vint(objret, OPCODE_VERSION);
 
     assert(source_hash.length() == 32);
     for (int i = 0; i < 32; i++) {

@@ -1158,6 +1158,8 @@ class Executor {
         BigDecimal code = BigDecimal.valueOf(0);
     }
 
+    public static final int OPCODE_VERSION = 1;
+
     public enum Opcode {
         PUSHB,
         PUSHN,

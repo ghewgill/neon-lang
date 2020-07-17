@@ -36,6 +36,9 @@ class Bytecode {
             in.readFully(sig);
             assert Arrays.equals(sig, new byte[]{0x4e, 0x65, 0x00, 0x6e});
 
+            version = readVint(in);
+            assert version == Executor.OPCODE_VERSION;
+
             in.readFully(new byte[32]);
             global_size = readVint(in);
             int strtablesize = readVint(in);
@@ -182,6 +185,7 @@ class Bytecode {
         return r;
     }
 
+    int version;
     int global_size;
     byte[][] bytetable;
     String[] strtable;

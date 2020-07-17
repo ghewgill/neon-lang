@@ -17,7 +17,7 @@
 #include "rtlx.inc"
 #endif
 
-bool RuntimeSupport::loadBytecode(const std::string &name, Bytecode &object)
+void RuntimeSupport::loadBytecode(const std::string &name, Bytecode &object)
 {
 #ifdef USE_RTLX
     for (size_t i = 0; i < sizeof(rtl_bytecode)/sizeof(rtl_bytecode[0]); i++) {
@@ -32,15 +32,12 @@ bool RuntimeSupport::loadBytecode(const std::string &name, Bytecode &object)
     std::pair<std::string, std::string> names = findModule(name);
     std::ifstream inf(names.second, std::ios::binary);
     if (not inf.good()) {
-        return false;
+        throw BytecodeException("file not found");
     }
     std::stringstream buf;
     buf << inf.rdbuf();
     std::vector<unsigned char> bytecode;
     std::string s = buf.str();
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
-    if (not object.load(names.second, bytecode)) {
-        return false;
-    }
-    return true;
+    object.load(names.second, bytecode);
 }

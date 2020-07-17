@@ -37,13 +37,14 @@ void get_modules(const Bytecode &obj, std::map<std::string, Bytecode> &modules)
         std::string name = obj.strtable[x.name];
         if (modules.find(name) == modules.end()) {
             Bytecode bytecode;
-            if (support.loadBytecode(name, bytecode)) {
-                modules[name] = bytecode;
-                get_modules(bytecode, modules);
-            } else {
-                fprintf(stderr, "could not load module: %s\n", name.c_str());
+            try {
+                support.loadBytecode(name, bytecode);
+            } catch (BytecodeException &e) {
+                fprintf(stderr, "could not load module: %s: %s\n", name.c_str(), e.what());
                 exit(1);
             }
+            modules[name] = bytecode;
+            get_modules(bytecode, modules);
         }
     }
 }
@@ -91,8 +92,10 @@ int main(int argc, char *argv[])
         std::string s = buf.str();
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
         Bytecode b;
-        if (not b.load(module, bytecode)) {
-            fprintf(stderr, "could not load bytecode\n");
+        try {
+            b.load(module, bytecode);
+        } catch (BytecodeException &e) {
+            fprintf(stderr, "could not load bytecode: %s\n", e.what());
             exit(1);
         }
         modules[""] = b;

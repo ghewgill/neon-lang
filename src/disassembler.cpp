@@ -920,6 +920,7 @@ std::string Disassembler::decode_value(const std::string &type, const Bytecode::
 
 void Disassembler::disassemble()
 {
+    out << "Version: " << obj.version << "\n";
     out << "Global size: " << obj.global_size << "\n";
     out << "String table: [\n";
     {

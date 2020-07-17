@@ -5,6 +5,8 @@ IMPORT string
 IMPORT sys
 IMPORT textio
 
+CONSTANT OPCODE_VERSION: Number := 1
+
 EXCEPTION InternalException
 
 FUNCTION getVint(a: Array<Number>, INOUT i: Number): Number
@@ -59,6 +61,7 @@ TYPE ClassInfo IS RECORD
 END RECORD
 
 TYPE Bytecode IS RECORD
+    version: Number
     sourceHash: Bytes
     globalSize: Number
     strtable: Array<String>
@@ -77,6 +80,9 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
 
     ASSERT bytes[0 TO 3] = HEXBYTES "4e 65 00 6e"
     i := i + 4
+
+    r.version := getVint(a, INOUT i)
+    ASSERT r.version = OPCODE_VERSION
 
     r.sourceHash := bytes[i TO i+31]
     i := i + 32

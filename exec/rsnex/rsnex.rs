@@ -2,6 +2,8 @@ use std::env;
 use std::fs;
 use std::io::Read;
 
+const OPCODE_VERSION: usize = 1;
+
 enum Opcode {
     PUSHB,      // push boolean immediate
     PUSHN,      // push number immediate
@@ -143,6 +145,7 @@ struct Type {
 }
 
 struct Bytecode {
+    version: usize,
     source_hash: Vec<u8>,
     global_size: usize,
     strtable: Vec<String>,
@@ -154,6 +157,7 @@ struct Bytecode {
 impl Bytecode {
     fn new(bytecode: &Vec<u8>) -> Bytecode {
         let mut r = Bytecode {
+            version: 0,
             source_hash: Vec::new(),
             global_size: 0,
             strtable: Vec::new(),
@@ -165,6 +169,10 @@ impl Bytecode {
         let sig = &bytecode[i..i+4];
         assert!(sig == b"Ne\0n");
         i += 4;
+
+        r.version = get_vint(&bytecode, &mut i);
+        assert!(r.version == OPCODE_VERSION);
+
         r.source_hash = bytecode[i..i+32].to_vec();
         i += 32;
         r.global_size = get_vint(&bytecode, &mut i);
