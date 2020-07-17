@@ -1065,15 +1065,6 @@ class Executor:
         if a:
             self.ip = target
 
-    def JFCHAIN(self):
-        self.ip += 1
-        target, self.ip = get_vint(self.module.object.code, self.ip)
-        a = self.stack.pop()
-        if not a:
-            self.ip = target
-            self.stack.pop()
-            self.stack.append(a)
-
     def DUP(self):
         self.ip += 1
         self.stack.append(self.stack[-1])
@@ -1365,7 +1356,6 @@ Dispatch = [
     Executor.JUMP,
     Executor.JF,
     Executor.JT,
-    Executor.JFCHAIN,
     Executor.DUP,
     Executor.DUPX1,
     Executor.DROP,

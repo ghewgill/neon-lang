@@ -1296,20 +1296,6 @@ void exec_JT(TExecutor *self)
     }
 }
 
-void exec_JFCHAIN(TExecutor *self)
-{
-    self->ip++;
-    unsigned int target = exec_getOperand(self);
-    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
-    if (!a->boolean) {
-        self->ip = target;
-        pop(self->stack);
-        push(self->stack, a);
-        return;
-    }
-    cell_freeCell(a);
-}
-
 void exec_DUP(TExecutor *self)
 {
     self->ip++;
@@ -1711,7 +1697,6 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case JUMP:    exec_JUMP(self); break;
             case JF:      exec_JF(self); break;
             case JT:      exec_JT(self); break;
-            case JFCHAIN: exec_JFCHAIN(self); break;
             case DUP:     exec_DUP(self); break;
             case DUPX1:   exec_DUPX1(self); break;
             case DROP:    exec_DROP(self); break;

@@ -210,7 +210,6 @@ class Executor {
                     case JUMP: doJUMP(); break;
                     case JF: doJF(); break;
                     case JT: doJT(); break;
-                    case JFCHAIN: doJFCHAIN(); break;
                     case DUP: doDUP(); break;
                     case DUPX1: doDUPX1(); break;
                     case DROP: doDROP(); break;
@@ -921,18 +920,6 @@ class Executor {
         }
     }
 
-    private void doJFCHAIN()
-    {
-        ip++;
-        int target = getVint();
-        Cell a = stack.removeFirst();
-        if (!a.getBoolean()) {
-            ip = target;
-            stack.removeFirst();
-            stack.addFirst(a);
-        }
-    }
-
     private void doDUP()
     {
         ip++;
@@ -1243,7 +1230,6 @@ class Executor {
         JUMP,
         JF,
         JT,
-        JFCHAIN,
         DUP,
         DUPX1,
         DROP,

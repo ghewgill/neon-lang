@@ -209,7 +209,6 @@ void Emitter::emit(Opcode b)
             case Opcode::JUMP:      break;
             case Opcode::JF:        stack_depth -= 1; break;
             case Opcode::JT:        stack_depth -= 1; break;
-            case Opcode::JFCHAIN:   stack_depth -= 1; break;
             case Opcode::DUP:       stack_depth += 1; break;
             case Opcode::DUPX1:     stack_depth += 1; break;
             case Opcode::DROP:      stack_depth -= 1; break;
@@ -1540,7 +1539,8 @@ void ast::ComparisonExpression::generate_expr(Emitter &emitter) const
 void ast::ChainedComparisonExpression::generate_expr(Emitter &emitter) const
 {
     comps[0]->left->generate(emitter);
-    auto skip_label = emitter.create_label();
+    auto false_label = emitter.create_label();
+    auto end_label = emitter.create_label();
     size_t i = 0;
     for (auto c: comps) {
         bool last = i == comps.size() - 1;
@@ -1549,12 +1549,17 @@ void ast::ChainedComparisonExpression::generate_expr(Emitter &emitter) const
             emitter.emit(Opcode::DUPX1);
         }
         c->generate_comparison_opcode(emitter);
-        if (not last) {
-            emitter.emit_jump(Opcode::JFCHAIN, skip_label);
+        if (last) {
+            emitter.emit_jump(Opcode::JUMP, end_label);
+        } else {
+            emitter.emit_jump(Opcode::JF, false_label);
         }
         i++;
     }
-    emitter.jump_target(skip_label);
+    emitter.jump_target(false_label);
+    emitter.emit(Opcode::DROP);
+    emitter.emit(Opcode::PUSHB, 0);
+    emitter.jump_target(end_label);
 }
 
 void ast::BooleanComparisonExpression::generate_comparison_opcode(Emitter &emitter) const

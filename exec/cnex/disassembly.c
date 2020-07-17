@@ -548,13 +548,6 @@ void disasm_JT(TInstructionDisassembler *disasm)
     snprintf(disasm->out, MAX_BUFFER, "JT %d", addr);
 }
 
-void disasm_JFCHAIN(TInstructionDisassembler *disasm)
-{
-    disasm->index++;
-    uint32_t addr = get_vint(disasm->obj->code, disasm->obj->codelen, &disasm->index);
-    snprintf(disasm->out, MAX_BUFFER, "JFCHAIN %d", addr);
-}
-
 void disasm_DUP(TInstructionDisassembler *disasm)
 {
     snprintf(disasm->out, MAX_BUFFER, "DUP");
@@ -768,7 +761,6 @@ void disasm_disassemble(TInstructionDisassembler *disasm)
         case JUMP:    disasm_JUMP(disasm); break;
         case JF:      disasm_JF(disasm); break;
         case JT:      disasm_JT(disasm); break;
-        case JFCHAIN: disasm_JFCHAIN(disasm); break;
         case DUP:     disasm_DUP(disasm); break;
         case DUPX1:   disasm_DUPX1(disasm); break;
         case DROP:    disasm_DROP(disasm); break;

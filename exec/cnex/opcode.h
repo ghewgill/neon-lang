@@ -86,7 +86,6 @@
     OPCODE(JUMP)       /* unconditional jump */\
     OPCODE(JF)         /* jump if false */\
     OPCODE(JT)         /* jump if true */\
-    OPCODE(JFCHAIN)    /* jump and drop next if false */\
     OPCODE(DUP)        /* duplicate */\
     OPCODE(DUPX1)      /* duplicate under second value */\
     OPCODE(DROP)       /* drop */\

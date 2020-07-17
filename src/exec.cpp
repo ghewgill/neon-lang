@@ -248,7 +248,6 @@ public:
     void exec_JUMP();
     void exec_JF();
     void exec_JT();
-    void exec_JFCHAIN();
     void exec_DUP();
     void exec_DUPX1();
     void exec_DROP();
@@ -1403,18 +1402,6 @@ void Executor::exec_JT()
     }
 }
 
-void Executor::exec_JFCHAIN()
-{
-    ip++;
-    uint32_t target = Bytecode::get_vint(module->object.code, ip);
-    Cell a = stack.top(); stack.pop();
-    if (not a.boolean()) {
-        ip = target;
-        stack.pop();
-        stack.push(a);
-    }
-}
-
 void Executor::exec_DUP()
 {
     ip++;
@@ -2059,7 +2046,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case Opcode::JUMP:    exec_JUMP(); break;
             case Opcode::JF:      exec_JF(); break;
             case Opcode::JT:      exec_JT(); break;
-            case Opcode::JFCHAIN: exec_JFCHAIN(); break;
             case Opcode::DUP:     exec_DUP(); break;
             case Opcode::DUPX1:   exec_DUPX1(); break;
             case Opcode::DROP:    exec_DROP(); break;

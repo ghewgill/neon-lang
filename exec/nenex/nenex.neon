@@ -333,7 +333,6 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_jump,
     f_jf,
     f_jt,
-    f_jfchain,
     f_dup,
     f_dupx1,
     f_drop,
@@ -1162,10 +1161,6 @@ FUNCTION f_jt(INOUT self: Executor)
     IF b THEN
         self.ip := target
     END IF
-END FUNCTION
-
-FUNCTION f_jfchain(INOUT self: Executor)
-    ASSERT FALSE
 END FUNCTION
 
 FUNCTION f_dup(INOUT self: Executor)

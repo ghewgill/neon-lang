@@ -87,7 +87,6 @@ enum Opcode {
     JUMP,       // unconditional jump
     JF,         // jump if false
     JT,         // jump if true
-    JFCHAIN,    // jump and drop next if false
     DUP,        // duplicate
     DUPX1,      // duplicate under second value
     DROP,       // drop
@@ -350,7 +349,6 @@ impl Executor {
                 x if x == Opcode::JUMP as u8 => self.op_jump(),
                 x if x == Opcode::JF as u8 => self.op_jf(),
                 x if x == Opcode::JT as u8 => self.op_jt(),
-                x if x == Opcode::JFCHAIN as u8 => self.op_jfchain(),
                 x if x == Opcode::DUP as u8 => self.op_dup(),
                 x if x == Opcode::DUPX1 as u8 => self.op_dupx1(),
                 x if x == Opcode::DROP as u8 => self.op_drop(),
@@ -713,10 +711,6 @@ impl Executor {
     }
 
     fn op_jt(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
-    fn op_jfchain(&mut self) {
         assert!(false, "unimplemented");
     }
 

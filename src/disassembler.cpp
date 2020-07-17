@@ -104,7 +104,6 @@ private:
     void disasm_JUMP();
     void disasm_JF();
     void disasm_JT();
-    void disasm_JFCHAIN();
     void disasm_DUP();
     void disasm_DUPX1();
     void disasm_DROP();
@@ -636,13 +635,6 @@ void InstructionDisassembler::disasm_JT()
     out << "JT " << addr;
 }
 
-void InstructionDisassembler::disasm_JFCHAIN()
-{
-    index++;
-    uint32_t addr = Bytecode::get_vint(obj.code, index);
-    out << "JFCHAIN " << addr;
-}
-
 void InstructionDisassembler::disasm_DUP()
 {
     out << "DUP";
@@ -849,7 +841,6 @@ void InstructionDisassembler::disassemble()
         case Opcode::JUMP:    disasm_JUMP(); break;
         case Opcode::JF:      disasm_JF(); break;
         case Opcode::JT:      disasm_JT(); break;
-        case Opcode::JFCHAIN: disasm_JFCHAIN(); break;
         case Opcode::DUP:     disasm_DUP(); break;
         case Opcode::DUPX1:   disasm_DUPX1(); break;
         case Opcode::DROP:    disasm_DROP(); break;

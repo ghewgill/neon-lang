@@ -104,7 +104,6 @@ const (
 	JUMP    = iota // unconditional jump
 	JF      = iota // jump if false
 	JT      = iota // jump if true
-	JFCHAIN = iota // jump and drop next if false
 	DUP     = iota // duplicate
 	DUPX1   = iota // duplicate under second value
 	DROP    = iota // drop
@@ -1148,8 +1147,6 @@ func (self *executor) run() {
 			self.op_jf()
 		case JT:
 			self.op_jt()
-		case JFCHAIN:
-			self.op_jfchain()
 		case DUP:
 			self.op_dup()
 		case DUPX1:
@@ -2813,17 +2810,6 @@ func (self *executor) op_jt() {
 	a := self.pop().bool
 	if a {
 		self.ip = target
-	}
-}
-
-func (self *executor) op_jfchain() {
-	self.ip++
-	target := get_vint(self.module.object.code, &self.ip)
-	a := self.pop()
-	if !a.bool {
-		self.ip = target
-		self.pop()
-		self.push(a)
 	}
 }
 
