@@ -1009,7 +1009,7 @@ void ast::ModuleVariable::predeclare(Emitter &emitter) const
 
 void ast::ModuleVariable::generate_address(Emitter &emitter) const
 {
-    emitter.emit(Opcode::PUSHPMG, emitter.str(module->name), index);
+    emitter.emit(Opcode::PUSHPMG, emitter.str(module->name), emitter.str(name));
 }
 
 void ast::GlobalVariable::predeclare(Emitter &emitter) const

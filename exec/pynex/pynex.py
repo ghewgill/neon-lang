@@ -564,13 +564,22 @@ class Executor:
     def PUSHPMG(self):
         self.ip += 1
         mod, self.ip = get_vint(self.module.object.code, self.ip)
-        addr, self.ip = get_vint(self.module.object.code, self.ip)
+        name, self.ip = get_vint(self.module.object.code, self.ip)
         module_name = self.module.object.strtable[mod].decode()
         for m in self.modules.values():
             if m.name == module_name:
-                self.stack.append(m.globals[addr])
-                return
-        print("module not found: {}".format(module_name), file=sys.stderr)
+                break
+        else:
+            print("module not found: {}".format(module_name), file=sys.stderr)
+            sys.exit(1)
+        variable_name = self.module.object.strtable[name].decode()
+        for v in m.object.export_variables:
+            if m.object.strtable[v.name].decode() == variable_name:
+                break
+        else:
+            print("variable not found: {}".format(variable_name), file=sys.stderr)
+            sys.exit(1)
+        self.stack.append(m.globals[v.index])
 
     def PUSHPL(self):
         self.ip += 1
@@ -1271,7 +1280,7 @@ class Executor:
         print("Unhandled exception {} ({}) (code {})".format(name, info[0], info[1]), file=sys.stderr)
         sys.exit(1)
 
-OPCODE_VERSION = 2
+OPCODE_VERSION = 3
 
 Dispatch = [
     Executor.PUSHB,

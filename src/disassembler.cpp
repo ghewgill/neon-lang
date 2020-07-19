@@ -170,8 +170,8 @@ void InstructionDisassembler::disasm_PUSHPMG()
 {
     index++;
     uint32_t module = Bytecode::get_vint(obj.code, index);
-    uint32_t addr = Bytecode::get_vint(obj.code, index);
-    out << "PUSHPMG " << module << "," << addr;
+    uint32_t name = Bytecode::get_vint(obj.code, index);
+    out << "PUSHPMG " << obj.strtable[module] << "," << obj.strtable[name];
 }
 
 void InstructionDisassembler::disasm_PUSHPL()

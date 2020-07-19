@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use std::io::Read;
 
-const OPCODE_VERSION: usize = 2;
+const OPCODE_VERSION: usize = 3;
 
 enum Opcode {
     PUSHB,      // push boolean immediate

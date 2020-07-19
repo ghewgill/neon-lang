@@ -871,12 +871,11 @@ public:
 
 class ModuleVariable: public Variable {
 public:
-    ModuleVariable(const Module *module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, true), module(module), index(index) {}
+    ModuleVariable(const Module *module, const std::string &name, const Type *type): Variable(Token(), name, type, true), module(module) {}
     ModuleVariable(const ModuleVariable &) = delete;
     ModuleVariable &operator=(const ModuleVariable &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Module *module;
-    const int index;
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &emitter) const override;

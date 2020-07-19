@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const OPCODE_VERSION int = 2
+const OPCODE_VERSION int = 3
 
 const (
 	PUSHB   = iota // push boolean immediate
@@ -1243,11 +1243,16 @@ func (self *executor) op_pushppg() {
 func (self *executor) op_pushpmg() {
 	self.ip++
 	mod := get_vint(self.module.object.code, &self.ip)
-	addr := get_vint(self.module.object.code, &self.ip)
+	name := get_vint(self.module.object.code, &self.ip)
 	for _, m := range self.modules {
 		if m.name == string(self.module.object.strtable[mod]) {
-			self.push(make_cell_addr(&m.globals[addr]))
-			return
+			for _, v := range m.object.export_variables {
+				if string(m.object.strtable[v.name]) == string(self.module.object.strtable[name]) {
+					self.push(make_cell_addr(&m.globals[v.index]))
+					return
+				}
+			}
+			panic("variable not found: " + string(self.module.object.strtable[name]))
 		}
 	}
 	panic("module not found: " + string(self.module.object.strtable[mod]))

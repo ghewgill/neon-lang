@@ -1356,7 +1356,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         module->scope->addName(Token(IDENTIFIER, ""), object.strtable[c.name], new ast::Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
     }
     for (auto v: object.export_variables) {
-        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(module, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
+        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(module, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type])));
     }
     for (auto f: object.export_functions) {
         const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(deserialize_type(module->scope, object.strtable[f.descriptor]));

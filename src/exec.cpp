@@ -662,14 +662,22 @@ void Executor::exec_PUSHPMG()
 {
     ip++;
     uint32_t mod = Bytecode::get_vint(module->object.code, ip);
-    uint32_t addr = Bytecode::get_vint(module->object.code, ip);
+    uint32_t name = Bytecode::get_vint(module->object.code, ip);
     auto m = modules.find(module->object.strtable[mod]);
     if (m == modules.end()) {
         fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
         exit(1);
     }
-    assert(addr < m->second->globals.size());
-    stack.push(Cell(&m->second->globals.at(addr)));
+    for (auto &v: m->second->object.export_variables) {
+        fprintf(stderr, "trying %s\n", m->second->object.strtable[v.name].c_str());
+        if (m->second->object.strtable[v.name] == module->object.strtable[name]) {
+            assert(v.index < m->second->globals.size());
+            stack.push(Cell(&m->second->globals.at(v.index)));
+            return;
+        }
+    }
+    fprintf(stderr, "fatal: module variable not found: %s\n", module->object.strtable[name].c_str());
+    exit(1);
 }
 
 void Executor::exec_PUSHPL()

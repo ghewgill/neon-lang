@@ -83,8 +83,8 @@ void disasm_PUSHPMG(TInstructionDisassembler *disasm)
 {
     disasm->index++;
     uint32_t module = get_vint(disasm->obj->code, disasm->obj->codelen, &disasm->index);
-    uint32_t addr = get_vint(disasm->obj->code, disasm->obj->codelen, &disasm->index);
-    snprintf(disasm->out, MAX_BUFFER, "PUSHPMG %d, %d", module, addr);
+    uint32_t name = get_vint(disasm->obj->code, disasm->obj->codelen, &disasm->index);
+    snprintf(disasm->out, MAX_BUFFER, "PUSHPMG %d, %d", module, name);
 }
 
 void disasm_PUSHPL(TInstructionDisassembler *disasm)

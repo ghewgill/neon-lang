@@ -500,13 +500,20 @@ void exec_PUSHPMG(TExecutor *self)
 {
     self->ip++;
     unsigned int mod = exec_getOperand(self);
-    unsigned int addr = exec_getOperand(self);
+    unsigned int name = exec_getOperand(self);
     TModule *m = module_findModule(self, self->module->bytecode->strings[mod]->data);
     if (m == NULL) {
         fatal_error("fatal: module not found: %s\n", self->module->bytecode->strings[mod]->data);
     }
-    assert(addr < m->bytecode->global_size);
-    push(self->stack, cell_fromAddress(&m->globals[addr]));
+    for (unsigned int v = 0; v < m->bytecode->variablesize; v++) {
+        if (string_compareString(m->bytecode->strings[m->bytecode->variables[v].name], self->module->bytecode->strings[name]) == 0) {
+            unsigned int addr = m->bytecode->variables[v].index;
+            assert(addr < m->bytecode->global_size);
+            push(self->stack, cell_fromAddress(&m->globals[addr]));
+            return;
+        }
+    }
+    fatal_error("fatal: variable not found: %s\n", self->module->bytecode->strings[name]->data);
 }
 
 void exec_PUSHPL(TExecutor *self)
