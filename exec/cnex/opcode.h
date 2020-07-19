@@ -1,7 +1,7 @@
 #ifndef OPCODE_H
 #define OPCODE_H
 
-#define OPCODE_VERSION 1
+#define OPCODE_VERSION 2
 
 #define FOREACH_OPCODE(OPCODE) \
     OPCODE(PUSHB)      /* push boolean immediate */\

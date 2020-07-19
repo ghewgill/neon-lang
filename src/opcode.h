@@ -1,7 +1,7 @@
 #ifndef OPCODE_H
 #define OPCODE_H
 
-const int OPCODE_VERSION = 1;
+const int OPCODE_VERSION = 2;
 
 enum class Opcode {
     PUSHB,      // push boolean immediate

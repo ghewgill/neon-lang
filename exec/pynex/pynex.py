@@ -1271,7 +1271,7 @@ class Executor:
         print("Unhandled exception {} ({}) (code {})".format(name, info[0], info[1]), file=sys.stderr)
         sys.exit(1)
 
-OPCODE_VERSION = 1
+OPCODE_VERSION = 2
 
 Dispatch = [
     Executor.PUSHB,

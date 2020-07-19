@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const OPCODE_VERSION int = 1
+const OPCODE_VERSION int = 2
 
 const (
 	PUSHB   = iota // push boolean immediate
