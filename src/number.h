@@ -103,6 +103,7 @@ bool number_is_less_equal(Number x, Number y);
 bool number_is_greater_equal(Number x, Number y);
 bool number_is_integer(Number x);
 bool number_is_odd(Number x);
+bool number_is_finite(Number x);
 bool number_is_nan(Number x);
 std::string number_to_string(Number x);
 uint8_t number_to_uint8(Number x);

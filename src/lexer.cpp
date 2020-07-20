@@ -488,6 +488,9 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                     }
                 }
                 t.value = number_from_string(n);
+                if (not number_is_finite(t.value)) {
+                    error(1029, t, "floating point number out of range");
+                }
             }
             t.text = std::string(start, i);
         } else if (c == '"') {

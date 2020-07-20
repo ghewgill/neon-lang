@@ -378,6 +378,14 @@ bool number_is_odd(Number x)
     return not bid128_isZero(bid128_fmod(x.get_bid(), bid128_from_uint32(2)));
 }
 
+bool number_is_finite(Number x)
+{
+    if (x.rep == Rep::MPZ) {
+        return true;
+    }
+    return bid128_isFinite(x.get_bid());
+}
+
 bool number_is_nan(Number x)
 {
     if (x.rep == Rep::MPZ) {
