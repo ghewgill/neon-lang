@@ -1,3 +1,4 @@
+IMPORT console
 IMPORT json
 IMPORT os
 IMPORT simplehttp
@@ -94,7 +95,7 @@ LOOP
         print("ip \(ip)")
     END IF
 
-    VAR s: String := input("ndb> ")
+    VAR s: String := console.input("ndb> ")
     IF s = "" THEN
         s := last
     ELSE
