@@ -149,6 +149,7 @@ int main(int argc, char *argv[])
             exhaustive_test(depth);
         } else {
             std::fstream inf(argv[a]);
+            assert(inf.good());
             std::stringstream ss;
             ss << inf.rdbuf();
             try {

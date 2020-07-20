@@ -484,7 +484,7 @@ target_link_libraries(test_lexer
 )
 add_test(
     NAME test_lexer
-    COMMAND test_lexer tests/lexer_coverage.neon
+    COMMAND test_lexer tests/lexer-coverage.neon
 )
 
 add_executable(test_number
