@@ -91,6 +91,13 @@ else (GO)
     message("go not found")
 endif (GO)
 
+find_program(SCONS scons)
+if (SCONS)
+    message("scons found: ${SCONS}")
+else (SCONS)
+    message("scons not found")
+endif (SCONS)
+
 execute_process(
     COMMAND git describe --always --long --dirty
     OUTPUT_VARIABLE GIT_DESCRIBE
@@ -123,8 +130,34 @@ endif ()
 
 file(GLOB EXTENSION_DIRS "${CMAKE_CURRENT_LIST_DIR}/lib/*")
 foreach (extension_dir ${EXTENSION_DIRS})
+    get_filename_component(libname ${extension_dir} NAME)
     if (EXISTS "${extension_dir}/CMakeLists.txt")
-        add_subdirectory(${extension_dir})
+        add_custom_target(neon_${libname} ALL
+            COMMAND cmake .
+            COMMAND cmake --build .
+            WORKING_DIRECTORY ${extension_dir}
+        )
+    elseif (EXISTS "${extension_dir}/SConstruct" AND SCONS)
+        add_custom_target(neon_${libname} ALL
+            COMMAND ${SCONS}
+            WORKING_DIRECTORY ${extension_dir}
+        )
+    elseif (EXISTS "${extension_dir}/configure")
+        add_custom_target(neon_${libname} ALL
+            COMMAND ./configure
+            COMMAND make
+            WORKING_DIRECTORY ${extension_dir}
+        )
+    elseif (EXISTS "${extension_dir}/build" AND NOT WIN32)
+        add_custom_target(neon_${libname} ALL
+            COMMAND ./build
+            WORKING_DIRECTORY ${extension_dir}
+        )
+    elseif (EXISTS "${extension_dir}/build.cmd" AND WIN32)
+        add_custom_target(neon_${libname} ALL
+            COMMAND build.cmd
+            WORKING_DIRECTORY ${extension_dir}
+        )
     endif ()
 endforeach ()
 
