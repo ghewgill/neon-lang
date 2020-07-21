@@ -669,7 +669,6 @@ void Executor::exec_PUSHPMG()
         exit(1);
     }
     for (auto &v: m->second->object.export_variables) {
-        fprintf(stderr, "trying %s\n", m->second->object.strtable[v.name].c_str());
         if (m->second->object.strtable[v.name] == module->object.strtable[name]) {
             assert(v.index < m->second->globals.size());
             stack.push(Cell(&m->second->globals.at(v.index)));
