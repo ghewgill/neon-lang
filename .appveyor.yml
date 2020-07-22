@@ -1,32 +1,28 @@
 image:
     - Visual Studio 2019
-    - Visual Studio 2017
-    - Visual Studio 2015
-    #- Visual Studio 2013
+    #- Visual Studio 2017
+    #- Visual Studio 2015
 environment:
     matrix:
-        - BUILDER: scons
-          WITH_SUBMODULES: 0
-        - BUILDER: scons
-          WITH_SUBMODULES: 1
-        - BUILDER: cmake
-          WITH_SUBMODULES: 0
-          NEON_ARCH: 32
-        - BUILDER: cmake
-          WITH_SUBMODULES: 0
+        - WITH_SUBMODULES: 0
           NEON_ARCH: 64
-        - BUILDER: cmake
-          WITH_SUBMODULES: 1
-matrix:
-    exclude:
-        - image: Visual Studio 2015
-          WITH_SUBMODULES: 1
-        - image: Visual Studio 2017
-          WITH_SUBMODULES: 1
-        - image: Visual Studio 2019
-          WITH_SUBMODULES: 1
-        - BUILDER: cmake
-          WITH_SUBMODULES: 1
+          EXCLUDE_TESTS: 1
+        - WITH_SUBMODULES: 0
+          NEON_ARCH: 32
+        - WITH_SUBMODULES: 0
+          NEON_ARCH: 64
+        - WITH_SUBMODULES: 1
+          NEON_ARCH: 64
+#matrix:
+#    exclude:
+#        - image: Visual Studio 2015
+#          WITH_SUBMODULES: 1
+#        - image: Visual Studio 2017
+#          WITH_SUBMODULES: 1
+#        - image: Visual Studio 2019
+#          WITH_SUBMODULES: 1
+#        - BUILDER: cmake
+#          WITH_SUBMODULES: 1
 install:
 - ps: >-
     if (-not (Test-Path C:\Python38\Lib\site-packages\scons-3.1.2)){
@@ -39,19 +35,23 @@ build_script:
 - cmd: python3 scons-3.1.2\setup.py install
 - cmd: if %WITH_SUBMODULES%==1 git submodule update --init
 
-- cmd: if %BUILDER%==scons scons
+- cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
 
-- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
+- cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 
-- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+- cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
 
-- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
+- cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
 
-- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+- cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
 
-- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+- cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="64" call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+- cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
 
-- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="64" call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
-- cmd: if %BUILDER%==cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
+# Some modules do not currently build on VS2019.
+- cmd: git submodule deinit lib/sdl
+- cmd: git submodule deinit lib/zeromq
 
-- cmd: if %BUILDER%==cmake cmake . && cmake --build . && ctest -C Debug --output-on-failure
+- cmd: cmake .
+- cmd: cmake --build .
+- cmd: if not "%EXCLUDE_TESTS%"=="1" ctest -C Debug --output-on-failure

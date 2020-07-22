@@ -27,7 +27,7 @@ This implementation is also intended to demonstrate the following concepts of a 
 To build Neon, the following are required:
 
 - [Python 3.x](http://python.org)
-- [cmake](https://cmake.org) or [SCons](http://scons.org)
+- [cmake](https://cmake.org)
 - A C++11 compiler (a modern `gcc`, `clang`, or Visual Studio 2013 or later)
 
 Current master branch build status: [![Build Status](https://travis-ci.org/ghewgill/neon-lang.svg?branch=master)](https://travis-ci.org/ghewgill/neon-lang) [![Build Status](https://ci.appveyor.com/api/projects/status/github/ghewgill/neon-lang?branch=master&svg=true)](https://ci.appveyor.com/project/ghewgill/neon-lang)

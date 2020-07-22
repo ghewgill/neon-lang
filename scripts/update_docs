@@ -4,7 +4,7 @@
 rev=$(git describe --always)
 
 # Build documentation
-scons docs docs_samples
+make docs docs_samples
 (cd gh-pages && jekyll build)
 (cd docs && make html)
 

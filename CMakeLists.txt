@@ -1,9 +1,3 @@
-# This is currently the beginnings of a cmake build file for neon.
-# It is not complete and the best way to build neon now is with scons.
-# This may depend on things that are built by a regular scons build,
-# but over time that dependency may be eliminated and this will be
-# a standalone build system.
-
 cmake_minimum_required(VERSION 3.0)
 cmake_policy(SET CMP0054 NEW)
 project(neon)
@@ -91,7 +85,11 @@ else (GO)
     message("go not found")
 endif (GO)
 
-find_program(SCONS scons)
+if (WIN32)
+    find_program(SCONS scons.bat)
+else()
+    find_program(SCONS scons)
+endif()
 if (SCONS)
     message("scons found: ${SCONS}")
 else (SCONS)
@@ -130,6 +128,9 @@ endif ()
 
 file(GLOB EXTENSION_DIRS "${CMAKE_CURRENT_LIST_DIR}/lib/*")
 foreach (extension_dir ${EXTENSION_DIRS})
+    if (NOT IS_DIRECTORY ${extension_dir})
+        continue()
+    endif()
     get_filename_component(libname ${extension_dir} NAME)
     if (EXISTS "${extension_dir}/CMakeLists.txt")
         add_custom_target(neon_${libname} ALL
@@ -137,27 +138,34 @@ foreach (extension_dir ${EXTENSION_DIRS})
             COMMAND cmake --build .
             WORKING_DIRECTORY ${extension_dir}
         )
+        message("building extension module ${libname} with cmake")
     elseif (EXISTS "${extension_dir}/SConstruct" AND SCONS)
         add_custom_target(neon_${libname} ALL
             COMMAND ${SCONS}
             WORKING_DIRECTORY ${extension_dir}
         )
+        message("building extension module ${libname} with scons")
     elseif (EXISTS "${extension_dir}/configure")
         add_custom_target(neon_${libname} ALL
             COMMAND ./configure
             COMMAND make
             WORKING_DIRECTORY ${extension_dir}
         )
+        message("building extension module ${libname} with configure")
     elseif (EXISTS "${extension_dir}/build" AND NOT WIN32)
         add_custom_target(neon_${libname} ALL
             COMMAND ./build
             WORKING_DIRECTORY ${extension_dir}
         )
+        message("building extension module ${libname} with build")
     elseif (EXISTS "${extension_dir}/build.cmd" AND WIN32)
         add_custom_target(neon_${libname} ALL
             COMMAND build.cmd
             WORKING_DIRECTORY ${extension_dir}
         )
+        message("building extension module ${libname} with build.cmd")
+    else ()
+        message("skipping extension module ${libname} because no usable build method found")
     endif ()
 endforeach ()
 
