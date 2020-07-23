@@ -1,8 +1,0 @@
-import os
-import shutil
-import zipfile
-
-if GetOption("clean"):
-    shutil.rmtree("NaturalDocs", ignore_errors=True)
-elif not os.path.exists("NaturalDocs/NaturalDocs"):
-    zipfile.ZipFile("NaturalDocs-1.52.zip").extractall("NaturalDocs")

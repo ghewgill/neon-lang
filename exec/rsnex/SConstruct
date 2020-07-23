@@ -1,3 +1,0 @@
-rsnex = Command("rsnex", ["rsnex.rs"], "rustc -o ${TARGET} ${SOURCE}")
-
-Return(["rsnex"])

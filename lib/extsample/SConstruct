@@ -1,3 +1,0 @@
-env = Environment()
-env.Append(CPPPATH=["../../common"])
-env.SharedLibrary("neon_extsample", "extsample.c")
