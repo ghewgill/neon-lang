@@ -33,7 +33,7 @@ FUNCTION hmac_sha1(key: Bytes, msg: Bytes): Bytes
         a.append(0)
     END WHILE
     VAR k1: Bytes := a.toBytes()
-    RETURN hash.sha1Raw(binary.xorBytes(k1, opad) & hash.sha1Raw(binary.xorBytes(k1, ipad) & msg))
+    RETURN hash.sha1(binary.xorBytes(k1, opad) & hash.sha1(binary.xorBytes(k1, ipad) & msg))
 END FUNCTION
 
 # Test values from https://en.wikipedia.org/wiki/Hash-based_message_authentication_code
