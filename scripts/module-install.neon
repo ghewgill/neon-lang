@@ -1,0 +1,43 @@
+IMPORT file
+IMPORT os
+IMPORT string
+IMPORT sys
+IMPORT textio
+
+IF sys.args.size() < 2 THEN
+    textio.writeLine(textio.stderr, "Usage: module-install-neon module")
+    sys.exit(1)
+END IF
+
+LET name: String := sys.args[1]
+
+IF file.isDirectory("lib/\(name)") THEN
+    print("Module directory already exists")
+    sys.exit(1)
+END IF
+
+VAR mod: Object
+TRY
+    mod := yamlLoad("neon-module-registry/\(name).yaml")
+TRAP file.FileException.Open DO
+    textio.writeLine(textio.stderr, "Module not found")
+    sys.exit(1)
+END TRY
+
+IF os.system("git clone \(mod["repository"]) lib/\(name)") <> 0 THEN
+    print("Error cloning module")
+    sys.exit(1)
+END IF
+
+FUNCTION yamlLoad(fn: String): Object
+    # Simplistic YAML load function that is suitable for module registry entries.
+    VAR r: Dictionary<Object> := {}
+    LET lines: Array<String> := file.readLines(fn)
+    FOREACH line IN lines DO
+        LET colon: Number := string.find(line, ":")
+        LET key: String := string.trim(line[FIRST TO colon-1])
+        LET value: String := string.trim(line[colon+1 TO LAST])
+        r[key] := value
+    END FOREACH
+    RETURN r
+END FUNCTION
