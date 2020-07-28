@@ -48,10 +48,6 @@ build_script:
 - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="64" call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
 - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" if "%NEON_ARCH%"=="64" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
 
-# Some modules do not currently build on VS2019.
-- cmd: git submodule deinit lib/sdl
-- cmd: git submodule deinit lib/zeromq
-
 - cmd: cmake .
 - cmd: cmake --build .
 - cmd: if not "%EXCLUDE_TESTS%"=="1" ctest -C Debug --output-on-failure
