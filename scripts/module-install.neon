@@ -5,7 +5,7 @@ IMPORT sys
 IMPORT textio
 
 IF sys.args.size() < 2 THEN
-    textio.writeLine(textio.stderr, "Usage: module-install-neon module")
+    textio.writeLine(textio.stderr, "Usage: module-install.neon module")
     sys.exit(1)
 END IF
 
