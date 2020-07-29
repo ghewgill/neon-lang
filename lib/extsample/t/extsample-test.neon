@@ -49,3 +49,8 @@ TRY
 TRAP extsample.SampleException DO
     # pass
 END TRY
+
+LET h: extsample.Handle := extsample.allocHandle()
+# Needs to generate EQV/NEV instead of EQP/NEP (issue #295).
+#ASSERT h <> NIL
+extsample.freeHandle(h)

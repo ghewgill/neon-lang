@@ -158,3 +158,17 @@ Ne_EXPORT int Ne_raiseException(struct Ne_Cell *retval, struct Ne_ParameterList 
 {
     return Ne->raise_exception(retval, "SampleException", "info", 5);
 }
+
+Ne_EXPORT int Ne_allocHandle(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
+{
+    void *p = malloc(1);
+    Ne->cell_set_pointer(retval, p);
+    return Ne_SUCCESS;
+}
+
+Ne_EXPORT int Ne_freeHandle(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
+{
+    void *p = Ne->cell_get_pointer(retval);
+    free(p);
+    return Ne_SUCCESS;
+}
