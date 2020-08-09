@@ -5546,22 +5546,27 @@ public:
     virtual void visit(const pt::CaseStatement *node) {
         node->expr->accept(this);
         std::set<std::string> assigned;
+        bool found_others = false;
         bool first = true;
         for (auto &c: node->clauses) {
-            for (auto &w: c.first) {
-                auto *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(w.get());
-                auto *rwc = dynamic_cast<const pt::CaseStatement::RangeWhenCondition *>(w.get());
-                auto *twc = dynamic_cast<const pt::CaseStatement::TypeTestWhenCondition *>(w.get());
-                if (cwc != nullptr) {
-                    cwc->expr->accept(this);
-                } else if (rwc != nullptr) {
-                    rwc->low_expr->accept(this);
-                    rwc->high_expr->accept(this);
-                } else if (twc != nullptr) {
-                     // no action
-                } else {
-                    internal_error("unknown case when condition");
+            if (not c.first.empty()) {
+                for (auto &w: c.first) {
+                    auto *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(w.get());
+                    auto *rwc = dynamic_cast<const pt::CaseStatement::RangeWhenCondition *>(w.get());
+                    auto *twc = dynamic_cast<const pt::CaseStatement::TypeTestWhenCondition *>(w.get());
+                    if (cwc != nullptr) {
+                        cwc->expr->accept(this);
+                    } else if (rwc != nullptr) {
+                        rwc->low_expr->accept(this);
+                        rwc->high_expr->accept(this);
+                    } else if (twc != nullptr) {
+                         // no action
+                    } else {
+                        internal_error("unknown case when condition");
+                    }
                 }
+            } else {
+                found_others = true;
             }
             enter(true);
             for (auto &s: c.second) {
@@ -5574,6 +5579,10 @@ public:
                 intersect(assigned, scopes.back().assigned);
             }
             leave();
+        }
+        if (not found_others) {
+            // If there is no WHEN OTHERS clause, then nothing at all could happen.
+            assigned.clear();
         }
         for (auto a: assigned) {
             mark_assigned(a, Token());

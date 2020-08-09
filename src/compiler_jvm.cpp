@@ -2630,6 +2630,8 @@ public:
             }
             context.emit_jump(OP_goto, clause_labels.back().second);
         }
+        context.jump_target(clause_labels.back().first);
+        context.ca.code << OP_pop;
         context.jump_target(clause_labels.back().second);
     }
 };

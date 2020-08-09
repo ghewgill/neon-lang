@@ -2275,6 +2275,7 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
         emitter.emit_jump(Opcode::JUMP, end_label);
         emitter.jump_target(next_label);
     }
+    emitter.emit(Opcode::DROP);
     emitter.jump_target(end_label);
 }
 
