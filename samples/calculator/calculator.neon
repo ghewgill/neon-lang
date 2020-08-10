@@ -219,6 +219,8 @@ FUNCTION parse(tokens: Array<Token>): Expression
                     left := NEW NodeMultiply(left WITH left, right WITH right)
                 WHEN TokenType.divide DO
                     left := NEW NodeDivide(left WITH left, right WITH right)
+                WHEN OTHERS DO
+                    ASSERT FALSE
             END CASE
         END WHILE
         RETURN left
@@ -235,6 +237,8 @@ FUNCTION parse(tokens: Array<Token>): Expression
                     left := NEW NodePlus(left WITH left, right WITH right)
                 WHEN TokenType.minus DO
                     left := NEW NodeMinus(left WITH left, right WITH right)
+                WHEN OTHERS DO
+                    ASSERT FALSE
             END CASE
         END WHILE
         RETURN left

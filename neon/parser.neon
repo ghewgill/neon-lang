@@ -47,8 +47,9 @@ FUNCTION comparisonFromToken(token: lexer.Token): Comparison
         WHEN TokenType.greater   DO RETURN Comparison.gt
         WHEN TokenType.lesseq    DO RETURN Comparison.le
         WHEN TokenType.greatereq DO RETURN Comparison.ge
+        WHEN OTHERS DO
+            internalError("invalid comparison type")
     END CASE
-    internalError("invalid comparison type")
     RETURN Comparison.eq
 END FUNCTION
 
@@ -720,6 +721,8 @@ FUNCTION getStartColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.ValidPointerExpression       DO RETURN node->validpointerexpression.startColumn
             WHEN Type.ImportedModuleExpression     DO RETURN node->importedmoduleexpression.startColumn
             WHEN Type.RangeSubscriptExpression     DO RETURN node->rangesubscriptexpression.startColumn
+            WHEN OTHERS DO
+                ASSERT FALSE
         END CASE
     END IF
     internalError("unexpected node type")
@@ -770,6 +773,8 @@ FUNCTION getEndColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.ValidPointerExpression       DO RETURN node->validpointerexpression.endColumn
             WHEN Type.ImportedModuleExpression     DO RETURN node->importedmoduleexpression.endColumn
             WHEN Type.RangeSubscriptExpression     DO RETURN node->rangesubscriptexpression.endColumn
+            WHEN OTHERS DO
+                ASSERT FALSE
         END CASE
     END IF
     internalError("unexpected node type")
@@ -852,6 +857,8 @@ FUNCTION Parser.parseFunctionParameters(INOUT self: Parser, OUT returntype: POIN
                 WHEN TokenType.in    DO mode := ParameterMode.in    self.nextToken()
                 WHEN TokenType.inout DO mode := ParameterMode.inout self.nextToken()
                 WHEN TokenType.out   DO mode := ParameterMode.out   self.nextToken()
+                WHEN OTHERS DO
+                    # no action
             END CASE
             LET tokParam: lexer.Token := self.token
             LET vars: VariableInfo := self.parseVariableDeclaration()
@@ -2364,6 +2371,8 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                             type WITH type
                         )
                     )
+                WHEN OTHERS DO
+                    # no action
             END CASE
             RETURN NIL
         WHEN TokenType.extension DO
@@ -2531,6 +2540,8 @@ FUNCTION Parser.parseExport(INOUT self: Parser): POINTER TO ParseTreeNode
                     declaration WITH declare
                 )
             ) END IF |#
+        WHEN OTHERS DO
+            # no action
     END CASE
     IF self.token.type <> TokenType.identifier THEN
         error(2074, self.token, "identifier expected")

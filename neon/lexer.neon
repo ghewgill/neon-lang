@@ -142,6 +142,8 @@ FUNCTION Token.toString(self: Token): String
             r.append(":\(self.text)")
         WHEN Type.identifier DO
             r.append(":\(self.text)")
+        WHEN OTHERS DO
+            # no action
     END CASE
     r.append(">")
     RETURN r

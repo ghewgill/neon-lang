@@ -4007,6 +4007,81 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
         scope.pop();
         clauses.emplace_back(std::make_pair(conditions, statements));
     }
+    const ast::TypeEnum *te = dynamic_cast<const ast::TypeEnum *>(expr->type);
+    if (te != nullptr) {
+        std::set<int> covered;
+        for (auto &clause: clauses) {
+            for (auto &cond: clause.first) {
+                const ast::CaseStatement::ComparisonWhenCondition *cwc = dynamic_cast<const ast::CaseStatement::ComparisonWhenCondition *>(cond);
+                const ast::CaseStatement::RangeWhenCondition *rwc = dynamic_cast<const ast::CaseStatement::RangeWhenCondition *>(cond);
+                const ast::CaseStatement::TypeTestWhenCondition *twc = dynamic_cast<const ast::CaseStatement::TypeTestWhenCondition *>(cond);
+                if (cwc != nullptr) {
+                    const ast::ConstantEnumExpression *ce = dynamic_cast<const ast::ConstantEnumExpression *>(cwc->expr);
+                    if (ce == nullptr) {
+                        internal_error("expected ConstantEnumExpression");
+                    }
+                    switch (cwc->comp) {
+                        case ast::ComparisonExpression::Comparison::EQ:
+                            covered.insert(ce->value);
+                            break;
+                        case ast::ComparisonExpression::Comparison::NE:
+                            for (int i = 0; i < static_cast<int>(te->names.size()); i++) {
+                                if (i != ce->value) {
+                                    covered.insert(i);
+                                }
+                            }
+                            break;
+                        case ast::ComparisonExpression::Comparison::LT:
+                            for (int i = 0; i < ce->value; i++) {
+                                covered.insert(i);
+                            }
+                            break;
+                        case ast::ComparisonExpression::Comparison::GT:
+                            for (int i = ce->value+1; i < static_cast<int>(te->names.size()); i++) {
+                                covered.insert(i);
+                            }
+                            break;
+                        case ast::ComparisonExpression::Comparison::LE:
+                            for (int i = 0; i <= ce->value; i++) {
+                                covered.insert(i);
+                            }
+                            break;
+                        case ast::ComparisonExpression::Comparison::GE:
+                            for (int i = ce->value; i < static_cast<int>(te->names.size()); i++) {
+                                covered.insert(i);
+                            }
+                            break;
+                        default:
+                            internal_error("unimplemented comparison in case when condition");
+                    }
+                } else if (rwc != nullptr) {
+                    const ast::ConstantEnumExpression *le = dynamic_cast<const ast::ConstantEnumExpression *>(rwc->low_expr);
+                    if (le == nullptr) {
+                        internal_error("expected ConstantEnumExpression");
+                    }
+                    const ast::ConstantEnumExpression *he = dynamic_cast<const ast::ConstantEnumExpression *>(rwc->high_expr);
+                    if (he == nullptr) {
+                        internal_error("expected ConstantEnumExpression");
+                    }
+                    for (int i = le->value; i <= he->value; i++) {
+                        covered.insert(i);
+                    }
+                } else if (twc != nullptr) {
+                    internal_error("unexpected case when condition");
+                } else {
+                    internal_error("unknown case when condition");
+                }
+            }
+            if (clause.first.empty()) {
+                for (size_t i = 0; i < te->names.size(); i++) {
+                    covered.insert(i);
+                }
+            }
+        }
+        if (covered.size() < te->names.size()) {
+            error(3283, statement->expr->token, "cases do not cover all enum values");
+        }
+    }
     return new ast::CaseStatement(statement->token.line, expr, clauses);
 }
 

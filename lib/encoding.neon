@@ -68,6 +68,8 @@ FUNCTION base64Encode(data: Bytes): String
                 encoded.append(Base64EncodeTable[binary.or32(char2, binary.shiftRight32(n, 6))])
                 encoded.append(Base64EncodeTable[binary.and32(n, 0b00111111)])
                 status := State.byte1
+            WHEN State.byte4 DO
+                # no action
         END CASE
     END FOREACH
 
@@ -81,6 +83,8 @@ FUNCTION base64Encode(data: Bytes): String
         WHEN State.byte3 DO
             encoded.append(Base64EncodeTable[char2])
             encoded.append("=")
+        WHEN OTHERS DO
+            # no action
     END CASE
     RETURN encoded
 END FUNCTION
