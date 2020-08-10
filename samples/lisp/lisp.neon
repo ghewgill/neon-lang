@@ -107,13 +107,16 @@ FUNCTION Value.to_string(IN self: VALID POINTER TO Value): String
         WHEN Type.symbol DO
             IF VALID self->val_symbol AS p THEN
                 RETURN p->name
+            ELSE
+                RETURN "NIL"
             END IF
         WHEN Type.string DO
             RETURN self->val_string
         WHEN Type.pair DO
             RETURN "<pair>"
+        WHEN OTHERS DO
+            RETURN "TODO"
     END CASE
-    RETURN "TODO"
 END FUNCTION
 
 FUNCTION new_env(e: POINTER TO Environment): POINTER TO Environment
