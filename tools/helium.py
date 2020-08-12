@@ -626,7 +626,7 @@ class DotExpression:
     def eval_obj(self, env, obj):
         if isinstance(obj, bool):
             if self.field == "toString": return lambda env, self: "TRUE" if obj else "FALSE"
-        elif isinstance(obj, int):
+        elif isinstance(obj, (int, float)):
             if self.field == "toString": return lambda env, self: str(obj)
         elif isinstance(obj, str):
             if self.field == "append": return neon_string_append

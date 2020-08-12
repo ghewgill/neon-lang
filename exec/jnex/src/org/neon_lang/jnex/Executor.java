@@ -47,6 +47,7 @@ class Executor {
         predefined.put("array__splice", this::array__splice);
         predefined.put("array__toBytes__number", this::array__toBytes__number);
         predefined.put("array__toString__number", this::array__toString__number);
+        predefined.put("array__toString__string", this::array__toString__string);
         predefined.put("array__toString__object", this::array__toString__object);
         predefined.put("boolean__toString", this::boolean__toString);
         predefined.put("bytes__decodeToString", this::bytes__decodeToString);
@@ -82,6 +83,7 @@ class Executor {
         predefined.put("string__length", this::string__length);
         predefined.put("string__substring", this::string__substring);
         predefined.put("string__toBytes", this::string__toBytes);
+        predefined.put("string__toString", this::string__toString);
         predefined.put("math$abs", this::math$abs);
         predefined.put("math$ceil", this::math$ceil);
         predefined.put("math$floor", this::math$floor);
@@ -1369,6 +1371,23 @@ class Executor {
         stack.addFirst(new Cell(r.toString()));
     }
 
+    private void array__toString__string()
+    {
+        List<Cell> a = stack.removeFirst().getArray();
+        StringBuilder r = new StringBuilder("[");
+        boolean first = true;
+        for (Cell x: a) {
+            if (first) {
+                first = false;
+            } else {
+                r.append(", ");
+            }
+            r.append('"' + x.getString() + '"');
+        }
+        r.append("]");
+        stack.addFirst(new Cell(r.toString()));
+    }
+
     private void array__toString__object()
     {
         List<Cell> a = stack.removeFirst().getArray();
@@ -1740,6 +1759,12 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(s.getBytes()));
+    }
+
+    private void string__toString()
+    {
+        String s = stack.removeFirst().getString();
+        stack.addFirst(new Cell(s));
     }
 
     private void math$abs()

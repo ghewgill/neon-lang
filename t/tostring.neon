@@ -1,16 +1,48 @@
-VAR n: Number := 5
-print(n.toString())
-#= 5
-
-VAR b: Boolean := TRUE
+LET b: Boolean := FALSE
 print(b.toString())
-#= TRUE
+#= FALSE
+
+LET n: Number := 1.234
+print(n.toString())
+#= 1.234
+
+LET s: String := "hello"
+print(s.toString())
+#= hello
+
+LET y: Bytes := HEXBYTES "01 02 03"
+print(y.toString())
+#= HEXBYTES "01 02 03"
 
 TYPE Colour IS ENUM
     red
     green
     blue
 END ENUM
-VAR c: Colour := Colour.green
-print(c.toString())
-#= green
+LET e: Colour := Colour.red
+print(e.toString())
+#= red
+
+LET a: Array<String> := ["foo", "bar"]
+print(a.toString())
+#= ["foo", "bar"]
+
+#LET d: Dictionary<String> := {"name": "foo", "value": "5"}
+#print(d.toString())
+##= {"name": "foo", "value": "5"}
+#
+#TYPE Item IS RECORD
+#    name: String
+#    value: Number
+#END RECORD
+#LET r: Item := Item(name WITH "foo", value WITH 5)
+#print(r.toString())
+##= Item(name WITH "foo", value WITH 5)
+#
+#TYPE Item2 IS CLASS
+#    name: String
+#    value: Number
+#END CLASS
+#LET p: POINTER TO Item2 := NEW Item2(name WITH "foo", value WITH 5)
+#print(p.toString())
+##= 0x12345->Item2(name WITH "foo", value WITH 5)

@@ -276,8 +276,7 @@ std::vector<unsigned char> string__toBytes(const utf8string &self)
 
 utf8string string__toString(const utf8string &self)
 {
-    // TODO: Escape things that need escaping.
-    return "\"" + self + "\"";
+    return self;
 }
 
 std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Number first, bool first_from_end, Number last, bool last_from_end)

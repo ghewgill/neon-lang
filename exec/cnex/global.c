@@ -365,6 +365,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("string__append",            string__append),
     PDFUNC("string__concat",            string__concat),
     PDFUNC("string__toBytes",           string__toBytes),
+    PDFUNC("string__toString",          string__toString),
     PDFUNC("string__length",            string__length),
     PDFUNC("string__splice",            string__splice),
     PDFUNC("string__substring",         string__substring),
@@ -1256,6 +1257,12 @@ void string__toBytes(TExecutor *exec)
 {
     Cell *r = cell_fromCell(top(exec->stack)); pop(exec->stack);
     r->type = cBytes;
+    push(exec->stack, r);
+}
+
+void string__toString(TExecutor *exec)
+{
+    Cell *r = cell_fromCell(top(exec->stack)); pop(exec->stack);
     push(exec->stack, r);
 }
 

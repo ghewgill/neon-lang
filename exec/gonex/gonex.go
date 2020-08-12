@@ -2731,6 +2731,9 @@ func (self *executor) op_callp() {
 	case "string__toBytes":
 		s := self.pop().str
 		self.push(make_cell_bytes([]byte(s)))
+	case "string__toString":
+		s := self.pop().str
+		self.push(make_cell_str(s))
 	case "sys$exit":
 		n := self.pop().num
 		if n != math.Trunc(n) {

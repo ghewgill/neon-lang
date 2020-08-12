@@ -71,6 +71,7 @@ void pointer__toString(struct tagTExecutor *exec);
 void string__append(struct tagTExecutor *exec);
 void string__concat(struct tagTExecutor *exec);
 void string__toBytes(struct tagTExecutor *exec);
+void string__toString(struct tagTExecutor *exec);
 void string__length(struct tagTExecutor *exec);
 void string__splice(struct tagTExecutor *exec);
 void string__substring(struct tagTExecutor *exec);

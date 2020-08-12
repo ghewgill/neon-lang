@@ -2106,6 +2106,10 @@ def neon_string__toBytes(self):
     s = self.stack.pop()
     self.stack.append(s.encode())
 
+def neon_string__toString(self):
+    s = self.stack.pop()
+    self.stack.append(s)
+
 def neon_struct_packIEEE64(self):
     n = self.stack.pop()
     r = struct.pack("d", n)
