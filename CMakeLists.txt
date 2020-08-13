@@ -5,7 +5,7 @@ project(neon)
 enable_testing()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY bin)
 
 find_program(JAVAC javac)
 if (JAVAC)
