@@ -3,3 +3,4 @@ cnex.exe
 
 test_number_to_string_c
 test_path_support
+test_string_support
