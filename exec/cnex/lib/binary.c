@@ -59,6 +59,19 @@ static BOOL range_checkU64(TExecutor *exec, Number x)
     return TRUE;
 }
 
+static BOOL index_range_check(TExecutor *exec, Number x, int bits)
+{
+    if (number_is_less(x, BID_ZERO) || number_is_greater(x, bid128_from_uint32(bits))) {
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        return FALSE;
+    }
+    if (!number_is_integer(x)) {
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        return FALSE;
+    }
+    return TRUE;
+}
+
 void binary_and32(TExecutor *exec)
 {
     Number y = top(exec->stack)->number; pop(exec->stack);
@@ -82,10 +95,10 @@ void binary_extract32(TExecutor *exec)
     if (!range_checkU32(exec, x)) {
         return;
     }
-    if (!range_checkU32(exec, n)) {
+    if (!index_range_check(exec, n, 32)) {
         return;
     }
-    if (!range_checkU32(exec, w)) {
+    if (!index_range_check(exec, w, 32)) {
         return;
     }
 
@@ -113,7 +126,7 @@ void binary_get32(TExecutor *exec)
     if (!range_checkU32(exec, x)) {
         return;
     }
-    if (!range_checkU32(exec, n)) {
+    if (!index_range_check(exec, n, 32)) {
         return;
     }
 
@@ -161,10 +174,10 @@ void binary_replace32(TExecutor *exec)
     if (!range_checkU32(exec, x)) {
         return;
     }
-    if (!range_checkU32(exec, n)) {
+    if (!index_range_check(exec, n, 32)) {
         return;
     }
-    if (!range_checkU32(exec, w)) {
+    if (!index_range_check(exec, w, 32)) {
         return;
     }
     if (!range_checkU32(exec, y)) {
@@ -194,7 +207,7 @@ void binary_set32(TExecutor *exec)
     if (!range_checkU32(exec, x)) {
         return;
     }
-    if (!range_checkU32(exec, n)) {
+    if (!index_range_check(exec, n, 32)) {
         return;
     }
 
@@ -218,7 +231,7 @@ void binary_shift_left32(TExecutor *exec)
     if (!range_checkU32(exec,x)) {
         return;
     }
-    if (!range_checkU32(exec,n)) {
+    if (!index_range_check(exec, n, 32)) {
         return;
     }
 
@@ -238,7 +251,7 @@ void binary_shift_right32(TExecutor *exec)
     if (!range_checkU32(exec,x)) {
         return;
     }
-    if (!range_checkU32(exec,n)) {
+    if (!index_range_check(exec, n, 32)) {
         return;
     }
 
@@ -258,7 +271,7 @@ void binary_shift_right_signed32(TExecutor *exec)
     if (!range_check32(exec,x)) {
         return;
     }
-    if (!range_checkU32(exec,n)) {
+    if (!index_range_check(exec, n, 32)) {
         return;
     }
 
@@ -309,10 +322,10 @@ void binary_extract64(TExecutor *exec)
     if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_checkU32(exec, n)) {
+    if (!index_range_check(exec, n, 64)) {
         return;
     }
-    if (!range_checkU32(exec, w)) {
+    if (!index_range_check(exec, w, 64)) {
         return;
     }
 
@@ -340,7 +353,7 @@ void binary_get64(TExecutor *exec)
     if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_checkU32(exec, n)) {
+    if (!index_range_check(exec, n, 64)) {
         return;
     }
 
@@ -388,10 +401,10 @@ void binary_replace64(TExecutor *exec)
     if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_checkU32(exec, n)) {
+    if (!index_range_check(exec, n, 64)) {
         return;
     }
-    if (!range_checkU32(exec, w)) {
+    if (!index_range_check(exec, w, 64)) {
         return;
     }
     if (!range_checkU64(exec, y)) {
@@ -421,7 +434,7 @@ void binary_set64(TExecutor *exec)
     if (!range_checkU64(exec, x)) {
         return;
     }
-    if (!range_checkU32(exec, n)) {
+    if (!index_range_check(exec, n, 64)) {
         return;
     }
 
@@ -445,7 +458,7 @@ void binary_shift_left64(TExecutor *exec)
     if (!range_checkU64(exec,x)) {
         return;
     }
-    if (!range_checkU32(exec,n)) {
+    if (!index_range_check(exec, n, 64)) {
         return;
     }
 
@@ -465,7 +478,7 @@ void binary_shift_right64(TExecutor *exec)
     if (!range_checkU64(exec,x)) {
         return;
     }
-    if (!range_checkU32(exec,n)) {
+    if (!index_range_check(exec, n, 64)) {
         return;
     }
 
@@ -485,7 +498,7 @@ void binary_shift_right_signed64(TExecutor *exec)
     if (!range_check64(exec,x)) {
         return;
     }
-    if (!range_checkU32(exec,n)) {
+    if (!index_range_check(exec, n, 64)) {
         return;
     }
 

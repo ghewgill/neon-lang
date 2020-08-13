@@ -68,6 +68,16 @@ template <typename T> void range_check(Number x)
     }
 }
 
+template <typename T> void index_range_check(Number x)
+{
+    if (number_is_less(x, number_from_uint32(0)) || number_is_greater(x, number_from_uint32(traits<T>::BITS))) {
+        throw RtlException(rtl::ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
+    }
+    if (not number_is_integer(x)) {
+        throw RtlException(rtl::ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
+    }
+}
+
 template <typename T> Number binary_and(Number x, Number y)
 {
     range_check<T>(x);
@@ -78,8 +88,8 @@ template <typename T> Number binary_and(Number x, Number y)
 template <typename T> Number binary_extract(Number x, Number n, Number w)
 {
     range_check<T>(x);
-    range_check<uint32_t>(n);
-    range_check<uint32_t>(w);
+    index_range_check<T>(n);
+    index_range_check<T>(w);
     unsigned int b = number_to_uint32(n);
     if (b >= traits<T>::BITS) {
         return traits<T>::to_number(0);
@@ -97,7 +107,7 @@ template <typename T> Number binary_extract(Number x, Number n, Number w)
 template <typename T> bool binary_get(Number x, Number n)
 {
     range_check<T>(x);
-    range_check<uint32_t>(n);
+    index_range_check<T>(n);
     unsigned int b = number_to_uint32(n);
     if (b >= traits<T>::BITS) {
         return false;
@@ -121,8 +131,8 @@ template <typename T> Number binary_or(Number x, Number y)
 template <typename T> Number binary_replace(Number x, Number n, Number w, Number y)
 {
     range_check<T>(x);
-    range_check<uint32_t>(n);
-    range_check<uint32_t>(w);
+    index_range_check<T>(n);
+    index_range_check<T>(w);
     range_check<T>(y);
     unsigned int b = number_to_uint32(n);
     if (b >= traits<T>::BITS) {
@@ -140,7 +150,7 @@ template <typename T> Number binary_replace(Number x, Number n, Number w, Number
 template <typename T> Number binary_set(Number x, Number n, bool v)
 {
     range_check<T>(x);
-    range_check<uint32_t>(n);
+    index_range_check<T>(n);
     unsigned int b = number_to_uint32(n);
     if (b >= traits<T>::BITS) {
         return x;
@@ -155,7 +165,7 @@ template <typename T> Number binary_set(Number x, Number n, bool v)
 template <typename T> Number binary_shift_left(Number x, Number n)
 {
     range_check<T>(x);
-    range_check<uint32_t>(n);
+    index_range_check<T>(n);
     unsigned int b = number_to_uint32(n);
     if (b >= traits<T>::BITS) {
         return traits<T>::to_number(0);
@@ -166,7 +176,7 @@ template <typename T> Number binary_shift_left(Number x, Number n)
 template <typename T> Number binary_shift_right(Number x, Number n)
 {
     range_check<T>(x);
-    range_check<uint32_t>(n);
+    index_range_check<T>(n);
     unsigned int b = number_to_uint32(n);
     if (b >= traits<T>::BITS) {
         return traits<T>::to_number(0);
@@ -177,7 +187,7 @@ template <typename T> Number binary_shift_right(Number x, Number n)
 template <typename T> Number binary_shift_right_signed(Number x, Number n)
 {
     range_check<T>(x);
-    range_check<uint32_t>(n);
+    index_range_check<T>(n);
     unsigned int b = number_to_uint32(n);
     if (b >= traits<T>::BITS) {
         return traits<T>::to_number(0);

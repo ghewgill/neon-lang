@@ -1523,10 +1523,10 @@ def neon_binary_extract32(self):
     if not (0 <= x <= 0xFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 32):
         self.raise_literal("ValueRangeException", (n, 0))
         return
-    if not (0 <= w <= 0xFFFFFFFF):
+    if not (0 <= w <= 32):
         self.raise_literal("ValueRangeException", (w, 0))
         return
     if n < 32:
@@ -1541,10 +1541,10 @@ def neon_binary_extract64(self):
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 64):
         self.raise_literal("ValueRangeException", (n, 0))
         return
-    if not (0 <= w <= 0xFFFFFFFF):
+    if not (0 <= w <= 64):
         self.raise_literal("ValueRangeException", (w, 0))
         return
     if n < 64:
@@ -1558,7 +1558,7 @@ def neon_binary_get32(self):
     if not (0 <= x <= 0xFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 32):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     if n < 32:
@@ -1572,7 +1572,7 @@ def neon_binary_get64(self):
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 64):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     if n < 64:
@@ -1633,10 +1633,10 @@ def neon_binary_replace32(self):
     if not (0 <= x <= 0xFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 32):
         self.raise_literal("ValueRangeException", (n, 0))
         return
-    if not (0 <= w <= 0xFFFFFFFF):
+    if not (0 <= w <= 32):
         self.raise_literal("ValueRangeException", (w, 0))
         return
     if not (0 <= y <= 0xFFFFFFFF):
@@ -1655,10 +1655,10 @@ def neon_binary_replace64(self):
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 64):
         self.raise_literal("ValueRangeException", (n, 0))
         return
-    if not (0 <= w <= 0xFFFFFFFF):
+    if not (0 <= w <= 64):
         self.raise_literal("ValueRangeException", (w, 0))
         return
     if not (0 <= y <= 0xFFFFFFFFFFFFFFFF):
@@ -1676,7 +1676,7 @@ def neon_binary_set32(self):
     if not (0 <= x <= 0xFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 32):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     if n < 32:
@@ -1694,7 +1694,7 @@ def neon_binary_set64(self):
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 64):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     if n < 64:
@@ -1711,7 +1711,7 @@ def neon_binary_shiftLeft32(self):
     if not (0 <= x <= 0xFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 32):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     if n < 32:
@@ -1725,7 +1725,7 @@ def neon_binary_shiftLeft64(self):
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 64):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     if n < 64:
@@ -1739,7 +1739,7 @@ def neon_binary_shiftRight32(self):
     if not (0 <= x <= 0xFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 32):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     self.stack.append(x >> n)
@@ -1750,7 +1750,7 @@ def neon_binary_shiftRight64(self):
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 64):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     self.stack.append(x >> n)
@@ -1761,7 +1761,7 @@ def neon_binary_shiftRightSigned32(self):
     if not (-0x80000000 <= x <= 0x7FFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 32):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     self.stack.append(x >> n)
@@ -1772,7 +1772,7 @@ def neon_binary_shiftRightSigned64(self):
     if not (-0x8000000000000000 <= x <= 0x7FFFFFFFFFFFFFFF):
         self.raise_literal("ValueRangeException", (x, 0))
         return
-    if not (0 <= n <= 0xFFFFFFFF):
+    if not (0 <= n <= 64):
         self.raise_literal("ValueRangeException", (n, 0))
         return
     self.stack.append(x >> n)
