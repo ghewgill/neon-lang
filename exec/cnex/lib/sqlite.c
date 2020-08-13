@@ -53,7 +53,7 @@ void object_releaseDatabaseObject(Object *o)
 Cell *object_databaseObjectToString(Object *self)
 {
     char s[32];
-    snprintf(s, sizeof(s), "<SQLITE %" PRId64 ">", (int64_t)self->ptr);
+    snprintf(s, sizeof(s), "<SQLITE %p>", self->ptr);
     Cell *r = cell_fromCString(s);
     return r;
 }
