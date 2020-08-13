@@ -12,6 +12,7 @@ EXPORT hasSuffix
 EXPORT isBlank
 EXPORT join
 EXPORT lower
+EXPORT quoted
 EXPORT repeat
 EXPORT replaceAll
 EXPORT replaceOne
@@ -199,6 +200,13 @@ END FUNCTION
  |  Return a string with all alphabetic characters converted to lower case.
  |#
 DECLARE NATIVE FUNCTION lower(s: String): String
+
+#|
+ |  Function: quoted
+ |
+ |  Return a string that is a quoted version of the passed string, with enclosing quotes.
+ |#
+DECLARE NATIVE FUNCTION quoted(s: String): String
 
 #|
  |  Function: repeat

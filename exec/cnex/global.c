@@ -281,6 +281,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("string$find",               string_find),
     PDFUNC("string$fromCodePoint",      string_fromCodePoint),
     PDFUNC("string$lower",              string_lower),
+    PDFUNC("string$quoted",             string_quoted),
     PDFUNC("string$split",              string_split),
     PDFUNC("string$splitLines",         string_splitLines),
     PDFUNC("string$toCodePoint",        string_toCodePoint),

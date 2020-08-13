@@ -36,6 +36,42 @@ utf8string lower(const utf8string &ss)
     return r;
 }
 
+utf8string quoted(const utf8string &s)
+{
+    utf8string r;
+    r.push_back('"');
+    for (auto i = s.str().begin(); i != s.str().end(); utf8::advance(i, 1, s.str().end())) {
+        auto c = utf8::peek_next(i, s.str().end());
+        switch (c) {
+            case '\b': r.append("\\b"); break;
+            case '\f': r.append("\\f"); break;
+            case '\n': r.append("\\n"); break;
+            case '\r': r.append("\\r"); break;
+            case '\t': r.append("\\t"); break;
+            case '"':
+            case '\\':
+                r.push_back('\\');
+                r.push_back(c);
+                break;
+            default:
+                if (c >= ' ' && c < 0x7f) {
+                    r.push_back(c);
+                } else if (c < 0x10000) {
+                    char buf[7];
+                    snprintf(buf, sizeof(buf), "\\u%04x", c);
+                    r.append(buf);
+                } else {
+                    char buf[11];
+                    snprintf(buf, sizeof(buf), "\\U%08x", c);
+                    r.append(buf);
+                }
+                break;
+        }
+    }
+    r.push_back('"');
+    return r;
+}
+
 std::vector<utf8string> split(const utf8string &ss, const utf8string &dd)
 {
     const std::string &s = ss.str(); // TODO: utf8

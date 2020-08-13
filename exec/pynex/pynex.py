@@ -2670,6 +2670,31 @@ def neon_string_lower(self):
     s = self.stack.pop()
     self.stack.append(s.lower())
 
+def neon_string_quoted(self):
+    s = self.stack.pop()
+    r = '"'
+    for c in s:
+        if c == "\b":
+            r += "\\b"
+        elif c == "\f":
+            r += "\\f"
+        elif c == "\n":
+            r += "\\n"
+        elif c == "\r":
+            r += "\\r"
+        elif c == "\t":
+            r += "\\t"
+        elif c in ('"', '\\'):
+            r += "\\" + c
+        elif ' ' <= c < '\x7f':
+            r += c
+        elif ord(c) < 0x10000:
+            r += "\\u{:04x}".format(ord(c))
+        else:
+            r += "\\U{:08x}".format(ord(c))
+    r += '"'
+    self.stack.append(r)
+
 def neon_string_split(self):
     d = self.stack.pop()
     s = self.stack.pop()

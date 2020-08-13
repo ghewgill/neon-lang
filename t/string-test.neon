@@ -83,6 +83,17 @@ print(bstr(string.hasSuffix("Hello World", "old")))
 #= TRUE
 #= FALSE
 
+print(string.quoted("abc"))
+#= "abc"
+print(string.quoted("hello" & string.fromCodePoint(9) & "world"))
+#= "hello\tworld"
+print(string.quoted("hello" & string.fromCodePoint(92) & "world"))
+#= "hello\\world"
+print(string.quoted("hello\u{atom symbol}world"))
+#= "hello\u269bworld"
+print(string.quoted("hello\u{open book}world"))
+#= "hello\U0001f4d6world"
+
 ASSERT string.repeat("*", 5) = "*****"
 ASSERT string.repeat("XY", 2) = "XYXY"
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -650,6 +651,78 @@ func (self cell) Equal(other cell) bool {
 		panic("unknown ctype in cell.Equal")
 	}
 	return false
+}
+
+func quoted(s string) string {
+	var r bytes.Buffer
+	r.WriteString("\"")
+	for i := 0; i < len(s); i++ {
+		var c uint32 = uint32(s[i])
+
+		// UTF8 decoder. This won't be the right place for this, but here it is.
+		if (c & 0x80) != 0 {
+			n := 0
+			if (c & 0xe0) == 0xc0 {
+				c &= 0x1f
+				n = 1
+			} else if (c & 0xf0) == 0xe0 {
+				c &= 0x0f
+				n = 2
+			} else if (c & 0xf8) == 0xf0 {
+				c &= 0x07
+				n = 3
+			} else if (c & 0xfc) == 0xf8 {
+				c &= 0x03
+				n = 4
+			} else if (c & 0xfe) == 0xfc {
+				c &= 0x01
+				n = 5
+			}
+			for n > 0 {
+				i++
+				if (s[i] & 0xc0) != 0x80 {
+					// Garbage data, give up.
+					break
+				}
+				c = (c << 6) | uint32(s[i]&0x3f)
+				n--
+			}
+		}
+
+		switch c {
+		case '\b':
+			r.WriteString("\\b")
+			break
+		case '\f':
+			r.WriteString("\\f")
+			break
+		case '\n':
+			r.WriteString("\\n")
+			break
+		case '\r':
+			r.WriteString("\\r")
+			break
+		case '\t':
+			r.WriteString("\\t")
+			break
+		case '"':
+		case '\\':
+			r.WriteString("\\")
+			r.WriteByte(byte(c))
+			break
+		default:
+			if c >= ' ' && c < 0x7f {
+				r.WriteByte(byte(c))
+			} else if c < 0x10000 {
+				r.WriteString(fmt.Sprintf("\\u%04x", c))
+			} else {
+				r.WriteString(fmt.Sprintf("\\U%08x", c))
+			}
+			break
+		}
+	}
+	r.WriteString("\"")
+	return r.String()
 }
 
 type exception struct {
@@ -2629,6 +2702,9 @@ func (self *executor) op_callp() {
 	case "string$lower":
 		s := self.pop().str
 		self.push(make_cell_str(strings.ToLower(s)))
+	case "string$quoted":
+		s := self.pop().str
+		self.push(make_cell_str(quoted(s)))
 	case "string$split":
 		d := self.pop().str
 		s := self.pop().str

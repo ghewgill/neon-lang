@@ -3005,6 +3005,30 @@ def neon_string_join(env, a, d):
 def neon_string_lower(env, s):
     return s.lower()
 
+def neon_string_quoted(env, s):
+    r = '"'
+    for c in s:
+        if c == "\b":
+            r += "\\b"
+        elif c == "\f":
+            r += "\\f"
+        elif c == "\n":
+            r += "\\n"
+        elif c == "\r":
+            r += "\\r"
+        elif c == "\t":
+            r += "\\t"
+        elif c in ('"', '\\'):
+            r += "\\" + c
+        elif ' ' <= c < '\x7f':
+            r += c
+        elif ord(c) < 0x10000:
+            r += "\\u{:04x}".format(ord(c))
+        else:
+            r += "\\U{:08x}".format(ord(c))
+    r += '"'
+    return r
+
 def neon_string_split(env, s, d):
     return s.split(d)
 

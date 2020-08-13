@@ -6,6 +6,7 @@ struct tagTExecutor;
 void string_find(struct tagTExecutor *exec);
 void string_fromCodePoint(struct tagTExecutor *exec);
 void string_lower(struct tagTExecutor *exec);
+void string_quoted(struct tagTExecutor *exec);
 void string_split(struct tagTExecutor *exec);
 void string_splitLines(struct tagTExecutor *exec);
 void string_toCodePoint(struct tagTExecutor *exec);
