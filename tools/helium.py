@@ -644,6 +644,7 @@ class DotExpression:
             if self.field == "extend": return lambda env, self, x: obj.extend(x)
             if self.field == "remove": return lambda env, self, n: neon_array_remove(obj, n)
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
+            if self.field == "reversed": return lambda env, self: neon_array_reversed(obj)
             if self.field == "size": return lambda env, self: len(obj)
             if self.field == "toBytes": return lambda env, self: bytes(obj)
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e)) for e in obj))
@@ -2668,6 +2669,9 @@ def neon_array_resize(a, n):
         del a[int(n):]
     elif n > len(a):
         a.extend([0] * (n - len(a)))
+
+def neon_array_reversed(a):
+    return list(reversed(a))
 
 def neon_concat(env, x, y):
     return x + y

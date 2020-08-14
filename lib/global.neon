@@ -195,6 +195,7 @@ DECLARE NATIVE FUNCTION array__extend(INOUT self: Array, elements: Array)
 DECLARE NATIVE FUNCTION array__range(first: Number, last: Number, step: Number): Array<Number>
 DECLARE NATIVE FUNCTION array__remove(INOUT self: Array, index: Number)
 DECLARE NATIVE FUNCTION array__resize(INOUT self: Array, new_size: Number)
+DECLARE NATIVE FUNCTION array__reversed(self: Array): Array
 DECLARE NATIVE FUNCTION array__size(self: Array): Number
 DECLARE NATIVE FUNCTION array__slice(a: Array, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Array
 DECLARE NATIVE FUNCTION array__splice(b: Array, a: Array, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Array

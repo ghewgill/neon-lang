@@ -3,6 +3,7 @@ array-last-method.neon     # string__append
 array-negative.neon        # exception
 array-remove.neon          # exception
 array-resize.neon          # array default item
+array-reversed.neon        # array reversed
 array-slice.neon           # ArrayReferenceRangeExpression
 array-tostring.neon        # array comparison
 array2d.neon               # copy semantics

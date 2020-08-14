@@ -58,6 +58,12 @@ public class Global {
         };
     }
 
+    public static neon.type.Array array__reversed(neon.type.Array self) {
+        neon.type.Array r = new neon.type.Array(self);
+        java.util.Collections.reverse(r);
+        return r;
+    }
+
     public static neon.type.Number array__size(neon.type.Array self) {
         return self.size_n();
     }

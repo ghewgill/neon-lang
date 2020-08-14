@@ -78,6 +78,16 @@ void array__resize(Cell *self, Number new_size)
     self->array_for_write().resize(number_to_sint64(new_size));
 }
 
+Cell array__reversed(Cell &self)
+{
+    std::vector<Cell> r;
+    const std::vector<Cell> &a = self.array();
+    for (auto i = a.rbegin(); i != a.rend(); ++i) {
+        r.push_back(*i);
+    }
+    return Cell(r);
+}
+
 Number array__size(Cell &self)
 {
     return number_from_uint64(self.array().size());

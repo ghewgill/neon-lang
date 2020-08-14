@@ -2,6 +2,14 @@ package neon.type;
 
 public class Array extends java.util.ArrayList {
 
+    public Array() {
+        super();
+    }
+
+    public Array(Array a) {
+        super(a);
+    }
+
     public boolean equals(Object o) {
         if (!(o instanceof Array)) {
             return false;

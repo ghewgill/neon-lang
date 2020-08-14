@@ -186,6 +186,11 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
+        methods["reversed"] = new PredefinedFunction("array__reversed", new TypeFunction(this, params, false));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["size"] = new PredefinedFunction("array__size", new TypeFunction(TYPE_NUMBER, params, false));
     }
     {

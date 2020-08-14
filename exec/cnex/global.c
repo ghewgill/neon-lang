@@ -320,6 +320,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("array__range",              array__range),
     PDFUNC("array__remove",             array__remove),
     PDFUNC("array__resize",             array__resize),
+    PDFUNC("array__reversed",           array__reversed),
     PDFUNC("array__size",               array__size),
     PDFUNC("array__slice",              array__slice),
     PDFUNC("array__splice",             array__splice),
@@ -613,6 +614,17 @@ void array__resize(TExecutor *exec)
     for (size_t i = array_size; i < addr->array->size; i++) {
         cell_initCell(&addr->array->data[i]);
     }
+}
+
+void array__reversed(TExecutor *exec)
+{
+    Array *a = top(exec->stack)->array;
+    Cell *r = cell_createArrayCell(a->size);
+    for (size_t i = 0; i < a->size; i++) {
+        cell_copyCell(&r->array->data[a->size-i-1], &a->data[i]);
+    }
+    pop(exec->stack);
+    push(exec->stack, r);
 }
 
 void array__size(TExecutor *exec)

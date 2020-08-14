@@ -42,6 +42,7 @@ class Executor {
         predefined.put("array__concat", this::array__concat);
         predefined.put("array__extend", this::array__extend);
         predefined.put("array__remove", this::array__remove);
+        predefined.put("array__reversed", this::array__reversed);
         predefined.put("array__size", this::array__size);
         predefined.put("array__slice", this::array__slice);
         predefined.put("array__splice", this::array__splice);
@@ -1297,6 +1298,17 @@ class Executor {
         int index = stack.removeFirst().getNumber().intValueExact();
         List<Cell> a = stack.removeFirst().getAddress().getArray();
         a.remove(index);
+    }
+
+    private void array__reversed()
+    {
+        List<Cell> a = stack.removeFirst().getArray();
+        List<Cell> r = new ArrayList<Cell>();
+        for (int i = 0; i < a.size(); i++) {
+            r.add(a.get(i).copy());
+        }
+        java.util.Collections.reverse(r);
+        stack.addFirst(new Cell(r));
     }
 
     private void array__size()

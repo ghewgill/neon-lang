@@ -1443,6 +1443,10 @@ def neon_array__resize(self):
         while len(a) < size:
             a.append(Value(None))
 
+def neon_array__reversed(self):
+    a = self.stack.pop()
+    self.stack.append(list(reversed(a)))
+
 def neon_array__size(self):
     a = self.stack.pop()
     self.stack.append(len(a))

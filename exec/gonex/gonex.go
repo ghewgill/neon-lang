@@ -1932,6 +1932,13 @@ func (self *executor) op_callp() {
 			}
 			r.store(make_cell_array(a))
 		}
+	case "array__reversed":
+		a := self.pop().array
+		r := make([]cell, len(a))
+		for i, x := range a {
+			r[len(a)-1-i] = x
+		}
+		self.push(make_cell_array(r))
 	case "array__size":
 		a := self.pop().array
 		self.push(make_cell_num(float64(len(a))))

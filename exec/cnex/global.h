@@ -25,6 +25,7 @@ void array__extend(struct tagTExecutor *exec);
 void array__range(struct tagTExecutor *exec);
 void array__remove(struct tagTExecutor *exec);
 void array__resize(struct tagTExecutor *exec);
+void array__reversed(struct tagTExecutor *exec);
 void array__size(struct tagTExecutor *exec);
 void array__slice(struct tagTExecutor *exec);
 void array__splice(struct tagTExecutor *exec);

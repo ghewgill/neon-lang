@@ -12,6 +12,7 @@ array-negative.neon
 array.neon
 array-remove.neon
 array-resize.neon
+array-reversed.neon
 arraysize.neon
 array-slice.neon
 array-subscript.neon
