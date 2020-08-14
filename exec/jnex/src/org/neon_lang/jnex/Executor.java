@@ -41,6 +41,7 @@ class Executor {
         predefined.put("array__append", this::array__append);
         predefined.put("array__concat", this::array__concat);
         predefined.put("array__extend", this::array__extend);
+        predefined.put("array__find", this::array__find);
         predefined.put("array__remove", this::array__remove);
         predefined.put("array__reversed", this::array__reversed);
         predefined.put("array__size", this::array__size);
@@ -1291,6 +1292,19 @@ class Executor {
         List<Cell> v = stack.removeFirst().getArray();
         List<Cell> a = stack.removeFirst().getAddress().getArray();
         a.addAll(v);
+    }
+
+    private void array__find()
+    {
+        Cell e = stack.removeFirst();
+        List<Cell> a = stack.removeFirst().getArray();
+        for (int i = 0; i < a.size(); i++) {
+            if (a.get(i).equals(e)) {
+                stack.addFirst(new Cell(BigDecimal.valueOf(i)));
+                return;
+            }
+        }
+        raiseLiteral("ArrayIndexException", "value not found in array");
     }
 
     private void array__remove()

@@ -173,6 +173,12 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
     }
     {
         std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, elementtype, nullptr));
+        methods["find"] = new PredefinedFunction("array__find", new TypeFunction(TYPE_NUMBER, params, false));
+    }
+    {
+        std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_NUMBER, nullptr));
         methods["remove"] = new PredefinedFunction("array__remove", new TypeFunction(TYPE_NOTHING, params, false));

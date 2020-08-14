@@ -1402,6 +1402,15 @@ def neon_array__extend(self):
     a = self.stack.pop().value
     a.extend(v)
 
+def neon_array__find(self):
+    e = self.stack.pop()
+    a = self.stack.pop()
+    try:
+        i = next(i for i, x in enumerate(a) if equals(x.value, e))
+        self.stack.append(i)
+    except StopIteration:
+        self.raise_literal("ArrayIndexException", ("value not found in array", 0))
+
 def neon_array__range(self):
     step = self.stack.pop()
     last = self.stack.pop()

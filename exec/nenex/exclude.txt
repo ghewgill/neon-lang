@@ -1,6 +1,7 @@
 array-append.neon           # array__append
 array-concat.neon           # array__concat
 array-extend.neon           # array__extend
+array-find.neon             # array__find
 array-last-method.neon      # string__append
 array-remove.neon           # array__remove
 array-resize.neon           # array__resize

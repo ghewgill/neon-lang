@@ -642,6 +642,7 @@ class DotExpression:
         elif isinstance(obj, list):
             if self.field == "append": return lambda env, self, x: obj.append(x)
             if self.field == "extend": return lambda env, self, x: obj.extend(x)
+            if self.field == "find": return lambda env, self, x: neon_array_find(obj, x)
             if self.field == "remove": return lambda env, self, n: neon_array_remove(obj, n)
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
             if self.field == "reversed": return lambda env, self: neon_array_reversed(obj)
@@ -2654,6 +2655,12 @@ def eval_cond(left, cond, right):
         left > right if cond is GREATER else
         left <= right if cond is LESSEQ else
         left >= right if cond is GREATEREQ else False)
+
+def neon_array_find(a, x):
+    try:
+        return a.index(x)
+    except ValueError:
+        raise NeonException("ArrayIndexException")
 
 def neon_array_remove(a, n):
     if n != int(n):

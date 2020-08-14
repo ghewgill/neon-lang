@@ -965,6 +965,20 @@ FUNCTION f_callp(INOUT self: Executor)
         #    ELSE
         #        ASSERT FALSE
         #    END IF
+        #WHEN "array__find" DO
+        #    LET e: VALID POINTER TO Value := self.pop()
+        #    LET a: Array<POINTER TO Value> := self.pop()->a
+        #    VAR found: Boolean := FALSE
+        #    FOREACH x IN a INDEX i DO
+        #        IF x = e THEN
+        #            self.stack.append(makeValueNumber(i))
+        #            found := TRUE
+        #            EXIT FOREACH
+        #        END IF
+        #    END FOREACH
+        #    IF NOT found THEN
+        #        self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH "value not found in array"))
+        #    END IF
         WHEN "array__size" DO
             LET a: VALID POINTER TO Value := self.pop()
             self.stack.append(makeValueNumber(a->a.size()))

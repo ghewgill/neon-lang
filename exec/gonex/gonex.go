@@ -1885,6 +1885,20 @@ func (self *executor) op_callp() {
 		a := r.load()
 		a.array = append(a.array, b...)
 		r.store(a)
+	case "array__find":
+		e := self.pop()
+		a := self.pop().array
+		found := false
+		for i, x := range a {
+			if x.Equal(e) {
+				self.push(make_cell_num(float64(i)))
+				found = true
+				break
+			}
+		}
+		if !found {
+			self.raise_literal("ArrayIndexException", exceptioninfo{"value not found in array", 0})
+		}
 	case "array__range":
 		step := self.pop().num
 		last := self.pop().num

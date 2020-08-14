@@ -1,3 +1,4 @@
+array-find.neon            # array__find
 array-fraction.neon        # exception
 array-last-method.neon     # string__append
 array-negative.neon        # exception

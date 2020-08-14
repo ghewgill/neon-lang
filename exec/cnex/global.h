@@ -22,6 +22,7 @@ void neon_str(struct tagTExecutor *exec);
 void array__append(struct tagTExecutor *exec);
 void array__concat(struct tagTExecutor *exec);
 void array__extend(struct tagTExecutor *exec);
+void array__find(struct tagTExecutor *exec);
 void array__range(struct tagTExecutor *exec);
 void array__remove(struct tagTExecutor *exec);
 void array__resize(struct tagTExecutor *exec);

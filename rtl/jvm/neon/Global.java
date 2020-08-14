@@ -33,6 +33,14 @@ public class Global {
         };
     }
 
+    public static neon.type.Number array__find(neon.type.Array self, Object e) {
+        int i = self.indexOf(e);
+        if (i < 0) {
+            throw new neon.type.NeonException("ArrayIndexException", "value not found in array");
+        }
+        return new neon.type.Number(i);
+    }
+
     public static neon.type.Array array__range(neon.type.Number first, neon.type.Number last, neon.type.Number step) {
         if (step.isZero()) {
             throw new neon.type.NeonException("ValueRangeException", step.toString());

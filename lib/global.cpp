@@ -39,6 +39,16 @@ void array__extend(Cell *self, Cell &elements)
     std::copy(elements.array().begin(), elements.array().end(), std::back_inserter(self->array_for_write()));
 }
 
+Number array__find(Cell &self, Cell &element)
+{
+    auto &a = self.array();
+    auto i = std::find(a.begin(), a.end(), element);
+    if (i == a.end()) {
+        throw RtlException(Exception_ArrayIndexException, utf8string("value not found in array"));
+    }
+    return number_from_uint64(std::distance(a.begin(), i));
+}
+
 std::vector<Number> array__range(Number first, Number last, Number step)
 {
     std::vector<Number> r;

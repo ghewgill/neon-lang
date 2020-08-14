@@ -317,6 +317,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("array__append",             array__append),
     PDFUNC("array__concat",             array__concat),
     PDFUNC("array__extend",             array__extend),
+    PDFUNC("array__find",               array__find),
     PDFUNC("array__range",              array__range),
     PDFUNC("array__remove",             array__remove),
     PDFUNC("array__resize",             array__resize),
@@ -549,6 +550,30 @@ void array__extend(TExecutor *exec)
     }
     cell_freeCell(elements);
     pop(exec->stack);
+}
+
+void array__find(TExecutor *exec)
+{
+    Cell *e = peek(exec->stack, 0);
+    Array *a = peek(exec->stack, 1)->array;
+
+    Number r = number_from_sint32(-1);
+
+    for (size_t i = 0; i < a->size; i++) {
+        if (cell_compareCell(&a->data[i], e) == 0) {
+            r = number_from_uint32(i);
+            break;
+        }
+    }
+
+    if (number_is_negative(r)) {
+        exec->rtl_raise(exec, "ArrayIndexException", "value not found in array", BID_ZERO);
+        return;
+    }
+
+    pop(exec->stack);
+    pop(exec->stack);
+    push(exec->stack, cell_fromNumber(r));
 }
 
 void array__range(TExecutor *exec)
