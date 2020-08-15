@@ -18,6 +18,7 @@ jobs:
           compiler: clang
           arch: arm64
           env: WITH_SUBMODULES=0
+          env: CTEST_OPTIONS="-E grammar"
         # Currently resid does not build on arm.
         #- os: linux
         #  compiler: clang
@@ -47,5 +48,5 @@ before_script:
 script:
   - cmake .
   - make
-  - if [[ "$EXCLUDE_TESTS" != "1" ]]; then ctest --output-on-failure; fi
+  - if [[ "$EXCLUDE_TESTS" != "1" ]]; then ctest $CTEST_OPTIONS --output-on-failure; fi
 sudo: false
