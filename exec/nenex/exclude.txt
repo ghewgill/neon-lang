@@ -119,6 +119,7 @@ sqlite-test.neon            # sqlite$open
 stack-overflow.neon         # stackoverflow
 string-bytes.neon           # string__toBytes
 string-format.neon          # callmf
+string-in.neon              # string$find
 string-index.neon           # exception StringIndexException
 string-slice.neon           # string__splice
 string-test.neon            # string$find

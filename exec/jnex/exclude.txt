@@ -103,6 +103,7 @@ stack-overflow.neon        # stack overflow
 string-bytes.neon          # format
 string-escape.neon         # UTF-8
 string-format.neon         # format
+string-in.neon             # string.find
 string-index.neon          # index
 string-slice.neon          # string__splice
 string-test.neon           # string

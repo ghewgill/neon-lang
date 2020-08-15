@@ -2645,7 +2645,37 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
     const ast::Expression *right = analyze(expr->right.get());
     const ast::TypeArray *arraytype = dynamic_cast<const ast::TypeArray *>(right->type);
     const ast::TypeDictionary *dicttype = dynamic_cast<const ast::TypeDictionary *>(right->type);
-    if (arraytype != nullptr) {
+    if (right->type == ast::TYPE_STRING) {
+        if (left->type != ast::TYPE_STRING) {
+            error(3284, expr->left->token, "type mismatch");
+        }
+        const ast::Module *string = import_module(Token(), "string", false);
+        if (string == nullptr) {
+            internal_error("need module string");
+        }
+        return new ast::TryExpression(
+            new ast::NumericComparisonExpression(
+                new ast::FunctionCall(
+                    new ast::VariableExpression(
+                        dynamic_cast<const ast::Variable *>(string->scope->lookupName("find"))
+                    ),
+                    {
+                        right,
+                        left
+                    }
+                ),
+                new ast::ConstantNumberExpression(number_from_uint32(0)),
+                ast::ComparisonExpression::Comparison::GE
+            ),
+            {
+                ast::TryTrap(
+                    {dynamic_cast<const ast::Exception *>(scope.top()->lookupName("ArrayIndexException"))},
+                    nullptr,
+                    new ast::ConstantBooleanExpression(false)
+                )
+            }
+        );
+    } else if (arraytype != nullptr) {
         // TODO: Allow more relaxed type checking.
         if (left->type != arraytype->elementtype) {
             error(3082, expr->left->token, "type mismatch");
@@ -2658,7 +2688,7 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
         }
         return new ast::DictionaryInExpression(left, right);
     } else {
-        error(3081, expr->right->token, "IN must be used with Array or Dictionary");
+        error(3081, expr->right->token, "IN must be used with String or Array or Dictionary");
     }
 }
 

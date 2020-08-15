@@ -1,0 +1,2 @@
+ASSERT "foo" IN "foobar"
+ASSERT "foobar" NOT IN "foo"

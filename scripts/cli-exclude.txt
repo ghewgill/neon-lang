@@ -318,6 +318,7 @@ stack-overflow.neon
 string-bytes.neon
 string-escape.neon
 string-format.neon
+string-in.neon
 string-index.neon
 string-multiline.neon
 string-slice.neon

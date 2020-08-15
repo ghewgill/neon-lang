@@ -129,6 +129,7 @@ stack-overflow.neon        # catch stack overflow
 string-bytes.neon          # StringReferenceIndexExpression
 string-escape.neon         # StringReferenceIndexExpression
 string-format.neon         # format
+string-in.neon             # string.find
 string-index.neon          # index
 string-multiline.neon      # StringReferenceIndexExpression
 string-slice.neon          # StringReferenceIndexExpression

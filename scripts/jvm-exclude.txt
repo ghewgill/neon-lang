@@ -100,6 +100,7 @@ sqlite-test.neon           # bad type
 stack-overflow.neon        # catch stack overflow
 string-bytes.neon          # format
 string-format.neon         # format
+string-in.neon             # verifier
 string-index.neon          # index
 string-test.neon           # module string
 strings.neon               # stack size too large
