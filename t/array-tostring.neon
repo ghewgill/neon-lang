@@ -6,6 +6,10 @@ LET as: Array<String> := ["foo","bar"]
 print("\(as)")
 #= ["foo", "bar"]
 
+LET asq: Array<String> := ["hello\"world", "hello\\world"]
+print(asq.toString())
+#= ["hello\"world", "hello\\world"]
+
 FUNCTION f(): Array<Number>
     RETURN an
 END FUNCTION

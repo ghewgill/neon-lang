@@ -446,3 +446,73 @@ TString *string_toUpperCase(TString *s)
 
     return r;
 }
+
+// This may not be the best place for this, because it is not part of
+// the implementation of TString, but is just a specific string utility
+// function. But there wasn't an obviously better place to put it.
+TString *string_quote(TString *s)
+{
+    TString *r = string_newString();
+    string_appendChar(r, '"');
+    for (size_t i = 0; i < s->length; i++) {
+        uint32_t c = s->data[i] & 0xff;
+
+        // I'm just going to hack a UTF8 decoder in here because I want the test to pass.
+        // When actual UTF8 support is implemented, this code will be somewhere else.
+        if (c & 0x80) {
+            int n = 0;
+            if ((c & 0xe0) == 0xc0) {
+                c &= 0x1f;
+                n = 1;
+            } else if ((c & 0xf0) == 0xe0) {
+                c &= 0x0f;
+                n = 2;
+            } else if ((c & 0xf8) == 0xf0) {
+                c &= 0x07;
+                n = 3;
+            } else if ((c & 0xfc) == 0xf8) {
+                c &= 0x03;
+                n = 4;
+            } else if ((c & 0xfe) == 0xfc) {
+                c &= 0x01;
+                n = 5;
+            }
+            while (n-- > 0) {
+                i++;
+                if ((s->data[i] & 0xc0) != 0x80) {
+                    // Garbage data, give up.
+                    break;
+                }
+                c = (c << 6) | (s->data[i] & 0x3f);
+            }
+        }
+
+        switch (c) {
+            case '\b': string_appendCString(r, "\\b"); break;
+            case '\f': string_appendCString(r, "\\f"); break;
+            case '\n': string_appendCString(r, "\\n"); break;
+            case '\r': string_appendCString(r, "\\r"); break;
+            case '\t': string_appendCString(r, "\\t"); break;
+            case '"':
+            case '\\':
+                string_appendChar(r, '\\');
+                string_appendChar(r, c);
+                break;
+            default:
+                if (c >= ' ' && c < 0x7f) {
+                    string_appendChar(r, c);
+                } else if (c < 0x10000) {
+                    char buf[7];
+                    snprintf(buf, sizeof(buf), "\\u%04x", c);
+                    string_appendCString(r, buf);
+                } else {
+                    char buf[11];
+                    snprintf(buf, sizeof(buf), "\\U%08x", c);
+                    string_appendCString(r, buf);
+                }
+                break;
+        }
+    }
+    string_appendChar(r, '"');
+    return r;
+}

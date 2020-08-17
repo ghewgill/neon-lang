@@ -18,4 +18,10 @@ utf8string str(Number x);
 
 } // namespace ne_global
 
+namespace ne_string {
+
+utf8string quoted(const utf8string &s);
+
+} // namespace ne_string
+
 } // namespace rtl

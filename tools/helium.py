@@ -648,7 +648,7 @@ class DotExpression:
             if self.field == "reversed": return lambda env, self: neon_array_reversed(obj)
             if self.field == "size": return lambda env, self: len(obj)
             if self.field == "toBytes": return lambda env, self: bytes(obj)
-            if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e)) for e in obj))
+            if self.field == "toString": return lambda env, self: "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
             return obj[self.field] # Support a.b syntax where a is an object.

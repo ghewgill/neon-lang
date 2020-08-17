@@ -65,4 +65,6 @@ TString *string_toUpperCase(TString *s);
 
 const char *string_ensureNullTerminated(TString *s);
 
+TString *string_quote(TString *s);
+
 #endif

@@ -692,24 +692,17 @@ func quoted(s string) string {
 		switch c {
 		case '\b':
 			r.WriteString("\\b")
-			break
 		case '\f':
 			r.WriteString("\\f")
-			break
 		case '\n':
 			r.WriteString("\\n")
-			break
 		case '\r':
 			r.WriteString("\\r")
-			break
 		case '\t':
 			r.WriteString("\\t")
-			break
-		case '"':
-		case '\\':
+		case '"', '\\':
 			r.WriteString("\\")
 			r.WriteByte(byte(c))
-			break
 		default:
 			if c >= ' ' && c < 0x7f {
 				r.WriteByte(byte(c))
@@ -718,7 +711,6 @@ func quoted(s string) string {
 			} else {
 				r.WriteString(fmt.Sprintf("\\U%08x", c))
 			}
-			break
 		}
 	}
 	r.WriteString("\"")
@@ -2050,7 +2042,7 @@ func (self *executor) op_callp() {
 			if i > 0 {
 				r += ", "
 			}
-			r += "\"" + x.str + "\""
+			r += quoted(x.str)
 		}
 		r += "]"
 		self.push(make_cell_str(r))

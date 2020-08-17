@@ -218,7 +218,28 @@ def get_vint(b, i):
     return r, i
 
 def quoted(s):
-    return '"' + s.replace('"', r'\"') + '"'
+    r = '"'
+    for c in s:
+        if c == "\b":
+            r += "\\b"
+        elif c == "\f":
+            r += "\\f"
+        elif c == "\n":
+            r += "\\n"
+        elif c == "\r":
+            r += "\\r"
+        elif c == "\t":
+            r += "\\t"
+        elif c in ['"', '\\']:
+            r += "\\" + c
+        elif ' ' <= c < '\x7f':
+            r += c
+        elif ord(c) < 0x10000:
+            r += "\\u{:04x}".format(ord(c))
+        else:
+            r += "\\U{:08x}".format(ord(c))
+    r += '"'
+    return r
 
 class Type:
     def __init__(self):
@@ -2685,28 +2706,7 @@ def neon_string_lower(self):
 
 def neon_string_quoted(self):
     s = self.stack.pop()
-    r = '"'
-    for c in s:
-        if c == "\b":
-            r += "\\b"
-        elif c == "\f":
-            r += "\\f"
-        elif c == "\n":
-            r += "\\n"
-        elif c == "\r":
-            r += "\\r"
-        elif c == "\t":
-            r += "\\t"
-        elif c in ('"', '\\'):
-            r += "\\" + c
-        elif ' ' <= c < '\x7f':
-            r += c
-        elif ord(c) < 0x10000:
-            r += "\\u{:04x}".format(ord(c))
-        else:
-            r += "\\U{:08x}".format(ord(c))
-    r += '"'
-    self.stack.append(r)
+    self.stack.append(quoted(s))
 
 def neon_string_split(self):
     d = self.stack.pop()

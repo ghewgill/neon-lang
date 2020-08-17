@@ -437,10 +437,8 @@ TString *cell_toString(Cell *c)
                     r = string_appendCString(r, ", ");
                 }
                 if (c->array->data[x].type == cString) {
-                    r = string_appendCString(r, "\"");
-                    TString *v = cell_toString(&c->array->data[x]);
+                    TString *v = string_quote(c->array->data[x].string);
                     r = string_appendString(r, v);
-                    r = string_appendCString(r, "\"");
                     string_freeString(v);
                 } else {
                     TString *v = cell_toString(&c->array->data[x]);
@@ -464,9 +462,8 @@ TString *cell_toString(Cell *c)
                     r = string_appendCString(r, ", ");
                 }
                 // ToDo: Properly escape quotes in keys
-                r = string_appendCString(r, "\"");
-                r = string_appendString(r, keys->array->data[x].string);
-                r = string_appendCString(r, "\": ");
+                r = string_appendString(r, string_quote(keys->array->data[x].string));
+                r = string_appendCString(r, ": ");
                 r = string_appendString(r, cell_toString(dictionary_findDictionaryEntry(c->dictionary, keys->array->data[x].string)));
             }
             r = string_appendCString(r, "}");

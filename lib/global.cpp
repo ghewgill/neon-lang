@@ -14,6 +14,7 @@
 #include <utf8.h>
 
 #include "cell.h"
+#include "intrinsic.h"
 #include "number.h"
 #include "rtl_exec.h"
 
@@ -185,8 +186,7 @@ utf8string array__toString__string(const std::vector<utf8string> &a)
         if (r.length() > 1) {
             r.append(", ");
         }
-        // TODO: Escape embedded quotes as necessary.
-        r.append("\"" + x.str() + "\"");
+        r.append(rtl::ne_string::quoted(x));
     }
     r.append("]");
     return r;

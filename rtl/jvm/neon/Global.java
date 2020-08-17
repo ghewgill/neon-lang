@@ -4,6 +4,37 @@ import java.math.BigDecimal;
 
 public class Global {
 
+    private static java.lang.String quoted(java.lang.String s)
+    {
+        StringBuilder r = new StringBuilder("\"");
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '\b': r.append('\b'); break;
+                case '\f': r.append('\f'); break;
+                case '\n': r.append('\n'); break;
+                case '\r': r.append('\r'); break;
+                case '\t': r.append('\t'); break;
+                case '"':
+                case '\\':
+                    r.append('\\');
+                    r.append(c);
+                    break;
+                default:
+                    if (c >= ' ' && c < 0x7f) {
+                        r.append(c);
+                    } else if (c < 0x10000) {
+                        r.append(java.lang.String.format("\\u%04x", c));
+                    } else {
+                        r.append(java.lang.String.format("\\U%08x", c));
+                    }
+                    break;
+            }
+        }
+        r.append('"');
+        return r.toString();
+    }
+
     public static Object[] array__append(neon.type.Array self, Object element) {
         self.add(element);
         return new Object[] {
@@ -144,10 +175,7 @@ public class Global {
             if (i > 0) {
                 r.append(", ");
             }
-            // TODO: escape embedded quotes.
-            r.append("\"");
-            r.append(self.get(i));
-            r.append("\"");
+            r.append(quoted(self.get(i).toString()));
         }
         r.append("]");
         return r.toString();
