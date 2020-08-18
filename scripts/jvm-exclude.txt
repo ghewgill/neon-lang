@@ -45,7 +45,6 @@ interface-parameter-import.neon # interface
 interface-parameter-import2.neon # interface
 io-test.neon               # PredefinedVariable io$stdout
 json-test.neon             # illegal character dot
-lisp-test.neon             # store constant string expression?
 math-test.neon             # math.abs
 mkdir.neon                 # file.mkdir
 mmap-test.neon             # module mmap

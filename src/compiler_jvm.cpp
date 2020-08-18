@@ -3016,8 +3016,8 @@ public:
                                 context.ca.code << OP_checkcast << context.cf.Class(args[a-1]->type->classname);
                                 args[a-1]->generate_store(context);
                             }
-                            a++;
                         }
+                        a++;
                     }
                     if (tf->returntype != ast::TYPE_NOTHING) {
                         context.push_integer(0);
