@@ -9,11 +9,11 @@ VAR a, b: POINTER TO Node
 runtime.setGarbageCollectionInterval(1)
 
 # Simple collection.
-ASSERT runtime.getAllocatedObjectCount() = 0
+TESTCASE runtime.getAllocatedObjectCount() = 0
 a := NEW Node
-ASSERT runtime.getAllocatedObjectCount() = 1
+TESTCASE runtime.getAllocatedObjectCount() = 1
 a := NIL
 runtime.garbageCollect()
-ASSERT runtime.getAllocatedObjectCount() = 0
+TESTCASE runtime.getAllocatedObjectCount() = 0
 b := NEW Node
-ASSERT runtime.getAllocatedObjectCount() = 1
+TESTCASE runtime.getAllocatedObjectCount() = 1

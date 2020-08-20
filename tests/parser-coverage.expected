@@ -487,6 +487,12 @@ Program
         IdentifierExpression(statement)
   ReturnStatement
     IdentifierExpression(expr)
+  TestCaseStatement
+    IdentifierExpression(expr)
+  TestCaseStatement
+    IdentifierExpression(expr)
+  TestCaseStatement
+    IdentifierExpression(expr)
   TryStatement
   TryStatement
     ExpressionStatement

@@ -1,72 +1,72 @@
 LET a: Object := 3
 LET b: Object := 4
 
-ASSERT a + -b = -1
+TESTCASE a + -b = -1
 
-ASSERT a + 4 = 7
-ASSERT 3 + b = 7
-ASSERT a + b = 7
+TESTCASE a + 4 = 7
+TESTCASE 3 + b = 7
+TESTCASE a + b = 7
 
-ASSERT a - 4 = -1
-ASSERT 3 - b = -1
-ASSERT a - b = -1
+TESTCASE a - 4 = -1
+TESTCASE 3 - b = -1
+TESTCASE a - b = -1
 
-ASSERT a * 4 = 12
-ASSERT 3 * b = 12
-ASSERT a * b = 12
+TESTCASE a * 4 = 12
+TESTCASE 3 * b = 12
+TESTCASE a * b = 12
 
-ASSERT a / 4 = 0.75
-ASSERT 3 / b = 0.75
-ASSERT a / b = 0.75
+TESTCASE a / 4 = 0.75
+TESTCASE 3 / b = 0.75
+TESTCASE a / b = 0.75
 
-ASSERT a MOD 4 = 3
-ASSERT 3 MOD b = 3
-ASSERT a MOD b = 3
+TESTCASE a MOD 4 = 3
+TESTCASE 3 MOD b = 3
+TESTCASE a MOD b = 3
 
-ASSERT a ^ 4 = 81
-ASSERT 3 ^ b = 81
-ASSERT a ^ b = 81
+TESTCASE a ^ 4 = 81
+TESTCASE 3 ^ b = 81
+TESTCASE a ^ b = 81
 
 LET p: Object := TRUE
 LET q: Object := FALSE
 
-ASSERT p
-ASSERT NOT q
+TESTCASE p
+TESTCASE NOT q
 
-ASSERT p AND TRUE
-ASSERT TRUE AND p
+TESTCASE p AND TRUE
+TESTCASE TRUE AND p
 
-ASSERT p OR FALSE
-ASSERT FALSE OR p
+TESTCASE p OR FALSE
+TESTCASE FALSE OR p
 
-ASSERT p = TRUE
-ASSERT TRUE = p
+TESTCASE p = TRUE
+TESTCASE TRUE = p
 
-ASSERT p <> FALSE
-ASSERT FALSE <> p
+TESTCASE p <> FALSE
+TESTCASE FALSE <> p
 
-ASSERT a = 3
-ASSERT 3 = a
+TESTCASE a = 3
+TESTCASE 3 = a
 
-ASSERT a <> 5
-ASSERT 5 <> a
+TESTCASE a <> 5
+TESTCASE 5 <> a
 
-ASSERT a < 5
-ASSERT 2 < a
+TESTCASE a < 5
+TESTCASE 2 < a
 
-ASSERT a <= 5
-ASSERT 2 <= a
+TESTCASE a <= 5
+TESTCASE 2 <= a
 
-ASSERT a > 2
-ASSERT 5 > a
+TESTCASE a > 2
+TESTCASE 5 > a
 
-ASSERT a >= 2
-ASSERT 5 >= a
+TESTCASE a >= 2
+TESTCASE 5 >= a
 
 LET t: Array<Number> := [0, 1, 2, 3]
-ASSERT t[a] = 3
+TESTCASE t[a] = 3
 
 LET s: Object := "hello"
 
 LET u: Dictionary<Number> := {"hello": 5}
-ASSERT u[s] = 5
+TESTCASE u[s] = 5

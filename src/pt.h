@@ -96,6 +96,7 @@ class NextStatement;
 class RaiseStatement;
 class RepeatStatement;
 class ReturnStatement;
+class TestCaseStatement;
 class TryStatement;
 class TryHandlerStatement;
 class UnusedStatement;
@@ -190,6 +191,7 @@ public:
     virtual void visit(const RaiseStatement *) = 0;
     virtual void visit(const RepeatStatement *) = 0;
     virtual void visit(const ReturnStatement *) = 0;
+    virtual void visit(const TestCaseStatement *) = 0;
     virtual void visit(const TryStatement *) = 0;
     virtual void visit(const TryHandlerStatement *) = 0;
     virtual void visit(const UnusedStatement *) = 0;
@@ -956,6 +958,14 @@ public:
     explicit ReturnStatement(const Token &token, std::unique_ptr<Expression> &&expr): Statement(token), expr(std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
+};
+
+class TestCaseStatement: public Statement {
+public:
+    explicit TestCaseStatement(const Token &token, std::unique_ptr<Expression> &&expr, const std::vector<Token> &expected_exception): Statement(token), expr(std::move(expr)), expected_exception(expected_exception) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    std::unique_ptr<Expression> expr;
+    const std::vector<Token> expected_exception;
 };
 
 class TryStatement: public BlockStatement {

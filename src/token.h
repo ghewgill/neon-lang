@@ -119,6 +119,8 @@ enum TokenType {
     ELLIPSIS,
     OPTIONAL,
     IMPORTED,
+    TESTCASE,
+    EXPECT,
     UNKNOWN,
     MAX_TOKEN
 };

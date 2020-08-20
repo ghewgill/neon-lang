@@ -10,12 +10,12 @@ test_i()
 
 FUNCTION test_n()
     LET p: POINTER TO module.class := NEW module.class
-    ASSERT p->number = 0
-    ASSERT p->string = ""
+    TESTCASE p->number = 0
+    TESTCASE p->string = ""
 END FUNCTION
 
 FUNCTION test_i()
     LET p: POINTER TO module.class := NEW module.class(number WITH 6, string WITH "bar")
-    ASSERT p->number = 6
-    ASSERT p->string = "bar"
+    TESTCASE p->number = 6
+    TESTCASE p->string = "bar"
 END FUNCTION

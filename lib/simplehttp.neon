@@ -130,9 +130,9 @@ BEGIN MAIN
         VAR p: Number
         VAR t: String
         decomposeUrl(url, OUT s, OUT p, OUT t)
-        ASSERT s = server
-        ASSERT p = port
-        ASSERT t = path
+        TESTCASE s = server
+        TESTCASE p = port
+        TESTCASE t = path
     END FUNCTION
     check("http://hello/world", "hello", 80, "/world")
     check("http://hello:1234/world", "hello", 1234, "/world")
@@ -140,12 +140,12 @@ BEGIN MAIN
     VAR x: String := "hello\r\nworld\r\n\r\n"
     VAR b: Bytes := x.toBytes()
     VAR i: Number := 0
-    ASSERT nextLine(b, INOUT i) = "hello"
-    ASSERT i = 7
-    ASSERT nextLine(b, INOUT i) = "world"
-    ASSERT i = 14
-    ASSERT nextLine(b, INOUT i) = ""
-    ASSERT i = 16
+    TESTCASE nextLine(b, INOUT i) = "hello"
+    TESTCASE i = 7
+    TESTCASE nextLine(b, INOUT i) = "world"
+    TESTCASE i = 14
+    TESTCASE nextLine(b, INOUT i) = ""
+    TESTCASE i = 16
 
     VAR responseHeaders: Array<String>
     LET r: Bytes := get("http://neverssl.com/", {}, OUT responseHeaders)

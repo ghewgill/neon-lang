@@ -7,4 +7,4 @@ END FUNCTION
 
 FOREACH x IN foo() DO
 END FOREACH
-ASSERT count = 1
+TESTCASE count = 1

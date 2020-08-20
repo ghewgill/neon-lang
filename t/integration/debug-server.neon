@@ -25,36 +25,36 @@ VAR r: Object
 
 r := get("/module/-/bytecode")
 VAR a: Array<Object> := r
-ASSERT a.size() > 0
+TESTCASE a.size() > 0
 
 LET debuginfo: Object := get("/module/-/debuginfo")
 
 r := get("/module/-/source")
-ASSERT r[1] = "IMPORT debugger"
+TESTCASE r[1] = "IMPORT debugger"
 
 r := get("/status")
-ASSERT r.state = "stopped"
-ASSERT r.module = "t/debug-example.neon"
-ASSERT r.ip = 0
+TESTCASE r.state = "stopped"
+TESTCASE r.module = "t/debug-example.neon"
+TESTCASE r.ip = 0
 
 a := get("/opstack")
-ASSERT a.size() = 0
+TESTCASE a.size() = 0
 
 r := post("/step/instruction", "")
 
 a := get("/opstack")
-ASSERT a.size() = 1
-ASSERT a[0].type = "string"
-ASSERT a[0].value = "hello world"
+TESTCASE a.size() = 1
+TESTCASE a[0].type = "string"
+TESTCASE a[0].value = "hello world"
 
 r := post("/step/source/0", "")
 
 r := get("/status")
-ASSERT r.ip = 5 # Dependent on actual bytecode
+TESTCASE r.ip = 5 # Dependent on actual bytecode
 
 r := get("/module/-/global/0")
-ASSERT r.type = "string"
-ASSERT r.value = "hello world"
+TESTCASE r.type = "string"
+TESTCASE r.value = "hello world"
 
 r := post("/step/source/0", "")
 #= hello world
@@ -68,31 +68,31 @@ FOREACH f IN a DO
         EXIT FOREACH
     END IF
 END FOREACH
-ASSERT entry_g <> 0
+TESTCASE entry_g <> 0
 
 r := post("/break/\(entry_g)", "true")
 
 a := get("/break")
-ASSERT a.size() = 1
-ASSERT a[0] = entry_g
+TESTCASE a.size() = 1
+TESTCASE a[0] = entry_g
 
 r := post("/continue", "")
 
 r := get("/status")
-ASSERT r.ip = entry_g
+TESTCASE r.ip = entry_g
 
 r := post("/continue", "")
 #= 5
 
 r := get("/status")
-ASSERT r.log_messages = 1
+TESTCASE r.log_messages = 1
 
 a := post("/log", "")
-ASSERT a.size() = 1
-ASSERT a[0] = "hello debugger"
+TESTCASE a.size() = 1
+TESTCASE a[0] = "hello debugger"
 
 a := post("/log", "")
-ASSERT a.size() = 0
+TESTCASE a.size() = 0
 
 r := post("/continue", "")
 

@@ -129,6 +129,7 @@ public:
     const ast::Statement *analyze(const pt::RaiseStatement *statement);
     const ast::Statement *analyze(const pt::RepeatStatement *statement);
     const ast::Statement *analyze(const pt::ReturnStatement *statement);
+    const ast::Statement *analyze(const pt::TestCaseStatement *statement);
     const ast::Statement *analyze(const pt::TryStatement *statement);
     const ast::Statement *analyze(const pt::TryHandlerStatement *statement);
     const ast::Statement *analyze(const pt::UnusedStatement *statement);
@@ -142,6 +143,7 @@ private:
     const ast::Expression *convert(const ast::Type *target, const ast::Expression *e);
     bool convert2(const ast::Type *target, const ast::Expression *&left, const ast::Expression *&right);
     const ast::TypeFunction *analyze_function_type(const std::unique_ptr<pt::Type> &returntype, const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args);
+    const ast::Exception *resolve_exception(const std::vector<Token> &names);
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches, const ast::Type *expression_match_type);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
@@ -233,6 +235,7 @@ public:
     virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::TestCaseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::UnusedStatement *) override { internal_error("pt::Statement"); }
@@ -329,6 +332,7 @@ public:
     virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::TestCaseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::UnusedStatement *) override { internal_error("pt::Statement"); }
@@ -424,6 +428,7 @@ public:
     virtual void visit(const pt::RaiseStatement *) override {}
     virtual void visit(const pt::RepeatStatement *) override {}
     virtual void visit(const pt::ReturnStatement *) override {}
+    virtual void visit(const pt::TestCaseStatement *) override {}
     virtual void visit(const pt::TryStatement *) override {}
     virtual void visit(const pt::TryHandlerStatement *) override {}
     virtual void visit(const pt::UnusedStatement *) override {}
@@ -519,6 +524,7 @@ public:
     virtual void visit(const pt::RaiseStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::RepeatStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ReturnStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::TestCaseStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TryStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TryHandlerStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::UnusedStatement *p) override { v.push_back(a->analyze(p)); }
@@ -5196,42 +5202,135 @@ const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     return new ast::ReturnStatement(statement->token.line, expr);
 }
 
+const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
+{
+    const ast::Expression *expr = analyze(statement->expr.get());
+    const ast::Module *textio = import_module(Token(), "textio", false);
+    if (textio == nullptr) {
+        internal_error("need module textio");
+    }
+    const ast::Variable *textio_stderr = dynamic_cast<const ast::Variable *>(textio->scope->lookupName("stderr"));
+    if (textio_stderr == nullptr) {
+        internal_error("need textio.stderr");
+    }
+    const ast::PredefinedFunction *writeLine = dynamic_cast<const ast::PredefinedFunction *>(textio->scope->lookupName("writeLine"));
+    if (writeLine == nullptr) {
+        internal_error("need textio.writeLine");
+    }
+    const ast::Module *sys = import_module(Token(), "sys", false);
+    if (sys == nullptr) {
+        internal_error("need module sys");
+    }
+    const ast::PredefinedFunction *sys_exit = dynamic_cast<const ast::PredefinedFunction *>(sys->scope->lookupName("exit"));
+    if (sys_exit == nullptr) {
+        internal_error("need sys.exit");
+    }
+    std::vector<const ast::Statement *> fail_statements {
+        new ast::ExpressionStatement(
+            statement->token.line,
+            new ast::FunctionCall(
+                new ast::VariableExpression(writeLine),
+                {
+                    new ast::VariableExpression(textio_stderr),
+                    new ast::ConstantStringExpression(utf8string("TESTCASE failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "): " + statement->token.source->source_line(statement->token.line)))
+                }
+            )
+        ),
+        new ast::ExpressionStatement(
+            statement->token.line,
+            new ast::FunctionCall(
+                new ast::VariableExpression(sys_exit),
+                {
+                    new ast::ConstantNumberExpression(number_from_uint32(1))
+                }
+            )
+        )
+    };
+    if (statement->expected_exception.empty()) {
+        expr = convert(ast::TYPE_BOOLEAN, expr);
+        if (expr == nullptr) {
+            error(3285, statement->expr->token, "boolean value expected");
+        }
+        return new ast::IfStatement(
+            statement->token.line,
+            std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
+                std::make_pair(
+                    new ast::LogicalNotExpression(expr),
+                    fail_statements
+                )
+            },
+            {}
+        );
+    } else {
+        const ast::Exception *exception = resolve_exception(statement->expected_exception);
+        std::vector<const ast::Statement *> statements;
+        if (expr->type == ast::TYPE_NOTHING) {
+            statements.push_back(
+                new ast::ExpressionStatement(
+                    statement->token.line,
+                    expr
+                )
+            );
+        } else {
+            statements.push_back(
+                new ast::AssignmentStatement(
+                    statement->token.line,
+                    {new ast::DummyExpression()},
+                    expr
+                )
+            );
+        }
+        std::copy(fail_statements.begin(), fail_statements.end(), std::back_inserter(statements));
+        return new ast::TryStatement(
+            statement->token.line,
+            statements,
+            {ast::TryTrap({exception}, nullptr, new ast::ExceptionHandlerStatement(statement->token.line, {}))}
+        );
+    }
+}
+
+const ast::Exception *Analyzer::resolve_exception(const std::vector<Token> &names)
+{
+    ast::Scope *s = scope.top();
+    size_t i = 0;
+    const ast::Name *modname = scope.top()->lookupName(names[i].text);
+    const ast::Module *mod = dynamic_cast<const ast::Module *>(modname);
+    if (mod != nullptr) {
+        s = mod->scope;
+        i++;
+    }
+    const ast::Name *name = s->lookupName(names[i].text);
+    if (name == nullptr) {
+        error(3087, names[i], "exception not found: " + names[i].text);
+    }
+    const ast::Exception *exception = dynamic_cast<const ast::Exception *>(name);
+    if (exception == nullptr) {
+        error2(3088, names[i], "name not an exception", name->declaration, "declaration here");
+    }
+    i++;
+    const ast::Exception *sn = exception;
+    while (i < names.size()) {
+        auto t = sn->subexceptions.find(names[i].text);
+        if (t == sn->subexceptions.end()) {
+            error(3240, names[i], "exception subexception not found");
+        }
+        sn = t->second;
+        i++;
+    }
+    return sn;
+}
+
 std::vector<ast::TryTrap> Analyzer::analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches, const ast::Type *expression_match_type)
 {
     std::vector<ast::TryTrap> r;
     for (auto &x: catches) {
-        ast::Scope *s = scope.top();
-        size_t i = 0;
-        const ast::Name *modname = scope.top()->lookupName(x->exceptions.at(0)[i].text);
-        const ast::Module *mod = dynamic_cast<const ast::Module *>(modname);
-        if (mod != nullptr) {
-            s = mod->scope;
-            i++;
-        }
-        const ast::Name *name = s->lookupName(x->exceptions.at(0)[i].text);
-        if (name == nullptr) {
-            error(3087, x->exceptions.at(0)[i], "exception not found: " + x->exceptions.at(0)[i].text);
-        }
-        const ast::Exception *exception = dynamic_cast<const ast::Exception *>(name);
-        if (exception == nullptr) {
-            error2(3088, x->exceptions.at(0)[i], "name not an exception", name->declaration, "declaration here");
-        }
-        i++;
-        const ast::Exception *sn = exception;
-        while (i < x->exceptions.at(0).size()) {
-            auto t = sn->subexceptions.find(x->exceptions.at(0)[i].text);
-            if (t == sn->subexceptions.end()) {
-                error(3240, x->exceptions.at(0)[i], "exception subexception not found");
-            }
-            sn = t->second;
-            i++;
-        }
+        const ast::Exception *sn = resolve_exception(x->exceptions.at(0));
         std::vector<const ast::Exception *> exceptions;
         exceptions.push_back(sn);
         scope.push(new ast::Scope(scope.top(), frame.top()));
         ast::Variable *var = nullptr;
         if (x->name.type != NONE) {
-            const ast::TypeRecord *vtype = dynamic_cast<const ast::TypeRecord *>(s->lookupName("ExceptionType"));
+            const ast::TypeRecord *vtype = dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionType"));
             if (vtype == nullptr) {
                 internal_error("could not find ExceptionType");
             }
@@ -5792,6 +5891,7 @@ public:
         node->expr->accept(this);
         check_out_parameters(node->token);
     }
+    virtual void visit(const pt::TestCaseStatement *node) { node->expr->accept(this); }
     virtual void visit(const pt::TryStatement *node) {
         enter(false);
         for (auto &s: node->body) {

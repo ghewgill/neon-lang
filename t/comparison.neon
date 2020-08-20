@@ -1,48 +1,48 @@
 LET i: Number := 4
 LET j: Number := 5
 
-ASSERT i = i
-ASSERT i <> j
-ASSERT i < j
-ASSERT j > i
-ASSERT i <= j
-ASSERT j >= i
+TESTCASE i = i
+TESTCASE i <> j
+TESTCASE i < j
+TESTCASE j > i
+TESTCASE i <= j
+TESTCASE j >= i
 
 LET s: String := "bar"
 LET t: String := "foo"
 
-ASSERT s = s
-ASSERT s <> t
-ASSERT s < t
-ASSERT t > s
-ASSERT s <= t
-ASSERT t >= s
+TESTCASE s = s
+TESTCASE s <> t
+TESTCASE s < t
+TESTCASE t > s
+TESTCASE s <= t
+TESTCASE t >= s
 
 LET x: Bytes := HEXBYTES "01"
 LET y: Bytes := HEXBYTES "02"
 
-ASSERT x = x
-ASSERT x <> y
-#ASSERT x < y
-#ASSERT y > x
-#ASSERT x <= y
-#ASSERT y >= x
+TESTCASE x = x
+TESTCASE x <> y
+#TESTCASE x < y
+#TESTCASE y > x
+#TESTCASE x <= y
+#TESTCASE y >= x
 
 LET a: Array<Number> := [1, 2]
 LET b: Array<Number> := [1, 3]
 
-ASSERT a = a
-ASSERT a <> b
+TESTCASE a = a
+TESTCASE a <> b
 
 #LET d: Dictionary<Number> := {"one": 1}
 #LET e: Dictionary<Number> := {"two": 2}
 #
-#ASSERT d = d
-#ASSERT d <> e
+#TESTCASE d = d
+#TESTCASE d <> e
 
 #TYPE Cls IS CLASS END CLASS
 #LET p: POINTER TO Cls := NEW Cls
 #LET q: POINTER TO Cls := NEW Cls
 #
-#ASSERT p = p
-#ASSERT p <> q
+#TESTCASE p = p
+#TESTCASE p <> q

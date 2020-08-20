@@ -75,13 +75,12 @@ FUNCTION tokenise(s: String): Array<Token>
     RETURN r
 END FUNCTION
 
-# TODO: Fix toString() so this works with regular ASSERT.
-IF tokenise("").size() <> 0 THEN ASSERT FALSE END IF
-IF tokenise("1") <> [Token(type WITH TokenType.value, value WITH 1)] THEN ASSERT FALSE END IF
-IF tokenise("a") <> [Token(type WITH TokenType.name, name WITH "a")] THEN ASSERT FALSE END IF
-IF tokenise("+") <> [Token(type WITH TokenType.plus)] THEN ASSERT FALSE END IF
-IF tokenise("a+1") <> [Token(type WITH TokenType.name, name WITH "a"), Token(type WITH TokenType.plus), Token(type WITH TokenType.value, value WITH 1)] THEN ASSERT FALSE END IF
-IF tokenise("a + 1") <> [Token(type WITH TokenType.name, name WITH "a"), Token(type WITH TokenType.plus), Token(type WITH TokenType.value, value WITH 1)] THEN ASSERT FALSE END IF
+TESTCASE tokenise("").size() = 0
+TESTCASE tokenise("1") = [Token(type WITH TokenType.value, value WITH 1)]
+TESTCASE tokenise("a") = [Token(type WITH TokenType.name, name WITH "a")]
+TESTCASE tokenise("+") = [Token(type WITH TokenType.plus)]
+TESTCASE tokenise("a+1") = [Token(type WITH TokenType.name, name WITH "a"), Token(type WITH TokenType.plus), Token(type WITH TokenType.value, value WITH 1)]
+TESTCASE tokenise("a + 1") = [Token(type WITH TokenType.name, name WITH "a"), Token(type WITH TokenType.plus), Token(type WITH TokenType.value, value WITH 1)]
 
 # TODO: Improve type checking for interface methods so this alias isn't necessary.
 TYPE Variables IS Dictionary<Number>
@@ -260,10 +259,10 @@ FUNCTION eval(e: Expression, vars: Dictionary<Number>): Number
     RETURN e.top->eval(vars)
 END FUNCTION
 
-ASSERT eval(parse(tokenise("1")), {}) = 1
-ASSERT eval(parse(tokenise("a")), {"a": 2}) = 2
-ASSERT eval(parse(tokenise("1 + 2")), {}) = 3
-ASSERT eval(parse(tokenise("a + 3")), {"a": 2}) = 5
+TESTCASE eval(parse(tokenise("1")), {}) = 1
+TESTCASE eval(parse(tokenise("a")), {"a": 2}) = 2
+TESTCASE eval(parse(tokenise("1 + 2")), {}) = 3
+TESTCASE eval(parse(tokenise("a + 3")), {"a": 2}) = 5
 
 BEGIN MAIN
     IF sys.args.size() >= 2 THEN

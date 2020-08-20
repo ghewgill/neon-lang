@@ -1,2 +1,2 @@
-ASSERT "foo" IN "foobar"
-ASSERT "foobar" NOT IN "foo"
+TESTCASE "foo" IN "foobar"
+TESTCASE "foobar" NOT IN "foo"

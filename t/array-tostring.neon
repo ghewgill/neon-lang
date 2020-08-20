@@ -14,4 +14,4 @@ FUNCTION f(): Array<Number>
     RETURN an
 END FUNCTION
 
-ASSERT f() = [1,2,3]
+TESTCASE f() = [1,2,3]

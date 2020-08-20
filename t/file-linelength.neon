@@ -6,4 +6,4 @@ FOR i := 1 TO 16 DO
 END FOR
 file.writeLines("tmp/linelength.tmp", [s])
 VAR t: Array<String> := file.readLines("tmp/linelength.tmp")
-ASSERT t[0] = s
+TESTCASE t[0] = s

@@ -10,4 +10,4 @@ EXEC SQL INSERT INTO user (name, password) VALUES (:name, :password);
 
 VAR pw_tmp: String
 EXEC SQL SELECT password INTO :pw_tmp FROM user WHERE name = :name;
-ASSERT pw_tmp = "password"
+TESTCASE pw_tmp = "password"

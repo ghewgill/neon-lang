@@ -121,6 +121,8 @@ std::string reconstitute(const Token &t)
         case ELLIPSIS:    return "ELLIPSIS";
         case OPTIONAL:    return "OPTIONAL";
         case IMPORTED:    return "IMPORTED";
+        case TESTCASE:    return "TESTCASE";
+        case EXPECT:      return "EXPECT";
         case UNKNOWN:     return "UNKNOWN";
         case MAX_TOKEN:   return "";
     }

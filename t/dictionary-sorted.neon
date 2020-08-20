@@ -125,5 +125,5 @@ FOREACH e IN Elements DO
 END FOREACH
 LET a: Array<String> := d.keys()
 FOR i := 0 TO a.size()-2 DO
-    ASSERT a[i] < a[i+1]
+    TESTCASE a[i] < a[i+1]
 END FOR

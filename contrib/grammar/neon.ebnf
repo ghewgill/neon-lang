@@ -49,6 +49,7 @@ Statement =
     RaiseStatement |
     RepeatStatement |
     ReturnStatement |
+    TestCaseStatement |
     TryStatement |
     UnusedStatement |
     WhileStatement;
@@ -136,6 +137,8 @@ RaiseStatement = 'RAISE', Identifier, {'.', Identifier}, ['(', Identifier, 'WITH
 RepeatStatement = 'REPEAT', ['LABEL', Identifier], {Statement}, 'UNTIL', Expression;
 
 ReturnStatement = 'RETURN', Expression;
+
+TestCaseStatement = 'TESTCASE', Expression, ['EXPECT', Identifier, {'.', Identifier}];
 
 TryStatement = 'TRY', {Statement}, {'TRAP', Identifier, {'.', Identifier}, ['AS', Identifier], 'DO', {Statement}}, 'END', 'TRY';
 

@@ -8,4 +8,4 @@ END FUNCTION
 
 VAR fp: FUNCTION(a: Number...): Number
 fp := f
-ASSERT fp(4, 5) = 9
+TESTCASE fp(4, 5) = 9

@@ -150,6 +150,8 @@ UNUSED = Keyword("UNUSED")
 ISA = Keyword("ISA")
 OPTIONAL = Keyword("OPTIONAL")
 IMPORTED = Keyword("IMPORTED")
+TESTCASE = Keyword("TESTCASE")
+EXPECT = Keyword("EXPECT")
 
 class bytes:
     def __init__(self, a):
@@ -1272,6 +1274,26 @@ class ReturnStatement:
     def run(self, env):
         raise ReturnException(self.expr.eval(env))
 
+class TestCaseStatement:
+    def __init__(self, expr, expected_exception):
+        self.expr = expr
+        self.expected_exception = expected_exception
+    def declare(self, env):
+        pass
+    def run(self, env):
+        if self.expected_exception:
+            try:
+                self.expr.eval(env)
+                print("TESTCASE failed", file=sys.stderr)
+                sys.exit(1)
+            except NeonException as x:
+                if x.name[:len(self.expected_exception)] == self.expected_exception or x.name[:len(self.expected_exception)-1] == self.expected_exception[1:]:
+                    pass
+                else:
+                    raise
+        else:
+            assert self.expr.eval(env)
+
 class TryStatement:
     def __init__(self, statements, catches):
         self.statements = statements
@@ -1906,7 +1928,7 @@ class Parser:
     def parse_expression(self):
         return self.parse_conditional()
 
-    def parse_assert(self):
+    def parse_assert_statement(self):
         self.expect(ASSERT)
         expr = self.parse_expression()
         parts = [expr]
@@ -2250,6 +2272,20 @@ class Parser:
         expr = self.parse_expression()
         return ReturnStatement(expr)
 
+    def parse_testcase_statement(self):
+        self.expect(TESTCASE)
+        expr = self.parse_expression()
+        expected_exception = None
+        if self.tokens[self.i] is EXPECT:
+            self.i += 1
+            expected_exception = []
+            while True:
+                expected_exception.append(self.identifier())
+                if self.tokens[self.i] is not DOT:
+                    break
+                self.i += 1
+        return TestCaseStatement(expr, expected_exception)
+
     def parse_try_statement(self):
         self.expect(TRY)
         statements = []
@@ -2357,10 +2393,11 @@ class Parser:
         if self.tokens[self.i] is NEXT:     return self.parse_next_statement()
         if self.tokens[self.i] is TRY:      return self.parse_try_statement()
         if self.tokens[self.i] is RAISE:    return self.parse_raise_statement()
-        if self.tokens[self.i] is ASSERT:   return self.parse_assert()
+        if self.tokens[self.i] is ASSERT:   return self.parse_assert_statement()
         if self.tokens[self.i] is CHECK:    return self.parse_check_statement()
         if self.tokens[self.i] is UNUSED:   return self.parse_unused_statement()
         if self.tokens[self.i] is BEGIN:    return self.parse_main_statement()
+        if self.tokens[self.i] is TESTCASE: return self.parse_testcase_statement()
         if isinstance(self.tokens[self.i], Identifier):
             expr = self.parse_expression()
             if self.tokens[self.i] is ASSIGN:
