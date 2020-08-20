@@ -1142,6 +1142,7 @@ public:
     ConstantNilObject(): Expression(new TypeObject(), true) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual bool is_pure() const override { return true; }
     virtual bool eval_boolean() const override { internal_error("ConstantNilObject"); }
     virtual Number eval_number() const override { internal_error("ConstantNilObject"); }
     virtual utf8string eval_string() const override { internal_error("ConstantNilObject"); }
@@ -2362,6 +2363,7 @@ public:
     explicit Statement(int line): line(line) {}
     const int line;
 
+    virtual bool is_pure() const = 0;
     virtual bool always_returns() const { return false; }
     virtual bool is_scope_exit_statement() const { return false; }
 
@@ -2376,6 +2378,8 @@ public:
 
     const std::vector<const Statement *> statements;
 
+    virtual bool is_pure() const override { return std::all_of(statements.begin(), statements.end(), [](const Statement *x) { return x->is_pure(); }); }
+
     virtual void generate_code(Emitter &emitter) const override { for (auto s: statements) s->generate_code(emitter); }
 
     virtual void dumpsubnodes(std::ostream &out, int depth) const override;
@@ -2386,6 +2390,8 @@ class NullStatement: public Statement {
 public:
     explicit NullStatement(int line): Statement(line) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual bool is_pure() const override { return true; }
 
     virtual void generate_code(Emitter &) const override {}
 
@@ -2401,6 +2407,8 @@ public:
     const std::string name;
     const ast::Type *type;
 
+    virtual bool is_pure() const override { return true; }
+
     virtual void generate_code(Emitter &) const override;
 
     virtual std::string text() const override { return "TypeDeclarationStatement(" + name + ", " + type->text() + ")"; }
@@ -2413,6 +2421,8 @@ public:
     DeclarationStatement &operator=(const DeclarationStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     Variable *decl;
+
+    virtual bool is_pure() const override { return true; }
 
     virtual void generate_code(Emitter &) const override {}
 
@@ -2460,6 +2470,8 @@ public:
     const std::vector<const ReferenceExpression *> variables;
     const Expression *const expr;
 
+    virtual bool is_pure() const override { return std::all_of(variables.begin(), variables.end(), [this](const ReferenceExpression *x) { return dynamic_cast<const VariableExpression *>(x) != nullptr && dynamic_cast<const LocalVariable *>(dynamic_cast<const VariableExpression *>(x)->var) != nullptr && expr->is_pure(); }); }
+
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override {
@@ -2480,6 +2492,8 @@ public:
 
     const Expression *const expr;
 
+    virtual bool is_pure() const override { return expr->is_pure(); }
+
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override {
@@ -2496,6 +2510,7 @@ public:
 
     const Expression *const expr;
 
+    virtual bool is_pure() const override { return expr->is_pure(); }
     virtual bool always_returns() const override { return true; }
     virtual bool is_scope_exit_statement() const override { return true; }
 
@@ -2514,6 +2529,8 @@ public:
     const ReferenceExpression *ref;
     int delta;
 
+    virtual bool is_pure() const override { return dynamic_cast<const VariableExpression *>(ref) != nullptr && dynamic_cast<const LocalVariable *>(dynamic_cast<const VariableExpression *>(ref)->var) != nullptr; }
+
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override {
@@ -2531,6 +2548,25 @@ public:
     const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     const std::vector<const Statement *> else_statements;
 
+    virtual bool is_pure() const override {
+        return std::all_of(
+            condition_statements.begin(),
+            condition_statements.end(),
+            [](const std::pair<const Expression *, std::vector<const Statement *>> /*auto*/ &x) {
+                return x.first->is_pure() &&
+                    std::all_of(
+                        x.second.begin(),
+                        x.second.end(),
+                        [](const Statement *s) { return s->is_pure(); }
+                    );
+            }
+        ) &&
+        std::all_of(
+            else_statements.begin(),
+            else_statements.end(),
+            [](const Statement *x) { return x->is_pure(); }
+        );
+    }
     virtual bool always_returns() const override;
     virtual bool is_scope_exit_statement() const override;
 
@@ -2611,6 +2647,21 @@ public:
     const Expression *expr;
     const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
 
+    virtual bool is_pure() const override {
+        return expr->is_pure() &&
+            std::all_of(
+                clauses.begin(),
+                clauses.end(),
+                [](const std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>> &x) {
+                    return std::all_of(
+                        x.second.begin(),
+                        x.second.end(),
+                        [](const Statement *s) { return s->is_pure(); }
+                    );
+                }
+            );
+    }
+
     virtual bool always_returns() const override;
 
     virtual void generate_code(Emitter &emitter) const override;
@@ -2629,6 +2680,7 @@ public:
 
     const unsigned int loop_id;
 
+    virtual bool is_pure() const override { return true; }
     virtual bool is_scope_exit_statement() const override { return true; }
 
     virtual void generate_code(Emitter &emitter) const override;
@@ -2645,6 +2697,7 @@ public:
 
     const unsigned int loop_id;
 
+    virtual bool is_pure() const override { return true; }
     virtual bool is_scope_exit_statement() const override { return true; }
 
     virtual void generate_code(Emitter &emitter) const override;
@@ -2662,6 +2715,7 @@ public:
     const std::vector<const Statement *> statements;
     const std::vector<TryTrap> catches;
 
+    virtual bool is_pure() const override { return false; }
     virtual bool always_returns() const override;
 
     virtual void generate_code(Emitter &emitter) const override;
@@ -2679,6 +2733,7 @@ public:
     const Exception *exception;
     const Expression *info;
 
+    virtual bool is_pure() const override { return false; }
     virtual bool always_returns() const override { return true; }
     virtual bool is_scope_exit_statement() const override { return true; }
 
@@ -2695,6 +2750,8 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const ReferenceExpression *> variables;
+
+    virtual bool is_pure() const override { return std::all_of(variables.begin(), variables.end(), [](const ReferenceExpression *r) { return dynamic_cast<const VariableExpression *>(r) != nullptr && dynamic_cast<const LocalVariable *>(dynamic_cast<const VariableExpression *>(r)->var) != nullptr; }); }
 
     virtual void generate_code(Emitter &emitter) const override;
 
@@ -2737,7 +2794,7 @@ public:
     static const TypeFunction *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic);
     int get_stack_delta() const;
 
-    virtual bool is_pure() const override { return false; }
+    virtual bool is_pure() const override { return std::all_of(statements.begin(), statements.end(), [](const Statement *x) { return x->is_pure(); }); }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override {}
