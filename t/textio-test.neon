@@ -5,12 +5,7 @@ IMPORT string
 textio.writeLine(textio.stdout, "Hello World")
 #= Hello World
 
-TRY
-    _ := textio.open("nonexistent.file", textio.Mode.read)
-    ASSERT FALSE
-TRAP textio.TextioException.Open DO
-    ASSERT TRUE
-END TRY
+TESTCASE textio.open("nonexistent.file", textio.Mode.read) EXPECT textio.TextioException.Open
 
 VAR f: textio.TextFile := textio.open("LICENSE.txt", textio.Mode.read)
 VAR s: String := ""
@@ -43,5 +38,5 @@ textio.writeLine(f, s)
 textio.close(f)
 f := textio.open("tmp/textio-test.tmp", textio.Mode.read)
 VAR t: String
-ASSERT textio.readLine(f, OUT t) AND t = s
+TESTCASE textio.readLine(f, OUT t) AND t = s
 textio.close(f)

@@ -10,10 +10,10 @@ VAR b: POINTER TO Rec
 a := NEW Rec(x WITH 5)
 b := a
 runtime.garbageCollect()
-ASSERT runtime.getAllocatedObjectCount() = 1
+TESTCASE runtime.getAllocatedObjectCount() = 1
 a := NIL
 runtime.garbageCollect()
-ASSERT runtime.getAllocatedObjectCount() = 1
+TESTCASE runtime.getAllocatedObjectCount() = 1
 b := NIL
 runtime.garbageCollect()
-ASSERT runtime.getAllocatedObjectCount() = 0
+TESTCASE runtime.getAllocatedObjectCount() = 0

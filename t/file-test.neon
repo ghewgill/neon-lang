@@ -4,7 +4,7 @@ FUNCTION bstr(z: Boolean): String
     RETURN (IF z THEN "TRUE" ELSE "FALSE")
 END FUNCTION
 
-ASSERT file.Separator IN ["/", "\\"]
+TESTCASE file.Separator IN ["/", "\\"]
 
 VAR a: Array<String>
 
@@ -32,12 +32,12 @@ print(bstr("file-test.neon" IN a))
 LET fi: file.FileInfo := file.getInfo("t/file-test.neon")
 print(fi.name)
 #= file-test.neon
-ASSERT 1000 <= fi.size <= 10000
+TESTCASE 1000 <= fi.size <= 10000
 print(bstr(fi.readable))
 #= TRUE
 print(fi.type.toString())
 #= normal
-ASSERT fi.lastModificationTime > 0
+TESTCASE fi.lastModificationTime > 0
 
 file.writeLines("tmp/file-test.tmp", ["hello", "world"])
 print(bstr(file.exists("tmp/file-test.tmp")))

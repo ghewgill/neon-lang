@@ -1,24 +1,13 @@
 VAR a: Array<Number> := []
 
 a[0] := 0
-ASSERT a.size() = 1
+TESTCASE a.size() = 1
 
 a.resize(3)
-ASSERT a.size() = 3
-ASSERT a[2] = 0
+TESTCASE a.size() = 3
+TESTCASE a[2] = 0
 
 a.resize(2)
-ASSERT a.size() = 2
-TRY
-    print(str(a[2]))
-TRAP ArrayIndexException DO
-    print("ArrayIndexException 1")
-END TRY
-#= ArrayIndexException 1
-
-TRY
-    a.resize(1.5)
-TRAP ArrayIndexException DO
-    print("ArrayIndexException 2")
-END TRY
-#= ArrayIndexException 2
+TESTCASE a.size() = 2
+TESTCASE a[2] EXPECT ArrayIndexException
+TESTCASE a.resize(1.5) EXPECT ArrayIndexException

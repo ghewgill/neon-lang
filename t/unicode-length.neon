@@ -1,6 +1,6 @@
 LET s: String := "你好世界"
-ASSERT s.length() = 4
-ASSERT s[0] = "你"
-ASSERT s[1] = "好"
-ASSERT s[2] = "世"
-ASSERT s[3] = "界"
+TESTCASE s.length() = 4
+TESTCASE s[0] = "你"
+TESTCASE s[1] = "好"
+TESTCASE s[2] = "世"
+TESTCASE s[3] = "界"

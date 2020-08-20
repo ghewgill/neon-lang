@@ -40,23 +40,18 @@ print(a[1])
 print(a[2])
 #= Everybody
 
-ASSERT string.splitLines("").size() = 0
-ASSERT string.splitLines("\n") = [""]
-ASSERT string.splitLines("\n\n") = ["", ""]
-ASSERT string.splitLines("a\n") = ["a"]
-ASSERT string.splitLines("a\nb") = ["a", "b"]
-ASSERT string.splitLines("a\nb\n") = ["a", "b"]
-ASSERT string.splitLines("hello\nworld\r\neverybody\n") = ["hello", "world", "everybody"]
+TESTCASE string.splitLines("").size() = 0
+TESTCASE string.splitLines("\n") = [""]
+TESTCASE string.splitLines("\n\n") = ["", ""]
+TESTCASE string.splitLines("a\n") = ["a"]
+TESTCASE string.splitLines("a\nb") = ["a", "b"]
+TESTCASE string.splitLines("a\nb\n") = ["a", "b"]
+TESTCASE string.splitLines("hello\nworld\r\neverybody\n") = ["hello", "world", "everybody"]
 
 print(str(string.toCodePoint("B")))
 #= 66
 
-TRY
-    print(str(string.toCodePoint("AB")))
-TRAP ArrayIndexException AS x DO
-    print(x.info)
-END TRY
-#= toCodePoint() requires string of length 1
+TESTCASE string.toCodePoint("AB") EXPECT ArrayIndexException
 
 print(string.trimCharacters("  Hello World  ", " ", " "))
 #= Hello World
@@ -94,10 +89,10 @@ print(string.quoted("hello\u{atom symbol}world"))
 print(string.quoted("hello\u{open book}world"))
 #= "hello\U0001f4d6world"
 
-ASSERT string.repeat("*", 5) = "*****"
-ASSERT string.repeat("XY", 2) = "XYXY"
+TESTCASE string.repeat("*", 5) = "*****"
+TESTCASE string.repeat("XY", 2) = "XYXY"
 
-ASSERT string.replaceOne("hello world", "l", "xxx") = "hexxxlo world"
-ASSERT string.replaceAll("hello world", "l", "xxx") = "hexxxxxxo worxxxd"
-ASSERT string.replaceAll("hello world", "l", "") = "heo word"
-ASSERT string.replaceAll("hello world", "l", "ell") = "heellello worelld"
+TESTCASE string.replaceOne("hello world", "l", "xxx") = "hexxxlo world"
+TESTCASE string.replaceAll("hello world", "l", "xxx") = "hexxxxxxo worxxxd"
+TESTCASE string.replaceAll("hello world", "l", "") = "heo word"
+TESTCASE string.replaceAll("hello world", "l", "ell") = "heellello worelld"

@@ -4,28 +4,28 @@ IMPORT sqlite
 file.delete("tmp/tmp1.db")
 EXEC SQL CONNECT TO "tmp/tmp1.db";
 EXEC SQL DISCONNECT;
-ASSERT file.exists("tmp/tmp1.db")
+TESTCASE file.exists("tmp/tmp1.db")
 
 file.delete("tmp/tmp2.db")
 EXEC SQL CONNECT TO "tmp/tmp2.db";
 EXEC SQL DISCONNECT CURRENT;
-ASSERT file.exists("tmp/tmp2.db")
+TESTCASE file.exists("tmp/tmp2.db")
 
 #file.delete("tmp/tmp3.db")
 #EXEC SQL CONNECT TO "tmp/tmp3.db" AS conn;
 #EXEC SQL DISCONNECT conn;
-#ASSERT file.exists("tmp/tmp3.db")
+#TESTCASE file.exists("tmp/tmp3.db")
 
 VAR conn: sqlite.Database
 file.delete("tmp/tmp4.db")
 EXEC SQL CONNECT TO "tmp/tmp4.db" AS :conn;
 EXEC SQL DISCONNECT :conn;
-ASSERT file.exists("tmp/tmp4.db")
+TESTCASE file.exists("tmp/tmp4.db")
 
 LET tmp5: String := "tmp/tmp5.db"
 file.delete(tmp5)
 EXEC SQL CONNECT TO :tmp5;
 EXEC SQL DISCONNECT;
-ASSERT file.exists(tmp5)
+TESTCASE file.exists(tmp5)
 
 #EXEC SQL DISCONNECT ALL;

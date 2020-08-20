@@ -439,6 +439,10 @@ public:
         write("ReturnStatement");
         child(node->expr.get());
     }
+    virtual void visit(const TestCaseStatement *node) override {
+        write("TestCaseStatement");
+        child(node->expr.get());
+    }
     virtual void visit(const TryStatement *node) override {
         write("TryStatement");
         for (auto &x: node->body) {

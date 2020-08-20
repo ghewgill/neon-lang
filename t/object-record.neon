@@ -7,24 +7,24 @@ END RECORD
 # Check converting record to object.
 VAR r: Rec := Rec(name WITH "Alice", age WITH 23, friends WITH ["Bob", "Charlie"])
 VAR x: Object := r
-ASSERT x["name"] = "Alice"
-ASSERT x["age"] = 23
-ASSERT x["friends"][0] = "Bob"
-ASSERT x["friends"][1] = "Charlie"
+TESTCASE x["name"] = "Alice"
+TESTCASE x["age"] = 23
+TESTCASE x["friends"][0] = "Bob"
+TESTCASE x["friends"][1] = "Charlie"
 
 # Check converting object to record (all fields).
 x := {"name": "Bob", "age": 21, "friends": ["Alice", "Charlie"]}
 r := x
-ASSERT r.name = "Bob"
-ASSERT r.age = 21
-ASSERT r.friends = ["Alice", "Charlie"]
+TESTCASE r.name = "Bob"
+TESTCASE r.age = 21
+TESTCASE r.friends = ["Alice", "Charlie"]
 
 # Check converting object to record (some missing fields).
 x := {"name": "Charlie"}
 r := x
-ASSERT r.name = "Charlie"
-ASSERT r.age = 0
-ASSERT r.friends.size() = 0
+TESTCASE r.name = "Charlie"
+TESTCASE r.age = 0
+TESTCASE r.friends.size() = 0
 
 # Check converting object to record (unknown fields).
 x := {"extra": 5}

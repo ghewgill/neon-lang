@@ -179,6 +179,7 @@ TYPE Type IS ENUM
     RaiseStatement
     RepeatStatement
     ReturnStatement
+    TestCaseStatement
     TryStatement
     TryHandlerStatement
     UnusedStatement
@@ -544,6 +545,11 @@ TYPE ReturnStatement IS RECORD
     expr: POINTER TO ParseTreeNode
 END RECORD
 
+TYPE TestCaseStatement IS RECORD
+    expr: POINTER TO ParseTreeNode
+    expected_exception: Array<lexer.Token>
+END RECORD
+
 TYPE TryStatement IS RECORD
     catches: Array<TryStatementClause>
     statements: Array<POINTER TO ParseTreeNode>
@@ -635,6 +641,7 @@ TYPE ParseTreeNode IS CLASS
     raisestatement: RaiseStatement
     repeatstatement: RepeatStatement
     returnstatement: ReturnStatement
+    testcasestatement: TestCaseStatement
     trystatement: TryStatement
     tryhandlerstatement: TryHandlerStatement
     unusedstatement: UnusedStatement
@@ -3259,6 +3266,33 @@ FUNCTION Parser.parseReturnStatement(INOUT self: Parser): POINTER TO ParseTreeNo
     )
 END FUNCTION
 
+FUNCTION Parser.parseTestCaseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET tokTestCase: lexer.Token := self.token
+    self.nextToken()
+    VAR e: POINTER TO ParseTreeNode := self.parseExpression()
+    VAR expr: POINTER TO ParseTreeNode := e
+    VAR expected_exception: Array<lexer.Token> := []
+    IF self.token.type = TokenType.expect THEN
+        self.nextToken()
+        LOOP
+            IF self.token.type <> TokenType.identifier THEN
+                error(2139, self.token, "exception identifier expected")
+            END IF
+            expected_exception.append(self.token)
+            self.nextToken()
+            IF self.token.type <> TokenType.dot THEN
+                EXIT LOOP
+            END IF
+            self.nextToken()
+        END LOOP
+    END IF
+    RETURN NEW ParseTreeNode(
+        type WITH Type.TestCaseStatement,
+        token WITH tokTestCase,
+        testcasestatement WITH TestCaseStatement(expr WITH expr, expected_exception WITH expected_exception)
+    )
+END FUNCTION
+
 FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.try
     LET tokTry: lexer.Token := self.token
@@ -3507,6 +3541,8 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseRepeatStatement()
         WHEN TokenType.return DO
             RETURN self.parseReturnStatement()
+        WHEN TokenType.testcase DO
+            RETURN self.parseTestCaseStatement()
         WHEN TokenType.try DO
             RETURN self.parseTryStatement()
         WHEN TokenType.unused DO
@@ -4134,6 +4170,11 @@ FUNCTION dumpReturnStatement(node: VALID POINTER TO ParseTreeNode, depth: Number
     dumpParseTree(node->returnstatement.expr, depth+1)
 END FUNCTION
 
+FUNCTION dumpTestCaseStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "TestCaseStatement")
+    dumpParseTree(node->testcasestatement.expr, depth+1)
+END FUNCTION
+
 FUNCTION dumpTryStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TryStatement")
     FOREACH s IN node->trystatement.statements DO
@@ -4243,6 +4284,7 @@ LET Dumper: IParseTreeVisitor := {
     "RaiseStatement":                       dumpRaiseStatement,
     "RepeatStatement":                      dumpRepeatStatement,
     "ReturnStatement":                      dumpReturnStatement,
+    "TestCaseStatement":                    dumpTestCaseStatement,
     "TryStatement":                         dumpTryStatement,
     "TryHandlerStatement":                  dumpTryHandlerStatement,
     "UnusedStatement":                      dumpUnusedStatement,

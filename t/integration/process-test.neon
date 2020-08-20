@@ -2,14 +2,11 @@ IMPORT process
 IMPORT string
 
 VAR out, err: Bytes
-VAR r: Number
 
-r := process.call("bin/neonc", OUT out, OUT err)
-ASSERT r = 1
-ASSERT out = HEXBYTES ""
-ASSERT string.splitLines(err.decodeToString()) = ["Usage: bin/neonc filename.neon"]
+TESTCASE process.call("bin/neonc", OUT out, OUT err) = 1
+TESTCASE out = HEXBYTES ""
+TESTCASE string.splitLines(err.decodeToString()) = ["Usage: bin/neonc filename.neon"]
 
-r := process.call("bin/neon t/hello.neon", OUT out, OUT err)
-ASSERT r = 0
-ASSERT string.splitLines(out.decodeToString()) = ["hello world"]
-ASSERT err = HEXBYTES ""
+TESTCASE process.call("bin/neon t/hello.neon", OUT out, OUT err) = 0
+TESTCASE string.splitLines(out.decodeToString()) = ["hello world"]
+TESTCASE err = HEXBYTES ""

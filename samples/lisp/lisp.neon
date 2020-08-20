@@ -399,7 +399,7 @@ END FUNCTION
 FUNCTION test_repr()
     LET y: POINTER TO Value := make_pair(make_string("foo"), NIL)
     LET x: POINTER TO Value := make_pair(y, y)
-    ASSERT repr(x) = "((\"foo\") \"foo\")"
+    TESTCASE repr(x) = "((\"foo\") \"foo\")"
 END FUNCTION
 
 g_env->names["*"] := make_proc(multiply)

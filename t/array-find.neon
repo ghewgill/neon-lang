@@ -1,9 +1,3 @@
 LET a: Array<Number> := [1, 2, 3]
-ASSERT a.find(2) = 1
-
-TRY
-    _ := a.find(5)
-    ASSERT FALSE
-TRAP ArrayIndexException DO
-    # expected
-END TRY
+TESTCASE a.find(2) = 1
+TESTCASE a.find(5) EXPECT ArrayIndexException

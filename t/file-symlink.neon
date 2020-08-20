@@ -5,11 +5,11 @@ file.delete("tmp/LICENSE.txt")
 TRY
     file.symlink("../LICENSE.txt", "tmp/LICENSE.txt", FALSE)
     LET text: Bytes := file.readBytes("tmp/LICENSE.txt")
-    ASSERT text = file.readBytes("LICENSE.txt")
+    TESTCASE text = file.readBytes("LICENSE.txt")
 TRAP file.FileException.PermissionDenied DO
     # Creating a symlink not always possible on win32
-    ASSERT os.platform() = os.Platform.win32
+    TESTCASE os.platform() = os.Platform.win32
 TRAP file.FileException.Open DO
     # Creating a symlink not always possible on win32
-    ASSERT os.platform() = os.Platform.win32
+    TESTCASE os.platform() = os.Platform.win32
 END TRY

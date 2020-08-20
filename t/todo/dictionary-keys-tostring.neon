@@ -9,4 +9,4 @@ LET d: Dictionary<String> := {
     Colour.green.toString(): "grass"
 }
 
-ASSERT d["green"] = "grass"
+TESTCASE d["green"] = "grass"

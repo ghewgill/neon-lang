@@ -329,6 +329,7 @@ structure.neon
 sudoku-test.neon
 sys-exit.neon
 tail-call.neon
+testcase.neon
 textio-test.neon
 time-stopwatch.neon
 time-test.neon

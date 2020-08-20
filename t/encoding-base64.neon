@@ -5,33 +5,33 @@ FUNCTION stringToBytes(s: String): Bytes
 END FUNCTION
 
 FUNCTION t(b: Bytes)
-    ASSERT b = encoding.base64Decode(encoding.base64Encode(b))
+    TESTCASE b = encoding.base64Decode(encoding.base64Encode(b))
 END FUNCTION
 
 # First, perform encoding tests using the RFC examples...
-ASSERT encoding.base64Encode(stringToBytes("")) = ""
-ASSERT encoding.base64Encode(stringToBytes("f")) = "Zg=="
-ASSERT encoding.base64Encode(stringToBytes("fo")) = "Zm8="
-ASSERT encoding.base64Encode(stringToBytes("foo")) = "Zm9v"
-ASSERT encoding.base64Encode(stringToBytes("foob")) = "Zm9vYg=="
-ASSERT encoding.base64Encode(stringToBytes("fooba")) = "Zm9vYmE="
-ASSERT encoding.base64Encode(stringToBytes("foobar")) = "Zm9vYmFy"
-ASSERT encoding.base64Encode(stringToBytes("foobar\r\nfoobar")) = "Zm9vYmFyDQpmb29iYXI="
+TESTCASE encoding.base64Encode(stringToBytes("")) = ""
+TESTCASE encoding.base64Encode(stringToBytes("f")) = "Zg=="
+TESTCASE encoding.base64Encode(stringToBytes("fo")) = "Zm8="
+TESTCASE encoding.base64Encode(stringToBytes("foo")) = "Zm9v"
+TESTCASE encoding.base64Encode(stringToBytes("foob")) = "Zm9vYg=="
+TESTCASE encoding.base64Encode(stringToBytes("fooba")) = "Zm9vYmE="
+TESTCASE encoding.base64Encode(stringToBytes("foobar")) = "Zm9vYmFy"
+TESTCASE encoding.base64Encode(stringToBytes("foobar\r\nfoobar")) = "Zm9vYmFyDQpmb29iYXI="
 
 # Then perform decode tests based on RFC samples...
-ASSERT encoding.base64Decode("").decodeToString() = ""
-ASSERT encoding.base64Decode("Zg==").decodeToString() = "f"
-ASSERT encoding.base64Decode("Zm8=").decodeToString() = "fo"
-ASSERT encoding.base64Decode("Zm9v").decodeToString() = "foo"
-ASSERT encoding.base64Decode("Zm9vYg==").decodeToString() = "foob"
-ASSERT encoding.base64Decode("Zm9vYmE=").decodeToString() = "fooba"
-ASSERT encoding.base64Decode("Zm9vYmFy").decodeToString() = "foobar"
+TESTCASE encoding.base64Decode("").decodeToString() = ""
+TESTCASE encoding.base64Decode("Zg==").decodeToString() = "f"
+TESTCASE encoding.base64Decode("Zm8=").decodeToString() = "fo"
+TESTCASE encoding.base64Decode("Zm9v").decodeToString() = "foo"
+TESTCASE encoding.base64Decode("Zm9vYg==").decodeToString() = "foob"
+TESTCASE encoding.base64Decode("Zm9vYmE=").decodeToString() = "fooba"
+TESTCASE encoding.base64Decode("Zm9vYmFy").decodeToString() = "foobar"
 
 # Perform minimal "fuzz" tests...
-ASSERT encoding.base64Decode("Zm9vYmFy\r   \nZm9vYmFy").decodeToString() = "foobarfoobar"
-ASSERT encoding.base64Decode("Zm9vYmFyDQ  pmb29iYXI=").decodeToString() = "foobar\r\nfoobar"
-ASSERT encoding.base64Decode("!@#$#^&*)(_+_)==").decodeToString() = ""
-ASSERT encoding.base64Decode(encoding.base64Encode(stringToBytes("foobar"))).decodeToString() = "foobar"
+TESTCASE encoding.base64Decode("Zm9vYmFy\r   \nZm9vYmFy").decodeToString() = "foobarfoobar"
+TESTCASE encoding.base64Decode("Zm9vYmFyDQ  pmb29iYXI=").decodeToString() = "foobar\r\nfoobar"
+TESTCASE encoding.base64Decode("!@#$#^&*)(_+_)==").decodeToString() = ""
+TESTCASE encoding.base64Decode(encoding.base64Encode(stringToBytes("foobar"))).decodeToString() = "foobar"
 
 # Most thorough tests of all, test every bit, at every position across all 3 base64 Bytes.
 t(HEXBYTES "00 00 00")

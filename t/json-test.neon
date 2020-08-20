@@ -31,8 +31,8 @@ v := json.decode(s)
 print("\(v)")
 #= "fork"
 
-ASSERT json.decode(@@""\"\\\/\b\n\f\r\t""@@) = "\"\\/\b\n\f\r\t"
-ASSERT json.decode(@@""\u0021""@@) = "!"
+TESTCASE json.decode(@@""\"\\\/\b\n\f\r\t""@@) = "\"\\/\b\n\f\r\t"
+TESTCASE json.decode(@@""\u0021""@@) = "!"
 
 s := json.encode([5, "fork"])
 print(s)
@@ -79,16 +79,16 @@ LET a: Object := json.decode(@@"
         }
     }
 "@@)
-ASSERT a.z.isNull() = TRUE
-ASSERT a.b = TRUE
-ASSERT a.s = "one"
-ASSERT a.n = 5
-ASSERT a.a[1] = "one"
-ASSERT a.o.foo = "bar"
+TESTCASE a.z.isNull() = TRUE
+TESTCASE a.b = TRUE
+TESTCASE a.s = "one"
+TESTCASE a.n = 5
+TESTCASE a.a[1] = "one"
+TESTCASE a.o.foo = "bar"
 
-#ASSERT a.atPath("z") = TRUE
-#ASSERT a.atPath("b") = TRUE
-#ASSERT a.atPath("s") = "one"
-#ASSERT a.atPath("n") = 5
-#ASSERT a.atPath("a/1") = "one"
-#ASSERT a.atPath("o/foo") = "bar"
+#TESTCASE a.atPath("z") = TRUE
+#TESTCASE a.atPath("b") = TRUE
+#TESTCASE a.atPath("s") = "one"
+#TESTCASE a.atPath("n") = 5
+#TESTCASE a.atPath("a/1") = "one"
+#TESTCASE a.atPath("o/foo") = "bar"

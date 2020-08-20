@@ -26,7 +26,7 @@ foo1(-1)
 
 LET a: Array<Number> := [1]
 LET b: Number := (TRY a[1.5] TRAP ArrayIndexException GIVES 9999)
-ASSERT b = 9999
+TESTCASE b = 9999
 
 #print(str(foo2(5)))
 ##= 5

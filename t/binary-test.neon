@@ -51,166 +51,164 @@ print(binary.orBytes(HEXBYTES "aa 55 aa 55", HEXBYTES "01 02 03 04").toString())
 print(binary.xorBytes(HEXBYTES "aa 55 aa 55", HEXBYTES "01 02 03 04").toString())
 #= HEXBYTES "ab 57 a9 51"
 
-VAR a: Boolean
+TESTCASE binary.and32(0, 0) = 0
+TESTCASE binary.and32(0xffffffff, 0xffffffff) = 0xffffffff
+TESTCASE binary.and32(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.and32(0, -1) EXPECT ValueRangeException
+TESTCASE binary.and32(0x100000000, 0xffffffff) EXPECT ValueRangeException
+TESTCASE binary.and32(0xffffffff, 0x100000000) EXPECT ValueRangeException
 
-ASSERT binary.and32(0, 0) = 0
-ASSERT binary.and32(0xffffffff, 0xffffffff) = 0xffffffff
-a := FALSE TRY _ := binary.and32(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.and32(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.and32(0x100000000, 0xffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.and32(0xffffffff, 0x100000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.and64(0, 0) = 0
+TESTCASE binary.and64(0xffffffffffffffff, 0xffffffffffffffff) = 0xffffffffffffffff
+TESTCASE binary.and64(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.and64(0, -1) EXPECT ValueRangeException
+TESTCASE binary.and64(0x10000000000000000, 0xffffffffffffffff) EXPECT ValueRangeException
+TESTCASE binary.and64(0xffffffffffffffff, 0x10000000000000000) EXPECT ValueRangeException
 
-ASSERT binary.and64(0, 0) = 0
-ASSERT binary.and64(0xffffffffffffffff, 0xffffffffffffffff) = 0xffffffffffffffff
-a := FALSE TRY _ := binary.and64(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.and64(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.and64(0x10000000000000000, 0xffffffffffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.and64(0xffffffffffffffff, 0x10000000000000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.extract32(0, 0, 0) = 0
+TESTCASE binary.extract32(0xffffffff, 32, 32) = 0
+TESTCASE binary.extract32(-1, 0, 0) EXPECT ValueRangeException
+TESTCASE binary.extract32(0, -1, 0) EXPECT ValueRangeException
+TESTCASE binary.extract32(0, 0, -1) EXPECT ValueRangeException
+TESTCASE binary.extract32(0x100000000, 32, 32) EXPECT ValueRangeException
+TESTCASE binary.extract32(0xffffffff, 33, 32) EXPECT ValueRangeException
+TESTCASE binary.extract32(0xffffffff, 32, 33) EXPECT ValueRangeException
 
-ASSERT binary.extract32(0, 0, 0) = 0
-ASSERT binary.extract32(0xffffffff, 32, 32) = 0
-a := FALSE TRY _ := binary.extract32(-1, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract32(0, -1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract32(0, 0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract32(0x100000000, 32, 32) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract32(0xffffffff, 33, 32) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract32(0xffffffff, 32, 33) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.extract64(0, 0, 0) = 0
+TESTCASE binary.extract64(0xffffffffffffffff, 64, 64) = 0
+TESTCASE binary.extract64(-1, 0, 0) EXPECT ValueRangeException
+TESTCASE binary.extract64(0, -1, 0) EXPECT ValueRangeException
+TESTCASE binary.extract64(0, 0, -1) EXPECT ValueRangeException
+TESTCASE binary.extract64(0x10000000000000000, 64, 64) EXPECT ValueRangeException
+TESTCASE binary.extract64(0xffffffffffffffff, 65, 64) EXPECT ValueRangeException
+TESTCASE binary.extract64(0xffffffffffffffff, 64, 65) EXPECT ValueRangeException
 
-ASSERT binary.extract64(0, 0, 0) = 0
-ASSERT binary.extract64(0xffffffffffffffff, 64, 64) = 0
-a := FALSE TRY _ := binary.extract64(-1, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract64(0, -1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract64(0, 0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract64(0x10000000000000000, 64, 64) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract64(0xffffffffffffffff, 65, 64) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.extract64(0xffffffffffffffff, 64, 65) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.get32(0, 0) = FALSE
+TESTCASE binary.get32(0xffffffff, 32) = FALSE
+TESTCASE binary.get32(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.get32(0, -1) EXPECT ValueRangeException
+TESTCASE binary.get32(0x100000000, 32) EXPECT ValueRangeException
+TESTCASE binary.get32(0xffffffff, 33) EXPECT ValueRangeException
 
-ASSERT binary.get32(0, 0) = FALSE
-ASSERT binary.get32(0xffffffff, 32) = FALSE
-a := FALSE TRY _ := binary.get32(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.get32(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.get32(0x100000000, 32) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.get32(0xffffffff, 33) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.get64(0, 0) = FALSE
+TESTCASE binary.get64(0xffffffffffffffff, 64) = FALSE
+TESTCASE binary.get64(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.get64(0, -1) EXPECT ValueRangeException
+TESTCASE binary.get64(0x10000000000000000, 64) EXPECT ValueRangeException
+TESTCASE binary.get64(0xffffffffffffffff, 65) EXPECT ValueRangeException
 
-ASSERT binary.get64(0, 0) = FALSE
-ASSERT binary.get64(0xffffffffffffffff, 64) = FALSE
-a := FALSE TRY _ := binary.get64(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.get64(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.get64(0x10000000000000000, 64) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.get64(0xffffffffffffffff, 65) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.not32(0) = 0xffffffff
+TESTCASE binary.not32(0xffffffff) = 0
+TESTCASE binary.not32(-1) EXPECT ValueRangeException
+TESTCASE binary.not32(0x100000000) EXPECT ValueRangeException
 
-ASSERT binary.not32(0) = 0xffffffff
-ASSERT binary.not32(0xffffffff) = 0
-a := FALSE TRY _ := binary.not32(-1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.not32(0x100000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.not64(0) = 0xffffffffffffffff
+TESTCASE binary.not64(0xffffffffffffffff) = 0
+TESTCASE binary.not64(-1) EXPECT ValueRangeException
+TESTCASE binary.not64(0x10000000000000000) EXPECT ValueRangeException
 
-ASSERT binary.not64(0) = 0xffffffffffffffff
-ASSERT binary.not64(0xffffffffffffffff) = 0
-a := FALSE TRY _ := binary.not64(-1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.not64(0x10000000000000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.or32(0, 0) = 0
+TESTCASE binary.or32(0xffffffff, 0xffffffff) = 0xffffffff
+TESTCASE binary.or32(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.or32(0, -1) EXPECT ValueRangeException
+TESTCASE binary.or32(0x100000000, 0xffffffff) EXPECT ValueRangeException
+TESTCASE binary.or32(0xffffffff, 0x100000000) EXPECT ValueRangeException
 
-ASSERT binary.or32(0, 0) = 0
-ASSERT binary.or32(0xffffffff, 0xffffffff) = 0xffffffff
-a := FALSE TRY _ := binary.or32(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.or32(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.or32(0x100000000, 0xffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.or32(0xffffffff, 0x100000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.or64(0, 0) = 0
+TESTCASE binary.or64(0xffffffffffffffff, 0xffffffffffffffff) = 0xffffffffffffffff
+TESTCASE binary.or64(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.or64(0, -1) EXPECT ValueRangeException
+TESTCASE binary.or64(0x10000000000000000, 0xffffffffffffffff) EXPECT ValueRangeException
+TESTCASE binary.or64(0xffffffffffffffff, 0x10000000000000000) EXPECT ValueRangeException
 
-ASSERT binary.or64(0, 0) = 0
-ASSERT binary.or64(0xffffffffffffffff, 0xffffffffffffffff) = 0xffffffffffffffff
-a := FALSE TRY _ := binary.or64(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.or64(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.or64(0x10000000000000000, 0xffffffffffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.or64(0xffffffffffffffff, 0x10000000000000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.replace32(0, 0, 0, 0) = 0
+TESTCASE binary.replace32(0xffffffff, 32, 32, 0xffffffff) = 0xffffffff
+TESTCASE binary.replace32(-1, 0, 0, 0) EXPECT ValueRangeException
+TESTCASE binary.replace32(0, -1, 0, 0) EXPECT ValueRangeException
+TESTCASE binary.replace32(0, 0, -1, 0) EXPECT ValueRangeException
+TESTCASE binary.replace32(0, 0, 0, -1) EXPECT ValueRangeException
+TESTCASE binary.replace32(0x100000000, 32, 32, 0xffffffff) EXPECT ValueRangeException
+TESTCASE binary.replace32(0xffffffff, 33, 32, 0xffffffff) EXPECT ValueRangeException
+TESTCASE binary.replace32(0xffffffff, 32, 33, 0xffffffff) EXPECT ValueRangeException
+TESTCASE binary.replace32(0xffffffff, 32, 32, 0x100000000) EXPECT ValueRangeException
 
-ASSERT binary.replace32(0, 0, 0, 0) = 0
-ASSERT binary.replace32(0xffffffff, 32, 32, 0xffffffff) = 0xffffffff
-a := FALSE TRY _ := binary.replace32(-1, 0, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace32(0, -1, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace32(0, 0, -1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace32(0, 0, 0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace32(0x100000000, 32, 32, 0xffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace32(0xffffffff, 33, 32, 0xffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace32(0xffffffff, 32, 33, 0xffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace32(0xffffffff, 32, 32, 0x100000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.replace64(0, 0, 0, 0) = 0
+TESTCASE binary.replace64(0xffffffffffffffff, 64, 64, 0xffffffffffffffff) = 0xffffffffffffffff
+TESTCASE binary.replace64(-1, 0, 0, 0) EXPECT ValueRangeException
+TESTCASE binary.replace64(0, -1, 0, 0) EXPECT ValueRangeException
+TESTCASE binary.replace64(0, 0, -1, 0) EXPECT ValueRangeException
+TESTCASE binary.replace64(0, 0, 0, -1) EXPECT ValueRangeException
+TESTCASE binary.replace64(0x10000000000000000, 64, 64, 0xffffffffffffffff) EXPECT ValueRangeException
+TESTCASE binary.replace64(0xffffffffffffffff, 65, 64, 0xffffffffffffffff) EXPECT ValueRangeException
+TESTCASE binary.replace64(0xffffffffffffffff, 64, 65, 0xffffffffffffffff) EXPECT ValueRangeException
+TESTCASE binary.replace64(0xffffffffffffffff, 64, 64, 0x10000000000000000) EXPECT ValueRangeException
 
-ASSERT binary.replace64(0, 0, 0, 0) = 0
-ASSERT binary.replace64(0xffffffffffffffff, 64, 64, 0xffffffffffffffff) = 0xffffffffffffffff
-a := FALSE TRY _ := binary.replace64(-1, 0, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace64(0, -1, 0, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace64(0, 0, -1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace64(0, 0, 0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace64(0x10000000000000000, 64, 64, 0xffffffffffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace64(0xffffffffffffffff, 65, 64, 0xffffffffffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace64(0xffffffffffffffff, 64, 65, 0xffffffffffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.replace64(0xffffffffffffffff, 64, 64, 0x10000000000000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.set32(0, 0, FALSE) = 0
+TESTCASE binary.set32(0xffffffff, 32, FALSE) = 0xffffffff
+TESTCASE binary.set32(-1, 0, FALSE) EXPECT ValueRangeException
+TESTCASE binary.set32(0, -1, FALSE) EXPECT ValueRangeException
+TESTCASE binary.set32(0x100000000, 32, FALSE) EXPECT ValueRangeException
+TESTCASE binary.set32(0xffffffff, 33, FALSE) EXPECT ValueRangeException
 
-ASSERT binary.set32(0, 0, FALSE) = 0
-ASSERT binary.set32(0xffffffff, 32, FALSE) = 0xffffffff
-a := FALSE TRY _ := binary.set32(-1, 0, FALSE) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.set32(0, -1, FALSE) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.set32(0x100000000, 32, FALSE) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.set32(0xffffffff, 33, FALSE) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.set64(0, 0, FALSE) = 0
+TESTCASE binary.set64(0xffffffffffffffff, 64, FALSE) = 0xffffffffffffffff
+TESTCASE binary.set64(-1, 0, FALSE) EXPECT ValueRangeException
+TESTCASE binary.set64(0, -1, FALSE) EXPECT ValueRangeException
+TESTCASE binary.set64(0x10000000000000000, 64, FALSE) EXPECT ValueRangeException
+TESTCASE binary.set64(0xffffffffffffffff, 65, FALSE) EXPECT ValueRangeException
 
-ASSERT binary.set64(0, 0, FALSE) = 0
-ASSERT binary.set64(0xffffffffffffffff, 64, FALSE) = 0xffffffffffffffff
-a := FALSE TRY _ := binary.set64(-1, 0, FALSE) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.set64(0, -1, FALSE) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.set64(0x10000000000000000, 64, FALSE) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.set64(0xffffffffffffffff, 65, FALSE) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.shiftLeft32(0, 0) = 0
+TESTCASE binary.shiftLeft32(0xffffffff, 32) = 0
+TESTCASE binary.shiftLeft32(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.shiftLeft32(0, -1) EXPECT ValueRangeException
+TESTCASE binary.shiftLeft32(0x100000000, 32) EXPECT ValueRangeException
+TESTCASE binary.shiftLeft32(0xffffffff, 33) EXPECT ValueRangeException
 
-ASSERT binary.shiftLeft32(0, 0) = 0
-ASSERT binary.shiftLeft32(0xffffffff, 32) = 0
-a := FALSE TRY _ := binary.shiftLeft32(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftLeft32(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftLeft32(0x100000000, 32) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftLeft32(0xffffffff, 33) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.shiftLeft64(0, 0) = 0
+TESTCASE binary.shiftLeft64(0xffffffffffffffff, 64) = 0
+TESTCASE binary.shiftLeft64(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.shiftLeft64(0, -1) EXPECT ValueRangeException
+TESTCASE binary.shiftLeft64(0x10000000000000000, 64) EXPECT ValueRangeException
+TESTCASE binary.shiftLeft64(0xffffffffffffffff, 65) EXPECT ValueRangeException
 
-ASSERT binary.shiftLeft64(0, 0) = 0
-ASSERT binary.shiftLeft64(0xffffffffffffffff, 64) = 0
-a := FALSE TRY _ := binary.shiftLeft64(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftLeft64(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftLeft64(0x10000000000000000, 64) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftLeft64(0xffffffffffffffff, 65) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.shiftRight32(0, 0) = 0
+TESTCASE binary.shiftRight32(0xffffffff, 32) = 0
+TESTCASE binary.shiftRight32(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.shiftRight32(0, -1) EXPECT ValueRangeException
+TESTCASE binary.shiftRight32(0x100000000, 32) EXPECT ValueRangeException
+TESTCASE binary.shiftRight32(0xffffffff, 33) EXPECT ValueRangeException
 
-ASSERT binary.shiftRight32(0, 0) = 0
-ASSERT binary.shiftRight32(0xffffffff, 32) = 0
-a := FALSE TRY _ := binary.shiftRight32(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRight32(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRight32(0x100000000, 32) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRight32(0xffffffff, 33) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.shiftRight64(0, 0) = 0
+TESTCASE binary.shiftRight64(0xffffffffffffffff, 64) = 0
+TESTCASE binary.shiftRight64(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.shiftRight64(0, -1) EXPECT ValueRangeException
+TESTCASE binary.shiftRight64(0x10000000000000000, 64) EXPECT ValueRangeException
+TESTCASE binary.shiftRight64(0xffffffffffffffff, 65) EXPECT ValueRangeException
 
-ASSERT binary.shiftRight64(0, 0) = 0
-ASSERT binary.shiftRight64(0xffffffffffffffff, 64) = 0
-a := FALSE TRY _ := binary.shiftRight64(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRight64(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRight64(0x10000000000000000, 64) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRight64(0xffffffffffffffff, 65) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.shiftRightSigned32(-0x80000000, 0) = -0x80000000
+TESTCASE binary.shiftRightSigned32(0x7fffffff, 32) = 0
+TESTCASE binary.shiftRightSigned32(-0x80000001, 0) EXPECT ValueRangeException
+TESTCASE binary.shiftRightSigned32(-0x80000000, -1) EXPECT ValueRangeException
+TESTCASE binary.shiftRightSigned32(0x80000000, 32) EXPECT ValueRangeException
+TESTCASE binary.shiftRightSigned32(0x7fffffff, 33) EXPECT ValueRangeException
 
-ASSERT binary.shiftRightSigned32(-0x80000000, 0) = -0x80000000
-ASSERT binary.shiftRightSigned32(0x7fffffff, 32) = 0
-a := FALSE TRY _ := binary.shiftRightSigned32(-0x80000001, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRightSigned32(-0x80000000, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRightSigned32(0x80000000, 32) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRightSigned32(0x7fffffff, 33) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.shiftRightSigned64(-0x8000000000000000, 0) = -0x8000000000000000
+TESTCASE binary.shiftRightSigned64(0x7fffffffffffffff, 64) = 0
+TESTCASE binary.shiftRightSigned64(-0x8000000000000001, 0) EXPECT ValueRangeException
+TESTCASE binary.shiftRightSigned64(-0x8000000000000000, -1) EXPECT ValueRangeException
+TESTCASE binary.shiftRightSigned64(0x8000000000000000, 64) EXPECT ValueRangeException
+TESTCASE binary.shiftRightSigned64(0x7fffffffffffffff, 65) EXPECT ValueRangeException
 
-ASSERT binary.shiftRightSigned64(-0x8000000000000000, 0) = -0x8000000000000000
-ASSERT binary.shiftRightSigned64(0x7fffffffffffffff, 64) = 0
-a := FALSE TRY _ := binary.shiftRightSigned64(-0x8000000000000001, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRightSigned64(-0x8000000000000000, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRightSigned64(0x8000000000000000, 64) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.shiftRightSigned64(0x7fffffffffffffff, 65) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.xor32(0, 0) = 0
+TESTCASE binary.xor32(0xffffffff, 0xffffffff) = 0
+TESTCASE binary.xor32(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.xor32(0, -1) EXPECT ValueRangeException
+TESTCASE binary.xor32(0x100000000, 0xffffffff) EXPECT ValueRangeException
+TESTCASE binary.xor32(0xffffffff, 0x100000000) EXPECT ValueRangeException
 
-ASSERT binary.xor32(0, 0) = 0
-ASSERT binary.xor32(0xffffffff, 0xffffffff) = 0
-a := FALSE TRY _ := binary.xor32(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.xor32(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.xor32(0x100000000, 0xffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.xor32(0xffffffff, 0x100000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-
-ASSERT binary.xor64(0, 0) = 0
-ASSERT binary.xor64(0xffffffffffffffff, 0xffffffffffffffff) = 0
-a := FALSE TRY _ := binary.xor64(-1, 0) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.xor64(0, -1) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.xor64(0x10000000000000000, 0xffffffffffffffff) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
-a := FALSE TRY _ := binary.xor64(0xffffffffffffffff, 0x10000000000000000) TRAP ValueRangeException DO a := TRUE END TRY ASSERT a
+TESTCASE binary.xor64(0, 0) = 0
+TESTCASE binary.xor64(0xffffffffffffffff, 0xffffffffffffffff) = 0
+TESTCASE binary.xor64(-1, 0) EXPECT ValueRangeException
+TESTCASE binary.xor64(0, -1) EXPECT ValueRangeException
+TESTCASE binary.xor64(0x10000000000000000, 0xffffffffffffffff) EXPECT ValueRangeException
+TESTCASE binary.xor64(0xffffffffffffffff, 0x10000000000000000) EXPECT ValueRangeException

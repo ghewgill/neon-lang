@@ -6,8 +6,8 @@ FUNCTION f(a: Number...): Number
     RETURN r
 END FUNCTION
 
-ASSERT f(1, 2, 3) = 6
-ASSERT f() = 0
+TESTCASE f(1, 2, 3) = 6
+TESTCASE f() = 0
 
 LET values: Array<Number> := [1, 2, 3, 4]
-ASSERT f(values...) = 10
+TESTCASE f(values...) = 10

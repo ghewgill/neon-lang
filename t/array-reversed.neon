@@ -1,9 +1,9 @@
 VAR a: Array<Number> := [1, 2, 3]
 LET r: Array<Number> := a.reversed()
-ASSERT r = [3, 2, 1]
+TESTCASE r = [3, 2, 1]
 
 # The following block checks to make sure that the reversed() method
 # actually returns a new array with no hidden links to the old one.
 # This matters for some executor implementations.
 a[1] := 5
-ASSERT r = [3, 2, 1]
+TESTCASE r = [3, 2, 1]

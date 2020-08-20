@@ -208,6 +208,11 @@ REPEAT LABEL label statement() UNTIL expr
 # ReturnStatement
 RETURN expr
 
+# TestCaseStatement
+TESTCASE expr
+TESTCASE expr EXPECT name
+TESTCASE expr EXPECT name.name
+
 # TryStatement
 TRY END TRY
 TRY statement() END TRY

@@ -1,32 +1,32 @@
 IMPORT extsample
 
-ASSERT extsample.constNumber = 5
-#ASSERT extsample.varNumber = 5
+TESTCASE extsample.constNumber = 5
+#TESTCASE extsample.varNumber = 5
 
 extsample.funcNothing()
-ASSERT extsample.funcBoolean() = TRUE
-ASSERT extsample.funcNumber() = 5
-ASSERT extsample.funcString() = "five"
-ASSERT extsample.funcBytes() = HEXBYTES "05 05 05 05 05"
-ASSERT extsample.funcArray() = [5]
+TESTCASE extsample.funcBoolean() = TRUE
+TESTCASE extsample.funcNumber() = 5
+TESTCASE extsample.funcString() = "five"
+TESTCASE extsample.funcBytes() = HEXBYTES "05 05 05 05 05"
+TESTCASE extsample.funcArray() = [5]
 LET x: Dictionary<Number> := extsample.funcDictionary()
-ASSERT x["five"] = 5
+TESTCASE x["five"] = 5
 
-ASSERT extsample.funcNumberAdd(2, 3) = 5
+TESTCASE extsample.funcNumberAdd(2, 3) = 5
 
-ASSERT extsample.funcArraySize([1, 2, 3]) = 3
+TESTCASE extsample.funcArraySize([1, 2, 3]) = 3
 
 VAR n: Number
 extsample.funcNumberOut(OUT n)
-ASSERT n = 5
+TESTCASE n = 5
 
 VAR n2: Number
 extsample.funcNumberOut2(OUT n, OUT n2)
-ASSERT n = 10
-ASSERT n2 = 20
+TESTCASE n = 10
+TESTCASE n2 = 20
 
 #extsample.setVarNumber(10)
-#ASSERT extsample.varNumber = 10
+#TESTCASE extsample.varNumber = 10
 
 FUNCTION foo() print("foo") END FUNCTION
 extsample.callback1(foo)
@@ -52,5 +52,5 @@ END TRY
 
 LET h: extsample.Handle := extsample.allocHandle()
 # Needs to generate EQV/NEV instead of EQP/NEP (issue #295).
-#ASSERT h <> NIL
+#TESTCASE h <> NIL
 extsample.freeHandle(h)

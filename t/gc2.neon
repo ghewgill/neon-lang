@@ -16,15 +16,15 @@ VAR a, b: POINTER TO Node
 runtime.setGarbageCollectionInterval(1)
 
 # Cycle collection, without needing to mark the cycle.
-ASSERT runtime.getAllocatedObjectCount() = 0
+TESTCASE runtime.getAllocatedObjectCount() = 0
 a := make(NIL)
-ASSERT runtime.getAllocatedObjectCount() = 1
+TESTCASE runtime.getAllocatedObjectCount() = 1
 IF VALID a THEN
     a->next := make(a)
 END IF
-ASSERT runtime.getAllocatedObjectCount() = 2
+TESTCASE runtime.getAllocatedObjectCount() = 2
 a := NIL
 runtime.garbageCollect()
-ASSERT runtime.getAllocatedObjectCount() = 0
+TESTCASE runtime.getAllocatedObjectCount() = 0
 b := NEW Node
-ASSERT runtime.getAllocatedObjectCount() = 1
+TESTCASE runtime.getAllocatedObjectCount() = 1

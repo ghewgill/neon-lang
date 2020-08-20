@@ -8,12 +8,12 @@ test_i()
 
 FUNCTION test_n()
     LET p: POINTER TO Cls := NEW Cls
-    ASSERT p->n = 0
-    ASSERT p->s = ""
+    TESTCASE p->n = 0
+    TESTCASE p->s = ""
 END FUNCTION
 
 FUNCTION test_i()
     LET p: POINTER TO Cls := NEW Cls(n WITH 5, s WITH "foo")
-    ASSERT p->n = 5
-    ASSERT p->s = "foo"
+    TESTCASE p->n = 5
+    TESTCASE p->s = "foo"
 END FUNCTION

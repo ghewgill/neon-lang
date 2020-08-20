@@ -182,38 +182,38 @@ END FUNCTION
 FUNCTION testTextBuffer()
     VAR buf: TextBuffer := TextBuffer()
     buf.load("hello world\nfoo\nbar\n")
-    ASSERT buf.lines() = 3
-    ASSERT buf.getLine(0) = "hello world"
-    ASSERT buf.getLine(1) = "foo"
-    ASSERT buf.getLine(2) = "bar"
+    TESTCASE buf.lines() = 3
+    TESTCASE buf.getLine(0) = "hello world"
+    TESTCASE buf.getLine(1) = "foo"
+    TESTCASE buf.getLine(2) = "bar"
 
     buf.insertLine(2, "baz")
-    ASSERT buf.lines() = 4
-    ASSERT buf.getLine(2) = "baz"
+    TESTCASE buf.lines() = 4
+    TESTCASE buf.getLine(2) = "baz"
 
     buf.undo()
-    ASSERT buf.lines() = 3
-    ASSERT buf.getLine(2) = "bar"
+    TESTCASE buf.lines() = 3
+    TESTCASE buf.getLine(2) = "bar"
 
     buf.deleteLine(0)
-    ASSERT buf.lines() = 2
-    ASSERT buf.getLine(0) = "foo"
+    TESTCASE buf.lines() = 2
+    TESTCASE buf.getLine(0) = "foo"
 
     buf.undo()
-    ASSERT buf.lines() = 3
-    ASSERT buf.getLine(0) = "hello world"
+    TESTCASE buf.lines() = 3
+    TESTCASE buf.getLine(0) = "hello world"
 
     buf.insertText(0, 6, "there ")
-    ASSERT buf.getLine(0) = "hello there world"
+    TESTCASE buf.getLine(0) = "hello there world"
 
     buf.undo()
-    ASSERT buf.getLine(0) = "hello world"
+    TESTCASE buf.getLine(0) = "hello world"
 
     buf.deleteText(0, 3, 7)
-    ASSERT buf.getLine(0) = "held"
+    TESTCASE buf.getLine(0) = "held"
 
     buf.undo()
-    ASSERT buf.getLine(0) = "hello world"
+    TESTCASE buf.getLine(0) = "hello world"
 END FUNCTION
 
 TYPE Editor IS RECORD

@@ -7,4 +7,4 @@ VAR a: Array<POINTER TO Cls> := []
 FOR i := 1 TO 1001 DO
     a[i] := NEW Cls
 END FOR
-ASSERT runtime.getAllocatedObjectCount() = 1001
+TESTCASE runtime.getAllocatedObjectCount() = 1001

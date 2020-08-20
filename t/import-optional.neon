@@ -3,4 +3,4 @@ VAR x: Number := 0
 IF IMPORTED module THEN
     x := module.function(5)
 END IF
-ASSERT x = 25
+TESTCASE x = 25

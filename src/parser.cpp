@@ -78,6 +78,7 @@ public:
     std::unique_ptr<Statement> parseUnusedStatement();
     std::unique_ptr<Statement> parseImport();
     std::unique_ptr<Statement> parseAssert();
+    std::unique_ptr<Statement> parseTestCase();
     std::unique_ptr<Statement> parseBegin();
     std::unique_ptr<Statement> parseStatement();
     std::unique_ptr<Program> parse();
@@ -2040,6 +2041,31 @@ std::unique_ptr<Statement> Parser::parseAssert()
     return std::unique_ptr<Statement> { new AssertStatement(tok_assert, std::move(exprs), tok_assert.source_line()) };
 }
 
+std::unique_ptr<Statement> Parser::parseTestCase()
+{
+    auto &tok_testcase = tokens[i];
+    ++i;
+    std::unique_ptr<Expression> e = parseExpression();
+    std::vector<Token> expected_exception;
+    if (tokens[i].type == EXPECT) {
+        ++i;
+        std::vector<Token> name;
+        for (;;) {
+            if (tokens[i].type != IDENTIFIER) {
+                error(2139, tokens[i], "exception identifier expected");
+            }
+            name.push_back(tokens[i]);
+            ++i;
+            if (tokens[i].type != DOT) {
+                break;
+            }
+            ++i;
+        }
+        expected_exception = name;
+    }
+    return std::unique_ptr<Statement> { new TestCaseStatement(tok_testcase, std::move(e), expected_exception) };
+}
+
 std::unique_ptr<Statement> Parser::parseBegin()
 {
     auto &tok_begin = tokens[i];
@@ -2121,6 +2147,8 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseRaiseStatement();
     } else if (tokens[i].type == ASSERT) {
         return parseAssert();
+    } else if (tokens[i].type == TESTCASE) {
+        return parseTestCase();
     } else if (tokens[i].type == BEGIN) {
         return parseBegin();
     } else if (tokens[i].type == CHECK) {
