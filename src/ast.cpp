@@ -1199,7 +1199,7 @@ const TypeFunction *Function::makeFunctionType(const Type *returntype, const std
 bool PredefinedFunction::is_pure() const
 {
     static std::set<std::string> impure {
-        "input",
+        "console$input",
         // TODO: add other impure functions
     };
     return impure.find(name) == impure.end();

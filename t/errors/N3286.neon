@@ -1,0 +1,4 @@
+IMPORT console
+
+ASSERT console.input(">") = ""
+                          #<
