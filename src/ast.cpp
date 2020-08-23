@@ -1196,6 +1196,30 @@ const TypeFunction *Function::makeFunctionType(const Type *returntype, const std
     return new TypeFunction(returntype, paramtypes, variadic);
 }
 
+bool PredefinedFunction::is_pure() const
+{
+    static std::set<std::string> impure_modules {
+        "console",
+        "debugger",
+        "file",
+        "io",
+        "mmap",
+        "net",
+        "os",
+        "posix",
+        "process",
+        "random",
+        "runtime",
+        "sqlite",
+        "sys",
+        "textio",
+        "time",
+    };
+    auto sep = name.find('$');
+    auto mod = name.substr(0, sep);
+    return impure_modules.find(mod) == impure_modules.end();
+}
+
 Program::Program(const std::string &source_path, const std::string &source_hash, const std::string &module_name)
   : source_path(source_path),
     source_hash(source_hash),
