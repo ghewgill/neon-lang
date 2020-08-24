@@ -1106,11 +1106,22 @@ Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::m
 {
 }
 
+ast::TypeRecord::TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields)
+  : Type(declaration, name), module(module), fields(fields), field_names(make_field_names(fields))
+{
+    if (name.empty()) {
+        error(3287, declaration, "class or record type must have name");
+    }
+}
+
 ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer)
   : Type(declaration, name),
     module(module),
     names(names)
 {
+    if (name.empty()) {
+        error(3288, declaration, "enum type must have name");
+    }
     {
         std::vector<FunctionParameter *> params;
         FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);

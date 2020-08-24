@@ -1,5 +1,6 @@
 TYPE Rec IS RECORD x: Number END RECORD
 TYPE Enum IS ENUM one two END ENUM
+TYPE Cls IS CLASS x: Number END CLASS
 
 VAR b1, b2: Boolean := FALSE
 VAR n1, n2: Number := 0
@@ -8,7 +9,7 @@ VAR a1, a2: Array<String> := []
 VAR d1, d2: Dictionary<String> := {}
 VAR r1, r2: Rec := Rec()
 VAR e1, e2: Enum := Enum.one
-VAR p1, p2: POINTER TO CLASS x: Number END CLASS := NIL
+VAR p1, p2: POINTER TO Cls := NIL
 
 b2 := b1
 n2 := n1

@@ -613,7 +613,7 @@ public:
         const Type *type;
         bool is_private;
     };
-    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), module(module), fields(fields), field_names(make_field_names(fields)) {}
+    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
     const std::vector<Field> fields;
