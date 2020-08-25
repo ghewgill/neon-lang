@@ -105,6 +105,7 @@ object-operator.neon       # object
 object-record.neon         # object
 object-record-default.neon # object
 object-subscript.neon      # object
+opcode-coverage.neon       # InterfacePointerConstructor
 os-test.neon               # module os
 parameter-out-array.neon   # out parameters
 parameter-out-string.neon  # StringReferenceIndexExpression

@@ -9,6 +9,7 @@ gc3.neon                   # gc
 gc-two-pointers.neon       # gc
 math-test.neon             # precision
 number-ceil.neon           # precision
+opcode-coverage.neon       # GTY opcode
 win32-test.neon            # win32
 
 compress-test.neon

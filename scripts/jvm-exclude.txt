@@ -63,6 +63,7 @@ object-operator.neon       # object
 object-record.neon         # object
 object-record-default.neon # object
 object-subscript.neon      # object
+opcode-coverage.neon       # InterfacePointerConstructor
 outer-issue192.neon        # verifier
 outer-parameter.neon       # verifier
 outer-tail.neon            # verifier
