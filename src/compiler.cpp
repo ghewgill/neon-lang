@@ -1652,11 +1652,22 @@ void ast::DictionaryComparisonExpression::generate_comparison_opcode(Emitter &em
 
 void ast::PointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    switch (comp) {
-        case Comparison::EQ: emitter.emit(Opcode::EQP); break;
-        case Comparison::NE: emitter.emit(Opcode::NEP); break;
-        default:
-            internal_error("unexpected comparison type");
+    const ast::TypePointer *tp1 = dynamic_cast<const ast::TypePointer *>(left->type);
+    const ast::TypePointer *tp2 = dynamic_cast<const ast::TypePointer *>(right->type);
+    if (tp1->reftype != nullptr || tp2->reftype != nullptr) {
+        switch (comp) {
+            case Comparison::EQ: emitter.emit(Opcode::EQP); break;
+            case Comparison::NE: emitter.emit(Opcode::NEP); break;
+            default:
+                internal_error("unexpected comparison type");
+        }
+    } else {
+        switch (comp) {
+            case Comparison::EQ: emitter.emit(Opcode::EQV); break;
+            case Comparison::NE: emitter.emit(Opcode::NEV); break;
+            default:
+                internal_error("unexpected comparison type");
+        }
     }
 }
 

@@ -1500,7 +1500,7 @@ void Executor::exec_ALLOC()
 void Executor::exec_PUSHNIL()
 {
     ip++;
-    stack.push(Cell(static_cast<Cell *>(nullptr)));
+    stack.push(Cell());
 }
 
 void Executor::exec_RESETC()
