@@ -249,6 +249,7 @@ object-operator.neon
 object-record.neon
 object-record-default.neon
 object-subscript.neon
+opcode-coverage.neon
 os-test.neon
 outer2.neon
 outer-issue192.neon

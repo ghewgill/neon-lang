@@ -93,6 +93,7 @@ object-record.neon          # object__makeString
 object-record-default.neon  # object__makeNull
 object-subscript.neon       # object__makeNumber
 object.neon                 # exception Utf8DecodingException
+opcode-coverage.neon        # runtime$moduleIsMain
 os-test.neon                # os$system
 outer-issue192.neon         # pushpol
 outer-parameter.neon        # pushpol

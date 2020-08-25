@@ -1,0 +1,695 @@
+IMPORT io
+IMPORT module
+
+EXCEPTION TestException
+
+LET hexbytes: Bytes := HEXBYTES "4E 65 6F 6E"
+LET Global: Number := 0x4E656F6E
+VAR array: Array<Number> := [ 42 ]
+VAR dictionary: Dictionary<Number> := {"One": 1 }
+
+TYPE Handle IS POINTER
+
+DECLARE EXTENSION FUNCTION extFunction(OUT a: Number)
+
+TYPE Rec IS RECORD
+    field: String
+END RECORD
+
+INTERFACE Interface
+    FUNCTION f(self: Interface): String
+END INTERFACE
+
+TYPE Class IS CLASS IMPLEMENTS Interface
+    Field: Number
+END CLASS
+
+FUNCTION Class.f(self: VALID POINTER TO Class): String
+    RETURN "Class::f"
+END FUNCTION
+
+--    PUSHB,      // push boolean immediate
+FUNCTION pushb(): Boolean
+    RETURN TRUE
+END FUNCTION
+
+--    PUSHN,      // push number immediate
+FUNCTION pushn(): Number
+    RETURN 42
+END FUNCTION
+
+--    PUSHS,      // push string immediate
+FUNCTION pushs(): String
+    RETURN "Neon"
+END FUNCTION
+
+--    PUSHY,      // push bytes immediate
+FUNCTION pushy(): Bytes
+    RETURN HEXBYTES "4E 65 6F 6E"
+END FUNCTION
+
+--    PUSHPG,     // push pointer to global
+FUNCTION pushpg(): Number
+    RETURN Global
+END FUNCTION
+
+--    PUSHPPG,    // push pointer to predefined global
+FUNCTION pushppg()
+    VAR handle: io.File := io.stdout
+    handle := NIL
+END FUNCTION
+
+--    PUSHPMG,    // push pointer to module global
+FUNCTION pushpmg(): String
+    RETURN module.var
+END FUNCTION
+
+--    PUSHPL,     // push pointer to local
+FUNCTION pushpl(): Boolean
+    VAR r: Boolean := TRUE
+    RETURN r
+END FUNCTION
+
+--    PUSHPOL,    // push pointer to outer local
+FUNCTION pushpol_outer(): Boolean
+    VAR outer: Boolean := FALSE
+    FUNCTION pushpol()
+        outer := TRUE
+    END FUNCTION
+    RETURN outer
+END FUNCTION
+
+--    PUSHI,      // push 32-bit integer immediate
+FUNCTION pushi()
+    VAR z: POINTER TO Interface
+    z := NIL
+END FUNCTION
+
+--    LOADB,      // load boolean
+FUNCTION loadb(): Boolean
+    VAR r: Boolean := TRUE
+    RETURN r
+END FUNCTION
+
+--    LOADN,      // load number
+FUNCTION loadn(): Number
+    VAR r: Number := 1
+    RETURN r
+END FUNCTION
+
+--    LOADS,      // load string
+FUNCTION loads(): String
+    VAR r: String := "Neon"
+    RETURN r
+END FUNCTION
+
+--    LOADY,      // load bytes
+FUNCTION loady(): Bytes
+    RETURN hexbytes
+END FUNCTION
+
+--    LOADA,      // load array
+FUNCTION loada(): Array<Number>
+     RETURN array
+END FUNCTION
+
+--    LOADD,      // load dictionary
+FUNCTION loadd(): Dictionary<Number>
+    RETURN dictionary
+END FUNCTION
+
+--    LOADP,      // load pointer
+FUNCTION loadp(): POINTER TO Class
+    VAR x: POINTER TO Class := NIL
+    RETURN x
+END FUNCTION
+
+--    LOADJ,      // load object
+FUNCTION loadj(): Object
+    VAR r: Object := 1
+    RETURN r
+END FUNCTION
+
+--    LOADV,      // load voidptr
+FUNCTION loadv()
+    VAR p1: Handle := NIL
+    VAR p2: Handle
+    p2 := p1
+END FUNCTION
+
+--    STOREB,     // store boolean
+FUNCTION storeb(): Boolean
+    LET r: Boolean := TRUE
+    RETURN r
+END FUNCTION
+
+--    STOREN,     // store number
+FUNCTION storen(): Number
+    LET r: Number := 1
+    RETURN r
+END FUNCTION
+
+--    STORES,     // store string
+FUNCTION stores(): String
+    LET r: String := "Neon"
+    RETURN r
+END FUNCTION
+
+--    STOREY,     // store bytes
+FUNCTION storey(): Bytes
+    LET r: Bytes := hexbytes
+    RETURN r
+END FUNCTION
+
+--    STOREA,     // store array
+FUNCTION storea(): Array<Number>
+    LET r: Array<Number> := array
+    RETURN r
+END FUNCTION
+
+--    STORED,     // store dictionary
+FUNCTION stored(): Number
+    LET di: Dictionary<Number> := dictionary
+    RETURN di["One"]
+END FUNCTION
+
+--    STOREP,     // store pointer
+FUNCTION storep()
+    VAR p: POINTER TO Class
+    p := NEW Class()
+END FUNCTION
+
+--    STOREJ,     // store object
+FUNCTION storej(): Object
+    LET o: Object := "object"
+    RETURN o
+END FUNCTION
+
+--    STOREV,     // store voidptr
+FUNCTION storev()
+    VAR p: Handle
+    p := NIL
+END FUNCTION
+
+--    NEGN,       // negate number
+FUNCTION negn(): Number
+    RETURN -42
+END FUNCTION
+
+--    ADDN,       // add number
+FUNCTION addn(): Number
+    RETURN 42 + 42
+END FUNCTION
+
+--    SUBN,       // subtract number
+FUNCTION subn(): Number
+    RETURN 42 - 42
+END FUNCTION
+
+--    MULN,       // multiply number
+FUNCTION muln(): Number
+    RETURN 42 * 42
+END FUNCTION
+
+--    DIVN,       // divide number
+FUNCTION divn(): Number
+    RETURN 42 / 42
+END FUNCTION
+
+--    MODN,       // modulo number
+FUNCTION modn(): Number
+    RETURN 42 MOD 21
+END FUNCTION
+
+--    EXPN,       // exponentiate number
+FUNCTION expn(): Number
+    RETURN 42 ^ 3
+END FUNCTION
+
+--    EQB,        // compare equal boolean
+FUNCTION eqb(): Boolean
+    RETURN TRUE = FALSE
+END FUNCTION
+
+--    NEB,        // compare unequal boolean
+FUNCTION neb(): Boolean
+    RETURN TRUE <> FALSE
+END FUNCTION
+
+--    EQN,        // compare equal number
+FUNCTION eqn(): Boolean
+    RETURN 1 = 1
+END FUNCTION
+
+--    NEN,        // compare unequal number
+FUNCTION nen(): Boolean
+    RETURN 1 <> 1
+END FUNCTION
+
+--    LTN,        // compare less number
+FUNCTION ltn(): Boolean
+    RETURN 1 < 1
+END FUNCTION
+
+--    GTN,        // compare greater number
+FUNCTION gtn(): Boolean
+    RETURN 1 > 1
+END FUNCTION
+
+--    LEN,        // compare less equal number
+FUNCTION len(): Boolean
+    RETURN 1 <= 1
+END FUNCTION
+
+--    GEN,        // compare greater equal number
+FUNCTION gen(): Boolean
+    RETURN 1 >= 1
+END FUNCTION
+
+--    EQS,        // compare equal string
+FUNCTION eqs(): Boolean
+    RETURN "A" = "A"
+END FUNCTION
+
+--    NES,        // compare unequal string
+FUNCTION nes(): Boolean
+    RETURN "A" <> "A"
+END FUNCTION
+
+--    LTS,        // compare less string
+FUNCTION lts(): Boolean
+    RETURN "A" < "A"
+END FUNCTION
+
+--    GTS,        // compare greater string
+FUNCTION gts(): Boolean
+    RETURN "A" > "A"
+END FUNCTION
+
+--    LES,        // compare less equal string
+FUNCTION les(): Boolean
+    RETURN "A" <= "A"
+END FUNCTION
+
+--    GES,        // compare greater equal string
+FUNCTION ges(): Boolean
+    RETURN "A" >= "A"
+END FUNCTION
+
+--    EQY,        // compare equal bytes
+FUNCTION eqy(): Boolean
+    RETURN hexbytes = hexbytes
+END FUNCTION
+
+--    NEY,        // compare unequal bytes
+FUNCTION ney(): Boolean
+    RETURN hexbytes <> hexbytes
+END FUNCTION
+
+--    LTY,        // compare less bytes
+FUNCTION lty(): Boolean
+    RETURN hexbytes < hexbytes
+END FUNCTION
+
+--    GTY,        // compare greater bytes
+FUNCTION gty(): Boolean
+    RETURN hexbytes > hexbytes
+END FUNCTION
+
+--    LEY,        // compare less equal bytes
+FUNCTION ley(): Boolean
+    RETURN hexbytes <= hexbytes
+END FUNCTION
+
+--    GEY,        // compare greater equal bytes
+FUNCTION gey(): Boolean
+    RETURN hexbytes >= hexbytes
+END FUNCTION
+
+--    EQA,        // compare equal array
+FUNCTION eqa(): Boolean
+    RETURN array = array
+END FUNCTION
+
+--    NEA,        // compare unequal array
+FUNCTION nea(): Boolean
+    RETURN array <> array
+END FUNCTION
+
+--    EQD,        // compare equal dictionary
+FUNCTION eqd(): Boolean
+    RETURN dictionary = dictionary
+END FUNCTION
+
+--    NED,        // compare unequal dictionary
+FUNCTION ned(): Boolean
+    RETURN dictionary <> dictionary
+END FUNCTION
+
+--    EQP,        // compare equal pointer
+FUNCTION eqp(): Boolean
+    LET p: POINTER TO Class := NEW Class()
+    RETURN p = NIL
+END FUNCTION
+
+--    NEP,        // compare unequal pointer
+FUNCTION nep(): Boolean
+    LET p: POINTER TO Class := NEW Class()
+    RETURN p <> NIL
+END FUNCTION
+
+--    EQV,        // compare equal voidptr
+FUNCTION eqv(): Boolean
+    LET p: POINTER := NIL
+    RETURN p = NIL
+END FUNCTION
+
+--    NEV,        // compare unequal voidptr
+FUNCTION nev(): Boolean
+    LET p: POINTER := NIL
+    RETURN p <> NIL
+END FUNCTION
+
+--    ANDB,       // and boolean
+FUNCTION andb(): Boolean
+    RETURN TRUE AND FALSE
+END FUNCTION -- Compiler currently does not generate ANDB opcode.
+
+--    ORB,        // or boolean
+FUNCTION orb(): Boolean
+    RETURN TRUE OR FALSE
+END FUNCTION -- Compiler currently does not generate ORB opcode.
+
+--    NOTB,       // not boolean
+FUNCTION notb(): Boolean
+    RETURN NOT TRUE
+END FUNCTION
+
+--    INDEXAR,    // index array for read
+FUNCTION indexar(): Number
+    RETURN array[0]
+END FUNCTION
+
+--    INDEXAW,    // index array for write
+FUNCTION indexaw()
+    array[42] := 42
+END FUNCTION
+
+--    INDEXAV,    // index array value
+FUNCTION indexav(): Number
+    FUNCTION a(): Array<Number>
+        RETURN array
+    END FUNCTION
+    RETURN a()[1]
+END FUNCTION
+
+--    INDEXAN,    // index array value, no exception
+FUNCTION indexan(): String
+    RETURN Rec().field
+END FUNCTION
+
+--    INDEXDR,    // index dictionary for read
+FUNCTION indexdr(): Number
+    RETURN dictionary["One"]
+END FUNCTION
+
+--    INDEXDW,    // index dictionary for write
+FUNCTION indexdw()
+    dictionary["Neon"] := 42
+END FUNCTION
+
+--    INDEXDV,    // index dictionary value
+FUNCTION indexdv(): Number
+    FUNCTION d(): Dictionary<Number>
+        RETURN dictionary
+    END FUNCTION
+    RETURN d()["One"]
+END FUNCTION
+
+--    INA,        // in array
+FUNCTION ina()
+    IF 42 IN array THEN
+    END IF
+END FUNCTION
+
+--    IND,        // in dictionary
+FUNCTION ind()
+    IF "One" IN dictionary THEN
+    END IF
+END FUNCTION
+
+--    CALLP,      // call predefined
+FUNCTION callp()
+    _ := num("42")
+END FUNCTION
+
+--    CALLF,      // call function
+FUNCTION callf()
+    callp()
+END FUNCTION
+
+--    CALLMF,     // call module function
+FUNCTION callmf(): Number
+    RETURN module.function(1)
+END FUNCTION
+
+--    CALLI,      // call indirect
+FUNCTION calli()
+    VAR pFuncPtr: FUNCTION() := callp
+    pFuncPtr()
+END FUNCTION
+
+--    JUMP,       // unconditional jump
+FUNCTION jump()
+    IF 1 = 2 THEN
+    END IF
+END FUNCTION
+
+--    JF,         // jump if false
+FUNCTION jf()
+    FOR i := 1 TO 2 DO
+    END FOR
+END FUNCTION
+
+--    JT,         // jump if true
+FUNCTION jt(): Boolean
+    RETURN TRUE OR FALSE
+END FUNCTION
+
+--    DUP,        // duplicate
+FUNCTION dup(): Boolean
+    VAR x: Boolean := TRUE OR FALSE
+    RETURN x
+END FUNCTION
+
+--    DUPX1,      // duplicate under second value
+FUNCTION dupx1()
+    VAR x: POINTER TO Class
+    x := NEW Class(Field WITH 42)
+END FUNCTION
+
+--    DROP,       // drop
+FUNCTION drop(): Boolean
+    VAR x: Boolean := TRUE OR FALSE
+    RETURN x
+END FUNCTION
+
+--    RET,        // return
+FUNCTION ret()
+END FUNCTION
+
+--    CONSA,      // construct array
+FUNCTION consa(): Array<Number>
+    RETURN [42]
+END FUNCTION
+
+--    CONSD,      // construct dictionary
+FUNCTION consd(): Dictionary<Number>
+    RETURN {"FortyTwo": 42}
+END FUNCTION
+
+--    EXCEPT,     // throw exception
+FUNCTION except()
+    TRY
+        RAISE TestException
+    TRAP TestException DO
+    END TRY
+END FUNCTION
+
+--    ALLOC,      // allocate record
+FUNCTION alloc()
+    VAR x: POINTER TO Class
+    x := NEW Class(Field WITH 42)
+END FUNCTION
+
+--    PUSHNIL,    // push nil pointer
+FUNCTION pushnil(): POINTER TO Class
+    VAR x: POINTER TO Class := NIL
+    RETURN x
+END FUNCTION
+
+--    RESETC,     // reset cell
+FUNCTION resetc()
+    VAR x: Number
+    x := 1
+END FUNCTION
+
+--    PUSHPEG,    // push pointer to external global
+FUNCTION pushpeg()
+    -- This requires the REPL to implement.
+END FUNCTION
+
+--    JUMPTBL,    // jump table
+FUNCTION jumptbl(): Number
+    CASE 1
+        WHEN 0 DO RETURN 0
+    END CASE
+    RETURN -1
+END FUNCTION
+
+--    CALLX,      // call extension
+FUNCTION callx()
+    -- Don't actually attempt to call an extension here.
+    IF FALSE THEN
+        extFunction(OUT _)
+    END IF
+END FUNCTION
+
+--    SWAP,       // swap two top stack elements
+FUNCTION swap()
+    VAR x: Number := 1
+    INC x
+END FUNCTION
+
+--    DROPN,      // drop element n
+FUNCTION dropn()
+    VAR a: Number := -1
+    -- Don't actually attempt to call an extension here.
+    IF FALSE THEN
+        extFunction(OUT a)
+    END IF
+END FUNCTION
+
+--    PUSHFP,     // push function pointer
+FUNCTION pushfp()
+    VAR ptr: FUNCTION()
+    ptr := pushfp
+END FUNCTION
+
+--    CALLV,      // call virtual
+FUNCTION callv()
+    LET i: POINTER TO Interface := NEW Class
+    _ := i->f()
+END FUNCTION
+
+--    PUSHCI,     // push class info
+FUNCTION pushci()
+    VAR x: POINTER TO Class
+    x := NEW Class(Field WITH 42)
+END FUNCTION
+
+BEGIN MAIN
+    -- Ensure we call every test, to test the execution of the generated opcodes.
+    -- Should there be a test that ensures every test in this test file is called
+    -- at least once?
+    _ := pushb()
+    _ := pushn()
+    _ := pushs()
+    _ := pushy()
+    _ := pushpg()
+    pushppg()
+    _ := pushpmg()
+    _ := pushpl()
+    _ := pushpol_outer()
+    pushi()
+    _ := loadb()
+    _ := loadn()
+    _ := loads()
+    _ := loady()
+    _ := loada()
+    _ := loadd()
+    _ := loadp()
+    _ := loadj()
+    loadv()
+    _ := storeb()
+    _ := storen()
+    _ := stores()
+    _ := storey()
+    _ := storea()
+    _ := stored()
+    storep()
+    _ := storej()
+    storev()
+    _ := negn()
+    _ := addn()
+    _ := subn()
+    _ := muln()
+    _ := divn()
+    _ := modn()
+    _ := expn()
+    _ := eqb()
+    _ := neb()
+    _ := eqn()
+    _ := nen()
+    _ := ltn()
+    _ := gtn()
+    _ := len()
+    _ := gen()
+    _ := eqs()
+    _ := nes()
+    _ := lts()
+    _ := gts()
+    _ := les()
+    _ := ges()
+    _ := eqy()
+    _ := ney()
+    _ := lty()
+    _ := gty()
+    _ := ley()
+    _ := gey()
+    _ := eqa()
+    _ := nea()
+    _ := eqd()
+    _ := ned()
+    _ := eqp()
+    _ := nep()
+    _ := eqv()
+    _ := nev()
+    _ := andb()
+    _ := orb()
+    _ := notb()
+    _ := indexar()
+    indexaw()
+    _ := indexav()
+    _ := indexan()
+    _ := indexdr()
+    indexdw()
+    _ := indexdv()
+    ina()
+    ind()
+    callp()
+    callf()
+    _ := callmf()
+    calli()
+    jump()
+    jf()
+    _ := jt()
+    _ := dup()
+    dupx1()
+    _ := drop()
+    ret()
+    _ := consa()
+    _ := consd()
+    except()
+    alloc()
+    _ := pushnil()
+    resetc()
+    pushpeg()
+    _ := jumptbl()
+    callx()
+    swap()
+    dropn()
+    pushfp()
+    callv()
+    pushci()
+END MAIN

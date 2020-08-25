@@ -84,6 +84,7 @@ net-test-udp.neon          # import
 new-init-module.neon       # module
 number-ceil.neon           # math
 object-record.neon         # EQA
+opcode-coverage.neon       # runtime$moduleIsMain
 os-test.neon               # os
 parameter-out-array.neon   # array__splice
 parameter-out-string.neon  # string__splice
