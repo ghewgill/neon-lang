@@ -1,0 +1,3 @@
+TYPE Cls IS CLASS END CLASS
+VAR x: Cls
+       #<

@@ -18,6 +18,7 @@
 static const ast::Expression *identity_conversion(Analyzer *, const ast::Expression *e) { return e; }
 
 class Analyzer {
+    enum class AllowClass { no, yes };
 public:
     Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ast::ExternalGlobalInfo> *external_globals);
     Analyzer(const Analyzer &) = delete;
@@ -37,7 +38,7 @@ public:
     std::stack<std::list<std::pair<std::string, unsigned int>>> loops;
     std::stack<std::set<std::string>> imported_checked_stack;
 
-    const ast::Type *analyze(const pt::Type *type, const std::string &name = std::string());
+    const ast::Type *analyze(const pt::Type *type, AllowClass allow_class, const std::string &name = std::string());
     const ast::Type *analyze(const pt::TypeSimple *type, const std::string &name);
     const ast::Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
     const ast::Type *analyze_record(const pt::TypeRecord *type, const std::string &name);
@@ -1423,10 +1424,13 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     return module;
 }
 
-const ast::Type *Analyzer::analyze(const pt::Type *type, const std::string &name)
+const ast::Type *Analyzer::analyze(const pt::Type *type, AllowClass allow_class, const std::string &name)
 {
     TypeAnalyzer ta(this, name);
     type->accept(&ta);
+    if (allow_class == AllowClass::no && dynamic_cast<const ast::TypeClass *>(ta.type) != nullptr) {
+        error(3289, type->token, "bare class not allowed here (use POINTER TO)");
+    }
     return ta.type;
 }
 
@@ -1472,10 +1476,7 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
         if (prev != field_names.end()) {
             error2(3009, x->name, "duplicate field: " + x->name.text, prev->second, "first declaration here");
         }
-        const ast::Type *t = analyze(x->type.get());
-        if (dynamic_cast<const ast::TypeClass *>(t) != nullptr) {
-            error(3226, x->type->token, "class type not permitted as record member");
-        }
+        const ast::Type *t = analyze(x->type.get(), AllowClass::no);
         if (dynamic_cast<const ast::TypeValidPointer *>(t) != nullptr) {
             error(3223, x->type->token, "valid pointer type not permitted as record member");
         }
@@ -1545,7 +1546,7 @@ const ast::Type *Analyzer::analyze(const pt::TypePointer *type, const std::strin
                     }
                 }
             }
-            const ast::Type *reftype = analyze(type->reftype.get());
+            const ast::Type *reftype = analyze(type->reftype.get(), AllowClass::yes);
             const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(reftype);
             if (classtype == nullptr) {
                 error(3098, type->reftype->token, "class or interface type expected");
@@ -1573,7 +1574,7 @@ const ast::Type *Analyzer::analyze(const pt::TypeValidPointer *type, const std::
                 return new ast::TypeValidInterfacePointer(type->token, interface);
             }
         }
-        const ast::Type *reftype = analyze(type->reftype.get());
+        const ast::Type *reftype = analyze(type->reftype.get(), AllowClass::yes);
         const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(reftype);
         if (classtype == nullptr) {
             error(3221, type->reftype->token, "class type expected");
@@ -1584,7 +1585,7 @@ const ast::Type *Analyzer::analyze(const pt::TypeValidPointer *type, const std::
 
 const ast::TypeFunction *Analyzer::analyze_function_type(const std::unique_ptr<pt::Type> &returntype, const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args)
 {
-    const ast::Type *rtype = returntype != nullptr ? analyze(returntype.get()) : ast::TYPE_NOTHING;
+    const ast::Type *rtype = returntype != nullptr ? analyze(returntype.get(), AllowClass::no) : ast::TYPE_NOTHING;
     std::vector<const ast::ParameterType *> params;
     bool variadic = false;
     bool in_default = false;
@@ -1598,7 +1599,7 @@ const ast::TypeFunction *Analyzer::analyze_function_type(const std::unique_ptr<p
             case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
             case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
-        const ast::Type *ptype = analyze(a->type.get());
+        const ast::Type *ptype = analyze(a->type.get(), AllowClass::no);
         if (a->varargs) {
             if (a->names.size() > 1) {
                 error(3271, a->names[1], "varargs must be single parameter name");
@@ -1634,20 +1635,14 @@ const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const st
 const ast::Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
 {
     if (type->name.text == "Array") {
-        const ast::Type *elementtype = analyze(type->elementtype.get());
-        if (dynamic_cast<const ast::TypeClass *>(elementtype) != nullptr) {
-            error(3227, type->elementtype->token, "class type not permitted as array element type");
-        }
+        const ast::Type *elementtype = analyze(type->elementtype.get(), AllowClass::no);
         if (dynamic_cast<const ast::TypeValidPointer *>(elementtype) != nullptr) {
             error(3222, type->elementtype->token, "valid pointer type not permitted as array element type");
         }
         return new ast::TypeArray(type->name, elementtype);
     }
     if (type->name.text == "Dictionary") {
-        const ast::Type *elementtype = analyze(type->elementtype.get());
-        if (dynamic_cast<const ast::TypeClass *>(elementtype) != nullptr) {
-            error(3228, type->elementtype->token, "class type not permitted as dictionary element type");
-        }
+        const ast::Type *elementtype = analyze(type->elementtype.get(), AllowClass::no);
         return new ast::TypeDictionary(type->name, elementtype);
     }
     internal_error("Invalid parameterized type");
@@ -2638,7 +2633,7 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
 const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
-    const ast::Type *target = analyze(expr->target.get());
+    const ast::Type *target = analyze(expr->target.get(), AllowClass::no);
     auto conv = target->make_converter(left->type);
     if (conv == nullptr) {
         return new ast::ConstantBooleanExpression(false);
@@ -3210,7 +3205,7 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         actual_record = new ast::TypeRecord(recdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_record);
     }
-    const ast::Type *type = analyze(declaration->type.get(), name);
+    const ast::Type *type = analyze(declaration->type.get(), AllowClass::yes, name);
     if (actual_class != nullptr) {
         const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(type);
         const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
@@ -3248,10 +3243,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *decl
 const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    const ast::Type *type = analyze(declaration->type.get());
-    if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
-        error(3229, declaration->type->token, "class type not permitted as constant type");
-    }
+    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
     const ast::Expression *value = analyze(declaration->value.get());
     value = convert(type, value);
     if (value == nullptr) {
@@ -3287,7 +3279,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::NativeConstantDeclaration
 const ast::Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    const ast::Type *type = analyze(declaration->type.get());
+    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
     ast::Variable *v = frame.top()->createVariable(declaration->name, name, type, true);
     scope.top()->addName(v->declaration, v->name, v, true);
     return new ast::AssignmentStatement(
@@ -3318,10 +3310,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ExtensionConstantDeclarat
 
 const ast::Statement *Analyzer::analyze_body(const pt::ExtensionConstantDeclaration *declaration)
 {
-    const ast::Type *type = analyze(declaration->type.get());
-    if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
-        error(3246, declaration->type->token, "class type not permitted as constant type");
-    }
+    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
     ast::Variable *v = frame.top()->createVariable(declaration->name, declaration->name.text, type, true);
     scope.top()->addName(v->declaration, v->name, v, true);
     return new ast::AssignmentStatement(
@@ -3355,10 +3344,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *decl
 
 const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
 {
-    const ast::Type *type = analyze(declaration->type.get());
-    if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
-        error(3230, declaration->type->token, "class type not permitted as variable type (use POINTER TO)");
-    }
+    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
     std::vector<ast::Variable *> variables;
     for (auto name: declaration->names) {
         ast::Variable *v = frame.top()->createVariable(name, name.text, type, false);
@@ -3415,10 +3401,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declarati
 
 const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
 {
-    const ast::Type *type = analyze(declaration->type.get());
-    if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
-        error(3231, declaration->type->token, "class type not permitted as variable type (use POINTER TO)");
-    }
+    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
     const ast::Expression *expr = analyze(declaration->value.get());
     expr = convert(type, expr);
     if (expr == nullptr) {
@@ -3458,7 +3441,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
     if (type == nullptr && not scope.top()->allocateName(declaration->name, name)) {
         error2(3047, declaration->name, "duplicate definition of name", scope.top()->getDeclaration(name), "first declaration here");
     }
-    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
+    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get(), AllowClass::no) : ast::TYPE_NOTHING;
     std::vector<ast::FunctionParameter *> args;
     bool variadic = false;
     bool in_default = false;
@@ -3472,10 +3455,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
             case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
             case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
-        const ast::Type *ptype = analyze(x->type.get());
-        if (dynamic_cast<const ast::TypeClass *>(ptype) != nullptr) {
-            error(3232, x->type->token, "class type not permitted as function parameter (use pointers)");
-        }
+        const ast::Type *ptype = analyze(x->type.get(), AllowClass::no);
         if (type != nullptr && args.empty()) {
             const ast::TypeClass *ctype = dynamic_cast<const ast::TypeClass *>(type);
             if (ctype != nullptr) {
@@ -3705,7 +3685,7 @@ const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declarat
         if (prev != method_names.end()) {
             error2(3247, x.first, "duplicate method: " + x.first.text, prev->second, "first declaration here");
         }
-        const ast::Type *t = analyze(x.second.get());
+        const ast::Type *t = analyze(x.second.get(), AllowClass::no);
         const ast::TypeFunctionPointer *fp = dynamic_cast<const ast::TypeFunctionPointer *>(t);
         if (fp == nullptr) {
             internal_error("expected function type");
@@ -4045,7 +4025,7 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 if (expr->type != ast::TYPE_OBJECT) {
                     error2(3263, statement->expr->token, "WHEN ISA requires Object type", twc->token, "used here");
                 }
-                const ast::Type *target = analyze(twc->target.get());
+                const ast::Type *target = analyze(twc->target.get(), AllowClass::no);
                 const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::TypeTestWhenCondition(twc->target->token, convert(target, expr), target);
                 conditions.push_back(cond);
             } else {

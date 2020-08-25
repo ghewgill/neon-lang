@@ -1,6 +1,0 @@
-TYPE Cls IS CLASS
-    name: String
-END CLASS
-
-VAR c: Cls
-       #<
