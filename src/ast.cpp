@@ -1196,7 +1196,7 @@ const TypeFunction *Function::makeFunctionType(const Type *returntype, const std
     return new TypeFunction(returntype, paramtypes, variadic);
 }
 
-bool PredefinedFunction::is_pure() const
+bool PredefinedFunction::is_pure(std::set<const ast::Function *> &) const
 {
     static std::set<std::string> impure_modules {
         "console",
