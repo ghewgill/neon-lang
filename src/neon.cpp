@@ -67,7 +67,7 @@ static void repl(int argc, char *argv[], const ExecOptions &options)
     Repl repl(argc, argv, repl_no_prompt, repl_stop_on_any_error, dump_listing, options);
     for (;;) {
         if (not repl_no_prompt) {
-            std::cout << "> ";
+            std::cout << repl.prompt();
         }
         std::string s;
         if (not std::getline(*in, s)) {

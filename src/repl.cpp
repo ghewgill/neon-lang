@@ -30,6 +30,11 @@ Repl::Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool 
     }
 }
 
+std::string Repl::prompt() const
+{
+    return input.empty() ? "> " : "+ ";
+}
+
 void Repl::handle(const std::string &s)
 {
     if (s == "help") {
@@ -42,10 +47,14 @@ void Repl::handle(const std::string &s)
     } else {
         CompilerError *first_error = nullptr;
         try {
-            auto tokens = tokenize("", s);
+            std::string trial_input;
+            std::for_each(input.begin(), input.end(), [&trial_input](const std::string &t) { trial_input.append(t); trial_input.append("\n"); });
+            trial_input.append(s);
+            auto tokens = tokenize("", trial_input);
             const ast::Program *program;
             try {
                 auto parsetree = parse(*tokens);
+                input.push_back(s);
                 // Grab a copy of the globals and let analyze() modify the copy.
                 // Some errors will be detected after things are added to the
                 // global scope, and we don't want to capture those global
@@ -60,6 +69,11 @@ void Repl::handle(const std::string &s)
                     }
                 }
             } catch (CompilerError *e) {
+                SourceError *se = dynamic_cast<SourceError *>(e);
+                if (se != nullptr && se->number == 9999) {
+                    input.push_back(s);
+                    return;
+                }
                 first_error = e;
                 auto exprtree = parseExpression(*tokens);
                 std::vector<std::unique_ptr<pt::FunctionCallExpression::Argument>> print_args;
@@ -103,7 +117,7 @@ void Repl::handle(const std::string &s)
                 )};
                 program = analyze(&compiler_support, parsetree.get(), &globals_ast);
             }
-            DebugInfo debug("-", s);
+            DebugInfo debug("-", trial_input);
             auto bytecode = compile(program, &debug);
             if (dump_listing) {
                 disassemble(bytecode, std::cerr, &debug);
@@ -112,7 +126,7 @@ void Repl::handle(const std::string &s)
             if (r != 0) {
                 fprintf(stderr, "exit code %d\n", r);
             }
-            input.emplace_back(std::move(tokens));
+            input.clear();
         } catch (CompilerError *error) {
             SourceError *se = dynamic_cast<SourceError *>(error);
             // Error 2015 is "Expression expected", which means the real error
