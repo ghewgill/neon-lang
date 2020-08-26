@@ -2096,6 +2096,9 @@ std::unique_ptr<Statement> Parser::parseBegin()
 
 std::unique_ptr<Statement> Parser::parseStatement()
 {
+    if (tokens[i].type == END_OF_FILE) {
+        error(9999, tokens[i], "unexpected end of file");
+    }
     if (tokens[i].column < minimum_column) {
         error(2089, tokens[i], "indent must be at least column " + std::to_string(minimum_column));
     }
