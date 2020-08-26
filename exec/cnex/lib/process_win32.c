@@ -24,28 +24,28 @@ void process_call(TExecutor *exec)
     if (!CreatePipe(&out_read, &out_write, &sa, 0)) {
         error = GetLastError();
         char szErr[32];
-        snprintf(szErr, 32, "%d", error);
+        snprintf(szErr, sizeof(szErr), "%d", error);
         exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
         return;
     }
     if (!SetHandleInformation(out_read, HANDLE_FLAG_INHERIT, 0)) {
         error = GetLastError();
         char szErr[32];
-        snprintf(szErr, 32, "%d", error);
+        snprintf(szErr, sizeof(szErr), "%d", error);
         exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
         return;
     }
     if (!CreatePipe(&err_read, &err_write, &sa, 0)) {
         error = GetLastError();
         char szErr[32];
-        snprintf(szErr, 32, "%d", error);
+        snprintf(szErr, sizeof(szErr), "%d", error);
         exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
         return;
     }
     if (!SetHandleInformation(err_read, HANDLE_FLAG_INHERIT, 0)) {
         error = GetLastError();
         char szErr[32];
-        snprintf(szErr, 32, "%d", error);
+        snprintf(szErr, sizeof(szErr), "%d", error);
         exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
         return;
     }
@@ -61,7 +61,7 @@ void process_call(TExecutor *exec)
     if (!CreateProcess(NULL, command, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
         error = GetLastError();
         char szErr[32];
-        snprintf(szErr, 32, "%d", error);
+        snprintf(szErr, sizeof(szErr), "%d", error);
         exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
         free(command);
         return;
