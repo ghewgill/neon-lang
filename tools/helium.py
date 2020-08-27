@@ -2994,6 +2994,30 @@ def neon_math_tgamma(env, x):
 def neon_math_trunc(env, x):
     return math.trunc(x)
 
+def neon_os_chdir(env, d):
+    assert False
+
+def neon_os_getcwd(env):
+    assert False
+
+def neon_os_getenv(env, e):
+    assert False
+
+def neon_os_kill(env, pid):
+    assert False
+
+def neon_os_platform(env):
+    assert False
+
+def neon_os_spawn(env):
+    assert False
+
+def neon_os_system(env, cmd):
+    return os.system(cmd)
+
+def neon_os_wait(env):
+    assert False
+
 def neon_random_uint32(env):
     return random.randint(0, 0xffffffff)
 
