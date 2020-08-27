@@ -1,7 +1,6 @@
 EXPORT TestException
 EXPORT Interface
 
-EXPORT SubRec
 EXPORT Record
 EXPORT Class
 EXPORT Class2
@@ -31,13 +30,11 @@ INTERFACE Interface
     FUNCTION f(self: Interface)
 END INTERFACE
 
-TYPE SubRec IS RECORD
-    s: String
-END RECORD
-
 TYPE Record IS RECORD
     n: Number
-    r: SubRec
+    r: RECORD
+        s: String
+    END RECORD
 END RECORD
 
 TYPE Class IS CLASS

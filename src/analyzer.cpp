@@ -41,7 +41,7 @@ public:
     const ast::Type *analyze(const pt::Type *type, AllowClass allow_class, const std::string &name = std::string());
     const ast::Type *analyze(const pt::TypeSimple *type, const std::string &name);
     const ast::Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
-    const ast::Type *analyze_record(const pt::TypeRecord *type, const std::string &name);
+    const ast::Type *analyze_record(const pt::TypeRecord *type, const std::string &name, ast::RequireName require_name);
     const ast::Type *analyze_class(const pt::TypeClass *type, const std::string &name);
     const ast::Type *analyze(const pt::TypePointer *type, const std::string &name);
     const ast::Type *analyze(const pt::TypeValidPointer *type, const std::string &name);
@@ -158,7 +158,7 @@ public:
     TypeAnalyzer &operator=(const TypeAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeEnum *t) override { type = a->analyze_enum(t, name); }
-    virtual void visit(const pt::TypeRecord *t) override { type = a->analyze_record(t, name); }
+    virtual void visit(const pt::TypeRecord *t) override { type = a->analyze_record(t, name, ast::RequireName::yes); }
     virtual void visit(const pt::TypeClass *t) override { type = a->analyze_class(t, name); }
     virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeValidPointer *t) override { type = a->analyze(t, name); }
@@ -1107,10 +1107,10 @@ Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::m
 {
 }
 
-ast::TypeRecord::TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields)
+ast::TypeRecord::TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields, RequireName require_name)
   : Type(declaration, name), module(module), fields(fields), field_names(make_field_names(fields))
 {
-    if (name.empty()) {
+    if (require_name == RequireName::yes && name.empty()) {
         error(3287, declaration, "class or record type must have name");
     }
 }
@@ -1476,7 +1476,15 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
         if (prev != field_names.end()) {
             error2(3009, x->name, "duplicate field: " + x->name.text, prev->second, "first declaration here");
         }
-        const ast::Type *t = analyze(x->type.get(), AllowClass::no);
+        const ast::Type *t;
+        const pt::TypeRecord *tr = dynamic_cast<const pt::TypeRecord *>(x->type.get());
+        if (tr != nullptr) {
+            // This is concession to the normal no-record-without-name rule
+            // to allow records inside records to be unnamed.
+            t = analyze_record(tr, "", ast::RequireName::no);
+        } else {
+            t = analyze(x->type.get(), AllowClass::no);
+        }
         if (dynamic_cast<const ast::TypeValidPointer *>(t) != nullptr) {
             error(3223, x->type->token, "valid pointer type not permitted as record member");
         }
@@ -1486,10 +1494,10 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
     return fields;
 }
 
-const ast::Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
+const ast::Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name, ast::RequireName require_name)
 {
     std::vector<ast::TypeRecord::Field> fields = analyze_fields(type, false);
-    return new ast::TypeRecord(type->token, module_name, name, fields);
+    return new ast::TypeRecord(type->token, module_name, name, fields, require_name);
 }
 
 const ast::Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::string &name)

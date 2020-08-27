@@ -25,6 +25,8 @@ class Emitter;
 
 namespace ast {
 
+enum class RequireName { no, yes };
+
 class IAstVisitor {
 public:
     virtual ~IAstVisitor() {}
@@ -613,7 +615,7 @@ public:
         const Type *type;
         bool is_private;
     };
-    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields);
+    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields, RequireName require_name = RequireName::yes);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
     const std::vector<Field> fields;
