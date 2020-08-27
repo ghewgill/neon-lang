@@ -49,7 +49,7 @@ public:
         Label entry_label;
     };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions({FunctionInfo("", Label())}), function_exit(), current_function_depth(), stack_depth(0), in_jumptbl(false), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions({FunctionInfo("", Label())}), function_exit(), current_function_depth(), stack_depth(0), in_jumptbl(false), loop_labels(), exported_types(), debug_info(debug) {}
     Emitter(const Emitter &) = delete;
     Emitter &operator=(const Emitter &) = delete;
     void emit_byte(unsigned char b);
@@ -107,8 +107,6 @@ private:
     std::map<size_t, LoopLabels> loop_labels;
     std::set<const ast::Type *> exported_types;
     DebugInfo *debug_info;
-public:
-    std::map<const ast::PredefinedFunction *, int> predefined_name_index;
 };
 
 void Emitter::emit_byte(unsigned char b)
@@ -1209,23 +1207,9 @@ void ast::Function::generate_call(Emitter &emitter) const
     emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 
-void ast::PredefinedFunction::predeclare(Emitter &emitter) const
-{
-    emitter.predefined_name_index[this] = emitter.str(name);
-}
-
 void ast::PredefinedFunction::generate_call(Emitter &emitter) const
 {
-    auto i = emitter.predefined_name_index.find(this);
-    if (i == emitter.predefined_name_index.end()) {
-        //internal_error("predefined function not generated: "+name);
-        // If we get here, that means predeclare() wasn't called for this
-        // because the traversal never got here. But at this point it's
-        // safe to call predeclare() ourselves and sort it out.
-        predeclare(emitter);
-        i = emitter.predefined_name_index.find(this);
-    }
-    emitter.emit(Opcode::CALLP, i->second);
+    emitter.emit(Opcode::CALLP, emitter.str(name));
     emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 

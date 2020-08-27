@@ -2839,7 +2839,7 @@ public:
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override;
     virtual void reset() override {}
-    virtual void predeclare(Emitter &emitter) const override;
+    virtual void predeclare(Emitter &) const override {}
     virtual void generate_address(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_load(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Emitter &) const override { internal_error("PredefinedFunction"); }
