@@ -2763,7 +2763,7 @@ void ast::Program::debuginfo(Emitter &emitter, minijson::object_writer &out) con
         for (size_t i = 0; i < frame->getCount(); i++) {
             auto slot = frame->getSlot(i);
             const Function *function = dynamic_cast<const Function *>(slot.ref);
-            if (function != nullptr) {
+            if (function != nullptr && slot.referenced) {
                 auto func = functions.nested_object();
                 func.write("name", slot.name);
                 function->debuginfo(emitter, func);
