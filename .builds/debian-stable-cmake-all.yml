@@ -12,6 +12,12 @@ packages:
 sources:
 - https://github.com/ghewgill/neon-lang
 tasks:
+- prep: |
+    cd neon-lang
+    git clone https://github.com/ghewgill/neon-module-registry
+    for a in $(ls neon-module-registry | grep yaml); do
+        python3 tools/helium.py scripts/module-install.neon $(echo $a | sed -e 's/.yaml//');
+    done
 - build: |
     cd neon-lang
     cmake .

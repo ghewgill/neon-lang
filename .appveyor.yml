@@ -4,36 +4,27 @@ image:
     #- Visual Studio 2015
 environment:
     matrix:
-        - WITH_SUBMODULES: 0
-          NEON_ARCH: 64
+        - NEON_ARCH: 64
           EXCLUDE_TESTS: 1
-        - WITH_SUBMODULES: 0
-          NEON_ARCH: 32
-        - WITH_SUBMODULES: 0
-          NEON_ARCH: 64
-        - WITH_SUBMODULES: 1
-          NEON_ARCH: 64
+        - NEON_ARCH: 32
+        - NEON_ARCH: 64
+        #- WITH_SUBMODULES: 1
+        #  NEON_ARCH: 64
 #matrix:
 #    exclude:
 #        - image: Visual Studio 2015
-#          WITH_SUBMODULES: 1
 #        - image: Visual Studio 2017
-#          WITH_SUBMODULES: 1
 #        - image: Visual Studio 2019
-#          WITH_SUBMODULES: 1
-#        - BUILDER: cmake
-#          WITH_SUBMODULES: 1
-install:
-- ps: >-
-    if (-not (Test-Path C:\Python38\Lib\site-packages\scons-3.1.2)){
-      Start-FileDownload "https://downloads.sourceforge.net/project/scons/scons/3.1.2/scons-3.1.2.zip" -FileName "scons-3.1.2.zip"
-      7z x -y scons-3.1.2.zip
-    }
+#install:
+#- ps: >-
+#    if (-not (Test-Path C:\Python38\Lib\site-packages\scons-3.1.2)){
+#      Start-FileDownload "https://downloads.sourceforge.net/project/scons/scons/3.1.2/scons-3.1.2.zip" -FileName "scons-3.1.2.zip"
+#      7z x -y scons-3.1.2.zip
+#    }
 build_script:
 - cmd: set PATH=c:\python38;%PATH%
 - cmd: copy c:\python38\python.exe c:\python38\python3.exe
-- cmd: python3 scons-3.1.2\setup.py install
-- cmd: if %WITH_SUBMODULES%==1 git submodule update --init
+#- cmd: python3 scons-3.1.2\setup.py install
 
 - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" if "%NEON_ARCH%"=="32" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
 

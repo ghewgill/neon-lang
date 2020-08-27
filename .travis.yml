@@ -7,31 +7,20 @@ jobs:
           env: EXCLUDE_TESTS=1
         - os: linux
           compiler: gcc
-          env: WITH_SUBMODULES=0
         - os: linux
           compiler: clang
-          env: WITH_SUBMODULES=0
         - os: linux
           compiler: clang
-          env: WITH_SUBMODULES=1
+          env: WITH_EXTENSIONS=1
         - os: linux
           compiler: clang
           arch: arm64
-          env: WITH_SUBMODULES=0
           env: CTEST_OPTIONS="-E grammar"
-        # Currently resid does not build on arm.
-        #- os: linux
-        #  compiler: clang
-        #  arch: arm64
-        #  env: RELEASE=0 WITH_SUBMODULES=1 BID_GENERIC=1
         - os: osx
           compiler: clang
-          env: WITH_SUBMODULES=0
         - os: osx
           compiler: clang
-          env: WITH_SUBMODULES=1
-git:
-  submodules: false
+          env: WITH_EXTENSIONS=1 CTEST_OPTIONS="-E grammar"
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install scons; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install gmp; fi
@@ -44,7 +33,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install libncurses-dev; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install libgmp-dev; fi
 before_script:
-  - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
+  - if [ "$WITH_EXTENSIONS" == "1" ]; then git clone https://github.com/ghewgill/neon-module-registry; for a in $(ls neon-module-registry | grep yaml); do python3 tools/helium.py scripts/module-install.neon $(echo $a | sed -e 's/.yaml//'); done; fi
 script:
   - cmake .
   - make
