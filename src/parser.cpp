@@ -40,6 +40,7 @@ public:
     std::unique_ptr<DictionaryLiteralExpression> parseDictionaryLiteral();
     std::unique_ptr<Expression> parseInterpolatedStringExpression();
     std::unique_ptr<Expression> parseAtom();
+    std::unique_ptr<Expression> parseCompoundExpression();
     std::unique_ptr<Expression> parseExponentiation();
     std::unique_ptr<Expression> parseMultiplication();
     std::unique_ptr<Expression> parseAddition();
@@ -598,20 +599,20 @@ std::unique_ptr<Expression> Parser::parseAtom()
         case PLUS: {
             auto &tok_plus = tokens[i];
             ++i;
-            std::unique_ptr<Expression> atom = parseAtom();
-            return std::unique_ptr<Expression> { new UnaryPlusExpression(tok_plus, std::move(atom)) };
+            std::unique_ptr<Expression> expr = parseCompoundExpression();
+            return std::unique_ptr<Expression> { new UnaryPlusExpression(tok_plus, std::move(expr)) };
         }
         case MINUS: {
             auto &tok_minus = tokens[i];
             ++i;
-            std::unique_ptr<Expression> atom = parseAtom();
-            return std::unique_ptr<Expression> { new UnaryMinusExpression(tok_minus, std::move(atom)) };
+            std::unique_ptr<Expression> expr = parseCompoundExpression();
+            return std::unique_ptr<Expression> { new UnaryMinusExpression(tok_minus, std::move(expr)) };
         }
         case NOT: {
             auto &tok_not = tokens[i];
             ++i;
-            std::unique_ptr<Expression> atom = parseAtom();
-            return std::unique_ptr<Expression> { new LogicalNotExpression(tok_not, std::move(atom)) };
+            std::unique_ptr<Expression> expr = parseCompoundExpression();
+            return std::unique_ptr<Expression> { new LogicalNotExpression(tok_not, std::move(expr)) };
         }
         case NEW: {
             auto &tok_new = tokens[i];
@@ -654,81 +655,6 @@ std::unique_ptr<Expression> Parser::parseAtom()
         case IDENTIFIER: {
             std::unique_ptr<Expression> expr { new IdentifierExpression(tokens[i], tokens[i].text) };
             ++i;
-            for (;;) {
-                if (tokens[i].type == LBRACKET) {
-                    auto &tok_lbracket = tokens[i];
-                    ++i;
-                    do {
-                        std::unique_ptr<Expression> index { nullptr };
-                        bool first_from_end = false;
-                        if (tokens[i].type == FIRST || tokens[i].type == LAST) {
-                            first_from_end = tokens[i].type == LAST;
-                            ++i;
-                            if (tokens[i].type == RBRACKET || tokens[i].type == TO) {
-                                index.reset(new NumberLiteralExpression(Token(), number_from_uint32(0)));
-                            } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
-                                error(2072, tokens[i], "'+' or '-' expected");
-                            }
-                        }
-                        if (index == nullptr) {
-                            index = parseExpression();
-                        }
-                        std::unique_ptr<ArrayRange> range { nullptr };
-                        std::unique_ptr<Expression> last { nullptr };
-                        const bool has_range = tokens[i].type == TO;
-                        if (has_range) {
-                            ++i;
-                            last = nullptr;
-                            bool last_from_end = false;
-                            if (tokens[i].type == FIRST || tokens[i].type == LAST) {
-                                last_from_end = tokens[i].type == LAST;
-                                ++i;
-                                if (tokens[i].type == RBRACKET) {
-                                    last.reset(new NumberLiteralExpression(Token(), number_from_uint32(0)));
-                                } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
-                                    error(2073, tokens[i], "'+' or '-' expected");
-                                }
-                            }
-                            if (last == nullptr) {
-                                last = parseExpression();
-                            }
-                            range.reset(new ArrayRange(tok_lbracket, std::move(index), first_from_end, std::move(last), last_from_end));
-                        }
-                        if (tokens[i].type != COMMA && tokens[i].type != RBRACKET) {
-                            error(2020, tokens[i], "']' expected");
-                        }
-                        ++i;
-                        if (range != nullptr) {
-                            expr.reset(new RangeSubscriptExpression(tok_lbracket, tokens[i-1], std::move(expr), std::move(range)));
-                        } else {
-                            expr.reset(new SubscriptExpression(tok_lbracket, tokens[i-1], std::move(expr), std::move(index), first_from_end));
-                        }
-                    } while (tokens[i-1].type == COMMA);
-                } else if (tokens[i].type == LPAREN) {
-                    expr = parseFunctionCall(std::move(expr));
-                } else if (tokens[i].type == DOT) {
-                    auto &tok_dot = tokens[i];
-                    ++i;
-                    if (tokens[i].type != IDENTIFIER) {
-                        error(2021, tokens[i], "identifier expected");
-                    }
-                    const Token &field = tokens[i];
-                    ++i;
-                    expr.reset(new DotExpression(tok_dot, std::move(expr), field));
-                } else if (tokens[i].type == ARROW) {
-                    auto &tok_arrow = tokens[i];
-                    ++i;
-                    if (tokens[i].type != IDENTIFIER) {
-                        error(2066, tokens[i], "identifier expected");
-                    }
-                    const Token &field = tokens[i];
-                    ++i;
-                    expr.reset(new ArrowExpression(tok_arrow, std::move(expr), field));
-                } else {
-                    // TODO: what happens here?
-                    break;
-                }
-            }
             return expr;
         }
         default:
@@ -736,14 +662,95 @@ std::unique_ptr<Expression> Parser::parseAtom()
     }
 }
 
+std::unique_ptr<Expression> Parser::parseCompoundExpression()
+{
+    std::unique_ptr<Expression> expr = parseAtom();
+    for (;;) {
+        if (tokens[i].type == LBRACKET) {
+            auto &tok_lbracket = tokens[i];
+            ++i;
+            do {
+                std::unique_ptr<Expression> index { nullptr };
+                bool first_from_end = false;
+                if (tokens[i].type == FIRST || tokens[i].type == LAST) {
+                    first_from_end = tokens[i].type == LAST;
+                    ++i;
+                    if (tokens[i].type == RBRACKET || tokens[i].type == TO) {
+                        index.reset(new NumberLiteralExpression(Token(), number_from_uint32(0)));
+                    } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
+                        error(2072, tokens[i], "'+' or '-' expected");
+                    }
+                }
+                if (index == nullptr) {
+                    index = parseExpression();
+                }
+                std::unique_ptr<ArrayRange> range { nullptr };
+                std::unique_ptr<Expression> last { nullptr };
+                const bool has_range = tokens[i].type == TO;
+                if (has_range) {
+                    ++i;
+                    last = nullptr;
+                    bool last_from_end = false;
+                    if (tokens[i].type == FIRST || tokens[i].type == LAST) {
+                        last_from_end = tokens[i].type == LAST;
+                        ++i;
+                        if (tokens[i].type == RBRACKET) {
+                            last.reset(new NumberLiteralExpression(Token(), number_from_uint32(0)));
+                        } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
+                            error(2073, tokens[i], "'+' or '-' expected");
+                        }
+                    }
+                    if (last == nullptr) {
+                        last = parseExpression();
+                    }
+                    range.reset(new ArrayRange(tok_lbracket, std::move(index), first_from_end, std::move(last), last_from_end));
+                }
+                if (tokens[i].type != COMMA && tokens[i].type != RBRACKET) {
+                    error(2020, tokens[i], "']' expected");
+                }
+                ++i;
+                if (range != nullptr) {
+                    expr.reset(new RangeSubscriptExpression(tok_lbracket, tokens[i-1], std::move(expr), std::move(range)));
+                } else {
+                    expr.reset(new SubscriptExpression(tok_lbracket, tokens[i-1], std::move(expr), std::move(index), first_from_end));
+                }
+            } while (tokens[i-1].type == COMMA);
+        } else if (tokens[i].type == LPAREN) {
+            expr = parseFunctionCall(std::move(expr));
+        } else if (tokens[i].type == DOT) {
+            auto &tok_dot = tokens[i];
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2021, tokens[i], "identifier expected");
+            }
+            const Token &field = tokens[i];
+            ++i;
+            expr.reset(new DotExpression(tok_dot, std::move(expr), field));
+        } else if (tokens[i].type == ARROW) {
+            auto &tok_arrow = tokens[i];
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2066, tokens[i], "identifier expected");
+            }
+            const Token &field = tokens[i];
+            ++i;
+            expr.reset(new ArrowExpression(tok_arrow, std::move(expr), field));
+        } else {
+            // TODO: what happens here?
+            break;
+        }
+    }
+    return expr;
+}
+
 std::unique_ptr<Expression> Parser::parseExponentiation()
 {
-    std::unique_ptr<Expression> left = parseAtom();
+    std::unique_ptr<Expression> left = parseCompoundExpression();
     for (;;) {
         auto &tok_op = tokens[i];
         if (tokens[i].type == EXP) {
             ++i;
-            std::unique_ptr<Expression> right = parseAtom();
+            std::unique_ptr<Expression> right = parseCompoundExpression();
             left.reset(new ExponentiationExpression(tok_op, std::move(left), std::move(right)));
         } else {
             return left;

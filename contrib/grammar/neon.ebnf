@@ -106,7 +106,7 @@ MainBlock = 'BEGIN', 'MAIN', {Statement}, 'END', 'MAIN';
 
 AssertStatement = 'ASSERT', Expression, {',', Expression};
 
-AssignmentStatement = (CompoundExpression | '_'), ':=', Expression;
+AssignmentStatement = (Identifier, {CompoundExpressionTail} | '_'), ':=', Expression;
 
 CaseStatement = 'CASE', Expression, {'WHEN', WhenCondition, {',', WhenCondition}, 'DO', {Statement}}, ['WHEN', 'OTHERS', 'DO', {Statement}], 'END', 'CASE';
 
@@ -170,7 +170,7 @@ AdditionExpression = MultiplicationExpression, {('+' | '-' | '&'), Multiplicatio
 
 MultiplicationExpression = ExponentiationExpression, {('*' | '/' | 'INTDIV' | 'MOD'), ExponentiationExpression};
 
-ExponentiationExpression = Atom, {'^', Atom};
+ExponentiationExpression = CompoundExpression, {'^', CompoundExpression};
 
 Atom =
     ('(', BracketedExpression, ')') |
@@ -181,11 +181,11 @@ Atom =
     StringLiteral |
     'EMBED', StringLiteral |
     'HEXBYTES', StringLiteral |
-    (('+' | '-' | 'NOT'), Atom) |
+    (('+' | '-' | 'NOT'), CompoundExpression) |
     NewExpression |
     'NIL' |
     'NOWHERE' |
-    CompoundExpression;
+    Identifier;
 
 ArrayLiteral = '[', [Expression, {',', Expression}, [',']], ']';
 
@@ -195,7 +195,7 @@ DictionaryLiteral = '{', {Expression, ':', Expression, [',']}, '}';
 
 NewExpression = 'NEW', Identifier, ['.', Identifier], ['(', [FunctionArgument, {',', FunctionArgument}], ')'];
 
-CompoundExpression = Identifier, {CompoundExpressionTail};
+CompoundExpression = Atom, {CompoundExpressionTail};
 
 CompoundExpressionTail =
     ('[', ArrayIndexExpression, {',', ArrayIndexExpression}, ']') |
