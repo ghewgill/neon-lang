@@ -2225,6 +2225,9 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 error(3017, expr->base->token, "not a function");
             }
             ftype = pf->functype;
+            if (ftype == nullptr) {
+                error(3290, expr->base->token, "cannot call NOWHERE");
+            }
             dispatch = func;
         }
     }
