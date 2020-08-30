@@ -64,6 +64,7 @@ io-test.neon                # pushppg
 json-test.neon              # object__makeNull
 lexer-unicode.neon          # ina
 literal-array.neon          # array__range
+literal-method.neon         # string__toBytes
 loop-label.neon             # foreach
 math-test.neon              # math$abs
 mkdir.neon                  # file$mkdir

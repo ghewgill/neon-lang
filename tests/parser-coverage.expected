@@ -704,6 +704,34 @@ Program
         StringLiteralExpression(c)
   AssignmentStatement
     IdentifierExpression(name)
+    SubscriptExpression
+      IdentifierExpression(a)
+      IdentifierExpression(b)
+  AssignmentStatement
+    IdentifierExpression(name)
+    FunctionCallExpression
+      IdentifierExpression(a)
+      IdentifierExpression(b)
+  AssignmentStatement
+    IdentifierExpression(name)
+    DotExpression(b)
+      IdentifierExpression(a)
+  AssignmentStatement
+    IdentifierExpression(name)
+    ArrowExpression(b)
+      IdentifierExpression(a)
+  AssignmentStatement
+    IdentifierExpression(name)
+    SubscriptExpression
+      StringLiteralExpression(foo)
+      IdentifierExpression(b)
+  AssignmentStatement
+    IdentifierExpression(name)
+    FunctionCallExpression
+      DotExpression(b)
+        StringLiteralExpression(foo)
+  AssignmentStatement
+    IdentifierExpression(name)
     IdentityExpression
       IdentifierExpression(expr)
   AssignmentStatement

@@ -193,6 +193,7 @@ literal-array.neon
 literal-dup.neon
 literal-empty.neon
 literal.neon
+literal-method.neon
 literal-string.neon
 local-clear.neon
 logical2.neon

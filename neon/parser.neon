@@ -1170,6 +1170,167 @@ FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER T
     )
 END FUNCTION
 
+FUNCTION Parser.parseCompoundExpression(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR expr: POINTER TO ParseTreeNode := self.parseAtom()
+    LOOP
+        IF self.token.type = TokenType.lbracket THEN
+            LET tokLbracket: lexer.Token := self.token
+            self.nextToken()
+            REPEAT
+                VAR index: POINTER TO ParseTreeNode := NIL
+                VAR firstFromEnd: Boolean := FALSE
+                IF self.token.type IN [TokenType.first, TokenType.last] THEN
+                    firstFromEnd := self.token.type = TokenType.last
+                    self.nextToken()
+                    IF self.token.type IN [TokenType.rbracket, TokenType.to] THEN
+                        index := NEW ParseTreeNode(
+                            type WITH Type.NumberLiteralExpression,
+                            numberliteralexpression WITH NumberLiteralExpression(
+                                value WITH 0
+                            )
+                        )
+                    ELSIF self.token.type NOT IN [TokenType.plus, TokenType.minus] THEN
+                        error(2072, self.token, "'+' or '-' expected")
+                    END IF
+                END IF
+                IF index = NIL THEN
+                    index := self.parseExpression()
+                END IF
+                VAR range: POINTER TO ArrayRange := NIL
+                VAR last: POINTER TO ParseTreeNode := NIL
+                LET hasRange: Boolean := self.token.type = TokenType.to
+                IF hasRange THEN
+                    self.nextToken()
+                    VAR lastFromEnd: Boolean := FALSE
+                    IF self.token.type IN [TokenType.first, TokenType.last] THEN
+                        lastFromEnd := self.token.type = TokenType.last
+                        self.nextToken()
+                        IF self.token.type = TokenType.rbracket THEN
+                            last := NEW ParseTreeNode(
+                                type WITH Type.NumberLiteralExpression,
+                                numberliteralexpression WITH NumberLiteralExpression(
+                                    value WITH 0
+                                )
+                            )
+                        ELSIF self.token.type NOT IN [TokenType.plus, TokenType.minus] THEN
+                            error(2073, self.token, "'+' or '-' expected")
+                        END IF
+                    END IF
+                    IF last = NIL THEN
+                        last := self.parseExpression()
+                    END IF
+                    # TODO use initialiser when available
+                    range := NEW ArrayRange
+                    IF VALID range THEN
+                        range->token := tokLbracket
+                        range->first := index
+                        range->firstFromEnd := firstFromEnd
+                        range->last := last
+                        range->lastFromEnd := lastFromEnd
+                    END IF
+                ELSE
+                    IF firstFromEnd THEN
+                        # TODO use initialiser when available
+                        range := NEW ArrayRange
+                        IF VALID range THEN
+                            range->token := tokLbracket
+                            range->first := index
+                            range->firstFromEnd := firstFromEnd
+                            range->last := index
+                            range->lastFromEnd := firstFromEnd
+                        END IF
+                    END IF
+                END IF
+                IF self.token.type NOT IN [TokenType.comma, TokenType.rbracket] THEN
+                    error(2020, self.token, "']' expected")
+                END IF
+                self.nextToken()
+                IF range <> NIL THEN
+                    expr := NEW ParseTreeNode(
+                        type WITH Type.RangeSubscriptExpression,
+                        token WITH tokLbracket,
+                        rangesubscriptexpression WITH RangeSubscriptExpression(
+                            startColumn WITH tokLbracket.column,
+                            endColumn WITH self.token.column,
+                            base WITH expr,
+                            range WITH range
+                        )
+                    )
+                    IF firstFromEnd AND NOT hasRange THEN
+                        LET zero: POINTER TO ParseTreeNode := NEW ParseTreeNode(
+                            type WITH Type.NumberLiteralExpression,
+                            numberliteralexpression WITH NumberLiteralExpression(
+                                value WITH 0
+                            )
+                        )
+                        expr := NEW ParseTreeNode(
+                            type WITH Type.SubscriptExpression,
+                            token WITH tokLbracket,
+                            subscriptexpression WITH SubscriptExpression(
+                                startColumn WITH tokLbracket.column,
+                                endColumn WITH self.token.column,
+                                base WITH expr,
+                                index WITH zero
+                            )
+                        )
+                    END IF
+                ELSE
+                    expr := NEW ParseTreeNode(
+                        type WITH Type.SubscriptExpression,
+                        token WITH tokLbracket,
+                        subscriptexpression WITH SubscriptExpression(
+                            startColumn WITH tokLbracket.column,
+                            endColumn WITH self.token.column,
+                            base WITH expr,
+                            index WITH index
+                        )
+                    )
+                END IF
+            UNTIL self.tokens[self.index-1].type <> TokenType.comma
+        ELSIF self.token.type = TokenType.lparen THEN
+            expr := self.parseFunctionCall(expr)
+        ELSIF self.token.type = TokenType.dot THEN
+            LET tokDot: lexer.Token := self.token
+            self.nextToken()
+            IF self.token.type <> TokenType.identifier THEN
+                error(2021, self.token, "identifier expected")
+            END IF
+            LET field: lexer.Token := self.token
+            self.nextToken()
+            expr := NEW ParseTreeNode(
+                type WITH Type.DotExpression,
+                token WITH tokDot,
+                dotexpression WITH DotExpression(
+                    base WITH expr,
+                    name WITH field
+                )
+            )
+        ELSIF self.token.type = TokenType.arrow THEN
+            LET tokArrow: lexer.Token := self.token
+            self.nextToken()
+            IF self.token.type <> TokenType.identifier THEN
+                error(2066, self.token, "identifier expected")
+            END IF
+            LET field: lexer.Token := self.token
+            self.nextToken()
+            expr := NEW ParseTreeNode(
+                type WITH Type.ArrowExpression,
+                token WITH tokArrow,
+                arrowexpression WITH ArrowExpression(
+                    startColumn WITH getStartColumn(expr),
+                    endColumn WITH field.column + field.text.length(),
+                    base WITH expr,
+                    name WITH field
+                )
+            )
+        ELSE
+            # TODO: what happens here?
+            EXIT LOOP
+        END IF
+    END LOOP
+    RETURN expr
+END FUNCTION
+
 #|
  | Operator precedence:
  |
@@ -1294,40 +1455,40 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
         WHEN TokenType.plus DO
             LET tokPlus: lexer.Token := self.token
             self.nextToken()
-            LET atom: POINTER TO ParseTreeNode := self.parseAtom()
+            LET expr: POINTER TO ParseTreeNode := self.parseCompoundExpression()
             RETURN NEW ParseTreeNode(
                 type WITH Type.UnaryPlusExpression,
                 token WITH tokPlus,
                 unaryexpression WITH UnaryExpression(
                     startColumn WITH tokPlus.column,
-                    endColumn WITH getEndColumn(atom),
-                    expr WITH atom
+                    endColumn WITH getEndColumn(expr),
+                    expr WITH expr
                 )
             )
         WHEN TokenType.minus DO
             LET tokMinus: lexer.Token := self.token
             self.nextToken()
-            LET atom: POINTER TO ParseTreeNode := self.parseAtom()
+            LET expr: POINTER TO ParseTreeNode := self.parseCompoundExpression()
             RETURN NEW ParseTreeNode(
                 type WITH Type.UnaryMinusExpression,
                 token WITH tokMinus,
                 unaryexpression WITH UnaryExpression(
                     startColumn WITH tokMinus.column,
-                    endColumn WITH getEndColumn(atom),
-                    expr WITH atom
+                    endColumn WITH getEndColumn(expr),
+                    expr WITH expr
                 )
             )
         WHEN TokenType.not DO
             LET tokNot: lexer.Token := self.token
             self.nextToken()
-            LET atom: POINTER TO ParseTreeNode := self.parseAtom()
+            LET expr: POINTER TO ParseTreeNode := self.parseCompoundExpression()
             RETURN NEW ParseTreeNode(
                 type WITH Type.LogicalNotExpression,
                 token WITH tokNot,
                 unaryexpression WITH UnaryExpression(
                     startColumn WITH tokNot.column,
-                    endColumn WITH getEndColumn(atom),
-                    expr WITH atom
+                    endColumn WITH getEndColumn(expr),
+                    expr WITH expr
                 )
             )
         WHEN TokenType.new DO
@@ -1407,162 +1568,6 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                 )
             )
             self.nextToken()
-            LOOP
-                IF self.token.type = TokenType.lbracket THEN
-                    LET tokLbracket: lexer.Token := self.token
-                    self.nextToken()
-                    REPEAT
-                        VAR index: POINTER TO ParseTreeNode := NIL
-                        VAR firstFromEnd: Boolean := FALSE
-                        IF self.token.type IN [TokenType.first, TokenType.last] THEN
-                            firstFromEnd := self.token.type = TokenType.last
-                            self.nextToken()
-                            IF self.token.type IN [TokenType.rbracket, TokenType.to] THEN
-                                index := NEW ParseTreeNode(
-                                    type WITH Type.NumberLiteralExpression,
-                                    numberliteralexpression WITH NumberLiteralExpression(
-                                        value WITH 0
-                                    )
-                                )
-                            ELSIF self.token.type NOT IN [TokenType.plus, TokenType.minus] THEN
-                                error(2072, self.token, "'+' or '-' expected")
-                            END IF
-                        END IF
-                        IF index = NIL THEN
-                            index := self.parseExpression()
-                        END IF
-                        VAR range: POINTER TO ArrayRange := NIL
-                        VAR last: POINTER TO ParseTreeNode := NIL
-                        LET hasRange: Boolean := self.token.type = TokenType.to
-                        IF hasRange THEN
-                            self.nextToken()
-                            VAR lastFromEnd: Boolean := FALSE
-                            IF self.token.type IN [TokenType.first, TokenType.last] THEN
-                                lastFromEnd := self.token.type = TokenType.last
-                                self.nextToken()
-                                IF self.token.type = TokenType.rbracket THEN
-                                    last := NEW ParseTreeNode(
-                                        type WITH Type.NumberLiteralExpression,
-                                        numberliteralexpression WITH NumberLiteralExpression(
-                                            value WITH 0
-                                        )
-                                    )
-                                ELSIF self.token.type NOT IN [TokenType.plus, TokenType.minus] THEN
-                                    error(2073, self.token, "'+' or '-' expected")
-                                END IF
-                            END IF
-                            IF last = NIL THEN
-                                last := self.parseExpression()
-                            END IF
-                            # TODO use initialiser when available
-                            range := NEW ArrayRange
-                            IF VALID range THEN
-                                range->token := tokLbracket
-                                range->first := index
-                                range->firstFromEnd := firstFromEnd
-                                range->last := last
-                                range->lastFromEnd := lastFromEnd
-                            END IF
-                        ELSE
-                            IF firstFromEnd THEN
-                                # TODO use initialiser when available
-                                range := NEW ArrayRange
-                                IF VALID range THEN
-                                    range->token := tokLbracket
-                                    range->first := index
-                                    range->firstFromEnd := firstFromEnd
-                                    range->last := index
-                                    range->lastFromEnd := firstFromEnd
-                                END IF
-                            END IF
-                        END IF
-                        IF self.token.type NOT IN [TokenType.comma, TokenType.rbracket] THEN
-                            error(2020, self.token, "']' expected")
-                        END IF
-                        self.nextToken()
-                        IF range <> NIL THEN
-                            expr := NEW ParseTreeNode(
-                                type WITH Type.RangeSubscriptExpression,
-                                token WITH tokLbracket,
-                                rangesubscriptexpression WITH RangeSubscriptExpression(
-                                    startColumn WITH tokLbracket.column,
-                                    endColumn WITH self.token.column,
-                                    base WITH expr,
-                                    range WITH range
-                                )
-                            )
-                            IF firstFromEnd AND NOT hasRange THEN
-                                LET zero: POINTER TO ParseTreeNode := NEW ParseTreeNode(
-                                    type WITH Type.NumberLiteralExpression,
-                                    numberliteralexpression WITH NumberLiteralExpression(
-                                        value WITH 0
-                                    )
-                                )
-                                expr := NEW ParseTreeNode(
-                                    type WITH Type.SubscriptExpression,
-                                    token WITH tokLbracket,
-                                    subscriptexpression WITH SubscriptExpression(
-                                        startColumn WITH tokLbracket.column,
-                                        endColumn WITH self.token.column,
-                                        base WITH expr,
-                                        index WITH zero
-                                    )
-                                )
-                            END IF
-                        ELSE
-                            expr := NEW ParseTreeNode(
-                                type WITH Type.SubscriptExpression,
-                                token WITH tokLbracket,
-                                subscriptexpression WITH SubscriptExpression(
-                                    startColumn WITH tokLbracket.column,
-                                    endColumn WITH self.token.column,
-                                    base WITH expr,
-                                    index WITH index
-                                )
-                            )
-                        END IF
-                    UNTIL self.tokens[self.index-1].type <> TokenType.comma
-                ELSIF self.token.type = TokenType.lparen THEN
-                    expr := self.parseFunctionCall(expr)
-                ELSIF self.token.type = TokenType.dot THEN
-                    LET tokDot: lexer.Token := self.token
-                    self.nextToken()
-                    IF self.token.type <> TokenType.identifier THEN
-                        error(2021, self.token, "identifier expected")
-                    END IF
-                    LET field: lexer.Token := self.token
-                    self.nextToken()
-                    expr := NEW ParseTreeNode(
-                        type WITH Type.DotExpression,
-                        token WITH tokDot,
-                        dotexpression WITH DotExpression(
-                            base WITH expr,
-                            name WITH field
-                        )
-                    )
-                ELSIF self.token.type = TokenType.arrow THEN
-                    LET tokArrow: lexer.Token := self.token
-                    self.nextToken()
-                    IF self.token.type <> TokenType.identifier THEN
-                        error(2066, self.token, "identifier expected")
-                    END IF
-                    LET field: lexer.Token := self.token
-                    self.nextToken()
-                    expr := NEW ParseTreeNode(
-                        type WITH Type.ArrowExpression,
-                        token WITH tokArrow,
-                        arrowexpression WITH ArrowExpression(
-                            startColumn WITH getStartColumn(expr),
-                            endColumn WITH field.column + field.text.length(),
-                            base WITH expr,
-                            name WITH field
-                        )
-                    )
-                ELSE
-                    # TODO: what happens here?
-                    EXIT LOOP
-                END IF
-            END LOOP
             RETURN expr
         WHEN OTHERS DO
             error(2015, self.token, "Expression expected")
@@ -1571,12 +1576,12 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
 END FUNCTION
 
 FUNCTION Parser.parseExponentiation(INOUT self: Parser): POINTER TO ParseTreeNode
-    VAR left: POINTER TO ParseTreeNode := self.parseAtom()
+    VAR left: POINTER TO ParseTreeNode := self.parseCompoundExpression()
     LOOP
         LET tokOp: lexer.Token := self.token
         IF tokOp.type = TokenType.exp THEN
             self.nextToken()
-            LET right: POINTER TO ParseTreeNode := self.parseAtom()
+            LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
             left := NEW ParseTreeNode(
                 type WITH Type.ExponentiationExpression,
                 token WITH tokOp,

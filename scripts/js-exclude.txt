@@ -76,6 +76,7 @@ json-test.neon             # StringReferenceIndexExpression
 lexer-unicode.neon         # ArrayInExpression
 lisp-test.neon             # DictionaryInExpression
 literal-array.neon         # array comparison
+literal-method.neon        # method
 loop-label.neon            # break outer loop
 math-test.neon             # module math
 methods-declare.neon       # methods

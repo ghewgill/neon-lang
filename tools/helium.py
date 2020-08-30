@@ -1668,15 +1668,15 @@ class Parser:
             return StringLiteralExpression(b)
         elif t is PLUS:
             self.i += 1
-            atom = self.parse_atom()
+            atom = self.parse_compound_expression()
             return UnaryPlusExpression(atom)
         elif t is MINUS:
             self.i += 1
-            atom = self.parse_atom()
+            atom = self.parse_compound_expression()
             return UnaryMinusExpression(atom)
         elif t is NOT:
             self.i += 1
-            atom = self.parse_atom()
+            atom = self.parse_compound_expression()
             return LogicalNotExpression(atom)
         elif t is NEW:
             self.i += 1
@@ -1698,83 +1698,86 @@ class Parser:
             return NowhereLiteralExpression()
         elif isinstance(t, Identifier):
             self.i += 1
-            expr = IdentifierExpression(t.name)
-            while True:
-                if self.tokens[self.i] is LBRACKET:
-                    self.i += 1
-                    while True:
-                        first_from_end = False
-                        last_from_end = False
-                        if self.tokens[self.i] is FIRST:
-                            self.i += 1
-                            if self.tokens[self.i] in [PLUS, MINUS]:
-                                index = self.parse_expression()
-                            else:
-                                index = NumberLiteralExpression(0)
-                        elif self.tokens[self.i] == LAST:
-                            self.i += 1
-                            first_from_end = True
-                            if self.tokens[self.i] in [PLUS, MINUS]:
-                                index = SubtractionExpression(self.parse_expression(), NumberLiteralExpression(1))
-                            else:
-                                index = NumberLiteralExpression(-1)
-                        else:
-                            index = self.parse_expression()
-                        if self.tokens[self.i] == TO:
-                            self.i += 1
-                            if self.tokens[self.i] is FIRST:
-                                self.i += 1
-                                if self.tokens[self.i] in [PLUS, MINUS]:
-                                    last = self.parse_expression()
-                                else:
-                                    last = NumberLiteralExpression(0)
-                            elif self.tokens[self.i] is LAST:
-                                self.i += 1
-                                last_from_end = True
-                                if self.tokens[self.i] in [PLUS, MINUS]:
-                                    last = self.parse_expression()
-                                else:
-                                    last = NumberLiteralExpression(0)
-                            else:
-                                last = self.parse_expression()
-                            expr = RangeSubscriptExpression(expr, index, first_from_end, last, last_from_end)
-                        else:
-                            expr = SubscriptExpression(expr, index)
-                        if self.tokens[self.i] is RBRACKET:
-                            self.i += 1
-                            break
-                        elif self.tokens[self.i] is COMMA:
-                            self.i += 1
-                        else:
-                            self.expect(RBRACKET)
-                elif self.tokens[self.i] is LPAREN:
-                    expr = self.parse_function_call(expr)
-                elif self.tokens[self.i] is DOT:
-                    self.i += 1
-                    field = self.identifier()
-                    expr = DotExpression(expr, field)
-                elif self.tokens[self.i] is ARROW:
-                    self.i += 1
-                    field = self.identifier()
-                    expr = ArrowExpression(expr, field)
-                else:
-                    break
-            # This hack transforms a statement like a.append(b) into a := a & b.
-            # The magic AppendExpression does the assignment and (because it's an expression)
-            # returns the result, which should be unused since .append() doesn't actually
-            # return a value.
-            if isinstance(expr, FunctionCallExpression) and isinstance(expr.func, DotExpression) and expr.func.field == "append":
-                return AssignmentStatement(expr.func.expr, AppendExpression(expr.func.expr, expr.args[0][1]))
-            return expr
+            return IdentifierExpression(t.name)
         else:
             assert False, t
 
+    def parse_compound_expression(self):
+        expr = self.parse_atom()
+        while True:
+            if self.tokens[self.i] is LBRACKET:
+                self.i += 1
+                while True:
+                    first_from_end = False
+                    last_from_end = False
+                    if self.tokens[self.i] is FIRST:
+                        self.i += 1
+                        if self.tokens[self.i] in [PLUS, MINUS]:
+                            index = self.parse_expression()
+                        else:
+                            index = NumberLiteralExpression(0)
+                    elif self.tokens[self.i] == LAST:
+                        self.i += 1
+                        first_from_end = True
+                        if self.tokens[self.i] in [PLUS, MINUS]:
+                            index = SubtractionExpression(self.parse_expression(), NumberLiteralExpression(1))
+                        else:
+                            index = NumberLiteralExpression(-1)
+                    else:
+                        index = self.parse_expression()
+                    if self.tokens[self.i] == TO:
+                        self.i += 1
+                        if self.tokens[self.i] is FIRST:
+                            self.i += 1
+                            if self.tokens[self.i] in [PLUS, MINUS]:
+                                last = self.parse_expression()
+                            else:
+                                last = NumberLiteralExpression(0)
+                        elif self.tokens[self.i] is LAST:
+                            self.i += 1
+                            last_from_end = True
+                            if self.tokens[self.i] in [PLUS, MINUS]:
+                                last = self.parse_expression()
+                            else:
+                                last = NumberLiteralExpression(0)
+                        else:
+                            last = self.parse_expression()
+                        expr = RangeSubscriptExpression(expr, index, first_from_end, last, last_from_end)
+                    else:
+                        expr = SubscriptExpression(expr, index)
+                    if self.tokens[self.i] is RBRACKET:
+                        self.i += 1
+                        break
+                    elif self.tokens[self.i] is COMMA:
+                        self.i += 1
+                    else:
+                        self.expect(RBRACKET)
+            elif self.tokens[self.i] is LPAREN:
+                expr = self.parse_function_call(expr)
+            elif self.tokens[self.i] is DOT:
+                self.i += 1
+                field = self.identifier()
+                expr = DotExpression(expr, field)
+            elif self.tokens[self.i] is ARROW:
+                self.i += 1
+                field = self.identifier()
+                expr = ArrowExpression(expr, field)
+            else:
+                break
+        # This hack transforms a statement like a.append(b) into a := a & b.
+        # The magic AppendExpression does the assignment and (because it's an expression)
+        # returns the result, which should be unused since .append() doesn't actually
+        # return a value.
+        if isinstance(expr, FunctionCallExpression) and isinstance(expr.func, DotExpression) and expr.func.field == "append":
+            return AssignmentStatement(expr.func.expr, AppendExpression(expr.func.expr, expr.args[0][1]))
+        return expr
+
     def parse_exponentiation(self):
-        left = self.parse_atom()
+        left = self.parse_compound_expression()
         while True:
             if self.tokens[self.i] is EXP:
                 self.i += 1
-                right = self.parse_atom()
+                right = self.parse_compound_expression()
                 left = ExponentiationExpression(left, right)
             else:
                 break

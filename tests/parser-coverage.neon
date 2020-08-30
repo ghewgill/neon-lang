@@ -287,6 +287,14 @@ name := expr ^ expr
 # InterpolatedStringExpression
 name := "a\(b)c"
 
+# CompoundExpression
+name := a[b]
+name := a(b)
+name := a.b
+name := a->b
+name := "foo"[b]
+name := "foo".b()
+
 # Atom
 name := (expr)
 name := []
