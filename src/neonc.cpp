@@ -97,11 +97,15 @@ int main(int argc, char *argv[])
             if (i != std::string::npos) {
                 source_path = name.substr(0, i+1);
             }
+            std::ifstream inf(name);
+            if (not inf) {
+                std::cerr << "Source file not found: " << name << "\n";
+                exit(1);
+            }
+            buf << inf.rdbuf();
             if (not quiet) {
                 std::cout << "Compiling " << name;
             }
-            std::ifstream inf(name);
-            buf << inf.rdbuf();
         }
         if (not quiet) {
             if (not target.empty()) {
