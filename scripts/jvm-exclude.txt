@@ -1,16 +1,13 @@
 array-resize.neon          # array default item
 array2d.neon               # array copying semantics
 assert-multiline.neon      # exception
-base-test.neon             # module
 binary-test.neon           # verifier
 bytes-index.neon           # index
 cformat-test.neon          # object
 cmdline.neon               # PredefinedVariable sys$args
-complex-test.neon          # illegal character dot
-concat-bytes.neon          # confusion between Bytes and String
-datetime-test.neon         # illegal character dot
+complex-test.neon          # Math.atan2
+datetime-test.neon         # verifier
 debug-example.neon         # debugger.log
-debug-server.neon          # illegal character dot
 decimal.neon               # exception
 encoding-base64.neon       # verifier - incompatible object for function call
 enum.neon                  # enum toString
@@ -22,21 +19,16 @@ file-filecopied1.neon      # exception identification
 file-symlink.neon          # file.symlink
 file-test.neon             # stack size
 for.neon                   # number format (2 vs 2.0)
-format.neon                # module string
-forth-test.neon            # module os
-function-default-out.neon  # DummyExpression
 gc-array.neon              # module runtime
 gc-long-chain.neon         # module runtime
 gc1.neon                   # PredefinedVariable
 gc2.neon                   # PredefinedVariable
 gc3.neon                   # PredefinedVariable
 gc-two-pointers.neon       # module runtime
-import.neon                # illegal character dot
+import.neon                # InterfacePointerConstructor
 import-optional.neon       # import
 inc-reference.neon         # increment
 index.neon                 # copy semantics
-inline-construct-record.neon   # stack size too large
-inline-init-record.neon    # stack size too large
 interface.neon             # interface
 interface-multiple.neon    # interface
 interface-parameter-export.neon # interface
@@ -44,23 +36,20 @@ interface-parameter-export2.neon # interface
 interface-parameter-import.neon # interface
 interface-parameter-import2.neon # interface
 io-test.neon               # PredefinedVariable io$stdout
-json-test.neon             # illegal character dot
+json-test.neon             # ObjectSubscriptExpression
 math-test.neon             # math.abs
 mkdir.neon                 # file.mkdir
 mmap-test.neon             # module mmap
-module-alias.neon          # module math
 module-alias2.neon         # module initialisation
-module-import-name-alias.neon  # module math
 module-import-name-alias2.neon # module initialisation
-module-import-name.neon    # module math
 module-import-name2.neon   # module initialisation
 module-load-order.neon     # module initialisation
 module.neon                # NoClassDefFoundError
-module2.neon               # illegal character dot
+module2.neon               # ModuleVariable
 modulo.neon                # modulo
 multiarray-test.neon       # verifier - bad type in putfield
-net-test.neon              # illegal character dot
-net-test-udp.neon          # illegal character dot
+net-test.neon              # net$Socket
+net-test-udp.neon          # net$Socket
 new-init-module.neon       # NoClassDefFoundError
 number-ceil.neon           # module math
 object.neon                # object
@@ -73,21 +62,15 @@ object-operator.neon       # object
 object-record.neon         # object
 object-record-default.neon # object
 object-subscript.neon      # object
-os-test.neon               # module os
 outer-issue192.neon        # verifier
 outer-parameter.neon       # verifier
 outer-tail.neon            # verifier
 outer.neon                 # verifier
 outer2.neon                # verifier
-parameter-inout-array.neon # actually works here so avoid the TODO
-parameter-inout-string.neon# actually works here so avoid the TODO
-pointer-print.neon         # pointer__toString
 posix-fork.neon            # module posix
 predeclare1.neon           # something
-process-test.neon          # module process
 recursion-limit.neon       # module runtime
 repl_import.neon           # module random
-repl_nested.neon           # nested function
 runtime-test.neon          # module runtime
 sql-connect.neon           # module sqlite
 sql-cursor.neon            # module sqlite
@@ -95,25 +78,16 @@ sql-embed.neon             # module sqlite
 sql-execute.neon           # module sqlite
 sql-query.neon             # module sqlite
 sql-whenever.neon          # module sqlite
-sqlite-test.neon           # bad type
-stack-overflow.neon        # catch stack overflow
-string-bytes.neon          # format
-string-format.neon         # format
-string-in.neon             # verifier
+sqlite-test.neon           # verifier
 string-index.neon          # index
-string-test.neon           # module string
-strings.neon               # stack size too large
-struct-test.neon           # illegal character dot
-sudoku-test.neon           # FunctionParameter
+string-test.neon           # utf-16 surrogates
+struct-test.neon           # ExpressionTransformer
 sys-exit.neon              # ExceptionType
-tail-call.neon             # stack overflow
 textio-test.neon           # PredefinedVariable textio$stdout
-time-stopwatch.neon        # illegal character dot
-time-test.neon             # module time
 tostring.neon              # enum tostring
-unicode-length.neon        # actually works here so avoid the TODO
 value-copy.neon            # value copy
-win32-test.neon            # illegal character dot
+win32-test.neon            # win32
+
 compress-test.neon         # compress.gzip
 extsample-test.neon        # extension functions
 hash-test.neon             # sha-3
@@ -121,11 +95,3 @@ http-test.neon             # module os
 regex-test.neon            # module regex
 sodium-test.neon           # module sodium
 zeromq-test.neon           # module zeromq
-
-compress-test.neon
-extsample-test.neon
-hash-test.neon
-http-test.neon
-regex-test.neon
-sodium-test.neon
-zeromq-test.neon

@@ -662,7 +662,7 @@ public:
 
 class TypeObject: public Type {
 public:
-    explicit TypeObject(const ast::TypeObject *to): Type(to, "java/lang/Object", "java/lang/Object"), to(to) {} // TODO
+    explicit TypeObject(const ast::TypeObject *to): Type(to, "java/lang/Object"), to(to) {} // TODO
     TypeObject(const TypeObject &) = delete;
     TypeObject &operator=(const TypeObject &) = delete;
     const ast::TypeObject *to;
@@ -716,7 +716,7 @@ public:
 
 class TypeRecord: public Type {
 public:
-    explicit TypeRecord(const ast::TypeRecord *tr): Type(tr, tr->module + "$" + tr->name), tr(tr), field_types() {
+    explicit TypeRecord(const ast::TypeRecord *tr): Type(tr, tr->module + "$" + tr->name.substr(tr->name.find('.')+1)), tr(tr), field_types() {
         for (auto f: tr->fields) {
             field_types.push_back(transform(f.type));
         }
@@ -2965,7 +2965,6 @@ public:
         }
         return s;
     }
-private:
     static std::string make_java_method_name(std::string s)
     {
         for (;;) {
@@ -3067,7 +3066,7 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        context.ca.code << OP_invokestatic << context.cf.Method(mf->module->name, mf->name, signature);
+        context.ca.code << OP_invokestatic << context.cf.Method(mf->module->name, Function::make_java_method_name(mf->name), signature);
         // TODO: out parameters
     }
 };
@@ -3469,7 +3468,7 @@ public:
     virtual void visit(const ast::TryExpression *node) { r = new TryExpression(node); }
     virtual void visit(const ast::DisjunctionExpression *node) { r = new DisjunctionExpression(node); }
     virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
-    virtual void visit(const ast::TypeTestExpression *) {}
+    virtual void visit(const ast::TypeTestExpression *) { internal_error("TypeTestExpression"); }
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
     virtual void visit(const ast::DictionaryInExpression *node) { r =  new DictionaryInExpression(node); }
     virtual void visit(const ast::ChainedComparisonExpression *node) { r = new ChainedComparisonExpression(node); }
@@ -3499,7 +3498,7 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *node) { r = new BytesValueIndexExpression(node); }
-    virtual void visit(const ast::ObjectSubscriptExpression *) { /* TODO */ }
+    virtual void visit(const ast::ObjectSubscriptExpression *) { internal_error("ObjectSubscriptExpression"); }
     virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }

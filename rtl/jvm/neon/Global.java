@@ -316,6 +316,10 @@ public class Global {
         return x.toString();
     }
 
+    public static java.lang.String pointer__toString(java.lang.Object p) {
+        return "<p:" + Integer.toString(System.identityHashCode(p)) + ">";
+    }
+
     public static void print(java.lang.String s) {
         System.out.println(s);
     }

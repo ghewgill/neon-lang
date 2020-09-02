@@ -170,7 +170,9 @@ foreach (extension_dir ${EXTENSION_DIRS})
 endforeach ()
 
 set(RTL_NEON
+    lib/base.neon
     lib/binary.neon
+    lib/complex.neon
     lib/console.neon
     lib/datetime.neon
     lib/debugger.neon
@@ -249,6 +251,20 @@ if (JAVAC)
     endforeach ()
     add_custom_target(neon_jvm ALL
         DEPENDS ${NEON_JVM_CLASSES}
+    )
+    string(REPLACE "lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
+    string(REPLACE "lib/struct.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON_WITHOUT_GLOBAL}") # TODO
+    string(REPLACE ".neon" ".class" RTL_CLASSES "${RTL_NEON_WITHOUT_GLOBAL}")
+    foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
+        string(REPLACE ".neon" ".class" class ${rtl_neon})
+        add_custom_command(
+            OUTPUT ${class}
+            COMMAND neonc -q -t jvm ${rtl_neon}
+            DEPENDS neonc ${rtl_neon}
+        )
+    endforeach ()
+    add_custom_target(neon_jvm_rtl ALL
+        DEPENDS ${RTL_CLASSES}
     )
 endif (JAVAC)
 
