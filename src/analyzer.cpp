@@ -3775,12 +3775,14 @@ static void deconstruct(const pt::Expression *expr, std::vector<const pt::Expres
     const pt::IdentityExpression *ie = dynamic_cast<const pt::IdentityExpression *>(expr);
     const pt::UnaryExpression *ue = dynamic_cast<const pt::UnaryExpression *>(expr);
     const pt::BinaryExpression *be = dynamic_cast<const pt::BinaryExpression *>(expr);
+    const pt::DotExpression *de = dynamic_cast<const pt::DotExpression *>(expr);
     // TODO: Most arrays don't have a toString() method, so this fails for some test code.
     // Handle this somehow.
     //const pt::SubscriptExpression *se = dynamic_cast<const pt::SubscriptExpression *>(expr);
     const pt::ChainedComparisonExpression *che = dynamic_cast<const pt::ChainedComparisonExpression *>(expr);
     const pt::ConditionalExpression *ce = dynamic_cast<const pt::ConditionalExpression *>(expr);
     const pt::RangeSubscriptExpression *re = dynamic_cast<const pt::RangeSubscriptExpression *>(expr);
+    const pt::FunctionCallExpression *fc = dynamic_cast<const pt::FunctionCallExpression *>(expr);
     if (ie != nullptr) {
         deconstruct(ie->expr.get(), parts);
         return;
@@ -3789,6 +3791,8 @@ static void deconstruct(const pt::Expression *expr, std::vector<const pt::Expres
     } else if (be != nullptr) {
         deconstruct(be->left.get(), parts);
         deconstruct(be->right.get(), parts);
+    } else if (de != nullptr) {
+        deconstruct(de->base.get(), parts);
     //} else if (se != nullptr) {
     //    deconstruct(se->base.get(), parts);
     //    deconstruct(se->index.get(), parts);
@@ -3805,6 +3809,16 @@ static void deconstruct(const pt::Expression *expr, std::vector<const pt::Expres
         deconstruct(re->base.get(), parts);
         deconstruct(re->range->first.get(), parts);
         deconstruct(re->range->last.get(), parts);
+    } else if (fc != nullptr) {
+        // This handles method calls, where we want to dump out the value
+        // that is having a method called on it.
+        const pt::DotExpression *de = dynamic_cast<const pt::DotExpression *>(fc->base.get());
+        if (de != nullptr) {
+            deconstruct(de->base.get(), parts);
+        }
+        for (auto &a: fc->args) {
+            deconstruct(a->expr.get(), parts);
+        }
     } else if (dynamic_cast<const pt::BooleanLiteralExpression *>(expr) != nullptr
             || dynamic_cast<const pt::NumberLiteralExpression *>(expr) != nullptr
             || dynamic_cast<const pt::StringLiteralExpression *>(expr) != nullptr) {
@@ -3928,7 +3942,9 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             // And also do this if the above call to analyze() throws
             // any exception.
             ie->parts[1].first.release();
-            throw;
+            // There used to be a throw statement here to re-throw the exception,
+            // but a more robust approach is to just skip printing the output
+            // for an expression that doesn't have a viable .toString().
         }
     }
     return new ast::AssertStatement(statement->token.line, statements, expr, statement->source);
