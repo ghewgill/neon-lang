@@ -5,4 +5,4 @@ END FUNCTION
 VAR s: String
 foo(OUT s)
 print(s)
-#= hello
+--= hello

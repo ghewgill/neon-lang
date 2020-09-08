@@ -3,154 +3,154 @@ IMPORT math
 VAR exp: Number := 0
 
 print(str(math.Pi))
-#= 3.141592653589793238462643383279503
+--= 3.141592653589793238462643383279503
 
 print(str(math.abs(-5)))
-#= 5
+--= 5
 
 print(str(math.acos(1)))
-#= 0
+--= 0
 
 print(str(math.asin(0)))
-#= 0
+--= 0
 
 print(str(math.atan(0)))
-#= 0
+--= 0
 
 print(str(math.ceil(5.5)))
-#= 6
+--= 6
 
 print(str(math.cos(0)))
-#= 1
+--= 1
 
 print(str(math.exp(0)))
-#= 1
+--= 1
 
 print(str(math.floor(-5.5)))
-#= -6
+--= -6
 
 print(str(math.log(1)))
-#= 0
+--= 0
 
 print(str(math.sign(-5)))
-#= -1
+--= -1
 
 print(str(math.sin(0)))
-#= 0
+--= 0
 
 print(str(math.sqrt(16)))
-#= 4
+--= 4
 
 print(str(math.tan(0)))
-#= 0
+--= 0
 
 print(str(math.acosh(1)))
-#= 0
+--= 0
 
 print(str(math.asinh(0)))
-#= 0
+--= 0
 
 print(str(math.atanh(0)))
-#= 0
+--= 0
 
 print(str(math.atan2(0, -1)))
-#= 3.141592653589793238462643383279503
+--= 3.141592653589793238462643383279503
 
 print(str(math.cbrt(8)))
-#= 2
+--= 2
 
 print(str(math.cosh(0)))
-#= 1
+--= 1
 
 print(str(math.erf(0)))
-#= 0
+--= 0
 
 print(str(math.erfc(0)))
-#= 1
+--= 1
 
 print(str(math.exp2(3)))
-#= 8
+--= 8
 
 print(str(math.expm1(0)))
-#= 0
+--= 0
 
 print(str(math.frexp(1/80, OUT exp)))
 print(str(exp))
-#= 0.125
-#= -1
+--= 0.125
+--= -1
 
 print(str(math.hypot(3, 4)))
-#= 5
+--= 5
 
 print(str(math.ldexp(125, -3)))
-#= 0.125
+--= 0.125
 
 print(str(math.lgamma(2)))
-#= 0
+--= 0
 
 print(str(math.log10(100)))
-#= 2
+--= 2
 
 print(str(math.log1p(0)))
-#= 0
+--= 0
 
 print(str(math.log2(8)))
-#= 3
+--= 3
 
 print(str(math.max(45, 67)))
-#= 67
+--= 67
 
 print(str(math.min(45, 67)))
-#= 45
+--= 45
 
 print(str(math.nearbyint(5.2)))
-#= 5
+--= 5
 
 print("\(math.odd(3))")
-#= TRUE
+--= TRUE
 
 TRY
     print("\(math.odd(1.5))")
 TRAP ValueRangeException AS x DO
     print(x.info)
 END TRY
-#= odd() requires integer
+--= odd() requires integer
 
 print(str(math.round(0, 3.14159)))
-#= 3
+--= 3
 print(str(math.round(1, 3.14159)))
-#= 3.1
+--= 3.1
 print(str(math.round(2, 3.14159)))
-#= 3.14
+--= 3.14
 print(str(math.round(3, 3.14159)))
-#= 3.142
+--= 3.142
 print(str(math.round(4, 3.14159)))
-#= 3.1416
+--= 3.1416
 print(str(math.round(5, 3.14159)))
-#= 3.14159
+--= 3.14159
 print(str(math.round(6, 3.14159)))
-#= 3.14159
+--= 3.14159
 
 print(str(math.sinh(0)))
-#= 0
+--= 0
 
 print(str(math.tanh(0)))
-#= 0
+--= 0
 
 print(str(math.tgamma(6)))
-#= 120
+--= 120
 
 print(str(math.trunc(4)))
-#= 4
+--= 4
 
 print(str(math.trunc(3.9)))
-#= 3
+--= 3
 
 print(str(math.trunc(-3.9)))
-#= -3
+--= -3
 
 print(str(math.trunc(-5.5)))
-#= -5
+--= -5
 
 print(str(math.powmod(4, 13, 497)))
 #= 445

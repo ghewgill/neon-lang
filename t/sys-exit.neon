@@ -5,11 +5,11 @@ TRY
 TRAP InvalidValueException AS x DO
     print(x.info)
 END TRY
-#= sys.exit invalid parameter: 1.5
+--= sys.exit invalid parameter: 1.5
 
 TRY
     sys.exit(-1)
 TRAP InvalidValueException AS x DO
     print(x.info)
 END TRY
-#= sys.exit invalid parameter: -1
+--= sys.exit invalid parameter: -1

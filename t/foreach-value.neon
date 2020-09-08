@@ -2,4 +2,4 @@ LET d: Dictionary<String> := {"foo": "bar"}
 FOREACH x IN d.keys() DO
     print(x)
 END FOREACH
-#= foo
+--= foo

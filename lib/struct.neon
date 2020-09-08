@@ -1,8 +1,6 @@
-#|
- |  File: struct
- |
- |  Functions for working with fixed-size structures.
- |#
+--  File: struct
+--
+--  Functions for working with fixed-size structures.
 
 IMPORT string
 
@@ -48,32 +46,30 @@ EXPORT unpackUInt64LE
 
 IMPORT binary
 
-#|
- |  Enumeration: Type
- |
- |  The type of a field.
- |
- |  Values:
- |      bool - boolean
- |      ieee32 - IEEE 754 32 bit binary floating point
- |      ieee64 - IEEE 754 64 bit binary floating point
- |      int8 - signed 8 bit integer
- |      int16BE - signed 16 bit integer, big endian
- |      int16LE - signed 16 bit integer, little endian
- |      int32BE - signed 32 bit integer, big endian
- |      int32LE - signed 32 bit integer, little endian
- |      int64BE - signed 64 bit integer, big endian
- |      int64LE - signed 64 bit integer, little endian
- |      uint8 - unsigned 8 bit integer
- |      uint16BE - unsigned 16 bit integer, big endian
- |      uint16LE - unsigned 16 bit integer, little endian
- |      uint32BE - unsigned 32 bit integer, big endian
- |      uint32LE - unsigned 32 bit integer, little endian
- |      uint64BE - unsigned 64 bit integer, big endian
- |      uint64LE - unsigned 64 bit integer, little endian
- |      string - string
- |      bytes - bytes
- |#
+--  Enumeration: Type
+--
+--  The type of a field.
+--
+--  Values:
+--      bool - boolean
+--      ieee32 - IEEE 754 32 bit binary floating point
+--      ieee64 - IEEE 754 64 bit binary floating point
+--      int8 - signed 8 bit integer
+--      int16BE - signed 16 bit integer, big endian
+--      int16LE - signed 16 bit integer, little endian
+--      int32BE - signed 32 bit integer, big endian
+--      int32LE - signed 32 bit integer, little endian
+--      int64BE - signed 64 bit integer, big endian
+--      int64LE - signed 64 bit integer, little endian
+--      uint8 - unsigned 8 bit integer
+--      uint16BE - unsigned 16 bit integer, big endian
+--      uint16LE - unsigned 16 bit integer, little endian
+--      uint32BE - unsigned 32 bit integer, big endian
+--      uint32LE - unsigned 32 bit integer, little endian
+--      uint64BE - unsigned 64 bit integer, big endian
+--      uint64LE - unsigned 64 bit integer, little endian
+--      string - string
+--      bytes - bytes
 TYPE Type IS ENUM
     bool
     ieee32
@@ -96,72 +92,56 @@ TYPE Type IS ENUM
     bytes
 END ENUM
 
-#|
- |  Type: Field
- |
- |  Represents a field in a structure.
- |#
+--  Type: Field
+--
+--  Represents a field in a structure.
 TYPE Field IS RECORD
     name: String
     type: Type
     width: Number
 END RECORD
 
-#|
- |  Type: Struct
- |
- |  Represents a complete structure as a sequence of fields.
- |#
+--  Type: Struct
+--
+--  Represents a complete structure as a sequence of fields.
 TYPE Struct IS RECORD
     PRIVATE fields: Array<Field>
 END RECORD
 
-#|
- |  Function: make
- |
- |  Make a <Struct> based on an array of <Fields>.
- |#
+--  Function: make
+--
+--  Make a <Struct> based on an array of <Fields>.
 FUNCTION make(fields: Array<Field>): Struct
     RETURN Struct(fields WITH fields)
 END FUNCTION
 
-#|
- |  Function: field
- |
- |  Helper function to create <Field> records.
- |#
+--  Function: field
+--
+--  Helper function to create <Field> records.
 FUNCTION field(name: String, type: Type, width: Number): Field
     RETURN Field(name WITH name, type WITH type, width WITH width)
 END FUNCTION
 
-#|
- |  Function: packBool
- |
- |  Pack a <Boolean> value into a <Bytes>.
- |#
+--  Function: packBool
+--
+--  Pack a <Boolean> value into a <Bytes>.
 FUNCTION packBool(b: Boolean): Bytes
     RETURN (IF b THEN HEXBYTES "01" ELSE HEXBYTES "00")
 END FUNCTION
 
-#|
- |  Function: packIEEE32
- |
- |  Pack a <Number> value into a <Bytes> in IEEE 754 binary32 floating point format.
- |#
+--  Function: packIEEE32
+--
+--  Pack a <Number> value into a <Bytes> in IEEE 754 binary32 floating point format.
 DECLARE NATIVE FUNCTION packIEEE32(n: Number): Bytes
 
-#|
- |  Function: packIEEE64
- |
- |  Pack a <Number> value into a <Bytes> in IEEE 754 binary64 floating point format.
- |#
+--  Function: packIEEE64
+--
+--  Pack a <Number> value into a <Bytes> in IEEE 754 binary64 floating point format.
 DECLARE NATIVE FUNCTION packIEEE64(n: Number): Bytes
 
-#|
- |  Function: packInt8
- |
- |  Pack a signed <Number> into a <Bytes> of width 1.
- |#
+--  Function: packInt8
+--
+--  Pack a signed <Number> into a <Bytes> of width 1.
 FUNCTION packInt8(n: Number): Bytes
     CHECK -0x80 <= n <= 0x7F ELSE
         RAISE InvalidValueException
@@ -169,11 +149,9 @@ FUNCTION packInt8(n: Number): Bytes
     RETURN packUInt8((IF n < 0 THEN 0x100 + n ELSE n))
 END FUNCTION
 
-#|
- |  Function: packInt16BE
- |
- |  Pack a signed <Number> into a <Bytes> of width 2.
- |#
+--  Function: packInt16BE
+--
+--  Pack a signed <Number> into a <Bytes> of width 2.
 FUNCTION packInt16BE(n: Number): Bytes
     CHECK -0x8000 <= n <= 0x7FFF ELSE
         RAISE InvalidValueException
@@ -181,11 +159,9 @@ FUNCTION packInt16BE(n: Number): Bytes
     RETURN packUInt16BE((IF n < 0 THEN 0x10000 + n ELSE n))
 END FUNCTION
 
-#|
- |  Function: packInt16LE
- |
- |  Pack a signed <Number> into a <Bytes> of width 2.
- |#
+--  Function: packInt16LE
+--
+--  Pack a signed <Number> into a <Bytes> of width 2.
 FUNCTION packInt16LE(n: Number): Bytes
     CHECK -0x8000 <= n <= 0x7FFF ELSE
         RAISE InvalidValueException
@@ -193,11 +169,9 @@ FUNCTION packInt16LE(n: Number): Bytes
     RETURN packUInt16LE((IF n < 0 THEN 0x10000 + n ELSE n))
 END FUNCTION
 
-#|
- |  Function: packInt32BE
- |
- |  Pack a signed <Number> into a <Bytes> of width 4.
- |#
+--  Function: packInt32BE
+--
+--  Pack a signed <Number> into a <Bytes> of width 4.
 FUNCTION packInt32BE(n: Number): Bytes
     CHECK -0x80000000 <= n <= 0x7FFFFFFF ELSE
         RAISE InvalidValueException
@@ -205,11 +179,9 @@ FUNCTION packInt32BE(n: Number): Bytes
     RETURN packUInt32BE((IF n < 0 THEN 0x100000000 + n ELSE n))
 END FUNCTION
 
-#|
- |  Function: packInt32LE
- |
- |  Pack a signed <Number> into a <Bytes> of width 4.
- |#
+--  Function: packInt32LE
+--
+--  Pack a signed <Number> into a <Bytes> of width 4.
 FUNCTION packInt32LE(n: Number): Bytes
     CHECK -0x80000000 <= n <= 0x7FFFFFFF ELSE
         RAISE InvalidValueException
@@ -217,11 +189,9 @@ FUNCTION packInt32LE(n: Number): Bytes
     RETURN packUInt32LE((IF n < 0 THEN 0x100000000 + n ELSE n))
 END FUNCTION
 
-#|
- |  Function: packInt64BE
- |
- |  Pack a signed <Number> into a <Bytes> of width 8.
- |#
+--  Function: packInt64BE
+--
+--  Pack a signed <Number> into a <Bytes> of width 8.
 FUNCTION packInt64BE(n: Number): Bytes
     CHECK -0x8000000000000000 <= n <= 0x7FFFFFFFFFFFFFFF ELSE
         RAISE InvalidValueException
@@ -229,11 +199,9 @@ FUNCTION packInt64BE(n: Number): Bytes
     RETURN packUInt64BE((IF n < 0 THEN 0x10000000000000000 + n ELSE n))
 END FUNCTION
 
-#|
- |  Function: packInt64LE
- |
- |  Pack a signed <Number> into a <Bytes> of width 8.
- |#
+--  Function: packInt64LE
+--
+--  Pack a signed <Number> into a <Bytes> of width 8.
 FUNCTION packInt64LE(n: Number): Bytes
     CHECK -0x8000000000000000 <= n <= 0x7FFFFFFFFFFFFFFF ELSE
         RAISE InvalidValueException
@@ -241,11 +209,9 @@ FUNCTION packInt64LE(n: Number): Bytes
     RETURN packUInt64LE((IF n < 0 THEN 0x10000000000000000 + n ELSE n))
 END FUNCTION
 
-#|
- |  Function: packUInt8
- |
- |  Pack a signed <Number> into a <Bytes> of width 1.
- |#
+--  Function: packUInt8
+--
+--  Pack a signed <Number> into a <Bytes> of width 1.
 FUNCTION packUInt8(n: Number): Bytes
     CHECK 0 <= n <= 0xFF ELSE
         RAISE InvalidValueException
@@ -255,11 +221,9 @@ FUNCTION packUInt8(n: Number): Bytes
     RETURN r.toBytes()
 END FUNCTION
 
-#|
- |  Function: packUInt16BE
- |
- |  Pack an unsigned <Number> into a <Bytes> of width 2.
- |#
+--  Function: packUInt16BE
+--
+--  Pack an unsigned <Number> into a <Bytes> of width 2.
 FUNCTION packUInt16BE(n: Number): Bytes
     CHECK 0 <= n <= 0xFFFF ELSE
         RAISE InvalidValueException
@@ -270,11 +234,9 @@ FUNCTION packUInt16BE(n: Number): Bytes
     RETURN r.toBytes()
 END FUNCTION
 
-#|
- |  Function: packUInt16LE
- |
- |  Pack an unsigned <Number> into a <Bytes> of width 2.
- |#
+--  Function: packUInt16LE
+--
+--  Pack an unsigned <Number> into a <Bytes> of width 2.
 FUNCTION packUInt16LE(n: Number): Bytes
     CHECK 0 <= n <= 0xFFFF ELSE
         RAISE InvalidValueException
@@ -285,11 +247,9 @@ FUNCTION packUInt16LE(n: Number): Bytes
     RETURN r.toBytes()
 END FUNCTION
 
-#|
- |  Function: packUInt32BE
- |
- |  Pack an unsigned <Number> into a <Bytes> of width 4.
- |#
+--  Function: packUInt32BE
+--
+--  Pack an unsigned <Number> into a <Bytes> of width 4.
 FUNCTION packUInt32BE(n: Number): Bytes
     CHECK 0 <= n <= 0xFFFFFFFF ELSE
         RAISE InvalidValueException
@@ -302,11 +262,9 @@ FUNCTION packUInt32BE(n: Number): Bytes
     RETURN r.toBytes()
 END FUNCTION
 
-#|
- |  Function: packUInt32LE
- |
- |  Pack an unsigned <Number> into a <Bytes> of width 4.
- |#
+--  Function: packUInt32LE
+--
+--  Pack an unsigned <Number> into a <Bytes> of width 4.
 FUNCTION packUInt32LE(n: Number): Bytes
     CHECK 0 <= n <= 0xFFFFFFFF ELSE
         RAISE InvalidValueException
@@ -319,11 +277,9 @@ FUNCTION packUInt32LE(n: Number): Bytes
     RETURN r.toBytes()
 END FUNCTION
 
-#|
- |  Function: packUInt64BE
- |
- |  Pack an unsigned <Number> into a <Bytes> of width 8.
- |#
+--  Function: packUInt64BE
+--
+--  Pack an unsigned <Number> into a <Bytes> of width 8.
 FUNCTION packUInt64BE(n: Number): Bytes
     CHECK 0 <= n <= 0xFFFFFFFFFFFFFFFF ELSE
         RAISE InvalidValueException
@@ -340,11 +296,9 @@ FUNCTION packUInt64BE(n: Number): Bytes
     RETURN r.toBytes()
 END FUNCTION
 
-#|
- |  Function: packUInt64LE
- |
- |  Pack an unsigned <Number> into a <Bytes> of width 8.
- |#
+--  Function: packUInt64LE
+--
+--  Pack an unsigned <Number> into a <Bytes> of width 8.
 FUNCTION packUInt64LE(n: Number): Bytes
     CHECK 0 <= n <= 0xFFFFFFFFFFFFFFFF ELSE
         RAISE InvalidValueException
@@ -361,11 +315,9 @@ FUNCTION packUInt64LE(n: Number): Bytes
     RETURN r.toBytes()
 END FUNCTION
 
-#|
- |  Function: unpackBool
- |
- |  Unpack a <Boolean> from a <Bytes>.
- |#
+--  Function: unpackBool
+--
+--  Unpack a <Boolean> from a <Bytes>.
 FUNCTION unpackBool(b: Bytes): Boolean
     CHECK b.size() = 1 ELSE
         RAISE InvalidValueException
@@ -374,25 +326,19 @@ FUNCTION unpackBool(b: Bytes): Boolean
     RETURN a[0] <> 0
 END FUNCTION
 
-#|
- |  Function: unpackIEEE32
- |
- |  Unpack a <Number> from a <Bytes> in IEEE 754 binary32 floating point format.
- |#
+--  Function: unpackIEEE32
+--
+--  Unpack a <Number> from a <Bytes> in IEEE 754 binary32 floating point format.
 DECLARE NATIVE FUNCTION unpackIEEE32(b: Bytes): Number
 
-#|
- |  Function: unpackIEEE64
- |
- |  Unpack a <Number> from a <Bytes> in IEEE 754 binary64 floating point format.
- |#
+--  Function: unpackIEEE64
+--
+--  Unpack a <Number> from a <Bytes> in IEEE 754 binary64 floating point format.
 DECLARE NATIVE FUNCTION unpackIEEE64(b: Bytes): Number
 
-#|
- |  Function: unpackInt8
- |
- |  Unpack a <Number> from a <Bytes> of size 1.
- |#
+--  Function: unpackInt8
+--
+--  Unpack a <Number> from a <Bytes> of size 1.
 FUNCTION unpackInt8(b: Bytes): Number
     LET r: Number := unpackUInt8(b)
     IF r < 0x80 THEN
@@ -402,11 +348,9 @@ FUNCTION unpackInt8(b: Bytes): Number
     END IF
 END FUNCTION
 
-#|
- |  Function: unpackInt16BE
- |
- |  Unpack a <Number> from a <Bytes> of size 2.
- |#
+--  Function: unpackInt16BE
+--
+--  Unpack a <Number> from a <Bytes> of size 2.
 FUNCTION unpackInt16BE(b: Bytes): Number
     LET r: Number := unpackUInt16BE(b)
     IF r < 0x8000 THEN
@@ -416,11 +360,9 @@ FUNCTION unpackInt16BE(b: Bytes): Number
     END IF
 END FUNCTION
 
-#|
- |  Function: unpackInt16LE
- |
- |  Unpack a <Number> from a <Bytes> of size 2.
- |#
+--  Function: unpackInt16LE
+--
+--  Unpack a <Number> from a <Bytes> of size 2.
 FUNCTION unpackInt16LE(b: Bytes): Number
     LET r: Number := unpackUInt16LE(b)
     IF r < 0x8000 THEN
@@ -430,11 +372,9 @@ FUNCTION unpackInt16LE(b: Bytes): Number
     END IF
 END FUNCTION
 
-#|
- |  Function: unpackInt32BE
- |
- |  Unpack a <Number> from a <Bytes> of size 4.
- |#
+--  Function: unpackInt32BE
+--
+--  Unpack a <Number> from a <Bytes> of size 4.
 FUNCTION unpackInt32BE(b: Bytes): Number
     LET r: Number := unpackUInt32BE(b)
     IF r < 0x80000000 THEN
@@ -444,11 +384,9 @@ FUNCTION unpackInt32BE(b: Bytes): Number
     END IF
 END FUNCTION
 
-#|
- |  Function: unpackInt32LE
- |
- |  Unpack a <Number> from a <Bytes> of size 4.
- |#
+--  Function: unpackInt32LE
+--
+--  Unpack a <Number> from a <Bytes> of size 4.
 FUNCTION unpackInt32LE(b: Bytes): Number
     LET r: Number := unpackUInt32LE(b)
     IF r < 0x80000000 THEN
@@ -458,11 +396,9 @@ FUNCTION unpackInt32LE(b: Bytes): Number
     END IF
 END FUNCTION
 
-#|
- |  Function: unpackInt64BE
- |
- |  Unpack a <Number> from a <Bytes> of size 8.
- |#
+--  Function: unpackInt64BE
+--
+--  Unpack a <Number> from a <Bytes> of size 8.
 FUNCTION unpackInt64BE(b: Bytes): Number
     LET r: Number := unpackUInt64BE(b)
     IF r < 0x8000000000000000 THEN
@@ -472,11 +408,9 @@ FUNCTION unpackInt64BE(b: Bytes): Number
     END IF
 END FUNCTION
 
-#|
- |  Function: unpackInt64LE
- |
- |  Unpack a <Number> from a <Bytes> of size 8.
- |#
+--  Function: unpackInt64LE
+--
+--  Unpack a <Number> from a <Bytes> of size 8.
 FUNCTION unpackInt64LE(b: Bytes): Number
     LET r: Number := unpackUInt64LE(b)
     IF r < 0x8000000000000000 THEN
@@ -486,11 +420,9 @@ FUNCTION unpackInt64LE(b: Bytes): Number
     END IF
 END FUNCTION
 
-#|
- |  Function: unpackUInt8
- |
- |  Unpack a <Number> from a <Bytes> of size 1.
- |#
+--  Function: unpackUInt8
+--
+--  Unpack a <Number> from a <Bytes> of size 1.
 FUNCTION unpackUInt8(b: Bytes): Number
     CHECK b.size() = 1 ELSE
         RAISE InvalidValueException
@@ -499,11 +431,9 @@ FUNCTION unpackUInt8(b: Bytes): Number
     RETURN a[0]
 END FUNCTION
 
-#|
- |  Function: unpackUInt16BE
- |
- |  Unpack a <Number> from a <Bytes> of size 2.
- |#
+--  Function: unpackUInt16BE
+--
+--  Unpack a <Number> from a <Bytes> of size 2.
 FUNCTION unpackUInt16BE(b: Bytes): Number
     CHECK b.size() = 2 ELSE
         RAISE InvalidValueException
@@ -513,11 +443,9 @@ FUNCTION unpackUInt16BE(b: Bytes): Number
            a[1]
 END FUNCTION
 
-#|
- |  Function: unpackUInt16LE
- |
- |  Unpack a <Number> from a <Bytes> of size 2.
- |#
+--  Function: unpackUInt16LE
+--
+--  Unpack a <Number> from a <Bytes> of size 2.
 FUNCTION unpackUInt16LE(b: Bytes): Number
     CHECK b.size() = 2 ELSE
         RAISE InvalidValueException
@@ -527,11 +455,9 @@ FUNCTION unpackUInt16LE(b: Bytes): Number
            a[0]
 END FUNCTION
 
-#|
- |  Function: unpackUInt32BE
- |
- |  Unpack a <Number> from a <Bytes> of size 4.
- |#
+--  Function: unpackUInt32BE
+--
+--  Unpack a <Number> from a <Bytes> of size 4.
 FUNCTION unpackUInt32BE(b: Bytes): Number
     CHECK b.size() = 4 ELSE
         RAISE InvalidValueException
@@ -543,11 +469,9 @@ FUNCTION unpackUInt32BE(b: Bytes): Number
            a[3]
 END FUNCTION
 
-#|
- |  Function: unpackUInt32LE
- |
- |  Unpack a <Number> from a <Bytes> of size 4.
- |#
+--  Function: unpackUInt32LE
+--
+--  Unpack a <Number> from a <Bytes> of size 4.
 FUNCTION unpackUInt32LE(b: Bytes): Number
     CHECK b.size() = 4 ELSE
         RAISE InvalidValueException
@@ -559,11 +483,9 @@ FUNCTION unpackUInt32LE(b: Bytes): Number
            a[0]
 END FUNCTION
 
-#|
- |  Function: unpackUInt64BE
- |
- |  Unpack a <Number> from a <Bytes> of size 8.
- |#
+--  Function: unpackUInt64BE
+--
+--  Unpack a <Number> from a <Bytes> of size 8.
 FUNCTION unpackUInt64BE(b: Bytes): Number
     CHECK b.size() = 8 ELSE
         RAISE InvalidValueException
@@ -579,11 +501,9 @@ FUNCTION unpackUInt64BE(b: Bytes): Number
            a[7]
 END FUNCTION
 
-#|
- |  Function: unpackUInt64LE
- |
- |  Unpack a <Number> from a <Bytes> of size 8.
- |#
+--  Function: unpackUInt64LE
+--
+--  Unpack a <Number> from a <Bytes> of size 8.
 FUNCTION unpackUInt64LE(b: Bytes): Number
     CHECK b.size() = 8 ELSE
         RAISE InvalidValueException
@@ -599,11 +519,9 @@ FUNCTION unpackUInt64LE(b: Bytes): Number
            a[0]
 END FUNCTION
 
-#|
- |  Function: Struct.pack
- |
- |  Convert a dictionary of values into a structure.
- |#
+--  Function: Struct.pack
+--
+--  Convert a dictionary of values into a structure.
 FUNCTION Struct.pack(self: Struct, values: Dictionary<Object>): Bytes
     VAR buf: Array<Number> := []
     FOR f := 0 TO self.fields.size()-1 DO
@@ -663,11 +581,9 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<Object>): Bytes
     RETURN buf.toBytes()
 END FUNCTION
 
-#|
- |  Function: Struct.sizeof
- |
- |  Return the total size of a structure definition.
- |#
+--  Function: Struct.sizeof
+--
+--  Return the total size of a structure definition.
 FUNCTION Struct.sizeof(self: Struct): Number
     VAR r: Number := 0
     FOR f := 0 TO self.fields.size()-1 DO
@@ -676,11 +592,9 @@ FUNCTION Struct.sizeof(self: Struct): Number
     RETURN r
 END FUNCTION
 
-#|
- |  Function: Struct.unpack
- |
- |  Convert a structure into a dictionary of values.
- |#
+--  Function: Struct.unpack
+--
+--  Convert a structure into a dictionary of values.
 FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<Object>
     VAR r: Dictionary<Object> := {}
     LET a: Array<Number> := data.toArray()

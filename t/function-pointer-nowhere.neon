@@ -7,7 +7,7 @@ VAR p: FUNCTION() := NOWHERE
 IF p = NOWHERE THEN
     print("nowhere")
 END IF
-#= nowhere
+--= nowhere
 
 p := foo
 IF p = NOWHERE THEN
@@ -15,4 +15,4 @@ IF p = NOWHERE THEN
 ELSE
     print("somewhere")
 END IF
-#= somewhere
+--= somewhere

@@ -2,27 +2,27 @@ VAR a: String
 
 a := "hello world"
 print(a[4])
-#= o
+--= o
 
 a[4] := "y"
 print(a)
-#= helly world
+--= helly world
 
 a[4] := "ish"
 print(a)
-#= hellish world
+--= hellish world
 
 print(str(a.length()))
-#= 13
+--= 13
 
 a[4 TO 6] := "o"
 print(a)
-#= hello world
+--= hello world
 
 a[5 TO LAST] := ""
 print(a)
-#= hello
+--= hello
 
 a.append(" world")
 print(a)
-#= hello world
+--= hello world

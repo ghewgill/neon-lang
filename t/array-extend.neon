@@ -2,4 +2,4 @@ VAR a: Array<Number>
 a := [1, 2, 3]
 a.extend([4, 5])
 print("\(a.size()) \(a[2]) \(a[3])")
-#= 5 3 4
+--= 5 3 4

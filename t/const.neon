@@ -2,4 +2,4 @@ CONSTANT a: Number := 5
 
 print(str(a))
 
-#= 5
+--= 5

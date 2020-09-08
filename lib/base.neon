@@ -1,8 +1,6 @@
-#|
- |  Module: base
- |
- |  Conversions from numbers to and from arbitrary bases.
- |#
+--  Module: base
+--
+--  Conversions from numbers to and from arbitrary bases.
 
 IMPORT math
 IMPORT string

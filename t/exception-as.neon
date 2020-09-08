@@ -8,6 +8,6 @@ TRAP PrinterOnFireException AS x DO
     print(str(x.offset))
 END TRY
 
-#= PrinterOnFireException
-#= A4
-#= 6
+--= PrinterOnFireException
+--= A4
+--= 6

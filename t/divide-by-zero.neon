@@ -7,4 +7,4 @@ TRAP DivideByZeroException DO
     print("divide by zero")
 END TRY
 
-#= divide by zero
+--= divide by zero

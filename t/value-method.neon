@@ -5,4 +5,4 @@ FUNCTION foo(): NumberArray
 END FUNCTION
 
 print(str(foo().size()))
-#= 3
+--= 3

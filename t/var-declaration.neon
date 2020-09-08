@@ -2,4 +2,4 @@ VAR a: Number
 a := 5
 VAR b: Number := a
 print("\(b)")
-#= 5
+--= 5

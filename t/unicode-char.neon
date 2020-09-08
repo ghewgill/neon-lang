@@ -4,10 +4,10 @@ VAR s: String
 s := "你好世界"
 
 print(str(string.toCodePoint(s[0])))
-#= 20320
+--= 20320
 print(str(string.toCodePoint(s[1])))
-#= 22909
+--= 22909
 
 s := string.fromCodePoint(19990)
 print(str(string.toCodePoint(s[0])))
-#= 19990
+--= 19990

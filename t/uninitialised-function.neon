@@ -6,4 +6,4 @@ END FUNCTION
 
 s := "hello"
 foo()
-#= hello
+--= hello

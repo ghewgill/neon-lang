@@ -3,22 +3,22 @@ IMPORT string
 VAR a: String
 a := "\"\\\b\f\n\r\t\u1234\U00005678\u{latin small letter a}"
 print(a[0])
-#= "
+--= "
 print(a[1])
-#= \
+--= \
 print(str(string.toCodePoint(a[2])))
-#= 8
+--= 8
 print(str(string.toCodePoint(a[3])))
-#= 12
+--= 12
 print(str(string.toCodePoint(a[4])))
-#= 10
+--= 10
 print(str(string.toCodePoint(a[5])))
-#= 13
+--= 13
 print(str(string.toCodePoint(a[6])))
-#= 9
+--= 9
 print(str(string.toCodePoint(a[7])))
-#= 4660
+--= 4660
 print(str(string.toCodePoint(a[8])))
-#= 22136
+--= 22136
 print(str(string.toCodePoint(a[9])))
-#= 97
+--= 97

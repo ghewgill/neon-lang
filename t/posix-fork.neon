@@ -11,6 +11,6 @@ ELSE
     print("child")
     sys.exit(5)
 END IF
-#= child
-#= 5
-#= parent
+--= child
+--= 5
+--= parent

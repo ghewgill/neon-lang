@@ -1,7 +1,7 @@
 VAR b: Bytes := HEXBYTES "de ad be ef"
 print("\(b[1 TO 2].toArray())")
-#= [173, 190]
+--= [173, 190]
 
 b[0 TO 1] := HEXBYTES "ca fe"
 print("\(b.toArray())")
-#= [202, 254, 190, 239]
+--= [202, 254, 190, 239]

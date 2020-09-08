@@ -3,4 +3,4 @@ TRY
     s := "hello"
 END TRY
 print(s)
-#= hello
+--= hello

@@ -1,14 +1,14 @@
 LET an: Array<Number> := [1,2,3]
 print("\(an)")
-#= [1, 2, 3]
+--= [1, 2, 3]
 
 LET as: Array<String> := ["foo","bar"]
 print("\(as)")
-#= ["foo", "bar"]
+--= ["foo", "bar"]
 
 LET asq: Array<String> := ["hello\"world", "hello\\world"]
 print(asq.toString())
-#= ["hello\"world", "hello\\world"]
+--= ["hello\"world", "hello\\world"]
 
 FUNCTION f(): Array<Number>
     RETURN an

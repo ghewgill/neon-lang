@@ -14,8 +14,8 @@ VAR p: FUNCTION(n: Number, s: String): String
 
 p := repeat
 print(p(5, "hello"))
-#= hellohellohellohellohello
+--= hellohellohellohellohello
 
 p := append
 print(p(5, "hello"))
-#= 5hello
+--= 5hello

@@ -20,4 +20,4 @@ END FUNCTION
 
 print(str(foo(2, bar())))
 
-#= 6
+--= 6

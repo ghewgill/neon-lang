@@ -1,8 +1,6 @@
-#|
- |  File: simplehttp
- |
- |  Functions for making HTTP requests.
- |#
+--  File: simplehttp
+--
+--  Functions for making HTTP requests.
 IMPORT net
 IMPORT string
 
@@ -11,36 +9,30 @@ EXPORT HttpException
 EXPORT get
 EXPORT post
 
-#|
- |  Exception: HttpException
- |
- |  Raised when an HTTP request returns anything other than 200 OK.
- |#
+--  Exception: HttpException
+--
+--  Raised when an HTTP request returns anything other than 200 OK.
 EXCEPTION HttpException
 
-#|
- |  Function: get
- |
- |  Perform an HTTP GET operation with the specified url.
- |
- |  Parameters:
- |      url - the url
- |      headers - the response headers from the server
- |#
+--  Function: get
+--
+--  Perform an HTTP GET operation with the specified url.
+--
+--  Parameters:
+--      url - the url
+--      headers - the response headers from the server
 FUNCTION get(url: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
     RETURN exec("GET", url, "", requestHeaders, OUT responseHeaders)
 END FUNCTION
 
-#|
- |  Function: post
- |
- |  Perform an HTTP POST operation with the specified url and post data.
- |
- |  Parameters:
- |      url - the url
- |      post_data - the body of the POST request
- |      headers - the response headers from the server
- |#
+--  Function: post
+--
+--  Perform an HTTP POST operation with the specified url and post data.
+--
+--  Parameters:
+--      url - the url
+--      post_data - the body of the POST request
+--      headers - the response headers from the server
 FUNCTION post(url: String, post_data: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
     RETURN exec("POST", url, post_data, requestHeaders, OUT responseHeaders)
 END FUNCTION

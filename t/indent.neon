@@ -1,7 +1,7 @@
-# This file specifically contains a tab that indents the 'print' statement.
-# The tab tests the tab expansion in conjunction with the indent checker.
-# Without the tab expansion, the 'print' line would be flagged as an error.
+-- This file specifically contains a tab that indents the 'print' statement.
+-- The tab tests the tab expansion in conjunction with the indent checker.
+-- Without the tab expansion, the 'print' line would be flagged as an error.
     IF TRUE THEN
 	print("hi")
     END IF
-#= hi
+--= hi

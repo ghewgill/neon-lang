@@ -1,28 +1,28 @@
 VAR text: Bytes
 text := HEXBYTES "de ad be ef"
 print("\(text.toArray())")
-#= [222, 173, 190, 239]
+--= [222, 173, 190, 239]
 
 text := HEXBYTES "01 23 45 67 89 AB CD EF"
 print("\(text.toArray())")
-#= [1, 35, 69, 103, 137, 171, 205, 239]
+--= [1, 35, 69, 103, 137, 171, 205, 239]
 
 text := HEXBYTES "1 2 3 4"
 print("\(text.toArray())")
-#= [1, 2, 3, 4]
+--= [1, 2, 3, 4]
 
 text := HEXBYTES "01 2 3 4"
 print("\(text.toArray())")
-#= [1, 2, 3, 4]
+--= [1, 2, 3, 4]
 
 text := HEXBYTES "001 2 3 4"
 print("\(text.toArray())")
-#= [0, 1, 2, 3, 4]
+--= [0, 1, 2, 3, 4]
 
 text := HEXBYTES "0001 2 3 4"
 print("\(text.toArray())")
-#= [0, 1, 2, 3, 4]
+--= [0, 1, 2, 3, 4]
 
 text := HEXBYTES "0102030405060708090a0b0c0d0e0f"
 print("\(text.toArray())")
-#= [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+--= [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]

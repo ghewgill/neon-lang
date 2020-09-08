@@ -6,6 +6,6 @@ print(a.toString())
 DEC a
 print(a.toString())
 
-#= 1
-#= 2
-#= 1
+--= 1
+--= 2
+--= 1
