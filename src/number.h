@@ -57,6 +57,7 @@ Number number_multiply(Number x, Number y);
 Number number_divide(Number x, Number y);
 Number number_modulo(Number x, Number y);
 Number number_pow(Number x, Number y);
+Number number_powmod(Number b, Number e, Number m);
 Number number_negate(Number x);
 Number number_abs(Number x);
 Number number_sign(Number x);

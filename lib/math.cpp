@@ -171,6 +171,20 @@ bool odd(Number x)
     return ne_global::odd(x);
 }
 
+Number powmod(Number b, Number e, Number m)
+{
+    if (not number_is_integer(b)) {
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(b)));
+    }
+    if (not number_is_integer(e)) {
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(e)));
+    }
+    if (not number_is_integer(m)) {
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(m)));
+    }
+    return number_powmod(b, e, m);
+}
+
 Number round(Number places, Number value)
 {
     return ne_global::round(places, value);

@@ -151,3 +151,6 @@ print(str(math.trunc(-3.9)))
 
 print(str(math.trunc(-5.5)))
 #= -5
+
+print(str(math.powmod(4, 13, 497)))
+#= 445

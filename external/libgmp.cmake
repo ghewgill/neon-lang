@@ -74,6 +74,7 @@ else ()
             gmp-6.1.2/mpn/generic/add_n.c
             gmp-6.1.2/mpn/generic/addmul_1.c
             gmp-6.1.2/mpn/generic/bdiv_dbm1c.c
+            gmp-6.1.2/mpn/generic/bdiv_q.c
             gmp-6.1.2/mpn/generic/binvert.c
             gmp-6.1.2/mpn/generic/cmp.c
             gmp-6.1.2/mpn/generic/com.c
@@ -88,11 +89,23 @@ else ()
             gmp-6.1.2/mpn/generic/divexact.c
             gmp-6.1.2/mpn/generic/divrem_1.c
             gmp-6.1.2/mpn/generic/divrem_2.c
+            gmp-6.1.2/mpn/generic/gcdext.c
+            gmp-6.1.2/mpn/generic/gcdext_1.c
+            gmp-6.1.2/mpn/generic/gcdext_lehmer.c
+            gmp-6.1.2/mpn/generic/gcd_subdiv_step.c
             gmp-6.1.2/mpn/generic/get_d.c
             gmp-6.1.2/mpn/generic/get_str.c
+            gmp-6.1.2/mpn/generic/hgcd.c
+            gmp-6.1.2/mpn/generic/hgcd_appr.c
+            gmp-6.1.2/mpn/generic/hgcd_matrix.c
+            gmp-6.1.2/mpn/generic/hgcd_reduce.c
+            gmp-6.1.2/mpn/generic/hgcd_step.c
+            gmp-6.1.2/mpn/generic/hgcd2.c
             gmp-6.1.2/mpn/generic/invertappr.c
             gmp-6.1.2/mpn/generic/lshift.c
             gmp-6.1.2/mpn/generic/lshiftc.c
+            gmp-6.1.2/mpn/generic/matrix22_mul.c
+            gmp-6.1.2/mpn/generic/matrix22_mul1_inverse_vector.c
             gmp-6.1.2/mpn/generic/mod_1.c
             gmp-6.1.2/mpn/generic/mod_1_1.c
             gmp-6.1.2/mpn/generic/mod_1_2.c
@@ -106,13 +119,18 @@ else ()
             gmp-6.1.2/mpn/generic/mullo_basecase.c
             gmp-6.1.2/mpn/generic/mullo_n.c
             gmp-6.1.2/mpn/generic/mulmod_bnm1.c
+            gmp-6.1.2/mpn/generic/mu_bdiv_q.c
             gmp-6.1.2/mpn/generic/mu_bdiv_qr.c
             gmp-6.1.2/mpn/generic/mu_div_q.c
             gmp-6.1.2/mpn/generic/mu_div_qr.c
             gmp-6.1.2/mpn/generic/mu_divappr_q.c
             gmp-6.1.2/mpn/generic/neg.c
             gmp-6.1.2/mpn/generic/nussbaumer_mul.c
+            gmp-6.1.2/mpn/generic/powlo.c
+            gmp-6.1.2/mpn/generic/powm.c
             gmp-6.1.2/mpn/generic/pre_divrem_1.c
+            gmp-6.1.2/mpn/generic/redc_1.c
+            gmp-6.1.2/mpn/generic/redc_n.c
             gmp-6.1.2/mpn/generic/rshift.c
             gmp-6.1.2/mpn/generic/sbpi1_bdiv_q.c
             gmp-6.1.2/mpn/generic/sbpi1_bdiv_qr.c
@@ -121,6 +139,8 @@ else ()
             gmp-6.1.2/mpn/generic/sbpi1_divappr_q.c
             gmp-6.1.2/mpn/generic/set_str.c
             gmp-6.1.2/mpn/generic/sqr.c
+            gmp-6.1.2/mpn/generic/sqrlo.c
+            gmp-6.1.2/mpn/generic/sqrlo_basecase.c
             gmp-6.1.2/mpn/generic/sqr_basecase.c
             gmp-6.1.2/mpn/generic/sqrmod_bnm1.c
             gmp-6.1.2/mpn/generic/sub.c
@@ -164,13 +184,16 @@ else ()
             gmp-6.1.2/mpz/clear.c
             gmp-6.1.2/mpz/cmp.c
             gmp-6.1.2/mpz/cmp_si.c
+            gmp-6.1.2/mpz/divexact.c
             gmp-6.1.2/mpz/divis.c
             gmp-6.1.2/mpz/fdiv_r.c
+            gmp-6.1.2/mpz/gcdext.c
             gmp-6.1.2/mpz/get_d.c
             gmp-6.1.2/mpz/get_si.c
             gmp-6.1.2/mpz/get_str.c
             gmp-6.1.2/mpz/get_ui.c
             gmp-6.1.2/mpz/init.c
+            gmp-6.1.2/mpz/invert.c
             gmp-6.1.2/mpz/iset.c
             gmp-6.1.2/mpz/iset_si.c
             gmp-6.1.2/mpz/iset_str.c
@@ -179,6 +202,7 @@ else ()
             gmp-6.1.2/mpz/mul_2exp.c
             gmp-6.1.2/mpz/n_pow_ui.c
             gmp-6.1.2/mpz/neg.c
+            gmp-6.1.2/mpz/powm.c
             gmp-6.1.2/mpz/pow_ui.c
             gmp-6.1.2/mpz/realloc.c
             gmp-6.1.2/mpz/set.c

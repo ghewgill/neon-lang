@@ -2970,6 +2970,9 @@ def neon_math_odd(env, x):
         raise NeonException("ValueRangeException", "odd() requires integer")
     return (x & 1) != 0
 
+def neon_math_powmod(env, b, e, m):
+    return pow(b, e, m)
+
 def neon_math_round(env, places, value):
     return round(value, places)
 

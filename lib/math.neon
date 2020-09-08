@@ -36,6 +36,7 @@ EXPORT max
 EXPORT min
 EXPORT nearbyint
 EXPORT odd
+EXPORT powmod
 EXPORT round
 EXPORT sign
 EXPORT sin
@@ -352,6 +353,13 @@ DECLARE NATIVE FUNCTION nearbyint(x: Number): Number
  |      http://mathworld.wolfram.com/OddNumber.html
  |#
 DECLARE NATIVE FUNCTION odd(x: Number): Boolean
+
+#|
+ |  Function: powmod
+ |
+ |  Calculate modular exponentiation.
+ |#
+DECLARE NATIVE FUNCTION powmod(b, e, m: Number): Number
 
 #|
  |  Function: round

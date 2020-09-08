@@ -93,6 +93,13 @@ Number number_pow(Number x, Number y)
     return bid128_pow(x.get_bid(), y.get_bid());
 }
 
+Number number_powmod(Number b, Number e, Number m)
+{
+    mpz_class r;
+    mpz_powm(r.get_mpz_t(), b.get_mpz().get_mpz_t(), e.get_mpz().get_mpz_t(), m.get_mpz().get_mpz_t());
+    return r;
+}
+
 Number number_negate(Number x)
 {
     if (x.rep == Rep::MPZ) {
