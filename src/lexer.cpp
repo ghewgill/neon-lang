@@ -192,7 +192,7 @@ inline bool number_body(uint32_t c)
 
 inline bool number_base(uint32_t c)
 {
-    return c == '#' || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
 
 inline bool number_decimal_body(uint32_t c)
