@@ -5,25 +5,25 @@
             <Prefix Keywords1="no" Keywords2="no" Keywords3="yes" Keywords4="no" Keywords5="yes" Keywords6="no" Keywords7="no" Keywords8="no" />
         </Settings>
         <KeywordLists>
-            <Keywords name="Comments">00 01 02 03#| 04|#</Keywords>
+            <Keywords name="Comments">00 01 02 03/* 04*/</Keywords>
             <Keywords name="Numbers, prefix1"></Keywords>
-            <Keywords name="Numbers, prefix2">0x 0b 0o #</Keywords>
+            <Keywords name="Numbers, prefix2">0x 0b 0o</Keywords>
             <Keywords name="Numbers, extras1">A B C D E F a b c d e f</Keywords>
             <Keywords name="Numbers, extras2"></Keywords>
             <Keywords name="Numbers, suffix1"></Keywords>
-            <Keywords name="Numbers, suffix2">#</Keywords>
+            <Keywords name="Numbers, suffix2"></Keywords>
             <Keywords name="Numbers, range"></Keywords>
             <Keywords name="Operators1">&lt; &gt; &lt;= &gt;= ^ = + - / * := : ( ) &amp;</Keywords>
-            <Keywords name="Operators2">AND INTDIV MOD NOT OR #</Keywords>
+            <Keywords name="Operators2">AND INTDIV MOD NOT OR</Keywords>
             <Keywords name="Folders in code1, open"></Keywords>
             <Keywords name="Folders in code1, middle"></Keywords>
             <Keywords name="Folders in code1, close"></Keywords>
             <Keywords name="Folders in code2, open"></Keywords>
             <Keywords name="Folders in code2, middle"></Keywords>
             <Keywords name="Folders in code2, close"></Keywords>
-            <Keywords name="Folders in comment, open">#|</Keywords>
+            <Keywords name="Folders in comment, open">/*</Keywords>
             <Keywords name="Folders in comment, middle"></Keywords>
-            <Keywords name="Folders in comment, close">|#</Keywords>
+            <Keywords name="Folders in comment, close">*/</Keywords>
             <Keywords name="Keywords1">ALIAS&#x000D;&#x000A;AS&#x000D;&#x000A;BEGIN&#x000D;&#x000A;CASE&#x000D;&#x000A;CHECK&#x000D;&#x000A;CONSTANT&#x000D;&#x000A;DEC&#x000D;&#x000A;DECLARE&#x000D;&#x000A;DO&#x000D;&#x000A;ELSE&#x000D;&#x000A;ELSIF&#x000D;&#x000A;EMBED&#x000D;&#x000A;END&#x000D;&#x000A;ENUM&#x000D;&#x000A;EXIT&#x000D;&#x000A;EXPORT&#x000D;&#x000A;FOR&#x000D;&#x000A;FOREACH&#x000D;&#x000A;FUNCTION&#x000D;&#x000A;GIVES&#x000D;&#x000A;HEXBYTES&#x000D;&#x000A;IF&#x000D;&#x000A;IMPORT&#x000D;&#x000A;INC&#x000D;&#x000A;INDEX&#x000D;&#x000A;IS&#x000D;&#x000A;LET&#x000D;&#x000A;LOOP&#x000D;&#x000A;MAIN&#x000D;&#x000A;NATIVE&#x000D;&#x000A;NEW&#x000D;&#x000A;NEXT&#x000D;&#x000A;OF&#x000D;&#x000A;OTHERS&#x000D;&#x000A;POINTER&#x000D;&#x000A;PRIVATE&#x000D;&#x000A;RECORD&#x000D;&#x000A;REPEAT&#x000D;&#x000A;RETURN&#x000D;&#x000A;STEP&#x000D;&#x000A;THEN&#x000D;&#x000A;TO&#x000D;&#x000A;TRY&#x000D;&#x000A;TYPE&#x000D;&#x000A;UNTIL&#x000D;&#x000A;VALID&#x000D;&#x000A;VAR&#x000D;&#x000A;WHEN&#x000D;&#x000A;WHILE</Keywords>
             <Keywords name="Keywords2">ASSERT&#x000D;&#x000A;EXCEPTION&#x000D;&#x000A;RAISE&#x000D;&#x000A;_</Keywords>
             <Keywords name="Keywords3">Boolean&#x000D;&#x000A;Bytes&#x000D;&#x000A;Number&#x000D;&#x000A;String</Keywords>
@@ -32,7 +32,7 @@
             <Keywords name="Keywords6">.append&#x000D;&#x000A;.extend&#x000D;&#x000A;.resize&#x000D;&#x000A;.size&#x000D;&#x000A;.slice&#x000D;&#x000A;.splice&#x000D;&#x000A;.keys&#x000D;&#x000A;.length&#x000D;&#x000A;.substring&#x000D;&#x000A;.toString&#x000D;&#x000A;.toArray&#x000D;&#x000A;.fromArray&#x000D;&#x000A;.toArray</Keywords>
             <Keywords name="Keywords7">chr&#x000D;&#x000A;concat&#x000D;&#x000A;format&#x000D;&#x000A;input&#x000D;&#x000A;max&#x000D;&#x000A;min&#x000D;&#x000A;num&#x000D;&#x000A;ord&#x000D;&#x000A;print&#x000D;&#x000A;str</Keywords>
             <Keywords name="Keywords8">FALSE&#x000D;&#x000A;FIRST&#x000D;&#x000A;LAST&#x000D;&#x000A;NIL&#x000D;&#x000A;NOWHERE&#x000D;&#x000A;TRUE</Keywords>
-            <Keywords name="Delimiters">00#| 01 02|# 03[ 04 05] 06{ 07 08} 09@&quot; 10 11&quot; 12# 13 14((EOL)) 15 16 17 18&quot; 19\ 20&quot; 21@@&quot; 22 23&quot;@@</Keywords>
+            <Keywords name="Delimiters">00/* 01 02*/ 03[ 04 05] 06{ 07 08} 09@&quot; 10 11&quot; 12-- 13 14((EOL)) 15 16 17 18&quot; 19\ 20&quot; 21@@&quot; 22 23&quot;@@</Keywords>
         </KeywordLists>
         <Styles>
             <WordsStyle name="DEFAULT" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
