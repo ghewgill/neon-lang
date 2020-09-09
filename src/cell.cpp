@@ -188,6 +188,9 @@ Cell &Cell::operator=(const Cell &rhs)
 
 bool Cell::operator==(const Cell &rhs) const
 {
+    if (type == Type::None || rhs.type == Type::None) {
+        return false;
+    }
     assert(type == rhs.type);
     switch (type) {
         case Type::None:         return false;
