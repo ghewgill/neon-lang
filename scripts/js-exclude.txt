@@ -6,6 +6,7 @@ array-remove.neon          # exception
 array-resize.neon          # array default item
 array-reversed.neon        # array reversed
 array-slice.neon           # ArrayReferenceRangeExpression
+array-sparse.neon          # array default element
 array-tostring.neon        # array comparison
 array2d.neon               # copy semantics
 assert-enum.neon           # enum

@@ -7,6 +7,7 @@ array-remove.neon           # array__remove
 array-resize.neon           # array__resize
 array-reversed.neon         # array__reversed
 array-slice.neon            # array__slice
+array-sparse.neon           # ina
 array-tostring.neon         # array__toString__number
 array2d.neon                # value semantics
 assert-multiline.neon       # pushppg

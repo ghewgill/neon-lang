@@ -617,6 +617,9 @@ void cell_copyCell(Cell *dest, const Cell *source)
 
 int32_t cell_compareCell(const Cell * s, const Cell * d)
 {
+    if (s->type == cNothing || d->type == cNothing) {
+        return -1; // Not equal.
+    }
     assert(s->type == d->type);
     /* ToDo: Fix this, so that it actually COMPARES two cells, and returns 0 if equal, -1 if less than, and > 0 if greater than. */
     if (s->type != d->type) {

@@ -16,6 +16,7 @@ array-resize.neon
 array-reversed.neon
 arraysize.neon
 array-slice.neon
+array-sparse.neon
 array-subscript.neon
 array-tostring.neon
 assert-empty-array.neon

@@ -1,4 +1,5 @@
 array-resize.neon          # array default item
+array-sparse.neon          # array default item
 array2d.neon               # array copying semantics
 assert-multiline.neon      # exception
 binary-test.neon           # verifier
