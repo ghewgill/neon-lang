@@ -1,4 +1,4 @@
-#|
+/*
  ****************************************************************************
  *
  *                   "DHRYSTONE" Benchmark Program
@@ -343,7 +343,7 @@
  *  data.
  *
  ***************************************************************************
- |#
+ */
 
 IMPORT math
 IMPORT string
@@ -356,7 +356,7 @@ TYPE Enumeration IS ENUM
     Ident_5
 END ENUM
 
-# General definitions:
+-- General definitions:
 
 TYPE One_Thirty     IS Number
 TYPE One_Fifty      IS Number
@@ -380,7 +380,7 @@ TYPE Record IS CLASS
     Ch_2_Comp: String
 END CLASS
 
-# Global Variables:
+-- Global Variables:
 
 VAR Ptr_Glob, Next_Ptr_Glob: POINTER TO Record
 VAR Int_Glob: Number
@@ -389,7 +389,7 @@ VAR Ch_1_Glob, Ch_2_Glob: String
 VAR Arr_1_Glob: Array<Number>
 VAR Arr_2_Glob: Array<Array<Number>>
 
-# variables for time measurement:
+-- variables for time measurement:
 
 IMPORT time
 
@@ -400,29 +400,29 @@ CONSTANT Too_Small_Time: Number := 2
 VAR Begin_Time, End_Time, User_Time: Number
 VAR Microseconds, Dhrystones_Per_Second: Number
 
-# end of variables for time measurement
+-- end of variables for time measurement
 
 FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
-    # executed once
+    -- executed once
 
   VAR Next_Record: POINTER TO Record
   IF VALID Ptr_Val_Par THEN
       Next_Record := Ptr_Val_Par->Ptr_Comp
       IF VALID Next_Record THEN
-                                        # == Ptr_Glob_Next
-          # Local variable, initialized with Ptr_Val_Par->Ptr_Comp,
-          # corresponds to "rename" in Ada, "with" in Pascal
+                                        -- == Ptr_Glob_Next
+          -- Local variable, initialized with Ptr_Val_Par->Ptr_Comp,
+          -- corresponds to "rename" in Ada, "with" in Pascal
 
           IF VALID Ptr_Glob THEN
-            # No value copy available. valueCopy(Next_Record, Ptr_Glob)
+            -- No value copy available. valueCopy(Next_Record, Ptr_Glob)
           END IF
           Ptr_Val_Par->Int_Comp := 5
           Next_Record->Int_Comp := Ptr_Val_Par->Int_Comp
           Next_Record->Ptr_Comp := Ptr_Val_Par->Ptr_Comp
           Proc_3 (INOUT Next_Record->Ptr_Comp)
-            # Ptr_Val_Par->Ptr_Comp->Ptr_Comp == Ptr_Glob->Ptr_Comp
+            -- Ptr_Val_Par->Ptr_Comp->Ptr_Comp == Ptr_Glob->Ptr_Comp
           IF Next_Record->Discr = Enumeration.Ident_1 THEN
-            # then, executed
+            -- then, executed
             Next_Record->Int_Comp := 6
             Proc_6 (Ptr_Val_Par->Enum_Comp,
                     OUT Next_Record->Enum_Comp)
@@ -432,86 +432,86 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
             Proc_7 (Next_Record->Int_Comp, 10,
                     OUT Next_Record->Int_Comp)
           ELSE
-            # No value copy available. valueCopy(Ptr_Val_Par, Next_Record)
+            -- No value copy available. valueCopy(Ptr_Val_Par, Next_Record)
           END IF
       END IF
   END IF
-END FUNCTION # Proc_1
+END FUNCTION -- Proc_1
 
 
 FUNCTION Proc_2 (INOUT Int_Par_Ref: Number)
-    # executed once
-    # *Int_Par_Ref == 1, becomes 4
+    -- executed once
+    -- *Int_Par_Ref == 1, becomes 4
 
   VAR Int_Loc: One_Fifty
   VAR Enum_Loc: Enumeration := Enumeration.Ident_1
 
   Int_Loc := Int_Par_Ref + 10
-  REPEAT # executed once
+  REPEAT -- executed once
     IF Ch_1_Glob = "A" THEN
-      # then, executed
+      -- then, executed
       Int_Loc := Int_Loc - 1
       Int_Par_Ref := Int_Loc - Int_Glob
       Enum_Loc := Enumeration.Ident_1
     END IF
-  UNTIL Enum_Loc = Enumeration.Ident_1 # true
-END FUNCTION # Proc_2
+  UNTIL Enum_Loc = Enumeration.Ident_1 -- true
+END FUNCTION -- Proc_2
 
 
 FUNCTION Proc_3 (INOUT Ptr_Ref_Par: POINTER TO Record)
-    # executed once
-    # Ptr_Ref_Par becomes Ptr_Glob
+    -- executed once
+    -- Ptr_Ref_Par becomes Ptr_Glob
 
   IF VALID Ptr_Glob THEN
-    # then, executed
+    -- then, executed
     Ptr_Ref_Par := Ptr_Glob->Ptr_Comp
     Proc_7 (10, Int_Glob, OUT Ptr_Glob->Int_Comp)
   END IF
-END FUNCTION # Proc_3
+END FUNCTION -- Proc_3
 
 
-FUNCTION Proc_4 () # without parameters
-    # executed once
+FUNCTION Proc_4 () -- without parameters
+    -- executed once
 
   VAR Bool_Loc: Boolean
 
   Bool_Loc := Ch_1_Glob = "A"
   Bool_Glob := Bool_Loc OR Bool_Glob
   Ch_2_Glob := "B"
-END FUNCTION # Proc_4
+END FUNCTION -- Proc_4
 
 
-FUNCTION Proc_5 () # without parameters
-    # executed once
+FUNCTION Proc_5 () -- without parameters
+    -- executed once
 
   Ch_1_Glob := "A"
   Bool_Glob := FALSE
-END FUNCTION # Proc_5
+END FUNCTION -- Proc_5
 
 
 FUNCTION Func_3 (IN Enum_Par_Val: Enumeration): Boolean
-    # executed once
-    # Enum_Par_Val == Ident_3
+    -- executed once
+    -- Enum_Par_Val == Ident_3
 
   VAR Enum_Loc: Enumeration
 
   Enum_Loc := Enum_Par_Val
   IF Enum_Loc = Enumeration.Ident_3 THEN
-    # then, executed
+    -- then, executed
     RETURN TRUE
-  ELSE # not executed
+  ELSE -- not executed
     RETURN FALSE
   END IF
-END FUNCTION # Func_3
+END FUNCTION -- Func_3
 
 
 FUNCTION Proc_6 (IN Enum_Val_Par: Enumeration, OUT Enum_Ref_Par: Enumeration)
-    # executed once
-    # Enum_Val_Par == Ident_3, Enum_Ref_Par becomes Ident_2
+    -- executed once
+    -- Enum_Val_Par == Ident_3, Enum_Ref_Par becomes Ident_2
 
   Enum_Ref_Par := Enum_Val_Par
   IF NOT Func_3 (Enum_Val_Par) THEN
-    # then, not executed
+    -- then, not executed
     Enum_Ref_Par := Enumeration.Ident_4
   END IF
   CASE Enum_Val_Par
@@ -519,40 +519,40 @@ FUNCTION Proc_6 (IN Enum_Val_Par: Enumeration, OUT Enum_Ref_Par: Enumeration)
       Enum_Ref_Par := Enumeration.Ident_1
     WHEN Enumeration.Ident_2 DO
       IF Int_Glob > 100 THEN
-        # then
+        -- then
         Enum_Ref_Par := Enumeration.Ident_1
       ELSE
         Enum_Ref_Par := Enumeration.Ident_4
       END IF
-    WHEN Enumeration.Ident_3 DO # executed
+    WHEN Enumeration.Ident_3 DO -- executed
       Enum_Ref_Par := Enumeration.Ident_2
     WHEN Enumeration.Ident_4 DO
     WHEN Enumeration.Ident_5 DO
       Enum_Ref_Par := Enumeration.Ident_3
   END CASE
-END FUNCTION # Proc_6
+END FUNCTION -- Proc_6
 
 
 FUNCTION Proc_7 (IN Int_1_Par_Val: One_Fifty, IN Int_2_Par_Val: One_Fifty, OUT Int_Par_Ref: One_Fifty)
-    # executed three times
-    # first call:      Int_1_Par_Val == 2, Int_2_Par_Val == 3,
-    #                  Int_Par_Ref becomes 7
-    # second call:     Int_1_Par_Val == 10, Int_2_Par_Val == 5,
-    #                  Int_Par_Ref becomes 17
-    # third call:      Int_1_Par_Val == 6, Int_2_Par_Val == 10,
-    #                  Int_Par_Ref becomes 18
+    -- executed three times
+    -- first call:      Int_1_Par_Val == 2, Int_2_Par_Val == 3,
+    --                  Int_Par_Ref becomes 7
+    -- second call:     Int_1_Par_Val == 10, Int_2_Par_Val == 5,
+    --                  Int_Par_Ref becomes 17
+    -- third call:      Int_1_Par_Val == 6, Int_2_Par_Val == 10,
+    --                  Int_Par_Ref becomes 18
 
   VAR Int_Loc: One_Fifty
 
   Int_Loc := Int_1_Par_Val + 2
   Int_Par_Ref := Int_2_Par_Val + Int_Loc
-END FUNCTION # Proc_7
+END FUNCTION -- Proc_7
 
 
 FUNCTION Proc_8 (INOUT Arr_1_Par_Ref: Arr_1_Dim, INOUT Arr_2_Par_Ref: Arr_2_Dim, IN Int_1_Par_Val: Number, IN Int_2_Par_Val: Number)
-    # executed once
-    # Int_Par_Val_1 == 3
-    # Int_Par_Val_2 == 7
+    -- executed once
+    -- Int_Par_Val_1 == 3
+    -- Int_Par_Val_2 == 7
 
   VAR Int_Index: One_Fifty
   VAR Int_Loc: One_Fifty
@@ -569,14 +569,14 @@ FUNCTION Proc_8 (INOUT Arr_1_Par_Ref: Arr_1_Dim, INOUT Arr_2_Par_Ref: Arr_2_Dim,
   Arr_2_Par_Ref [Int_Loc] [Int_Loc-1] := Arr_2_Par_Ref [Int_Loc] [Int_Loc-1] + 1
   Arr_2_Par_Ref [Int_Loc+20] [Int_Loc] := Arr_1_Par_Ref [Int_Loc]
   Int_Glob := 5
-END FUNCTION # Proc_8
+END FUNCTION -- Proc_8
 
 
 FUNCTION Func_1 (IN Ch_1_Par_Val: String, IN Ch_2_Par_Val: String): Enumeration
-    # executed three times
-    # first call:      Ch_1_Par_Val == 'H', Ch_2_Par_Val == 'R'
-    # second call:     Ch_1_Par_Val == 'A', Ch_2_Par_Val == 'C'
-    # third call:      Ch_1_Par_Val == 'B', Ch_2_Par_Val == 'C'
+    -- executed three times
+    -- first call:      Ch_1_Par_Val == 'H', Ch_2_Par_Val == 'R'
+    -- second call:     Ch_1_Par_Val == 'A', Ch_2_Par_Val == 'C'
+    -- third call:      Ch_1_Par_Val == 'B', Ch_2_Par_Val == 'C'
 
   VAR Ch_1_Loc: Capital_Letter
   VAR Ch_2_Loc: Capital_Letter
@@ -584,56 +584,56 @@ FUNCTION Func_1 (IN Ch_1_Par_Val: String, IN Ch_2_Par_Val: String): Enumeration
   Ch_1_Loc := Ch_1_Par_Val
   Ch_2_Loc := Ch_1_Loc
   IF Ch_2_Loc <> Ch_2_Par_Val THEN
-    # then, executed
+    -- then, executed
     RETURN Enumeration.Ident_1
-  ELSE  # not executed
+  ELSE  -- not executed
     Ch_1_Glob := Ch_1_Loc
     RETURN Enumeration.Ident_2
   END IF
-END FUNCTION # Func_1
+END FUNCTION -- Func_1
 
 
 FUNCTION Func_2 (IN Str_1_Par_Ref: String, IN Str_2_Par_Ref: String): Boolean
-    # executed once
-    # Str_1_Par_Ref == "DHRYSTONE PROGRAM, 1'ST STRING"
-    # Str_2_Par_Ref == "DHRYSTONE PROGRAM, 2'ND STRING"
+    -- executed once
+    -- Str_1_Par_Ref == "DHRYSTONE PROGRAM, 1'ST STRING"
+    -- Str_2_Par_Ref == "DHRYSTONE PROGRAM, 2'ND STRING"
 
   VAR Int_Loc: One_Thirty
   VAR Ch_Loc: Capital_Letter := ""
 
   Int_Loc := 2
-  WHILE Int_Loc <= 2 DO # loop body executed once
+  WHILE Int_Loc <= 2 DO -- loop body executed once
     IF Func_1 (Str_1_Par_Ref[Int_Loc],
                Str_2_Par_Ref[Int_Loc+1]) = Enumeration.Ident_1 THEN
-      # then, executed
+      -- then, executed
       Ch_Loc := "A"
       Int_Loc := Int_Loc + 1
     END IF
   END WHILE
   IF Ch_Loc >= "W" AND Ch_Loc < "Z" THEN
-    # then, not executed
+    -- then, not executed
     Int_Loc := 7
   END IF
   IF Ch_Loc = "R" THEN
-    # then, not executed
+    -- then, not executed
     RETURN TRUE
-  ELSE # executed
+  ELSE -- executed
     IF Str_1_Par_Ref > Str_2_Par_Ref THEN
-      # then, not executed
+      -- then, not executed
       Int_Loc := Int_Loc + 7
       Int_Glob := Int_Loc
       RETURN TRUE
-    ELSE # executed
+    ELSE -- executed
       RETURN FALSE
     END IF
   END IF
-END FUNCTION # Func_2
+END FUNCTION -- Func_2
 
 
 FUNCTION main()
 
-  # main program, corresponds to procedures
-  # Main and Proc_0 in the Ada version
+  -- main program, corresponds to procedures
+  -- Main and Proc_0 in the Ada version
 
   VAR Int_1_Loc: One_Fifty := 0
   VAR Int_2_Loc: One_Fifty := 0
@@ -645,7 +645,7 @@ FUNCTION main()
   VAR Run_Index: Number
   VAR Number_Of_Runs: Number
 
-  # Initializations
+  -- Initializations
 
   Next_Ptr_Glob := NEW Record
   Ptr_Glob := NEW Record
@@ -659,21 +659,21 @@ FUNCTION main()
   END IF
   Str_1_Loc := "DHRYSTONE PROGRAM, 1'ST STRING"
 
-  Arr_2_Glob [28] := []     # Make sure the array is big enough.
+  Arr_2_Glob [28] := []     -- Make sure the array is big enough.
   Arr_2_Glob [8][7] := 10
 
   print ("")
   print ("Dhrystone Benchmark, Version 2.1 (Language: Neon)")
   print ("")
   print ("Please give the number of runs through the benchmark: ")
-  Number_Of_Runs := 10000 # TODO to_number(input())
+  Number_Of_Runs := 10000 -- TODO to_number(input())
   print ("")
 
   print ("Execution starts, " & str(Number_Of_Runs) & " runs through Dhrystone")
 
-  #################
-  ## Start timer ##
-  #################
+  /****************
+  ** Start timer **
+  ****************/
 
   Begin_Time := time.now ()
 
@@ -682,29 +682,29 @@ FUNCTION main()
 
     Proc_5()
     Proc_4()
-      # Ch_1_Glob == 'A', Ch_2_Glob == 'B', Bool_Glob == true
+      -- Ch_1_Glob == 'A', Ch_2_Glob == 'B', Bool_Glob == true
     Int_1_Loc := 2
     Int_2_Loc := 3
     Str_2_Loc := "DHRYSTONE PROGRAM, 2'ND STRING"
     Enum_Loc := Enumeration.Ident_2
     Bool_Glob := NOT Func_2 (Str_1_Loc, Str_2_Loc)
-      # Bool_Glob == 1
-    WHILE Int_1_Loc < Int_2_Loc DO  # loop body executed once
+      -- Bool_Glob == 1
+    WHILE Int_1_Loc < Int_2_Loc DO  -- loop body executed once
       Int_3_Loc := 5 * Int_1_Loc - Int_2_Loc
-        # Int_3_Loc == 7
+        -- Int_3_Loc == 7
       Proc_7 (Int_1_Loc, Int_2_Loc, OUT Int_3_Loc)
-        # Int_3_Loc == 7
+        -- Int_3_Loc == 7
       Int_1_Loc := Int_1_Loc + 1
     END WHILE
-      # Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7
+      -- Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7
     Proc_8 (INOUT Arr_1_Glob, INOUT Arr_2_Glob, Int_1_Loc, Int_3_Loc)
-      # Int_Glob == 5
+      -- Int_Glob == 5
     Proc_1 (Ptr_Glob)
     Ch_Index := "A"
     WHILE Ch_Index <= Ch_2_Glob DO
-                             # loop body executed twice
+                             -- loop body executed twice
       IF Enum_Loc = Func_1 (Ch_Index, "C") THEN
-          # then, not executed
+          -- then, not executed
         Proc_6 (Enumeration.Ident_1, OUT Enum_Loc)
         Str_2_Loc := "DHRYSTONE PROGRAM, 3'RD STRING"
         Int_2_Loc := Run_Index
@@ -712,20 +712,20 @@ FUNCTION main()
       END IF
       Ch_Index := string.fromCodePoint(string.toCodePoint(Ch_Index) + 1)
     END WHILE
-      # Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7
+      -- Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7
     Int_2_Loc := Int_2_Loc * Int_1_Loc
     Int_1_Loc := math.floor(Int_2_Loc / Int_3_Loc)
     Int_2_Loc := 7 * (Int_2_Loc - Int_3_Loc) - Int_1_Loc
-      # Int_1_Loc == 1, Int_2_Loc == 13, Int_3_Loc == 7
+      -- Int_1_Loc == 1, Int_2_Loc == 13, Int_3_Loc == 7
     Proc_2 (INOUT Int_1_Loc)
-      # Int_1_Loc == 5
+      -- Int_1_Loc == 5
 
     Run_Index := Run_Index + 1
-  END WHILE # loop "for Run_Index"
+  END WHILE -- loop "for Run_Index"
 
-  ################
-  ## Stop timer ##
-  ################
+  /***************
+  ** Stop timer **
+  ***************/
 
   End_Time := time.now ()
 
@@ -747,7 +747,7 @@ FUNCTION main()
   print ("        should be:   Number_Of_Runs + 10")
   IF VALID Ptr_Glob THEN
     print ("Ptr_Glob->")
-    print ("  Ptr_Comp:          ") # & Ptr_Glob->Ptr_Comp)
+    print ("  Ptr_Comp:          ") -- & Ptr_Glob->Ptr_Comp)
     print ("        should be:   (implementation-dependent)")
     print ("  Discr:             " & Ptr_Glob->Discr.toString())
     print ("        should be:   " & "Ident_1")
@@ -760,7 +760,7 @@ FUNCTION main()
   END IF
   IF VALID Next_Ptr_Glob THEN
     print ("Next_Ptr_Glob->")
-    print ("  Ptr_Comp:          ") # & Next_Ptr_Glob->Ptr_Comp)
+    print ("  Ptr_Comp:          ") -- & Next_Ptr_Glob->Ptr_Comp)
     print ("        should be:   (implementation-dependent), same as above")
     print ("  Discr:             " & Next_Ptr_Glob->Discr.toString())
     print ("        should be:   " & "Ident_1")
@@ -802,7 +802,3 @@ FUNCTION main()
 END FUNCTION
 
 main()
-
-#|
-
-|#

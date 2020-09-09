@@ -4,4 +4,4 @@ TYPE Rec IS RECORD
 END RECORD
 
 _ := Rec(xyz WITH "foo")
-         #<
+         --<

@@ -1,7 +1,7 @@
-# Sample TFTP server.
-#
-# Only supports reading files (tftp "get").
-# TFTP is specified in RFC 1350.
+-- Sample TFTP server.
+--
+-- Only supports reading files (tftp "get").
+-- TFTP is specified in RFC 1350.
 
 IMPORT io
 IMPORT net

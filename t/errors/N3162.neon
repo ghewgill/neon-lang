@@ -4,4 +4,4 @@ END RECORD
 
 VAR r: Record
 r.value := 0
-  #<
+  --<

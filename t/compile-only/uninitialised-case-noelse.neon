@@ -5,4 +5,4 @@ CASE 1
 END CASE
 print(s)
 
-#! Uninitialised
+--! Uninitialised

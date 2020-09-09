@@ -1,17 +1,17 @@
-# Punctuation
+-- Punctuation
 ( ) [ ] { } + * / ^ & = , . - < > :
-# TODO: unicode puncutation
+-- TODO: unicode puncutation
 
-# Digraphs and trigraphs
+-- Digraphs and trigraphs
 -> <> <= >= := ...
 
-# Identifers
+-- Identifers
 Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz A_
 aa bb cc dd ee ff gg hh ii jj kk ll mm nn oo pp qq rr ss tt uu vv ww xx yy zz a_
 aA bB cC dD eE fF gG hH iI jJ kK lL mM nN oO pP qQ rR sS tT uU vV wW xX yY zZ
 a1 b2 c3 d4 e5 f6 g7 h8 i9 j0 k1 l2 m3 n4 o5 p6 q7 r8 s9 t0 u1 v2 w3 x4 y5 z6
 
-# Keywords
+-- Keywords
 IF THEN ELSE END WHILE DO VAR FUNCTION RETURN FALSE TRUE MOD AND OR NOT FOR TO
 STEP Array Dictionary TYPE RECORD ENUM CONSTANT IMPORT IN OUT INOUT ELSIF CASE
 WHEN EXIT NEXT LOOP REPEAT UNTIL DECLARE EXCEPTION TRY RAISE POINTER
@@ -20,7 +20,7 @@ ASSERT EMBED ALIAS IS BEGIN MAIN HEXBYTES INC DEC _ OTHERS WITH CHECK GIVES
 NOWHERE INTDIV LABEL CLASS TRAP EXTENSION INTERFACE IMPLEMENTS UNUSED ISA
 OPTIONAL IMPORTED TESTCASE EXPECT
 
-# Numbers
+-- Numbers
 0b1101
 0o755
 0xbeef
@@ -31,7 +31,7 @@ OPTIONAL IMPORTED TESTCASE EXPECT
 1234.5678e-5
 1_234.567_8e1_2
 
-# Strings
+-- Strings
 "abcd"
 "a\"bcd"
 "a\\bcd"
@@ -46,17 +46,16 @@ OPTIONAL IMPORTED TESTCASE EXPECT
 "a\(x)bcd"
 "a\(x:x)bcd"
 
-# Raw strings
+-- Raw strings
 @"abcd"
 @@"abcd"@@
 @tt@"abcd"@tt@
 
-# Comments
-# Single line comment
-#| Multiple line
- | comment
- |#
-#| Nested #| comment |# |#
-a#| |#b
-a#|
-|#b
+-- Comments
+-- Single line comment
+/* Multiple line
+ * comment
+ */
+a/* */b
+a/*
+*/b

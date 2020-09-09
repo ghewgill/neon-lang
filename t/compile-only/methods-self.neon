@@ -7,4 +7,4 @@ FUNCTION Rec.toString(self: Number): String
     RETURN "foo"
 END FUNCTION
 
-#! expected self parameter
+--! expected self parameter

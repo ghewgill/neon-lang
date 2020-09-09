@@ -1,4 +1,4 @@
 FUNCTION foo(OUT t: String)
-                 #<2
+                 --<2
 END FUNCTION
-#<1
+--<1

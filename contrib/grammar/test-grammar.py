@@ -23,8 +23,8 @@ KnownParseFailures = [          # Reason:
 ]
 
 # blockComment is similar to cStyleComment form pyparsing
-blockComment = Regex(r"#\|(?:[^|]*\|+)+?#")
-lineComment = "#" + restOfLine
+blockComment = Regex(r"\/\*(?:[^*]*\*+)+?/")
+lineComment = "--" + restOfLine
 comments = blockComment | lineComment
 
 #grammar.parsers["Program"].setDebug()

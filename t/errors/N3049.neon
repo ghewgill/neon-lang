@@ -1,4 +1,4 @@
 WHILE (1) DO
-      #<
+      --<
     print("doing...")
 END WHILE

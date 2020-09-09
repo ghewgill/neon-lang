@@ -3,4 +3,4 @@ FUNCTION foo(x, y, z: Number): Number
 END FUNCTION
 
 print(foo(x WITH 1, 2, 3).to_string())
-                    #<
+                    --<

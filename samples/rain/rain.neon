@@ -1,4 +1,4 @@
-#|***************************************************************************
+/****************************************************************************
  * Copyright (c) 2002 Free Software Foundation, Inc.                        *
  *                                                                          *
  * Permission is hereby granted, free of charge, to any person obtaining a  *
@@ -24,15 +24,15 @@
  * holders shall not be used in advertising or otherwise to promote the     *
  * sale, use or other dealings in this Software without prior written       *
  * authorization.                                                           *
- ***************************************************************************|#
+ ****************************************************************************/
 
-# $Id: rain.c,v 1.11 2008/07/13 16:08:17 wmcbrine Exp $
+-- $Id: rain.c,v 1.11 2008/07/13 16:08:17 wmcbrine Exp $
 
 IMPORT curses
 IMPORT random
 IMPORT string
 
-# rain 11/3/1980 EPS/CITHEP
+-- rain 11/3/1980 EPS/CITHEP
 
 FUNCTION next_j(j: Number): Number
     VAR new_j: Number
@@ -47,8 +47,8 @@ FUNCTION next_j(j: Number): Number
         z := random.uint32() MOD 3
         VAR color: Number := curses.COLOR_PAIR(z)
 
-        #|if (z)
-            color |= A_BOLD;|#
+        /*if (z)
+            color |= A_BOLD;*/
 
         curses.attrset(color)
     END IF
@@ -75,7 +75,7 @@ FUNCTION main()
     curses.noecho()
     curses.curs_set(0)
     curses.timeout(0)
-    #curses.keypad(stdscr, TRUE)
+    --curses.keypad(stdscr, TRUE)
 
     r := curses.Lines() - 4
     c := curses.Cols() - 4
@@ -127,13 +127,13 @@ FUNCTION main()
                 curses.endwin()
                 EXIT LOOP
             WHEN "s" DO
-                #nodelay(stdscr, FALSE)
+                --nodelay(stdscr, FALSE)
             WHEN " " DO
-                #nodelay(stdscr, TRUE)
+                --nodelay(stdscr, TRUE)
             END CASE
         ELSE
             CASE k
-#|
+/*
 #ifdef KEY_RESIZE
             break;
         case KEY_RESIZE:
@@ -144,7 +144,7 @@ FUNCTION main()
             r = LINES - 4;
             c = COLS - 4;
 #endif
-|#
+*/
             END CASE
         END IF
         curses.napms(50)

@@ -1,4 +1,4 @@
 DECLARE NATIVE FUNCTION foo()
-                        #<2
+                        --<2
 DECLARE NATIVE FUNCTION foo()
-                        #<1
+                        --<1

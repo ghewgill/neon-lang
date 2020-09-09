@@ -1,6 +1,6 @@
 FUNCTION f(x: Number)
-           #<2
+           --<2
 END FUNCTION
 
 f(_)
-  #<1
+  --<1

@@ -1,2 +1,2 @@
 n := (TRY expr TRAP TestException AS 5
-                                     #<
+                                     --<

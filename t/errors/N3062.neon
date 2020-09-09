@@ -3,9 +3,9 @@ a := 5
 
 CASE a
    WHEN >= 10 DO
-           #<2
+           --<2
      print("10+")
    WHEN = 10 DO
-          #<1
+          --<1
      print("5")
 END CASE

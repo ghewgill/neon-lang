@@ -1,16 +1,16 @@
-# TODO
+-- TODO
 LET dn: Dictionary<Number> := {"one": 1, "two": 2}
 print("\(dn)")
-#= {"one": 1, "two": 2}
+--= {"one": 1, "two": 2}
 
 LET ds: Dictionary<String> := {"one": "1", "two": "2"}
 print("\(ds)")
-#= {"one": "1", "two": "2"}
+--= {"one": "1", "two": "2"}
 
 LET dsq: Dictionary<String> := {"backslash": "\\", "quote": "\""}
 print(dsq.toString())
-#= {"backslash": "\\", "quote": "\""}
+--= {"backslash": "\\", "quote": "\""}
 
 LET dsq2: Dictionary<String> := {"\\": "backslash", "\"": "quote"}
 print(dsq.toString())
-#= {"\\": "backslash", "\"": "quote"}
+--= {"\\": "backslash", "\"": "quote"}

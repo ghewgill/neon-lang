@@ -1,5 +1,5 @@
 VAR a: String := ""
 CASE a
     WHEN "b" TO "a" DO
-                #<
+                --<
 END CASE

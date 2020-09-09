@@ -7,20 +7,20 @@ All keywords and identifiers are case sensitive.
 Comments
 --------
 
-The comment lead-in character is ``#``.
-A single line comment is a ``#`` followed by arbitrary text to the end of the line.
-A block comment is introduced with ``#|`` and ends with ``|#``.
+The comment lead-in character sequence is ``--``.
+A single line comment is a ``--`` followed by arbitrary text to the end of the line.
+A block comment is introduced with ``/*`` and ends with ``*/``.
 Block comments may span multiple lines.
-Block comments may be nested.
+Block comments may not nest.
 
 Example::
 
-    # The following line prints some text.
+    -- The following line prints some text.
     print("Hello, World.")
     
-    #| This comment spans multiple
+    /* This comment spans multiple
        lines of text until the comment
-       closing characters. |#
+       closing characters. */
 
 Keywords
 --------

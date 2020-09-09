@@ -1,5 +1,5 @@
 TYPE Cards IS ENUM
-              #<2
+              --<2
   Hearts
   Diamonds
   Spades
@@ -10,4 +10,4 @@ END ENUM
 VAR a: Cards
 
 a := Cards.King
-           #<1
+           --<1

@@ -1,4 +1,4 @@
 EXCEPTION FooException
 EXCEPTION FooException.Bar
 EXCEPTION FooException.Bar
-                       #<
+                       --<

@@ -2,4 +2,4 @@ CONSTANT a: Number := 5
 
 a := 6
 
-#! expression is not assignable
+--! expression is not assignable

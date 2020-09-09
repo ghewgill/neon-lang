@@ -1,2 +1,2 @@
 EXEC SQL SET CONNECTION ZZZZ;
-                        #<
+                        --<

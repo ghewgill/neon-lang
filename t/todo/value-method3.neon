@@ -1,4 +1,4 @@
-# SKIP
+-- SKIP
 
 TYPE Rec IS RECORD
     n: Number

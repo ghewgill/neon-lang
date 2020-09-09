@@ -1,4 +1,4 @@
 VAR Integer: Number
-    #<2
+    --<2
 VAR a: Integer
-       #<1
+       --<1

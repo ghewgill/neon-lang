@@ -1,4 +1,4 @@
 DECLARE EXTENSION FUNCTION foo()
-                           #<2
+                           --<2
 DECLARE EXTENSION FUNCTION foo()
-                           #<1
+                           --<1

@@ -1,7 +1,7 @@
 TYPE Point IS RECORD
     x: Number
-    #<2
+    --<2
     x: String
-    #<1
+    --<1
 END RECORD
 

@@ -3,5 +3,5 @@ TYPE Cls IS CLASS
 END CLASS
 
 FUNCTION Cls.foo(self: POINTER TO Cls)
-                       #<
+                       --<
 END FUNCTION

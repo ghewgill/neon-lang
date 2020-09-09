@@ -1,4 +1,4 @@
-# TODO
+-- TODO
 
 FUNCTION foo(x: Number): Number
     CASE x
@@ -11,4 +11,4 @@ END FUNCTION
 
 print(str(foo(5)))
 
-#= 1
+--= 1

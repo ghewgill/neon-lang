@@ -4,4 +4,4 @@ FUNCTION a(IN y: Number, INOUT z: Number) : Number
 END FUNCTION
 
 print(a(AS 1, 2))
-        #<
+        --<

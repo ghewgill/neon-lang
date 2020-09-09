@@ -1,5 +1,5 @@
 VAR a: Number
 FOR a := 1 TO 2
-                #<
+                --<
     print(str(a))
 END FOR

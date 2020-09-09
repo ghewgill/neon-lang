@@ -1,3 +1,3 @@
 FUNCTION Foo.bar()
-         #<
+         --<
 END FUNCTION

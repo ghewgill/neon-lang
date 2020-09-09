@@ -1,3 +1,3 @@
 _ := print("hello")
 
-#! type mismatch
+--! type mismatch

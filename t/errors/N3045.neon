@@ -1,5 +1,5 @@
 TYPE Recordset IS RECORD
-                  #<2
+                  --<2
     Id: Number
     Name: String
 END RECORD
@@ -7,4 +7,4 @@ END RECORD
 VAR a: Recordset := Recordset()
 
 a.LastName
-  #<1
+  --<1

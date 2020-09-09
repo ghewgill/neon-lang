@@ -4,6 +4,6 @@ FOR a := 1 TO 10 DO
     print(str(a))
     IF ((a MOD 5) = 0) THEN
          EXIT
-              #<
+              --<
     END IF
 NEXT

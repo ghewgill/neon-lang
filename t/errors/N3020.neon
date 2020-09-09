@@ -3,4 +3,4 @@ FUNCTION a(y: Number, z: Number) : Number
 END FUNCTION
 
 print(a(1))
-         #<
+         --<

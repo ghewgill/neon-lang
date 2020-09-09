@@ -1,4 +1,4 @@
-# ImportDeclaration
+-- ImportDeclaration
 IMPORT module
 IMPORT module.name
 IMPORT module ALIAS alias
@@ -6,19 +6,19 @@ IMPORT module.name ALIAS alias
 IMPORT "module" ALIAS m
 IMPORT OPTIONAL module
 
-# TypeDeclaration
+-- TypeDeclaration
 TYPE name IS type
 
-# Type, ParameterisedType
+-- Type, ParameterisedType
 TYPE name IS Array<type>
 TYPE name IS Dictionary<type>
 
-# Type, RecordType
+-- Type, RecordType
 TYPE name IS RECORD END RECORD
 TYPE name IS RECORD name: type END RECORD
 TYPE name IS RECORD name: type PRIVATE name: type END RECORD
 
-# Type, ClassType
+-- Type, ClassType
 TYPE name IS CLASS END CLASS
 TYPE name IS CLASS name: type END CLASS
 TYPE name IS CLASS name: type PRIVATE name: type END CLASS
@@ -27,56 +27,56 @@ TYPE name IS CLASS IMPLEMENTS module.name END CLASS
 TYPE name IS CLASS IMPLEMENTS name1, name2 END CLASS
 TYPE name IS CLASS IMPLEMENTS module.name1, module.name2 END CLASS
 
-# Type, EnumType
+-- Type, EnumType
 TYPE name IS ENUM END ENUM
 TYPE name IS ENUM one END ENUM
 TYPE name IS ENUM one two END ENUM
 
-# Type, PointerType
+-- Type, PointerType
 TYPE name IS POINTER TO type
 
-# Type, FunctionPointerType
+-- Type, FunctionPointerType
 TYPE name IS FUNCTION()
 
-# ConstantDeclaration
+-- ConstantDeclaration
 CONSTANT name: type := expr
 
-# NativeConstantDeclaration
+-- NativeConstantDeclaration
 DECLARE NATIVE CONSTANT name: type
 
-# VariableDeclaration
+-- VariableDeclaration
 VAR name: type
 VAR name, name: type
 VAR name: type := expr
 
-# NativeVariableDeclaration
+-- NativeVariableDeclaration
 DECLARE NATIVE VAR name: type
 
-# LetDeclaration
+-- LetDeclaration
 LET name: type := expr
 
-# FunctionDeclaration
+-- FunctionDeclaration
 FUNCTION name() END FUNCTION
 FUNCTION name() statement() END FUNCTION
 FUNCTION name() statement() statement() END FUNCTION
 
-# NativeFunctionDeclaration
+-- NativeFunctionDeclaration
 DECLARE NATIVE FUNCTION name()
 
-# ExtensionFunctionDeclaration
+-- ExtensionFunctionDeclaration
 DECLARE EXTENSION FUNCTION name()
 
-# FunctionHeader
+-- FunctionHeader
 FUNCTION name() END FUNCTION
 FUNCTION type.name() END FUNCTION
 
-# FunctionParameterList
+-- FunctionParameterList
 FUNCTION name() END FUNCTION
 FUNCTION name(x: type) END FUNCTION
 FUNCTION name(x: type, y: type) END FUNCTION
 FUNCTION name(): type END FUNCTION
 
-# FunctionParameter
+-- FunctionParameter
 FUNCTION name(x: type) END FUNCTION
 FUNCTION name(x, y: type) END FUNCTION
 FUNCTION name(IN x: type) END FUNCTION
@@ -85,30 +85,30 @@ FUNCTION name(INOUT x: type) END FUNCTION
 FUNCTION name(x: type DEFAULT expr) END FUNCTION
 FUNCTION name(x: type...) END FUNCTION
 
-# ExceptionDeclaration
+-- ExceptionDeclaration
 EXCEPTION name
 
-# InterfaceDeclaration
+-- InterfaceDeclaration
 INTERFACE name END INTERFACE
 INTERFACE name FUNCTION func() END INTERFACE
 
-# ExportDeclaration
+-- ExportDeclaration
 EXPORT name
 
-# MainBlock
+-- MainBlock
 BEGIN MAIN END MAIN
 BEGIN MAIN statement() END MAIN
 BEGIN MAIN statement() statement() END MAIN
 
-# AssertStatement
+-- AssertStatement
 ASSERT expr
 ASSERT expr, expr
 
-# AssignmentStatement
+-- AssignmentStatement
 name := expr
 _ := expr
 
-# CaseStatement
+-- CaseStatement
 CASE expr END CASE
 CASE expr WHEN cond DO END CASE
 CASE expr WHEN cond DO statement() END CASE
@@ -118,7 +118,7 @@ CASE expr WHEN cond DO statement() WHEN OTHERS DO statement() END CASE
 CASE expr WHEN cond DO statement() WHEN OTHERS DO statement() statement() END CASE
 CASE expr WHEN cond, cond DO END CASE
 
-# CheckStatement
+-- CheckStatement
 CHECK expr ELSE END CHECK
 CHECK expr ELSE statement() END CHECK
 CHECK expr ELSE statement() statement() END CHECK
@@ -126,7 +126,7 @@ CHECK VALID name ELSE END CHECK
 CHECK VALID expr AS name ELSE END CHECK
 CHECK VALID expr AS name, expr AS name ELSE END CHECK
 
-# WhenCondition
+-- WhenCondition
 CASE expr WHEN = expr DO END CASE
 CASE expr WHEN <> expr DO END CASE
 CASE expr WHEN < expr DO END CASE
@@ -136,7 +136,7 @@ CASE expr WHEN >= expr DO END CASE
 CASE expr WHEN expr DO END CASE
 CASE expr WHEN expr TO expr DO END CASE
 
-# ExitStatement
+-- ExitStatement
 EXIT FUNCTION
 EXIT WHILE
 EXIT FOR
@@ -145,24 +145,24 @@ EXIT LOOP
 EXIT REPEAT
 EXIT label
 
-# ExpressionStatement
+-- ExpressionStatement
 statement()
 
-# ForStatement
+-- ForStatement
 FOR name := expr TO expr DO END FOR
 FOR name := expr TO expr DO statement() END FOR
 FOR name := expr TO expr DO statement() statement() END FOR
 FOR name := expr TO expr STEP expr DO END FOR
 FOR name := expr TO expr LABEL label DO END FOR
 
-# ForeachStatement
+-- ForeachStatement
 FOREACH name IN expr DO END FOREACH
 FOREACH name IN expr DO statement() END FOREACH
 FOREACH name IN expr DO statement() statement() END FOREACH
 FOREACH name IN expr INDEX name DO END FOREACH
 FOREACH name IN expr LABEL label DO END FOREACH
 
-# IfStatement
+-- IfStatement
 IF expr THEN END IF
 IF expr THEN statement() END IF
 IF expr THEN statement() statement() END IF
@@ -175,17 +175,17 @@ IF VALID expr AS name THEN END IF
 IF VALID expr AS name, expr AS name THEN END IF
 IF IMPORTED mod THEN END IF
 
-# IncrementStatement
+-- IncrementStatement
 INC expr
 DEC expr
 
-# LoopStatement
+-- LoopStatement
 LOOP END LOOP
 LOOP statement() END LOOP
 LOOP statement() statement() END LOOP
 LOOP LABEL label statement() END LOOP
 
-# NextStatement
+-- NextStatement
 NEXT WHILE
 NEXT FOR
 NEXT FOREACH
@@ -193,27 +193,27 @@ NEXT LOOP
 NEXT REPEAT
 NEXT label
 
-# RaiseStatement
+-- RaiseStatement
 RAISE name
 RAISE name.name
 RAISE name(expr)
 RAISE name(expr, expr)
 
-# RepeatStatement
+-- RepeatStatement
 REPEAT UNTIL expr
 REPEAT statement() UNTIL expr
 REPEAT statement() statement() UNTIL expr
 REPEAT LABEL label statement() UNTIL expr
 
-# ReturnStatement
+-- ReturnStatement
 RETURN expr
 
-# TestCaseStatement
+-- TestCaseStatement
 TESTCASE expr
 TESTCASE expr EXPECT name
 TESTCASE expr EXPECT name.name
 
-# TryStatement
+-- TryStatement
 TRY END TRY
 TRY statement() END TRY
 TRY statement() statement() END TRY
@@ -223,11 +223,11 @@ TRY TRAP name DO statement() END TRY
 TRY TRAP name DO statement() statement() END TRY
 TRY TRAP name AS x DO END TRY
 
-# UnusedStatement
+-- UnusedStatement
 UNUSED x
 UNUSED x, y
 
-# WhileStatement
+-- WhileStatement
 WHILE expr DO END WHILE
 WHILE expr DO statement() END WHILE
 WHILE expr DO statement() statement() END WHILE
@@ -236,10 +236,10 @@ WHILE VALID name DO END WHILE
 WHILE VALID expr AS name DO END WHILE
 WHILE VALID expr AS name, expr AS name DO END WHILE
 
-# ConditionalExpression
+-- ConditionalExpression
 name := (IF expr THEN expr ELSE expr)
 
-# TryExpression
+-- TryExpression
 name := (TRY expr)
 name := (TRY expr TRAP name DO)
 name := (TRY expr TRAP name DO statement())
@@ -249,17 +249,17 @@ name := (TRY expr TRAP name GIVES expr TRAP name GIVES expr)
 name := (TRY expr TRAP name AS x DO statement())
 name := (TRY expr TRAP name AS x GIVES expr)
 
-# DisjunctionExpression
+-- DisjunctionExpression
 name := expr OR expr
 
-# ConjunctionExpression
+-- ConjunctionExpression
 name := expr AND expr
 
-# MembershipExpression
+-- MembershipExpression
 name := expr IN expr
 name := expr NOT IN expr
 
-# ComparisonExpression
+-- ComparisonExpression
 name := expr = expr
 name := expr <> expr
 name := expr < expr
@@ -267,27 +267,27 @@ name := expr > expr
 name := expr <= expr
 name := expr >= expr
 
-# ChainedComparisonExpression
+-- ChainedComparisonExpression
 name := a < b < c
 
-# AdditionExpression
+-- AdditionExpression
 name := expr + expr
 name := expr - expr
 name := expr & expr
 
-# MultiplicationExpression
+-- MultiplicationExpression
 name := expr * expr
 name := expr / expr
 name := expr INTDIV expr
 name := expr MOD expr
 
-# ExponentiationExpression
+-- ExponentiationExpression
 name := expr ^ expr
 
-# InterpolatedStringExpression
+-- InterpolatedStringExpression
 name := "a\(b)c"
 
-# CompoundExpression
+-- CompoundExpression
 name := a[b]
 name := a(b)
 name := a.b
@@ -295,7 +295,7 @@ name := a->b
 name := "foo"[b]
 name := "foo".b()
 
-# Atom
+-- Atom
 name := (expr)
 name := []
 name := [1 TO 10]
@@ -316,24 +316,24 @@ name := NEW module.type(param WITH arg)
 name := NIL
 name := NOWHERE
 
-# ArrayLiteral
+-- ArrayLiteral
 name := []
 name := [expr]
 name := [expr, expr]
 name := [expr, expr,]
 
-# ArrayRangeLiteral
+-- ArrayRangeLiteral
 name := [expr TO expr]
 name := [expr TO expr STEP expr]
 
-# DictionaryLiteral
+-- DictionaryLiteral
 name := {}
 name := {"key": expr}
 name := {"key": expr, "key": expr}
 name := {"key": expr, "key": expr,}
 name := {"key": expr, key: expr}
 
-# CompoundExpression
+-- CompoundExpression
 name := name[expr]
 name := name[expr, expr]
 name := name()
@@ -342,7 +342,7 @@ name := name(expr, expr)
 name := name.name
 name := name->name
 
-# FunctionArgument
+-- FunctionArgument
 name(expr)
 name(IN expr)
 name(OUT expr)
@@ -351,6 +351,6 @@ name(_)
 name(name WITH expr)
 name(name WITH _)
 
-# ArrayIndexExpression
+-- ArrayIndexExpression
 name := name[expr]
 name := name[expr TO expr]

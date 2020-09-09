@@ -1,10 +1,10 @@
 FUNCTION foo(OUT t: String): String
     IF TRUE THEN
-        # Avoid unreachable code error
+        -- Avoid unreachable code error
         RETURN ""
     END IF
     t := "hello world"
     RETURN ""
 END FUNCTION
 
-#! Uninitialised
+--! Uninitialised

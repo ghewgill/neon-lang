@@ -1,4 +1,4 @@
 LET b: Number := 5
 b := 6
 
-#! assignment to readonly
+--! assignment to readonly

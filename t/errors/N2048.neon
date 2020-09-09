@@ -1,2 +1,2 @@
 LET d: Dictionary<String> := {"foo" "bar"}
-                                    #<
+                                    --<
