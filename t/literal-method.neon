@@ -1,0 +1,8 @@
+print((5).toString())
+#= 5
+
+print("test".toBytes().toString())
+#= HEXBYTES "74 65 73 74"
+
+print("test".toBytes().toArray().toString())
+#= [116, 101, 115, 116]
