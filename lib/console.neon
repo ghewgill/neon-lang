@@ -1,3 +1,7 @@
+--  File: console
+--
+--  Console input and output functions.
+
 EXPORT input
 EXPORT output
 
