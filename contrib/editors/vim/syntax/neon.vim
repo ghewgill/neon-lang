@@ -20,8 +20,8 @@ syntax match neonNumber '\<0x[0-9A-Fa-f_]\+\>'
 syntax match neonString '"\(\\.\|[^"]\)*"'
 syntax match neonString '@"\(\\.\|[^"]\)*"'
 syntax match neonString '@\(\w*\)@".\{-}"@\1@'
-syntax region neonComment oneline start="#" end="$" contains=neonTodo
-syntax region neonComment start="#|" end="|#" contains=neonTodo
+syntax region neonComment oneline start="--" end="$" contains=neonTodo
+syntax region neonComment start="/\*" end="\*/" contains=neonTodo
 syntax keyword neonTodo contained TODO FIXME XXX
 
 highlight def link neonKeyword      Keyword
