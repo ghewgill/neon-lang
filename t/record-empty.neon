@@ -8,7 +8,7 @@ END FUNCTION
 
 VAR r: Rec := Rec()
 print("value=\(r.value)")
-#= value=
+--= value=
 
 print("value=\(foo().value)")
-#= value=
+--= value=

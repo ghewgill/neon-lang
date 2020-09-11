@@ -1,4 +1,4 @@
 VAR a: Number
 CONSTANT b: Number := a
 
-#! value must be constant
+--! value must be constant

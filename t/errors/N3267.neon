@@ -1,2 +1,2 @@
 _ := (IF TRUE THEN print("x") ELSE print("y"))
-                   #<
+                   --<

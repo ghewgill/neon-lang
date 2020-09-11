@@ -11,10 +11,10 @@ FUNCTION add(x: Number, y: Number): Number
 END FUNCTION
 
 print(str(four()))
-#= 4
+--= 4
 
 print(str(sq(5)))
-#= 25
+--= 25
 
 print(str(add(4, 5)))
-#= 9
+--= 9

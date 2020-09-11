@@ -1,3 +1,3 @@
 FOR i := 1 TO 10 LABEL "a" DO
-                       #<
+                       --<
 END FOR

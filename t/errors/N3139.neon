@@ -1,4 +1,4 @@
 LET a: Number := 5
-    #<2
+    --<2
 LET a: Number := 5
-    #<1
+    --<1

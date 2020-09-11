@@ -1,4 +1,4 @@
-# SKIP (unicode in python 2 run_test.py)
+-- SKIP (unicode in python 2 run_test.py)
 VAR ar: String
 VAR el: String
 VAR en: String
@@ -26,11 +26,11 @@ print(ko)
 print(ru)
 print(zh)
 
-#= مرحبا العالم
-#= Γεια σας, τον κόσμο
-#= hello, world
-#= halló, heimur
-#= こんにちは、世界中のみなさん
-#= 안녕하세요, 세계
-#= привет, мир
-#= 你好世界
+--= مرحبا العالم
+--= Γεια σας, τον κόσμο
+--= hello, world
+--= halló, heimur
+--= こんにちは、世界中のみなさん
+--= 안녕하세요, 세계
+--= привет, мир
+--= 你好世界

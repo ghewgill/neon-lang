@@ -14,13 +14,13 @@ END FUNCTION
 
 ping(10)
 
-#= ping 10
-#= pong 9
-#= ping 8
-#= pong 7
-#= ping 6
-#= pong 5
-#= ping 4
-#= pong 3
-#= ping 2
-#= pong 1
+--= ping 10
+--= pong 9
+--= ping 8
+--= pong 7
+--= ping 6
+--= pong 5
+--= ping 4
+--= pong 3
+--= ping 2
+--= pong 1

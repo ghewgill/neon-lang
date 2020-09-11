@@ -1,4 +1,4 @@
 IMPORT module
 
 module.var := 5
-#! assignment to readonly
+--! assignment to readonly

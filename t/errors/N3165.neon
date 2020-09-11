@@ -1,5 +1,5 @@
 LOOP
     EXIT LOOP
     print("hi")
-    #<
+    --<
 END LOOP

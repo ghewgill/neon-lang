@@ -1,4 +1,4 @@
 FOR a := 1 TO 5 STEP 0 DO
-                     #<
+                     --<
      print(str(a))
 END FOR

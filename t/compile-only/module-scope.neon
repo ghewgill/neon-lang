@@ -6,4 +6,4 @@ END FUNCTION
 
 datetime.foo()
 
-#! name not found: foo
+--! name not found: foo

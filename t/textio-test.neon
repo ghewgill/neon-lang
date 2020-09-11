@@ -3,31 +3,31 @@ IMPORT random
 IMPORT string
 
 textio.writeLine(textio.stdout, "Hello World")
-#= Hello World
+--= Hello World
 
 TESTCASE textio.open("nonexistent.file", textio.Mode.read) EXPECT textio.TextioException.Open
 
 VAR f: textio.TextFile := textio.open("LICENSE.txt", textio.Mode.read)
 VAR s: String := ""
 print("\(textio.readLine(f, OUT s))")
-#= TRUE
+--= TRUE
 print(s)
-#= The MIT License (MIT)
+--= The MIT License (MIT)
 
 textio.close(f)
 
-# f := io.open("tmp/io-test.tmp", io.Mode.write)
-# io.fprint(f, "Hello world")
-# io.seek(f, 7, io.SeekBase.absolute)
-# io.truncate(f)
-# io.close(f)
-# f := io.open("tmp/io-test.tmp", io.Mode.read)
-# print("\(io.readLine(f, OUT s))")
-# #= TRUE
-# print(s)
-# #= Hello w
+-- f := io.open("tmp/io-test.tmp", io.Mode.write)
+-- io.fprint(f, "Hello world")
+-- io.seek(f, 7, io.SeekBase.absolute)
+-- io.truncate(f)
+-- io.close(f)
+-- f := io.open("tmp/io-test.tmp", io.Mode.read)
+-- print("\(io.readLine(f, OUT s))")
+-- #= TRUE
+-- print(s)
+-- #= Hello w
 
-# io.close(f)
+-- io.close(f)
 
 s := ""
 FOR i := 1 TO 100000 DO

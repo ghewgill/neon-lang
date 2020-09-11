@@ -186,18 +186,28 @@ def tokenize_fragment(source):
         elif source[i] == "}": r.append(RBRACE); i += 1
         elif source[i] == "+": r.append(PLUS); i += 1
         elif source[i] == "*": r.append(TIMES); i += 1
-        elif source[i] == "/": r.append(DIVIDE); i += 1
         elif source[i] == "^": r.append(EXP); i += 1
         elif source[i] == "&": r.append(CONCAT); i += 1
         elif source[i] == "=": r.append(EQUAL); i += 1
         elif source[i] == ",": r.append(COMMA); i += 1
         elif source[i] == ".": r.append(DOT); i += 1
         elif source[i] == "-":
-            if source[i+1] == ">":
+            if source[i+1] == "-":
+                while i < len(source) and source[i] != "\n":
+                    i += 1
+            elif source[i+1] == ">":
                 r.append(ARROW)
                 i += 2
             else:
                 r.append(MINUS)
+                i += 1
+        elif source[i] == "/":
+            if i+1 < len(source) and source[i+1] == "*":
+                while i < len(source) and (source[i] != "*" or source[i+1] != "/"):
+                    i += 1
+                i += 2
+            else:
+                r.append(DIVIDE)
                 i += 1
         elif source[i] == "<":
             if source[i+1] == "=":
@@ -299,14 +309,6 @@ def tokenize_fragment(source):
                         assert False, c
                 string += c
             r.append(String(string))
-        elif source[i] == "#":
-            if i+1 < len(source) and source[i+1] == "|":
-                while i < len(source) and (source[i] != "|" or source[i+1] != "#"):
-                    i += 1
-                i += 2
-            else:
-                while i < len(source) and source[i] != "\n":
-                    i += 1
         elif space(source[i]):
             while i < len(source) and space(source[i]):
                 i += 1
@@ -2605,11 +2607,9 @@ g_Modules = {}
 
 def import_local_regex():
     return parse(tokenize("""
-#|
- |  File: regex
- |
- |  Functions for using regular expressions for text searching.
- |#
+--  File: regex
+--
+--  Functions for using regular expressions for text searching.
 
 EXPORT Group
 EXPORT Match
@@ -2618,16 +2618,14 @@ EXPORT search
 
 EXPORT EXCEPTION SyntaxException
 
-#|
- |  Type: Group
- |
- |  Represents a matching group as part of a <Match> array.
- |
- |  Fields:
- |      start - starting index of group
- |      end - ending index of group
- |      group - text of group
- |#
+--  Type: Group
+--
+--  Represents a matching group as part of a <Match> array.
+--
+--  Fields:
+--      start - starting index of group
+--      end - ending index of group
+--      group - text of group
 TYPE Group IS RECORD
     matched: Boolean
     start: Number
@@ -2635,18 +2633,14 @@ TYPE Group IS RECORD
     group: String
 END RECORD
 
-#|
- |  Type: Match
- |
- |  Represents the result of a successful regex match.
- |#
+--  Type: Match
+--
+--  Represents the result of a successful regex match.
 TYPE Match IS Array<Group>
 
-#|
- |  Function: search
- |
- |  Search a string for a given subject regex.
- |#
+--  Function: search
+--
+--  Search a string for a given subject regex.
 DECLARE EXTENSION FUNCTION search(pattern: String, subject: String, OUT match: Match): Boolean
     """))
 
@@ -3163,6 +3157,6 @@ try:
     source = codecs.open(sys.argv[1], encoding="utf-8").read()
 except UnicodeDecodeError:
     sys.exit(99)
-if re.search(r"^#!", source, re.MULTILINE):
+if re.search(r"^--!", source, re.MULTILINE):
     sys.exit(99)
 run(parse(tokenize(source)))

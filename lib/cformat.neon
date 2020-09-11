@@ -1,37 +1,33 @@
-#|
- |  File: cformat
- |
- |  Provide printf-like formatting similar to the C standard library.
- |#
+--  File: cformat
+--
+--  Provide printf-like formatting similar to the C standard library.
 
 EXPORT printf
 EXPORT sprintf
 
-#|
- |  Function: sprintf
- |
- |  Given a format string and an array of parameters, format the
- |  string and return the result.
- |
- |  Parameters:
- |      fmt - the format string
- |      value - the values to format
- |
- |  Description:
- |      The available formatting codes are
- |
- |          #d - decimal number
- |          #s - string
- |
- |  Exceptions:
- |      - <TypeMismatch> - if the wrong type is supplied for a parameter
- |
- |  See Also:
- |      <printf>
- |#
+--  Function: sprintf
+--
+--  Given a format string and an array of parameters, format the
+--  string and return the result.
+--
+--  Parameters:
+--      fmt - the format string
+--      value - the values to format
+--
+--  Description:
+--      The available formatting codes are
+--
+--          #d - decimal number
+--          #s - string
+--
+--  Exceptions:
+--      - <TypeMismatch> - if the wrong type is supplied for a parameter
+--
+--  See Also:
+--      <printf>
 FUNCTION sprintf(fmt: String, value: Object...): String
-    # TODO: This needs a lot more functionality, it is intended
-    # as a functional equivalent to the C sprintf function.
+    -- TODO: This needs a lot more functionality, it is intended
+    -- as a functional equivalent to the C sprintf function.
     VAR r: String := ""
     VAR a: Number := 0
     VAR i: Number := 0
@@ -54,22 +50,20 @@ FUNCTION sprintf(fmt: String, value: Object...): String
     RETURN r
 END FUNCTION
 
-#|
- |  Function: printf
- |
- |  Given a format string and an array of parameters, format the
- |  string and print the result.
- |
- |  Parameters:
- |      fmt - the format string
- |      value - the values to format
- |
- |  Exceptions:
- |      - <TypeMismatch> - if the wrong type is supplied for a parameter
- |
- |  See Also:
- |      <sprintf>
- |#
+--  Function: printf
+--
+--  Given a format string and an array of parameters, format the
+--  string and print the result.
+--
+--  Parameters:
+--      fmt - the format string
+--      value - the values to format
+--
+--  Exceptions:
+--      - <TypeMismatch> - if the wrong type is supplied for a parameter
+--
+--  See Also:
+--      <sprintf>
 FUNCTION printf(fmt: String, value: Object...)
     print(sprintf(fmt, value...))
 END FUNCTION

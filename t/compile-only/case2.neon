@@ -4,4 +4,4 @@ CASE a
     WHEN b DO
 END CASE
 
-#! WHEN condition must be constant
+--! WHEN condition must be constant

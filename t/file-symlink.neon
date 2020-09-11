@@ -7,9 +7,9 @@ TRY
     LET text: Bytes := file.readBytes("tmp/LICENSE.txt")
     TESTCASE text = file.readBytes("LICENSE.txt")
 TRAP file.FileException.PermissionDenied DO
-    # Creating a symlink not always possible on win32
+    -- Creating a symlink not always possible on win32
     TESTCASE os.platform() = os.Platform.win32
 TRAP file.FileException.Open DO
-    # Creating a symlink not always possible on win32
+    -- Creating a symlink not always possible on win32
     TESTCASE os.platform() = os.Platform.win32
 END TRY

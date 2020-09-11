@@ -5,5 +5,5 @@ END CLASS
 VAR p: POINTER TO Cls := NIL
 IF VALID p AS q THEN
     q->value := 0
-       #<
+       --<
 END IF

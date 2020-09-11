@@ -23,10 +23,10 @@ LET y: Bytes := HEXBYTES "02"
 
 TESTCASE x = x
 TESTCASE x <> y
-#TESTCASE x < y
-#TESTCASE y > x
-#TESTCASE x <= y
-#TESTCASE y >= x
+--TESTCASE x < y
+--TESTCASE y > x
+--TESTCASE x <= y
+--TESTCASE y >= x
 
 LET a: Array<Number> := [1, 2]
 LET b: Array<Number> := [1, 3]
@@ -34,15 +34,15 @@ LET b: Array<Number> := [1, 3]
 TESTCASE a = a
 TESTCASE a <> b
 
-#LET d: Dictionary<Number> := {"one": 1}
-#LET e: Dictionary<Number> := {"two": 2}
-#
-#TESTCASE d = d
-#TESTCASE d <> e
+--LET d: Dictionary<Number> := {"one": 1}
+--LET e: Dictionary<Number> := {"two": 2}
+--
+--TESTCASE d = d
+--TESTCASE d <> e
 
-#TYPE Cls IS CLASS END CLASS
-#LET p: POINTER TO Cls := NEW Cls
-#LET q: POINTER TO Cls := NEW Cls
-#
-#TESTCASE p = p
-#TESTCASE p <> q
+--TYPE Cls IS CLASS END CLASS
+--LET p: POINTER TO Cls := NEW Cls
+--LET q: POINTER TO Cls := NEW Cls
+--
+--TESTCASE p = p
+--TESTCASE p <> q

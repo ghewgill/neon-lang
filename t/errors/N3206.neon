@@ -1,4 +1,4 @@
 DECLARE NATIVE CONSTANT Foo: Number
-                        #<2
+                        --<2
 DECLARE NATIVE CONSTANT Foo: Number
-                        #<1
+                        --<1

@@ -4,8 +4,8 @@ FOR x := 1 TO 5 STEP MAX_STEP DO
     print("\(x)")
 END FOR
 
-#= 1
-#= 2
-#= 3
-#= 4
-#= 5
+--= 1
+--= 2
+--= 3
+--= 4
+--= 5

@@ -39,10 +39,10 @@ VAR q: POINTER TO Shape := NIL
 
 LET r: POINTER TO Rectangle := NEW Rectangle(width WITH 3, height WITH 4)
 printShapeInfo(r)
-#= area 12
-#= perimeter 14
+--= area 12
+--= perimeter 14
 
 LET c: POINTER TO Circle := NEW Circle(radius WITH 5)
 printShapeInfo(c)
-#= area 78.53981625
-#= perimeter 31.4159265
+--= area 78.53981625
+--= perimeter 31.4159265

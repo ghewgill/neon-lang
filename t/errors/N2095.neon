@@ -2,4 +2,4 @@ VAR a, c, d: Number := 0
 VAR b: Boolean := FALSE
 
 a := a + IF b THEN c ELSE d
-         #<
+         --<

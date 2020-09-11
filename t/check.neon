@@ -38,22 +38,22 @@ FUNCTION testReturn(x: Number): Boolean
 END FUNCTION
 
 testExit(0)
-#= check exit
+--= check exit
 testNext(0)
-#= check next
+--= check next
 TRY
     testRaise(0)
 TRAP InvalidValueException DO
 END TRY
-#= check raise
+--= check raise
 _ := testReturn(0)
-#= check return
+--= check return
 
 testExit(1)
-#= ok exit
+--= ok exit
 testNext(1)
-#= ok next
+--= ok next
 testRaise(1)
-#= ok raise
+--= ok raise
 _ := testReturn(1)
-#= ok return
+--= ok return

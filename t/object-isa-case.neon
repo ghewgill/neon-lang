@@ -5,7 +5,7 @@ CASE x
     WHEN ISA String DO
         print("string")
 END CASE
-#= number
+--= number
 
 x := "test"
 CASE x
@@ -14,4 +14,4 @@ CASE x
     WHEN ISA String DO
         print("string")
 END CASE
-#= string
+--= string

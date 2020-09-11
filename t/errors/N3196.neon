@@ -1,3 +1,3 @@
 IMPORT string
 CONSTANT n: Number := string.toCodePoint("AA")
-                            #<
+                            --<

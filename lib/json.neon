@@ -1,23 +1,19 @@
-#|
- |  File: json
- |
- |  Functions for reading and writing files in JSON format (<http://json.org>).
- |#
+--  File: json
+--
+--  Functions for reading and writing files in JSON format (<http://json.org>).
 
 IMPORT string
 
 EXPORT decode
 EXPORT encode
 
-# TODO: This encoder and decoder does not handle all backslash
-# character escapes yet.
-# TODO: Also, this could probably be improved a lot by using regex.
+-- TODO: This encoder and decoder does not handle all backslash
+-- character escapes yet.
+-- TODO: Also, this could probably be improved a lot by using regex.
 
-#|
- |  Exception: JsonFormatException
- |
- |  Indicates that a formatting error was encountered when reading JSON.
- |#
+--  Exception: JsonFormatException
+--
+--  Indicates that a formatting error was encountered when reading JSON.
 EXCEPTION JsonFormatException
 
 FUNCTION skipWhitespace(json: String, INOUT index: Number)
@@ -196,11 +192,9 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
     RAISE JsonFormatException(info WITH "value expected")
 END FUNCTION
 
-#|
- |  Function: decode
- |
- |  Decode JSON data in a string to a result in a <Object>.
- |#
+--  Function: decode
+--
+--  Decode JSON data in a string to a result in a <Object>.
 FUNCTION decode(json: String): Object
     VAR i: Number := 0
     LET r: Object := decodePart(json, INOUT i)
@@ -211,11 +205,9 @@ FUNCTION decode(json: String): Object
     RETURN r
 END FUNCTION
 
-#|
- |  Function: encode
- |
- |  Encode a value in a <Object> to JSON data in a string.
- |#
+--  Function: encode
+--
+--  Encode a value in a <Object> to JSON data in a string.
 FUNCTION encode(data: Object): String
     IF data.isNull() THEN
         RETURN "null"
@@ -242,7 +234,7 @@ FUNCTION encode(data: Object): String
             VAR r: String := "{"
             LET d: Dictionary<Object> := data
             LET keys: Array<String> := d.keys()
-            # TODO: This should just be d.keys(), see t/foreach-value.neon
+            -- TODO: This should just be d.keys(), see t/foreach-value.neon
             FOREACH x IN keys DO
                 IF r.length() > 1 THEN
                     r.append(",")

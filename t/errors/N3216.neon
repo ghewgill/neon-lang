@@ -1,6 +1,6 @@
 REPEAT LABEL foo
-             #<2
+             --<2
     REPEAT LABEL foo
-                 #<1
+                 --<1
     UNTIL TRUE
 UNTIL TRUE

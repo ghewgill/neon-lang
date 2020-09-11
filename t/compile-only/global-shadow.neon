@@ -1,3 +1,3 @@
 VAR print: Number
 
-#! duplicate identifier
+--! duplicate identifier

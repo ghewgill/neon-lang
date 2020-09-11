@@ -15,7 +15,7 @@ VAR a, b: POINTER TO Node
 
 runtime.setGarbageCollectionInterval(1)
 
-# Cycle collection, with needing to mark the cycle.
+-- Cycle collection, with needing to mark the cycle.
 TESTCASE runtime.getAllocatedObjectCount() = 0
 a := make(NIL)
 TESTCASE runtime.getAllocatedObjectCount() = 1

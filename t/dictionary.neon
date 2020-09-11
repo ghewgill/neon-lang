@@ -8,5 +8,5 @@ TRAP DictionaryIndexException DO
     print("dictionary index")
 END TRY
 
-#= world
-#= dictionary index
+--= world
+--= dictionary index

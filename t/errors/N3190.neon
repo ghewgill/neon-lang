@@ -1,4 +1,4 @@
 VAR s: String
-    #<2
+    --<2
 print(s)
-      #<1
+      --<1

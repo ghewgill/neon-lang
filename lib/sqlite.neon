@@ -1,8 +1,6 @@
-#|
- |  File: sqlite
- |
- |  Functions for working with SQLite relational databases.
- |#
+--  File: sqlite
+--
+--  Functions for working with SQLite relational databases.
 
 EXPORT Database
 EXPORT Row
@@ -26,55 +24,41 @@ EXCEPTION SqliteException.ParameterName
 
 VAR db: Database
 
-#|
- |  Type: Database
- |
- |  Opaque type representing a SQLite database.
- |#
+--  Type: Database
+--
+--  Opaque type representing a SQLite database.
 TYPE Database IS Object
 
-#|
- |  Type: Row
- |
- |  Represents a row in a results.
- |#
+--  Type: Row
+--
+--  Represents a row in a results.
 TYPE Row IS Array<String>
 
-#|
- |  Type: Rows
- |
- |  Represents a query result set.
- |#
+--  Type: Rows
+--
+--  Represents a query result set.
 TYPE Rows IS Array<Row>
 
-#|
- |  Function: open
- |
- |  Open a database in the given named file.
- |#
+--  Function: open
+--
+--  Open a database in the given named file.
 DECLARE NATIVE FUNCTION open(name: String): Database
 
-#|
- |  Function: exec
- |
- |  Execute a SQL statement in the given database and return the result set.
- |#
+--  Function: exec
+--
+--  Execute a SQL statement in the given database and return the result set.
 DECLARE NATIVE FUNCTION exec(db: Database, sql: String, parameters: Dictionary<String>): Rows
 
 DECLARE NATIVE FUNCTION execOne(db: Database, sql: String, parameters: Dictionary<String>, OUT result: Row): Boolean
 
-#|
- |  Function: execRaw
- |
- |  Execute a SQL statement in the given database and return the result set.
- |#
+--  Function: execRaw
+--
+--  Execute a SQL statement in the given database and return the result set.
 DECLARE NATIVE FUNCTION execRaw(db: Database, sql: String): Rows
 
-#|
- |  Function: close
- |
- |  Close a database.
- |#
+--  Function: close
+--
+--  Close a database.
 DECLARE NATIVE FUNCTION close(db: Database)
 
 DECLARE NATIVE FUNCTION cursorDeclare(db: Database, name: String, query: String): String

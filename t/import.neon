@@ -18,7 +18,7 @@ TESTCASE export.cs = "a"
 TESTCASE export.ca = [1]
 TESTCASE export.cd["a"] = 1
 TESTCASE export.cr.n = 1
-#TESTCASE export.ce = export.Enum.green
+--TESTCASE export.ce = export.Enum.green
 
 TRY
 TRAP export.TestException DO
@@ -26,8 +26,8 @@ END TRY
 
 LET c1: POINTER TO export.Interface := NEW Cls
 c1->f()
-#= foo
+--= foo
 
 LET c2: POINTER TO export.Interface := NEW export.Class2
 c2->f()
-#= f
+--= f

@@ -3,4 +3,4 @@ REPEAT
     s := "hello"
 UNTIL TRUE
 print(s)
-#= hello
+--= hello

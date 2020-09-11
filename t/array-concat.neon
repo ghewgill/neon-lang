@@ -1,4 +1,4 @@
 LET a: Array<Number> := [1, 2]
 LET b: Array<Number> := [3, 4]
 print("\(a & b)")
-#= [1, 2, 3, 4]
+--= [1, 2, 3, 4]

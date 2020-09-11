@@ -1,2 +1,2 @@
 EXEC SQL DECLARE foo ZZZZ;
-                     #<
+                     --<

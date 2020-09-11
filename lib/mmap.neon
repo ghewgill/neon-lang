@@ -1,8 +1,6 @@
-#|
- |  File: mmap
- |
- |  Memory mapped file access.
- |#
+--  File: mmap
+--
+--  Memory mapped file access.
 
 EXPORT MemoryFile
 EXPORT Mode
@@ -13,81 +11,61 @@ EXPORT read
 EXPORT size
 EXPORT write
 
-#|
- |  Enumeration: Mode
- |
- |  Mode to use when opening a file.
- |
- |  Values:
- |      read - read only
- |      write - read or write
- |#
+--  Enumeration: Mode
+--
+--  Mode to use when opening a file.
+--
+--  Values:
+--      read - read only
+--      write - read or write
 TYPE Mode IS ENUM
     read
     write
 END ENUM
 
-#|
- |  Type: MemoryFile
- |
- |  Opaque type representing a memory mapped file.
- |#
+--  Type: MemoryFile
+--
+--  Opaque type representing a memory mapped file.
 TYPE MemoryFile IS Object
 
-#|
- |  Exception: MmapException
- |
- |  General exceptions for mmap module.
- |#
+--  Exception: MmapException
+--
+--  General exceptions for mmap module.
 EXCEPTION MmapException
 
-#|
- |  Exception: MmapException.InvalidFile
- |
- |  An invalid (NIL) file was used.
- |#
+--  Exception: MmapException.InvalidFile
+--
+--  An invalid (NIL) file was used.
 EXCEPTION MmapException.InvalidFile
 
-#|
- |  Exception: OpenFileException
- |
- |  An error occured while trying to open the file.
- |#
+--  Exception: OpenFileException
+--
+--  An error occured while trying to open the file.
 EXCEPTION OpenFileException
 
-#|
- |  Function: close
- |
- |  Close a memory mapped file.
- |#
+--  Function: close
+--
+--  Close a memory mapped file.
 DECLARE NATIVE FUNCTION close(f: MemoryFile)
 
-#|
- |  Function: open
- |
- |  Open a memory mapped file.
- |
- |  TODO: The only valid mode is currently Mode.read.
- |#
+--  Function: open
+--
+--  Open a memory mapped file.
+--
+--  TODO: The only valid mode is currently Mode.read.
 DECLARE NATIVE FUNCTION open(name: String, mode: Mode): MemoryFile
 
-#|
- |  Function: read
- |
- |  Read bytes from a memory mapped file at the given offset.
- |#
+--  Function: read
+--
+--  Read bytes from a memory mapped file at the given offset.
 DECLARE NATIVE FUNCTION read(f: MemoryFile, offset: Number, count: Number): Bytes
 
-#|
- |  Function: size
- |
- |  Return the size of a memory mapped file.
- |#
+--  Function: size
+--
+--  Return the size of a memory mapped file.
 DECLARE NATIVE FUNCTION size(f: MemoryFile): Number
 
-#|
- |  Function: write
- |
- |  Write bytes to a memory mapped file at the given offset.
- |#
+--  Function: write
+--
+--  Write bytes to a memory mapped file at the given offset.
 DECLARE NATIVE FUNCTION write(f: MemoryFile, offset: Number, data: Bytes)

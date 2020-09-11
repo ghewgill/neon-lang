@@ -21,7 +21,7 @@ def run(fn):
         # One test has invalid UTF-8 data, so read it as the default encoding.
         src = open(fn, encoding="latin-1").read().replace("\r\n", "\n")
 
-    all_comments = re.findall("^#(.*)$", src, re.MULTILINE)
+    all_comments = re.findall("^--(.*)$", src, re.MULTILINE)
     todo = any("TODO" in x for x in all_comments)
     if any("SKIP" in x for x in all_comments):
         print("skipped")
@@ -50,24 +50,24 @@ def run(fn):
     if errors:
         lines = src.strip().split("\n")
         for i, s in enumerate(lines, 1):
-            for m in re.finditer(r"(#<)(\d)?", s):
+            for m in re.finditer(r"(--<)(\d)?", s):
                 n = int(m.group(2)) if m.group(2) else 1
                 expected_error_pos[n] = (i - 1, 1 + m.start(1))
-        if lines[-1] == "#$":
+        if lines[-1] == "--$":
             expected_error_pos[1] = (len(lines) + 1, 1)
         errnum = os.path.splitext(os.path.basename(fn))[0]
         expected_stderr = "Error " + errnum
         del errors[errnum]
     else:
-        out_comments = re.findall("^(#[=?])\s(.*)$", src, re.MULTILINE)
-        if any(x[0] == "#?" for x in out_comments):
-            regex_stdout = "".join([(re.escape(x[1]) if x[0] == "#=" else x[1]) + "\n" for x in out_comments])
+        out_comments = re.findall("^(--[=?])\s(.*)$", src, re.MULTILINE)
+        if any(x[0] == "--?" for x in out_comments):
+            regex_stdout = "".join([(re.escape(x[1]) if x[0] == "--=" else x[1]) + "\n" for x in out_comments])
         else:
             expected_stdout = "".join([x[1] + "\n" for x in out_comments])
 
-        err_comments = re.findall("^(#[!~])\s(.*)$", src, re.MULTILINE)
-        if any(x[0] == "#~" for x in err_comments):
-            regex_stderr = "".join([(re.escape(x[1]) if x[0] == "#!" else x[1]) + "\n" for x in err_comments])
+        err_comments = re.findall("^(--[!~])\s(.*)$", src, re.MULTILINE)
+        if any(x[0] == "--~" for x in err_comments):
+            regex_stderr = "".join([(re.escape(x[1]) if x[0] == "--!" else x[1]) + "\n" for x in err_comments])
         else:
             expected_stderr = "".join([x[1] + "\n" for x in err_comments])
 

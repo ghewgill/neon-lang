@@ -2,5 +2,5 @@ VAR k: String := "k"
 
 LET d: Dictionary<String> := {
     k: "v"
-    #<
+    --<
 }

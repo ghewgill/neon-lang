@@ -7,7 +7,7 @@ END ENUM
 
 LET c: Colour := Colour.red
 CASE c
-     #<
+     --<
     WHEN Colour.red DO
     WHEN Colour.green DO
     WHEN Colour.blue DO

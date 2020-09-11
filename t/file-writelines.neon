@@ -7,13 +7,13 @@ VAR data: Array<String>
 data := file.readLines("tmp/linetest.txt")
 
 print("\(data.size()) lines read.")
-#= 4 lines read.
+--= 4 lines read.
 
 FOREACH s IN data DO
     print(s)
 END FOREACH
 
-#= Hello
-#= Neon
-#= 
-#= World!
+--= Hello
+--= Neon
+--= 
+--= World!

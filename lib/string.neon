@@ -1,8 +1,6 @@
-#|
- |  File: string
- |
- |  Functions for common string operations.
- |#
+--  File: string
+--
+--  Functions for common string operations.
 
 EXPORT find
 EXPORT format
@@ -23,20 +21,16 @@ EXPORT trim
 EXPORT trimCharacters
 EXPORT upper
 
-#|
- |  Function: find
- |
- |  Find the index of a string within another.
- |#
+--  Function: find
+--
+--  Find the index of a string within another.
 DECLARE NATIVE FUNCTION find(s: String, t: String): Number
 
-#|
- |  Function: format
- |
- |  Format a string based on the formatting mini-language.
- |
- |  TODO
- |#
+--  Function: format
+--
+--  Format a string based on the formatting mini-language.
+--
+--  TODO
 FUNCTION format(s: String, fmt: String): String
     VAR fill: String := " "
     VAR align: String := ""
@@ -92,7 +86,7 @@ FUNCTION format(s: String, fmt: String): String
                 RAISE FormatException
             END IF
         WHEN "d", "x" DO
-            # pass
+            -- pass
         WHEN OTHERS DO
             RAISE FormatException
     END CASE
@@ -139,36 +133,28 @@ FUNCTION format(s: String, fmt: String): String
     RETURN r
 END FUNCTION
 
-#|
- |  Function: fromCodePoint
- |
- |  Return a string containing the single code point.
- |#
+--  Function: fromCodePoint
+--
+--  Return a string containing the single code point.
 DECLARE NATIVE FUNCTION fromCodePoint(code: Number): String
 
-#|
- |  Function: hasPrefix
- |
- |  Return TRUE if a string has a specific prefix.
- |#
+--  Function: hasPrefix
+--
+--  Return TRUE if a string has a specific prefix.
 FUNCTION hasPrefix(s: String, prefix: String): Boolean
     RETURN prefix.length() <= s.length() AND s[FIRST TO prefix.length()-1] = prefix
 END FUNCTION
 
-#|
- |  Function: hasSuffix
- |
- |  Return TRUE if a string has a specific suffix.
- |#
+--  Function: hasSuffix
+--
+--  Return TRUE if a string has a specific suffix.
 FUNCTION hasSuffix(s: String, suffix: String): Boolean
     RETURN suffix.length() <= s.length() AND s[LAST-(suffix.length()-1) TO LAST] = suffix
 END FUNCTION
 
-#|
- |  Function: isBlank
- |
- |  Return TRUE if a string is empty or contains only whitespace.
- |#
+--  Function: isBlank
+--
+--  Return TRUE if a string is empty or contains only whitespace.
 FUNCTION isBlank(s: String): Boolean
     FOREACH c IN s DO
         IF c NOT IN [" ", "\t"] THEN
@@ -178,11 +164,9 @@ FUNCTION isBlank(s: String): Boolean
     RETURN TRUE
 END FUNCTION
 
-#|
- |  Function: join
- |
- |  Join an array of strings together using the given delimiter.
- |#
+--  Function: join
+--
+--  Join an array of strings together using the given delimiter.
 FUNCTION join(a: Array<String>, d: String): String
     VAR r: String := ""
     FOREACH s IN a DO
@@ -194,25 +178,19 @@ FUNCTION join(a: Array<String>, d: String): String
     RETURN r
 END FUNCTION
 
-#|
- |  Function: lower
- |
- |  Return a string with all alphabetic characters converted to lower case.
- |#
+--  Function: lower
+--
+--  Return a string with all alphabetic characters converted to lower case.
 DECLARE NATIVE FUNCTION lower(s: String): String
 
-#|
- |  Function: quoted
- |
- |  Return a string that is a quoted version of the passed string, with enclosing quotes.
- |#
+--  Function: quoted
+--
+--  Return a string that is a quoted version of the passed string, with enclosing quotes.
 DECLARE NATIVE FUNCTION quoted(s: String): String
 
-#|
- |  Function: repeat
- |
- |  Return a string with a given string repeated the specified number of times.
- |#
+--  Function: repeat
+--
+--  Return a string with a given string repeated the specified number of times.
 FUNCTION repeat(s: String, n: Number): String
     CHECK n >= 0 ELSE
         RAISE InvalidValueException
@@ -230,15 +208,13 @@ FUNCTION repeat(s: String, n: Number): String
     RETURN r
 END FUNCTION
 
-#|
- |  Function: replaceAll
- |
- |  Return a string with all instances of a given string replaced by another string.
- |#
+--  Function: replaceAll
+--
+--  Return a string with all instances of a given string replaced by another string.
 FUNCTION replaceAll(s: String, target: String, replacement: String): String
-    # TODO: This can be improved with a findFrom function, which will allow
-    # us to search for the next instance of target more efficiently than
-    # extracting a substring at each position.
+    -- TODO: This can be improved with a findFrom function, which will allow
+    -- us to search for the next instance of target more efficiently than
+    -- extracting a substring at each position.
     VAR t: String := s
     VAR i: Number := 0
     WHILE i < t.length() DO
@@ -252,11 +228,9 @@ FUNCTION replaceAll(s: String, target: String, replacement: String): String
     RETURN t
 END FUNCTION
 
-#|
- |  Function: replaceOne
- |
- |  Return a string the first instacne of a given string replaced by another string.
- |#
+--  Function: replaceOne
+--
+--  Return a string the first instacne of a given string replaced by another string.
 FUNCTION replaceOne(s: String, target: String, replacement: String): String
     LET i: Number := find(s, target)
     CHECK i >= 0 ELSE
@@ -265,47 +239,35 @@ FUNCTION replaceOne(s: String, target: String, replacement: String): String
     RETURN s[FIRST TO i-1] & replacement & s[i+target.length() TO LAST]
 END FUNCTION
 
-#|
- |  Function: split
- |
- |  Split a string into parts using the given delimiter.
- |#
+--  Function: split
+--
+--  Split a string into parts using the given delimiter.
 DECLARE NATIVE FUNCTION split(s: String, d: String): Array<String>
 
-#|
- |  Function: splitLines
- |
- |  Split a string into lines using any of CRLF or CR or LF line endings.
- |#
+--  Function: splitLines
+--
+--  Split a string into lines using any of CRLF or CR or LF line endings.
 DECLARE NATIVE FUNCTION splitLines(s: String): Array<String>
 
-#|
- |  Function: toCodePoint
- |
- |  Return the Unicode code point of a given character.
- |  The input string must be a single character.
- |#
+--  Function: toCodePoint
+--
+--  Return the Unicode code point of a given character.
+--  The input string must be a single character.
 DECLARE NATIVE FUNCTION toCodePoint(s: String): Number
 
-#|
- |  Function: trimCharacters
- |
- |  Trim given characters from the start and end of a string.
- |#
+--  Function: trimCharacters
+--
+--  Trim given characters from the start and end of a string.
 DECLARE NATIVE FUNCTION trimCharacters(s: String, trimLeadingChars, trimTrailingChars: String): String
 
-#|
- |  Function: trim
- |
- |  Trim spaces from the start and end of a string.
- |#
+--  Function: trim
+--
+--  Trim spaces from the start and end of a string.
 FUNCTION trim(s: String): String
     RETURN trimCharacters(s, " ", " ")
 END FUNCTION
 
-#|
- |  Function: upper
- |
- |  Return a string with all alphabetic characters converted to upper case.
- |#
+--  Function: upper
+--
+--  Return a string with all alphabetic characters converted to upper case.
 DECLARE NATIVE FUNCTION upper(s: String): String

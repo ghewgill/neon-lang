@@ -17,59 +17,59 @@ END FUNCTION
 VAR a: Array<Number> := [1, 2, 3, 4]
 VAR b: Array<Number> := a[1 TO LAST-1]
 dump(b)
-#= [2, 3]
+--= [2, 3]
 
 a[1 TO LAST-1] := [5, 5, 5]
 dump(a)
-#= [1, 5, 5, 5, 4]
+--= [1, 5, 5, 5, 4]
 
 dump(a[FIRST TO LAST-1])
-#= [1, 5, 5, 5]
+--= [1, 5, 5, 5]
 
 dump(a[FIRST TO -1])
-#= []
+--= []
 
 dump([a[FIRST]])
-#= [1]
+--= [1]
 
 dump([a[FIRST+1]])
-#= [5]
+--= [5]
 
 dump([a[LAST]])
-#= [4]
+--= [4]
 
 dump([a[LAST-1]])
-#= [5]
+--= [5]
 
 dump(a[FIRST TO FIRST])
-#= [1]
+--= [1]
 
 dump(a[FIRST TO FIRST+1])
-#= [1, 5]
+--= [1, 5]
 
 dump(a[LAST TO LAST])
-#= [4]
+--= [4]
 
 dump(a[LAST-1 TO LAST])
-#= [5, 4]
+--= [5, 4]
 
 print(str(arr()[FIRST+1]))
-#= 2
+--= 2
 
 print(str(arr()[LAST]))
-#= 3
+--= 3
 
 dump(arr()[LAST-1 TO LAST])
-#= [2, 3]
+--= [2, 3]
 
 a[0 TO -1] := [9]
 dump(a)
-#= [9, 1, 5, 5, 5, 4]
+--= [9, 1, 5, 5, 5, 4]
 
 a[FIRST] := 0
 dump(a)
-#= [0, 1, 5, 5, 5, 4]
+--= [0, 1, 5, 5, 5, 4]
 
 a[LAST] := 0
 dump(a)
-#= [0, 1, 5, 5, 5, 0]
+--= [0, 1, 5, 5, 5, 0]

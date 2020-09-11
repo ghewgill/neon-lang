@@ -9,8 +9,8 @@ Program structure and modules are influenced by Python.
 
 ::
 
-    # This sample program greets the user
-    # until an empty line is entered.
+    -- This sample program greets the user
+    -- until an empty line is entered.
 
     IMPORT console
 
@@ -189,7 +189,7 @@ The exception handling statements are ``TRY`` (introduces a new handling scope),
     EXCEPTION PrinterOutOfPaperException
 
     FUNCTION printFile(name: String)
-        # Save the trees, don't print anything.
+        -- Save the trees, don't print anything.
         RAISE PrinterOutOfPaperException
     END FUNCTION
 
@@ -206,7 +206,7 @@ Execution stops with a diagnostic dump if the condition is not satisfied.
 
     FUNCTION setRatio(percent: Number)
         ASSERT 0 <= percent <= 100
-        # ... use percent value
+        -- ... use percent value
     END FUNCTION
 
 Functions
@@ -228,12 +228,12 @@ Function parameters can be ``IN`` (default), ``OUT`` (passed back to caller), or
     VAR uname: String
     VAR n: Number := 0
 
-    # The parameter mode (if not IN) must be explicitly indicated
-    # on the function call.
+    -- The parameter mode (if not IN) must be explicitly indicated
+    -- on the function call.
     func("charlie", OUT uname, INOUT n)
 
-    # The caller may choose to pass parameters in a different
-    # order using the WITH keyword.
+    -- The caller may choose to pass parameters in a different
+    -- order using the WITH keyword.
     func("charlie", INOUT count WITH n, OUT result WITH uname)
 
     ASSERT uname = "CHARLIE"

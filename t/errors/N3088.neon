@@ -1,6 +1,6 @@
 VAR foo: String
-    #<2
+    --<2
 TRY
 TRAP foo DO
-     #<1
+     --<1
 END TRY

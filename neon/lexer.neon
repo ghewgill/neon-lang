@@ -145,7 +145,7 @@ FUNCTION Token.toString(self: Token): String
         WHEN Type.identifier DO
             r.append(":\(self.text)")
         WHEN OTHERS DO
-            # no action
+            -- no action
     END CASE
     r.append(">")
     RETURN r
@@ -187,7 +187,7 @@ FUNCTION number_body(c: String): Boolean
 END FUNCTION
 
 FUNCTION number_base(c: String): Boolean
-    RETURN c = "#" OR "A" <= c <= "Z" OR "a" <= c <= "z"
+    RETURN "A" <= c <= "Z" OR "a" <= c <= "z"
 END FUNCTION
 
 FUNCTION number_decimal_body(c: String): Boolean
@@ -215,7 +215,7 @@ FUNCTION findLineEnd(source: String, start: Number): Number
 END FUNCTION
 
 FUNCTION unicodeLookup(t: Token, name: String): String
-    # TODO: actual unicode lookup
+    -- TODO: actual unicode lookup
     CASE string.upper(name)
         WHEN "LATIN SMALL LETTER A" DO RETURN "a"
     END CASE
@@ -247,29 +247,56 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSIF c = "}" THEN t.type := Type.rbrace INC i
         ELSIF c = "+" THEN t.type := Type.plus INC i
         ELSIF c = "*" THEN t.type := Type.times INC i
-        ELSIF c = "/" THEN t.type := Type.divide INC i
         ELSIF c = "^" THEN t.type := Type.exp INC i
         ELSIF c = "&" THEN t.type := Type.concat INC i
         ELSIF c = "=" THEN t.type := Type.equal INC i
         ELSIF c = "," THEN t.type := Type.comma INC i
-        ELSIF c = "\u2212" #|'−'|# THEN t.type := Type.minus INC i
-        ELSIF c = "\u00D7" #|'×'|# THEN t.type := Type.times INC i
-        ELSIF c = "\u2215" #|'∕'|# THEN t.type := Type.divide INC i
-        ELSIF c = "\u00F7" #|'÷'|# THEN t.type := Type.divide INC i
-        ELSIF c = "\u2260" #|'≠'|# THEN t.type := Type.notequal INC i
-        ELSIF c = "\u2264" #|'≤'|# THEN t.type := Type.lesseq INC i
-        ELSIF c = "\u2265" #|'≥'|# THEN t.type := Type.greatereq INC i
-        ELSIF c = "\u00ac" #|'¬'|# THEN t.type := Type.not INC i
-        ELSIF c = "\u2227" #|'∧'|# THEN t.type := Type.and INC i
-        ELSIF c = "\u2228" #|'∨'|# THEN t.type := Type.or INC i
-        ELSIF c = "\u2208" #|'∈'|# THEN t.type := Type.in INC i
-        # TODO ELSIF c = 0x2209 #|'∉'|# THEN t.type := Type.notin INC i
+        ELSIF c = "\u2212" /*'−'*/ THEN t.type := Type.minus INC i
+        ELSIF c = "\u00D7" /*'×'*/ THEN t.type := Type.times INC i
+        ELSIF c = "\u2215" /*'∕'*/ THEN t.type := Type.divide INC i
+        ELSIF c = "\u00F7" /*'÷'*/ THEN t.type := Type.divide INC i
+        ELSIF c = "\u2260" /*'≠'*/ THEN t.type := Type.notequal INC i
+        ELSIF c = "\u2264" /*'≤'*/ THEN t.type := Type.lesseq INC i
+        ELSIF c = "\u2265" /*'≥'*/ THEN t.type := Type.greatereq INC i
+        ELSIF c = "\u00ac" /*'¬'*/ THEN t.type := Type.not INC i
+        ELSIF c = "\u2227" /*'∧'*/ THEN t.type := Type.and INC i
+        ELSIF c = "\u2228" /*'∨'*/ THEN t.type := Type.or INC i
+        ELSIF c = "\u2208" /*'∈'*/ THEN t.type := Type.in INC i
+        -- TODO ELSIF c = 0x2209 /*'∉'*/ THEN t.type := Type.notin INC i
         ELSIF c = "-" THEN
-            IF i+1 < source.length() AND source[i+1] = ">" THEN
+            IF i+1 < source.length() AND source[i+1] = "-" THEN
+                WHILE i < source.length() AND source[i] <> "\n" DO
+                    INC i
+                END WHILE
+            ELSIF i+1 < source.length() AND source[i+1] = ">" THEN
                 t.type := Type.arrow
                 i := i + 2
             ELSE
                 t.type := Type.minus
+                INC i
+            END IF
+        ELSIF c = "/" THEN
+            IF i+1 < source.length() AND source[i+1] = "*" THEN
+                LOOP
+                    IF i+1 >= source.length() THEN
+                        error(1006, t, "Missing closing comment '*/'")
+                    END IF
+                    IF source[i TO i+1] = "*/" THEN
+                        i := i + 2
+                        EXIT LOOP
+                    ELSIF source[i] = "\n" THEN
+                        INC line
+                        column := 0
+                        linestart := i + 1
+                        lineend := findLineEnd(source, i+1)
+                        startindex := i
+                        INC i
+                    ELSE
+                        INC i
+                    END IF
+                END LOOP
+            ELSE
+                t.type := Type.divide
                 INC i
             END IF
         ELSIF c = "<" THEN
@@ -438,7 +465,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                             IF x < 0 OR x >= base THEN
                                 error(1005, t, "invalid digit for given base")
                             END IF
-                            # TODO decimal
+                            -- TODO decimal
                             value := value * base + x
                         END IF
                         INC i

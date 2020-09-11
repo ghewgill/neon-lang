@@ -16,7 +16,7 @@ END RECORD
 TYPE Client IS RECORD
     socket: net.Socket
     buf: Bytes
-    handler: FUNCTION(INOUT self: Client, s: String) # ResponseHandler
+    handler: FUNCTION(INOUT self: Client, s: String) -- ResponseHandler
     user: User
     chatting: Boolean
 END RECORD

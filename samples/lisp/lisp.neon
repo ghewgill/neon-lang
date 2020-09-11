@@ -1,8 +1,6 @@
-#|
- |  File: lisp
- |
- |  Implementation of a Scheme-like Lisp variant.
- |#
+--  File: lisp
+--
+--  Implementation of a Scheme-like Lisp variant.
 
 EXPORT eval
 EXPORT parse
@@ -135,7 +133,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
             TRY
                 LOOP
                     LET value: POINTER TO Value := parse2(s, INOUT i)
-                    IF value = NIL THEN # TODO: remove this check when the exception handling works
+                    IF value = NIL THEN -- TODO: remove this check when the exception handling works
                         EXIT LOOP
                     END IF
                     LET new: POINTER TO Value := NEW Value(type WITH Type.pair)
@@ -150,7 +148,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                     p := new
                 END LOOP
             TRAP ParseEndOfInputException DO
-                # nothing
+                -- nothing
             END TRY
             IF s[i] = ")" THEN
                 INC i
@@ -206,10 +204,10 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                 INC i
             END IF
             RETURN make_string(s[start TO i-2])
-#        ELSE
-#            RAISE SyntaxErrorException
+--        ELSE
+--            RAISE SyntaxErrorException
     END CASE
-    RETURN NIL #RAISE ParseEndOfInputException
+    RETURN NIL --RAISE ParseEndOfInputException
 END FUNCTION
 
 FUNCTION parse(s: String): POINTER TO Value
@@ -250,8 +248,8 @@ FUNCTION eval_special(e: POINTER TO Value, env: POINTER TO Environment): POINTER
         IF VALID car->val_symbol AS sym THEN
             CASE sym->name
                 WHEN "let" DO
-                    # TODO: Something does not seem complete here.
-                    #LET env2: POINTER TO Environment := new_env(env)
+                    -- TODO: Something does not seem complete here.
+                    --LET env2: POINTER TO Environment := new_env(env)
                     IF VALID e->val_pair.cdr AS bindings THEN
                         ASSERT bindings->type = Type.pair
                     ELSE
@@ -283,7 +281,7 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                     VAR args: Array<POINTER TO Value> := []
                     VAR a: POINTER TO Value := e->val_pair.cdr
                     LOOP
-                        VAR next: POINTER TO Value := NIL # FIXME: shouldn't need init here
+                        VAR next: POINTER TO Value := NIL -- FIXME: shouldn't need init here
                         IF VALID a THEN
                             args.append(eval2(a->val_pair.car, env))
                             next := a->val_pair.cdr
@@ -295,9 +293,9 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                     IF VALID proc THEN
                         CASE proc->type
                             WHEN Type.pair DO
-                                # ...
+                                -- ...
                             WHEN Type.proc DO
-                                LET f: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value := proc->val_proc # TODO: should be able to call this directly
+                                LET f: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value := proc->val_proc -- TODO: should be able to call this directly
                                 RETURN f(args)
                             WHEN OTHERS DO
                                 print("can't call \(proc->type)")
@@ -371,7 +369,7 @@ END FUNCTION
 FUNCTION repl()
     LOOP
         print(repr(eval(read(io.stdin))))
-        #print(repr(read(io.stdin)))
+        --print(repr(read(io.stdin)))
     END LOOP
 END FUNCTION
 
@@ -408,5 +406,5 @@ g_env->names["abs"] := make_proc(abs)
 
 BEGIN MAIN
     test_repr()
-    #repl()
+    --repl()
 END MAIN

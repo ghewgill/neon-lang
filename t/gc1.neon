@@ -8,7 +8,7 @@ VAR a, b: POINTER TO Node
 
 runtime.setGarbageCollectionInterval(1)
 
-# Simple collection.
+-- Simple collection.
 TESTCASE runtime.getAllocatedObjectCount() = 0
 a := NEW Node
 TESTCASE runtime.getAllocatedObjectCount() = 1

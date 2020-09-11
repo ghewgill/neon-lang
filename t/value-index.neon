@@ -19,10 +19,10 @@ FUNCTION r(): Rec
 END FUNCTION
 
 print(a()[1])
-#= bar
+--= bar
 
 print(d()["foo"])
-#= one
+--= one
 
 print(r().value)
-#= three
+--= three

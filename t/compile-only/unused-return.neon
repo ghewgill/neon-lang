@@ -4,4 +4,4 @@ END FUNCTION
 
 foo(5)
 
-#! return value unused
+--! return value unused

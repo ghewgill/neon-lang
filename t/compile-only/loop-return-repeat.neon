@@ -3,4 +3,4 @@ FUNCTION f(): String
     UNTIL TRUE
 END FUNCTION
 
-#! missing RETURN
+--! missing RETURN

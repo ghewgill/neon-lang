@@ -1,2 +1,2 @@
 EXEC SQL SELECT * INTO :123;
-                        #<
+                        --<

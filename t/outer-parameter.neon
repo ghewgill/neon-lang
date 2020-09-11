@@ -6,4 +6,4 @@ FUNCTION outer(x: Number): Number
 END FUNCTION
 
 print(str(outer(5)))
-#= 25
+--= 25

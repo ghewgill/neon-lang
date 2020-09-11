@@ -1,5 +1,5 @@
 TYPE a IS Number
-     #<2
+     --<2
 
 VAR a: Number
-    #<1
+    --<1

@@ -1,9 +1,9 @@
-#! Missing closing comment '|#'
+--! Missing closing comment '*/'
 
-#| This test is specifically designed to BEGIN the Block-Comment ending token,
+/* This test is specifically designed to BEGIN the Block-Comment ending token,
    but leaving off the last part of it, as well as ANY other data in the file.
    This will test the lexers ability to handle a case where it THINKS the
    token is ABOUT to end, but it does not, which is why there is NO LF at the
-   end of this file, and why the test result appears at the top. |#
+   end of this file, and why the test result appears at the top. */
 
-#| Block Comment, without proper ending comment token.|
+/* Block Comment, without proper ending comment token.*

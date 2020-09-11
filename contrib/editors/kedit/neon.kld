@@ -11,8 +11,8 @@
  single backslash
  double backslash
 :comment
- paired   #|   |#  nest
- line     #        any
+ paired   /*   */
+ line     --       any
 :match
  (     )
  [     ]

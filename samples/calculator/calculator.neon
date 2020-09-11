@@ -66,7 +66,7 @@ FUNCTION tokenise(s: String): Array<Token>
             WHEN ")" DO
                 r.append(Token(type WITH TokenType.rparen))
             WHEN " " DO
-                # Skip whitespace.
+                -- Skip whitespace.
             WHEN OTHERS DO
                 RAISE SyntaxException(info WITH "unexpected character")
         END CASE
@@ -82,7 +82,7 @@ TESTCASE tokenise("+") = [Token(type WITH TokenType.plus)]
 TESTCASE tokenise("a+1") = [Token(type WITH TokenType.name, name WITH "a"), Token(type WITH TokenType.plus), Token(type WITH TokenType.value, value WITH 1)]
 TESTCASE tokenise("a + 1") = [Token(type WITH TokenType.name, name WITH "a"), Token(type WITH TokenType.plus), Token(type WITH TokenType.value, value WITH 1)]
 
-# TODO: Improve type checking for interface methods so this alias isn't necessary.
+-- TODO: Improve type checking for interface methods so this alias isn't necessary.
 TYPE Variables IS Dictionary<Number>
 
 INTERFACE Node
@@ -111,7 +111,7 @@ TYPE NodePlus IS CLASS IMPLEMENTS Node
 END CLASS
 
 FUNCTION NodePlus.eval(self: VALID POINTER TO NodePlus, vars: Variables): Number
-    # TODO: Should this require valid pointer checks for left and right?
+    -- TODO: Should this require valid pointer checks for left and right?
     RETURN self->left->eval(vars) + self->right->eval(vars)
 END FUNCTION
 
@@ -163,8 +163,8 @@ FUNCTION parse(tokens: Array<Token>): Expression
         CHECK i < tokens.size() ELSE
             RAISE SyntaxException(info WITH "unexpected end of input")
         END CHECK
-        # TODO: Can't assign literal NIL to interface pointer.
-        # TODO: Variable initialisation checker doesn't seem to work here.
+        -- TODO: Can't assign literal NIL to interface pointer.
+        -- TODO: Variable initialisation checker doesn't seem to work here.
         VAR r: POINTER TO Node := NEW NodeValue(value WITH 0)
         CASE tokens[i].type
             WHEN TokenType.value DO

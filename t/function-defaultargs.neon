@@ -3,7 +3,7 @@ FUNCTION foo(s: String, b: Boolean DEFAULT FALSE)
 END FUNCTION
 
 foo("bar", TRUE)
-#= bar TRUE
+--= bar TRUE
 
 foo("baz")
-#= baz FALSE
+--= baz FALSE

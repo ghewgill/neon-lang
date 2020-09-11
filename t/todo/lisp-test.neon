@@ -1,4 +1,4 @@
-# SKIP (regex is an extension module which may not exist)
+-- SKIP (regex is an extension module which may not exist)
 
 IMPORT "samples/lisp/lisp" ALIAS lisp
 
@@ -7,16 +7,16 @@ FUNCTION t(s: String)
 END FUNCTION
 
 t("#t")
-#= #t
+--= #t
 
 t("23")
-#= 23
+--= 23
 
 t("(+ 23 42)")
-#= 65
+--= 65
 
 t("(+ 14 (* 23 42))")
-#= 980
+--= 980
 
-#t("(let ((x 23) (y 42)) (+ x y))")
-##= 65
+--t("(let ((x 23) (y 42)) (+ x y))")
+----= 65

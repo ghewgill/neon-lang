@@ -10,89 +10,89 @@ VAR a: Array<String>
 
 a := file.readLines("LICENSE.txt")
 print(str(a.size()))
-#= 21
+--= 21
 print(a[0])
-#= The MIT License (MIT)
+--= The MIT License (MIT)
 
 VAR buf: Bytes
 buf := file.readBytes("LICENSE.txt")
-print(bstr(buf.size() = 1076 OR buf.size() = 1097)) # account for lf vs crlf
-#= TRUE
+print(bstr(buf.size() = 1076 OR buf.size() = 1097)) -- account for lf vs crlf
+--= TRUE
 VAR arr: Array<Number> := buf.toArray()
 print("\(arr[0])")
-#= 84
+--= 84
 
 print(bstr(file.isDirectory("t")))
-#= TRUE
+--= TRUE
 
 a := file.files("t")
 print(bstr("file-test.neon" IN a))
-#= TRUE
+--= TRUE
 
 LET fi: file.FileInfo := file.getInfo("t/file-test.neon")
 print(fi.name)
-#= file-test.neon
+--= file-test.neon
 TESTCASE 1000 <= fi.size <= 10000
 print(bstr(fi.readable))
-#= TRUE
+--= TRUE
 print(fi.type.toString())
-#= normal
+--= normal
 TESTCASE fi.lastModificationTime > 0
 
 file.writeLines("tmp/file-test.tmp", ["hello", "world"])
 print(bstr(file.exists("tmp/file-test.tmp")))
-#= TRUE
+--= TRUE
 file.delete("tmp/file-test.tmp")
 print(bstr(file.exists("tmp/file-test.tmp")))
-#= FALSE
-file.delete("tmp/file-test.tmp") # No exception expected.
+--= FALSE
+file.delete("tmp/file-test.tmp") -- No exception expected.
 
 file.writeLines("tmp/file-test.tmp", ["hello", "world"])
 file.delete("tmp/file-test2.tmp")
 file.rename("tmp/file-test.tmp", "tmp/file-test2.tmp")
 print(bstr(file.exists("tmp/file-test.tmp")))
-#= FALSE
+--= FALSE
 print(bstr(file.exists("tmp/file-test2.tmp")))
-#= TRUE
+--= TRUE
 
 file.copyOverwriteIfExists("tmp/file-test2.tmp", "tmp/file-test3.tmp")
 print(bstr(file.exists("tmp/file-test2.tmp")))
-#= TRUE
+--= TRUE
 print(bstr(file.exists("tmp/file-test3.tmp")))
-#= TRUE
+--= TRUE
 
 file.mkdir("tmp/foo")
 print(bstr(file.isDirectory("tmp/foo")))
-#= TRUE
+--= TRUE
 file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
 TRY
     file.removeEmptyDirectory("tmp/foo")
 TRAP file.FileException DO
     print("ok")
 END TRY
-#= ok
+--= ok
 file.delete("tmp/foo/bar.txt")
 file.removeEmptyDirectory("tmp/foo")
 print(bstr(file.isDirectory("tmp/foo")))
-#= FALSE
+--= FALSE
 
 file.mkdir("tmp/foo")
 print(bstr(file.isDirectory("tmp/foo")))
-#= TRUE
+--= TRUE
 file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
 file.removeDirectoryTree("tmp/foo")
 print(bstr(file.isDirectory("tmp/foo")))
-#= FALSE
+--= FALSE
 
 print(file.pathJoin("a", "b"))
-#? a[/\\]b
+--? a[/\\]b
 print(file.pathJoin("a", "/b"))
-#= /b
+--= /b
 
 VAR directory, name: String
 file.pathSplit("a", OUT directory, OUT name)
 print("\(directory) \(name)")
-#=  a
+--=  a
 file.pathSplit("a/b", OUT directory, OUT name)
 print("\(directory) \(name)")
-#= a b
+--= a b

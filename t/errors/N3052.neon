@@ -5,6 +5,6 @@ b := a
 
 CASE a
     WHEN = b DO
-           #<
+           --<
         print("a is == to b.")
 END CASE

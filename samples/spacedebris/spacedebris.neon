@@ -1,8 +1,6 @@
-#|
- |  File: spacedebris
- |
- |  Vector base space rocks game.
- |#
+--  File: spacedebris
+--
+--  Vector base space rocks game.
 
 IMPORT math
 IMPORT random

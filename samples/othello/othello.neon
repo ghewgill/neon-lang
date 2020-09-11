@@ -1,11 +1,9 @@
-#|
- |  File: othello
- |
- |  Othello game.
- |
- |  The Othello playing engine used here was originally written by
- |  Roemer B. Lievaart for the 1987 International Obfuscated C Code Contest.
- |#
+--  File: othello
+--
+--  Othello game.
+--
+--  The Othello playing engine used here was originally written by
+--  Roemer B. Lievaart for the 1987 International Obfuscated C Code Contest.
 
 IMPORT curses
 IMPORT string

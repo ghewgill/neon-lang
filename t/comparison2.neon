@@ -6,14 +6,14 @@ a := 2
 b := 3
 c := 4
 
-# Both conditions true.
+-- Both conditions true.
 print("\(a < b < c)")
-#= TRUE
+--= TRUE
 
-# First condition false.
+-- First condition false.
 print("\(a > b < c)")
-#= FALSE
+--= FALSE
 
-# Second condition false.
+-- Second condition false.
 print("\(a < b > c)")
-#= FALSE
+--= FALSE

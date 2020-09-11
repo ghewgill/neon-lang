@@ -1,4 +1,4 @@
-# SKIP
+-- SKIP
 
 IMPORT "module-load-order-3" ALIAS module3
 

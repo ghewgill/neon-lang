@@ -3,7 +3,7 @@ a := "Hello, World!"
 
 CASE a
     WHEN 3 TO "HELLO" DO
-         #<
+         --<
         print("a is == 5")
     WHEN = "Aloha, World!" DO
         print("a is Aloha.")

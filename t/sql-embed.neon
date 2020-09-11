@@ -6,7 +6,7 @@ EXEC SQL CREATE TABLE user(name STRING PRIMARY KEY, password STRING);
 LET name: String := "name"
 LET password: String := "password"
 EXEC SQL INSERT INTO user (name, password) VALUES (:name, :password);
-#EXEC SQL INSERT INTO user (name, password) VALUES (:(name&name), :password);
+--EXEC SQL INSERT INTO user (name, password) VALUES (:(name&name), :password);
 
 VAR pw_tmp: String
 EXEC SQL SELECT password INTO :pw_tmp FROM user WHERE name = :name;

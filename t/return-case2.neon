@@ -9,4 +9,4 @@ END FUNCTION
 
 print(str(foo(5)))
 
-#= 1
+--= 1

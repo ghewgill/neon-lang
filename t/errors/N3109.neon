@@ -1,5 +1,5 @@
 VAR a: Number := 0
 CASE a
     WHEN 4 TO 3 DO
-              #<
+              --<
 END CASE

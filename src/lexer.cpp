@@ -253,7 +253,6 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         else if (c == '}') { t.type = RBRACE; utf8::advance(i, 1, source.end()); }
         else if (c == '+') { t.type = PLUS; utf8::advance(i, 1, source.end()); }
         else if (c == '*') { t.type = TIMES; utf8::advance(i, 1, source.end()); }
-        else if (c == '/') { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
         else if (c == '^') { t.type = EXP; utf8::advance(i, 1, source.end()); }
         else if (c == '&') { t.type = CONCAT; utf8::advance(i, 1, source.end()); }
         else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
@@ -271,11 +270,38 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         else if (c == 0x2208 /*'∈'*/) { t.type = IN; utf8::advance(i, 1, source.end()); }
         // TODO else if (c == 0x2209 /*'∉'*/) { t.type = NOTIN; utf8::advance(i, 1, source.end()); }
         else if (c == '-') {
-            if (i+1 != source.end() && *(i+1) == '>') {
+            if (i+1 != source.end() && *(i+1) == '-') {
+                while (i != source.end() && *i != '\n') {
+                    utf8::advance(i, 1, source.end());
+                }
+            } else if (i+1 != source.end() && *(i+1) == '>') {
                 t.type = ARROW;
                 utf8::advance(i, 2, source.end());
             } else {
                 t.type = MINUS;
+                utf8::advance(i, 1, source.end());
+            }
+        } else if (c == '/') {
+            if (i+1 != source.end() && *(i+1) == '*') {
+                for (;;) {
+                    if (i == source.end() || i+1 == source.end()) {
+                        error(1006, t, "Missing closing comment '*/'");
+                    } else if (*i == '*' && *(i+1) == '/') {
+                        utf8::advance(i, 2, source.end());
+                        break;
+                    } else if (*i == '\n') {
+                        line++;
+                        column = 0;
+                        linestart = i+1;
+                        lineend = std::find(i+1, source.end(), '\n');
+                        startindex = i;
+                        utf8::advance(i, 1, source.end());
+                    } else {
+                        utf8::advance(i, 1, source.end());
+                    }
+                }
+            } else {
+                t.type = DIVIDE;
                 utf8::advance(i, 1, source.end());
             }
         } else if (c == '<') {
@@ -690,38 +716,6 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         lineend = std::find(i+1, source.end(), '\n');
                     }
                     utf8::append(c, std::back_inserter(t.text));
-                }
-            }
-        } else if (c == '#') {
-            if (i+1 == source.end()) {
-                break;
-            }
-            if (*(i+1) == '|') {
-                int level = 0;
-                do {
-                    if (i == source.end() || i+1 == source.end()) {
-                        error(1006, t, "Missing closing comment '|#'");
-                    }
-                    if (*i == '#' && *(i+1) == '|') {
-                        level++;
-                        utf8::advance(i, 2, source.end());
-                    } else if (*i == '|' && *(i+1) == '#') {
-                        level--;
-                        utf8::advance(i, 2, source.end());
-                    } else if (*i == '\n') {
-                        line++;
-                        column = 0;
-                        linestart = i+1;
-                        lineend = std::find(i+1, source.end(), '\n');
-                        startindex = i;
-                        utf8::advance(i, 1, source.end());
-                    } else {
-                        utf8::advance(i, 1, source.end());
-                    }
-                } while (level > 0);
-            } else {
-                while (i != source.end() && *i != '\n') {
-                    utf8::advance(i, 1, source.end());
                 }
             }
         } else if (space(c)) {

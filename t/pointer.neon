@@ -9,4 +9,4 @@ IF VALID a AS p THEN
     p->value := 5
     print(str(p->value))
 END IF
-#= 5
+--= 5

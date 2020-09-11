@@ -1,4 +1,4 @@
-# SKIP (regex is an extension module which may not exist)
+-- SKIP (regex is an extension module which may not exist)
 
 IMPORT multiarray
 
@@ -6,7 +6,7 @@ IMPORT "samples/sudoku/sudoku" ALIAS sudoku
 
 VAR grid: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 9)
 grid := [
-    # https://en.wikipedia.org/wiki/Sudoku
+    -- https://en.wikipedia.org/wiki/Sudoku
     [5,3,0,0,7,0,0,0,0],
     [6,0,0,1,9,5,0,0,0],
     [0,9,8,0,0,0,0,6,0],
@@ -28,4 +28,4 @@ TESTCASE grid[6] = [9,6,1,5,3,7,2,8,4]
 TESTCASE grid[7] = [2,8,7,4,1,9,6,3,5]
 TESTCASE grid[8] = [3,4,5,2,8,6,1,7,9]
 
-#grid := sudoku.makePuzzle(sudoku.makeSolution(), 79)
+--grid := sudoku.makePuzzle(sudoku.makeSolution(), 79)

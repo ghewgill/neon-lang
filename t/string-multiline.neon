@@ -3,6 +3,6 @@ IMPORT string
 LET s: String := @@"foo
 bar"@@
 print("\(s.length())")
-#= 7
+--= 7
 print("\(string.toCodePoint(s[3]))")
-#= 10
+--= 10

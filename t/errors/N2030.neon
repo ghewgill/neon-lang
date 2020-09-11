@@ -3,6 +3,6 @@ a := 10
 
 CASE a
     WHEN < 2, > 5
-                  #<
+                  --<
         print("Less than 2, or greater than 5")
 END CASE

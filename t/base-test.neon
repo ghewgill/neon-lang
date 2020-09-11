@@ -1,10 +1,10 @@
 IMPORT base
 
-# check zero functionality
+-- check zero functionality
 TESTCASE base.from(2, "0") = 0
 TESTCASE base.to(2, 0) = "0"
 
-# conversion from all valid bases
+-- conversion from all valid bases
 TESTCASE base.from(2, "101010") = 42
 TESTCASE base.from(3, "1120") = 42
 TESTCASE base.from(4, "222") = 42
@@ -41,7 +41,7 @@ TESTCASE base.from(34, "18") = 42
 TESTCASE base.from(35, "17") = 42
 TESTCASE base.from(36, "16") = 42
 
-# check that both upper and lower case is accepted
+-- check that both upper and lower case is accepted
 TESTCASE base.from(16, "beef") = 48879
 TESTCASE base.from(16, "BEEF") = 48879
 
@@ -49,7 +49,7 @@ TESTCASE base.fromBinary("101010") = 42
 TESTCASE base.fromOctal("52") = 42
 TESTCASE base.fromHex("2a") = 42
 
-# conversion to all valid bases
+-- conversion to all valid bases
 TESTCASE base.to(2, 42) = "101010"
 TESTCASE base.to(3, 42) = "1120"
 TESTCASE base.to(4, 42) = "222"
@@ -90,7 +90,7 @@ TESTCASE base.toBinary(42) = "101010"
 TESTCASE base.toOctal(42) = "52"
 TESTCASE base.toHex(42) = "2a"
 
-# check exceptional conditions
+-- check exceptional conditions
 TESTCASE base.from(1.5, "0") EXPECT ValueRangeException
 TESTCASE base.from(-5, "0") EXPECT ValueRangeException
 TESTCASE base.to(1.5, 0) EXPECT ValueRangeException

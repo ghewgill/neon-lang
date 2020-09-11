@@ -1,13 +1,13 @@
 print(str(num("45")))
-#= 45
+--= 45
 
-# Check for behaviour of various strings that are not numbers.
+-- Check for behaviour of various strings that are not numbers.
 TESTCASE num("") EXPECT ValueRangeException
 TESTCASE num("-") EXPECT ValueRangeException
 TESTCASE num(".") EXPECT ValueRangeException
 
 print("hello")
-#= hello
+--= hello
 
 print(str(5))
-#= 5
+--= 5

@@ -4,4 +4,4 @@ IF TRUE THEN
 END IF
 print(s)
 
-#! Uninitialised
+--! Uninitialised

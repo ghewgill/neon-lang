@@ -4,7 +4,7 @@ IMPORT sys
 
 IMPORT lexer
 
-TYPE TokenType IS lexer.Type # TODO: should not need this
+TYPE TokenType IS lexer.Type -- TODO: should not need this
 
 TYPE DictionaryLiteralKeyValue IS RECORD
     key: POINTER TO ParseTreeNode
@@ -652,7 +652,7 @@ END CLASS
 TYPE IParseTreeVisitor IS Dictionary<FUNCTION(node: VALID POINTER TO ParseTreeNode, depth: Number)>
 
 FUNCTION ParseTreeNode.accept(self: VALID POINTER TO ParseTreeNode, visitor: IParseTreeVisitor, depth: Number)
-    # TODO: should not need a temporary here
+    -- TODO: should not need a temporary here
     LET f: FUNCTION(node: VALID POINTER TO ParseTreeNode, depth: Number) := visitor[self->type.toString()]
     f(self, depth)
 END FUNCTION
@@ -673,13 +673,13 @@ FUNCTION error(number: Number, token: lexer.Token, message: String)
 END FUNCTION
 
 FUNCTION error_a(number: Number, token: lexer.Token, token_a: lexer.Token, message: String)
-    # TODO
+    -- TODO
     print("error_a")
     error(number, token, message)
 END FUNCTION
 
 FUNCTION error2(number: Number, token: lexer.Token, message: String, token2: lexer.Token, message2: String)
-    # TODO
+    -- TODO
     print("error2")
     error(number, token, message)
 END FUNCTION
@@ -812,22 +812,22 @@ FUNCTION Parser.nextToken(INOUT self: Parser)
     self.token := self.tokens[self.index]
 END FUNCTION
 
-# TODO maybe use these later, but not yet
-#FUNCTION Parser.expect(INOUT self: Parser, expected: TokenType, errorNumber: Number, message: String)
-#    IF self.token.type <> expected THEN
-#        error(errorNumber, self.token, message)
-#    END IF
-#    self.nextToken()
-#END FUNCTION
-#
-#FUNCTION Parser.nextIdentifier(INOUT self: Parser, errorNumber: Number): lexer.Token
-#    IF self.token.type <> TokenType.identifier THEN
-#        error(errorNumber, self.token, "identifier expected")
-#    END IF
-#    LET r: lexer.Token := self.token
-#    self.nextToken()
-#    RETURN r
-#END FUNCTION
+-- TODO maybe use these later, but not yet
+--FUNCTION Parser.expect(INOUT self: Parser, expected: TokenType, errorNumber: Number, message: String)
+--    IF self.token.type <> expected THEN
+--        error(errorNumber, self.token, message)
+--    END IF
+--    self.nextToken()
+--END FUNCTION
+--
+--FUNCTION Parser.nextIdentifier(INOUT self: Parser, errorNumber: Number): lexer.Token
+--    IF self.token.type <> TokenType.identifier THEN
+--        error(errorNumber, self.token, "identifier expected")
+--    END IF
+--    LET r: lexer.Token := self.token
+--    self.nextToken()
+--    RETURN r
+--END FUNCTION
 
 FUNCTION Parser.parseVariableDeclaration(INOUT self: Parser): VariableInfo
     VAR names: Array<lexer.Token> := []
@@ -865,7 +865,7 @@ FUNCTION Parser.parseFunctionParameters(INOUT self: Parser, OUT returntype: POIN
                 WHEN TokenType.inout DO mode := ParameterMode.inout self.nextToken()
                 WHEN TokenType.out   DO mode := ParameterMode.out   self.nextToken()
                 WHEN OTHERS DO
-                    # no action
+                    -- no action
             END CASE
             LET tokParam: lexer.Token := self.token
             LET vars: VariableInfo := self.parseVariableDeclaration()
@@ -1006,7 +1006,7 @@ FUNCTION Parser.parseFunctionCall(INOUT self: Parser, func: POINTER TO ParseTree
     END IF
     LET tokRparen: lexer.Token := self.token
     self.nextToken()
-    # TODO use CHECK VALID
+    -- TODO use CHECK VALID
     IF VALID func THEN
         RETURN NEW ParseTreeNode(
             type WITH Type.FunctionCallExpression,
@@ -1219,7 +1219,7 @@ FUNCTION Parser.parseCompoundExpression(INOUT self: Parser): POINTER TO ParseTre
                     IF last = NIL THEN
                         last := self.parseExpression()
                     END IF
-                    # TODO use initialiser when available
+                    -- TODO use initialiser when available
                     range := NEW ArrayRange
                     IF VALID range THEN
                         range->token := tokLbracket
@@ -1230,7 +1230,7 @@ FUNCTION Parser.parseCompoundExpression(INOUT self: Parser): POINTER TO ParseTre
                     END IF
                 ELSE
                     IF firstFromEnd THEN
-                        # TODO use initialiser when available
+                        -- TODO use initialiser when available
                         range := NEW ArrayRange
                         IF VALID range THEN
                             range->token := tokLbracket
@@ -1324,26 +1324,24 @@ FUNCTION Parser.parseCompoundExpression(INOUT self: Parser): POINTER TO ParseTre
                 )
             )
         ELSE
-            # TODO: what happens here?
+            -- TODO: what happens here?
             EXIT LOOP
         END IF
     END LOOP
     RETURN expr
 END FUNCTION
 
-#|
- | Operator precedence:
- |
- |  ^        exponentiation                     parseExponentiation
- |  * / MOD  multiplication, division, modulo   parseMultiplication
- |  + -      addition, subtraction              parseAddition
- |  < = >    comparison                         parseComparison
- |  isa      type test                          parseTypeTest
- |  in       membership                         parseMembership
- |  and      conjunction                        parseConjunction
- |  or       disjunction                        parseDisjunction
- |  if       conditional                        parseConditional
- |#
+-- Operator precedence:
+--
+--  ^        exponentiation                     parseExponentiation
+--  * / MOD  multiplication, division, modulo   parseMultiplication
+--  + -      addition, subtraction              parseAddition
+--  < = >    comparison                         parseComparison
+--  isa      type test                          parseTypeTest
+--  in       membership                         parseMembership
+--  and      conjunction                        parseConjunction
+--  or       disjunction                        parseDisjunction
+--  if       conditional                        parseConditional
 
 FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
     CASE self.token.type
@@ -1740,7 +1738,7 @@ FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
             )
         )
     ELSE
-        # TODO use CHECK VALID here
+        -- TODO use CHECK VALID here
         IF VALID left THEN
             RETURN NEW ParseTreeNode(
                 type WITH Type.ChainedComparisonExpression,
@@ -1769,7 +1767,7 @@ FUNCTION Parser.parseTypeTest(INOUT self: Parser): POINTER TO ParseTreeNode
             token WITH tokOp,
             typetestexpression WITH TypeTestExpression(
                 startColumn WITH getStartColumn(left),
-                endColumn WITH tokOp.column, # TODO: should use end of target
+                endColumn WITH tokOp.column, -- TODO: should use end of target
                 left WITH left,
                 target WITH target
             )
@@ -2384,7 +2382,7 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                         )
                     )
                 WHEN OTHERS DO
-                    # no action
+                    -- no action
             END CASE
             RETURN NIL
         WHEN TokenType.extension DO
@@ -2542,18 +2540,18 @@ FUNCTION Parser.parseExport(INOUT self: Parser): POINTER TO ParseTreeNode
                     declaration WITH function
                 )
             ) END IF
-        #| TODO WHEN TokenType.declare DO
+        /* TODO WHEN TokenType.declare DO
             LET declare: POINTER TO ParseTreeNode := self.parseDeclaration()
             IF VALID declare THEN RETURN NEW ParseTreeNode(
                 type WITH Type.ExportDeclaration,
                 token WITH tokExport,
                 exportdeclaration WITH ExportDeclaration(
-                    names WITH declare->names, # TODO needs generic list of names
+                    names WITH declare->names, -- TODO needs generic list of names
                     declaration WITH declare
                 )
-            ) END IF |#
+            ) END IF */
         WHEN OTHERS DO
-            # no action
+            -- no action
     END CASE
     IF self.token.type <> TokenType.identifier THEN
         error(2074, self.token, "identifier expected")
@@ -3106,8 +3104,8 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
 END FUNCTION
 
 FUNCTION Parser.parseIncrementStatement(INOUT self: Parser): POINTER TO ParseTreeNode
-    # TODO the following should work, but causes segfault in compiler parse tree destructor
-    #ASSERT self.token.type IN [TokenType.inc, TokenType.dec]
+    -- TODO the following should work, but causes segfault in compiler parse tree destructor
+    --ASSERT self.token.type IN [TokenType.inc, TokenType.dec]
     ASSERT self.token.type = TokenType.inc OR self.token.type = TokenType.dec
     LET tokOp: lexer.Token := self.token
     self.nextToken()
@@ -3558,7 +3556,7 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             LET start: lexer.Token := self.token
             IF self.tokens[self.index+1].type NOT IN [
                 TokenType.assign,
-                TokenType.equal, # Note that this is an error, but error 3060 is better.
+                TokenType.equal, -- Note that this is an error, but error 3060 is better.
                 TokenType.lbracket,
                 TokenType.lparen,
                 TokenType.dot,
@@ -3623,7 +3621,7 @@ END FUNCTION
 FUNCTION Parser.parse(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR statements: Array<POINTER TO ParseTreeNode> := []
     WHILE self.token.type <> lexer.Type.end_of_file DO
-        #print("line \(self.token.line)")
+        --print("line \(self.token.line)")
         LET s: POINTER TO ParseTreeNode := self.parseStatement()
         IF VALID s THEN
             statements.append(s)
@@ -4211,7 +4209,7 @@ FUNCTION dumpProgram(node: VALID POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
 LET Dumper: IParseTreeVisitor := {
-    # TODO: use values like Type.Program.toString() instead of literals
+    -- TODO: use values like Type.Program.toString() instead of literals
     "TypeSimple":                           dumpTypeSimple,
     "TypeEnum":                             dumpTypeEnum,
     "TypeRecord":                           dumpTypeRecord,
@@ -4307,9 +4305,9 @@ END FUNCTION
 
 BEGIN MAIN
     LET tokens: Array<lexer.Token> := lexer.tokenize(sys.args[1], file.readBytes(sys.args[1]).decodeToString())
-    #print("tokens \(tokens.size())")
+    --print("tokens \(tokens.size())")
     VAR parser: Parser := makeParser(tokens)
     LET pt: POINTER TO ParseTreeNode := parser.parse()
-    #print("\(pt)")
+    --print("\(pt)")
     dumpParseTree(pt, 0)
 END MAIN

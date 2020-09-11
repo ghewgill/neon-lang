@@ -8,8 +8,8 @@ WHILE i < 100000 DO
     i := i + 1
 END WHILE
 b := time.now()
-#print(str(a))
-#print(str(b))
+--print(str(a))
+--print(str(b))
 print("\(a < b)")
 
-#= TRUE
+--= TRUE

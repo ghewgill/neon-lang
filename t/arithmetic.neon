@@ -5,19 +5,19 @@ a := 4
 b := 5
 
 print(str(a + b))
-#= 9
+--= 9
 
 print(str(a - b))
-#= -1
+--= -1
 
 print(str(a * b))
-#= 20
+--= 20
 
 print(str(a / b))
-#= 0.8
+--= 0.8
 
 print(str(a ^ b))
-#= 1024
+--= 1024
 
 print(str(b MOD a))
-#= 1
+--= 1

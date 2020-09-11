@@ -2,4 +2,4 @@ FUNCTION foo(x: Number): Number
     print(str(x))
 END FUNCTION
 
-#! missing RETURN statement
+--! missing RETURN statement

@@ -30,7 +30,7 @@ IF os.system("git clone \(mod["repository"]) lib/\(name)") <> 0 THEN
 END IF
 
 FUNCTION yamlLoad(fn: String): Object
-    # Simplistic YAML load function that is suitable for module registry entries.
+    -- Simplistic YAML load function that is suitable for module registry entries.
     VAR r: Dictionary<Object> := {}
     LET lines: Array<String> := file.readLines(fn)
     FOREACH line IN lines DO

@@ -1,8 +1,8 @@
-# Reads UnicodeData.txt and writes out a C source file
-# which contains all the character names and values.
-#
-# The UnicodeData.txt file comes from:
-# http://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
+-- Reads UnicodeData.txt and writes out a C source file
+-- which contains all the character names and values.
+--
+-- The UnicodeData.txt file comes from:
+-- http://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
 
 IMPORT file
 IMPORT string

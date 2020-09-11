@@ -10,12 +10,12 @@ LET r3: Rec := Rec(name WITH "foo", count WITH 5)
 LET r4: Rec := Rec(count WITH 5, name WITH "foo")
 
 print("\(r0.name) \(r0.count)")
-#=  0
+--=  0
 print("\(r1.name) \(r1.count)")
-#= foo 0
+--= foo 0
 print("\(r2.name) \(r2.count)")
-#=  5
+--=  5
 print("\(r3.name) \(r3.count)")
-#= foo 5
+--= foo 5
 print("\(r4.name) \(r4.count)")
-#= foo 5
+--= foo 5

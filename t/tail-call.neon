@@ -1,5 +1,5 @@
-# SKIP
-# See TODO comment in ast::ReturnStatement::generate_code (compiler.cpp).
+-- SKIP
+-- See TODO comment in ast::ReturnStatement::generate_code (compiler.cpp).
 
 FUNCTION loop(n: Number): Number
     IF n = 0 THEN
@@ -9,4 +9,4 @@ FUNCTION loop(n: Number): Number
 END FUNCTION
 
 print(str(loop(10000)))
-#= 0
+--= 0

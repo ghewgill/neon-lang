@@ -1,7 +1,7 @@
 IMPORT extsample
 
 TESTCASE extsample.constNumber = 5
-#TESTCASE extsample.varNumber = 5
+--TESTCASE extsample.varNumber = 5
 
 extsample.funcNothing()
 TESTCASE extsample.funcBoolean() = TRUE
@@ -25,32 +25,32 @@ extsample.funcNumberOut2(OUT n, OUT n2)
 TESTCASE n = 10
 TESTCASE n2 = 20
 
-#extsample.setVarNumber(10)
-#TESTCASE extsample.varNumber = 10
+--extsample.setVarNumber(10)
+--TESTCASE extsample.varNumber = 10
 
 FUNCTION foo() print("foo") END FUNCTION
 extsample.callback1(foo)
-#= foo
+--= foo
 
 FUNCTION pr(s: String) print(s) END FUNCTION
 extsample.callback2(pr, "bar")
-#= bar
+--= bar
 
 FUNCTION sub(a, b: Number): Number RETURN a - b END FUNCTION
 print(str(extsample.callback3(sub, 5, 3)))
-#= 2
+--= 2
 
 extsample.setCallback(sub)
 print(str(extsample.callback4(8, 5)))
-#= 6
+--= 6
 
 TRY
     extsample.raiseException()
 TRAP extsample.SampleException DO
-    # pass
+    -- pass
 END TRY
 
 LET h: extsample.Handle := extsample.allocHandle()
-# Needs to generate EQV/NEV instead of EQP/NEP (issue #295).
-#TESTCASE h <> NIL
+-- Needs to generate EQV/NEV instead of EQP/NEP (issue #295).
+--TESTCASE h <> NIL
 extsample.freeHandle(h)

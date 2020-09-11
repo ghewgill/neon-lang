@@ -6,4 +6,4 @@ END RECORD
 VAR a: Recordset
 
 a.1
-  #<
+  --<
