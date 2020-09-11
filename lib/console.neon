@@ -1,3 +1,9 @@
+#|
+ |  File: console
+ |
+ |  Functions for console input and output.
+ |#
+
 EXPORT input
 EXPORT output
 
