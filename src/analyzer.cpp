@@ -1894,7 +1894,7 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
         if (var != nullptr) {
             return new ast::VariableExpression(var);
         }
-        internal_error("qualified name resolved but not matched: " + name->name);
+        error(3291, expr->token, "expected constant or variable");
     }
     name = analyze_qualified_name(expr->base.get());
     if (name != nullptr) {

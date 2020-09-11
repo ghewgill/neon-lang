@@ -1,0 +1,3 @@
+IMPORT io
+LET o: Object := io.File
+                   --<
