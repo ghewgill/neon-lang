@@ -65,13 +65,13 @@ int main(int argc, char *argv[])
         assert(tokens[13].text == "a");
         assert(tokens[14].type == END_OF_FILE);
 
-        tokens = dump(*tokenize("", "a 1 # foo")).tokens;
+        tokens = dump(*tokenize("", "a 1 -- foo")).tokens;
         assert(tokens.size() == 3);
         assert(tokens[0].type == IDENTIFIER);
         assert(tokens[1].type == NUMBER);
         assert(tokens[2].type == END_OF_FILE);
 
-        tokens = dump(*tokenize("", "a 1 #| foo bar #| nest |# |# baz")).tokens;
+        tokens = dump(*tokenize("", "a 1 /* foo bar /* nonest */ baz")).tokens;
         assert(tokens.size() == 4);
         assert(tokens[0].type == IDENTIFIER);
         assert(tokens[1].type == NUMBER);
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
         assert(tokens[17].type == STRING);      assert(tokens[17].column == 42);    assert(tokens[17].text == "");
         assert(tokens[18].type == END_OF_FILE);
 
-        tokens = dump(*tokenize("", "IF x THEN\n#|\n|#END LOOP")).tokens;
+        tokens = dump(*tokenize("", "IF x THEN\n/*\n*/END LOOP")).tokens;
         assert(tokens.size() == 6);
         assert(tokens[0].type == IF);           assert(tokens[0].column == 1);
         assert(tokens[1].type == IDENTIFIER);   assert(tokens[1].column == 4);

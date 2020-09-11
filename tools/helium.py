@@ -3157,6 +3157,6 @@ try:
     source = codecs.open(sys.argv[1], encoding="utf-8").read()
 except UnicodeDecodeError:
     sys.exit(99)
-if re.search(r"^#!", source, re.MULTILINE):
+if re.search(r"^--!", source, re.MULTILINE):
     sys.exit(99)
 run(parse(tokenize(source)))

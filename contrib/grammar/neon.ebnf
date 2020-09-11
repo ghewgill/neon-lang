@@ -15,7 +15,8 @@
  * into http://www.bottlecaps.de/rr/ui by ebnf_w3c.neon.
  *)
 
-Program = {Statement};
+Program = [Shebang], {Statement};
+Shebang = '#!', restOfLine;
 
 Statement =
     ImportDeclaration |

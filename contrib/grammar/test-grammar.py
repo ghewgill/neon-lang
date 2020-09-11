@@ -41,7 +41,7 @@ for fn in functools.reduce(lambda x, y: x + y, [glob.glob(x) for x in sys.argv[1
     print(fn)
     print(fn, file=sys.stderr)
     try:
-        if "#!" in open(fn, encoding="utf-8").read():
+        if "--!" in open(fn, encoding="utf-8").read():
             print("skipped, failure")
             if os.path.basename(fn) in KnownParseFailures:
                 print("Unneeded known failure:", fn)

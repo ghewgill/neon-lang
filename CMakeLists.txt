@@ -541,6 +541,10 @@ target_link_libraries(test_lexer
 )
 add_test(
     NAME test_lexer
+    COMMAND test_lexer
+)
+add_test(
+    NAME test_lexer_coverage
     COMMAND test_lexer tests/lexer-coverage.neon
 )
 
