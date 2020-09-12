@@ -1,20 +1,23 @@
---  File: xml
---
---  Provides functions for working with XML files.
+/*  File: xml
+ *
+ *  Provides functions for working with XML files.
+ */
 
 EXPORT parse
 EXPORT Document
 
---  Type: Document
---
---  Represents an XML document.
+/*  Type: Document
+ *
+ *  Represents an XML document.
+ */
 TYPE Document IS RECORD
     dummy: Boolean
 END RECORD
 
---  Function: parse
---
---  Parse the given string as an XML document.
+/*  Function: parse
+ *
+ *  Parse the given string as an XML document.
+ */
 FUNCTION parse(s: String): Document
     RETURN Document()
 END FUNCTION

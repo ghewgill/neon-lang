@@ -68,6 +68,13 @@ File: textio  (textio.neon)
 File: time  (time.neon)
 File: win32  (win32/win32.neon)
 File: xml  (xml.neon)
+File: hash  (hash/hash.neon)
+File: compress  (compress/compress.neon)
+File: curses  (curses/curses.neon)
+File: http  (http/http.neon)
+File: regex  (regex/regex.neon)
+File: sdl  (sdl/sdl.neon)
+File: sodium  (sodium/sodium.neon)
 
 Group: Index  {
 

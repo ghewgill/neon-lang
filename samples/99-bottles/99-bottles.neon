@@ -1,7 +1,8 @@
---  File: 99-bottles
---
---  Prints out the song "99 Bottles of Beer" as from the web site
---  http://www.99-bottles-of-beer.net.
+/*  File: 99-bottles
+ *
+ *  Prints out the song "99 Bottles of Beer" as from the web site
+ *  http://www.99-bottles-of-beer.net.
+ */
 
 VAR suffix: String
 

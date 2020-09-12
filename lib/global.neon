@@ -1,38 +1,46 @@
---  File: global
---
---  Global names that are available everywhere.
+/*  File: global
+ *
+ *  Global names that are available everywhere.
+ */
 
---  Type: Boolean
---
---  TRUE or FALSE.
+/*  Type: Boolean
+ *
+ *  TRUE or FALSE.
+ */
 
---  Type: Number
---
---  Floating point number with 34 decimal digits of precision.
+/*  Type: Number
+ *
+ *  Floating point number with 34 decimal digits of precision.
+ */
 
---  Type: String
---
---  Unicode string.
+/*  Type: String
+ *
+ *  Unicode string.
+ */
 
---  Type: Array
---
---  Parameterised sequence type. Example
---
---  > Array<String>
+/*  Type: Array
+ *
+ *  Parameterised sequence type. Example
+ *
+ *  > Array<String>
+ */
 
---  Type: Dictionary
---
---  Parameterised map type from <String> to the given type. Example
---
---  > Dictionary<String>
+/*  Type: Dictionary
+ *
+ *  Parameterised map type from <String> to the given type. Example
+ *
+ *  > Dictionary<String>
+ */
 
---  Type: Bytes
---
---  Bytes.
+/*  Type: Bytes
+ *
+ *  Bytes.
+ */
 
---  Type: ExceptionType
---
---  Record that contains information about a raised exception.
+/*  Type: ExceptionType
+ *
+ *  Record that contains information about a raised exception.
+ */
 TYPE ExceptionType IS RECORD
     name: String
     info: String
@@ -40,99 +48,118 @@ TYPE ExceptionType IS RECORD
     offset: Number
 END RECORD
 
---  Exception: ArrayIndexException
---
---  An array index is not valid or out of range.
+/*  Exception: ArrayIndexException
+ *
+ *  An array index is not valid or out of range.
+ */
 EXCEPTION ArrayIndexException
 
---  Exception: AssertFailedException
---
---  Assert failed.
+/*  Exception: AssertFailedException
+ *
+ *  Assert failed.
+ */
 EXCEPTION AssertFailedException
 
---  Exception: ByteOutOfRangeException
---
---  A byte is out of range in toBytes().
+/*  Exception: ByteOutOfRangeException
+ *
+ *  A byte is out of range in toBytes().
+ */
 EXCEPTION ByteOutOfRangeException
 
---  Exception: BytesIndexException
---
---  A byte index is not valid or out of range.
+/*  Exception: BytesIndexException
+ *
+ *  A byte index is not valid or out of range.
+ */
 EXCEPTION BytesIndexException
 
---  Exception: DictionaryIndexException
---
---  A dictionary index value does not exist.
+/*  Exception: DictionaryIndexException
+ *
+ *  A dictionary index value does not exist.
+ */
 EXCEPTION DictionaryIndexException
 
---  Exception: DivideByZeroException
---
---  Divide by zero.
+/*  Exception: DivideByZeroException
+ *
+ *  Divide by zero.
+ */
 EXCEPTION DivideByZeroException
 
---  Exception: DynamicConversionException
---
---  Dynamic conversion exception.
+/*  Exception: DynamicConversionException
+ *
+ *  Dynamic conversion exception.
+ */
 EXCEPTION DynamicConversionException
 
---  Exception: EndOfFileException
---
---  End of input file.
+/*  Exception: EndOfFileException
+ *
+ *  End of input file.
+ */
 EXCEPTION EndOfFileException
 
---  Exception: FormatException
---
---  Format specifier not valid.
+/*  Exception: FormatException
+ *
+ *  Format specifier not valid.
+ */
 EXCEPTION FormatException
 
---  Exception: InvalidFunctionException
---
---  An invalid function pointer was called.
+/*  Exception: InvalidFunctionException
+ *
+ *  An invalid function pointer was called.
+ */
 EXCEPTION InvalidFunctionException
 
---  Exception: InvalidValueException
---
---  An invalid value was passed to a library function.
+/*  Exception: InvalidValueException
+ *
+ *  An invalid value was passed to a library function.
+ */
 EXCEPTION InvalidValueException
 
---  Exception: FunctionNotFoundException
---
---  Function not found.
+/*  Exception: FunctionNotFoundException
+ *
+ *  Function not found.
+ */
 EXCEPTION FunctionNotFoundException
 
---  Exception: LibraryNotFoundException
---
---  Library not found.
+/*  Exception: LibraryNotFoundException
+ *
+ *  Library not found.
+ */
 EXCEPTION LibraryNotFoundException
 
---  Exception: ObjectSubscriptException
---
---  Object subscript exception.
+/*  Exception: ObjectSubscriptException
+ *
+ *  Object subscript exception.
+ */
 EXCEPTION ObjectSubscriptException
 
---  Exception: SqlException
---
---  SQL exception.
+/*  Exception: SqlException
+ *
+ *  SQL exception.
+ */
 EXCEPTION SqlException
 
---  Exception: StackOverflowException
---
---  Call stack exceeded limit.
+/*  Exception: StackOverflowException
+ *
+ *  Call stack exceeded limit.
+ */
 EXCEPTION StackOverflowException
 
---  Exception: StringIndexException
---
---  An string index is not valid or out of range.
+/*  Exception: StringIndexException
+ *
+ *  An string index is not valid or out of range.
+ */
 EXCEPTION StringIndexException
 
---  Exception: Utf8DecodingException
---
---  Invalid UTF-8 encoding found in Bytes.decodeToString().
+/*  Exception: Utf8DecodingException
+ *
+ *  Invalid UTF-8 encoding found in Bytes.decodeToString().
+ */
 EXCEPTION Utf8DecodingException
 
---  Exception: ValueRangeException
---
---  An input value is out of range.
+/*  Exception: ValueRangeException
+ *
+ *  An input value is out of range.
+ */
 EXCEPTION ValueRangeException
 
 DECLARE NATIVE FUNCTION array__append(INOUT self: Array, element: Cell)
@@ -189,17 +216,20 @@ DECLARE NATIVE FUNCTION object__subscript(obj: Object, index: Object): Object
 DECLARE NATIVE FUNCTION object__toString(obj: Object): String
 DECLARE NATIVE FUNCTION exceptiontype__toString(ei: ExceptionType): String
 
---  Function: num
---
---  Convert a decimal number as a string to a number.
+/*  Function: num
+ *
+ *  Convert a decimal number as a string to a number.
+ */
 DECLARE NATIVE FUNCTION num(s: String): Number
 
---  Function: print
---
---  Print a string to standard output followed by a newline.
+/*  Function: print
+ *
+ *  Print a string to standard output followed by a newline.
+ */
 DECLARE NATIVE FUNCTION print(s: String)
 
---  Function: str
---
---  Convert a number to a decimal string.
+/*  Function: str
+ *
+ *  Convert a number to a decimal string.
+ */
 DECLARE NATIVE FUNCTION str(x: Number): String

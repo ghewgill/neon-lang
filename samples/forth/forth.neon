@@ -1,6 +1,7 @@
---  File: forth
---
---  Implementation of the Forth programming language.
+/*  File: forth
+ *
+ *  Implementation of the Forth programming language.
+ */
 
 IMPORT binary
 IMPORT console

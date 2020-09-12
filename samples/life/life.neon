@@ -1,6 +1,7 @@
---  File: life
---
---  Conway's Game of Life.
+/*  File: life
+ *
+ *  Conway's Game of Life.
+ */
 
 IMPORT multiarray
 IMPORT random

@@ -1,6 +1,7 @@
---  File: flappy
---
---  Implementation of a "Flappy Bird" clone.
+/*  File: flappy
+ *
+ *  Implementation of a "Flappy Bird" clone.
+ */
 
 IMPORT random
 IMPORT sdl

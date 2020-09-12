@@ -1,6 +1,7 @@
---  File: io
---
---  Functions for general purpose byte-oriented input and output with files.
+/*  File: io
+ *
+ *  Functions for general purpose byte-oriented input and output with files.
+ */
 
 EXPORT File
 EXPORT Mode
@@ -18,113 +19,132 @@ EXPORT truncate
 EXPORT write
 EXPORT writeBytes
 
---  Enumeration: Mode
---
---  Mode to use when opening a file.
---
---  Values:
---      read - read only
---      write - read or write
+/*  Enumeration: Mode
+ *
+ *  Mode to use when opening a file.
+ *
+ *  Values:
+ *      read - read only
+ *      write - read or write
+ */
 TYPE Mode IS ENUM
     read
     write
 END ENUM
 
---  Enumeration: SeekBase
---
---  Position to base seek position on.
---
---  Values:
---      absolute - set absolute position
---      relative - set position relative to current
---      fromEnd - set position relative to end
+/*  Enumeration: SeekBase
+ *
+ *  Position to base seek position on.
+ *
+ *  Values:
+ *      absolute - set absolute position
+ *      relative - set position relative to current
+ *      fromEnd - set position relative to end
+ */
 TYPE SeekBase IS ENUM
     absolute
     relative
     fromEnd
 END ENUM
 
---  Type: File
---
---  Opaque type representing a file on disk.
+/*  Type: File
+ *
+ *  Opaque type representing a file on disk.
+ */
 TYPE File IS Object
 
---  Exception: IoException
---
---  General exception for errors raised by this module.
+/*  Exception: IoException
+ *
+ *  General exception for errors raised by this module.
+ */
 EXCEPTION IoException
 
---  Exception: IoException.InvalidFile
---
---  An invalid (NIL) file was used.
+/*  Exception: IoException.InvalidFile
+ *
+ *  An invalid (NIL) file was used.
+ */
 EXCEPTION IoException.InvalidFile
 
---  Exception: IoException.Open
---
---  File was unable to be opened.
+/*  Exception: IoException.Open
+ *
+ *  File was unable to be opened.
+ */
 EXCEPTION IoException.Open
 
---  Exception: IoException.Write
---
---  An error occurred while writing to a file.
+/*  Exception: IoException.Write
+ *
+ *  An error occurred while writing to a file.
+ */
 EXCEPTION IoException.Write
 
---  Variable: stdin
---
---  The standard input file.
+/*  Variable: stdin
+ *
+ *  The standard input file.
+ */
 DECLARE NATIVE VAR stdin: File
 
---  Variable: stdout
---
---  The standard output file.
+/*  Variable: stdout
+ *
+ *  The standard output file.
+ */
 DECLARE NATIVE VAR stdout: File
 
---  Variable: stderr
---
---  The standard error file.
+/*  Variable: stderr
+ *
+ *  The standard error file.
+ */
 DECLARE NATIVE VAR stderr: File
 
---  Function: close
---
---  Close a file.
+/*  Function: close
+ *
+ *  Close a file.
+ */
 DECLARE NATIVE FUNCTION close(f: File)
 
---  Function: flush
---
---  Flush a file.
+/*  Function: flush
+ *
+ *  Flush a file.
+ */
 DECLARE NATIVE FUNCTION flush(f: File)
 
---  Function: open
---
---  Open a file with the given name and mode.
+/*  Function: open
+ *
+ *  Open a file with the given name and mode.
+ */
 DECLARE NATIVE FUNCTION open(name: String, mode: Mode): File
 
---  Function: readBytes
---
---  Read bytes from a file.
+/*  Function: readBytes
+ *
+ *  Read bytes from a file.
+ */
 DECLARE NATIVE FUNCTION readBytes(f: File, count: Number): Bytes
 
---  Function: seek
---
---  Seek to a specific position within a file.
+/*  Function: seek
+ *
+ *  Seek to a specific position within a file.
+ */
 DECLARE NATIVE FUNCTION seek(f: File, offset: Number, whence: SeekBase DEFAULT SeekBase.absolute)
 
---  Function: tell
---
---  Return the current file pointer position.
+/*  Function: tell
+ *
+ *  Return the current file pointer position.
+ */
 DECLARE NATIVE FUNCTION tell(f: File): Number
 
---  Function: truncate
---
---  Truncate the file at the current position.
+/*  Function: truncate
+ *
+ *  Truncate the file at the current position.
+ */
 DECLARE NATIVE FUNCTION truncate(f: File)
 
---  Function: write
---
---  Write characters to a file. No newline is written.
+/*  Function: write
+ *
+ *  Write characters to a file. No newline is written.
+ */
 DECLARE NATIVE FUNCTION write(f: File, s: String)
 
---  Function: writeBytes
---
---  Write bytes to a file.
+/*  Function: writeBytes
+ *
+ *  Write bytes to a file.
+ */
 DECLARE NATIVE FUNCTION writeBytes(f: File, b: Bytes)

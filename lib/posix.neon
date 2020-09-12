@@ -1,6 +1,7 @@
---  File: posix
---
---  Posix API access functions.
+/*  File: posix
+ *
+ *  Posix API access functions.
+ */
 
 EXPORT access
 -- cfgetispeed

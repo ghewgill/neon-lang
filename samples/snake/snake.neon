@@ -1,6 +1,7 @@
---  File: snake
---
---  Snake game in curses.
+/*  File: snake
+ *
+ *  Snake game in curses.
+ */
 
 IMPORT curses
 IMPORT math

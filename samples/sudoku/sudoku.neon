@@ -1,6 +1,7 @@
---  File: sudoku
---
---  Sudoku solver and puzzle generator.
+/*  File: sudoku
+ *
+ *  Sudoku solver and puzzle generator.
+ */
 
 IMPORT string
 
@@ -15,8 +16,9 @@ IMPORT math
 IMPORT multiarray
 IMPORT random
 
---  The dlx_* functions are an implementation of Knuth's "Dancing Links"
---  technique to solve his "Algorithm X" (exact cover).
+/*  The dlx_* functions are an implementation of Knuth's "Dancing Links"
+ *  technique to solve his "Algorithm X" (exact cover).
+ */
 
 TYPE Node IS CLASS
     index: Number
@@ -247,10 +249,11 @@ FUNCTION print_grid(grid: multiarray.ArrayNumber2D)
     END FOREACH
 END FUNCTION
 
---  Function: solveSudoku
---
---  This solver uses the above implementation to efficiently solve
---  a Sudoku puzzle.
+/*  Function: solveSudoku
+ *
+ *  This solver uses the above implementation to efficiently solve
+ *  a Sudoku puzzle.
+ */
 
 FUNCTION solveSudoku(INOUT grid: multiarray.ArrayNumber2D): Number
     VAR mat: Array<Array<Boolean>> := []
@@ -300,16 +303,17 @@ FUNCTION shuffle(INOUT a: Array<Number>)
     END FOR
 END FUNCTION
 
---  Function: makeSolution
---
---  This function makes a random solution to a Sudoku puzzle.
---
---  It does this by filling in the first row randomly, and then calling
---  the solver. Due to the way the solver works, this produces a bias
---  which can be observed by looking at the first few numbers in the
---  second row. The first three numbers will be the lowest numbers that
---  don't appear in the first three cells of the first row, in order.
---  An improvement would be to remove this bias.
+/*  Function: makeSolution
+ *
+ *  This function makes a random solution to a Sudoku puzzle.
+ *
+ *  It does this by filling in the first row randomly, and then calling
+ *  the solver. Due to the way the solver works, this produces a bias
+ *  which can be observed by looking at the first few numbers in the
+ *  second row. The first three numbers will be the lowest numbers that
+ *  don't appear in the first three cells of the first row, in order.
+ *  An improvement would be to remove this bias.
+ */
 
 FUNCTION makeSolution(): multiarray.ArrayNumber2D
     VAR r: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 9)
@@ -319,21 +323,22 @@ FUNCTION makeSolution(): multiarray.ArrayNumber2D
     RETURN r
 END FUNCTION
 
---  Function: makePuzzle
---
---  This function makes a puzzle (a partially filled grid), given a
---  solution (completely filled grid) and a number of cells to leave
---  filled.
---
---  This works by removing pairs of numbers (symmetric around 180 degree
---  rotation), checking the resulting puzzle to see that it still has only
---  one solution, and repeating. If removing a pair of numbers results in
---  a puzzle with more than one solution, the numbers are left in place and
---  another pair is tried.
---
---  This function has considerable opportunity for improvements in efficiency.
---  Also, it makes no attempt to estimate the "difficulty" of the resulting
---  puzzle.
+/*  Function: makePuzzle
+ *
+ *  This function makes a puzzle (a partially filled grid), given a
+ *  solution (completely filled grid) and a number of cells to leave
+ *  filled.
+ *
+ *  This works by removing pairs of numbers (symmetric around 180 degree
+ *  rotation), checking the resulting puzzle to see that it still has only
+ *  one solution, and repeating. If removing a pair of numbers results in
+ *  a puzzle with more than one solution, the numbers are left in place and
+ *  another pair is tried.
+ *
+ *  This function has considerable opportunity for improvements in efficiency.
+ *  Also, it makes no attempt to estimate the "difficulty" of the resulting
+ *  puzzle.
+ */
 
 FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback: FUNCTION(n: Number)): multiarray.ArrayNumber2D
     VAR r: multiarray.ArrayNumber2D := solution

@@ -1,6 +1,7 @@
---  File: mandelbrot
---
---  Mandelbrot set generator.
+/*  File: mandelbrot
+ *
+ *  Mandelbrot set generator.
+ */
 
 IMPORT math
 IMPORT multiarray

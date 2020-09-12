@@ -1,6 +1,7 @@
--- This program converts the neon.ebnf grammar from EBNF format to
--- the W3C dialect of EBNF used by http://www.bottlecaps.de/rr/ui.
--- It is quick and dirty and is not a general solution.
+/* This program converts the neon.ebnf grammar from EBNF format to
+ * the W3C dialect of EBNF used by http://www.bottlecaps.de/rr/ui.
+ * It is quick and dirty and is not a general solution.
+ */
 
 IMPORT string
 

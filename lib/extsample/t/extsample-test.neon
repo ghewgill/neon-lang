@@ -51,6 +51,7 @@ TRAP extsample.SampleException DO
 END TRY
 
 LET h: extsample.Handle := extsample.allocHandle()
--- Needs to generate EQV/NEV instead of EQP/NEP (issue #295).
---TESTCASE h <> NIL
+/* Needs to generate EQV/NEV instead of EQP/NEP (issue #295).
+ *TESTCASE h <> NIL
+ */
 extsample.freeHandle(h)

@@ -1331,17 +1331,18 @@ FUNCTION Parser.parseCompoundExpression(INOUT self: Parser): POINTER TO ParseTre
     RETURN expr
 END FUNCTION
 
--- Operator precedence:
---
---  ^        exponentiation                     parseExponentiation
---  * / MOD  multiplication, division, modulo   parseMultiplication
---  + -      addition, subtraction              parseAddition
---  < = >    comparison                         parseComparison
---  isa      type test                          parseTypeTest
---  in       membership                         parseMembership
---  and      conjunction                        parseConjunction
---  or       disjunction                        parseDisjunction
---  if       conditional                        parseConditional
+/* Operator precedence:
+ *
+ *  ^        exponentiation                     parseExponentiation
+ *  * / MOD  multiplication, division, modulo   parseMultiplication
+ *  + -      addition, subtraction              parseAddition
+ *  < = >    comparison                         parseComparison
+ *  isa      type test                          parseTypeTest
+ *  in       membership                         parseMembership
+ *  and      conjunction                        parseConjunction
+ *  or       disjunction                        parseDisjunction
+ *  if       conditional                        parseConditional
+ */
 
 FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
     CASE self.token.type

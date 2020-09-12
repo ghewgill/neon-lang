@@ -1,6 +1,7 @@
---  File: httpd
---
---  Implementation of a simple HTTP server.
+/*  File: httpd
+ *
+ *  Implementation of a simple HTTP server.
+ */
 
 IMPORT file
 IMPORT net

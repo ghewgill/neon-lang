@@ -1,6 +1,7 @@
---  File: encoding
---
---  Functions for encoding and decoding ASCII or Binary data in various formats.
+/*  File: encoding
+ *
+ *  Functions for encoding and decoding ASCII or Binary data in various formats.
+ */
 IMPORT binary
 IMPORT string
 
@@ -36,13 +37,14 @@ LET Base64DecodeTable: Array<Number> := [
      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    -- 0xf0 - 0xff
 ]
 
---  Function: base64Encode
---
---  Encodes the provided Bytes into Base64 encoded data.
---
---  Parameters:
---      data - The binary data to be encoded to Base64.
---
+/*  Function: base64Encode
+ *
+ *  Encodes the provided Bytes into Base64 encoded data.
+ *
+ *  Parameters:
+ *      data - The binary data to be encoded to Base64.
+ *
+ */
 FUNCTION base64Encode(data: Bytes): String
     VAR encoded: String := ""
     VAR char1, char2: Number := 0
@@ -85,14 +87,15 @@ FUNCTION base64Encode(data: Bytes): String
     RETURN encoded
 END FUNCTION
 
---  Function: base64Decode
---
---  Decodes the provided Base64 string data back into binary data.
---
---  Parameters:
---      encoded - The Base64 encoded data string to be decoded back into
---                its original form.
---
+/*  Function: base64Decode
+ *
+ *  Decodes the provided Base64 string data back into binary data.
+ *
+ *  Parameters:
+ *      encoded - The Base64 encoded data string to be decoded back into
+ *                its original form.
+ *
+ */
 FUNCTION base64Decode(encoded: String): Bytes
     VAR char1, char2, char3: Number := 0
     VAR decoded: Array<Number> := []

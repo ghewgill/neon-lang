@@ -1,6 +1,7 @@
---  File: lisp
---
---  Implementation of a Scheme-like Lisp variant.
+/*  File: lisp
+ *
+ *  Implementation of a Scheme-like Lisp variant.
+ */
 
 EXPORT eval
 EXPORT parse
@@ -204,8 +205,9 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                 INC i
             END IF
             RETURN make_string(s[start TO i-2])
---        ELSE
---            RAISE SyntaxErrorException
+/*        ELSE
+ *            RAISE SyntaxErrorException
+ */
     END CASE
     RETURN NIL --RAISE ParseEndOfInputException
 END FUNCTION

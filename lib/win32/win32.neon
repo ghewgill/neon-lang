@@ -1,6 +1,7 @@
---  File: win32
---
---  Win32 API access functions.
+/*  File: win32
+ *
+ *  Win32 API access functions.
+ */
 
 EXPORT TYPE Handle IS POINTER
 

@@ -1,6 +1,7 @@
---  File: cal
---
---  Implementation of the Unix cal command.
+/*  File: cal
+ *
+ *  Implementation of the Unix cal command.
+ */
 
 IMPORT datetime
 IMPORT sys

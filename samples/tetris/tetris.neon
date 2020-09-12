@@ -1,6 +1,7 @@
---  File: tetris
---
---  Tetris game in curses.
+/*  File: tetris
+ *
+ *  Tetris game in curses.
+ */
 
 IMPORT curses
 IMPORT math
