@@ -25,11 +25,13 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install scons; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which scons || brew install gmp; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which mcs || brew install mono; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then which rustc || brew install rust; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt update; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install python3-pip; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo pip3 install scons; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo sed -i -e '1s/python$/python3/' $(which scons); fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then which mcs || sudo apt install mono-mcs; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then which rustc || sudo apt install rustc; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install libncurses-dev; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install libgmp-dev; fi
 before_script:
