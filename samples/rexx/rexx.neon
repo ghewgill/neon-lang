@@ -1,0 +1,581 @@
+IMPORT console
+IMPORT file
+IMPORT os
+IMPORT random
+IMPORT string
+IMPORT sys
+
+TYPE TokenType IS ENUM
+    Label
+    Special
+    Var_symbol
+    Const_symbol
+    String
+    Binary_string
+    Hex_string
+    Operator
+    Blank
+    Eos
+END ENUM
+
+TYPE Token IS RECORD
+    type: TokenType
+    abuttal: Boolean
+    value: String
+END RECORD
+
+FUNCTION Token.toString(self: Token): String
+    RETURN "<\(self.type):\(self.value)>"
+END FUNCTION
+
+TYPE CallStackEntry IS RECORD
+    return_ip: Number
+    args: String
+END RECORD
+
+VAR vars: Dictionary<String>
+VAR callstack: Array<CallStackEntry>
+
+FUNCTION is_digit(c: String): Boolean
+    RETURN "0" <= c <= "9"
+END FUNCTION
+
+FUNCTION is_general_letter(c: String): Boolean
+    RETURN "A" <= c <= "Z" OR
+           "a" <= c <= "z" OR
+           c IN ["_", "!", "?"]
+END FUNCTION
+
+FUNCTION is_var_symbol_char(c: String): Boolean
+    RETURN is_general_letter(c) OR is_digit(c) OR c = "."
+END FUNCTION
+
+FUNCTION is_const_symbol_char(c: String): Boolean
+    RETURN is_var_symbol_char(c) OR c IN ["+", "-"]
+END FUNCTION
+
+FUNCTION tokenise(source: String): Array<Token>
+    VAR tokens: Array<Token> := []
+    VAR i: Number := 0
+    VAR last_was_space: Boolean := FALSE
+    WHILE i < source.length() DO
+        VAR t: Token := Token()
+        t.abuttal := NOT last_was_space
+        last_was_space := FALSE
+        IF source[i] IN [",", ":", ";", ")", "("] THEN
+            t.type := TokenType.Special
+            t.value := source[i]
+            tokens.append(t)
+            INC i
+        ELSIF source[i] = "\n" THEN
+            t.type := TokenType.Special
+            t.value := ";"
+            tokens.append(t)
+            INC i
+        ELSIF is_general_letter(source[i]) THEN
+            t.type := TokenType.Var_symbol
+            WHILE is_var_symbol_char(source[i]) DO
+                t.value.append(source[i])
+                INC i
+            END WHILE
+            t.value := string.upper(t.value)
+            IF source[i] = ":" THEN
+                t.type := TokenType.Label
+                INC i
+            END IF
+            tokens.append(t)
+        ELSIF is_digit(source[i]) OR source[i] = "." THEN
+            t.type := TokenType.Const_symbol
+            WHILE is_const_symbol_char(source[i]) DO
+                t.value.append(source[i])
+                INC i
+            END WHILE
+            tokens.append(t)
+        ELSIF source[i] IN ["'", "\""] THEN
+            LET delim: String := source[i]
+            INC i
+            t.type := TokenType.String
+            LOOP
+                IF source[i] = delim THEN
+                    IF source[i+1] = delim THEN
+                        t.value.append(delim)
+                        i := i + 2
+                    ELSE
+                        EXIT LOOP
+                    END IF
+                ELSE
+                    t.value.append(source[i])
+                    INC i
+                END IF
+            END LOOP
+            IF source[i] IN ["B", "b"] THEN
+                t.type := TokenType.Binary_string
+            ELSIF source[i] IN ["X", "x"] THEN
+                t.type := TokenType.Hex_string
+            END IF
+            tokens.append(t)
+            INC i
+        ELSIF source[i] IN ["+", "-", "%", "|", "&", "=", "\\", "^", ">", "<", "/", "*"] THEN
+            IF source[i] = "/" AND source[i+1] = "*" THEN
+                i := i + 2
+                WHILE NOT (source[i] = "*" AND source[i+1] = "/") DO
+                    INC i
+                END WHILE
+                i := i + 2
+                last_was_space := TRUE
+            ELSE
+                t.type := TokenType.Operator
+                CASE source[i]
+                    WHEN "|" DO
+                        CASE source[i+1]
+                            WHEN "|" DO
+                                t.value := "||"
+                                i := i + 1
+                            WHEN OTHERS DO
+                                t.value := "|"
+                        END CASE
+                    WHEN "/" DO
+                        CASE source[i+1]
+                            WHEN "/" DO
+                                t.value := "//"
+                                i := i + 1
+                            WHEN OTHERS DO
+                                t.value := "/"
+                        END CASE
+                    WHEN "*" DO
+                        CASE source[i+1]
+                            WHEN "*" DO
+                                t.value := "**"
+                                i := i + 1
+                            WHEN OTHERS DO
+                                t.value := "*"
+                        END CASE
+                    WHEN "\\", "^" DO
+                        CASE source[i+1]
+                            WHEN "=" DO
+                                CASE source[i+2]
+                                    WHEN "=" DO
+                                        t.value := "\\=="
+                                        i := i + 2
+                                    WHEN OTHERS DO
+                                        t.value := "\\="
+                                        i := i + 1
+                                END CASE
+                            WHEN "<" DO
+                                ASSERT FALSE
+                            WHEN ">" DO
+                                ASSERT FALSE
+                            WHEN OTHERS DO
+                                t.value := "\\"
+                        END CASE
+                    WHEN ">" DO
+                        ASSERT FALSE
+                    WHEN "<" DO
+                        ASSERT FALSE
+                    WHEN "=" DO
+                        CASE source[i+1]
+                            WHEN "=" DO
+                                t.value := "=="
+                                i := i + 1
+                            WHEN OTHERS DO
+                                t.value := "="
+                        END CASE
+                    WHEN "&" DO
+                        ASSERT FALSE
+                END CASE
+                tokens.append(t)
+                INC i
+            END IF
+        ELSIF source[i] IN [" "] THEN
+            INC i
+            last_was_space := TRUE
+        ELSE
+            ASSERT FALSE, source[i]
+        END IF
+    END WHILE
+    RETURN tokens
+END FUNCTION
+
+FUNCTION find_label(tokens: Array<Token>, label: String, OUT index: Number): Boolean
+    index := -1
+    FOREACH t IN tokens INDEX ti DO
+        IF t.type = TokenType.Label AND t.value = label THEN
+            index := ti
+            RETURN TRUE
+        END IF
+    END FOREACH
+    RETURN FALSE
+END FUNCTION
+
+FUNCTION get_function_arguments(tokens: Array<Token>, INOUT i: Number): Array<String>
+    ASSERT tokens[i].type = TokenType.Special AND tokens[i].value = "("
+    INC i
+    VAR r: Array<String> := []
+    WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ")") DO
+        LET s: String := evaluate(tokens, INOUT i)
+        r.append(s)
+        IF tokens[i].type = TokenType.Special AND tokens[i].value = "," THEN
+            INC i
+        END IF
+    END WHILE
+    INC i
+    RETURN r
+END FUNCTION
+
+FUNCTION evaluate_term(tokens: Array<Token>, INOUT i: Number): String
+    VAR r: String := ""
+    CASE tokens[i].type
+        WHEN TokenType.Var_symbol DO
+            LET name: String := tokens[i].value
+            INC i
+            IF tokens[i].type = TokenType.Special AND tokens[i].value = "(" AND tokens[i].abuttal THEN
+                LET args: Array<String> := get_function_arguments(tokens, INOUT i)
+                CASE name
+                    WHEN "LENGTH" DO
+                        r := str(args[0].length())
+                    WHEN "RANDOM" DO
+                        r := str(random.uint32() MOD (num(args[1]) - num(args[0]) + 1) + num(args[0]))
+                    WHEN OTHERS DO
+                        ASSERT FALSE, name
+                END CASE
+            ELSE
+                r := (IF name IN vars THEN vars[name] ELSE name)
+            END IF
+        WHEN TokenType.Const_symbol, TokenType.String DO
+            r := tokens[i].value
+            INC i
+    WHEN OTHERS DO
+        ASSERT FALSE, tokens[i].type, tokens[i].value
+    END CASE
+    RETURN r
+END FUNCTION
+
+-- TODO: pass in terminating token set? Like "THEN"
+FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
+    CONSTANT OperatorPrecedence: Dictionary<Number> := {
+        "": 0,
+        "&&": 1,
+        "|": 2,
+        "&": 3,
+        "=": 4,
+        "\\=": 4,
+        " ": 5,
+        "||": 5,
+        "+": 6,
+        "-": 6,
+        "*": 7,
+        "/": 7,
+        "**": 8,
+    }
+    TYPE TermOp IS RECORD
+        term: String
+        op: String
+    END RECORD
+    VAR stack: Array<TermOp> := []
+    LOOP
+        VAR term: String := evaluate_term(tokens, INOUT i)
+        VAR op: String
+        IF tokens[i].type = TokenType.Operator THEN
+            op := tokens[i].value
+            INC i
+        ELSIF tokens[i].type = TokenType.Special OR (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") THEN
+            op := ""
+        ELSE
+            IF tokens[i].abuttal THEN
+                op := "||"
+            ELSE
+                op := " "
+            END IF
+        END IF
+        LET level: Number := OperatorPrecedence[op]
+        WHILE stack.size() > 0 AND level < OperatorPrecedence[stack[LAST].op] DO
+            CASE stack[LAST].op
+                WHEN " " DO
+                    term := stack[LAST].term & " " & term
+                    stack := stack[FIRST TO LAST-1]
+                WHEN "||" DO
+                    term := stack[LAST].term & term
+                    stack := stack[FIRST TO LAST-1]
+                WHEN "=" DO
+                    term := (IF stack[LAST].term = term THEN "1" ELSE "0")
+                    stack := stack[FIRST TO LAST-1]
+                WHEN "\\=" DO
+                    term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
+                    stack := stack[FIRST TO LAST-1]
+                WHEN "*" DO
+                    term := str(num(stack[LAST].term) * num(term))
+                    stack := stack[FIRST TO LAST-1]
+                WHEN OTHERS DO
+                    ASSERT FALSE, stack[LAST].op
+            END CASE
+        END WHILE
+        IF level = 0 THEN
+            RETURN term
+        END IF
+        stack.append(TermOp(term WITH term, op WITH op))
+    END LOOP
+END FUNCTION
+
+FUNCTION skip_if_ncl(tokens: Array<Token>, INOUT i: Number)
+    IF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
+        INC i
+    END IF
+END FUNCTION
+
+FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
+    ASSERT tokens[i].type = TokenType.Var_symbol
+    LET source: String := tokens[i].value
+    INC i
+    VAR input: String := ""
+    CASE source
+        WHEN "ARG" DO
+            input := callstack[LAST].args
+        WHEN "PULL" DO
+            input := console.input("")
+        WHEN OTHERS DO
+            ASSERT FALSE, source
+    END CASE
+    VAR template: Array<String> := []
+    WHILE tokens[i].type IN [TokenType.Var_symbol, TokenType.Const_symbol] DO
+        template.append(tokens[i].value)
+        INC i
+    END WHILE
+    LET a: Array<String> := string.split(input, " ")
+    FOREACH t IN template INDEX ti DO
+        IF ti < template.size()-1 THEN
+            vars[t] := (IF ti < a.size() THEN a[ti] ELSE "")
+        ELSE
+            vars[t] := string.join(a[ti TO LAST], " ")
+        END IF
+    END FOREACH
+END FUNCTION
+
+FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
+    IF tokens[i].type = TokenType.Var_symbol THEN
+        CASE tokens[i].value
+            WHEN "DO" DO
+                INC i
+                WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
+                    skip_instruction(tokens, INOUT i)
+                END WHILE
+                INC i
+            WHEN "IF" DO
+                WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") DO
+                    INC i
+                END WHILE
+                skip_if_ncl(tokens, INOUT i)
+                skip_instruction(tokens, INOUT i)
+                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
+                    INC i
+                    skip_if_ncl(tokens, INOUT i)
+                    skip_instruction(tokens, INOUT i)
+                END IF
+            WHEN "SELECT" DO
+                INC i
+                WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
+                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHEN" THEN
+                        WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") DO
+                            INC i
+                        END WHILE
+                        INC i
+                    ELSE
+                        skip_instruction(tokens, INOUT i)
+                    END IF
+                END WHILE
+                INC i
+            WHEN OTHERS DO
+                WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
+                    INC i
+                END WHILE
+        END CASE
+    ELSE
+        WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
+            INC i
+        END WHILE
+    END IF
+    skip_if_ncl(tokens, INOUT i)
+END FUNCTION
+
+FUNCTION interpret_one(tokens: Array<Token>, INOUT i: Number)
+    --print("interpret_one \(tokens[i].type) \(tokens[i].value)")
+    CASE tokens[i].type
+        WHEN TokenType.Special DO
+            CASE tokens[i].value
+                WHEN ";" DO
+                    INC i
+                WHEN OTHERS DO
+                    ASSERT FALSE, tokens[i].type, tokens[i].value
+            END CASE
+        WHEN TokenType.Var_symbol DO
+            CASE tokens[i].value
+                WHEN "ARG" DO
+                    do_parse(tokens, INOUT i, upper WITH FALSE)
+                WHEN "CALL" DO
+                    INC i
+                    IF tokens[i].type = TokenType.Var_symbol THEN
+                        LET label: String := tokens[i].value
+                        VAR lindex: Number
+                        IF find_label(tokens, label, OUT lindex) THEN
+                            INC i
+                            VAR args: String
+                            IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                                args := evaluate(tokens, INOUT i)
+                            ELSE
+                                args := ""
+                            END IF
+                            callstack.append(CallStackEntry(return_ip WITH i, args WITH args))
+                            i := lindex + 1
+                        ELSE
+                            ASSERT FALSE, label
+                        END IF
+                    ELSE
+                        ASSERT FALSE, tokens[i].type
+                    END IF
+                WHEN "DO" DO
+                    VAR out_of_loop: Number := i
+                    skip_instruction(tokens, INOUT out_of_loop)
+                    INC i
+                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
+                        INC i
+                        LET expr: Number := i
+                        LOOP
+                            LET cond: String := evaluate(tokens, INOUT i)
+                            IF cond = "0" THEN
+                                i := out_of_loop
+                                EXIT LOOP
+                            END IF
+                            WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
+                                interpret_one(tokens, INOUT i)
+                            END WHILE
+                            i := expr
+                        END LOOP
+                    ELSE
+                        WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
+                            interpret_one(tokens, INOUT i)
+                        END WHILE
+                        INC i
+                        skip_if_ncl(tokens, INOUT i)
+                    END IF
+                    ASSERT i = out_of_loop
+                WHEN "EXIT" DO
+                    INC i
+                    LET r: String := evaluate(tokens, INOUT i)
+                    sys.exit(num(r))
+                WHEN "IF" DO
+                    INC i
+                    LET cond: String := evaluate(tokens, INOUT i)
+                    ASSERT tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN"
+                    INC i
+                    skip_if_ncl(tokens, INOUT i)
+                    CASE cond
+                        WHEN "1" DO
+                            interpret_one(tokens, INOUT i)
+                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
+                                INC i
+                                skip_if_ncl(tokens, INOUT i)
+                                skip_instruction(tokens, INOUT i)
+                            END IF
+                        WHEN "0" DO
+                            skip_instruction(tokens, INOUT i)
+                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
+                                INC i
+                                skip_if_ncl(tokens, INOUT i)
+                                interpret_one(tokens, INOUT i)
+                            END IF
+                        WHEN OTHERS DO
+                            ASSERT FALSE, cond
+                    END CASE
+                WHEN "PARSE" DO
+                    INC i
+                    LET upper: Boolean := tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "UPPER"
+                    IF upper THEN
+                        INC i
+                    END IF
+                    do_parse(tokens, INOUT i, upper)
+                WHEN "PROCEDURE" DO
+                    INC i
+                    -- TODO: introduce new variable scope
+                WHEN "PULL" DO
+                    do_parse(tokens, INOUT i, upper WITH FALSE)
+                WHEN "RETURN" DO
+                    INC i
+                    -- TODO: expression is optional
+                    LET r: String := evaluate(tokens, INOUT i)
+                    vars["RESULT"] := r
+                    i := callstack[LAST].return_ip
+                    callstack.resize(callstack.size() - 1)
+                WHEN "SAY" DO
+                    INC i
+                    IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                        LET s: String := evaluate(tokens, INOUT i)
+                        print(s)
+                    ELSE
+                        INC i
+                        print("")
+                    END IF
+                WHEN "SELECT" DO
+                    VAR end_of_select: Number := i
+                    skip_instruction(tokens, INOUT end_of_select)
+                    INC i
+                    skip_if_ncl(tokens, INOUT i)
+                    VAR found: Boolean := FALSE
+                    WHILE tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHEN" DO
+                        INC i
+                        LET cond: String := evaluate(tokens, INOUT i)
+                        ASSERT tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN"
+                        INC i
+                        skip_if_ncl(tokens, INOUT i)
+                        IF cond = "1" THEN
+                            interpret_one(tokens, INOUT i)
+                            i := end_of_select
+                            found := TRUE
+                            EXIT WHILE
+                        ELSE
+                            skip_instruction(tokens, INOUT i)
+                        END IF
+                    END WHILE
+                    IF NOT found AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "OTHERWISE" THEN
+                        INC i
+                        WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
+                            interpret_one(tokens, INOUT i)
+                        END WHILE
+                        INC i
+                        skip_if_ncl(tokens, INOUT i)
+                    END IF
+                    ASSERT i = end_of_select
+                WHEN OTHERS DO
+                    IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
+                        LET var: String := tokens[i].value
+                        i := i + 2
+                        LET s: String := evaluate(tokens, INOUT i)
+                        vars[var] := s
+                    ELSE
+                        LET r: String := evaluate(tokens, INOUT i)
+                        _ := os.system(r)
+                    END IF
+            END CASE
+        WHEN OTHERS DO
+            LET r: String := evaluate(tokens, INOUT i)
+            _ := os.system(r)
+    END CASE
+    skip_if_ncl(tokens, INOUT i)
+END FUNCTION
+
+FUNCTION interpret(tokens: Array<Token>)
+    VAR i: Number := 0
+    WHILE i < tokens.size() DO
+        interpret_one(tokens, INOUT i)
+    END WHILE
+END FUNCTION
+
+BEGIN MAIN
+    LET bytes: Bytes := file.readBytes(sys.args[1])
+    LET source: String := bytes.decodeToString()
+    LET tokens: Array<Token> := tokenise(source)
+    --FOREACH t IN tokens INDEX i DO
+    --    print("\(i) \(t.type) \(t.value)")
+    --END FOREACH
+    callstack.append(CallStackEntry(return_ip WITH -1, args WITH string.join(sys.args[2 TO LAST], " ")))
+    interpret(tokens)
+    ASSERT callstack.size() = 1
+END MAIN
