@@ -3018,6 +3018,9 @@ def neon_os_system(env, cmd):
 def neon_os_wait(env):
     assert False
 
+def neon_random_bytes(env, count):
+    return [random.randint(0, 0xff) for _ in range(count)]
+
 def neon_random_uint32(env):
     return random.randint(0, 0xffffffff)
 
