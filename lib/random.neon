@@ -3,7 +3,14 @@
  *  Functions for generating random numbers.
  */
 
+EXPORT bytes
 EXPORT uint32
+
+/*  Function: bytes
+ *
+ *  Return a requested number of random bytes.
+ */
+DECLARE NATIVE FUNCTION bytes(count: Number): Bytes
 
 /*  Function: uint32
  *
