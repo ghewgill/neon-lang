@@ -3,7 +3,22 @@
  *  Functions for generating random numbers.
  */
 
+EXPORT RandomException
+
+EXPORT bytes
 EXPORT uint32
+
+/*  Exception: RandomException
+ *
+ *  Exception raised when a random source fails or is unavailable.
+ */
+EXCEPTION RandomException
+
+/*  Function: bytes
+ *
+ *  Return a requested number of random bytes.
+ */
+DECLARE NATIVE FUNCTION bytes(count: Number): Bytes
 
 /*  Function: uint32
  *

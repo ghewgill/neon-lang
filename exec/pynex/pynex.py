@@ -2570,6 +2570,10 @@ def neon_posix_wait(self):
     self.stack.append(pid)
     self.stack.append(status)
 
+def neon_random_bytes(self):
+    count = self.stack.pop()
+    self.stack.append(bytearray([random.randint(0, 0xff) for _ in range(count)]))
+
 def neon_random_uint32(self):
     self.stack.append(random.randrange(0x100000000))
 

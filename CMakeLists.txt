@@ -349,6 +349,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         lib/os_posix.cpp
         lib/posix.cpp
         lib/process_posix.cpp
+        lib/random_posix.cpp
         lib/time_posix.cpp
         lib/time_darwin.cpp
     )
@@ -360,6 +361,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "
         lib/os_posix.cpp
         lib/posix.cpp
         lib/process_posix.cpp
+        lib/random_posix.cpp
         lib/time_posix.cpp
         lib/time_linux.cpp
     )
@@ -370,6 +372,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         lib/mmap_win32.cpp
         lib/os_win32.cpp
         lib/process_win32.cpp
+        lib/random_win32.cpp
         lib/time_win32.cpp
     )
 endif ()

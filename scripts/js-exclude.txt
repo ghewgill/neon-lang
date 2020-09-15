@@ -116,6 +116,7 @@ pointer-print.neon         # pointer__toString
 posix-fork.neon            # module posix
 predeclare1.neon           # something
 process-test.neon          # module process
+random-test.neon           # module random
 record-private.neon        # methods
 recursion-limit.neon       # module runtime
 repl_import.neon           # module random
