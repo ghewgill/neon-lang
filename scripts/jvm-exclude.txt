@@ -70,6 +70,7 @@ outer.neon                 # verifier
 outer2.neon                # verifier
 posix-fork.neon            # module posix
 predeclare1.neon           # something
+random-test.neon           # module random
 recursion-limit.neon       # module runtime
 repl_import.neon           # module random
 runtime-test.neon          # module runtime

@@ -275,6 +275,7 @@ predeclare2.neon
 predeclare3.neon
 predefined-generation.neon
 process-test.neon
+random-test.neon
 record-empty.neon
 record-init2.neon
 record-init.neon

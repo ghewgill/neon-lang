@@ -26,6 +26,7 @@ number-ceil.neon           # number formatting
 os-test.neon               # precision
 posix-fork.neon            # posix$fork
 process-test.neon          # process$call
+random-test.neon           # module random
 sql-connect.neon           # sqlite
 sql-cursor.neon            # sqlite
 sql-embed.neon             # sqlite

@@ -106,6 +106,7 @@ pointer-print.neon          # pointer__toString
 posix-fork.neon             # posix$fork
 predeclare1.neon            # array__append
 process-test.neon           # process$call
+random-test.neon            # module random
 record-empty.neon           # indexan
 record-private.neon         # storep
 recursion-limit.neon        # runtime$setRecursionLimit
