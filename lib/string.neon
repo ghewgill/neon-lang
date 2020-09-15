@@ -231,7 +231,7 @@ FUNCTION replaceAll(s: String, target: String, replacement: String): String
     VAR i: Number := 0
     WHILE i < t.length() DO
         IF t[i TO i+target.length()-1] = target THEN
-            t := t[FIRST TO i-1] & replacement & t[i+target.length() TO LAST]
+            t := t[FIRST TO i-1] & replacement & (IF i+target.length() < t.length() THEN t[i+target.length() TO LAST] ELSE "")
             i := i + replacement.length()
         ELSE
             INC i
