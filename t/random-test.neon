@@ -8,8 +8,8 @@ FOR i := 1 TO 100 DO
         EXIT FOR
     END IF
 END FOR
-ASSERT ok, n
+TESTCASE ok
 
 LET b1: Bytes := random.bytes(100)
 LET b2: Bytes := random.bytes(100)
-ASSERT b1 <> b2
+TESTCASE b1 <> b2
