@@ -33,8 +33,6 @@ END FUNCTION
 TYPE ContextType IS ENUM
     call
     do
-    do_until
-    do_while
     if
     select
 END ENUM
@@ -43,8 +41,13 @@ TYPE ContextEntry IS RECORD
     type: ContextType
     call_return_ip: Number
     call_args: Array<String>
+    do_skip: Number
+    do_var: String
+    do_to: Number
+    do_by: Number
+    do_for: Number
+    do_rep: Number
     do_while_condition: Number
-    do_while_skip: Number
     if_skip: Number
     select_skip: Number
 END RECORD
@@ -257,6 +260,16 @@ FUNCTION tokenise(source: String): Array<Token>
     RETURN tokens
 END FUNCTION
 
+FUNCTION is_number(s: String, OUT n: Number): Boolean
+    n := 0
+    TRY
+        n := num(s)
+        RETURN TRUE
+    TRAP ValueRangeException DO
+        RETURN FALSE
+    END TRY
+END FUNCTION
+
 FUNCTION rxnum(s: String): Number
     RETURN num(string.replaceAll(s, " ", ""))
 END FUNCTION
@@ -333,12 +346,14 @@ END FUNCTION
 FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
     CONSTANT OperatorPrecedence: Dictionary<Number> := {
         "": 0,
+        "(": 0,
         "&&": 1,
         "|": 2,
         "&": 3,
         "=": 4,
         "\\=": 4,
         "\\==": 4,
+        "<": 4,
         ">": 4,
         "<>": 4,
         " ": 5,
@@ -357,57 +372,82 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
     VAR stack: Array<TermOp> := []
     LOOP
         --print("  eval \(tokens[i].type) \(tokens[i].value)")
+        WHILE tokens[i].type = TokenType.Special AND tokens[i].value = "(" DO
+            stack.append(TermOp(op WITH "("))
+            INC i
+        END WHILE
         VAR term: String := evaluate_term(tokens, INOUT i)
         --print("  next \(tokens[i].type) \(tokens[i].value)")
-        VAR op: String
-        IF tokens[i].type = TokenType.Operator THEN
-            op := tokens[i].value
-            INC i
-        ELSIF tokens[i].type = TokenType.Special OR (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") THEN
-            op := ""
-        ELSE
-            IF tokens[i].abuttal THEN
-                op := "||"
+        LOOP
+            VAR op: String
+            IF tokens[i].type = TokenType.Operator THEN
+                op := tokens[i].value
+                INC i
+            ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ")" THEN
+                op := "("
+                INC i
+            ELSIF tokens[i].type = TokenType.Special OR (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") THEN
+                op := ""
             ELSE
-                op := " "
+                IF tokens[i].abuttal THEN
+                    op := "||"
+                ELSE
+                    op := " "
+                END IF
             END IF
-        END IF
-        --print("  oper \(op)")
-        LET level: Number := OperatorPrecedence[op]
-        WHILE stack.size() > 0 AND level < OperatorPrecedence[stack[LAST].op] DO
-            CASE stack[LAST].op
-                WHEN " " DO
-                    term := stack[LAST].term & " " & term
-                    stack := stack[FIRST TO LAST-1]
-                WHEN "||" DO
-                    term := stack[LAST].term & term
-                    stack := stack[FIRST TO LAST-1]
-                WHEN "=" DO
-                    term := (IF stack[LAST].term = term THEN "1" ELSE "0")
-                    stack := stack[FIRST TO LAST-1]
-                WHEN "\\=", "<>" DO
-                    term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
-                    stack := stack[FIRST TO LAST-1]
-                WHEN "\\==" DO
-                    term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
-                    stack := stack[FIRST TO LAST-1]
-                WHEN ">" DO
-                    term := (IF rxnum(stack[LAST].term) > rxnum(term) THEN "1" ELSE "0")
-                    stack := stack[FIRST TO LAST-1]
-                WHEN "+" DO
-                    term := str(rxnum(stack[LAST].term) + rxnum(term))
-                    stack := stack[FIRST TO LAST-1]
-                WHEN "*" DO
-                    term := str(rxnum(stack[LAST].term) * rxnum(term))
-                    stack := stack[FIRST TO LAST-1]
-                WHEN OTHERS DO
-                    ASSERT FALSE, stack[LAST].op
-            END CASE
-        END WHILE
-        IF level = 0 THEN
-            RETURN term
-        END IF
-        stack.append(TermOp(term WITH term, op WITH op))
+            --print("  oper \(op)")
+            LET level: Number := OperatorPrecedence[op]
+            WHILE stack.size() > 0 AND level < OperatorPrecedence[stack[LAST].op] DO
+                CASE stack[LAST].op
+                    WHEN " " DO
+                        term := stack[LAST].term & " " & term
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "||" DO
+                        term := stack[LAST].term & term
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "=" DO
+                        term := (IF stack[LAST].term = term THEN "1" ELSE "0")
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "\\=", "<>" DO
+                        term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "\\==" DO
+                        term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "<" DO
+                        VAR x: Number
+                        VAR y: Number
+                        IF is_number(stack[LAST].term, OUT x) AND is_number(term, OUT y) THEN
+                            term := (IF x < y THEN "1" ELSE "0")
+                        ELSE
+                            term := (IF stack[LAST].term < term THEN "1" ELSE "0")
+                        END IF
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN ">" DO
+                        term := (IF rxnum(stack[LAST].term) > rxnum(term) THEN "1" ELSE "0")
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "+" DO
+                        term := str(rxnum(stack[LAST].term) + rxnum(term))
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "-" DO
+                        term := str(rxnum(stack[LAST].term) - rxnum(term))
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "*" DO
+                        term := str(rxnum(stack[LAST].term) * rxnum(term))
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN OTHERS DO
+                        ASSERT FALSE, stack[LAST].op
+                END CASE
+            END WHILE
+            IF op <> "(" THEN
+                IF level = 0 THEN
+                    RETURN term
+                END IF
+                stack.append(TermOp(term WITH term, op WITH op))
+                EXIT LOOP
+            END IF
+            stack := stack[FIRST TO LAST-1]
+        END LOOP
     END LOOP
 END FUNCTION
 
@@ -522,9 +562,40 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
     skip_if_ncl(tokens, INOUT i)
 END FUNCTION
 
+FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, INOUT context: ContextEntry): Boolean
+    VAR rep: Number := context.do_rep
+    IF rep > 0 THEN
+        DEC rep
+        IF rep <= 0 THEN
+            RETURN TRUE
+        END IF
+        context.do_rep := rep
+    END IF
+    LET var: String := context.do_var
+    IF var <> "" THEN
+        LET newvar: Number := num(vars[var]) + context.do_by
+        IF newvar > context.do_to THEN
+            RETURN TRUE
+        END IF
+        vars[var] := str(newvar)
+    END IF
+    LET while: Number := context.do_while_condition
+    IF while > 0 THEN
+        i := context.do_while_condition
+        LET cond: String := evaluate(tokens, INOUT i)
+        IF cond = "0" THEN
+            RETURN TRUE
+        ELSIF cond <> "1" THEN
+            ASSERT FALSE, cond
+        END IF
+    END IF
+    RETURN FALSE
+END FUNCTION
+
 FUNCTION interpret(tokens: Array<Token>)
     VAR i: Number := 0
-    WHILE i < tokens.size() DO
+    WHILE i < tokens.size() LABEL interpret_loop DO
+        --VAR o: Object := vars print(o.toString())
         --print("interpret \(tokens[i])")
         CASE tokens[i].type
             WHEN TokenType.Special DO
@@ -535,6 +606,13 @@ FUNCTION interpret(tokens: Array<Token>)
                         ASSERT FALSE, tokens[i]
                 END CASE
             WHEN TokenType.Var_symbol DO
+                IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
+                    LET var: String := tokens[i].value
+                    i := i + 2
+                    LET s: String := evaluate(tokens, INOUT i)
+                    vars[var] := s
+                    NEXT interpret_loop
+                END IF
                 CASE tokens[i].value
                     WHEN "ARG" DO
                         do_parse(tokens, INOUT i, upper WITH TRUE)
@@ -559,6 +637,30 @@ FUNCTION interpret(tokens: Array<Token>)
                         VAR out_of_loop: Number := i
                         skip_instruction(tokens, INOUT out_of_loop)
                         INC i
+                        VAR context: ContextEntry := ContextEntry(type WITH ContextType.do, do_skip WITH out_of_loop)
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
+                            context.do_var := tokens[i].value
+                            vars[context.do_var] := evaluate(tokens, INOUT i)
+                            LOOP
+                                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "TO" THEN
+                                    INC i
+                                    context.do_to := num(evaluate(tokens, INOUT i))
+                                ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "BY" THEN
+                                    INC i
+                                    context.do_by := num(evaluate(tokens, INOUT i))
+                                ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "FOR" THEN
+                                    INC i
+                                    context.do_for := num(evaluate(tokens, INOUT i))
+                                ELSE
+                                    EXIT LOOP
+                                END IF
+                            END LOOP
+                        END IF
+                        IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                            IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["WHILE", "UNTIL"]) THEN
+                                context.do_rep := num(evaluate(tokens, INOUT i))
+                            END IF
+                        END IF
                         IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
                             INC i
                             LET expr: Number := i
@@ -567,12 +669,13 @@ FUNCTION interpret(tokens: Array<Token>)
                                 WHEN "0" DO
                                     i := out_of_loop
                                 WHEN "1" DO
-                                    contexts.append(ContextEntry(type WITH ContextType.do_while, do_while_condition WITH expr, do_while_skip WITH out_of_loop))
+                                    context.do_while_condition := expr
+                                    contexts.append(context)
                                 WHEN OTHERS DO
                                     ASSERT FALSE, cond
                             END CASE
                         ELSE
-                            contexts.append(ContextEntry(type WITH ContextType.do))
+                            contexts.append(context)
                         END IF
                     WHEN "ELSE" DO
                         CASE contexts[LAST].type
@@ -586,17 +689,12 @@ FUNCTION interpret(tokens: Array<Token>)
                         --print("END context \(contexts[LAST].type)")
                         CASE contexts[LAST].type
                             WHEN ContextType.do DO
+                                IF do_check_terminate(tokens, INOUT i, INOUT contexts[LAST]) THEN
+                                    i := contexts[LAST].do_skip
+                                    contexts.resize(contexts.size() - 1)
+                                END IF
                                 INC i
                                 contexts.resize(contexts.size() - 1)
-                            WHEN ContextType.do_while DO
-                                i := contexts[LAST].do_while_condition
-                                LET cond: String := evaluate(tokens, INOUT i)
-                                IF cond = "0" THEN
-                                    i := contexts[LAST].do_while_skip
-                                    contexts.resize(contexts.size() - 1)
-                                ELSIF cond <> "1" THEN
-                                    ASSERT FALSE, cond
-                                END IF
                             WHEN ContextType.select DO
                                 INC i
                                 contexts.resize(contexts.size() - 1)
@@ -713,15 +811,8 @@ FUNCTION interpret(tokens: Array<Token>)
                                 ASSERT FALSE, contexts[LAST].type
                         END CASE
                     WHEN OTHERS DO
-                        IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
-                            LET var: String := tokens[i].value
-                            i := i + 2
-                            LET s: String := evaluate(tokens, INOUT i)
-                            vars[var] := s
-                        ELSE
-                            LET r: String := evaluate(tokens, INOUT i)
-                            _ := os.system(r)
-                        END IF
+                        LET r: String := evaluate(tokens, INOUT i)
+                        _ := os.system(r)
                 END CASE
             WHEN OTHERS DO
                 LET r: String := evaluate(tokens, INOUT i)
