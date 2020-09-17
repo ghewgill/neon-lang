@@ -148,14 +148,21 @@ FUNCTION tokenise(source: String): Array<Token>
             INC i
         ELSIF source[i] IN ["+", "-", "%", "|", "&", "=", "\\", "^", ">", "<", "/", "*"] THEN
             IF source[i] = "/" AND source[i+1] = "*" THEN
-                i := i + 2
-                WHILE NOT (source[i] = "*" AND source[i+1] = "/") DO
-                    IF source[i] = "\n" THEN
+                VAR level: Number := 0
+                REPEAT
+                    IF source[i] = "/" AND source[i+1] = "*" THEN
+                        INC level
+                        i := i + 2
+                    ELSIF source[i] = "*" AND source[i+1] = "/" THEN
+                        DEC level
+                        i := i + 2
+                    ELSIF source[i] = "\n" THEN
                         INC line
+                        INC i
+                    ELSE
+                        INC i
                     END IF
-                    INC i
-                END WHILE
-                i := i + 2
+                UNTIL level = 0
                 last_was_space := TRUE
             ELSE
                 t.type := TokenType.Operator
@@ -283,7 +290,7 @@ FUNCTION rxnum(s: String): Number
         RETURN num(string.replaceAll(s, " ", ""))
     TRAP ValueRangeException DO
         print("not a number: <\(s)>")
-        RETURN 0
+        RAISE ValueRangeException
     END TRY
 END FUNCTION
 
@@ -365,6 +372,7 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
         "&": 3,
         "=": 4,
         "\\=": 4,
+        "==": 4,
         "\\==": 4,
         "<": 4,
         ">": 4,
@@ -423,6 +431,9 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                         stack := stack[FIRST TO LAST-1]
                     WHEN "\\=", "<>" DO
                         term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
+                        stack := stack[FIRST TO LAST-1]
+                    WHEN "==" DO
+                        term := (IF stack[LAST].term = term THEN "1" ELSE "0")
                         stack := stack[FIRST TO LAST-1]
                     WHEN "\\==" DO
                         term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
