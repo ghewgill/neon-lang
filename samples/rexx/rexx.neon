@@ -32,7 +32,8 @@ END FUNCTION
 
 TYPE ContextType IS ENUM
     call
-    do
+    do_single
+    do_repetitive
     if
     select
 END ENUM
@@ -42,6 +43,7 @@ TYPE ContextEntry IS RECORD
     call_return_ip: Number
     call_args: Array<String>
     do_skip: Number
+    do_top: Number
     do_var: String
     do_to: Number
     do_by: Number
@@ -342,7 +344,7 @@ FUNCTION evaluate_term(tokens: Array<Token>, INOUT i: Number): String
     RETURN r
 END FUNCTION
 
--- TODO: pass in terminating token set? Like "THEN"
+-- TODO: pass in terminating token set? Like "THEN" or "TO"
 FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
     CONSTANT OperatorPrecedence: Dictionary<Number> := {
         "": 0,
@@ -386,7 +388,7 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
             ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ")" THEN
                 op := "("
                 INC i
-            ELSIF tokens[i].type = TokenType.Special OR (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") THEN
+            ELSIF tokens[i].type = TokenType.Special OR (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["THEN", "TO", "BY", "FOR"]) THEN
                 op := ""
             ELSE
                 IF tokens[i].abuttal THEN
@@ -452,7 +454,7 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
 END FUNCTION
 
 FUNCTION skip_if_ncl(tokens: Array<Token>, INOUT i: Number)
-    IF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
+    IF i < tokens.size() AND tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
         INC i
     END IF
 END FUNCTION
@@ -637,44 +639,48 @@ FUNCTION interpret(tokens: Array<Token>)
                         VAR out_of_loop: Number := i
                         skip_instruction(tokens, INOUT out_of_loop)
                         INC i
-                        VAR context: ContextEntry := ContextEntry(type WITH ContextType.do, do_skip WITH out_of_loop)
-                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
-                            context.do_var := tokens[i].value
-                            vars[context.do_var] := evaluate(tokens, INOUT i)
-                            LOOP
-                                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "TO" THEN
-                                    INC i
-                                    context.do_to := num(evaluate(tokens, INOUT i))
-                                ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "BY" THEN
-                                    INC i
-                                    context.do_by := num(evaluate(tokens, INOUT i))
-                                ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "FOR" THEN
-                                    INC i
-                                    context.do_for := num(evaluate(tokens, INOUT i))
-                                ELSE
-                                    EXIT LOOP
-                                END IF
-                            END LOOP
-                        END IF
-                        IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
-                            IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["WHILE", "UNTIL"]) THEN
-                                context.do_rep := num(evaluate(tokens, INOUT i))
-                            END IF
-                        END IF
-                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
-                            INC i
-                            LET expr: Number := i
-                            LET cond: String := evaluate(tokens, INOUT i)
-                            CASE cond
-                                WHEN "0" DO
-                                    i := out_of_loop
-                                WHEN "1" DO
-                                    context.do_while_condition := expr
-                                    contexts.append(context)
-                                WHEN OTHERS DO
-                                    ASSERT FALSE, cond
-                            END CASE
+                        IF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
+                            contexts.append(ContextEntry(type WITH ContextType.do_single, do_skip WITH out_of_loop))
                         ELSE
+                            VAR context: ContextEntry := ContextEntry(type WITH ContextType.do_repetitive, do_skip WITH out_of_loop, do_by WITH 1)
+                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
+                                context.do_var := tokens[i].value
+                                i := i + 2
+                                vars[context.do_var] := evaluate(tokens, INOUT i)
+                                LOOP
+                                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "TO" THEN
+                                        INC i
+                                        context.do_to := num(evaluate(tokens, INOUT i))
+                                    ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "BY" THEN
+                                        INC i
+                                        context.do_by := num(evaluate(tokens, INOUT i))
+                                    ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "FOR" THEN
+                                        INC i
+                                        context.do_for := num(evaluate(tokens, INOUT i))
+                                    ELSE
+                                        EXIT LOOP
+                                    END IF
+                                END LOOP
+                            END IF
+                            IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                                IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["WHILE", "UNTIL"]) THEN
+                                    context.do_rep := num(evaluate(tokens, INOUT i))
+                                END IF
+                            END IF
+                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
+                                INC i
+                                LET expr: Number := i
+                                LET cond: String := evaluate(tokens, INOUT i)
+                                CASE cond
+                                    WHEN "0" DO
+                                        i := out_of_loop
+                                    WHEN "1" DO
+                                        context.do_while_condition := expr
+                                    WHEN OTHERS DO
+                                        ASSERT FALSE, cond
+                                END CASE
+                            END IF
+                            context.do_top := i
                             contexts.append(context)
                         END IF
                     WHEN "ELSE" DO
@@ -688,13 +694,16 @@ FUNCTION interpret(tokens: Array<Token>)
                     WHEN "END" DO
                         --print("END context \(contexts[LAST].type)")
                         CASE contexts[LAST].type
-                            WHEN ContextType.do DO
+                            WHEN ContextType.do_single DO
+                                INC i
+                                contexts.resize(contexts.size() - 1)
+                            WHEN ContextType.do_repetitive DO
                                 IF do_check_terminate(tokens, INOUT i, INOUT contexts[LAST]) THEN
                                     i := contexts[LAST].do_skip
                                     contexts.resize(contexts.size() - 1)
+                                ELSE
+                                    i := contexts[LAST].do_top
                                 END IF
-                                INC i
-                                contexts.resize(contexts.size() - 1)
                             WHEN ContextType.select DO
                                 INC i
                                 contexts.resize(contexts.size() - 1)
