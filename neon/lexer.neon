@@ -705,38 +705,6 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                     t.text.append(c)
                 END WHILE
             END IF
-        ELSIF c = "#" THEN
-            IF i+1 >= source.length() THEN
-                EXIT WHILE
-            END IF
-            IF source[i+1] = "|" THEN
-                VAR level: Number := 0
-                REPEAT
-                    IF i+1 >= source.length() THEN
-                        error(1006, t, "Missing closing comment '|#'")
-                    END IF
-                    IF source[i TO i+1] = "#|" THEN
-                        INC level
-                        i := i + 2
-                    ELSIF source[i TO i+1] = "|#" THEN
-                        DEC level
-                        i := i + 2
-                    ELSIF source[i] = "\n" THEN
-                        INC line
-                        column := 0
-                        linestart := i + 1
-                        lineend := findLineEnd(source, i+1)
-                        startindex := i
-                        INC i
-                    ELSE
-                        INC i
-                    END IF
-                UNTIL level = 0
-            ELSE
-                WHILE i < source.length() AND source[i] <> "\n" DO
-                    INC i
-                END WHILE
-            END IF
         ELSIF space(c) THEN
             WHILE i < source.length() AND space(source[i]) DO
                 IF source[i] = "\n" THEN
