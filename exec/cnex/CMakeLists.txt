@@ -16,6 +16,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         lib/os_posix.c
         lib/posix.c
         lib/process_posix.c
+        lib/random_posix.c
     )
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     set(platform_cnex
@@ -27,6 +28,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "
         lib/os_posix.c
         lib/posix.c
         lib/process_posix.c
+        lib/random_posix.c
     )
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     set(platform_cnex
@@ -36,6 +38,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         lib/time_win32.c
         lib/os_win32.c
         lib/process_win32.c
+        lib/random_win32.c
     )
 endif ()
 
