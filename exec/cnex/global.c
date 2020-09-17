@@ -257,6 +257,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("process$call",              process_call),
 
     // random - Random Number module
+    PDFUNC("random$bytes",              random_bytes),
     PDFUNC("random$uint32",             random_uint32),
 
     // runtime - runtime support services
