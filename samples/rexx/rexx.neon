@@ -87,10 +87,16 @@ FUNCTION tokenise(source: String): Array<Token>
         t.abuttal := NOT last_was_space
         last_was_space := FALSE
         IF source[i] IN [",", ":", ";", ")", "("] THEN
-            t.type := TokenType.Special
-            t.value := source[i]
-            tokens.append(t)
-            INC i
+            IF source[i] = "," AND source[i+1] = "\n" THEN -- TODO: handle whitespace/comments after comma
+                i := i + 2
+                INC line
+                last_was_space := TRUE
+            ELSE
+                t.type := TokenType.Special
+                t.value := source[i]
+                tokens.append(t)
+                INC i
+            END IF
         ELSIF source[i] = "\n" THEN
             t.type := TokenType.Special
             t.value := ";"
@@ -273,7 +279,12 @@ FUNCTION is_number(s: String, OUT n: Number): Boolean
 END FUNCTION
 
 FUNCTION rxnum(s: String): Number
-    RETURN num(string.replaceAll(s, " ", ""))
+    TRY
+        RETURN num(string.replaceAll(s, " ", ""))
+    TRAP ValueRangeException DO
+        print("not a number: <\(s)>")
+        RETURN 0
+    END TRY
 END FUNCTION
 
 FUNCTION find_label(tokens: Array<Token>, label: String, OUT index: Number): Boolean
@@ -437,11 +448,19 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                     WHEN "*" DO
                         term := str(rxnum(stack[LAST].term) * rxnum(term))
                         stack := stack[FIRST TO LAST-1]
+                    WHEN "/" DO
+                        term := str(rxnum(stack[LAST].term) / rxnum(term))
+                        stack := stack[FIRST TO LAST-1]
                     WHEN OTHERS DO
                         ASSERT FALSE, stack[LAST].op
                 END CASE
             END WHILE
-            IF op <> "(" THEN
+            IF op = "(" THEN
+                IF stack.size() = 0 THEN
+                    DEC i
+                    RETURN term
+                END IF
+            ELSE
                 IF level = 0 THEN
                     RETURN term
                 END IF
@@ -520,42 +539,49 @@ END FUNCTION
 
 FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
     IF tokens[i].type = TokenType.Var_symbol THEN
-        CASE tokens[i].value
-            WHEN "DO" DO
+        IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
+            INC i
+            WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
                 INC i
-                WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
-                    skip_instruction(tokens, INOUT i)
-                END WHILE
-                INC i
-            WHEN "IF" DO
-                WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") DO
+            END WHILE
+        ELSE
+            CASE tokens[i].value
+                WHEN "DO" DO
                     INC i
-                END WHILE
-                skip_if_ncl(tokens, INOUT i)
-                skip_instruction(tokens, INOUT i)
-                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
+                    WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
+                        skip_instruction(tokens, INOUT i)
+                    END WHILE
                     INC i
+                WHEN "IF" DO
+                    WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") DO
+                        INC i
+                    END WHILE
                     skip_if_ncl(tokens, INOUT i)
                     skip_instruction(tokens, INOUT i)
-                END IF
-            WHEN "SELECT" DO
-                INC i
-                WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
-                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHEN" THEN
-                        WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") DO
-                            INC i
-                        END WHILE
+                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
                         INC i
-                    ELSE
+                        skip_if_ncl(tokens, INOUT i)
                         skip_instruction(tokens, INOUT i)
                     END IF
-                END WHILE
-                INC i
-            WHEN OTHERS DO
-                WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
+                WHEN "SELECT" DO
                     INC i
-                END WHILE
-        END CASE
+                    WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHEN" THEN
+                            WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") DO
+                                INC i
+                            END WHILE
+                            INC i
+                        ELSE
+                            skip_instruction(tokens, INOUT i)
+                        END IF
+                    END WHILE
+                    INC i
+                WHEN OTHERS DO
+                    WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
+                        INC i
+                    END WHILE
+            END CASE
+        END IF
     ELSE
         WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
             INC i
