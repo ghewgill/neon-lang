@@ -22,7 +22,7 @@ std::vector<unsigned char> bytes(Number count)
         ssize_t n = read(fd, p, icount);
         if (n < 1) {
             close(fd);
-            throw RtlException(Exception_RandomException, utf8string("error readingn from /dev/urandom"));
+            throw RtlException(Exception_RandomException, utf8string("error reading from /dev/urandom"));
         }
         icount -= n;
         p += n;
