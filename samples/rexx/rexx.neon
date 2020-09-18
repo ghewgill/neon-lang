@@ -87,20 +87,19 @@ FUNCTION tokenise(source: String): Array<Token>
         t.abuttal := NOT last_was_space
         last_was_space := FALSE
         IF source[i] IN [",", ":", ";", ")", "("] THEN
-            IF source[i] = "," AND source[i+1] = "\n" THEN -- TODO: handle whitespace/comments after comma
-                i := i + 2
-                INC line
-                last_was_space := TRUE
+            t.type := TokenType.Special
+            t.value := source[i]
+            tokens.append(t)
+            INC i
+        ELSIF source[i] = "\n" THEN
+            IF tokens.size() > 0 AND tokens[LAST].type = TokenType.Special AND tokens[LAST].value = "," THEN
+                -- Comma continuation, delete last token.
+                tokens.resize(tokens.size() - 1)
             ELSE
                 t.type := TokenType.Special
-                t.value := source[i]
+                t.value := ";"
                 tokens.append(t)
-                INC i
             END IF
-        ELSIF source[i] = "\n" THEN
-            t.type := TokenType.Special
-            t.value := ";"
-            tokens.append(t)
             INC i
             INC line
         ELSIF is_general_letter(source[i]) THEN
@@ -163,7 +162,6 @@ FUNCTION tokenise(source: String): Array<Token>
                         INC i
                     END IF
                 UNTIL level = 0
-                last_was_space := TRUE
             ELSE
                 t.type := TokenType.Operator
                 CASE source[i]
@@ -321,6 +319,8 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
             RETURN str(random.uint32() MOD (rxnum(args[1]) - rxnum(args[0]) + 1) + rxnum(args[0]))
         WHEN "SOURCELINE" DO
             RETURN sourcelines[rxnum(args[0])]
+        WHEN "WORDS" DO
+            RETURN str(string.split(args[0], " ").size())
     END CASE
     ASSERT FALSE, name
     RETURN ""
