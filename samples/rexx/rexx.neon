@@ -1,10 +1,13 @@
 IMPORT console
 IMPORT file
 IMPORT io
+IMPORT math
 IMPORT os
 IMPORT random
 IMPORT string
 IMPORT sys
+
+EXCEPTION SyntaxException
 
 TYPE TokenType IS ENUM
     Label
@@ -57,6 +60,7 @@ END RECORD
 VAR sourcelines: Array<String>
 VAR vars: Dictionary<String>
 VAR contexts: Array<ContextEntry>
+VAR signals: Dictionary<String>
 
 FUNCTION is_digit(c: String): Boolean
     RETURN "0" <= c <= "9"
@@ -74,6 +78,28 @@ END FUNCTION
 
 FUNCTION is_const_symbol_char(c: String): Boolean
     RETURN is_var_symbol_char(c) OR c IN ["+", "-"]
+END FUNCTION
+
+FUNCTION convert_hex_string(s: String): String
+    CONSTANT Digits: String := "0123456789ABCDEF" 
+    VAR t: String := string.upper(s)
+    FOREACH c IN t DO
+        IF c <> " " AND c NOT IN Digits THEN
+            ASSERT FALSE, "invalid hex string", s
+        END IF
+    END FOREACH
+    IF string.hasPrefix(t, " ") THEN
+        RAISE SyntaxException
+    END IF
+    t := string.replaceAll(t, " ", "")
+    IF math.odd(t.length()) THEN
+        t := "0" & t
+    END IF
+    VAR r: String := ""
+    FOR i := 0 TO t.length()-1 STEP 2 DO
+        r.append(string.fromCodePoint(string.find(Digits, t[i]) * 0x10 + string.find(Digits, t[i+1])))
+    END FOR
+    RETURN r
 END FUNCTION
 
 FUNCTION tokenise(source: String): Array<Token>
@@ -127,7 +153,7 @@ FUNCTION tokenise(source: String): Array<Token>
             t.type := TokenType.String
             LOOP
                 IF source[i] = delim THEN
-                    IF source[i+1] = delim THEN
+                    IF i+1 < source.length() AND source[i+1] = delim THEN
                         t.value.append(delim)
                         i := i + 2
                     ELSE
@@ -138,13 +164,16 @@ FUNCTION tokenise(source: String): Array<Token>
                     INC i
                 END IF
             END LOOP
-            IF source[i] IN ["B", "b"] THEN
+            INC i
+            IF i < source.length() AND source[i] IN ["B", "b"] THEN
                 t.type := TokenType.Binary_string
-            ELSIF source[i] IN ["X", "x"] THEN
-                t.type := TokenType.Hex_string
+                INC i
+            ELSIF i < source.length() AND source[i] IN ["X", "x"] THEN
+                t.type := TokenType.String
+                t.value := convert_hex_string(t.value)
+                INC i
             END IF
             tokens.append(t)
-            INC i
         ELSIF source[i] IN ["+", "-", "%", "|", "&", "=", "\\", "^", ">", "<", "/", "*"] THEN
             IF source[i] = "/" AND source[i+1] = "*" THEN
                 VAR level: Number := 0
@@ -201,9 +230,9 @@ FUNCTION tokenise(source: String): Array<Token>
                                         i := i + 1
                                 END CASE
                             WHEN "<" DO
-                                ASSERT FALSE
+                                ASSERT FALSE, "unimplemented <"
                             WHEN ">" DO
-                                ASSERT FALSE
+                                ASSERT FALSE, "unimplemented >"
                             WHEN OTHERS DO
                                 t.value := "\\"
                         END CASE
@@ -267,7 +296,7 @@ FUNCTION tokenise(source: String): Array<Token>
             INC i
             last_was_space := TRUE
         ELSE
-            ASSERT FALSE, source[i]
+            ASSERT FALSE, "unexpected character", source[i]
         END IF
     END WHILE
     RETURN tokens
@@ -305,13 +334,15 @@ END FUNCTION
 
 FUNCTION builtin_function(name: String, args: Array<String>): String
     CASE name
+        WHEN "ARG" DO
+            RETURN contexts[LAST].call_args[num(args[0]) - 1]
         WHEN "CHAROUT" DO
             IF args[0] = "" THEN
                 io.write(io.stdout, args[1])
                 io.flush(io.stdout)
                 RETURN str(args[1].length())
             ELSE
-                ASSERT FALSE, args
+                ASSERT FALSE, "charout only to stdout", args
             END IF
         WHEN "LENGTH" DO
             RETURN str(args[0].length())
@@ -322,7 +353,7 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
         WHEN "WORDS" DO
             RETURN str(string.split(args[0], " ").size())
     END CASE
-    ASSERT FALSE, name
+    ASSERT FALSE, "unknown builtin function", name
     RETURN ""
 END FUNCTION
 
@@ -356,8 +387,15 @@ FUNCTION evaluate_term(tokens: Array<Token>, INOUT i: Number): String
         WHEN TokenType.Const_symbol, TokenType.String DO
             r := tokens[i].value
             INC i
-    WHEN OTHERS DO
-        -- Must be empty argument, as in: call charout , 'a'
+            IF tokens[i].type = TokenType.Special AND tokens[i].value = "(" AND tokens[i].abuttal THEN
+                INC i
+                LET args: Array<String> := get_function_arguments(tokens, INOUT i)
+                ASSERT tokens[i].type = TokenType.Special AND tokens[i].value = ")"
+                INC i
+                r := builtin_function(r, args)
+            END IF
+        WHEN OTHERS DO
+            -- Must be empty argument, as in: call charout , 'a'
     END CASE
     RETURN r
 END FUNCTION
@@ -423,6 +461,9 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                     WHEN " " DO
                         term := stack[LAST].term & " " & term
                         stack := stack[FIRST TO LAST-1]
+                    WHEN "|" DO
+                        term := (IF num(stack[LAST].term) <> 0 OR num(term) <> 0 THEN "1" ELSE "0")
+                        stack := stack[FIRST TO LAST-1]
                     WHEN "||" DO
                         term := stack[LAST].term & term
                         stack := stack[FIRST TO LAST-1]
@@ -463,7 +504,7 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                         term := str(rxnum(stack[LAST].term) / rxnum(term))
                         stack := stack[FIRST TO LAST-1]
                     WHEN OTHERS DO
-                        ASSERT FALSE, stack[LAST].op
+                        ASSERT FALSE, "unimplemented operator", stack[LAST].op
                 END CASE
             END WHILE
             IF op = "(" THEN
@@ -519,7 +560,7 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
                 INC i
                 EXIT WHILE
             ELSE
-                ASSERT FALSE, tokens[i]
+                ASSERT FALSE, "unexpected template token", tokens[i]
             END IF
         END WHILE
         template_list.append(template)
@@ -531,7 +572,7 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         WHEN "PULL" DO
             input := [console.input("")]
         WHEN OTHERS DO
-            ASSERT FALSE, source
+            ASSERT FALSE, "unknown parse source", source
     END CASE
     FOREACH s IN input INDEX tli DO
         LET ss: String := (IF upper THEN string.upper(s) ELSE s)
@@ -625,7 +666,7 @@ FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, INOUT context
         IF cond = "0" THEN
             RETURN TRUE
         ELSIF cond <> "1" THEN
-            ASSERT FALSE, cond
+            ASSERT FALSE, "unexpected cond", cond
         END IF
     END IF
     RETURN FALSE
@@ -637,12 +678,14 @@ FUNCTION interpret(tokens: Array<Token>)
         --VAR o: Object := vars print(o.toString())
         --print("interpret \(tokens[i])")
         CASE tokens[i].type
+            WHEN TokenType.Label DO
+                INC i
             WHEN TokenType.Special DO
                 CASE tokens[i].value
                     WHEN ";" DO
                         INC i
                     WHEN OTHERS DO
-                        ASSERT FALSE, tokens[i]
+                        ASSERT FALSE, "unexpected special token", tokens[i]
                 END CASE
             WHEN TokenType.Var_symbol DO
                 IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
@@ -670,7 +713,7 @@ FUNCTION interpret(tokens: Array<Token>)
                                 vars["RESULT"] := builtin_function(name, args)
                             END IF
                         ELSE
-                            ASSERT FALSE, tokens[i].type
+                            ASSERT FALSE, "unexpected thing to call", tokens[i].type
                         END IF
                     WHEN "DO" DO
                         VAR out_of_loop: Number := i
@@ -714,7 +757,7 @@ FUNCTION interpret(tokens: Array<Token>)
                                     WHEN "1" DO
                                         context.do_while_condition := expr
                                     WHEN OTHERS DO
-                                        ASSERT FALSE, cond
+                                        ASSERT FALSE, "unexpected cond", cond
                                 END CASE
                             END IF
                             context.do_top := i
@@ -726,7 +769,7 @@ FUNCTION interpret(tokens: Array<Token>)
                                 i := contexts[LAST].if_skip
                                 contexts.resize(contexts.size() - 1)
                             WHEN OTHERS DO
-                                ASSERT FALSE, contexts[LAST].type
+                                ASSERT FALSE, "else found when not in if", contexts[LAST].type
                         END CASE
                     WHEN "END" DO
                         --print("END context \(contexts[LAST].type)")
@@ -745,7 +788,7 @@ FUNCTION interpret(tokens: Array<Token>)
                                 INC i
                                 contexts.resize(contexts.size() - 1)
                             WHEN OTHERS DO
-                                ASSERT FALSE, contexts[LAST].type
+                                ASSERT FALSE, "end found for no reason", contexts[LAST].type
                         END CASE
                     WHEN "EXIT" DO
                         INC i
@@ -761,26 +804,39 @@ FUNCTION interpret(tokens: Array<Token>)
                             WHEN "1" DO
                                 VAR else: Number := i
                                 skip_instruction(tokens, INOUT else)
-                                IF tokens[else].type = TokenType.Var_symbol AND tokens[else].value = "ELSE" THEN
+                                IF else < tokens.size() AND tokens[else].type = TokenType.Var_symbol AND tokens[else].value = "ELSE" THEN
                                     VAR skip: Number := else + 1
                                     skip_instruction(tokens, INOUT skip)
                                     contexts.append(ContextEntry(type WITH ContextType.if, if_skip WITH skip))
                                 END IF
                             WHEN "0" DO
                                 skip_instruction(tokens, INOUT i)
-                                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
+                                IF i < tokens.size() AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
                                     INC i
                                 END IF
                             WHEN OTHERS DO
-                                ASSERT FALSE, cond
+                                ASSERT FALSE, "unexpected cond", cond
                         END CASE
+                    WHEN "INTERPRET" DO
+                        INC i
+                        LET expr: String := evaluate(tokens, INOUT i)
+                        TRY
+                            LET itokens: Array<Token> := tokenise(expr) & [Token(type WITH TokenType.Special, value WITH ";")]
+                            interpret(itokens)
+                        TRAP SyntaxException DO
+                            VAR lindex: Number
+                            IF find_label(tokens, signals["SYNTAX"], OUT lindex) THEN
+                                vars["SIGL"] := str(tokens[i].line)
+                                i := lindex + 1
+                            END IF
+                        END TRY
                     WHEN "OTHERWISE" DO
                         CASE contexts[LAST].type
                             WHEN ContextType.select DO
                                 i := contexts[LAST].select_skip
                                 contexts.resize(contexts.size() - 1)
                             WHEN OTHERS DO
-                                ASSERT FALSE, contexts[LAST].type
+                                ASSERT FALSE, "unexpected otherwise", contexts[LAST].type
                         END CASE
                     WHEN "PARSE" DO
                         INC i
@@ -812,7 +868,7 @@ FUNCTION interpret(tokens: Array<Token>)
                                 i := contexts[LAST].call_return_ip
                                 contexts.resize(contexts.size() - 1)
                             WHEN OTHERS DO
-                                ASSERT FALSE, contexts[LAST].type
+                                ASSERT FALSE, "unexpected return", contexts[LAST].type
                         END CASE
                     WHEN "SAY" DO
                         INC i
@@ -842,11 +898,35 @@ FUNCTION interpret(tokens: Array<Token>)
                             ELSIF cond = "0" THEN
                                 skip_instruction(tokens, INOUT i)
                             ELSE
-                                ASSERT FALSE, cond
+                                ASSERT FALSE, "unexpected cond", cond
                             END IF
                         END WHILE
                         IF NOT found AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "OTHERWISE" THEN
                             INC i
+                        END IF
+                    WHEN "SIGNAL" DO
+                        INC i
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ON" THEN
+                            INC i
+                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["SYNTAX"] THEN
+                                LET signal: String := tokens[i].value
+                                VAR label: String := signal
+                                INC i
+                                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "NAME" THEN
+                                    INC i
+                                    IF tokens[i].type = TokenType.Var_symbol THEN
+                                        label := tokens[i].value
+                                        INC i
+                                    ELSE
+                                        ASSERT FALSE, "label expected", tokens[i]
+                                    END IF
+                                END IF
+                                signals[signal] := label
+                            ELSE
+                                ASSERT FALSE, "unknown signal type", tokens[i]
+                            END IF
+                        ELSE
+                            ASSERT FALSE, "unimplemented signal syntax", tokens[i]
                         END IF
                     WHEN "WHEN" DO
                         CASE contexts[LAST].type
@@ -854,7 +934,7 @@ FUNCTION interpret(tokens: Array<Token>)
                                 i := contexts[LAST].select_skip
                                 contexts.resize(contexts.size() - 1)
                             WHEN OTHERS DO
-                                ASSERT FALSE, contexts[LAST].type
+                                ASSERT FALSE, "unexpected when", contexts[LAST].type
                         END CASE
                     WHEN OTHERS DO
                         LET r: String := evaluate(tokens, INOUT i)
