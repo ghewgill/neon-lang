@@ -3945,6 +3945,8 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             // There used to be a throw statement here to re-throw the exception,
             // but a more robust approach is to just skip printing the output
             // for an expression that doesn't have a viable .toString().
+            // TODO: Note that this hides all other kinds of unintended semantic
+            // errors in the expression.
         }
     }
     return new ast::AssertStatement(statement->token.line, statements, expr, statement->source);
