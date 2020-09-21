@@ -43,6 +43,7 @@ END ENUM
 
 TYPE ContextEntry IS RECORD
     type: ContextType
+    call_tokens: Array<Token>
     call_return_ip: Number
     call_args: Array<String>
     do_skip: Number
@@ -60,7 +61,9 @@ END RECORD
 VAR sourcelines: Array<String>
 VAR vars: Dictionary<String>
 VAR contexts: Array<ContextEntry>
-VAR signals: Dictionary<String>
+VAR signals: Dictionary<String> := {
+    "SYNTAX": "SYNTAX",
+}
 
 FUNCTION is_digit(c: String): Boolean
     RETURN "0" <= c <= "9"
@@ -672,7 +675,8 @@ FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, INOUT context
     RETURN FALSE
 END FUNCTION
 
-FUNCTION interpret(tokens: Array<Token>)
+FUNCTION interpret(source_tokens: Array<Token>)
+    VAR tokens: Array<Token> := source_tokens
     VAR i: Number := 0
     WHILE i < tokens.size() LABEL interpret_loop DO
         --VAR o: Object := vars print(o.toString())
@@ -705,9 +709,10 @@ FUNCTION interpret(tokens: Array<Token>)
                             INC i
                             LET args: Array<String> := get_function_arguments(tokens, INOUT i)
                             VAR lindex: Number
-                            IF find_label(tokens, name, OUT lindex) THEN
+                            IF find_label(source_tokens, name, OUT lindex) THEN
                                 vars["SIGL"] := str(tokens[i].line)
-                                contexts.append(ContextEntry(type WITH ContextType.call, call_return_ip WITH i, call_args WITH args))
+                                contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i, call_args WITH args))
+                                tokens := source_tokens
                                 i := lindex + 1
                             ELSE
                                 vars["RESULT"] := builtin_function(name, args)
@@ -821,12 +826,16 @@ FUNCTION interpret(tokens: Array<Token>)
                         INC i
                         LET expr: String := evaluate(tokens, INOUT i)
                         TRY
-                            LET itokens: Array<Token> := tokenise(expr) & [Token(type WITH TokenType.Special, value WITH ";")]
-                            interpret(itokens)
+                            LET itokens: Array<Token> := tokenise(expr) & [Token(type WITH TokenType.Special, value WITH ";"), Token(type WITH TokenType.Eos)]
+                            contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i))
+                            tokens := itokens
+                            i := 0
                         TRAP SyntaxException DO
                             VAR lindex: Number
-                            IF find_label(tokens, signals["SYNTAX"], OUT lindex) THEN
+                            IF find_label(source_tokens, signals["SYNTAX"], OUT lindex) THEN
                                 vars["SIGL"] := str(tokens[i].line)
+                                contexts := []
+                                tokens := source_tokens
                                 i := lindex + 1
                             END IF
                         END TRY
@@ -865,6 +874,7 @@ FUNCTION interpret(tokens: Array<Token>)
                                 -- TODO: expression is optional
                                 LET r: String := evaluate(tokens, INOUT i)
                                 vars["RESULT"] := r
+                                tokens := contexts[LAST].call_tokens
                                 i := contexts[LAST].call_return_ip
                                 contexts.resize(contexts.size() - 1)
                             WHEN OTHERS DO
@@ -939,6 +949,15 @@ FUNCTION interpret(tokens: Array<Token>)
                     WHEN OTHERS DO
                         LET r: String := evaluate(tokens, INOUT i)
                         _ := os.system(r)
+                END CASE
+            WHEN TokenType.Eos DO
+                CASE contexts[LAST].type
+                    WHEN ContextType.call DO
+                        tokens := contexts[LAST].call_tokens
+                        i := contexts[LAST].call_return_ip
+                        contexts.resize(contexts.size() - 1)
+                    WHEN OTHERS DO
+                        EXIT interpret_loop
                 END CASE
             WHEN OTHERS DO
                 LET r: String := evaluate(tokens, INOUT i)
