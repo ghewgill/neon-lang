@@ -15,8 +15,6 @@ TYPE TokenType IS ENUM
     Var_symbol
     Const_symbol
     String
-    Binary_string
-    Hex_string
     Operator
     Blank
     Eos
@@ -83,8 +81,34 @@ FUNCTION is_const_symbol_char(c: String): Boolean
     RETURN is_var_symbol_char(c) OR c IN ["+", "-"]
 END FUNCTION
 
+FUNCTION convert_binary_string(s: String): String
+    CONSTANT Digits: String := "01"
+    VAR t: String := s
+    FOREACH c IN t DO
+        IF c <> " " AND c NOT IN Digits THEN
+            ASSERT FALSE, "invalid binary string", s
+        END IF
+    END FOREACH
+    IF string.hasPrefix(t, " ") THEN
+        RAISE SyntaxException
+    END IF
+    t := string.replaceAll(t, " ", "")
+    WHILE t.length() MOD 8 <> 0 DO
+        t := "0" & t
+    END WHILE
+    VAR r: String := ""
+    FOR i := 0 TO t.length()-1 STEP 8 DO
+        VAR b: Number := 0
+        FOR j := 0 TO 7 DO
+            b := b * 2 + string.find(Digits, t[i+j])
+        END FOR
+        r.append(string.fromCodePoint(b))
+    END FOR
+    RETURN r
+END FUNCTION
+
 FUNCTION convert_hex_string(s: String): String
-    CONSTANT Digits: String := "0123456789ABCDEF" 
+    CONSTANT Digits: String := "0123456789ABCDEF"
     VAR t: String := string.upper(s)
     FOREACH c IN t DO
         IF c <> " " AND c NOT IN Digits THEN
@@ -124,6 +148,7 @@ FUNCTION tokenise(source: String): Array<Token>
             IF tokens.size() > 0 AND tokens[LAST].type = TokenType.Special AND tokens[LAST].value = "," THEN
                 -- Comma continuation, delete last token.
                 tokens.resize(tokens.size() - 1)
+                last_was_space := TRUE
             ELSE
                 t.type := TokenType.Special
                 t.value := ";"
@@ -168,10 +193,11 @@ FUNCTION tokenise(source: String): Array<Token>
                 END IF
             END LOOP
             INC i
-            IF i < source.length() AND source[i] IN ["B", "b"] THEN
-                t.type := TokenType.Binary_string
+            IF i < source.length() AND source[i] IN ["B", "b"] AND NOT is_var_symbol_char(source[i+1]) THEN
+                t.type := TokenType.String
+                t.value := convert_binary_string(t.value)
                 INC i
-            ELSIF i < source.length() AND source[i] IN ["X", "x"] THEN
+            ELSIF i < source.length() AND source[i] IN ["X", "x"] AND NOT is_var_symbol_char(source[i+1]) THEN
                 t.type := TokenType.String
                 t.value := convert_hex_string(t.value)
                 INC i
@@ -681,6 +707,7 @@ FUNCTION interpret(source_tokens: Array<Token>)
     WHILE i < tokens.size() LABEL interpret_loop DO
         --VAR o: Object := vars print(o.toString())
         --print("interpret \(tokens[i])")
+        LET orig_i: Number := i
         CASE tokens[i].type
             WHEN TokenType.Label DO
                 INC i
@@ -768,6 +795,21 @@ FUNCTION interpret(source_tokens: Array<Token>)
                             context.do_top := i
                             contexts.append(context)
                         END IF
+                    WHEN "DROP" DO
+                        INC i
+                        LOOP
+                            IF tokens[i].type = TokenType.Var_symbol THEN
+                                -- TODO: need dictionary remove
+                                -- vars.remove(tokens[i].value)
+                                INC i
+                            ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = "(" THEN
+                                ASSERT FALSE, "indirect drop"
+                            ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
+                                EXIT LOOP
+                            ELSE
+                                ASSERT FALSE, "unexpected thing to drop"
+                            END IF
+                        END LOOP
                     WHEN "ELSE" DO
                         CASE contexts[LAST].type
                             WHEN ContextType.if DO
@@ -963,6 +1005,9 @@ FUNCTION interpret(source_tokens: Array<Token>)
                 LET r: String := evaluate(tokens, INOUT i)
                 _ := os.system(r)
         END CASE
+        IF i = orig_i THEN
+            ASSERT FALSE, "we are stuck", tokens[i]
+        END IF
         skip_if_ncl(tokens, INOUT i)
     END WHILE
 END FUNCTION
