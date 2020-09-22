@@ -77,10 +77,6 @@ FUNCTION is_var_symbol_char(c: String): Boolean
     RETURN is_general_letter(c) OR is_digit(c) OR c = "."
 END FUNCTION
 
-FUNCTION is_const_symbol_char(c: String): Boolean
-    RETURN is_var_symbol_char(c) OR c IN ["+", "-"]
-END FUNCTION
-
 FUNCTION convert_binary_string(s: String): String
     CONSTANT Digits: String := "01"
     VAR t: String := s
@@ -170,10 +166,17 @@ FUNCTION tokenise(source: String): Array<Token>
             tokens.append(t)
         ELSIF is_digit(source[i]) OR source[i] = "." THEN
             t.type := TokenType.Const_symbol
-            WHILE is_const_symbol_char(source[i]) DO
-                t.value.append(source[i])
-                INC i
-            END WHILE
+            LOOP
+                IF is_var_symbol_char(source[i]) THEN
+                    t.value.append(source[i])
+                    INC i
+                ELSIF source[i] IN ["E","e"] AND source[i+1] IN ["+","-"] THEN
+                    t.value.append(source[i TO i+1])
+                    i := i + 2
+                ELSE
+                    EXIT LOOP
+                END IF
+            END LOOP
             tokens.append(t)
         ELSIF source[i] IN ["'", "\""] THEN
             LET delim: String := source[i]
@@ -432,7 +435,8 @@ FUNCTION evaluate_term(tokens: Array<Token>, INOUT i: Number): String
 END FUNCTION
 
 CONSTANT OperatorPrecedence: Dictionary<Number> := {
-    "": 0,
+    "": -1,
+    ")": -1,
     "(": 0,
     "&&": 1,
     "|": 2,
@@ -450,7 +454,10 @@ CONSTANT OperatorPrecedence: Dictionary<Number> := {
     "-": 6,
     "*": 7,
     "/": 7,
+    "%": 7,
+    "//": 7,
     "**": 8,
+    "negate": 9,
     "\\": 9,
 }
 
@@ -547,9 +554,33 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
                     push_operand(str(rxnum(x) / rxnum(y)))
+                WHEN "%" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(str(rxnum(x) INTDIV rxnum(y)))
+                WHEN "//" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(str(rxnum(x) MOD rxnum(y)))
+                WHEN "**" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(str(rxnum(x) ^ rxnum(y)))
+                WHEN "negate" DO
+                    LET x: String := pop_operand()
+                    push_operand(str(-rxnum(x)))
                 WHEN "\\" DO
                     LET x: String := pop_operand()
-                    push_operand((IF x = "0" THEN "1" ELSE "0"))
+                    CASE x
+                        WHEN "0" DO
+                            push_operand("1")
+                        WHEN "1" DO
+                            push_operand("0")
+                        WHEN OTHERS DO
+                            RAISE SyntaxException
+                    END CASE
+                WHEN "(" DO
+                    -- no operation
                 WHEN OTHERS DO
                     ASSERT FALSE, "unimplemented operator", op
             END CASE
@@ -560,25 +591,27 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
     LOOP
         --print("  eval \(tokens[i])")
         --print("    last_was_term \(last_was_term)")
-        --print("    operator \(operator_stack)")
-        --print("    operand \(operand_stack)")
         VAR this_is_term: Boolean := FALSE
-        IF tokens[i].type = TokenType.Special AND tokens[i].value = "(" THEN
-            operator_stack.append("(")
-            INC i
-        ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ")" AND operator_stack.size() > 0 THEN
-            resolve_stack("(")
-            operator_stack.append("(")
-            INC i
-        ELSIF tokens[i].type = TokenType.Operator THEN
+        -- First check for binary operators.
+        IF tokens[i].type = TokenType.Operator AND
+           NOT (tokens[i].value = "\\") AND
+           NOT (tokens[i].value IN ["+","-"] AND NOT last_was_term) THEN
             resolve_stack(tokens[i].value)
             operator_stack.append(tokens[i].value)
             INC i
-        ELSIF tokens[i].type = TokenType.Special OR (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["THEN", "TO", "BY", "FOR"]) THEN
+        -- Check for closing parenthesis.
+        ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ")" AND operator_stack.size() > 0 THEN
+            resolve_stack(")")
+            this_is_term := TRUE
+            INC i
+        -- Check for end of expression.
+        ELSIF (tokens[i].type = TokenType.Special AND tokens[i].value <> "(") OR
+              (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["THEN", "TO", "BY", "FOR"]) THEN
             resolve_stack("") -- end of expression
             EXIT LOOP
         ELSE
             IF last_was_term THEN
+                -- Must be another term, add concatenation operator.
                 IF tokens[i].abuttal THEN
                     resolve_stack("||")
                     operator_stack.append("||")
@@ -587,10 +620,28 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                     operator_stack.append(" ")
                 END IF
             END IF
-            LET term: String := evaluate_term(tokens, INOUT i)
-            operand_stack.append(term)
-            this_is_term := TRUE
+            IF tokens[i].type = TokenType.Special AND tokens[i].value = "(" THEN
+                operator_stack.append("(")
+                INC i
+            ELSIF tokens[i].type = TokenType.Operator THEN
+                IF tokens[i].value = "\\" THEN
+                    operator_stack.append(tokens[i].value)
+                ELSIF tokens[i].value = "-" AND NOT last_was_term THEN
+                    operator_stack.append("negate")
+                ELSIF tokens[i].value = "+" AND NOT last_was_term THEN
+                    -- Unary + is no operation.
+                ELSE
+                    ASSERT FALSE, "binary operator should have been handled above"
+                END IF
+                INC i
+            ELSE
+                LET term: String := evaluate_term(tokens, INOUT i)
+                operand_stack.append(term)
+                this_is_term := TRUE
+            END IF
         END IF
+        --print("    operators \(operator_stack)")
+        --print("    operands \(operand_stack)")
         last_was_term := this_is_term
     END LOOP
     IF operand_stack.size() = 0 THEN
@@ -756,319 +807,321 @@ FUNCTION interpret(source_tokens: Array<Token>)
     VAR tokens: Array<Token> := source_tokens
     VAR i: Number := 0
     WHILE i < tokens.size() LABEL interpret_loop DO
-        --VAR o: Object := vars print(o.toString())
-        --print("interpret \(tokens[i])")
-        LET orig_i: Number := i
-        CASE tokens[i].type
-            WHEN TokenType.Label DO
-                INC i
-            WHEN TokenType.Special DO
-                CASE tokens[i].value
-                    WHEN ";" DO
-                        INC i
-                    WHEN OTHERS DO
-                        ASSERT FALSE, "unexpected special token", tokens[i]
-                END CASE
-            WHEN TokenType.Var_symbol DO
-                IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
-                    LET var: String := tokens[i].value
-                    i := i + 2
-                    LET s: String := evaluate(tokens, INOUT i)
-                    vars[var] := s
-                    NEXT interpret_loop
-                END IF
-                CASE tokens[i].value
-                    WHEN "ARG" DO
-                        do_parse(tokens, INOUT i, upper WITH TRUE)
-                    WHEN "CALL" DO
-                        INC i
-                        IF tokens[i].type = TokenType.Var_symbol THEN
-                            LET name: String := tokens[i].value
+        TRY
+            --VAR o: Object := vars print(o.toString())
+            --print("interpret \(tokens[i])")
+            LET orig_i: Number := i
+            CASE tokens[i].type
+                WHEN TokenType.Label DO
+                    INC i
+                WHEN TokenType.Special DO
+                    CASE tokens[i].value
+                        WHEN ";" DO
                             INC i
-                            LET args: Array<String> := get_function_arguments(tokens, INOUT i)
-                            VAR lindex: Number
-                            IF find_label(source_tokens, name, OUT lindex) THEN
-                                vars["SIGL"] := str(tokens[i].line)
-                                contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i, call_args WITH args))
-                                tokens := source_tokens
-                                i := lindex + 1
-                            ELSE
-                                vars["RESULT"] := builtin_function(name, args)
-                            END IF
-                        ELSE
-                            ASSERT FALSE, "unexpected thing to call", tokens[i].type
-                        END IF
-                    WHEN "DO" DO
-                        VAR out_of_loop: Number := i
-                        skip_instruction(tokens, INOUT out_of_loop)
-                        INC i
-                        IF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
-                            contexts.append(ContextEntry(type WITH ContextType.do_single, do_skip WITH out_of_loop))
-                        ELSE
-                            VAR context: ContextEntry := ContextEntry(type WITH ContextType.do_repetitive, do_skip WITH out_of_loop, do_by WITH 1)
-                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
-                                context.do_var := tokens[i].value
-                                i := i + 2
-                                vars[context.do_var] := evaluate(tokens, INOUT i)
-                                LOOP
-                                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "TO" THEN
-                                        INC i
-                                        context.do_to := num(evaluate(tokens, INOUT i))
-                                    ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "BY" THEN
-                                        INC i
-                                        context.do_by := num(evaluate(tokens, INOUT i))
-                                    ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "FOR" THEN
-                                        INC i
-                                        context.do_for := num(evaluate(tokens, INOUT i))
-                                    ELSE
-                                        EXIT LOOP
-                                    END IF
-                                END LOOP
-                            END IF
-                            IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
-                                IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["WHILE", "UNTIL"]) THEN
-                                    context.do_rep := num(evaluate(tokens, INOUT i))
-                                END IF
-                            END IF
-                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
-                                INC i
-                                LET expr: Number := i
-                                LET cond: String := evaluate(tokens, INOUT i)
-                                CASE cond
-                                    WHEN "0" DO
-                                        i := out_of_loop
-                                    WHEN "1" DO
-                                        context.do_while_condition := expr
-                                    WHEN OTHERS DO
-                                        ASSERT FALSE, "unexpected cond", cond
-                                END CASE
-                            END IF
-                            context.do_top := i
-                            contexts.append(context)
-                        END IF
-                    WHEN "DROP" DO
-                        INC i
-                        LOOP
+                        WHEN OTHERS DO
+                            ASSERT FALSE, "unexpected special token", tokens[i]
+                    END CASE
+                WHEN TokenType.Var_symbol DO
+                    IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
+                        LET var: String := tokens[i].value
+                        i := i + 2
+                        LET s: String := evaluate(tokens, INOUT i)
+                        vars[var] := s
+                        NEXT interpret_loop
+                    END IF
+                    CASE tokens[i].value
+                        WHEN "ARG" DO
+                            do_parse(tokens, INOUT i, upper WITH TRUE)
+                        WHEN "CALL" DO
+                            INC i
                             IF tokens[i].type = TokenType.Var_symbol THEN
-                                -- TODO: need dictionary remove
-                                -- vars.remove(tokens[i].value)
+                                LET name: String := tokens[i].value
                                 INC i
-                            ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = "(" THEN
-                                ASSERT FALSE, "indirect drop"
-                            ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
-                                EXIT LOOP
-                            ELSE
-                                ASSERT FALSE, "unexpected thing to drop"
-                            END IF
-                        END LOOP
-                    WHEN "ELSE" DO
-                        CASE contexts[LAST].type
-                            WHEN ContextType.if DO
-                                i := contexts[LAST].if_skip
-                                contexts.resize(contexts.size() - 1)
-                            WHEN OTHERS DO
-                                ASSERT FALSE, "else found when not in if", contexts[LAST].type
-                        END CASE
-                    WHEN "END" DO
-                        --print("END context \(contexts[LAST].type)")
-                        CASE contexts[LAST].type
-                            WHEN ContextType.do_single DO
-                                INC i
-                                contexts.resize(contexts.size() - 1)
-                            WHEN ContextType.do_repetitive DO
-                                IF do_check_terminate(tokens, INOUT i, INOUT contexts[LAST]) THEN
-                                    i := contexts[LAST].do_skip
-                                    contexts.resize(contexts.size() - 1)
+                                LET args: Array<String> := get_function_arguments(tokens, INOUT i)
+                                VAR lindex: Number
+                                IF find_label(source_tokens, name, OUT lindex) THEN
+                                    vars["SIGL"] := str(tokens[i].line)
+                                    contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i, call_args WITH args))
+                                    tokens := source_tokens
+                                    i := lindex + 1
                                 ELSE
-                                    i := contexts[LAST].do_top
+                                    vars["RESULT"] := builtin_function(name, args)
                                 END IF
-                            WHEN ContextType.select DO
-                                INC i
-                                contexts.resize(contexts.size() - 1)
-                            WHEN OTHERS DO
-                                ASSERT FALSE, "end found for no reason", contexts[LAST].type
-                        END CASE
-                    WHEN "EXIT" DO
-                        INC i
-                        LET r: String := evaluate(tokens, INOUT i)
-                        sys.exit(rxnum(r))
-                    WHEN "IF" DO
-                        INC i
-                        LET cond: String := evaluate(tokens, INOUT i)
-                        ASSERT tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN"
-                        INC i
-                        skip_if_ncl(tokens, INOUT i)
-                        CASE cond
-                            WHEN "1" DO
-                                VAR else: Number := i
-                                skip_instruction(tokens, INOUT else)
-                                IF else < tokens.size() AND tokens[else].type = TokenType.Var_symbol AND tokens[else].value = "ELSE" THEN
-                                    VAR skip: Number := else + 1
-                                    skip_instruction(tokens, INOUT skip)
-                                    contexts.append(ContextEntry(type WITH ContextType.if, if_skip WITH skip))
-                                END IF
-                            WHEN "0" DO
-                                skip_instruction(tokens, INOUT i)
-                                IF i < tokens.size() AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
-                                    INC i
-                                END IF
-                            WHEN OTHERS DO
-                                ASSERT FALSE, "unexpected cond", cond
-                        END CASE
-                    WHEN "INTERPRET" DO
-                        INC i
-                        LET expr: String := evaluate(tokens, INOUT i)
-                        TRY
-                            LET itokens: Array<Token> := tokenise(expr) & [Token(type WITH TokenType.Special, value WITH ";"), Token(type WITH TokenType.Eos)]
-                            contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i))
-                            tokens := itokens
-                            i := 0
-                        TRAP SyntaxException DO
-                            VAR lindex: Number
-                            IF find_label(source_tokens, signals["SYNTAX"], OUT lindex) THEN
-                                vars["SIGL"] := str(tokens[i].line)
-                                contexts := []
-                                tokens := source_tokens
-                                i := lindex + 1
+                            ELSE
+                                ASSERT FALSE, "unexpected thing to call", tokens[i].type
                             END IF
-                        END TRY
-                    WHEN "OTHERWISE" DO
-                        CASE contexts[LAST].type
-                            WHEN ContextType.select DO
-                                i := contexts[LAST].select_skip
-                                contexts.resize(contexts.size() - 1)
-                            WHEN OTHERS DO
-                                ASSERT FALSE, "unexpected otherwise", contexts[LAST].type
-                        END CASE
-                    WHEN "PARSE" DO
-                        INC i
-                        LET upper: Boolean := tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "UPPER"
-                        IF upper THEN
+                        WHEN "DO" DO
+                            VAR out_of_loop: Number := i
+                            skip_instruction(tokens, INOUT out_of_loop)
                             INC i
-                        END IF
-                        do_parse(tokens, INOUT i, upper)
-                    WHEN "PROCEDURE" DO
-                        INC i
-                        VAR expose: Array<String> := []
-                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "EXPOSE" THEN
+                            IF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
+                                contexts.append(ContextEntry(type WITH ContextType.do_single, do_skip WITH out_of_loop))
+                            ELSE
+                                VAR context: ContextEntry := ContextEntry(type WITH ContextType.do_repetitive, do_skip WITH out_of_loop, do_by WITH 1)
+                                IF tokens[i].type = TokenType.Var_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
+                                    context.do_var := tokens[i].value
+                                    i := i + 2
+                                    vars[context.do_var] := evaluate(tokens, INOUT i)
+                                    LOOP
+                                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "TO" THEN
+                                            INC i
+                                            context.do_to := num(evaluate(tokens, INOUT i))
+                                        ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "BY" THEN
+                                            INC i
+                                            context.do_by := num(evaluate(tokens, INOUT i))
+                                        ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "FOR" THEN
+                                            INC i
+                                            context.do_for := num(evaluate(tokens, INOUT i))
+                                        ELSE
+                                            EXIT LOOP
+                                        END IF
+                                    END LOOP
+                                END IF
+                                IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                                    IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["WHILE", "UNTIL"]) THEN
+                                        context.do_rep := num(evaluate(tokens, INOUT i))
+                                    END IF
+                                END IF
+                                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
+                                    INC i
+                                    LET expr: Number := i
+                                    LET cond: String := evaluate(tokens, INOUT i)
+                                    CASE cond
+                                        WHEN "0" DO
+                                            i := out_of_loop
+                                        WHEN "1" DO
+                                            context.do_while_condition := expr
+                                        WHEN OTHERS DO
+                                            ASSERT FALSE, "unexpected cond", cond
+                                    END CASE
+                                END IF
+                                context.do_top := i
+                                contexts.append(context)
+                            END IF
+                        WHEN "DROP" DO
                             INC i
-                            WHILE tokens[i].type = TokenType.Var_symbol DO
-                                expose.append(tokens[i].value)
-                                INC i
-                            END WHILE
-                        END IF
-                        -- TODO: introduce new variable scope
-                    WHEN "PULL" DO
-                        do_parse(tokens, INOUT i, upper WITH TRUE)
-                    WHEN "RETURN" DO
-                        CASE contexts[LAST].type
-                            WHEN ContextType.call DO
-                                INC i
-                                -- TODO: expression is optional
-                                LET r: String := evaluate(tokens, INOUT i)
-                                vars["RESULT"] := r
-                                tokens := contexts[LAST].call_tokens
-                                i := contexts[LAST].call_return_ip
-                                contexts.resize(contexts.size() - 1)
-                            WHEN OTHERS DO
-                                ASSERT FALSE, "unexpected return", contexts[LAST].type
-                        END CASE
-                    WHEN "SAY" DO
-                        INC i
-                        IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
-                            LET s: String := evaluate(tokens, INOUT i)
-                            print(s)
-                        ELSE
+                            LOOP
+                                IF tokens[i].type = TokenType.Var_symbol THEN
+                                    -- TODO: need dictionary remove
+                                    -- vars.remove(tokens[i].value)
+                                    INC i
+                                ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = "(" THEN
+                                    ASSERT FALSE, "indirect drop"
+                                ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
+                                    EXIT LOOP
+                                ELSE
+                                    ASSERT FALSE, "unexpected thing to drop"
+                                END IF
+                            END LOOP
+                        WHEN "ELSE" DO
+                            CASE contexts[LAST].type
+                                WHEN ContextType.if DO
+                                    i := contexts[LAST].if_skip
+                                    contexts.resize(contexts.size() - 1)
+                                WHEN OTHERS DO
+                                    ASSERT FALSE, "else found when not in if", contexts[LAST].type
+                            END CASE
+                        WHEN "END" DO
+                            --print("END context \(contexts[LAST].type)")
+                            CASE contexts[LAST].type
+                                WHEN ContextType.do_single DO
+                                    INC i
+                                    contexts.resize(contexts.size() - 1)
+                                WHEN ContextType.do_repetitive DO
+                                    IF do_check_terminate(tokens, INOUT i, INOUT contexts[LAST]) THEN
+                                        i := contexts[LAST].do_skip
+                                        contexts.resize(contexts.size() - 1)
+                                    ELSE
+                                        i := contexts[LAST].do_top
+                                    END IF
+                                WHEN ContextType.select DO
+                                    INC i
+                                    contexts.resize(contexts.size() - 1)
+                                WHEN OTHERS DO
+                                    ASSERT FALSE, "end found for no reason", contexts[LAST].type
+                            END CASE
+                        WHEN "EXIT" DO
                             INC i
-                            print("")
-                        END IF
-                    WHEN "SELECT" DO
-                        VAR end_of_select: Number := i
-                        skip_instruction(tokens, INOUT end_of_select)
-                        INC i
-                        skip_if_ncl(tokens, INOUT i)
-                        VAR found: Boolean := FALSE
-                        WHILE tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHEN" DO
+                            LET r: String := evaluate(tokens, INOUT i)
+                            sys.exit(rxnum(r))
+                        WHEN "IF" DO
                             INC i
                             LET cond: String := evaluate(tokens, INOUT i)
                             ASSERT tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN"
                             INC i
                             skip_if_ncl(tokens, INOUT i)
-                            IF cond = "1" THEN
-                                contexts.append(ContextEntry(type WITH ContextType.select, select_skip WITH end_of_select))
-                                found := TRUE
-                                EXIT WHILE
-                            ELSIF cond = "0" THEN
-                                skip_instruction(tokens, INOUT i)
-                            ELSE
-                                ASSERT FALSE, "unexpected cond", cond
-                            END IF
-                        END WHILE
-                        IF NOT found AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "OTHERWISE" THEN
-                            INC i
-                        END IF
-                    WHEN "SIGNAL" DO
-                        INC i
-                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ON" THEN
-                            INC i
-                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["SYNTAX"] THEN
-                                LET signal: String := tokens[i].value
-                                VAR label: String := signal
-                                INC i
-                                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "NAME" THEN
-                                    INC i
-                                    IF tokens[i].type = TokenType.Var_symbol THEN
-                                        label := tokens[i].value
-                                        INC i
-                                    ELSE
-                                        ASSERT FALSE, "label expected", tokens[i]
+                            CASE cond
+                                WHEN "1" DO
+                                    VAR else: Number := i
+                                    skip_instruction(tokens, INOUT else)
+                                    IF else < tokens.size() AND tokens[else].type = TokenType.Var_symbol AND tokens[else].value = "ELSE" THEN
+                                        VAR skip: Number := else + 1
+                                        skip_instruction(tokens, INOUT skip)
+                                        contexts.append(ContextEntry(type WITH ContextType.if, if_skip WITH skip))
                                     END IF
-                                END IF
-                                signals[signal] := label
-                            ELSE
-                                ASSERT FALSE, "unknown signal type", tokens[i]
-                            END IF
-                        ELSE
-                            LET name: String := tokens[i].value
+                                WHEN "0" DO
+                                    skip_instruction(tokens, INOUT i)
+                                    IF i < tokens.size() AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
+                                        INC i
+                                    END IF
+                                WHEN OTHERS DO
+                                    ASSERT FALSE, "unexpected cond", cond
+                            END CASE
+                        WHEN "INTERPRET" DO
                             INC i
-                            VAR lindex: Number
-                            IF find_label(source_tokens, name, OUT lindex) THEN
-                                vars["SIGL"] := str(tokens[i].line)
-                                tokens := source_tokens
-                                i := lindex + 1
-                            ELSE
-                                ASSERT FALSE, "signal label not found"
+                            LET expr: String := evaluate(tokens, INOUT i)
+                            LET itokens: Array<Token> := tokenise(expr) & [Token(type WITH TokenType.Special, value WITH ";"), Token(type WITH TokenType.Eos)]
+                            contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i))
+                            tokens := itokens
+                            i := 0
+                        WHEN "OTHERWISE" DO
+                            CASE contexts[LAST].type
+                                WHEN ContextType.select DO
+                                    i := contexts[LAST].select_skip
+                                    contexts.resize(contexts.size() - 1)
+                                WHEN OTHERS DO
+                                    ASSERT FALSE, "unexpected otherwise", contexts[LAST].type
+                            END CASE
+                        WHEN "PARSE" DO
+                            INC i
+                            LET upper: Boolean := tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "UPPER"
+                            IF upper THEN
+                                INC i
                             END IF
-                        END IF
-                    WHEN "WHEN" DO
-                        CASE contexts[LAST].type
-                            WHEN ContextType.select DO
-                                i := contexts[LAST].select_skip
-                                contexts.resize(contexts.size() - 1)
-                            WHEN OTHERS DO
-                                ASSERT FALSE, "unexpected when", contexts[LAST].type
-                        END CASE
-                    WHEN OTHERS DO
-                        LET r: String := evaluate(tokens, INOUT i)
-                        _ := os.system(r)
-                END CASE
-            WHEN TokenType.Eos DO
-                CASE contexts[LAST].type
-                    WHEN ContextType.call DO
-                        tokens := contexts[LAST].call_tokens
-                        i := contexts[LAST].call_return_ip
-                        contexts.resize(contexts.size() - 1)
-                    WHEN OTHERS DO
-                        EXIT interpret_loop
-                END CASE
-            WHEN OTHERS DO
-                LET r: String := evaluate(tokens, INOUT i)
-                _ := os.system(r)
-        END CASE
-        IF i = orig_i THEN
-            ASSERT FALSE, "we are stuck", tokens[i]
-        END IF
-        skip_if_ncl(tokens, INOUT i)
+                            do_parse(tokens, INOUT i, upper)
+                        WHEN "PROCEDURE" DO
+                            INC i
+                            VAR expose: Array<String> := []
+                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "EXPOSE" THEN
+                                INC i
+                                WHILE tokens[i].type = TokenType.Var_symbol DO
+                                    expose.append(tokens[i].value)
+                                    INC i
+                                END WHILE
+                            END IF
+                            -- TODO: introduce new variable scope
+                        WHEN "PULL" DO
+                            do_parse(tokens, INOUT i, upper WITH TRUE)
+                        WHEN "RETURN" DO
+                            CASE contexts[LAST].type
+                                WHEN ContextType.call DO
+                                    INC i
+                                    -- TODO: expression is optional
+                                    LET r: String := evaluate(tokens, INOUT i)
+                                    vars["RESULT"] := r
+                                    tokens := contexts[LAST].call_tokens
+                                    i := contexts[LAST].call_return_ip
+                                    contexts.resize(contexts.size() - 1)
+                                WHEN OTHERS DO
+                                    ASSERT FALSE, "unexpected return", contexts[LAST].type
+                            END CASE
+                        WHEN "SAY" DO
+                            INC i
+                            IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                                LET s: String := evaluate(tokens, INOUT i)
+                                print(s)
+                            ELSE
+                                INC i
+                                print("")
+                            END IF
+                        WHEN "SELECT" DO
+                            VAR end_of_select: Number := i
+                            skip_instruction(tokens, INOUT end_of_select)
+                            INC i
+                            skip_if_ncl(tokens, INOUT i)
+                            VAR found: Boolean := FALSE
+                            WHILE tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHEN" DO
+                                INC i
+                                LET cond: String := evaluate(tokens, INOUT i)
+                                ASSERT tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN"
+                                INC i
+                                skip_if_ncl(tokens, INOUT i)
+                                IF cond = "1" THEN
+                                    contexts.append(ContextEntry(type WITH ContextType.select, select_skip WITH end_of_select))
+                                    found := TRUE
+                                    EXIT WHILE
+                                ELSIF cond = "0" THEN
+                                    skip_instruction(tokens, INOUT i)
+                                ELSE
+                                    ASSERT FALSE, "unexpected cond", cond
+                                END IF
+                            END WHILE
+                            IF NOT found AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "OTHERWISE" THEN
+                                INC i
+                            END IF
+                        WHEN "SIGNAL" DO
+                            INC i
+                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ON" THEN
+                                INC i
+                                IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["SYNTAX"] THEN
+                                    LET signal: String := tokens[i].value
+                                    VAR label: String := signal
+                                    INC i
+                                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "NAME" THEN
+                                        INC i
+                                        IF tokens[i].type = TokenType.Var_symbol THEN
+                                            label := tokens[i].value
+                                            INC i
+                                        ELSE
+                                            ASSERT FALSE, "label expected", tokens[i]
+                                        END IF
+                                    END IF
+                                    signals[signal] := label
+                                ELSE
+                                    ASSERT FALSE, "unknown signal type", tokens[i]
+                                END IF
+                            ELSE
+                                LET name: String := tokens[i].value
+                                INC i
+                                VAR lindex: Number
+                                IF find_label(source_tokens, name, OUT lindex) THEN
+                                    vars["SIGL"] := str(tokens[i].line)
+                                    tokens := source_tokens
+                                    i := lindex + 1
+                                ELSE
+                                    ASSERT FALSE, "signal label not found"
+                                END IF
+                            END IF
+                        WHEN "WHEN" DO
+                            CASE contexts[LAST].type
+                                WHEN ContextType.select DO
+                                    i := contexts[LAST].select_skip
+                                    contexts.resize(contexts.size() - 1)
+                                WHEN OTHERS DO
+                                    ASSERT FALSE, "unexpected when", contexts[LAST].type
+                            END CASE
+                        WHEN OTHERS DO
+                            LET r: String := evaluate(tokens, INOUT i)
+                            _ := os.system(r)
+                    END CASE
+                WHEN TokenType.Eos DO
+                    CASE contexts[LAST].type
+                        WHEN ContextType.call DO
+                            tokens := contexts[LAST].call_tokens
+                            i := contexts[LAST].call_return_ip
+                            contexts.resize(contexts.size() - 1)
+                        WHEN OTHERS DO
+                            EXIT interpret_loop
+                    END CASE
+                WHEN OTHERS DO
+                    LET r: String := evaluate(tokens, INOUT i)
+                    _ := os.system(r)
+            END CASE
+            IF i = orig_i THEN
+                ASSERT FALSE, "we are stuck", tokens[i]
+            END IF
+            skip_if_ncl(tokens, INOUT i)
+        TRAP SyntaxException DO
+            VAR lindex: Number
+            IF find_label(source_tokens, signals["SYNTAX"], OUT lindex) THEN
+                vars["SIGL"] := str(tokens[i].line)
+                contexts := []
+                tokens := source_tokens
+                i := lindex + 1
+            ELSE
+                ASSERT FALSE, "syntax label not found"
+            END IF
+        END TRY
     END WHILE
 END FUNCTION
 
