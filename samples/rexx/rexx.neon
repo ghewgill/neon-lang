@@ -375,6 +375,8 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
             END IF
         WHEN "LENGTH" DO
             RETURN str(args[0].length())
+        WHEN "POS" DO
+            RETURN str(string.find(args[1], args[0]) + 1)
         WHEN "RANDOM" DO
             RETURN str(random.uint32() MOD (rxnum(args[1]) - rxnum(args[0]) + 1) + rxnum(args[0]))
         WHEN "SOURCELINE" DO
@@ -429,128 +431,172 @@ FUNCTION evaluate_term(tokens: Array<Token>, INOUT i: Number): String
     RETURN r
 END FUNCTION
 
+CONSTANT OperatorPrecedence: Dictionary<Number> := {
+    "": 0,
+    "(": 0,
+    "&&": 1,
+    "|": 2,
+    "&": 3,
+    "=": 4,
+    "\\=": 4,
+    "==": 4,
+    "\\==": 4,
+    "<": 4,
+    ">": 4,
+    "<>": 4,
+    " ": 5,
+    "||": 5,
+    "+": 6,
+    "-": 6,
+    "*": 7,
+    "/": 7,
+    "**": 8,
+    "\\": 9,
+}
+
 -- TODO: pass in terminating token set? Like "THEN" or "TO"
 FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
-    CONSTANT OperatorPrecedence: Dictionary<Number> := {
-        "": 0,
-        "(": 0,
-        "&&": 1,
-        "|": 2,
-        "&": 3,
-        "=": 4,
-        "\\=": 4,
-        "==": 4,
-        "\\==": 4,
-        "<": 4,
-        ">": 4,
-        "<>": 4,
-        " ": 5,
-        "||": 5,
-        "+": 6,
-        "-": 6,
-        "*": 7,
-        "/": 7,
-        "**": 8,
-    }
     --print("evaluate \(tokens[i].type) \(tokens[i].value)")
-    TYPE TermOp IS RECORD
-        term: String
-        op: String
-    END RECORD
-    VAR stack: Array<TermOp> := []
-    LOOP
-        --print("  eval \(tokens[i].type) \(tokens[i].value)")
-        WHILE tokens[i].type = TokenType.Special AND tokens[i].value = "(" DO
-            stack.append(TermOp(op WITH "("))
-            INC i
+    VAR operand_stack: Array<String> := []
+    VAR operator_stack: Array<String> := []
+
+    FUNCTION pop_operand(): String
+        VAR r: String := operand_stack[LAST]
+        operand_stack.resize(operand_stack.size() - 1)
+        RETURN r
+    END FUNCTION
+
+    FUNCTION push_operand(x: String)
+        operand_stack.append(x)
+    END FUNCTION
+
+    FUNCTION pop_operator(): String
+        VAR r: String := operator_stack[LAST]
+        operator_stack.resize(operator_stack.size() - 1)
+        RETURN r
+    END FUNCTION
+
+    FUNCTION resolve_stack(next_op: String)
+        LET level: Number := OperatorPrecedence[next_op]
+        WHILE operator_stack.size() > 0 AND level < OperatorPrecedence[operator_stack[LAST]] DO
+            LET op: String := pop_operator()
+            CASE op
+                WHEN " " DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(x & " " & y)
+                WHEN "&&" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand((IF (num(x) <> 0) <> (num(y) <> 0) THEN "1" ELSE "0"))
+                WHEN "|" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand((IF num(x) <> 0 OR num(y) <> 0 THEN "1" ELSE "0"))
+                WHEN "&" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand((IF num(x) <> 0 AND num(y) <> 0 THEN "1" ELSE "0"))
+                WHEN "||" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(x & y)
+                WHEN "=" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand((IF x = y THEN "1" ELSE "0"))
+                WHEN "\\=", "<>" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand((IF x <> y THEN "1" ELSE "0"))
+                WHEN "==" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand((IF x = y THEN "1" ELSE "0"))
+                WHEN "\\==" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand((IF x <> y THEN "1" ELSE "0"))
+                WHEN "<" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    VAR a: Number
+                    VAR b: Number
+                    IF is_number(x, OUT a) AND is_number(y, OUT b) THEN
+                        push_operand((IF a < b THEN "1" ELSE "0"))
+                    ELSE
+                        push_operand((IF x < y THEN "1" ELSE "0"))
+                    END IF
+                WHEN ">" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand((IF rxnum(x) > rxnum(y) THEN "1" ELSE "0"))
+                WHEN "+" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(str(rxnum(x) + rxnum(y)))
+                WHEN "-" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(str(rxnum(x) - rxnum(y)))
+                WHEN "*" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(str(rxnum(x) * rxnum(y)))
+                WHEN "/" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    push_operand(str(rxnum(x) / rxnum(y)))
+                WHEN "\\" DO
+                    LET x: String := pop_operand()
+                    push_operand((IF x = "0" THEN "1" ELSE "0"))
+                WHEN OTHERS DO
+                    ASSERT FALSE, "unimplemented operator", op
+            END CASE
         END WHILE
-        VAR term: String := evaluate_term(tokens, INOUT i)
-        --print("  next \(tokens[i].type) \(tokens[i].value)")
-        LOOP
-            VAR op: String
-            IF tokens[i].type = TokenType.Operator THEN
-                op := tokens[i].value
-                INC i
-            ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ")" THEN
-                op := "("
-                INC i
-            ELSIF tokens[i].type = TokenType.Special OR (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["THEN", "TO", "BY", "FOR"]) THEN
-                op := ""
-            ELSE
+    END FUNCTION
+
+    VAR last_was_term: Boolean := FALSE
+    LOOP
+        --print("  eval \(tokens[i])")
+        --print("    last_was_term \(last_was_term)")
+        --print("    operator \(operator_stack)")
+        --print("    operand \(operand_stack)")
+        VAR this_is_term: Boolean := FALSE
+        IF tokens[i].type = TokenType.Special AND tokens[i].value = "(" THEN
+            operator_stack.append("(")
+            INC i
+        ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ")" AND operator_stack.size() > 0 THEN
+            resolve_stack("(")
+            operator_stack.append("(")
+            INC i
+        ELSIF tokens[i].type = TokenType.Operator THEN
+            resolve_stack(tokens[i].value)
+            operator_stack.append(tokens[i].value)
+            INC i
+        ELSIF tokens[i].type = TokenType.Special OR (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["THEN", "TO", "BY", "FOR"]) THEN
+            resolve_stack("") -- end of expression
+            EXIT LOOP
+        ELSE
+            IF last_was_term THEN
                 IF tokens[i].abuttal THEN
-                    op := "||"
+                    resolve_stack("||")
+                    operator_stack.append("||")
                 ELSE
-                    op := " "
+                    resolve_stack(" ")
+                    operator_stack.append(" ")
                 END IF
             END IF
-            --print("  oper \(op)")
-            LET level: Number := OperatorPrecedence[op]
-            WHILE stack.size() > 0 AND level < OperatorPrecedence[stack[LAST].op] DO
-                CASE stack[LAST].op
-                    WHEN " " DO
-                        term := stack[LAST].term & " " & term
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "|" DO
-                        term := (IF num(stack[LAST].term) <> 0 OR num(term) <> 0 THEN "1" ELSE "0")
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "||" DO
-                        term := stack[LAST].term & term
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "=" DO
-                        term := (IF stack[LAST].term = term THEN "1" ELSE "0")
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "\\=", "<>" DO
-                        term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "==" DO
-                        term := (IF stack[LAST].term = term THEN "1" ELSE "0")
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "\\==" DO
-                        term := (IF stack[LAST].term <> term THEN "1" ELSE "0")
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "<" DO
-                        VAR x: Number
-                        VAR y: Number
-                        IF is_number(stack[LAST].term, OUT x) AND is_number(term, OUT y) THEN
-                            term := (IF x < y THEN "1" ELSE "0")
-                        ELSE
-                            term := (IF stack[LAST].term < term THEN "1" ELSE "0")
-                        END IF
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN ">" DO
-                        term := (IF rxnum(stack[LAST].term) > rxnum(term) THEN "1" ELSE "0")
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "+" DO
-                        term := str(rxnum(stack[LAST].term) + rxnum(term))
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "-" DO
-                        term := str(rxnum(stack[LAST].term) - rxnum(term))
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "*" DO
-                        term := str(rxnum(stack[LAST].term) * rxnum(term))
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN "/" DO
-                        term := str(rxnum(stack[LAST].term) / rxnum(term))
-                        stack := stack[FIRST TO LAST-1]
-                    WHEN OTHERS DO
-                        ASSERT FALSE, "unimplemented operator", stack[LAST].op
-                END CASE
-            END WHILE
-            IF op = "(" THEN
-                IF stack.size() = 0 THEN
-                    DEC i
-                    RETURN term
-                END IF
-            ELSE
-                IF level = 0 THEN
-                    RETURN term
-                END IF
-                stack.append(TermOp(term WITH term, op WITH op))
-                EXIT LOOP
-            END IF
-            stack := stack[FIRST TO LAST-1]
-        END LOOP
+            LET term: String := evaluate_term(tokens, INOUT i)
+            operand_stack.append(term)
+            this_is_term := TRUE
+        END IF
+        last_was_term := this_is_term
     END LOOP
+    IF operand_stack.size() = 0 THEN
+        RETURN ""
+    END IF
+    RETURN operand_stack[FIRST]
 END FUNCTION
 
 FUNCTION skip_if_ncl(tokens: Array<Token>, INOUT i: Number)
@@ -600,10 +646,15 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
             input := contexts[LAST].call_args
         WHEN "PULL" DO
             input := [console.input("")]
+        WHEN "VERSION" DO
+            input := ["neon", "1", "2020", "Sep", "22"]
         WHEN OTHERS DO
             ASSERT FALSE, "unknown parse source", source
     END CASE
     FOREACH s IN input INDEX tli DO
+        IF tli >= template_list.size() THEN
+            EXIT FOREACH
+        END IF
         LET ss: String := (IF upper THEN string.upper(s) ELSE s)
         LET template: Array<Template> := template_list[tli]
         LET a: Array<String> := string.split(ss, " ")
@@ -978,7 +1029,16 @@ FUNCTION interpret(source_tokens: Array<Token>)
                                 ASSERT FALSE, "unknown signal type", tokens[i]
                             END IF
                         ELSE
-                            ASSERT FALSE, "unimplemented signal syntax", tokens[i]
+                            LET name: String := tokens[i].value
+                            INC i
+                            VAR lindex: Number
+                            IF find_label(source_tokens, name, OUT lindex) THEN
+                                vars["SIGL"] := str(tokens[i].line)
+                                tokens := source_tokens
+                                i := lindex + 1
+                            ELSE
+                                ASSERT FALSE, "signal label not found"
+                            END IF
                         END IF
                     WHEN "WHEN" DO
                         CASE contexts[LAST].type
