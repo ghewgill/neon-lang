@@ -56,6 +56,7 @@ TYPE ContextEntry IS RECORD
     select_skip: Number
 END RECORD
 
+VAR script_filename: String
 VAR sourcelines: Array<String>
 VAR source_tokens: Array<Token>
 VAR vars: Dictionary<String>
@@ -300,6 +301,9 @@ FUNCTION tokenise(source: String): Array<Token>
                                         t.value := "<<"
                                         i := i + 1
                                 END CASE
+                            WHEN "=" DO
+                                t.value := "<="
+                                i := i + 1
                             WHEN OTHERS DO
                                 t.value := "<"
                         END CASE
@@ -382,7 +386,9 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
         WHEN "POS" DO
             RETURN str(string.find(args[1], args[0]) + 1)
         WHEN "RANDOM" DO
-            RETURN str(random.uint32() MOD (rxnum(args[1]) - rxnum(args[0]) + 1) + rxnum(args[0]))
+            LET min: Number := (IF args.size() >= 1 AND args[0] <> "" THEN rxnum(args[0]) ELSE 0)
+            LET max: Number := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1]) ELSE 999)
+            RETURN str(random.uint32() MOD (max - min + 1) + min)
         WHEN "SOURCELINE" DO
             RETURN sourcelines[rxnum(args[0])]
         WHEN "WORDS" DO
@@ -454,6 +460,7 @@ CONSTANT OperatorPrecedence: Dictionary<Number> := {
     "==": 4,
     "\\==": 4,
     "<": 4,
+    "<=": 4,
     ">": 4,
     "<>": 4,
     " ": 5,
@@ -541,6 +548,16 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                         push_operand((IF a < b THEN "1" ELSE "0"))
                     ELSE
                         push_operand((IF x < y THEN "1" ELSE "0"))
+                    END IF
+                WHEN "<=" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    VAR a: Number
+                    VAR b: Number
+                    IF is_number(x, OUT a) AND is_number(y, OUT b) THEN
+                        push_operand((IF a <= b THEN "1" ELSE "0"))
+                    ELSE
+                        push_operand((IF x <= y THEN "1" ELSE "0"))
                     END IF
                 WHEN ">" DO
                     LET y: String := pop_operand()
@@ -683,6 +700,26 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
     ASSERT tokens[i].type = TokenType.Var_symbol
     LET source: String := tokens[i].value
     INC i
+    VAR input: Array<String> := []
+    CASE source
+        WHEN "ARG" DO
+            input := contexts[LAST].call_args
+        WHEN "PULL" DO
+            input := [console.input("")]
+        WHEN "SOURCE" DO
+            input := ["Neon", "COMMAND", script_filename]
+        WHEN "VAR" DO
+            IF tokens[i].type = TokenType.Var_symbol THEN
+                input := [vars[tokens[i].value]]
+                INC i
+            ELSE
+                ASSERT FALSE, "var not found"
+            END IF
+        WHEN "VERSION" DO
+            input := ["neon", "1", "2020", "Sep", "22"]
+        WHEN OTHERS DO
+            ASSERT FALSE, "unknown parse source", source
+    END CASE
     VAR template_list: Array<Array<Template>> := []
     WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
         VAR template: Array<Template> := []
@@ -699,17 +736,6 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         END WHILE
         template_list.append(template)
     END WHILE
-    VAR input: Array<String> := []
-    CASE source
-        WHEN "ARG" DO
-            input := contexts[LAST].call_args
-        WHEN "PULL" DO
-            input := [console.input("")]
-        WHEN "VERSION" DO
-            input := ["neon", "1", "2020", "Sep", "22"]
-        WHEN OTHERS DO
-            ASSERT FALSE, "unknown parse source", source
-    END CASE
     FOREACH s IN input INDEX tli DO
         IF tli >= template_list.size() THEN
             EXIT FOREACH
@@ -1108,6 +1134,9 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     RETURN FALSE
             END CASE
         WHEN OTHERS DO
+            IF tokens[i].type = TokenType.Const_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value IN ["=","=="] THEN
+                RAISE SyntaxException
+            END IF
             LET r: String := evaluate(tokens, INOUT i)
             _ := os.system(r)
     END CASE
@@ -1153,7 +1182,8 @@ FUNCTION interpret()
 END FUNCTION
 
 BEGIN MAIN
-    LET bytes: Bytes := file.readBytes(sys.args[1])
+    script_filename := sys.args[1]
+    LET bytes: Bytes := file.readBytes(script_filename)
     LET source: String := bytes.decodeToString()
     sourcelines := [""] & string.splitLines(source)
     source_tokens := tokenise(source)
