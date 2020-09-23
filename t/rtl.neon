@@ -5,6 +5,11 @@ print(str(num("45")))
 TESTCASE num("") EXPECT ValueRangeException
 TESTCASE num("-") EXPECT ValueRangeException
 TESTCASE num(".") EXPECT ValueRangeException
+TESTCASE num("1.") EXPECT ValueRangeException
+TESTCASE num("12e") EXPECT ValueRangeException
+TESTCASE num("12e-") EXPECT ValueRangeException
+TESTCASE num("12e1.2") EXPECT ValueRangeException
+TESTCASE num("12e1-") EXPECT ValueRangeException
 
 print("hello")
 --= hello
