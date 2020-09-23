@@ -306,7 +306,11 @@ public class Global {
             }
         }
         if (any_digits) {
-            return new neon.type.Number(s);
+            try {
+                return new neon.type.Number(s);
+            } catch (NumberFormatException x) {
+                throw new neon.type.NeonException("ValueRangeException", s);
+            }
         } else {
             throw new neon.type.NeonException("ValueRangeException", s);
         }

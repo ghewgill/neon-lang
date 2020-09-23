@@ -563,15 +563,50 @@ Number number_from_string(const std::string &s)
     if (s[i] == '-') {
         i++;
     }
-    if (s.find_first_not_of("0123456789", i) == std::string::npos) {
+    std::string::size_type next = s.find_first_not_of("0123456789", i);
+    // Number must start with a digit.
+    if (next == i) {
+        return bid128_nan(NULL);
+    }
+    // If all digits, then do a large integer conversion.
+    if (next == std::string::npos) {
         try {
             return mpz_class(s, 10);
         } catch (std::invalid_argument &) {
             return bid128_nan(NULL);
         }
     }
-    // Require at least one digit so strings like "." are not accepted.
-    if (s.find_first_of("0123456789") == std::string::npos) {
+    // Check exact allowed formats because bid128_from_string
+    // is a bit too permissive.
+    if (s[next] == '.') {
+        i = next + 1;
+        if (i >= s.length()) {
+            return bid128_nan(NULL);
+        }
+        next = s.find_first_not_of("0123456789", i);
+        // Must have one or more digits after decimal point.
+        if (next == i) {
+            return bid128_nan(NULL);
+        }
+    }
+    // Check for exponential notation.
+    if (next != std::string::npos && (s[next] == 'e' || s[next] == 'E')) {
+        i = next + 1;
+        // e may be followed by a + or -
+        if (i < s.length() && (s[i] == '+' || s[i] == '-')) {
+            i++;
+        }
+        if (i >= s.length()) {
+            return bid128_nan(NULL);
+        }
+        // Must have one or more digits in exponent.
+        next = s.find_first_not_of("0123456789", i);
+        if (next == i) {
+            return bid128_nan(NULL);
+        }
+    }
+    // Reject if there is any trailing junk.
+    if (next != std::string::npos) {
         return bid128_nan(NULL);
     }
     return bid128_from_string(const_cast<char *>(s.c_str()));
