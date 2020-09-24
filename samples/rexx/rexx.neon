@@ -1,7 +1,6 @@
 IMPORT console
 IMPORT file
 IMPORT io
-IMPORT math
 IMPORT os
 IMPORT random
 IMPORT string
@@ -81,49 +80,79 @@ END FUNCTION
 
 FUNCTION convert_binary_string(s: String): String
     CONSTANT Digits: String := "01"
-    VAR t: String := s
-    FOREACH c IN t DO
-        IF c <> " " AND c NOT IN Digits THEN
-            ASSERT FALSE, "invalid binary string", s
-        END IF
-    END FOREACH
-    IF string.hasPrefix(t, " ") THEN
-        RAISE SyntaxException
+    VAR i: Number := s.length()
+    IF i = 0 THEN
+        RETURN ""
     END IF
-    t := string.replaceAll(t, " ", "")
-    WHILE t.length() MOD 8 <> 0 DO
-        t := "0" & t
-    END WHILE
+    DEC i
     VAR r: String := ""
-    FOR i := 0 TO t.length()-1 STEP 8 DO
-        VAR b: Number := 0
-        FOR j := 0 TO 7 DO
-            b := b * 2 + string.find(Digits, t[i+j])
+    VAR b: Number := 0
+    VAR bit: Number := 0b1
+    LOOP
+        IF i < 0 OR s[i] NOT IN Digits THEN
+            RAISE SyntaxException
+        END IF
+        b := b + string.find(Digits, s[i]) * bit
+        bit := bit * 2
+        DEC i
+        FOR z := 2 TO 4 DO
+            IF i < 0 THEN
+                -- Ignore missing leading digit.
+                EXIT FOR
+            ELSIF s[i] NOT IN Digits THEN
+                RAISE SyntaxException
+            ELSE
+                b := b + string.find(Digits, s[i]) * bit
+                bit := bit * 2
+                DEC i
+            END IF
         END FOR
-        r.append(string.fromCodePoint(b))
-    END FOR
+        IF i < 0 OR bit >= 0x100 THEN
+            r := string.fromCodePoint(b) & r
+            b := 0
+            bit := 0b1
+        END IF
+        IF i < 0 THEN
+            EXIT LOOP
+        END IF
+        WHILE i >= 0 AND s[i] = " " DO
+            DEC i
+        END WHILE
+    END LOOP
     RETURN r
 END FUNCTION
 
 FUNCTION convert_hex_string(s: String): String
     CONSTANT Digits: String := "0123456789ABCDEF"
-    VAR t: String := string.upper(s)
-    FOREACH c IN t DO
-        IF c <> " " AND c NOT IN Digits THEN
-            ASSERT FALSE, "invalid hex string", s
-        END IF
-    END FOREACH
-    IF string.hasPrefix(t, " ") THEN
-        RAISE SyntaxException
+    LET t: String := string.upper(s)
+    VAR i: Number := t.length()
+    IF i = 0 THEN
+        RETURN ""
     END IF
-    t := string.replaceAll(t, " ", "")
-    IF math.odd(t.length()) THEN
-        t := "0" & t
-    END IF
+    DEC i
     VAR r: String := ""
-    FOR i := 0 TO t.length()-1 STEP 2 DO
-        r.append(string.fromCodePoint(string.find(Digits, t[i]) * 0x10 + string.find(Digits, t[i+1])))
-    END FOR
+    LOOP
+        IF i < 0 OR t[i] NOT IN Digits THEN
+            RAISE SyntaxException
+        END IF
+        VAR b: Number := string.find(Digits, t[i])
+        DEC i
+        IF i < 0 THEN
+            -- Ignore missing leading digit.
+        ELSIF t[i] NOT IN Digits THEN
+            RAISE SyntaxException
+        ELSE
+            b := b + string.find(Digits, t[i]) * 0x10
+            DEC i
+        END IF
+        r := string.fromCodePoint(b) & r
+        IF i < 0 THEN
+            EXIT LOOP
+        END IF
+        WHILE i >= 0 AND t[i] = " " DO
+            DEC i
+        END WHILE
+    END LOOP
     RETURN r
 END FUNCTION
 
