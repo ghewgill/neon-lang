@@ -403,6 +403,14 @@ FUNCTION find_label(tokens: Array<Token>, label: String, OUT index: Number): Boo
     RETURN FALSE
 END FUNCTION
 
+VAR using_lfsr: Boolean := FALSE
+VAR random_seed: Number := 0
+
+FUNCTION random_lfsr(): Number
+    random_seed := (random_seed * 22695477 + 1) MOD 2^32
+    RETURN random_seed INTDIV 2^16
+END FUNCTION
+
 FUNCTION builtin_function(name: String, args: Array<String>): String
     CASE name
         WHEN "ARG" DO
@@ -422,7 +430,16 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
         WHEN "RANDOM" DO
             LET min: Number := (IF args.size() >= 1 AND args[0] <> "" THEN rxnum(args[0]) ELSE 0)
             LET max: Number := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1]) ELSE 999)
-            RETURN str(random.uint32() MOD (max - min + 1) + min)
+            LET seed: Number := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2]) ELSE 0)
+            IF seed <> 0 THEN
+                random_seed := seed
+                using_lfsr := TRUE
+            END IF
+            IF using_lfsr THEN
+                RETURN str(random_lfsr() MOD (max - min + 1) + min)
+            ELSE
+                RETURN str(random.uint32() MOD (max - min + 1) + min)
+            END IF
         WHEN "SOURCELINE" DO
             RETURN sourcelines[rxnum(args[0])]
         WHEN "WORDS" DO
@@ -561,11 +578,11 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                 WHEN "=" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
-                    push_operand((IF x = y THEN "1" ELSE "0"))
+                    push_operand((IF string.trim(x) = string.trim(y) THEN "1" ELSE "0"))
                 WHEN "\\=", "<>" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
-                    push_operand((IF x <> y THEN "1" ELSE "0"))
+                    push_operand((IF string.trim(x) <> string.trim(y) THEN "1" ELSE "0"))
                 WHEN "==" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
@@ -1167,7 +1184,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END CASE
                 WHEN OTHERS DO
                     LET r: String := evaluate(tokens, INOUT i)
-                    _ := os.system(r)
+                    vars["RC"] := str(os.system(r))
             END CASE
         WHEN TokenType.Eos DO
             CASE contexts[LAST].type
@@ -1183,7 +1200,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                 RAISE SyntaxException
             END IF
             LET r: String := evaluate(tokens, INOUT i)
-            _ := os.system(r)
+            vars["RC"] := str(os.system(r))
     END CASE
     IF i = orig_i THEN
         ASSERT FALSE, "we are stuck", tokens[i]
