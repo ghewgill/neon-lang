@@ -403,6 +403,7 @@ FUNCTION get_var(name: String): String
 END FUNCTION
 
 FUNCTION set_var(name: String, value: String)
+    --print("set_var \(name) \(value)")
     LET dot: Number := string.find(name, ".")
     IF dot < 0 OR dot = name.length() - 1 THEN
         vars[name] := value
@@ -796,6 +797,7 @@ FUNCTION skip_if_ncl(tokens: Array<Token>, INOUT i: Number)
 END FUNCTION
 
 TYPE TemplateType IS ENUM
+    placeholder
     target
     pattern
     positional
@@ -803,11 +805,23 @@ END ENUM
 
 TYPE Template IS RECORD
     type: TemplateType
-    target_name: String
+    target: String
+    pattern: String
+    position: Number
+    position_relative: Boolean
 END RECORD
 
 FUNCTION Template.toString(self: Template): String
-    RETURN "<\(self.type):\(self.target_name)>"
+    CASE self.type
+        WHEN TemplateType.placeholder DO
+            RETURN "<\(self.type)>"
+        WHEN TemplateType.target DO
+            RETURN "<\(self.type):\(self.target)>"
+        WHEN TemplateType.pattern DO
+            RETURN "<\(self.type):\(self.pattern)>"
+        WHEN TemplateType.positional DO
+            RETURN "<\(self.type):\(self.position),\(self.position_relative)>"
+    END CASE
 END FUNCTION
 
 FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
@@ -844,8 +858,30 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
     WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
         VAR template: Array<Template> := []
         WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
-            IF tokens[i].type IN [TokenType.Var_symbol, TokenType.Const_symbol, TokenType.String] THEN
-                template.append(Template(type WITH TemplateType.target, target_name WITH tokens[i].value))
+            IF tokens[i].type = TokenType.Var_symbol THEN
+                template.append(Template(type WITH TemplateType.target, target WITH tokens[i].value))
+                INC i
+            ELSIF tokens[i].type = TokenType.String THEN
+                template.append(Template(type WITH TemplateType.pattern, pattern WITH tokens[i].value))
+                INC i
+            ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = "(" THEN
+                INC i
+                LET sep: String := evaluate(tokens, INOUT i, [])
+                ASSERT tokens[i].value = ")"
+                INC i
+                template.append(Template(type WITH TemplateType.pattern, pattern WITH sep))
+            ELSIF tokens[i].type = TokenType.Const_symbol THEN
+                IF tokens[i].value = "." THEN
+                    template.append(Template(type WITH TemplateType.placeholder))
+                ELSE
+                    LET pos: Number := num(tokens[i].value)
+                    template.append(Template(type WITH TemplateType.positional, position WITH pos, position_relative WITH pos < 0))
+                END IF
+                INC i
+            ELSIF tokens[i].type = TokenType.Operator AND tokens[i].value = "+" THEN
+                INC i
+                ASSERT tokens[i].type = TokenType.Const_symbol
+                template.append(Template(type WITH TemplateType.positional, position WITH num(tokens[i].value), position_relative WITH TRUE))
                 INC i
             ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = "," THEN
                 INC i
@@ -854,6 +890,7 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
                 ASSERT FALSE, "unexpected template token", tokens[i]
             END IF
         END WHILE
+        --FOREACH t IN template DO print("\(t)") END FOREACH
         template_list.append(template)
     END WHILE
     FOREACH s IN input INDEX tli DO
@@ -862,15 +899,72 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         END IF
         LET ss: String := (IF upper THEN string.upper(s) ELSE s)
         LET template: Array<Template> := template_list[tli]
-        LET a: Array<String> := string.split(ss, " ")
-        FOREACH t IN template INDEX ti DO
-            ASSERT t.type = TemplateType.target
-            IF ti < template.size()-1 THEN
-                set_var(t.target_name, (IF ti < a.size() THEN a[ti] ELSE ""))
-            ELSE
-                set_var(t.target_name, string.join(a[ti TO LAST], " "))
+        VAR si: Number := 0
+        VAR ti: Number := 0
+        WHILE si < s.length() AND ti < template.size() DO
+            LET t: Template := template[ti]
+            --print("si=\(si) ti=\(ti) t=\(t)")
+            WHILE si < s.length() AND s[si] = " " DO
+                INC si
+            END WHILE
+            IF ti >= template.size()-1 THEN
+                IF t.type = TemplateType.target THEN
+                    set_var(t.target, (IF si < s.length() THEN s[si TO LAST] ELSE ""))
+                END IF
+                INC ti
+                EXIT WHILE
             END IF
-        END FOREACH
+            CASE t.type
+                WHEN TemplateType.placeholder, TemplateType.target DO
+                    VAR next: Number := si
+                    CASE template[ti+1].type
+                        WHEN TemplateType.placeholder, TemplateType.target DO
+                            IF t.type = TemplateType.target THEN
+                                WHILE next < s.length() AND s[next] <> " " DO
+                                    INC next
+                                END WHILE
+                            END IF
+                        WHEN TemplateType.pattern DO
+                            LET j: Number := string.find(s[next TO LAST], template[ti+1].pattern)
+                            IF j >= 0 THEN
+                                next := next + j
+                            ELSE
+                                next := s.length()
+                            END IF
+                        WHEN TemplateType.positional DO
+                            IF template[ti+1].position_relative THEN
+                                next := next + template[ti+1].position
+                            ELSE
+                                next := template[ti+1].position - 1
+                            END IF
+                            INC ti
+                    END CASE
+                    IF t.type = TemplateType.target THEN
+                        IF next > si THEN
+                            set_var(t.target, s[si TO next-1])
+                        ELSE
+                            set_var(t.target, s[si TO LAST])
+                        END IF
+                    END IF
+                    si := next
+                WHEN TemplateType.pattern DO
+                    ASSERT s[si TO si+t.pattern.length()-1] = t.pattern
+                    si := si + t.pattern.length()
+                WHEN TemplateType.positional DO
+                    IF t.position_relative THEN
+                        si := si + t.position
+                    ELSE
+                        si := t.position - 1
+                    END IF
+            END CASE
+            INC ti
+        END WHILE
+        WHILE ti < template.size() DO
+            IF template[ti].type = TemplateType.target THEN
+                set_var(template[ti].target, "")
+            END IF
+            INC ti
+        END WHILE
     END FOREACH
 END FUNCTION
 
