@@ -5,6 +5,7 @@ IMPORT os
 IMPORT random
 IMPORT string
 IMPORT sys
+IMPORT time
 
 EXCEPTION SyntaxException
 
@@ -391,6 +392,9 @@ FUNCTION get_var(name: String): String
     END FOR
     LET tail: String := string.join(items, ".")
     IF stem NOT IN arrays THEN
+        IF stem IN vars THEN
+            RETURN vars[stem]
+        END IF
         RETURN stem & tail
     END IF
     IF tail NOT IN arrays[stem] THEN
@@ -461,6 +465,8 @@ FUNCTION random_lfsr(): Number
     RETURN random_seed INTDIV 2^16
 END FUNCTION
 
+VAR time_reset: Number := 0
+
 FUNCTION builtin_function(name: String, args: Array<String>): String
     CASE name
         WHEN "ARG" DO
@@ -492,6 +498,21 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
             END IF
         WHEN "SOURCELINE" DO
             RETURN sourcelines[rxnum(args[0])]
+        WHEN "SUBSTR" DO
+            LET start: Number := rxnum(args[1])
+            LET length: Number := rxnum(args[2])
+            RETURN args[0][start-1 TO start-1+length-1]
+        WHEN "TIME" DO
+            IF args[0] = "R" THEN
+                LET now: Number := time.now()
+                LET r: Number := now - time_reset
+                time_reset := now
+                RETURN str(r)
+            ELSE
+                ASSERT FALSE, args
+            END IF
+        WHEN "WORD" DO
+            RETURN string.split(args[0], " ")[rxnum(args[1])]
         WHEN "WORDS" DO
             RETURN str(string.split(args[0], " ").size())
     END CASE
@@ -987,6 +1008,7 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
                     WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") DO
                         INC i
                     END WHILE
+                    INC i
                     skip_if_ncl(tokens, INOUT i)
                     skip_instruction(tokens, INOUT i)
                     IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
@@ -1053,7 +1075,7 @@ END FUNCTION
 
 FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
     --VAR o: Object := vars print(o.toString())
-    --print("interpret \(tokens[i])")
+    --print("interpret \(contexts.size()) \(tokens[i])")
     LET orig_i: Number := i
     CASE tokens[i].type
         WHEN TokenType.Label DO
@@ -1224,6 +1246,16 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i))
                     tokens := itokens
                     i := 0
+                WHEN "ITERATE" DO
+                    WHILE contexts.size() > 0 AND contexts[LAST].type <> ContextType.do_repetitive DO
+                        contexts.resize(contexts.size() - 1)
+                    END WHILE
+                    IF do_check_terminate(tokens, INOUT i, INOUT contexts[LAST]) THEN
+                        i := contexts[LAST].do_skip
+                        contexts.resize(contexts.size() - 1)
+                    ELSE
+                        i := contexts[LAST].do_top
+                    END IF
                 WHEN "LEAVE" DO
                     WHILE contexts.size() > 0 AND contexts[LAST].type <> ContextType.do_repetitive DO
                         contexts.resize(contexts.size() - 1)
@@ -1319,7 +1351,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     INC i
                     IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ON" THEN
                         INC i
-                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["SYNTAX"] THEN
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["NOVALUE","SYNTAX"] THEN
                             LET signal: String := tokens[i].value
                             VAR label: String := signal
                             INC i
@@ -1348,6 +1380,14 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             ASSERT FALSE, "signal label not found"
                         END IF
                     END IF
+                WHEN "TRACE" DO
+                    INC i
+                    VAR setting: String := tokens[i].value
+                    IF setting = "VALUE" THEN
+                        INC i
+                        setting := evaluate(tokens, INOUT i, [])
+                    END IF
+                    -- TODO: trace setting
                 WHEN "WHEN" DO
                     CASE contexts[LAST].type
                         WHEN ContextType.select DO
@@ -1412,7 +1452,7 @@ FUNCTION interpret()
                 i := lindex + 1
                 -- TODO: pop contexts and restore vars/arrays
             ELSE
-                ASSERT FALSE, "syntax label not found"
+                ASSERT FALSE, "syntax label not found", tokens[i]
             END IF
         END TRY
     END WHILE
