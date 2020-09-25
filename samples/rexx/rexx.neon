@@ -46,7 +46,8 @@ TYPE ContextEntry IS RECORD
     do_skip: Number
     do_top: Number
     do_var: String
-    do_to: Number
+    do_bounded: Boolean
+    do_bounded_to: Number
     do_by: Number
     do_for: Number
     do_rep: Number
@@ -879,7 +880,7 @@ FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, INOUT context
     LET var: String := context.do_var
     IF var <> "" THEN
         LET newvar: Number := num(vars[var]) + context.do_by
-        IF newvar > context.do_to THEN
+        IF context.do_bounded AND newvar > context.do_bounded_to THEN
             RETURN TRUE
         END IF
         vars[var] := str(newvar)
@@ -955,7 +956,8 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             LOOP
                                 IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "TO" THEN
                                     INC i
-                                    context.do_to := num(evaluate(tokens, INOUT i))
+                                    context.do_bounded := TRUE
+                                    context.do_bounded_to := num(evaluate(tokens, INOUT i))
                                 ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "BY" THEN
                                     INC i
                                     context.do_by := num(evaluate(tokens, INOUT i))
@@ -970,9 +972,12 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                         IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
                             IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["WHILE", "UNTIL"]) THEN
                                 context.do_rep := num(evaluate(tokens, INOUT i))
+                                IF context.do_rep <= 0 THEN
+                                    i := out_of_loop
+                                END IF
                             END IF
                         END IF
-                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
+                        IF i < tokens.size() AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
                             INC i
                             LET expr: Number := i
                             LET cond: String := evaluate(tokens, INOUT i)
@@ -985,8 +990,10 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                                     ASSERT FALSE, "unexpected cond", cond
                             END CASE
                         END IF
-                        context.do_top := i
-                        contexts.append(context)
+                        IF i < out_of_loop THEN
+                            context.do_top := i
+                            contexts.append(context)
+                        END IF
                     END IF
                 WHEN "DROP" DO
                     INC i
@@ -1064,6 +1071,12 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i))
                     tokens := itokens
                     i := 0
+                WHEN "LEAVE" DO
+                    WHILE contexts.size() > 0 AND contexts[LAST].type <> ContextType.do_repetitive DO
+                        contexts.resize(contexts.size() - 1)
+                    END WHILE
+                    i := contexts[LAST].do_skip
+                    contexts.resize(contexts.size() - 1)
                 WHEN "NOP" DO
                     INC i
                     -- No operation.
