@@ -43,6 +43,9 @@ TYPE ContextEntry IS RECORD
     call_tokens: Array<Token>
     call_return_ip: Number
     call_args: Array<String>
+    call_is_procedure: Boolean
+    call_vars: Dictionary<String>
+    call_arrays: Dictionary<Dictionary<String>>
     do_skip: Number
     do_top: Number
     do_var: String
@@ -1161,7 +1164,11 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             INC i
                         END WHILE
                     END IF
-                    -- TODO: introduce new variable scope
+                    contexts[LAST].call_is_procedure := TRUE
+                    contexts[LAST].call_vars := vars
+                    contexts[LAST].call_arrays := arrays
+                    vars := {}
+                    arrays := {}
                 WHEN "PULL" DO
                     do_parse(tokens, INOUT i, upper WITH TRUE)
                 WHEN "RETURN" DO
@@ -1172,9 +1179,13 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     ASSERT contexts.size() > 0, "unexpected return"
                     -- TODO: expression is optional
                     LET r: String := evaluate(tokens, INOUT i, [])
-                    vars["RESULT"] := r
                     tokens := contexts[LAST].call_tokens
                     i := contexts[LAST].call_return_ip
+                    IF contexts[LAST].call_is_procedure THEN
+                        vars := contexts[LAST].call_vars
+                        arrays := contexts[LAST].call_arrays
+                    END IF
+                    vars["RESULT"] := r
                     contexts.resize(contexts.size() - 1)
                 WHEN "SAY" DO
                     INC i
@@ -1305,6 +1316,7 @@ FUNCTION interpret()
                 contexts := []
                 tokens := source_tokens
                 i := lindex + 1
+                -- TODO: pop contexts and restore vars/arrays
             ELSE
                 ASSERT FALSE, "syntax label not found"
             END IF
