@@ -60,6 +60,7 @@ VAR script_filename: String
 VAR sourcelines: Array<String>
 VAR source_tokens: Array<Token>
 VAR vars: Dictionary<String>
+VAR arrays: Dictionary<Dictionary<String>>
 VAR contexts: Array<ContextEntry>
 VAR signals: Dictionary<String> := {
     "SYNTAX": "SYNTAX",
@@ -314,6 +315,9 @@ FUNCTION tokenise(source: String): Array<Token>
                                         t.value := ">>"
                                         i := i + 1
                                 END CASE
+                            WHEN "=" DO
+                                t.value := ">="
+                                i := i + 1
                             WHEN OTHERS DO
                                 t.value := ">"
                         END CASE
@@ -367,6 +371,47 @@ FUNCTION tokenise(source: String): Array<Token>
         END IF
     END WHILE
     RETURN tokens
+END FUNCTION
+
+FUNCTION get_var(name: String): String
+    LET dot: Number := string.find(name, ".")
+    IF dot < 0 OR dot = name.length() - 1 THEN
+        IF name NOT IN vars THEN
+            RETURN name
+        END IF
+        RETURN vars[name]
+    END IF
+    LET stem: String := name[FIRST TO dot]
+    VAR items: Array<String> := string.split(name[dot+1 TO LAST], ".")
+    FOR i := 0 TO items.size() - 1 DO
+        items[i] := get_var(items[i])
+    END FOR
+    LET tail: String := string.join(items, ".")
+    IF stem NOT IN arrays THEN
+        RETURN stem & tail
+    END IF
+    IF tail NOT IN arrays[stem] THEN
+        IF stem IN vars THEN
+            RETURN vars[stem]
+        END IF
+        RETURN stem & tail
+    END IF
+    RETURN arrays[stem][tail]
+END FUNCTION
+
+FUNCTION set_var(name: String, value: String)
+    LET dot: Number := string.find(name, ".")
+    IF dot < 0 OR dot = name.length() - 1 THEN
+        vars[name] := value
+        EXIT FUNCTION
+    END IF
+    LET stem: String := name[FIRST TO dot]
+    VAR items: Array<String> := string.split(name[dot+1 TO LAST], ".")
+    FOR i := 0 TO items.size() - 1 DO
+        items[i] := get_var(items[i])
+    END FOR
+    LET tail: String := string.join(items, ".")
+    arrays[stem][tail] := value
 END FUNCTION
 
 FUNCTION is_number(s: String, OUT n: Number): Boolean
@@ -453,7 +498,7 @@ END FUNCTION
 FUNCTION get_function_arguments(tokens: Array<Token>, INOUT i: Number): Array<String>
     VAR r: Array<String> := []
     WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value IN [")", ";"]) DO
-        LET s: String := evaluate(tokens, INOUT i)
+        LET s: String := evaluate(tokens, INOUT i, [])
         r.append(s)
         IF tokens[i].type = TokenType.Special AND tokens[i].value = "," THEN
             INC i
@@ -482,7 +527,7 @@ FUNCTION evaluate_term(tokens: Array<Token>, INOUT i: Number): String
                     r := builtin_function(name, args)
                 END IF
             ELSE
-                r := (IF name IN vars THEN vars[name] ELSE name)
+                r := get_var(name)
             END IF
         WHEN TokenType.Const_symbol, TokenType.String DO
             r := tokens[i].value
@@ -514,6 +559,7 @@ CONSTANT OperatorPrecedence: Dictionary<Number> := {
     "<": 4,
     "<=": 4,
     ">": 4,
+    ">=": 4,
     "<>": 4,
     " ": 5,
     "||": 5,
@@ -528,8 +574,7 @@ CONSTANT OperatorPrecedence: Dictionary<Number> := {
     "\\": 9,
 }
 
--- TODO: pass in terminating token set? Like "THEN" or "TO"
-FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
+FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number, terminating_tokens: Array<String>): String
     --print("evaluate \(tokens[i].type) \(tokens[i].value)")
     VAR operand_stack: Array<String> := []
     VAR operator_stack: Array<String> := []
@@ -616,6 +661,16 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
                     push_operand((IF rxnum(x) > rxnum(y) THEN "1" ELSE "0"))
+                WHEN ">=" DO
+                    LET y: String := pop_operand()
+                    LET x: String := pop_operand()
+                    VAR a: Number
+                    VAR b: Number
+                    IF is_number(x, OUT a) AND is_number(y, OUT b) THEN
+                        push_operand((IF a >= b THEN "1" ELSE "0"))
+                    ELSE
+                        push_operand((IF x >= y THEN "1" ELSE "0"))
+                    END IF
                 WHEN "+" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
@@ -685,7 +740,8 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number): String
             INC i
         -- Check for end of expression.
         ELSIF (tokens[i].type = TokenType.Special AND tokens[i].value <> "(") OR
-              (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["THEN", "TO", "BY", "FOR", "WITH"]) THEN
+              (paren_depth = 0 AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN terminating_tokens) THEN
+            ASSERT paren_depth = 0
             resolve_stack("") -- end of expression
             EXIT LOOP
         ELSE
@@ -764,14 +820,14 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         WHEN "SOURCE" DO
             input := ["Neon", "COMMAND", script_filename]
         WHEN "VALUE" DO
-            input := [evaluate(tokens, INOUT i)]
+            input := [evaluate(tokens, INOUT i, ["WITH"])]
             IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WITH") THEN
                 ASSERT FALSE, "WITH expected"
             END IF
             INC i
         WHEN "VAR" DO
             IF tokens[i].type = TokenType.Var_symbol THEN
-                input := [vars[tokens[i].value]]
+                input := [get_var(tokens[i].value)]
                 INC i
             ELSE
                 ASSERT FALSE, "var not found"
@@ -807,9 +863,9 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         FOREACH t IN template INDEX ti DO
             ASSERT t.type = TemplateType.target
             IF ti < template.size()-1 THEN
-                vars[t.target_name] := (IF ti < a.size() THEN a[ti] ELSE "")
+                set_var(t.target_name, (IF ti < a.size() THEN a[ti] ELSE ""))
             ELSE
-                vars[t.target_name] := string.join(a[ti TO LAST], " ")
+                set_var(t.target_name, string.join(a[ti TO LAST], " "))
             END IF
         END FOREACH
     END FOREACH
@@ -879,16 +935,16 @@ FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, INOUT context
     END IF
     LET var: String := context.do_var
     IF var <> "" THEN
-        LET newvar: Number := num(vars[var]) + context.do_by
+        LET newvar: Number := num(get_var(var)) + context.do_by
         IF context.do_bounded AND newvar > context.do_bounded_to THEN
             RETURN TRUE
         END IF
-        vars[var] := str(newvar)
+        set_var(var, str(newvar))
     END IF
     LET while: Number := context.do_while_condition
     IF while > 0 THEN
         i := context.do_while_condition
-        LET cond: String := evaluate(tokens, INOUT i)
+        LET cond: String := evaluate(tokens, INOUT i, [])
         IF cond = "0" THEN
             RETURN TRUE
         ELSIF cond <> "1" THEN
@@ -916,8 +972,8 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
             IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
                 LET var: String := tokens[i].value
                 i := i + 2
-                LET s: String := evaluate(tokens, INOUT i)
-                vars[var] := s
+                LET s: String := evaluate(tokens, INOUT i, [])
+                set_var(var, s)
                 RETURN TRUE
             END IF
             CASE tokens[i].value
@@ -952,18 +1008,18 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                         IF tokens[i].type = TokenType.Var_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
                             context.do_var := tokens[i].value
                             i := i + 2
-                            vars[context.do_var] := evaluate(tokens, INOUT i)
+                            set_var(context.do_var, evaluate(tokens, INOUT i, ["TO", "BY", "FOR", "WHILE", "UNTIL"]))
                             LOOP
                                 IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "TO" THEN
                                     INC i
                                     context.do_bounded := TRUE
-                                    context.do_bounded_to := num(evaluate(tokens, INOUT i))
+                                    context.do_bounded_to := num(evaluate(tokens, INOUT i, ["TO", "BY", "FOR", "WHILE", "UNTIL"]))
                                 ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "BY" THEN
                                     INC i
-                                    context.do_by := num(evaluate(tokens, INOUT i))
+                                    context.do_by := num(evaluate(tokens, INOUT i, ["TO", "BY", "FOR", "WHILE", "UNTIL"]))
                                 ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "FOR" THEN
                                     INC i
-                                    context.do_for := num(evaluate(tokens, INOUT i))
+                                    context.do_for := num(evaluate(tokens, INOUT i, ["TO", "BY", "FOR", "WHILE", "UNTIL"]))
                                 ELSE
                                     EXIT LOOP
                                 END IF
@@ -971,7 +1027,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                         END IF
                         IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
                             IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["WHILE", "UNTIL"]) THEN
-                                context.do_rep := num(evaluate(tokens, INOUT i))
+                                context.do_rep := num(evaluate(tokens, INOUT i, ["WHILE"]))
                                 IF context.do_rep <= 0 THEN
                                     i := out_of_loop
                                 END IF
@@ -980,7 +1036,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                         IF i < tokens.size() AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
                             INC i
                             LET expr: Number := i
-                            LET cond: String := evaluate(tokens, INOUT i)
+                            LET cond: String := evaluate(tokens, INOUT i, [])
                             CASE cond
                                 WHEN "0" DO
                                     i := out_of_loop
@@ -1039,11 +1095,11 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END CASE
                 WHEN "EXIT" DO
                     INC i
-                    LET r: String := evaluate(tokens, INOUT i)
+                    LET r: String := evaluate(tokens, INOUT i, [])
                     sys.exit(rxnum(r))
                 WHEN "IF" DO
                     INC i
-                    LET cond: String := evaluate(tokens, INOUT i)
+                    LET cond: String := evaluate(tokens, INOUT i, ["THEN"])
                     ASSERT tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN"
                     INC i
                     skip_if_ncl(tokens, INOUT i)
@@ -1066,7 +1122,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END CASE
                 WHEN "INTERPRET" DO
                     INC i
-                    LET expr: String := evaluate(tokens, INOUT i)
+                    LET expr: String := evaluate(tokens, INOUT i, [])
                     LET itokens: Array<Token> := tokenise(expr) & [Token(type WITH TokenType.Special, value WITH ";"), Token(type WITH TokenType.Eos)]
                     contexts.append(ContextEntry(type WITH ContextType.call, call_tokens WITH tokens, call_return_ip WITH i))
                     tokens := itokens
@@ -1115,7 +1171,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END WHILE
                     ASSERT contexts.size() > 0, "unexpected return"
                     -- TODO: expression is optional
-                    LET r: String := evaluate(tokens, INOUT i)
+                    LET r: String := evaluate(tokens, INOUT i, [])
                     vars["RESULT"] := r
                     tokens := contexts[LAST].call_tokens
                     i := contexts[LAST].call_return_ip
@@ -1123,7 +1179,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                 WHEN "SAY" DO
                     INC i
                     IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
-                        LET s: String := evaluate(tokens, INOUT i)
+                        LET s: String := evaluate(tokens, INOUT i, [])
                         print(s)
                     ELSE
                         INC i
@@ -1137,7 +1193,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     VAR found: Boolean := FALSE
                     WHILE tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHEN" DO
                         INC i
-                        LET cond: String := evaluate(tokens, INOUT i)
+                        LET cond: String := evaluate(tokens, INOUT i, ["THEN"])
                         ASSERT tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN"
                         INC i
                         skip_if_ncl(tokens, INOUT i)
@@ -1196,7 +1252,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             ASSERT FALSE, "unexpected when", contexts[LAST].type
                     END CASE
                 WHEN OTHERS DO
-                    LET r: String := evaluate(tokens, INOUT i)
+                    LET r: String := evaluate(tokens, INOUT i, [])
                     vars["RC"] := str(os.system(r))
             END CASE
         WHEN TokenType.Eos DO
@@ -1212,7 +1268,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
             IF tokens[i].type = TokenType.Const_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value IN ["=","=="] THEN
                 RAISE SyntaxException
             END IF
-            LET r: String := evaluate(tokens, INOUT i)
+            LET r: String := evaluate(tokens, INOUT i, [])
             vars["RC"] := str(os.system(r))
     END CASE
     IF i = orig_i THEN
