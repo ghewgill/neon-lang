@@ -469,6 +469,9 @@ VAR time_reset: Number := 0
 
 FUNCTION builtin_function(name: String, args: Array<String>): String
     CASE name
+        WHEN "ADDRESS" DO
+            -- TODO
+            RETURN ""
         WHEN "ARG" DO
             RETURN contexts[LAST].call_args[num(args[0]) - 1]
         WHEN "CHAROUT" DO
@@ -479,6 +482,11 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
             ELSE
                 ASSERT FALSE, "charout only to stdout", args
             END IF
+        WHEN "FORMAT" DO
+            -- TODO: actually format
+            RETURN args[0]
+        WHEN "LEFT" DO
+            RETURN args[0][FIRST TO rxnum(args[1])-1]
         WHEN "LENGTH" DO
             RETURN str(args[0].length())
         WHEN "POS" DO
@@ -511,6 +519,9 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
             ELSE
                 ASSERT FALSE, args
             END IF
+        WHEN "TRACE" DO
+            -- TODO
+            RETURN ""
         WHEN "WORD" DO
             RETURN string.split(args[0], " ")[rxnum(args[1])]
         WHEN "WORDS" DO
@@ -1000,10 +1011,21 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
             CASE tokens[i].value
                 WHEN "DO" DO
                     INC i
+                    VAR do_var: String := ""
+                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
+                        do_var := tokens[i].value
+                    END IF
                     WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
                         skip_instruction(tokens, INOUT i)
                     END WHILE
                     INC i
+                    IF do_var <> "" AND tokens[i].type = TokenType.Var_symbol THEN
+                        IF tokens[i].value = do_var THEN
+                            INC i
+                        ELSE
+                            ASSERT FALSE, "mismatch loop var", tokens[i]
+                        END IF
+                    END IF
                 WHEN "IF" DO
                     WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "THEN") DO
                         INC i
@@ -1096,6 +1118,14 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                 RETURN TRUE
             END IF
             CASE tokens[i].value
+                WHEN "ADDRESS" DO
+                    INC i
+                    VAR target: String := tokens[i].value
+                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "VALUE" THEN
+                        INC i
+                        target := evaluate(tokens, INOUT i, ["WITH"])
+                    END IF
+                    -- TODO
                 WHEN "ARG" DO
                     do_parse(tokens, INOUT i, upper WITH TRUE)
                 WHEN "CALL" DO
@@ -1383,10 +1413,13 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                 WHEN "TRACE" DO
                     INC i
                     VAR setting: String := tokens[i].value
-                    IF setting = "VALUE" THEN
-                        INC i
-                        setting := evaluate(tokens, INOUT i, [])
-                    END IF
+                    INC i
+                    CASE setting
+                        WHEN "OFF" DO
+                            -- No action
+                        WHEN "VALUE" DO
+                            setting := evaluate(tokens, INOUT i, [])
+                    END CASE
                     -- TODO: trace setting
                 WHEN "WHEN" DO
                     CASE contexts[LAST].type
