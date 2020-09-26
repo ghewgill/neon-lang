@@ -1244,7 +1244,10 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END CASE
                 WHEN "EXIT" DO
                     INC i
-                    LET r: String := evaluate(tokens, INOUT i, [])
+                    VAR r: String := "0"
+                    IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                        r := evaluate(tokens, INOUT i, [])
+                    END IF
                     sys.exit(rxnum(r))
                 WHEN "IF" DO
                     INC i
