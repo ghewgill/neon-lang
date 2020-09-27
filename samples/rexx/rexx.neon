@@ -457,6 +457,19 @@ FUNCTION find_label(tokens: Array<Token>, label: String, OUT index: Number): Boo
     RETURN FALSE
 END FUNCTION
 
+FUNCTION builtin_abbrev(args: Array<String>): String
+    LET information: String := args[0]
+    LET info: String := args[1]
+    LET length: Number := (IF args.size() >= 3 THEN rxnum(args[2]) ELSE 0)
+    CHECK info.length() >= length ELSE
+        RETURN "0"
+    END CHECK
+    CHECK info.length() <= information.length() ELSE
+        RETURN "0"
+    END CHECK
+    RETURN (IF info = information[FIRST TO info.length()-1] THEN "1" ELSE "0")
+END FUNCTION
+
 FUNCTION builtin_address(args: Array<String>): String
     -- TODO
     RETURN ""
@@ -534,9 +547,13 @@ FUNCTION builtin_sourceline(args: Array<String>): String
 END FUNCTION
 
 FUNCTION builtin_substr(args: Array<String>): String
-    LET start: Number := rxnum(args[1])
+    LET start: Number := rxnum(args[1]) - 1
     LET length: Number := rxnum(args[2])
-    RETURN args[0][start-1 TO start-1+length-1]
+    IF start + length < args[0].length() THEN
+        RETURN args[0][start TO start+length-1]
+    ELSE
+        RETURN args[0][start TO LAST] & string.repeat(" ", start + length - args[0].length())
+    END IF
 END FUNCTION
 
 VAR time_reset: Number := 0
@@ -567,6 +584,7 @@ FUNCTION builtin_words(args: Array<String>): String
 END FUNCTION
 
 VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
+    "ABBREV": builtin_abbrev,
     "ADDRESS": builtin_address,
     "ARG": builtin_arg,
     "CENTER": builtin_center,
