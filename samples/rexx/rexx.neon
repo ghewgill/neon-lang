@@ -457,6 +457,55 @@ FUNCTION find_label(tokens: Array<Token>, label: String, OUT index: Number): Boo
     RETURN FALSE
 END FUNCTION
 
+FUNCTION builtin_address(args: Array<String>): String
+    -- TODO
+    RETURN ""
+END FUNCTION
+
+FUNCTION builtin_arg(args: Array<String>): String
+    RETURN contexts[LAST].call_args[num(args[0]) - 1]
+END FUNCTION
+
+FUNCTION builtin_center(args: Array<String>): String
+    LET s: String := args[0]
+    LET length: Number := rxnum(args[1])
+    LET pad: String := (IF args.size() >= 3 AND args[2] <> "" THEN args[2] ELSE " ")
+    IF s.length() < length THEN
+        LET half: Number := (length - s.length()) INTDIV 2
+        RETURN string.repeat(pad, half) & s & string.repeat(pad, length - s.length() - half)
+    ELSE
+        RETURN s
+    END IF
+END FUNCTION
+
+FUNCTION builtin_charout(args: Array<String>): String
+    IF args[0] = "" THEN
+        io.write(io.stdout, args[1])
+        io.flush(io.stdout)
+        RETURN str(args[1].length())
+    ELSE
+        ASSERT FALSE, "charout only to stdout", args
+        RETURN ""
+    END IF
+END FUNCTION
+
+FUNCTION builtin_format(args: Array<String>): String
+    -- TODO: actually format
+    RETURN args[0]
+END FUNCTION
+
+FUNCTION builtin_left(args: Array<String>): String
+    RETURN args[0][FIRST TO rxnum(args[1])-1]
+END FUNCTION
+
+FUNCTION builtin_length(args: Array<String>): String
+    RETURN str(args[0].length())
+END FUNCTION
+
+FUNCTION builtin_pos(args: Array<String>): String
+    RETURN str(string.find(args[1], args[0]) + 1)
+END FUNCTION
+
 VAR using_lfsr: Boolean := FALSE
 VAR random_seed: Number := 0
 
@@ -465,78 +514,82 @@ FUNCTION random_lfsr(): Number
     RETURN random_seed INTDIV 2^16
 END FUNCTION
 
+FUNCTION builtin_random(args: Array<String>): String
+    LET min: Number := (IF args.size() >= 1 AND args[0] <> "" THEN rxnum(args[0]) ELSE 0)
+    LET max: Number := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1]) ELSE 999)
+    LET seed: Number := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2]) ELSE 0)
+    IF seed <> 0 THEN
+        random_seed := seed
+        using_lfsr := TRUE
+    END IF
+    IF using_lfsr THEN
+        RETURN str(random_lfsr() MOD (max - min + 1) + min)
+    ELSE
+        RETURN str(random.uint32() MOD (max - min + 1) + min)
+    END IF
+END FUNCTION
+
+FUNCTION builtin_sourceline(args: Array<String>): String
+    RETURN sourcelines[rxnum(args[0])]
+END FUNCTION
+
+FUNCTION builtin_substr(args: Array<String>): String
+    LET start: Number := rxnum(args[1])
+    LET length: Number := rxnum(args[2])
+    RETURN args[0][start-1 TO start-1+length-1]
+END FUNCTION
+
 VAR time_reset: Number := 0
 
+FUNCTION builtin_time(args: Array<String>): String
+    IF args[0] = "R" THEN
+        LET now: Number := time.now()
+        LET r: Number := now - time_reset
+        time_reset := now
+        RETURN str(r)
+    ELSE
+        ASSERT FALSE, args
+        RETURN ""
+    END IF
+END FUNCTION
+
+FUNCTION builtin_trace(args: Array<String>): String
+    -- TODO
+    RETURN ""
+END FUNCTION
+
+FUNCTION builtin_word(args: Array<String>): String
+    RETURN string.split(args[0], " ")[rxnum(args[1])]
+END FUNCTION
+
+FUNCTION builtin_words(args: Array<String>): String
+    RETURN str(string.split(args[0], " ").size())
+END FUNCTION
+
+VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
+    "ADDRESS": builtin_address,
+    "ARG": builtin_arg,
+    "CENTER": builtin_center,
+    "CENTRE": builtin_center,
+    "CHAROUT": builtin_charout,
+    "FORMAT": builtin_format,
+    "LEFT": builtin_left,
+    "LENGTH": builtin_length,
+    "POS": builtin_pos,
+    "RANDOM": builtin_random,
+    "SOURCELINE": builtin_sourceline,
+    "SUBSTR": builtin_substr,
+    "TIME": builtin_time,
+    "TRACE": builtin_trace,
+    "WORD": builtin_word,
+    "WORDS": builtin_words,
+}
+
 FUNCTION builtin_function(name: String, args: Array<String>): String
-    CASE name
-        WHEN "ADDRESS" DO
-            -- TODO
-            RETURN ""
-        WHEN "ARG" DO
-            RETURN contexts[LAST].call_args[num(args[0]) - 1]
-        WHEN "CENTER", "CENTRE" DO
-            LET s: String := args[0]
-            LET length: Number := rxnum(args[1])
-            LET pad: String := (IF args.size() >= 3 AND args[2] <> "" THEN args[2] ELSE " ")
-            IF s.length() < length THEN
-                LET half: Number := (length - s.length()) INTDIV 2
-                RETURN string.repeat(pad, half) & s & string.repeat(pad, length - s.length() - half)
-            ELSE
-                RETURN s
-            END IF
-        WHEN "CHAROUT" DO
-            IF args[0] = "" THEN
-                io.write(io.stdout, args[1])
-                io.flush(io.stdout)
-                RETURN str(args[1].length())
-            ELSE
-                ASSERT FALSE, "charout only to stdout", args
-            END IF
-        WHEN "FORMAT" DO
-            -- TODO: actually format
-            RETURN args[0]
-        WHEN "LEFT" DO
-            RETURN args[0][FIRST TO rxnum(args[1])-1]
-        WHEN "LENGTH" DO
-            RETURN str(args[0].length())
-        WHEN "POS" DO
-            RETURN str(string.find(args[1], args[0]) + 1)
-        WHEN "RANDOM" DO
-            LET min: Number := (IF args.size() >= 1 AND args[0] <> "" THEN rxnum(args[0]) ELSE 0)
-            LET max: Number := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1]) ELSE 999)
-            LET seed: Number := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2]) ELSE 0)
-            IF seed <> 0 THEN
-                random_seed := seed
-                using_lfsr := TRUE
-            END IF
-            IF using_lfsr THEN
-                RETURN str(random_lfsr() MOD (max - min + 1) + min)
-            ELSE
-                RETURN str(random.uint32() MOD (max - min + 1) + min)
-            END IF
-        WHEN "SOURCELINE" DO
-            RETURN sourcelines[rxnum(args[0])]
-        WHEN "SUBSTR" DO
-            LET start: Number := rxnum(args[1])
-            LET length: Number := rxnum(args[2])
-            RETURN args[0][start-1 TO start-1+length-1]
-        WHEN "TIME" DO
-            IF args[0] = "R" THEN
-                LET now: Number := time.now()
-                LET r: Number := now - time_reset
-                time_reset := now
-                RETURN str(r)
-            ELSE
-                ASSERT FALSE, args
-            END IF
-        WHEN "TRACE" DO
-            -- TODO
-            RETURN ""
-        WHEN "WORD" DO
-            RETURN string.split(args[0], " ")[rxnum(args[1])]
-        WHEN "WORDS" DO
-            RETURN str(string.split(args[0], " ").size())
-    END CASE
+    IF name IN BuiltinFunctions THEN
+        LET f: FUNCTION(args: Array<String>): String := BuiltinFunctions[name]
+        RETURN f(args)
+    END IF
     ASSERT FALSE, "unknown builtin function", name
     RETURN ""
 END FUNCTION
