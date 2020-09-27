@@ -474,6 +474,16 @@ FUNCTION builtin_function(name: String, args: Array<String>): String
             RETURN ""
         WHEN "ARG" DO
             RETURN contexts[LAST].call_args[num(args[0]) - 1]
+        WHEN "CENTER", "CENTRE" DO
+            LET s: String := args[0]
+            LET length: Number := rxnum(args[1])
+            LET pad: String := (IF args.size() >= 3 AND args[2] <> "" THEN args[2] ELSE " ")
+            IF s.length() < length THEN
+                LET half: Number := (length - s.length()) INTDIV 2
+                RETURN string.repeat(pad, half) & s & string.repeat(pad, length - s.length() - half)
+            ELSE
+                RETURN s
+            END IF
         WHEN "CHAROUT" DO
             IF args[0] = "" THEN
                 io.write(io.stdout, args[1])
@@ -1298,6 +1308,11 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                 WHEN "NOP" DO
                     INC i
                     -- No operation.
+                WHEN "OPTIONS" DO
+                    INC i
+                    WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
+                        INC i
+                    END WHILE
                 WHEN "OTHERWISE" DO
                     CASE contexts[LAST].type
                         WHEN ContextType.select DO
