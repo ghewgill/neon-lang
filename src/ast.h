@@ -676,6 +676,7 @@ public:
     const TypeClass *reftype;
 
     virtual const Expression *make_default_value() const override;
+    virtual bool is_ambiguous() const { return reftype == nullptr; }
     virtual bool is_structure_compatible(const Type *rhs) const override;
     virtual std::function<const Expression *(Analyzer *analyzer, const Expression *from)> make_converter(const Type *from) const override;
     virtual void generate_load(Emitter &emitter) const override;

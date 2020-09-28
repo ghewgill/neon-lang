@@ -3265,6 +3265,9 @@ const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *decl
             error(3015, declaration->value->token, "type mismatch");
         }
     } else {
+        if (value->type->is_ambiguous()) {
+            error(3295, declaration->value->token, "this expression needs an explicit type declaration");
+        }
         type = value->type;
     }
     if (not value->is_constant) {
@@ -3443,6 +3446,9 @@ const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declarati
             error(3140, declaration->value->token, "type mismatch");
         }
     } else {
+        if (expr->type->is_ambiguous()) {
+            error(3294, declaration->value->token, "this expression needs an explicit type declaration");
+        }
         type = expr->type;
     }
     const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(type);
