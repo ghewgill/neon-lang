@@ -1,2 +1,2 @@
-VAR a Number
-      --<
+FUNCTION foo(a)
+              --<

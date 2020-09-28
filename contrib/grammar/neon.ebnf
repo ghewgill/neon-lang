@@ -79,11 +79,11 @@ NativeConstantDeclaration = 'DECLARE', 'NATIVE', 'CONSTANT', Identifier, ':', Ty
 
 ExtensionConstantDeclaration = 'DECLARE', 'EXTENSION', 'CONSTANT', Identifier, ':', Type;
 
-VariableDeclaration = 'VAR', Identifier, {',', Identifier}, ':', Type, [':=', Expression];
+VariableDeclaration = 'VAR', Identifier, {',', Identifier}, [':', Type], [':=', Expression];
 
 NativeVariableDeclaration = 'DECLARE', 'NATIVE', 'VAR', Identifier, ':', Type;
 
-LetDeclaration = 'LET', Identifier, ':', Type, ':=', Expression;
+LetDeclaration = 'LET', Identifier, [':', Type], ':=', Expression;
 
 FunctionDeclaration = 'FUNCTION', FunctionHeader, {Statement}, 'END', 'FUNCTION';
 
