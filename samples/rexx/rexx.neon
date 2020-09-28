@@ -1,6 +1,7 @@
 IMPORT console
 IMPORT file
 IMPORT io
+IMPORT math
 IMPORT os
 IMPORT random
 IMPORT string
@@ -96,7 +97,7 @@ FUNCTION convert_binary_string(s: String): String
     VAR bit: Number := 0b1
     LOOP
         IF i < 0 OR s[i] NOT IN Digits THEN
-            RAISE SyntaxException
+            RAISE SyntaxException(info WITH "invalid binary string")
         END IF
         b := b + string.find(Digits, s[i]) * bit
         bit := bit * 2
@@ -106,7 +107,7 @@ FUNCTION convert_binary_string(s: String): String
                 -- Ignore missing leading digit.
                 EXIT FOR
             ELSIF s[i] NOT IN Digits THEN
-                RAISE SyntaxException
+                RAISE SyntaxException(info WITH "invalid binary string")
             ELSE
                 b := b + string.find(Digits, s[i]) * bit
                 bit := bit * 2
@@ -139,14 +140,14 @@ FUNCTION convert_hex_string(s: String): String
     VAR r: String := ""
     LOOP
         IF i < 0 OR t[i] NOT IN Digits THEN
-            RAISE SyntaxException
+            RAISE SyntaxException(info WITH "invalid hex string")
         END IF
         VAR b: Number := string.find(Digits, t[i])
         DEC i
         IF i < 0 THEN
             -- Ignore missing leading digit.
         ELSIF t[i] NOT IN Digits THEN
-            RAISE SyntaxException
+            RAISE SyntaxException(info WITH "invalid hex string")
         ELSE
             b := b + string.find(Digits, t[i]) * 0x10
             DEC i
@@ -441,8 +442,7 @@ FUNCTION rxnum(s: String): Number
         END IF
         RETURN num(t)
     TRAP ValueRangeException DO
-        --print("not a number: <\(s)>")
-        RAISE SyntaxException
+        RAISE SyntaxException(info WITH "not a number: <\(s)>")
     END TRY
 END FUNCTION
 
@@ -455,6 +455,23 @@ FUNCTION find_label(tokens: Array<Token>, label: String, OUT index: Number): Boo
         END IF
     END FOREACH
     RETURN FALSE
+END FUNCTION
+
+FUNCTION change_radix(s: String, from_radix: Number, to_radix: Number): String
+    CONSTANT Digits: String := "0123456789ABCDEF"
+    VAR n: Number := 0
+    FOREACH c IN s DO
+        IF c = " " THEN
+            NEXT FOREACH
+        END IF
+        n := n * from_radix + string.find(Digits, c)
+    END FOREACH
+    VAR r: String := ""
+    WHILE n > 0 DO
+        r := Digits[n MOD to_radix] & r
+        n := n INTDIV to_radix
+    END WHILE
+    RETURN r
 END FUNCTION
 
 FUNCTION builtin_abbrev(args: Array<String>): String
@@ -470,13 +487,43 @@ FUNCTION builtin_abbrev(args: Array<String>): String
     RETURN (IF info = information[FIRST TO info.length()-1] THEN "1" ELSE "0")
 END FUNCTION
 
+FUNCTION builtin_abs(args: Array<String>): String
+    RETURN str(math.abs(rxnum(args[0])))
+END FUNCTION
+
 FUNCTION builtin_address(args: Array<String>): String
     -- TODO
     RETURN ""
 END FUNCTION
 
 FUNCTION builtin_arg(args: Array<String>): String
-    RETURN contexts[LAST].call_args[num(args[0]) - 1]
+    IF args.size() = 0 THEN
+        RETURN str(contexts[LAST].call_args.size())
+    END IF
+    LET n: Number := rxnum(args[0]) - 1
+    IF args.size() = 1 THEN
+        IF n < contexts[LAST].call_args.size() THEN
+            RETURN contexts[LAST].call_args[n]
+        ELSE
+            RETURN ""
+        END IF
+    ELSE
+        LET option: String := args[1]
+        -- TODO: make distinction between optional and empty string?
+        CASE option
+            WHEN "E", "e" DO
+                RETURN (IF n < contexts[LAST].call_args.size() AND contexts[LAST].call_args[n] <> "" THEN "1" ELSE "0")
+            WHEN "O", "o" DO
+                RETURN (IF n >= contexts[LAST].call_args.size() OR contexts[LAST].call_args[n] = "" THEN "1" ELSE "0")
+            WHEN OTHERS DO
+                ASSERT FALSE, option
+                RETURN ""
+        END CASE
+    END IF
+END FUNCTION
+
+FUNCTION builtin_b2x(args: Array<String>): String
+    RETURN change_radix(args[0], 2, 16)
 END FUNCTION
 
 FUNCTION builtin_center(args: Array<String>): String
@@ -585,8 +632,10 @@ END FUNCTION
 
 VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "ABBREV": builtin_abbrev,
+    "ABS": builtin_abs,
     "ADDRESS": builtin_address,
     "ARG": builtin_arg,
+    "B2X": builtin_b2x,
     "CENTER": builtin_center,
     "CENTRE": builtin_center,
     "CHAROUT": builtin_charout,
@@ -827,7 +876,7 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number, terminating_tokens: Arr
                         WHEN "1" DO
                             push_operand("0")
                         WHEN OTHERS DO
-                            RAISE SyntaxException
+                            RAISE SyntaxException(info WITH "argument to \\ is not boolean")
                     END CASE
                 WHEN "(" DO
                     -- no operation
@@ -1401,19 +1450,24 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     do_parse(tokens, INOUT i, upper)
                 WHEN "PROCEDURE" DO
                     INC i
-                    VAR expose: Array<String> := []
+                    VAR exposed: Array<String> := []
                     IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "EXPOSE" THEN
                         INC i
                         WHILE tokens[i].type = TokenType.Var_symbol DO
-                            expose.append(tokens[i].value)
+                            exposed.append(tokens[i].value)
                             INC i
                         END WHILE
                     END IF
                     contexts[LAST].call_is_procedure := TRUE
                     contexts[LAST].call_vars := vars
                     contexts[LAST].call_arrays := arrays
+                    -- TODO: save exposed vars so they can be put back to caller later
                     vars := {}
                     arrays := {}
+                    FOREACH var IN exposed DO
+                        vars[var] := contexts[LAST].call_vars[var]
+                    END FOREACH
+                    -- TODO: expose arrays
                 WHEN "PULL" DO
                     do_parse(tokens, INOUT i, upper WITH TRUE)
                 WHEN "RETURN" DO
@@ -1465,6 +1519,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END WHILE
                     IF NOT found AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "OTHERWISE" THEN
                         INC i
+                        contexts.append(ContextEntry(type WITH ContextType.select, select_skip WITH end_of_select))
                     END IF
                 WHEN "SIGNAL" DO
                     INC i
@@ -1533,7 +1588,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
             END CASE
         WHEN OTHERS DO
             IF tokens[i].type = TokenType.Const_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value IN ["=","=="] THEN
-                RAISE SyntaxException
+                RAISE SyntaxException(info WITH "assignment to constant")
             END IF
             LET r: String := evaluate(tokens, INOUT i, [])
             vars["RC"] := str(os.system(r))
@@ -1565,7 +1620,7 @@ FUNCTION interpret()
             IF NOT interpret_step(INOUT tokens, INOUT i) THEN
                 EXIT WHILE
             END IF
-        TRAP SyntaxException DO
+        TRAP SyntaxException AS e DO
             VAR lindex: Number
             IF find_label(source_tokens, signals["SYNTAX"], OUT lindex) THEN
                 vars["SIGL"] := str(tokens[i].line)
@@ -1574,7 +1629,8 @@ FUNCTION interpret()
                 i := lindex + 1
                 -- TODO: pop contexts and restore vars/arrays
             ELSE
-                ASSERT FALSE, "syntax label not found", tokens[i]
+                print("syntax error: \(e.info)")
+                sys.exit(1)
             END IF
         END TRY
     END WHILE
