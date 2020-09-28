@@ -1,2 +1,2 @@
-FUNCTION foo(a)
+CONSTANT p := NIL
               --<

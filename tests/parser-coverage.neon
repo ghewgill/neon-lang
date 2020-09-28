@@ -40,6 +40,7 @@ TYPE name IS FUNCTION()
 
 -- ConstantDeclaration
 CONSTANT name: type := expr
+CONSTANT name := expr
 
 -- NativeConstantDeclaration
 DECLARE NATIVE CONSTANT name: type
@@ -48,12 +49,14 @@ DECLARE NATIVE CONSTANT name: type
 VAR name: type
 VAR name, name: type
 VAR name: type := expr
+VAR name := expr
 
 -- NativeVariableDeclaration
 DECLARE NATIVE VAR name: type
 
 -- LetDeclaration
 LET name: type := expr
+LET name := expr
 
 -- FunctionDeclaration
 FUNCTION name() END FUNCTION

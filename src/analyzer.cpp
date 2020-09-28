@@ -3254,11 +3254,21 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *decl
 const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
+    const ast::Type *type = nullptr;
+    if (declaration->type != nullptr) {
+        type = analyze(declaration->type.get(), AllowClass::no);
+    }
     const ast::Expression *value = analyze(declaration->value.get());
-    value = convert(type, value);
-    if (value == nullptr) {
-        error(3015, declaration->value->token, "type mismatch");
+    if (type != nullptr) {
+        value = convert(type, value);
+        if (value == nullptr) {
+            error(3015, declaration->value->token, "type mismatch");
+        }
+    } else {
+        if (value->type->is_ambiguous()) {
+            error(3295, declaration->value->token, "this expression needs an explicit type declaration");
+        }
+        type = value->type;
     }
     if (not value->is_constant) {
         error(3016, declaration->value->token, "value must be constant");
@@ -3355,20 +3365,33 @@ const ast::Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *decl
 
 const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
 {
-    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
-    std::vector<ast::Variable *> variables;
-    for (auto name: declaration->names) {
-        ast::Variable *v = frame.top()->createVariable(name, name.text, type, false);
-        variables.push_back(v);
+    const ast::Type *type = nullptr;
+    if (declaration->type != nullptr) {
+        type = analyze(declaration->type.get(), AllowClass::no);
     }
     std::vector<const ast::ReferenceExpression *> refs;
     const ast::Expression *expr = nullptr;
     if (declaration->value != nullptr) {
         expr = analyze(declaration->value.get());
-        expr = convert(type, expr);
-        if (expr == nullptr) {
-            error(3113, declaration->value->token, "type mismatch");
+        if (type != nullptr) {
+            expr = convert(type, expr);
+            if (expr == nullptr) {
+                error(3113, declaration->value->token, "type mismatch");
+            }
+        } else {
+            if (expr->type->is_ambiguous()) {
+                error(3293, declaration->value->token, "this expression needs an explicit type declaration");
+            }
+            type = expr->type;
         }
+    }
+    if (type == nullptr) {
+        error(3292, declaration->names[0], "explicit type or expression required");
+    }
+    std::vector<ast::Variable *> variables;
+    for (auto name: declaration->names) {
+        ast::Variable *v = frame.top()->createVariable(name, name.text, type, false);
+        variables.push_back(v);
     }
     for (auto v: variables) {
         scope.top()->addName(v->declaration, v->name, v, true);
@@ -3412,11 +3435,21 @@ const ast::Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declarati
 
 const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
 {
-    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
+    const ast::Type *type = nullptr;
+    if (declaration->type != nullptr) {
+        type = analyze(declaration->type.get(), AllowClass::no);
+    }
     const ast::Expression *expr = analyze(declaration->value.get());
-    expr = convert(type, expr);
-    if (expr == nullptr) {
-        error(3140, declaration->value->token, "type mismatch");
+    if (type != nullptr) {
+        expr = convert(type, expr);
+        if (expr == nullptr) {
+            error(3140, declaration->value->token, "type mismatch");
+        }
+    } else {
+        if (expr->type->is_ambiguous()) {
+            error(3294, declaration->value->token, "this expression needs an explicit type declaration");
+        }
+        type = expr->type;
     }
     const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(type);
     if (ptype != nullptr && dynamic_cast<const ast::NewClassExpression *>(expr) != nullptr) {

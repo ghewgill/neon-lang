@@ -1,5 +1,8 @@
 CONSTANT a: Number := 5
 
 print(str(a))
-
 --= 5
+
+CONSTANT s := "hello"
+print(s)
+--= hello
