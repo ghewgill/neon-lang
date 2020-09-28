@@ -3254,11 +3254,22 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *decl
 const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    const ast::Type *type = analyze(declaration->type.get(), AllowClass::no);
+    const ast::Type *type = nullptr;
+    if (declaration->type != nullptr) {
+        // parser coverage
+        // test file
+        // helium
+        // neon/parser.neon
+        type = analyze(declaration->type.get(), AllowClass::no);
+    }
     const ast::Expression *value = analyze(declaration->value.get());
-    value = convert(type, value);
-    if (value == nullptr) {
-        error(3015, declaration->value->token, "type mismatch");
+    if (type != nullptr) {
+        value = convert(type, value);
+        if (value == nullptr) {
+            error(3015, declaration->value->token, "type mismatch");
+        }
+    } else {
+        type = value->type;
     }
     if (not value->is_constant) {
         error(3016, declaration->value->token, "value must be constant");

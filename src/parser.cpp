@@ -366,11 +366,11 @@ std::unique_ptr<Declaration> Parser::parseConstantDefinition()
     }
     auto &tok_name = tokens[i];
     ++i;
-    if (tokens[i].type != COLON) {
-        error(2011, tokens[i], "':' expected");
+    std::unique_ptr<Type> type;
+    if (tokens[i].type == COLON) {
+        ++i;
+        type = parseType();
     }
-    ++i;
-    std::unique_ptr<Type> type = parseType();
     if (tokens[i].type != ASSIGN) {
         error(2012, tokens[i], "':=' expected");
     }
