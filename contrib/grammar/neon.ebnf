@@ -73,7 +73,7 @@ PointerType = ['VALID'], 'POINTER', 'TO', Type;
 
 FunctionPointerType = 'FUNCTION', FunctionParameterList;
 
-ConstantDeclaration = 'CONSTANT', Identifier, ':', Type, ':=', Expression;
+ConstantDeclaration = 'CONSTANT', Identifier, [':', Type], ':=', Expression;
 
 NativeConstantDeclaration = 'DECLARE', 'NATIVE', 'CONSTANT', Identifier, ':', Type;
 

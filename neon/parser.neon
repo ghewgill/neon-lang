@@ -829,7 +829,7 @@ END FUNCTION
 --    RETURN r
 --END FUNCTION
 
-FUNCTION Parser.parseVariableDeclaration(INOUT self: Parser): VariableInfo
+FUNCTION Parser.parseVariableDeclaration(INOUT self: Parser, requireType: Boolean): VariableInfo
     VAR names: Array<lexer.Token> := []
     LOOP
         IF self.token.type <> TokenType.identifier THEN
@@ -843,11 +843,11 @@ FUNCTION Parser.parseVariableDeclaration(INOUT self: Parser): VariableInfo
         END IF
         self.nextToken()
     END LOOP
-    IF self.token.type <> TokenType.colon THEN
-        error(2019, self.token, "colon expected")
+    VAR type: POINTER TO ParseTreeNode := NIL
+    IF requireType OR self.token.type = TokenType.colon THEN
+        self.nextToken()
+        type := self.parseType()
     END IF
-    self.nextToken()
-    LET type: POINTER TO ParseTreeNode := self.parseType()
     RETURN VariableInfo(names WITH names, type WITH type)
 END FUNCTION
 
@@ -868,7 +868,7 @@ FUNCTION Parser.parseFunctionParameters(INOUT self: Parser, OUT returntype: POIN
                     -- no action
             END CASE
             LET tokParam: lexer.Token := self.token
-            LET vars: VariableInfo := self.parseVariableDeclaration()
+            LET vars: VariableInfo := self.parseVariableDeclaration(requireType WITH TRUE)
             IF self.token.type = TokenType.ellipsis THEN
                 self.nextToken()
             END IF
@@ -2293,11 +2293,11 @@ FUNCTION Parser.parseConstantDefinition(INOUT self: Parser): POINTER TO ParseTre
     END IF
     LET tokName: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type <> TokenType.colon THEN
-        error(2011, self.token, "':' expected")
+    VAR type: POINTER TO ParseTreeNode := NIL
+    IF self.token.type = TokenType.colon THEN
+        self.nextToken()
+        type := self.parseType()
     END IF
-    self.nextToken()
-    LET type: POINTER TO ParseTreeNode := self.parseType()
     IF self.token.type <> TokenType.assign THEN
         error(2012, self.token, "':=' expected")
     END IF
@@ -2612,7 +2612,7 @@ END FUNCTION
 FUNCTION Parser.parseVarStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     LET tokVar: lexer.Token := self.token
     self.nextToken()
-    LET vars: VariableInfo := self.parseVariableDeclaration()
+    LET vars: VariableInfo := self.parseVariableDeclaration(requireType WITH FALSE)
     VAR value: POINTER TO ParseTreeNode := NIL
     IF self.token.type = TokenType.assign THEN
         self.nextToken()
@@ -2638,11 +2638,11 @@ FUNCTION Parser.parseLetStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     END IF
     LET tokName: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type <> TokenType.colon THEN
-        error(2070, self.token, "':' expected")
+    VAR type: POINTER TO ParseTreeNode := NIL
+    IF self.token.type = TokenType.colon THEN
+        self.nextToken()
+        type := self.parseType()
     END IF
-    self.nextToken()
-    LET type: POINTER TO ParseTreeNode := self.parseType()
     IF self.token.type <> TokenType.assign THEN
         error(2071, self.token, "':=' expected")
     END IF

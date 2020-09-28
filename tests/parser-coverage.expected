@@ -48,6 +48,9 @@ Program
   ConstantDeclaration(name)
     TypeSimple(type)
     IdentifierExpression(expr)
+  ConstantDeclaration(name)
+    nullptr
+    IdentifierExpression(expr)
   NativeConstantDeclaration(name)
     TypeSimple(type)
   VariableDeclaration(name)
@@ -59,10 +62,16 @@ Program
   VariableDeclaration(name)
     TypeSimple(type)
     IdentifierExpression(expr)
+  VariableDeclaration(name)
+    nullptr
+    IdentifierExpression(expr)
   NativeVariableDeclaration(name)
     TypeSimple(type)
   LetDeclaration(name)
     TypeSimple(type)
+    IdentifierExpression(expr)
+  LetDeclaration(name)
+    nullptr
     IdentifierExpression(expr)
   FunctionDeclaration(name)
     nullptr
