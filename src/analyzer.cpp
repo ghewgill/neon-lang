@@ -3256,10 +3256,6 @@ const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *decl
     std::string name = declaration->name.text;
     const ast::Type *type = nullptr;
     if (declaration->type != nullptr) {
-        // parser coverage
-        // test file
-        // helium
-        // neon/parser.neon
         type = analyze(declaration->type.get(), AllowClass::no);
     }
     const ast::Expression *value = analyze(declaration->value.get());
