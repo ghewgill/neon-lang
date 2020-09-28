@@ -12,6 +12,7 @@
 using namespace pt;
 
 class Parser {
+    enum class RequireType { no, yes };
 public:
     explicit Parser(const TokenizedSource &tokens);
     Parser(const Parser &) = delete;
@@ -51,7 +52,7 @@ public:
     std::unique_ptr<Expression> parseDisjunction();
     std::unique_ptr<Expression> parseConditional();
     std::unique_ptr<Expression> parseExpression();
-    VariableInfo parseVariableDeclaration();
+    VariableInfo parseVariableDeclaration(RequireType require_type);
     void parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
     void parseFunctionHeader(Token &type, Token &name, std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
     std::unique_ptr<Declaration> parseFunctionDefinition(size_t start_column);
@@ -997,7 +998,7 @@ std::unique_ptr<Expression> Parser::parseExpression()
     return r;
 }
 
-Parser::VariableInfo Parser::parseVariableDeclaration()
+Parser::VariableInfo Parser::parseVariableDeclaration(RequireType require_type)
 {
     std::vector<Token> names;
     for (;;) {
@@ -1012,11 +1013,14 @@ Parser::VariableInfo Parser::parseVariableDeclaration()
         }
         ++i;
     }
-    if (tokens[i].type != COLON) {
-        error(2019, tokens[i], "colon expected");
+    std::unique_ptr<Type> t;
+    if (require_type == RequireType::yes || tokens[i].type == COLON) {
+        if (tokens[i].type != COLON) {
+            error(2019, tokens[i], "colon expected");
+        }
+        ++i;
+        t = parseType();
     }
-    ++i;
-    std::unique_ptr<Type> t = parseType();
     return make_pair(names, std::move(t));
 }
 
@@ -1037,7 +1041,7 @@ void Parser::parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vec
                     break;
             }
             auto &tok_param = tokens[i];
-            VariableInfo vars = parseVariableDeclaration();
+            VariableInfo vars = parseVariableDeclaration(RequireType::yes);
             bool varargs = false;
             if (tokens[i].type == ELLIPSIS) {
                 ++i;
@@ -1481,7 +1485,7 @@ std::unique_ptr<Declaration> Parser::parseVarStatement()
 {
     auto &tok_var = tokens[i];
     ++i;
-    VariableInfo vars = parseVariableDeclaration();
+    VariableInfo vars = parseVariableDeclaration(RequireType::no);
     std::unique_ptr<Expression> expr = nullptr;
     if (tokens[i].type == ASSIGN) {
         ++i;
@@ -1499,11 +1503,11 @@ std::unique_ptr<Declaration> Parser::parseLetStatement()
     }
     const Token &name = tokens[i];
     ++i;
-    if (tokens[i].type != COLON) {
-        error(2070, tokens[i], "':' expected");
+    std::unique_ptr<Type> type;
+    if (tokens[i].type == COLON) {
+        ++i;
+        type = parseType();
     }
-    ++i;
-    std::unique_ptr<Type> type = parseType();
     if (tokens[i].type != ASSIGN) {
         error(2071, tokens[i], "':=' expected");
     }
