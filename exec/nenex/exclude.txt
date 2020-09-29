@@ -93,6 +93,7 @@ object-record.neon          # object__makeString
 object-record-default.neon  # object__makeNull
 object-subscript.neon       # object__makeNumber
 object.neon                 # exception Utf8DecodingException
+opcode-coverage.neon        # runtime$moduleIsMain
 os-test.neon                # os$system
 outer-issue192.neon         # pushpol
 outer-parameter.neon        # pushpol
@@ -106,6 +107,7 @@ pointer-print.neon          # pointer__toString
 posix-fork.neon             # posix$fork
 predeclare1.neon            # array__append
 process-test.neon           # process$call
+random-test.neon            # module random
 record-empty.neon           # indexan
 record-private.neon         # storep
 recursion-limit.neon        # runtime$setRecursionLimit

@@ -244,6 +244,7 @@ object-operator.neon
 object-record.neon
 object-record-default.neon
 object-subscript.neon
+opcode-coverage.neon
 os-test.neon
 outer2.neon
 outer-issue192.neon
@@ -275,6 +276,7 @@ predeclare2.neon
 predeclare3.neon
 predefined-generation.neon
 process-test.neon
+random-test.neon
 record-empty.neon
 record-init2.neon
 record-init.neon

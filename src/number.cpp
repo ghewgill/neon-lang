@@ -583,14 +583,14 @@ Number number_from_string(const std::string &s)
         if (i >= s.length()) {
             return bid128_nan(NULL);
         }
-        next = s.find_first_not_of("01234566789", i);
+        next = s.find_first_not_of("0123456789", i);
         // Must have one or more digits after decimal point.
         if (next == i) {
             return bid128_nan(NULL);
         }
     }
     // Check for exponential notation.
-    if (s[next] == 'e' || s[next] == 'E') {
+    if (next != std::string::npos && (s[next] == 'e' || s[next] == 'E')) {
         i = next + 1;
         // e may be followed by a + or -
         if (i < s.length() && (s[i] == '+' || s[i] == '-')) {

@@ -1,0 +1,15 @@
+IMPORT random
+
+VAR n: Number := random.uint32()
+VAR ok: Boolean := FALSE
+FOR i := 1 TO 100 DO
+    IF random.uint32() <> n THEN
+        ok := TRUE
+        EXIT FOR
+    END IF
+END FOR
+TESTCASE ok
+
+LET b1: Bytes := random.bytes(100)
+LET b2: Bytes := random.bytes(100)
+TESTCASE b1 <> b2

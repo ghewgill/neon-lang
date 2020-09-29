@@ -3,3 +3,7 @@ LET b: Number := a
 
 print("\(b)")
 --= 5
+
+LET s := "hello"
+print(s)
+--= hello

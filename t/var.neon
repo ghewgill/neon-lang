@@ -2,3 +2,7 @@ VAR a: Number := 0
 VAR b, c: Number := 0
 
 a := b
+
+VAR s := "hello"
+print(s)
+--= hello

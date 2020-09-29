@@ -372,6 +372,15 @@ class TypeFunction:
     def resolve(self, env):
         return ClassFunctionPointer(self.returntype, self.args)
 
+def infer_type(value):
+    if isinstance(value, BooleanLiteralExpression):
+        return TypeSimple("Boolean")
+    if isinstance(value, NumberLiteralExpression):
+        return TypeSimple("Number")
+    if isinstance(value, StringLiteralExpression):
+        return TypeSimple("String")
+    assert False, "need type deduction for: " + value
+
 class ImportDeclaration:
     def __init__(self, module, name, optional):
         self.module = module
@@ -1501,10 +1510,14 @@ class Parser:
     def parse_constant_definition(self):
         self.expect(CONSTANT)
         name = self.identifier()
-        self.expect(COLON)
-        type = self.parse_type()
+        type = None
+        if self.tokens[self.i] is COLON:
+            self.expect(COLON)
+            type = self.parse_type()
         self.expect(ASSIGN)
         value = self.parse_expression()
+        if type is None:
+            type = infer_type(value)
         return ConstantDeclaration(name, type, value)
 
     def parse_function_parameters(self):
@@ -1516,7 +1529,7 @@ class Parser:
                 if self.tokens[self.i] in [IN, OUT, INOUT]:
                     mode = self.tokens[self.i]
                     self.i += 1
-                vars = self.parse_variable_declaration()
+                vars = self.parse_variable_declaration(True)
                 default = None
                 if self.tokens[self.i] is DEFAULT:
                     self.i += 1
@@ -1553,15 +1566,17 @@ class Parser:
         self.expect(FUNCTION)
         return FunctionDeclaration(type, name, returntype, args, statements)
 
-    def parse_variable_declaration(self):
+    def parse_variable_declaration(self, require_type):
         names = []
         while True:
             names.append(self.identifier())
             if self.tokens[self.i] is not COMMA:
                 break
             self.i += 1
-        self.expect(COLON)
-        t = self.parse_type()
+        t = None
+        if require_type or self.tokens[self.i] is COLON:
+            self.expect(COLON)
+            t = self.parse_type()
         return names, t
 
     def parse_function_call(self, func):
@@ -2188,10 +2203,14 @@ class Parser:
     def parse_let_statement(self):
         self.expect(LET)
         name = self.identifier()
-        self.expect(COLON)
-        type = self.parse_type()
+        type = None
+        if self.tokens[self.i] is COLON:
+            self.expect(COLON)
+            type = self.parse_type()
         self.expect(ASSIGN)
         expr = self.parse_expression()
+        if type is None:
+            type = infer_type(expr)
         return LetDeclaration(name, type, expr)
 
     def parse_loop_statement(self):
@@ -2334,11 +2353,13 @@ class Parser:
 
     def parse_var_statement(self):
         self.expect(VAR)
-        vars = self.parse_variable_declaration()
+        vars = self.parse_variable_declaration(False)
         expr = None
         if self.tokens[self.i] is ASSIGN:
             self.i += 1
             expr = self.parse_expression()
+            if vars[1] is None:
+                vars = (vars[0], infer_type(expr))
         return VariableDeclaration(vars[0], vars[1], expr)
 
     def parse_while_statement(self):
@@ -2732,7 +2753,10 @@ def neon_int(env, x):
 def neon_num(env, x):
     if not any(c.isdigit() for c in x):
         raise NeonException("ValueRangeException", x)
-    return int(x) if x.isdigit() else float(x)
+    try:
+        return int(x) if x.isdigit() else float(x)
+    except ValueError:
+        raise NeonException("ValueRangeException", x)
 
 def neon_print(env, x):
     print(x)
@@ -3017,6 +3041,9 @@ def neon_os_system(env, cmd):
 
 def neon_os_wait(env):
     assert False
+
+def neon_random_bytes(env, count):
+    return [random.randint(0, 0xff) for _ in range(count)]
 
 def neon_random_uint32(env):
     return random.randint(0, 0xffffffff)

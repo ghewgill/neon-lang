@@ -1,0 +1,154 @@
+IMPORT file
+IMPORT io
+IMPORT os
+IMPORT process
+IMPORT sys
+IMPORT string
+IMPORT sys
+
+TYPE Instruction IS RECORD
+    source: String
+    address: Number
+    opcode: String
+    parameters: String
+END RECORD
+
+TYPE Function IS RECORD
+    name: String
+    nest: Number
+    params: Number
+    locals: Number
+    entry: Number
+    code: Array<Instruction>
+END RECORD
+
+FUNCTION extractOpcodes(): Array<String>
+    LET header: Array<String> := file.readLines("src/opcode.h")
+    LET start: Number := header.find("enum class Opcode {") + 1
+    LET end: Number := header.find("};") - 1
+
+    VAR r: Array<String> := []
+    FOREACH o IN header[start TO end] DO
+        -- We want to strip off any extra C++ stuff when creating the Opcode list
+        r.append(string.trim(o[FIRST TO string.find(o, ",") - 1]))
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION extractTests(disassembly: Array<String>): Array<String>
+    -- Extract all test functions out of the disassembly of the test file.
+    LET start: Number := disassembly.find("Functions:") + 1
+    LET end: Number := disassembly.find("Classes:") - 1
+
+    RETURN disassembly[start TO end]
+END FUNCTION
+
+FUNCTION extractCode(disassembly: Array<String>): Array<Instruction>
+    -- Convert all disassembly into an array of Instruction records for easy parsing.
+    VAR ret: Array<Instruction> := []
+    LET start: Number := disassembly.find("Code:") + 1
+    LET end: Number := disassembly.find("Exception table:") - 1
+
+    FOREACH l IN disassembly[start TO end] INDEX i DO
+        LET ops: Array<String> := string.split(string.trim(l), " ")
+        ret[i].source := l
+        ret[i].address := num(ops[0])
+        ret[i].opcode := ops[1]
+        IF ops.size() = 3 THEN
+            ret[i].parameters := ops[2]
+        END IF
+    END FOREACH
+    RETURN ret
+END FUNCTION
+
+FUNCTION fail(f: Function)
+    io.write(io.stderr, "Opcode \"\(string.upper(f.name))\" not found in test function \(f.name)\n")
+    FOREACH c IN f.code DO
+        io.write(io.stderr, "\(c.source)\n")
+    END FOREACH
+    sys.exit(1)
+END FUNCTION
+
+FUNCTION parseFunction(code: Array<Instruction>, funcInfo: String): Function
+    LET props: Array<String> := string.split(funcInfo, " ")
+
+    VAR func: Function := Function()
+    func.name    := string.trim(props[0])
+    func.nest    := getValue(props[1])
+    func.params  := getValue(props[2])
+    func.locals  := getValue(props[3])
+    func.entry   := getValue(props[4])
+    func.code    := getFunctionAsm(code, func)
+    RETURN func
+END FUNCTION
+
+FUNCTION getFunctionAsm(code: Array<Instruction>, func: Function): Array<Instruction>
+    VAR ret: Array<Instruction> := []
+    VAR inFunction: Boolean := FALSE
+
+    FOREACH a IN code DO
+        IF a.address = func.entry AND NOT inFunction THEN
+            inFunction := TRUE
+        END IF
+        IF inFunction THEN
+            ret.append(a)
+            IF a.opcode = "RET" THEN
+                RETURN ret
+            END IF
+        END IF
+    END FOREACH
+    fail(func)
+    RETURN []
+END FUNCTION
+
+FUNCTION getValue(property: String): Number
+    LET items: Array<String> := string.split(property, "=")
+    ASSERT items.size() = 2, property
+    RETURN num(items[1])
+END FUNCTION
+
+BEGIN MAIN
+    VAR disassemblyBytes: Bytes
+    VAR functionList: Array<String> := []
+    VAR functions: Dictionary<Function> := {}
+
+    TESTCASE os.system("bin/neonc -q t/opcode-coverage.neon") = 0
+    TESTCASE process.call("bin/neondis t/opcode-coverage.neonx", OUT disassemblyBytes, OUT _) = 0
+
+    LET disassemblyStr: String := disassemblyBytes.decodeToString()
+    LET disassembly: Array<String> := string.split(disassemblyStr, (IF "\r\n" IN disassemblyStr THEN "\r\n" ELSE "\n"))
+
+    LET opcodes: Array<String> := extractOpcodes()
+    LET tests: Array<String> := extractTests(disassembly)
+    LET code: Array<Instruction> := extractCode(disassembly)
+
+    -- Parse all of the test functions disassembly code for easy parsing, skipping
+    -- the first function in the list, which is always the module entry code call.
+    FOREACH t IN tests[1 TO LAST] DO
+        functions[string.trim(t)[FIRST TO string.find(string.trim(t), " ")-1]] := parseFunction(code, t)
+    END FOREACH
+
+    -- Ignore the opcodes on this list.
+    LET exclude: Array<String> := ["PUSHPEG", "ANDB", "ORB"]
+
+    -- Iterate opcodes, looking for opcode generation.
+    FOREACH o IN opcodes LABEL OpcodeList DO
+        IF o IN exclude THEN
+            NEXT OpcodeList
+        END IF
+        IF string.lower(o) NOT IN functions.keys() THEN
+            print("No test function for opcode \(o).")
+            sys.exit(1)
+        END IF
+        LET f: Function := functions[string.lower(o)]
+        FOREACH c IN f.code DO
+            IF c.opcode = o THEN
+                -- We found the opcode we were looking for;
+                -- so continue to the next test.
+                NEXT OpcodeList
+            END IF
+        END FOREACH
+        -- We didn't find the opcode, so this opcode test failed.
+        fail(f)
+    END FOREACH
+END MAIN

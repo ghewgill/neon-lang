@@ -317,6 +317,7 @@ public:
     virtual void reset() override { predeclared = false; postdeclared = false; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
+    virtual bool is_ambiguous() const { return false; }
     virtual bool is_structure_compatible(const Type *rhs) const { return this == rhs; }
     virtual std::function<const Expression *(Analyzer *analyzer, const Expression *from)> make_converter(const Type *from) const;
     virtual void generate_load(Emitter &emitter) const = 0;
@@ -538,6 +539,7 @@ public:
 
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
+    virtual bool is_ambiguous() const override { return elementtype == nullptr || elementtype->is_ambiguous(); }
     virtual bool is_structure_compatible(const Type *rhs) const override;
     virtual std::function<const Expression *(Analyzer *analyzer, const Expression *from)> make_converter(const Type *from) const override;
     virtual void generate_load(Emitter &emitter) const override;
@@ -573,6 +575,7 @@ public:
 
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
+    virtual bool is_ambiguous() const override { return elementtype == nullptr || elementtype->is_ambiguous(); }
     virtual bool is_structure_compatible(const Type *rhs) const override;
     virtual std::function<const Expression *(Analyzer *analyzer, const Expression *from)> make_converter(const Type *from) const override;
     virtual void generate_load(Emitter &emitter) const override;
@@ -673,6 +676,7 @@ public:
     const TypeClass *reftype;
 
     virtual const Expression *make_default_value() const override;
+    virtual bool is_ambiguous() const override { return reftype == nullptr; }
     virtual bool is_structure_compatible(const Type *rhs) const override;
     virtual std::function<const Expression *(Analyzer *analyzer, const Expression *from)> make_converter(const Type *from) const override;
     virtual void generate_load(Emitter &emitter) const override;

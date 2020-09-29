@@ -1540,7 +1540,11 @@ class Executor {
             }
         }
         if (any_digits) {
-            stack.addFirst(new Cell(new BigDecimal(s)));
+            try {
+                stack.addFirst(new Cell(new BigDecimal(s)));
+            } catch (NumberFormatException x) {
+                raiseLiteral("ValueRangeException");
+            }
         } else {
             raiseLiteral("ValueRangeException");
         }

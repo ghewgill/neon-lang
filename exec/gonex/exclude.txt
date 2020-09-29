@@ -23,9 +23,11 @@ modulo.neon                # modulo
 net-test.neon              # net$tcpSocket
 net-test-udp.neon          # net$udpSocket
 number-ceil.neon           # number formatting
+opcode-coverage.neon       # segfault
 os-test.neon               # precision
 posix-fork.neon            # posix$fork
 process-test.neon          # process$call
+random-test.neon           # module random
 sql-connect.neon           # sqlite
 sql-cursor.neon            # sqlite
 sql-embed.neon             # sqlite
