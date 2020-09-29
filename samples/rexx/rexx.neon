@@ -1,3 +1,5 @@
+IMPORT base
+IMPORT binary
 IMPORT console
 IMPORT file
 IMPORT io
@@ -526,6 +528,116 @@ FUNCTION builtin_b2x(args: Array<String>): String
     RETURN change_radix(args[0], 2, 16)
 END FUNCTION
 
+FUNCTION builtin_bitand(args: Array<String>): String
+    LET string1: String := args[0]
+    LET string2: String := (IF args.size() >= 2 THEN args[1] ELSE "")
+    LET pad: String := (IF args.size() >= 3 THEN args[2] ELSE "")
+    VAR a1: Array<Number> := []
+    FOREACH c IN string1 DO
+        a1.append(string.toCodePoint(c))
+    END FOREACH
+    VAR a2: Array<Number> := []
+    FOREACH c IN string2 DO
+        a2.append(string.toCodePoint(c))
+    END FOREACH
+    VAR r: Array<Number> := []
+    FOR i := 0 TO math.max(a1.size(), a2.size())-1 DO
+        LET b1: Number := (IF i < a1.size() THEN a1[i] ELSE (IF pad <> "" THEN string.toCodePoint(pad) ELSE a2[i]))
+        LET b2: Number := (IF i < a2.size() THEN a2[i] ELSE (IF pad <> "" THEN string.toCodePoint(pad) ELSE a1[i]))
+        r.append(binary.and32(b1, b2))
+    END FOR
+    VAR s: String := ""
+    FOREACH b IN r DO
+        s.append(string.fromCodePoint(b))
+    END FOREACH
+    RETURN s
+END FUNCTION
+
+FUNCTION builtin_bitor(args: Array<String>): String
+    LET string1: String := args[0]
+    LET string2: String := (IF args.size() >= 2 THEN args[1] ELSE "")
+    LET pad: String := (IF args.size() >= 3 THEN args[2] ELSE "")
+    VAR a1: Array<Number> := []
+    FOREACH c IN string1 DO
+        a1.append(string.toCodePoint(c))
+    END FOREACH
+    VAR a2: Array<Number> := []
+    FOREACH c IN string2 DO
+        a2.append(string.toCodePoint(c))
+    END FOREACH
+    VAR r: Array<Number> := []
+    FOR i := 0 TO math.max(a1.size(), a2.size())-1 DO
+        LET b1: Number := (IF i < a1.size() THEN a1[i] ELSE (IF pad <> "" THEN string.toCodePoint(pad) ELSE a2[i]))
+        LET b2: Number := (IF i < a2.size() THEN a2[i] ELSE (IF pad <> "" THEN string.toCodePoint(pad) ELSE a1[i]))
+        r.append(binary.or32(b1, b2))
+    END FOR
+    VAR s: String := ""
+    FOREACH b IN r DO
+        s.append(string.fromCodePoint(b))
+    END FOREACH
+    RETURN s
+END FUNCTION
+
+FUNCTION builtin_bitxor(args: Array<String>): String
+    LET string1: String := args[0]
+    LET string2: String := (IF args.size() >= 2 THEN args[1] ELSE "")
+    LET pad: String := (IF args.size() >= 3 THEN args[2] ELSE "")
+    VAR a1: Array<Number> := []
+    FOREACH c IN string1 DO
+        a1.append(string.toCodePoint(c))
+    END FOREACH
+    VAR a2: Array<Number> := []
+    FOREACH c IN string2 DO
+        a2.append(string.toCodePoint(c))
+    END FOREACH
+    VAR r: Array<Number> := []
+    FOR i := 0 TO math.max(a1.size(), a2.size())-1 DO
+        LET b1: Number := (IF i < a1.size() THEN a1[i] ELSE (IF pad <> "" THEN string.toCodePoint(pad) ELSE a2[i]))
+        LET b2: Number := (IF i < a2.size() THEN a2[i] ELSE (IF pad <> "" THEN string.toCodePoint(pad) ELSE a1[i]))
+        r.append(binary.xor32(b1, b2))
+    END FOR
+    VAR s: String := ""
+    FOREACH b IN r DO
+        s.append(string.fromCodePoint(b))
+    END FOREACH
+    RETURN s
+END FUNCTION
+
+FUNCTION builtin_c2d(args: Array<String>): String
+    LET s: String := args[0]
+    LET length: Number := (IF args.size() >= 2 THEN rxnum(args[1]) ELSE s.length())
+    LET start: Number := math.max(0, s.length()-length)
+    LET sign: Boolean := (IF start < s.length() THEN string.toCodePoint(s[start]) >= 0x80 ELSE FALSE)
+    VAR n: Number := 0
+    FOR i := start TO s.length()-1 DO
+        LET b: Number := string.toCodePoint(s[i])
+        n := n * 0x100 + b
+    END FOR
+    IF args.size() >= 2 AND length <= s.length() AND sign THEN
+        n := n - 2^(8*length)
+    END IF
+    RETURN str(n)
+END FUNCTION
+
+FUNCTION builtin_c2x(args: Array<String>): String
+    LET s: String := args[0]
+    LET length: Number := (IF args.size() >= 2 THEN rxnum(args[1]) ELSE s.length())
+    IF s = "" THEN
+        RETURN ""
+    END IF
+    LET start: Number := math.max(0, s.length()-length)
+    VAR n: Number := 0
+    FOR i := start TO s.length()-1 DO
+        LET b: Number := string.toCodePoint(s[i])
+        n := n * 0x100 + b
+    END FOR
+    VAR r: String := string.upper(base.toHex(n))
+    IF math.odd(r.length()) THEN
+        r := "0" & r
+    END IF
+    RETURN r
+END FUNCTION
+
 FUNCTION builtin_center(args: Array<String>): String
     LET s: String := args[0]
     LET length: Number := rxnum(args[1])
@@ -534,7 +646,8 @@ FUNCTION builtin_center(args: Array<String>): String
         LET half: Number := (length - s.length()) INTDIV 2
         RETURN string.repeat(pad, half) & s & string.repeat(pad, length - s.length() - half)
     ELSE
-        RETURN s
+        LET start: Number := (s.length() - length) INTDIV 2
+        RETURN s[start TO start+length-1]
     END IF
 END FUNCTION
 
@@ -547,6 +660,10 @@ FUNCTION builtin_charout(args: Array<String>): String
         ASSERT FALSE, "charout only to stdout", args
         RETURN ""
     END IF
+END FUNCTION
+
+FUNCTION builtin_changestr(args: Array<String>): String
+    RETURN string.replaceAll(args[0], args[1], args[2])
 END FUNCTION
 
 FUNCTION builtin_format(args: Array<String>): String
@@ -636,9 +753,15 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "ADDRESS": builtin_address,
     "ARG": builtin_arg,
     "B2X": builtin_b2x,
+    "BITAND": builtin_bitand,
+    "BITOR": builtin_bitor,
+    "BITXOR": builtin_bitxor,
+    "C2D": builtin_c2d,
+    "C2X": builtin_c2x,
     "CENTER": builtin_center,
     "CENTRE": builtin_center,
     "CHAROUT": builtin_charout,
+    "CHANGESTR": builtin_changestr,
     "FORMAT": builtin_format,
     "LEFT": builtin_left,
     "LENGTH": builtin_length,
@@ -1012,7 +1135,7 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
                 ASSERT FALSE, "var not found"
             END IF
         WHEN "VERSION" DO
-            input := ["neon", "1", "2020", "Sep", "22"]
+            input := ["neon 4 2020 Sep 22"]
         WHEN OTHERS DO
             ASSERT FALSE, "unknown parse source", source
     END CASE
