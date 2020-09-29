@@ -227,9 +227,12 @@ FUNCTION replaceAll(s: String, target: String, replacement: String): String
     -- TODO: This can be improved with a findFrom function, which will allow
     -- us to search for the next instance of target more efficiently than
     -- extracting a substring at each position.
+    IF target = "" THEN
+        RETURN s
+    END IF
     VAR t: String := s
     VAR i: Number := 0
-    WHILE i < t.length() DO
+    WHILE i <= t.length()-target.length() DO
         IF t[i TO i+target.length()-1] = target THEN
             t := t[FIRST TO i-1] & replacement & (IF i+target.length() < t.length() THEN t[i+target.length() TO LAST] ELSE "")
             i := i + replacement.length()
