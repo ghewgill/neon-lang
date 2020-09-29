@@ -66,6 +66,7 @@ END RECORD
 VAR script_filename: String
 VAR sourcelines: Array<String>
 VAR source_tokens: Array<Token>
+VAR label_index: Dictionary<Number>
 VAR vars: Dictionary<String>
 VAR arrays: Dictionary<Dictionary<String>>
 VAR contexts: Array<ContextEntry>
@@ -380,6 +381,16 @@ FUNCTION tokenise(source: String): Array<Token>
     RETURN tokens
 END FUNCTION
 
+FUNCTION make_label_index(tokens: Array<Token>): Dictionary<Number>
+    VAR r: Dictionary<Number> := {}
+    FOREACH t IN tokens INDEX i DO
+        IF t.type = TokenType.Label THEN
+            r[t.value] := i
+        END IF
+    END FOREACH
+    RETURN r
+END FUNCTION
+
 FUNCTION get_var(name: String): String
     LET dot: Number := string.find(name, ".")
     IF dot < 0 OR dot = name.length() - 1 THEN
@@ -450,12 +461,10 @@ END FUNCTION
 
 FUNCTION find_label(tokens: Array<Token>, label: String, OUT index: Number): Boolean
     index := -1
-    FOREACH t IN tokens INDEX ti DO
-        IF t.type = TokenType.Label AND t.value = label THEN
-            index := ti
-            RETURN TRUE
-        END IF
-    END FOREACH
+    IF label IN label_index THEN
+        index := label_index[label]
+        RETURN TRUE
+    END IF
     RETURN FALSE
 END FUNCTION
 
@@ -1765,6 +1774,7 @@ BEGIN MAIN
     LET source: String := bytes.decodeToString()
     sourcelines := [""] & string.splitLines(source)
     source_tokens := tokenise(source)
+    label_index := make_label_index(source_tokens)
     --FOREACH t IN source_tokens INDEX i DO
     --    print("\(i) \(t.type) \(t.value)")
     --END FOREACH
