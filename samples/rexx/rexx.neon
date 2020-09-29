@@ -81,7 +81,7 @@ END FUNCTION
 FUNCTION is_general_letter(c: String): Boolean
     RETURN "A" <= c <= "Z" OR
            "a" <= c <= "z" OR
-           c IN ["_", "!", "?"]
+           c IN ["_", "!", "?", "@", "#", "$"]
 END FUNCTION
 
 FUNCTION is_var_symbol_char(c: String): Boolean
@@ -672,7 +672,130 @@ FUNCTION builtin_charout(args: Array<String>): String
 END FUNCTION
 
 FUNCTION builtin_changestr(args: Array<String>): String
-    RETURN string.replaceAll(args[0], args[1], args[2])
+    RETURN string.replaceAll(args[1], args[0], args[2])
+END FUNCTION
+
+FUNCTION builtin_compare(args: Array<String>): String
+    VAR s1 := args[0]
+    VAR s2 := args[1]
+    LET pad := (IF args.size() >= 3 THEN args[2] ELSE " ")
+    IF s1.length() < s2.length() THEN
+        s1.append(string.repeat(pad, s2.length() - s1.length()))
+    ELSIF s2.length() < s1.length() THEN
+        s2.append(string.repeat(pad, s1.length() - s2.length()))
+    END IF
+    ASSERT s1.length() = s2.length()
+    FOR i := 0 TO s1.length() - 1 DO
+        IF s1[i] <> s2[i] THEN
+            RETURN str(i + 1)
+        END IF
+    END FOR
+    RETURN "0"
+END FUNCTION
+
+FUNCTION builtin_copies(args: Array<String>): String
+    RETURN string.repeat(args[0], rxnum(args[1]))
+END FUNCTION
+
+FUNCTION builtin_countstr(args: Array<String>): String
+    LET needle := args[0]
+    LET haystack := args[1]
+    CHECK needle <> "" ELSE
+        RETURN "0"
+    END CHECK
+    VAR r := 0
+    VAR i := 0
+    WHILE i <= haystack.length() - needle.length() DO
+        IF haystack[i TO i + needle.length() - 1] = needle THEN
+            INC r
+            i := i + needle.length()
+        ELSE
+            INC i
+        END IF
+    END WHILE
+    RETURN str(r)
+END FUNCTION
+
+FUNCTION builtin_datatype(args: Array<String>): String
+    LET s := args[0]
+    LET type := (IF args.size() >= 2 THEN args[1] ELSE "")
+    IF type = "" THEN
+        TRY
+            _ := rxnum(s)
+            RETURN "NUM"
+        TRAP SyntaxException DO
+            RETURN "CHAR"
+        END TRY
+    END IF
+    FUNCTION all(t: String, chars: String): String
+        IF t = "" THEN
+            RETURN "0"
+        END IF
+        FOREACH c IN t DO
+            IF c NOT IN chars THEN
+                RETURN "0"
+            END IF
+        END FOREACH
+        RETURN "1"
+    END FUNCTION
+    CASE string.upper(type)
+        WHEN "A" DO -- Alphanumeric
+            RETURN all(s, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+        WHEN "B" DO -- Binary
+            TRY
+                _ := convert_binary_string(s)
+                RETURN "1"
+            TRAP SyntaxException DO
+                RETURN "0"
+            END TRY
+        WHEN "L" DO -- Lowercase
+            RETURN all(s, "abcdefghijklmnopqrstuvwxyz")
+        WHEN "M" DO -- Mixed case
+            RETURN all(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+        WHEN "N" DO -- Number
+            TRY
+                _ := rxnum(s)
+                RETURN "1"
+            TRAP SyntaxException DO
+                RETURN "0"
+            END TRY
+        WHEN "S" DO -- Symbol
+            IF tokenise(s).size() = 1 THEN
+                RETURN "1"
+            ELSE
+                RETURN "0"
+            END IF
+        WHEN "U" DO -- Uppercase
+            RETURN all(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        WHEN "W" DO -- Whole number
+            TRY
+                LET n := rxnum(s)
+                RETURN all(str(n), "-0123456789")
+            TRAP SyntaxException DO
+                RETURN "0"
+            END TRY
+        WHEN "X" DO -- Hexadecimal
+            TRY
+                _ := convert_hex_string(s)
+                RETURN "1"
+            TRAP SyntaxException DO
+                RETURN "0"
+            END TRY
+    END CASE
+    RETURN "0"
+END FUNCTION
+
+FUNCTION builtin_delstr(args: Array<String>): String
+    LET s := args[0]
+    LET start := rxnum(args[1]) - 1
+    LET length := (IF args.size() >= 3 THEN rxnum(args[2]) ELSE -1)
+    IF start >= s.length() THEN
+        RETURN s
+    END IF
+    IF length < 0 OR start + length >= s.length() THEN
+        RETURN s[FIRST TO start-1]
+    END IF
+    RETURN s[FIRST TO start-1] & s[start+length TO LAST]
 END FUNCTION
 
 FUNCTION builtin_format(args: Array<String>): String
@@ -771,6 +894,11 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "CENTRE": builtin_center,
     "CHAROUT": builtin_charout,
     "CHANGESTR": builtin_changestr,
+    "COMPARE": builtin_compare,
+    "COPIES": builtin_copies,
+    "COUNTSTR": builtin_countstr,
+    "DATATYPE": builtin_datatype,
+    "DELSTR": builtin_delstr,
     "FORMAT": builtin_format,
     "LEFT": builtin_left,
     "LENGTH": builtin_length,
@@ -1144,7 +1272,7 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
                 ASSERT FALSE, "var not found"
             END IF
         WHEN "VERSION" DO
-            input := ["neon 4 2020 Sep 22"]
+            input := ["neon 5 2020 Sep 22"]
         WHEN OTHERS DO
             ASSERT FALSE, "unknown parse source", source
     END CASE
