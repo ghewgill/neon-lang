@@ -716,6 +716,40 @@ FUNCTION builtin_countstr(args: Array<String>): String
     RETURN str(r)
 END FUNCTION
 
+FUNCTION builtin_d2c(args: Array<String>): String
+    VAR n := rxnum(args[0])
+    LET length := (IF args.size() >= 2 THEN rxnum(args[1]) ELSE -1)
+    VAR r := ""
+    IF n < 0 THEN
+        ASSERT length > 0
+        n := 2^(8*length) + n
+    END IF
+    WHILE n > 0 DO
+        r := string.fromCodePoint(n MOD 0x100) & r
+        n := n INTDIV 0x100
+    END WHILE
+    RETURN r
+END FUNCTION
+
+FUNCTION builtin_d2x(args: Array<String>): String
+    VAR n := rxnum(args[0])
+    LET length := (IF args.size() >= 2 THEN rxnum(args[1]) ELSE -1)
+    VAR r := ""
+    IF n < 0 THEN
+        ASSERT length > 0
+        n := 2^(8*length) + n
+    END IF
+    WHILE n > 0 DO
+        r := string.upper(base.toHex(n MOD 0x100)) & r
+        n := n INTDIV 0x100
+    END WHILE
+    --IF length >= 0 THEN
+    --    RETURN r[LAST-length TO LAST]
+    --ELSE
+        RETURN r
+    --END IF
+END FUNCTION
+
 FUNCTION builtin_datatype(args: Array<String>): String
     LET s := args[0]
     LET type := (IF args.size() >= 2 THEN args[1] ELSE "")
@@ -796,6 +830,33 @@ FUNCTION builtin_delstr(args: Array<String>): String
         RETURN s[FIRST TO start-1]
     END IF
     RETURN s[FIRST TO start-1] & s[start+length TO LAST]
+END FUNCTION
+
+FUNCTION builtin_delword(args: Array<String>): String
+    LET s := args[0]
+    LET start := rxnum(args[1])
+    LET length := (IF args.size() >= 3 THEN rxnum(args[2]) ELSE -1)
+    VAR wordstarts: Array<Number> := [0]
+    VAR inword := FALSE
+    FOREACH c IN s INDEX i DO
+        IF inword AND c = " " THEN
+            inword := FALSE
+        ELSIF NOT inword AND c <> " " THEN
+            wordstarts.append(i)
+            inword := TRUE
+        END IF
+    END FOREACH
+    IF start >= wordstarts.size() THEN
+        RETURN s
+    END IF
+    IF length < 0 OR start + length >= wordstarts.size() THEN
+        RETURN s[FIRST TO wordstarts[start]-1]
+    END IF
+    RETURN s[FIRST TO wordstarts[start]-1] & s[wordstarts[start+length] TO LAST]
+END FUNCTION
+
+FUNCTION builtin_digits(args: Array<String>): String
+    RETURN "9" -- TODO
 END FUNCTION
 
 FUNCTION builtin_format(args: Array<String>): String
@@ -897,8 +958,12 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "COMPARE": builtin_compare,
     "COPIES": builtin_copies,
     "COUNTSTR": builtin_countstr,
+    "D2C": builtin_d2c,
+    "D2X": builtin_d2x,
     "DATATYPE": builtin_datatype,
     "DELSTR": builtin_delstr,
+    "DELWORD": builtin_delword,
+    "DIGITS": builtin_digits,
     "FORMAT": builtin_format,
     "LEFT": builtin_left,
     "LENGTH": builtin_length,
