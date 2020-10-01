@@ -12,6 +12,14 @@ IMPORT time
 
 EXCEPTION SyntaxException
 
+CONSTANT ErrorText := {
+    "1": "",
+    "10": "Unexpected or unmatched END",
+    "40": "Incorrect call to routine",
+    "50": "Unrecognized reserved symbol",
+    -- TODO
+}
+
 TYPE TokenType IS ENUM
     Label
     Special
@@ -57,7 +65,6 @@ TYPE ContextEntry IS RECORD
     do_bounded_to: Number
     do_by: Number
     do_for: Number
-    do_rep: Number
     do_while_condition: Number
     if_skip: Number
     select_skip: Number
@@ -384,7 +391,7 @@ END FUNCTION
 FUNCTION make_label_index(tokens: Array<Token>): Dictionary<Number>
     VAR r: Dictionary<Number> := {}
     FOREACH t IN tokens INDEX i DO
-        IF t.type = TokenType.Label THEN
+        IF t.type = TokenType.Label AND t.value NOT IN r THEN
             r[t.value] := i
         END IF
     END FOREACH
@@ -859,6 +866,14 @@ FUNCTION builtin_digits(args: Array<String>): String
     RETURN "9" -- TODO
 END FUNCTION
 
+FUNCTION builtin_errortext(args: Array<String>): String
+    RETURN ErrorText[args[0]]
+END FUNCTION
+
+FUNCTION builtin_form(args: Array<String>): String
+    RETURN "SCIENTIFIC" -- TODO
+END FUNCTION
+
 FUNCTION builtin_format(args: Array<String>): String
     -- TODO: actually format
     RETURN args[0]
@@ -964,6 +979,8 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "DELSTR": builtin_delstr,
     "DELWORD": builtin_delword,
     "DIGITS": builtin_digits,
+    "ERRORTEXT": builtin_errortext,
+    "FORM": builtin_form,
     "FORMAT": builtin_format,
     "LEFT": builtin_left,
     "LENGTH": builtin_length,
@@ -1089,7 +1106,7 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number, terminating_tokens: Arr
 
     FUNCTION resolve_stack(next_op: String)
         LET level: Number := OperatorPrecedence[next_op]
-        WHILE operator_stack.size() > 0 AND level < OperatorPrecedence[operator_stack[LAST]] DO
+        WHILE operator_stack.size() > 0 AND level <= OperatorPrecedence[operator_stack[LAST]] DO
             LET op: String := pop_operator()
             CASE op
                 WHEN " " DO
@@ -1521,21 +1538,13 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
 END FUNCTION
 
 FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, INOUT context: ContextEntry): Boolean
-    VAR rep: Number := context.do_rep
-    IF rep > 0 THEN
-        DEC rep
-        IF rep <= 0 THEN
-            RETURN TRUE
-        END IF
-        context.do_rep := rep
-    END IF
     LET var: String := context.do_var
     IF var <> "" THEN
         LET newvar: Number := num(get_var(var)) + context.do_by
+        set_var(var, str(newvar))
         IF context.do_bounded AND newvar > context.do_bounded_to THEN
             RETURN TRUE
         END IF
-        set_var(var, str(newvar))
     END IF
     LET while: Number := context.do_while_condition
     IF while > 0 THEN
@@ -1628,11 +1637,14 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                                     EXIT LOOP
                                 END IF
                             END LOOP
-                        END IF
-                        IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                        ELSIF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
                             IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["WHILE", "UNTIL"]) THEN
-                                context.do_rep := num(evaluate(tokens, INOUT i, ["WHILE"]))
-                                IF context.do_rep <= 0 THEN
+                                LET rep := num(evaluate(tokens, INOUT i, ["WHILE", "UNTIL"]))
+                                context.do_var := ".INDEX.\(i)"
+                                set_var(context.do_var, "1")
+                                context.do_bounded := TRUE
+                                context.do_bounded_to := rep
+                                IF rep <= 0 THEN
                                     i := out_of_loop
                                 END IF
                             END IF
