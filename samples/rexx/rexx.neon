@@ -1537,12 +1537,11 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
     skip_if_ncl(tokens, INOUT i)
 END FUNCTION
 
-FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, INOUT context: ContextEntry): Boolean
+FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, context: ContextEntry): Boolean
     LET var: String := context.do_var
     IF var <> "" THEN
-        LET newvar: Number := num(get_var(var)) + context.do_by
-        set_var(var, str(newvar))
-        IF context.do_bounded AND newvar > context.do_bounded_to THEN
+        LET value := num(get_var(var))
+        IF context.do_bounded AND value > context.do_bounded_to THEN
             RETURN TRUE
         END IF
     END IF
@@ -1557,6 +1556,14 @@ FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, INOUT context
         END IF
     END IF
     RETURN FALSE
+END FUNCTION
+
+FUNCTION do_iterate(context: ContextEntry)
+    LET var: String := context.do_var
+    IF var <> "" THEN
+        LET newvalue: Number := num(get_var(var)) + context.do_by
+        set_var(var, str(newvalue))
+    END IF
 END FUNCTION
 
 FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
@@ -1651,16 +1658,13 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                         END IF
                         IF i < tokens.size() AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WHILE" THEN
                             INC i
-                            LET expr: Number := i
-                            LET cond: String := evaluate(tokens, INOUT i, [])
-                            CASE cond
-                                WHEN "0" DO
-                                    i := out_of_loop
-                                WHEN "1" DO
-                                    context.do_while_condition := expr
-                                WHEN OTHERS DO
-                                    ASSERT FALSE, "unexpected cond", cond
-                            END CASE
+                            context.do_while_condition := i
+                            WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
+                                INC i
+                            END WHILE
+                        END IF
+                        IF do_check_terminate(tokens, INOUT i, context) THEN
+                            i := out_of_loop
                         END IF
                         IF i < out_of_loop THEN
                             context.do_top := i
@@ -1697,7 +1701,8 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             INC i
                             contexts.resize(contexts.size() - 1)
                         WHEN ContextType.do_repetitive DO
-                            IF do_check_terminate(tokens, INOUT i, INOUT contexts[LAST]) THEN
+                            do_iterate(contexts[LAST])
+                            IF do_check_terminate(tokens, INOUT i, contexts[LAST]) THEN
                                 i := contexts[LAST].do_skip
                                 contexts.resize(contexts.size() - 1)
                             ELSE
@@ -1750,7 +1755,8 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     WHILE contexts.size() > 0 AND contexts[LAST].type <> ContextType.do_repetitive DO
                         contexts.resize(contexts.size() - 1)
                     END WHILE
-                    IF do_check_terminate(tokens, INOUT i, INOUT contexts[LAST]) THEN
+                    do_iterate(contexts[LAST])
+                    IF do_check_terminate(tokens, INOUT i, contexts[LAST]) THEN
                         i := contexts[LAST].do_skip
                         contexts.resize(contexts.size() - 1)
                     ELSE
