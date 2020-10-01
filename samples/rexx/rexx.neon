@@ -8,6 +8,7 @@ IMPORT os
 IMPORT random
 IMPORT string
 IMPORT sys
+IMPORT textio
 IMPORT time
 
 EXCEPTION SyntaxException
@@ -80,6 +81,8 @@ VAR contexts: Array<ContextEntry>
 VAR signals: Dictionary<String> := {
     "SYNTAX": "SYNTAX",
 }
+VAR streams: Dictionary<textio.TextFile>
+VAR current_environment: String := "SYSTEM"
 
 FUNCTION is_digit(c: String): Boolean
     RETURN "0" <= c <= "9"
@@ -225,6 +228,10 @@ FUNCTION tokenise(source: String): Array<Token>
                     EXIT WHILE
                 END IF
             END WHILE
+            IF i < source.length() AND source[i] = ":" THEN
+                t.type := TokenType.Label
+                INC i
+            END IF
             tokens.append(t)
         ELSIF source[i] IN ["'", "\""] THEN
             LET delim: String := source[i]
@@ -879,12 +886,24 @@ FUNCTION builtin_format(args: Array<String>): String
     RETURN args[0]
 END FUNCTION
 
+FUNCTION builtin_fuzz(args: Array<String>): String
+    RETURN "0"
+END FUNCTION
+
 FUNCTION builtin_left(args: Array<String>): String
     RETURN args[0][FIRST TO rxnum(args[1])-1]
 END FUNCTION
 
 FUNCTION builtin_length(args: Array<String>): String
     RETURN str(args[0].length())
+END FUNCTION
+
+FUNCTION builtin_lineout(args: Array<String>): String
+    LET name := args[0]
+    LET s := args[1]
+    --LET line := (IF args.size() >= 3 THEN rxnum(args[2]) ELSE 0)
+    textio.writeLine(streams[name], s)
+    RETURN "0"
 END FUNCTION
 
 FUNCTION builtin_pos(args: Array<String>): String
@@ -918,6 +937,34 @@ FUNCTION builtin_sourceline(args: Array<String>): String
     RETURN sourcelines[rxnum(args[0])]
 END FUNCTION
 
+FUNCTION builtin_stream(args: Array<String>): String
+    LET name := args[0]
+    LET option := string.upper(args[1])
+    LET command := string.upper(args[2])
+    CASE option
+        WHEN "C" DO
+            LET a := string.split(command, " ")
+            IF command = "OPEN WRITE REPLACE" THEN
+                streams[name] := textio.open(name, textio.Mode.write)
+            ELSIF command = "CLOSE" THEN
+                textio.close(streams[name])
+            ELSE
+                ASSERT FALSE, "unknown command", command
+            END IF
+        WHEN "D" DO
+            ASSERT FALSE, "description goes here"
+        WHEN "S" DO
+            IF name IN streams THEN
+                RETURN "READY"
+            ELSE
+                RETURN "UNKNOWN"
+            END IF
+        WHEN OTHERS DO
+            ASSERT FALSE, "unknown option", option
+    END CASE
+    RETURN ""
+END FUNCTION
+
 FUNCTION builtin_substr(args: Array<String>): String
     LET start: Number := rxnum(args[1]) - 1
     LET length: Number := rxnum(args[2])
@@ -947,8 +994,32 @@ FUNCTION builtin_trace(args: Array<String>): String
     RETURN ""
 END FUNCTION
 
+FUNCTION builtin_translate(args: Array<String>): String
+    LET s := args[0]
+    VAR tableout := args[1]
+    LET tablein := args[2]
+    LET pad := (IF args.size() >= 4 THEN args[3] ELSE " ")
+    IF tableout.length() < tablein.length() THEN
+        tableout.append(string.repeat(pad[0], tablein.length() - tableout.length()))
+    END IF
+    VAR r := ""
+    FOREACH c IN s DO
+        LET i := string.find(tablein, c)
+        IF i >= 0 THEN
+            r.append(tableout[i])
+        ELSE
+            r.append(c)
+        END IF
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION builtin_value(args: Array<String>): String
+    RETURN get_var(args[0])
+END FUNCTION
+
 FUNCTION builtin_word(args: Array<String>): String
-    RETURN string.split(args[0], " ")[rxnum(args[1])]
+    RETURN string.split(args[0], " ")[rxnum(args[1]) - 1]
 END FUNCTION
 
 FUNCTION builtin_words(args: Array<String>): String
@@ -982,14 +1053,19 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "ERRORTEXT": builtin_errortext,
     "FORM": builtin_form,
     "FORMAT": builtin_format,
+    "FUZZ": builtin_fuzz,
     "LEFT": builtin_left,
     "LENGTH": builtin_length,
+    "LINEOUT": builtin_lineout,
     "POS": builtin_pos,
     "RANDOM": builtin_random,
     "SOURCELINE": builtin_sourceline,
+    "STREAM": builtin_stream,
     "SUBSTR": builtin_substr,
     "TIME": builtin_time,
     "TRACE": builtin_trace,
+    "TRANSLATE": builtin_translate,
+    "VALUE": builtin_value,
     "WORD": builtin_word,
     "WORDS": builtin_words,
 }
@@ -1472,6 +1548,21 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
     END FOREACH
 END FUNCTION
 
+FUNCTION send_command(environment: String, command: String): String
+    CASE environment
+        WHEN "COMMAND" DO
+            IF string.hasPrefix(command, "rexx ") THEN
+                RETURN str(os.system("bin/neon samples/rexx/rexx.neon \(command[5 TO LAST])"))
+            ELSE
+                ASSERT FALSE, "unknown command", command
+            END IF
+        WHEN "SYSTEM" DO
+            RETURN str(os.system(command))
+    END CASE
+    ASSERT FALSE, "unknown environment", environment
+    RETURN ""
+END FUNCTION
+
 FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
     IF tokens[i].type = TokenType.Var_symbol THEN
         IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
@@ -1591,17 +1682,26 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
             CASE tokens[i].value
                 WHEN "ADDRESS" DO
                     INC i
-                    VAR target: String := tokens[i].value
-                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "VALUE" THEN
-                        INC i
-                        target := evaluate(tokens, INOUT i, ["WITH"])
+                    IF tokens[i].type = TokenType.Var_symbol THEN
+                        IF tokens[i].value = "VALUE" THEN
+                            INC i
+                            current_environment := evaluate(tokens, INOUT i, ["WITH"])
+                        ELSE
+                            LET environment := tokens[i].value
+                            INC i
+                            IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                                LET command := evaluate(tokens, INOUT i, ["WITH"])
+                                vars["RC"] := send_command(environment, command)
+                            END IF
+                        END IF
+                    ELSE
+                        ASSERT FALSE, "unexpected token", tokens[i]
                     END IF
-                    -- TODO
                 WHEN "ARG" DO
                     do_parse(tokens, INOUT i, upper WITH TRUE)
                 WHEN "CALL" DO
                     INC i
-                    IF tokens[i].type = TokenType.Var_symbol THEN
+                    IF tokens[i].type IN [TokenType.Const_symbol, TokenType.Var_symbol] THEN
                         LET name: String := tokens[i].value
                         INC i
                         LET args: Array<String> := get_function_arguments(tokens, INOUT i)
@@ -1615,7 +1715,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             vars["RESULT"] := builtin_function(name, args)
                         END IF
                     ELSE
-                        ASSERT FALSE, "unexpected thing to call", tokens[i].type
+                        ASSERT FALSE, "unexpected thing to call", tokens[i]
                     END IF
                 WHEN "DO" DO
                     VAR out_of_loop: Number := i
@@ -1808,7 +1908,11 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     vars := {}
                     arrays := {}
                     FOREACH var IN exposed DO
-                        vars[var] := contexts[LAST].call_vars[var]
+                        IF string.hasSuffix(var, ".") THEN
+                            arrays[var] := contexts[LAST].call_arrays[var]
+                        ELSE
+                            vars[var] := contexts[LAST].call_vars[var]
+                        END IF
                     END FOREACH
                     -- TODO: expose arrays
                 WHEN "PULL" DO
@@ -1918,7 +2022,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END CASE
                 WHEN OTHERS DO
                     LET r: String := evaluate(tokens, INOUT i, [])
-                    vars["RC"] := str(os.system(r))
+                    vars["RC"] := send_command(current_environment, r)
             END CASE
         WHEN TokenType.Eos DO
             CASE contexts[LAST].type
@@ -1934,7 +2038,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                 RAISE SyntaxException(info WITH "assignment to constant")
             END IF
             LET r: String := evaluate(tokens, INOUT i, [])
-            vars["RC"] := str(os.system(r))
+            vars["RC"] := send_command(current_environment, r)
     END CASE
     IF i = orig_i THEN
         ASSERT FALSE, "we are stuck", tokens[i]
