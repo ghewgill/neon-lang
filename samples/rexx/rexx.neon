@@ -54,7 +54,7 @@ LET ErrorText := {
     "10.5" : "END must not immediately follow THEN"
     "10.6" : "END must not immediately follow ELSE"
     "13"   : "Invalid character in program"
-    "13.1" : "Invalid character in program \"<char>\" (\"<hex-encoding>\"X)"
+    "13.1" : "Invalid character in program \"<char>\" ('<hex-encoding>'X)"
     "14"   : "Incomplete DO/SELECT/IF"
     "14.1" : "DO instruction requires a matching END"
     "14.2" : "SELECT instruction requires a matching END"
@@ -384,14 +384,16 @@ FUNCTION convert_hex_string(s: String): String
     VAR r: String := ""
     LOOP
         IF i < 0 OR t[i] NOT IN Digits THEN
-            RAISE SyntaxException(info WITH "invalid hex string")
+            error(15.3, {"char": t[i]})
+            -- TODO RAISE SyntaxException(info WITH "invalid hex string")
         END IF
         VAR b: Number := string.find(Digits, t[i])
         DEC i
         IF i < 0 THEN
             -- Ignore missing leading digit.
         ELSIF t[i] NOT IN Digits THEN
-            RAISE SyntaxException(info WITH "invalid hex string")
+            error(15.3, {"char": t[i]})
+            -- TODO RAISE SyntaxException(info WITH "invalid hex string")
         ELSE
             b := b + string.find(Digits, t[i]) * 0x10
             DEC i
@@ -626,7 +628,7 @@ FUNCTION tokenise(source: String): Array<Token>
             INC i
             last_was_space := TRUE
         ELSE
-            ASSERT FALSE, "unexpected character", source[i]
+            error(13.1, {"char": source[i], "hex-encoding": base.toHex(string.toCodePoint(source[i]))})
         END IF
     END WHILE
     RETURN tokens
@@ -1800,7 +1802,10 @@ FUNCTION send_command(environment: String, command: String): String
     RETURN ""
 END FUNCTION
 
-FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
+FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number): Boolean
+    CHECK i < tokens.size() ELSE
+        RETURN FALSE
+    END CHECK
     IF tokens[i].type = TokenType.Var_symbol THEN
         IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "=" THEN
             INC i
@@ -1816,7 +1821,9 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
                         do_var := tokens[i].value
                     END IF
                     WHILE NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "END") DO
-                        skip_instruction(tokens, INOUT i)
+                        IF NOT skip_instruction(tokens, INOUT i) THEN
+                            RETURN FALSE
+                        END IF
                     END WHILE
                     INC i
                     IF do_var <> "" AND tokens[i].type = TokenType.Var_symbol THEN
@@ -1832,11 +1839,15 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
                     END WHILE
                     INC i
                     skip_if_ncl(tokens, INOUT i)
-                    skip_instruction(tokens, INOUT i)
+                    IF NOT skip_instruction(tokens, INOUT i) THEN
+                        RETURN FALSE
+                    END IF
                     IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
                         INC i
                         skip_if_ncl(tokens, INOUT i)
-                        skip_instruction(tokens, INOUT i)
+                        IF NOT skip_instruction(tokens, INOUT i) THEN
+                            RETURN FALSE
+                        END IF
                     END IF
                 WHEN "SELECT" DO
                     INC i
@@ -1847,7 +1858,9 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
                             END WHILE
                             INC i
                         ELSE
-                            skip_instruction(tokens, INOUT i)
+                            IF NOT skip_instruction(tokens, INOUT i) THEN
+                                RETURN FALSE
+                            END IF
                         END IF
                     END WHILE
                     INC i
@@ -1863,6 +1876,7 @@ FUNCTION skip_instruction(tokens: Array<Token>, INOUT i: Number)
         END WHILE
     END IF
     skip_if_ncl(tokens, INOUT i)
+    RETURN TRUE
 END FUNCTION
 
 FUNCTION do_check_terminate(tokens: Array<Token>, INOUT i: Number, context: ContextEntry): Boolean
@@ -1956,7 +1970,9 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END IF
                 WHEN "DO" DO
                     VAR out_of_loop: Number := i
-                    skip_instruction(tokens, INOUT out_of_loop)
+                    IF NOT skip_instruction(tokens, INOUT out_of_loop) THEN
+                        error(999)
+                    END IF
                     INC i
                     IF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
                         contexts.append(ContextEntry(type WITH ContextType.do_single, do_skip WITH out_of_loop))
@@ -2030,7 +2046,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             i := contexts[LAST].if_skip
                             contexts.resize(contexts.size() - 1)
                         WHEN OTHERS DO
-                            ASSERT FALSE, "else found when not in if", contexts[LAST].type
+                            error(8.2)
                     END CASE
                 WHEN "END" DO
                     --print("END context \(contexts[LAST].type)")
@@ -2050,7 +2066,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             INC i
                             contexts.resize(contexts.size() - 1)
                         WHEN OTHERS DO
-                            ASSERT FALSE, "end found for no reason", contexts[LAST].type
+                            error(10.1)
                     END CASE
                 WHEN "EXIT" DO
                     INC i
@@ -2068,14 +2084,20 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     CASE cond
                         WHEN "1" DO
                             VAR else: Number := i
-                            skip_instruction(tokens, INOUT else)
+                            IF NOT skip_instruction(tokens, INOUT else) THEN
+                                error(14.3)
+                            END IF
                             IF else < tokens.size() AND tokens[else].type = TokenType.Var_symbol AND tokens[else].value = "ELSE" THEN
                                 VAR skip: Number := else + 1
-                                skip_instruction(tokens, INOUT skip)
+                                IF NOT skip_instruction(tokens, INOUT skip) THEN
+                                    error(999)
+                                END IF
                                 contexts.append(ContextEntry(type WITH ContextType.if, if_skip WITH skip, call_args WITH contexts[LAST].call_args))
                             END IF
                         WHEN "0" DO
-                            skip_instruction(tokens, INOUT i)
+                            IF NOT skip_instruction(tokens, INOUT i) THEN
+                                error(14.3)
+                            END IF
                             IF i < tokens.size() AND tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ELSE" THEN
                                 INC i
                             END IF
@@ -2120,7 +2142,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             i := contexts[LAST].select_skip
                             contexts.resize(contexts.size() - 1)
                         WHEN OTHERS DO
-                            ASSERT FALSE, "unexpected otherwise", contexts[LAST].type
+                            error(9.0)
                     END CASE
                 WHEN "PARSE" DO
                     INC i
@@ -2130,6 +2152,9 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END IF
                     do_parse(tokens, INOUT i, upper)
                 WHEN "PROCEDURE" DO
+                    IF i = 0 OR tokens[i-1].type <> TokenType.Label THEN
+                        error(17.0)
+                    END IF
                     INC i
                     VAR exposed: Array<String> := []
                     IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "EXPOSE" THEN
@@ -2182,7 +2207,9 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     END IF
                 WHEN "SELECT" DO
                     VAR end_of_select: Number := i
-                    skip_instruction(tokens, INOUT end_of_select)
+                    IF NOT skip_instruction(tokens, INOUT end_of_select) THEN
+                        error(999)
+                    END IF
                     INC i
                     skip_if_ncl(tokens, INOUT i)
                     VAR found: Boolean := FALSE
@@ -2197,7 +2224,9 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             found := TRUE
                             EXIT WHILE
                         ELSIF cond = "0" THEN
-                            skip_instruction(tokens, INOUT i)
+                            IF NOT skip_instruction(tokens, INOUT i) THEN
+                                error(999)
+                            END IF
                         ELSE
                             ASSERT FALSE, "unexpected cond", cond
                         END IF
@@ -2236,9 +2265,11 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             tokens := source_tokens
                             i := lindex + 1
                         ELSE
-                            ASSERT FALSE, "signal label not found"
+                            error(16.1, {"name": name})
                         END IF
                     END IF
+                WHEN "THEN" DO
+                    error(8.1)
                 WHEN "TRACE" DO
                     INC i
                     VAR setting: String := tokens[i].value
@@ -2256,7 +2287,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             i := contexts[LAST].select_skip
                             contexts.resize(contexts.size() - 1)
                         WHEN OTHERS DO
-                            ASSERT FALSE, "unexpected when", contexts[LAST].type
+                            error(9.0)
                     END CASE
                 WHEN OTHERS DO
                     LET r: String := evaluate(tokens, INOUT i, [])
