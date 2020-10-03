@@ -288,6 +288,7 @@ VAR vars: Dictionary<String>
 VAR arrays: Dictionary<Dictionary<String>>
 VAR contexts: Array<ContextEntry>
 VAR signals: Dictionary<String> := {
+    "NOTREADY": "NOTREADY",
     "SYNTAX": "SYNTAX",
 }
 VAR streams: Dictionary<textio.TextFile>
@@ -1130,7 +1131,13 @@ FUNCTION builtin_fuzz(args: Array<String>): String
 END FUNCTION
 
 FUNCTION builtin_left(args: Array<String>): String
-    RETURN args[0][FIRST TO rxnum(args[1])-1]
+    LET s := args[0]
+    LET length := rxnum(args[1])
+    IF length <= s.length() THEN
+        RETURN s[FIRST TO length-1]
+    ELSE
+        RETURN s & string.repeat(" ", length - s.length())
+    END IF
 END FUNCTION
 
 FUNCTION builtin_length(args: Array<String>): String
@@ -1139,9 +1146,16 @@ END FUNCTION
 
 FUNCTION builtin_lineout(args: Array<String>): String
     LET name := args[0]
-    LET s := args[1]
+    LET s := (IF args.size() >= 2 THEN args[1] ELSE "")
     --LET line := (IF args.size() >= 3 THEN rxnum(args[2]) ELSE 0)
-    textio.writeLine(streams[name], s)
+    IF args.size() >= 2 THEN
+        IF name NOT IN streams THEN
+            streams[name] := textio.open(name, textio.Mode.write)
+        END IF
+        textio.writeLine(streams[name], s)
+    ELSE
+        textio.close(streams[name])
+    END IF
     RETURN "0"
 END FUNCTION
 
@@ -1654,7 +1668,7 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         WHEN "PULL" DO
             input := [console.input("")]
         WHEN "SOURCE" DO
-            input := ["Neon", "COMMAND", script_filename]
+            input := ["LINUX", "COMMAND", script_filename]
         WHEN "VALUE" DO
             input := [evaluate(tokens, INOUT i, ["WITH"])]
             IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WITH") THEN
@@ -2088,7 +2102,9 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                                 error(14.3)
                             END IF
                             IF else < tokens.size() AND tokens[else].type = TokenType.Var_symbol AND tokens[else].value = "ELSE" THEN
-                                VAR skip: Number := else + 1
+                                INC else
+                                skip_if_ncl(tokens, INOUT else)
+                                VAR skip: Number := else
                                 IF NOT skip_instruction(tokens, INOUT skip) THEN
                                     error(999)
                                 END IF
@@ -2239,7 +2255,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     INC i
                     IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ON" THEN
                         INC i
-                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN ["NOVALUE","SYNTAX"] THEN
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN signals.keys() THEN
                             LET signal: String := tokens[i].value
                             VAR label: String := signal
                             INC i
