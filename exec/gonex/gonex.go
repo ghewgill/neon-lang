@@ -2234,6 +2234,11 @@ func (self *executor) op_callp() {
 			ckeys[i] = make_cell_str(k)
 		}
 		self.push(make_cell_array(ckeys))
+	case "dictionary__remove":
+		key := self.pop().str
+		r := self.pop().ref
+		d := r.load().dict
+		delete(d, key)
 	case "exceptiontype__toString":
 		et := self.pop().array
 		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v,%v>", et[0].str, et[1].str, et[2].num, et[3].num)))

@@ -180,6 +180,7 @@ DECLARE NATIVE FUNCTION array__toString__object(self: Array<Object>): String
 DECLARE NATIVE FUNCTION boolean__toString(self: Boolean): String
 DECLARE NATIVE FUNCTION dictionary__size(self: Dictionary): Number
 DECLARE NATIVE FUNCTION dictionary__keys(self: Dictionary): Array<String>
+DECLARE NATIVE FUNCTION dictionary__remove(INOUT self: Dictionary, key: String)
 DECLARE NATIVE FUNCTION number__toString(self: Number): String
 DECLARE NATIVE FUNCTION string__append(INOUT self: String, t: String)
 DECLARE NATIVE FUNCTION string__concat(a: String, b: String): String

@@ -327,6 +327,12 @@ TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["keys"] = new PredefinedFunction("dictionary__keys", new TypeFunction(TYPE_ARRAY_STRING, params, false));
     }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
+        methods["remove"] = new PredefinedFunction("dictionary__remove", new TypeFunction(TYPE_NOTHING, params, false));
+    }
 }
 
 const Expression *TypeDictionary::make_default_value() const

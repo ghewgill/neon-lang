@@ -224,6 +224,12 @@ std::vector<utf8string> dictionary__keys(Cell &self)
     return r;
 }
 
+void dictionary__remove(Cell *self, const utf8string &key)
+{
+    auto &d = self->dictionary_for_write();
+    d.erase(key);
+}
+
 utf8string number__toString(Number self)
 {
     return utf8string(number_to_string(self));

@@ -664,6 +664,7 @@ class DotExpression:
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
+            if self.field == "remove": return lambda env, self, k: neon_dictionary_remove(obj, k)
             return obj[self.field] # Support a.b syntax where a is an object.
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
@@ -2737,6 +2738,10 @@ def neon_array_reversed(a):
 
 def neon_concat(env, x, y):
     return x + y
+
+def neon_dictionary_remove(d, k):
+    if k in d:
+        del d[k]
 
 def neon_format(env, s, fmt):
     if fmt.endswith("x"):

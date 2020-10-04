@@ -949,7 +949,10 @@ FUNCTION f_ina(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_ind(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET dict: Dictionary<POINTER TO Value> := self.pop()->d
+    LET key: String := self.pop()->s
+    self.stack.append(makeValueBoolean(key IN dict))
 END FUNCTION
 
 FUNCTION f_callp(INOUT self: Executor)
@@ -1078,6 +1081,12 @@ FUNCTION f_callp(INOUT self: Executor)
                 a.append(makeValueString(k))
             END FOREACH
             self.stack.append(makeValueArray(a))
+        WHEN "dictionary__remove" DO
+            LET key: String := self.pop()->s
+            LET a: POINTER TO Value := self.pop()->p
+            IF VALID a THEN
+                a->d.remove(key)
+            END IF
         WHEN "exceptiontype__toString" DO
             LET ei: Array<POINTER TO Value> := self.pop()->a
             VAR name: String := ""
