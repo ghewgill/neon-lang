@@ -1939,6 +1939,12 @@ def neon_dictionary__keys(self):
     d = self.stack.pop()
     self.stack.append([Value(x) for x in sorted(d.keys())])
 
+def neon_dictionary__remove(self):
+    key = self.stack.pop()
+    d = self.stack.pop().value
+    if key in d:
+        del d[key]
+
 def neon_exceptiontype__toString(self):
     ei = self.stack.pop()
     self.stack.append("<ExceptionType:{},{},{},{}>".format(ei[0].value, ei[1].value, ei[2].value, ei[3].value))

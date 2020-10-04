@@ -1,12 +1,19 @@
 VAR d: Dictionary<String> := {}
 d["hello"] := "world"
 print(d["hello"])
+--= world
 
 TRY
     print(d["foo"])
 TRAP DictionaryIndexException DO
     print("dictionary index")
 END TRY
-
---= world
 --= dictionary index
+
+ASSERT "hello" IN d
+d.remove("hello")
+ASSERT "hello" NOT IN d
+
+ASSERT "xyzzy" NOT IN d
+d.remove("xyzzy")
+ASSERT "xyzzy" NOT IN d

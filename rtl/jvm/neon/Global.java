@@ -289,6 +289,14 @@ public class Global {
         return r;
     }
 
+    public static Object[] dictionary__remove(java.util.Map<java.lang.String, Object> self, java.lang.String key) {
+        self.remove(key);
+        return new Object[] {
+            null,
+            self
+        };
+    }
+
     public static java.lang.String format(java.lang.String str, java.lang.String fmt) {
         return " foo";
     }
