@@ -1582,7 +1582,7 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number, terminating_tokens: Arr
                         WHEN "1" DO
                             push_operand("0")
                         WHEN OTHERS DO
-                            RAISE SignalException.Syntax(info WITH "argument to \\ is not boolean")
+                            error(34.6, {"operator": "\\", "value": x})
                     END CASE
                 WHEN "(" DO
                     -- no operation
