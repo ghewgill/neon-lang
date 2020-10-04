@@ -11,7 +11,9 @@ IMPORT sys
 IMPORT textio
 IMPORT time
 
-EXCEPTION SyntaxException
+EXCEPTION SignalException
+EXCEPTION SignalException.Syntax
+EXCEPTION SignalException.Notready
 
 CONSTANT Limit_EnvironmentName := 99
 CONSTANT Limit_Name := 99
@@ -280,6 +282,11 @@ TYPE ContextEntry IS RECORD
     select_skip: Number
 END RECORD
 
+CONSTANT Signals := [
+    "NOTREADY",
+    "SYNTAX",
+]
+
 VAR script_filename: String
 VAR sourcelines: Array<String>
 VAR source_tokens: Array<Token>
@@ -287,10 +294,7 @@ VAR label_index: Dictionary<Number>
 VAR vars: Dictionary<String>
 VAR arrays: Dictionary<Dictionary<String>>
 VAR contexts: Array<ContextEntry>
-VAR signals: Dictionary<String> := {
-    "NOTREADY": "NOTREADY",
-    "SYNTAX": "SYNTAX",
-}
+VAR signal_handlers: Dictionary<String>
 VAR streams: Dictionary<textio.TextFile>
 VAR current_environment: String := "SYSTEM"
 
@@ -342,7 +346,7 @@ FUNCTION convert_binary_string(s: String): String
     VAR bit: Number := 0b1
     LOOP
         IF i < 0 OR s[i] NOT IN Digits THEN
-            RAISE SyntaxException(info WITH "invalid binary string")
+            RAISE SignalException.Syntax(info WITH "invalid binary string")
         END IF
         b := b + string.find(Digits, s[i]) * bit
         bit := bit * 2
@@ -352,7 +356,7 @@ FUNCTION convert_binary_string(s: String): String
                 -- Ignore missing leading digit.
                 EXIT FOR
             ELSIF s[i] NOT IN Digits THEN
-                RAISE SyntaxException(info WITH "invalid binary string")
+                RAISE SignalException.Syntax(info WITH "invalid binary string")
             ELSE
                 b := b + string.find(Digits, s[i]) * bit
                 bit := bit * 2
@@ -386,7 +390,7 @@ FUNCTION convert_hex_string(s: String): String
     LOOP
         IF i < 0 OR t[i] NOT IN Digits THEN
             error(15.3, {"char": t[i]})
-            -- TODO RAISE SyntaxException(info WITH "invalid hex string")
+            -- TODO RAISE SignalException.Syntax(info WITH "invalid hex string")
         END IF
         VAR b: Number := string.find(Digits, t[i])
         DEC i
@@ -394,7 +398,7 @@ FUNCTION convert_hex_string(s: String): String
             -- Ignore missing leading digit.
         ELSIF t[i] NOT IN Digits THEN
             error(15.3, {"char": t[i]})
-            -- TODO RAISE SyntaxException(info WITH "invalid hex string")
+            -- TODO RAISE SignalException.Syntax(info WITH "invalid hex string")
         ELSE
             b := b + string.find(Digits, t[i]) * 0x10
             DEC i
@@ -709,7 +713,7 @@ FUNCTION rxnum(s: String): Number
         END IF
         RETURN num(t)
     TRAP ValueRangeException DO
-        RAISE SyntaxException(info WITH "not a number: <\(s)>")
+        RAISE SignalException.Syntax(info WITH "not a number: <\(s)>")
     END TRY
 END FUNCTION
 
@@ -1011,7 +1015,7 @@ FUNCTION builtin_datatype(args: Array<String>): String
         TRY
             _ := rxnum(s)
             RETURN "NUM"
-        TRAP SyntaxException DO
+        TRAP SignalException.Syntax DO
             RETURN "CHAR"
         END TRY
     END IF
@@ -1033,7 +1037,7 @@ FUNCTION builtin_datatype(args: Array<String>): String
             TRY
                 _ := convert_binary_string(s)
                 RETURN "1"
-            TRAP SyntaxException DO
+            TRAP SignalException.Syntax DO
                 RETURN "0"
             END TRY
         WHEN "L" DO -- Lowercase
@@ -1044,7 +1048,7 @@ FUNCTION builtin_datatype(args: Array<String>): String
             TRY
                 _ := rxnum(s)
                 RETURN "1"
-            TRAP SyntaxException DO
+            TRAP SignalException.Syntax DO
                 RETURN "0"
             END TRY
         WHEN "S" DO -- Symbol
@@ -1059,14 +1063,14 @@ FUNCTION builtin_datatype(args: Array<String>): String
             TRY
                 LET n := rxnum(s)
                 RETURN all(str(n), "-0123456789")
-            TRAP SyntaxException DO
+            TRAP SignalException.Syntax DO
                 RETURN "0"
             END TRY
         WHEN "X" DO -- Hexadecimal
             TRY
                 _ := convert_hex_string(s)
                 RETURN "1"
-            TRAP SyntaxException DO
+            TRAP SignalException.Syntax DO
                 RETURN "0"
             END TRY
     END CASE
@@ -1144,6 +1148,32 @@ FUNCTION builtin_length(args: Array<String>): String
     RETURN str(args[0].length())
 END FUNCTION
 
+FUNCTION builtin_linein(args: Array<String>): String
+    LET name := args[0]
+    LET line := (IF args.size() >= 2 THEN rxnum(args[1]) ELSE 0)
+    LET count := (IF args.size() >= 3 THEN rxnum(args[2]) ELSE 1)
+    IF name NOT IN streams THEN
+        streams[name] := textio.open(name, textio.Mode.read)
+    END IF
+    IF line > 0 THEN
+        textio.seekStart(streams[name])
+        FOR i := 1 TO line-1 DO
+            IF NOT textio.readLine(streams[name], OUT _) THEN
+                EXIT FOR
+            END IF
+        END FOR
+    END IF
+    VAR r: String := ""
+    IF count = 1 THEN
+        IF NOT textio.readLine(streams[name], OUT r) THEN
+            IF "NOTREADY" IN signal_handlers THEN
+                RAISE SignalException.Notready
+            END IF
+        END IF
+    END IF
+    RETURN r
+END FUNCTION
+
 FUNCTION builtin_lineout(args: Array<String>): String
     LET name := args[0]
     LET s := (IF args.size() >= 2 THEN args[1] ELSE "")
@@ -1155,6 +1185,7 @@ FUNCTION builtin_lineout(args: Array<String>): String
         textio.writeLine(streams[name], s)
     ELSE
         textio.close(streams[name])
+        streams.remove(name)
     END IF
     RETURN "0"
 END FUNCTION
@@ -1200,7 +1231,10 @@ FUNCTION builtin_stream(args: Array<String>): String
             IF command = "OPEN WRITE REPLACE" THEN
                 streams[name] := textio.open(name, textio.Mode.write)
             ELSIF command = "CLOSE" THEN
-                textio.close(streams[name])
+                IF name IN streams THEN
+                    textio.close(streams[name])
+                    streams.remove(name)
+                END IF
             ELSE
                 ASSERT FALSE, "unknown command", command
             END IF
@@ -1309,6 +1343,7 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "FUZZ": builtin_fuzz,
     "LEFT": builtin_left,
     "LENGTH": builtin_length,
+    "LINEIN": builtin_linein,
     "LINEOUT": builtin_lineout,
     "POS": builtin_pos,
     "RANDOM": builtin_random,
@@ -1547,7 +1582,7 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number, terminating_tokens: Arr
                         WHEN "1" DO
                             push_operand("0")
                         WHEN OTHERS DO
-                            RAISE SyntaxException(info WITH "argument to \\ is not boolean")
+                            RAISE SignalException.Syntax(info WITH "argument to \\ is not boolean")
                     END CASE
                 WHEN "(" DO
                     -- no operation
@@ -2255,7 +2290,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     INC i
                     IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ON" THEN
                         INC i
-                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN signals.keys() THEN
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN Signals THEN
                             LET signal: String := tokens[i].value
                             VAR label: String := signal
                             INC i
@@ -2268,7 +2303,16 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                                     ASSERT FALSE, "label expected", tokens[i]
                                 END IF
                             END IF
-                            signals[signal] := label
+                            signal_handlers[signal] := label
+                        ELSE
+                            ASSERT FALSE, "unknown signal type", tokens[i]
+                        END IF
+                    ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "OFF" THEN
+                        INC i
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN Signals THEN
+                            LET signal := tokens[i].value
+                            INC i
+                            signal_handlers.remove(signal)
                         ELSE
                             ASSERT FALSE, "unknown signal type", tokens[i]
                         END IF
@@ -2320,7 +2364,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
             END CASE
         WHEN OTHERS DO
             IF tokens[i].type = TokenType.Const_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value IN ["=","=="] THEN
-                RAISE SyntaxException(info WITH "assignment to constant")
+                RAISE SignalException.Syntax(info WITH "assignment to constant")
             END IF
             LET r: String := evaluate(tokens, INOUT i, [])
             vars["RC"] := send_command(current_environment, r)
@@ -2352,16 +2396,17 @@ FUNCTION interpret()
             IF NOT interpret_step(INOUT tokens, INOUT i) THEN
                 EXIT WHILE
             END IF
-        TRAP SyntaxException AS e DO
+        TRAP SignalException AS e DO
+            LET signal := string.upper(string.replaceOne(e.name, "SignalException.", ""))
             VAR lindex: Number
-            IF find_label(source_tokens, signals["SYNTAX"], OUT lindex) THEN
+            IF find_label(source_tokens, signal_handlers[signal], OUT lindex) THEN
                 vars["SIGL"] := str(tokens[i].line)
                 contexts := []
                 tokens := source_tokens
                 i := lindex + 1
                 -- TODO: pop contexts and restore vars/arrays
             ELSE
-                print("syntax error: \(e.info)")
+                print("unhandled signal: \(e.name) \(e.info)")
                 sys.exit(1)
             END IF
         END TRY
@@ -2382,6 +2427,9 @@ BEGIN MAIN
     --FOREACH t IN source_tokens INDEX i DO
     --    print("\(i) \(t.type) \(t.value)")
     --END FOREACH
+    FOREACH s IN Signals DO
+        signal_handlers[s] := s
+    END FOREACH
     contexts.append(ContextEntry(call_return_ip WITH -1, call_args WITH [string.join(sys.args[2 TO LAST], " ")]))
     interpret()
     ASSERT contexts.size() = 1
