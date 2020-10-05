@@ -486,14 +486,14 @@ void neon_num(TExecutor *exec)
     // Require at least one digit in the input.
     if (strcspn(str, "0123456789") == strlen(str)) {
         free(str);
-        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number", BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number");
         return;
     }
     Number n = number_from_string(str);
     free(str);
 
     if (number_is_nan(n)) {
-        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number", BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number");
         return;
     }
     push(exec->stack, cell_fromNumber(n));
@@ -570,7 +570,7 @@ void array__find(TExecutor *exec)
     }
 
     if (number_is_negative(r)) {
-        exec->rtl_raise(exec, "ArrayIndexException", "value not found in array", BID_ZERO);
+        exec->rtl_raise(exec, "ArrayIndexException", "value not found in array");
         return;
     }
 
@@ -586,7 +586,7 @@ void array__range(TExecutor *exec)
     Number first = top(exec->stack)->number; pop(exec->stack);
 
     if (number_is_zero(step)) {
-        exec->rtl_raise(exec, "ValueRangeException", number_to_string(step), BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", number_to_string(step));
         return;
     }
 
@@ -611,7 +611,7 @@ void array__remove(TExecutor *exec)
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
 
     if (!number_is_integer(index)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(index), BID_ZERO);
+        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(index));
         return;
     }
 
@@ -627,7 +627,7 @@ void array__resize(TExecutor *exec)
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
 
     if (!number_is_integer(new_size)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(new_size), BID_ZERO);
+        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(new_size));
         return;
     }
 
@@ -759,7 +759,7 @@ void array__toBytes__number(TExecutor *exec)
     for (x = 0, i = 0; x < a->array->size; x++) {
         uint32_t b = number_to_uint32(a->array->data[x].number);
         if (b >= 256) {
-            exec->rtl_raise(exec, "ByteOutOfRangeException", TO_STRING(b), BID_ZERO);
+            exec->rtl_raise(exec, "ByteOutOfRangeException", TO_STRING(b));
             cell_freeCell(a);
             cell_freeCell(r);
             return;
@@ -853,12 +853,12 @@ void bytes__range(TExecutor *exec)
 
     if (!number_is_integer(first)) {
         pop(exec->stack);
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first), BID_ZERO);
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
         return;
     }
     if (!number_is_integer(last)) {
         pop(exec->stack);
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last), BID_ZERO);
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
         return;
     }
 
@@ -874,21 +874,21 @@ void bytes__range(TExecutor *exec)
         pop(exec->stack);
         char n[128];
         snprintf(n, 128, "%" PRId64, fst);
-        exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
+        exec->rtl_raise(exec, "BytesIndexException", n);
         return;
     }
     if (fst >= (int64_t)t->string->length) {
         pop(exec->stack);
         char n[128];
         snprintf(n, 128, "%" PRId64, fst);
-        exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
+        exec->rtl_raise(exec, "BytesIndexException", n);
         return;
     }
     if (lst >= (int64_t)t->string->length) {
         pop(exec->stack);
         char n[128];
         snprintf(n, 128, "%" PRId64, lst);
-        exec->rtl_raise(exec, "BytesIndexException", n, BID_ZERO);
+        exec->rtl_raise(exec, "BytesIndexException", n);
         return;
     }
 
@@ -1028,15 +1028,13 @@ void exceptiontype__toString(struct tagTExecutor *exec)
 {
     Cell *ex = top(exec->stack);
 
-    assert(ex->array->size == 4);
+    assert(ex->array->size == 3);
     Cell *r = cell_fromCString("<ExceptionType:");
     string_appendString(r->string, ex->array->data[0].string);
     string_appendChar(r->string, ',');
-    string_appendString(r->string, ex->array->data[1].string);
+    string_appendString(r->string, cell_toString(&ex->array->data[1]));
     string_appendChar(r->string, ',');
     string_appendCString(r->string, number_to_string(ex->array->data[2].number));
-    string_appendChar(r->string, ',');
-    string_appendCString(r->string, number_to_string(ex->array->data[3].number));
     string_appendChar(r->string, '>');
 
     pop(exec->stack);
@@ -1060,7 +1058,7 @@ void object__getArray(TExecutor *exec)
 {
     Cell *a = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (a->type != cArray) {
-        exec_rtl_raiseException(exec, "DynamicConversionException", "to Array", BID_ZERO);
+        exec_rtl_raiseException(exec, "DynamicConversionException", "to Array");
         cell_freeCell(a);
         return;
     }
@@ -1071,7 +1069,7 @@ void object__getBoolean(TExecutor *exec)
 {
     Cell *b = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (b->type != cBoolean) {
-        exec_rtl_raiseException(exec, "DynamicConversionException", "to Boolean", BID_ZERO);
+        exec_rtl_raiseException(exec, "DynamicConversionException", "to Boolean");
         cell_freeCell(b);
         return;
     }
@@ -1082,7 +1080,7 @@ void object__getBytes(TExecutor *exec)
 {
     Cell *b = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (b->type != cBytes) {
-        exec_rtl_raiseException(exec, "DynamicConversionException", "to Bytes", BID_ZERO);
+        exec_rtl_raiseException(exec, "DynamicConversionException", "to Bytes");
         cell_freeCell(b);
         return;
     }
@@ -1093,7 +1091,7 @@ void object__getDictionary(TExecutor *exec)
 {
     Cell *d = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (d->type != cDictionary) {
-        exec_rtl_raiseException(exec, "DynamicConversionException", "to Dictionary", BID_ZERO);
+        exec_rtl_raiseException(exec, "DynamicConversionException", "to Dictionary");
         cell_freeCell(d);
         return;
     }
@@ -1104,7 +1102,7 @@ void object__getNumber(TExecutor *exec)
 {
     Cell *v = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (v->type != cNumber) {
-        exec_rtl_raiseException(exec, "DynamicConversionException", "to Number", BID_ZERO);
+        exec_rtl_raiseException(exec, "DynamicConversionException", "to Number");
         cell_freeCell(v);
         return;
     }
@@ -1115,7 +1113,7 @@ void object__getString(TExecutor *exec)
 {
     Cell *s = cell_fromCell(top(exec->stack)->object->ptr); pop(exec->stack);
     if (s->type != cString) {
-        exec_rtl_raiseException(exec, "DynamicConversionException", "to String", BID_ZERO);
+        exec_rtl_raiseException(exec, "DynamicConversionException", "to String");
         cell_freeCell(s);
         return;
     }
@@ -1183,14 +1181,14 @@ void object__subscript(struct tagTExecutor *exec)
     Cell *o = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *r = cell_newCell();
     if (o->object->ptr == NULL) {
-        exec->rtl_raise(exec, "DynamicConversionException", "object is null", BID_ZERO);
+        exec->rtl_raise(exec, "DynamicConversionException", "object is null");
         cell_freeCell(index);
         cell_freeCell(o);
         cell_freeCell(r);
         return;
     }
     if (index->object->ptr == NULL) {
-        exec->rtl_raise(exec, "DynamicConversionException", "index is null", BID_ZERO);
+        exec->rtl_raise(exec, "DynamicConversionException", "index is null");
         cell_freeCell(index);
         cell_freeCell(o);
         cell_freeCell(r);
@@ -1198,7 +1196,7 @@ void object__subscript(struct tagTExecutor *exec)
     }
     if (o->object->type == oArray) {
         if (index->object->type != oNumber) {
-            exec->rtl_raise(exec, "DynamicConversionException", "to Number", BID_ZERO);
+            exec->rtl_raise(exec, "DynamicConversionException", "to Number");
             cell_freeCell(index);
             cell_freeCell(o);
             cell_freeCell(r);
@@ -1207,7 +1205,7 @@ void object__subscript(struct tagTExecutor *exec)
         Number i = ((Cell*)index->object->ptr)->number;
         uint64_t ii = number_to_uint64(i);
         if (ii >= ((Cell*)o->object->ptr)->array->size) {
-            exec->rtl_raise(exec, "ArrayIndexException", number_to_string(i), BID_ZERO);
+            exec->rtl_raise(exec, "ArrayIndexException", number_to_string(i));
             cell_freeCell(index);
             cell_freeCell(o);
             cell_freeCell(r);
@@ -1216,7 +1214,7 @@ void object__subscript(struct tagTExecutor *exec)
         cell_copyCell(r, &((Cell*)o->object->ptr)->array->data[ii]);
     } else if (o->object->type == oDictionary) {
         if (index->object->type != oString) {
-            exec->rtl_raise(exec, "DynamicConversionException", "to String", BID_ZERO);
+            exec->rtl_raise(exec, "DynamicConversionException", "to String");
             cell_freeCell(index);
             cell_freeCell(o);
             cell_freeCell(r);
@@ -1227,7 +1225,7 @@ void object__subscript(struct tagTExecutor *exec)
         if (e == NULL) {
             Cell *str = object_toString(index->object);
             char *x = string_asCString(str->string);
-            exec->rtl_raise(exec, "ObjectSubscriptException", x, BID_ZERO);
+            exec->rtl_raise(exec, "ObjectSubscriptException", x);
             cell_freeCell(str);
             free(x);
             cell_freeCell(index);
@@ -1239,7 +1237,7 @@ void object__subscript(struct tagTExecutor *exec)
     } else {
         TString *str = cell_toString(index->object->ptr);
         char *x = string_asCString(str);
-        exec->rtl_raise(exec, "ObjectSubscriptException", x, BID_ZERO);
+        exec->rtl_raise(exec, "ObjectSubscriptException", x);
         string_freeString(str);
         free(x);
         cell_freeCell(index);
@@ -1256,7 +1254,7 @@ void object__toString(TExecutor *exec)
 {
     Cell *s = object_toString(top(exec->stack)->object); pop(exec->stack);
     if (s == NULL) {
-        exec_rtl_raiseException(exec, "DynamicConversionException", "to String", BID_ZERO);
+        exec_rtl_raiseException(exec, "DynamicConversionException", "to String");
         return;
     }
     push(exec->stack, s);
@@ -1320,7 +1318,7 @@ void string__index(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(index)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(index), BID_ZERO);
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(index));
         return;
     }
 
@@ -1328,13 +1326,13 @@ void string__index(TExecutor *exec)
     if (i < 0) {
         char n[128];
         snprintf(n, 128, "%" PRId64, i);
-        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
     if (i >= (int64_t)a->string->length) {
         char n[128];
         snprintf(n, 128, "%" PRId64, i);
-        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
 
@@ -1395,11 +1393,11 @@ void string__substring(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(first), BID_ZERO);
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
         return;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(last), BID_ZERO);
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
         return;
     }
 
@@ -1414,19 +1412,19 @@ void string__substring(TExecutor *exec)
     if (f < 0) {
         char n[128];
         snprintf(n, 128, "%" PRId64, f);
-        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
     if (f >= (int64_t)a->string->length) {
         char n[128];
         snprintf(n, 128, "%" PRId64, f);
-        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
     if (l >= (int64_t)a->string->length) {
         char n[128];
         snprintf(n, 128, "%" PRId64, l);
-        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
 

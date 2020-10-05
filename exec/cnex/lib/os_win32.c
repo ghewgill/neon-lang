@@ -15,7 +15,7 @@
 static Object *check_process(TExecutor *exec, Object *pp)
 {
     if (pp == NULL || pp->ptr == INVALID_HANDLE_VALUE) {
-        exec->rtl_raise(exec, "OsException.InvalidProcess", "", BID_ZERO);
+        exec->rtl_raise(exec, "OsException.InvalidProcess", "");
         return NULL;
     }
     return pp;
@@ -69,7 +69,7 @@ void os_chdir(TExecutor *exec)
 
     BOOL r = SetCurrentDirectory(path);
     if (r == FALSE) {
-        exec->rtl_raise(exec, "OsException.PathNotFound", path, BID_ZERO);
+        exec->rtl_raise(exec, "OsException.PathNotFound", path);
     }
     free(path);
 }
@@ -126,7 +126,7 @@ void os_spawn(TExecutor *exec)
                             &pi);
     if (r == FALSE) {
         free(cmd);
-        exec->rtl_raise(exec, "OsException.PathNotFound", cmd, BID_ZERO);
+        exec->rtl_raise(exec, "OsException.PathNotFound", cmd);
         return;
     }
     AssignProcessToJobObject(job, pi.hProcess);

@@ -57,7 +57,7 @@ static FILE *check_file(TExecutor *exec, void *pf)
 {
     FILE *f = (FILE *)(pf);
     if (f == NULL) {
-        exec->rtl_raise(exec, "IoException.InvalidFile", "", BID_ZERO);
+        exec->rtl_raise(exec, "IoException.InvalidFile", "");
         // Exception code will return from here, since f is already NULL.
     }
     return f;
@@ -106,7 +106,7 @@ void io_open(TExecutor *exec)
 
     FILE *f = fopen(pszName, m);
     if (f == NULL) {
-        exec->rtl_raise(exec, "IoException.Open", "", number_from_sint32(errno));
+        exec->rtl_raise(exec, "IoException.Open", "");
         return;
     }
     Object *r = object_createFileObject(f);
@@ -183,11 +183,11 @@ void io_truncate(TExecutor *exec)
     long ofs = ftell(f);
 #ifdef _WIN32
     if (_chsize(_fileno(f), ofs) != 0) {
-        exec->rtl_raise(exec, "Write", "", BID_ZERO);
+        exec->rtl_raise(exec, "Write", "");
     }
 #else
     if (ftruncate(fileno(f), ofs) != 0) {
-        exec->rtl_raise(exec, "Write", "", BID_ZERO);
+        exec->rtl_raise(exec, "Write", "");
     }
 #endif
 }

@@ -68,7 +68,7 @@ FUNCTION tokenise(s: String): Array<Token>
             WHEN " " DO
                 -- Skip whitespace.
             WHEN OTHERS DO
-                RAISE SyntaxException(info WITH "unexpected character")
+                RAISE SyntaxException("unexpected character")
         END CASE
         INC i
     END WHILE
@@ -161,7 +161,7 @@ FUNCTION parse(tokens: Array<Token>): Expression
 
     FUNCTION parseAtom(INOUT i: Number): POINTER TO Node
         CHECK i < tokens.size() ELSE
-            RAISE SyntaxException(info WITH "unexpected end of input")
+            RAISE SyntaxException("unexpected end of input")
         END CHECK
         -- TODO: Can't assign literal NIL to interface pointer.
         -- TODO: Variable initialisation checker doesn't seem to work here.
@@ -188,11 +188,11 @@ FUNCTION parse(tokens: Array<Token>): Expression
                 INC i
                 r := parseExpr(INOUT i)
                 CHECK i < tokens.size() AND tokens[i].type = TokenType.rparen ELSE
-                    RAISE SyntaxException(info WITH "right parenthesis expected")
+                    RAISE SyntaxException("right parenthesis expected")
                 END CHECK
                 INC i
             WHEN OTHERS DO
-                RAISE SyntaxException(info WITH "expected number, name, or '('")
+                RAISE SyntaxException("expected number, name, or '('")
         END CASE
         RETURN r
     END FUNCTION
@@ -250,7 +250,7 @@ FUNCTION parse(tokens: Array<Token>): Expression
     VAR index: Number := 0
     e.top := parseExpr(INOUT index)
     CHECK index = tokens.size() ELSE
-        RAISE SyntaxException(info WITH "extra input after expression")
+        RAISE SyntaxException("extra input after expression")
     END CHECK
     RETURN e
 END FUNCTION

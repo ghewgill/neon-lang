@@ -133,7 +133,7 @@ LoopStatement = 'LOOP', ['LABEL', Identifier], {Statement}, 'END', 'LOOP';
 
 NextStatement = 'NEXT', ('WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT' | Identifier);
 
-RaiseStatement = 'RAISE', Identifier, {'.', Identifier}, ['(', Identifier, 'WITH', Expression, {',', Identifier, 'WITH', Expression}, ')'];
+RaiseStatement = 'RAISE', Identifier, {'.', Identifier}, ['(', Expression, ')'];
 
 RepeatStatement = 'REPEAT', ['LABEL', Identifier], {Statement}, 'UNTIL', Expression;
 

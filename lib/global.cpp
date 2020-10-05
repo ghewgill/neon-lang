@@ -437,11 +437,9 @@ utf8string exceptiontype__toString(Cell &ei)
     return utf8string("<ExceptionType:")
          + ei.array_for_write()[0].string()
          + utf8string(",")
-         + ei.array_for_write()[1].string()
+         + ei.array_for_write()[1].object()->toString()
          + utf8string(",")
          + utf8string(number_to_string(ei.array_for_write()[2].number()))
-         + utf8string(",")
-         + utf8string(number_to_string(ei.array_for_write()[3].number()))
          + utf8string(">");
 }
 

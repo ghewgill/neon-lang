@@ -1318,20 +1318,10 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
 
     {
         // The fields here must match the corresponding references to
-        // ExceptionInfo in exec.cpp.
-        std::vector<TypeRecord::Field> fields;
-        fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
-        fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
-        Type *exception_info = new TypeRecord(Token(), "global", "ExceptionInfo", fields);
-        scope->addName(Token(IDENTIFIER, "ExceptionInfo"), "ExceptionInfo", exception_info, true);
-    }
-    {
-        // The fields here must match the corresponding references to
         // ExceptionType in exec.cpp.
         std::vector<TypeRecord::Field> fields;
         fields.push_back(TypeRecord::Field(Token("name"), TYPE_STRING, false));
-        fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
-        fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
+        fields.push_back(TypeRecord::Field(Token("info"), TYPE_OBJECT, false));
         fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
         Type *exception_type = new TypeRecord(Token(), "global", "ExceptionType", fields);
         exception_type->methods["toString"] = new PredefinedFunction("exceptiontype__toString", new TypeFunction(TYPE_STRING, { new ParameterType(Token(), ParameterType::Mode::IN, exception_type, nullptr) }, false));

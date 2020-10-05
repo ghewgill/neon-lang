@@ -9,8 +9,12 @@ class NeObjectString implements NeObject {
         return s;
     }
 
-    public String toString() {
+    public String toLiteralString() {
         return "\"" + s + "\"";
+    }
+
+    public String toString() {
+        return s;
     }
 
     private String s;

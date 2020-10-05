@@ -435,11 +435,10 @@ FUNCTION Executor.invoke(INOUT self: Executor, index: Number)
     self.ip := self.bytecode.functions[index].entry
 END FUNCTION
 
-FUNCTION Executor.raise_literal(INOUT self: Executor, exception: String, info: ExceptionInfo)
+FUNCTION Executor.raise_literal(INOUT self: Executor, exception: String, info: Object)
     VAR exceptionvar: Array<POINTER TO Value> := [
         makeValueString(exception),
-        makeValueString(info.info),
-        makeValueNumber(info.code),
+        makeValueObject(info),
         makeValueNumber(self.ip),
     ]
     VAR tip: Number := self.ip
@@ -469,7 +468,7 @@ FUNCTION Executor.raise_literal(INOUT self: Executor, exception: String, info: E
         END IF
         tip := self.callstack[sp]
     END LOOP
-    textio.writeLine(textio.stderr, "Unhandled exception \(exception) (\(info.info)) (code \(info.code))")
+    textio.writeLine(textio.stderr, "Unhandled exception \(exception) (\(info))")
     sys.exit(1)
 END FUNCTION
 
@@ -715,7 +714,7 @@ FUNCTION f_divn(INOUT self: Executor)
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
     CHECK b <> 0 ELSE
-        self.raise_literal("DivideByZeroException", ExceptionInfo())
+        self.raise_literal("DivideByZeroException", "")
         EXIT FUNCTION
     END CHECK
     self.stack.append(makeValueNumber(a / b))
@@ -934,7 +933,7 @@ FUNCTION f_indexar(INOUT self: Executor)
         RAISE InternalException
     END CHECK
     CHECK index = math.trunc(index) AND 0 <= index < addr->a.size() ELSE
-        self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH str(index)))
+        self.raise_literal("ArrayIndexException", index)
         EXIT FUNCTION
     END CHECK
     self.stack.append(makeValuePointer(addr->a[index]))
@@ -948,7 +947,7 @@ FUNCTION f_indexaw(INOUT self: Executor)
         RAISE InternalException
     END CHECK
     CHECK index = math.trunc(index) AND 0 <= index ELSE
-        self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH str(index)))
+        self.raise_literal("ArrayIndexException", index)
         EXIT FUNCTION
     END CHECK
     WHILE index >= addr->a.size() DO
@@ -962,7 +961,7 @@ FUNCTION f_indexav(INOUT self: Executor)
     LET index: Number := self.pop()->n
     LET array: Array<POINTER TO Value> := self.pop()->a
     CHECK index = math.trunc(index) AND 0 <= index < array.size() ELSE
-        self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH str(index)))
+        self.raise_literal("ArrayIndexException", index)
         EXIT FUNCTION
     END CHECK
     self.stack.append(array[index])
@@ -980,7 +979,7 @@ FUNCTION f_indexdr(INOUT self: Executor)
         RAISE InternalException
     END CHECK
     CHECK key IN addr->d ELSE
-        self.raise_literal("DictionaryIndexException", ExceptionInfo(info WITH key))
+        self.raise_literal("DictionaryIndexException", key)
         EXIT FUNCTION
     END CHECK
     self.stack.append(makeValuePointer(addr->d[key]))
@@ -1004,7 +1003,7 @@ FUNCTION f_indexdv(INOUT self: Executor)
     LET key: String := self.pop()->s
     LET dict: Dictionary<POINTER TO Value> := self.pop()->d
     CHECK key IN dict ELSE
-        self.raise_literal("DictionaryIndexException", ExceptionInfo(info WITH key))
+        self.raise_literal("DictionaryIndexException", key)
         EXIT FUNCTION
     END CHECK
     self.stack.append(dict[key])
@@ -1046,7 +1045,7 @@ FUNCTION f_callp(INOUT self: Executor)
         --        END IF
         --    END FOREACH
         --    IF NOT found THEN
-        --        self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH "value not found in array"))
+        --        self.raise_literal("ArrayIndexException", "value not found in array")
         --    END IF
         WHEN "array__size" DO
             LET a: VALID POINTER TO Value := self.pop()
@@ -1122,11 +1121,11 @@ FUNCTION f_callp(INOUT self: Executor)
                 last := last + y.size() - 1
             END IF
             IF first < 0 THEN
-                self.raise_literal("BytesIndexException", ExceptionInfo(info WITH str(first)))
+                self.raise_literal("BytesIndexException", first)
             ELSIF first >= y.size() THEN
-                self.raise_literal("BytesIndexException", ExceptionInfo(info WITH str(first)))
+                self.raise_literal("BytesIndexException", first)
             ELSIF last >= y.size() THEN
-                self.raise_literal("BytesIndexException", ExceptionInfo(info WITH str(last)))
+                self.raise_literal("BytesIndexException", last)
             ELSE
                 IF last < 0 THEN
                     last := -1
@@ -1183,27 +1182,23 @@ FUNCTION f_callp(INOUT self: Executor)
             LET ei: Array<POINTER TO Value> := self.pop()->a
             VAR name: String := ""
             VAR info: String := ""
-            VAR code: Number := 0
             VAR offset: Number := 0
             IF VALID ei[0] AS p THEN
                 name := p->s
             END IF
             IF VALID ei[1] AS p THEN
-                info := p->s
+                info := p->o
             END IF
             IF VALID ei[2] AS p THEN
-                code := p->n
-            END IF
-            IF VALID ei[3] AS p THEN
                 offset := p->n
             END IF
-            self.stack.append(makeValueString("<ExceptionType:\(name),\(info),\(code),\(offset)>"))
+            self.stack.append(makeValueString("<ExceptionType:\(name),\(info),\(offset)>"))
         WHEN "num" DO
             LET s: String := self.pop()->s
             TRY
                 self.stack.append(makeValueNumber(num(s)))
             TRAP ValueRangeException DO
-                self.raise_literal("ValueRangeException", ExceptionInfo(info WITH s))
+                self.raise_literal("ValueRangeException", s)
             END TRY
         WHEN "object__getArray" DO
             TRY
@@ -1214,19 +1209,19 @@ FUNCTION f_callp(INOUT self: Executor)
                 END FOREACH
                 self.stack.append(makeValueArray(r))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Array"))
+                self.raise_literal("DynamicConversionException", "to Array")
             END TRY
         WHEN "object__getBoolean" DO
             TRY
                 self.stack.append(makeValueBoolean(self.pop()->o))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Boolean"))
+                self.raise_literal("DynamicConversionException", "to Boolean")
             END TRY
         WHEN "object__getBytes" DO
             TRY
                 self.stack.append(makeValueBytes(self.pop()->o))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Bytes"))
+                self.raise_literal("DynamicConversionException", "to Bytes")
             END TRY
         WHEN "object__getDictionary" DO
             TRY
@@ -1239,19 +1234,19 @@ FUNCTION f_callp(INOUT self: Executor)
                 END FOREACH
                 self.stack.append(makeValueDictionary(r))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Dictionary"))
+                self.raise_literal("DynamicConversionException", "to Dictionary")
             END TRY
         WHEN "object__getNumber" DO
             TRY
                 self.stack.append(makeValueNumber(self.pop()->o))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Number"))
+                self.raise_literal("DynamicConversionException", "to Number")
             END TRY
         WHEN "object__getString" DO
             TRY
                 self.stack.append(makeValueString(self.pop()->o))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to String"))
+                self.raise_literal("DynamicConversionException", "to String")
             END TRY
         WHEN "object__isNull" DO
             self.stack.append(makeValueBoolean(self.pop()->o.isNull()))
@@ -1273,18 +1268,18 @@ FUNCTION f_callp(INOUT self: Executor)
             LET index: Object := self.pop()->o
             LET obj: Object := self.pop()->o
             IF obj.isNull() THEN
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "object is null"))
+                self.raise_literal("DynamicConversionException", "object is null")
             ELSIF index.isNull() THEN
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "index is null"))
+                self.raise_literal("DynamicConversionException", "index is null")
             ELSE
                 TRY
                     self.stack.append(makeValueObject(obj[index]))
                 TRAP ArrayIndexException AS e DO
-                    self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH e.info))
+                    self.raise_literal("ArrayIndexException", e.info)
                 TRAP DynamicConversionException AS e DO
-                    self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH e.info))
+                    self.raise_literal("DynamicConversionException", e.info)
                 TRAP ObjectSubscriptException AS e DO
-                    self.raise_literal("ObjectSubscriptException", ExceptionInfo(info WITH e.info))
+                    self.raise_literal("ObjectSubscriptException", e.info)
                 END TRY
             END IF
         WHEN "object__toString" DO
@@ -1422,20 +1417,8 @@ FUNCTION f_except(INOUT self: Executor)
     INC self.ip
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
     self.ip := start_ip
-    VAR info: Array<POINTER TO Value> := self.pop()->a
-    VAR ei: ExceptionInfo := ExceptionInfo()
-    LET size: Number := info.size()
-    IF size >= 1 THEN
-        IF VALID info[0] AS p THEN
-            ei.info := p->s
-        END IF
-    END IF
-    IF size >= 2 THEN
-        IF VALID info[1] AS p THEN
-            ei.code := p->n
-        END IF
-    END IF
-    self.raise_literal(self.bytecode.strtable[val], ei)
+    LET info: Object := self.pop()->o
+    self.raise_literal(self.bytecode.strtable[val], info)
 END FUNCTION
 
 FUNCTION f_alloc(INOUT self: Executor)

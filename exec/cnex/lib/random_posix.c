@@ -23,7 +23,7 @@ void random_bytes(TExecutor *exec)
     int fd = open("/dev/urandom", O_RDONLY);
     if (fd < 0) {
         cell_freeCell(r);
-        exec->rtl_raise(exec, "RandomException", "could not open /dev/urandom", BID_ZERO);
+        exec->rtl_raise(exec, "RandomException", "could not open /dev/urandom");
         return;
     }
     char *p = r->string->data;
@@ -32,7 +32,7 @@ void random_bytes(TExecutor *exec)
         if (n < 1) {
             close(fd);
             cell_freeCell(r);
-            exec->rtl_raise(exec, "RandomException", "error reading from /dev/urandom", BID_ZERO);
+            exec->rtl_raise(exec, "RandomException", "error reading from /dev/urandom");
             return;
         }
         count -= n;

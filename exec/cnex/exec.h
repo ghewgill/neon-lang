@@ -20,7 +20,7 @@ typedef struct tagTExecutor {
     BOOL enable_assert;
     BOOL debug;
     BOOL disassemble;
-    void (*rtl_raise)(struct tagTExecutor *, const char *, const char *, Number);
+    void (*rtl_raise)(struct tagTExecutor *, const char *, const char *);
     unsigned int module_count;
     struct tagTModule *module;
     struct tagTModule **modules;
@@ -47,6 +47,6 @@ int exec_run(struct tagTExecutor *self, BOOL enable_assert);
 
 void invoke(struct tagTExecutor *self, struct tagTModule *m, int index);
 
-void exec_rtl_raiseException(struct tagTExecutor *self, const char *name, const char *info, Number code);
+void exec_rtl_raiseException(struct tagTExecutor *self, const char *name, const char *info);
 
 #endif

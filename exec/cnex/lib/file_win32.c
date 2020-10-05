@@ -13,16 +13,16 @@
 static void handle_error(TExecutor *exec, DWORD error, TString *path)
 {
     switch (error) {
-        case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException.DirectoryExists", TCSTR(path), number_from_uint32(error));     break;
-        case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException.PermissionDenied", TCSTR(path), number_from_uint32(error));    break;
-        case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException.PathNotFound", TCSTR(path), number_from_uint32(error));        break;
-        case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException.Exists", TCSTR(path), number_from_uint32(error));              break;
-        case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException.PermissionDenied", TCSTR(path), number_from_uint32(error));    break;
+        case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException.DirectoryExists", TCSTR(path));     break;
+        case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException.PermissionDenied", TCSTR(path));    break;
+        case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException.PathNotFound", TCSTR(path));        break;
+        case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException.Exists", TCSTR(path));              break;
+        case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException.PermissionDenied", TCSTR(path));    break;
         default:
         {
             char err[MAX_PATH + 32];
             snprintf(err, sizeof(err), "%s: %d", TCSTR(path), error);
-            exec->rtl_raise(exec, "FileException", err, number_from_uint32(error));
+            exec->rtl_raise(exec, "FileException", err);
             break;
         }
     }

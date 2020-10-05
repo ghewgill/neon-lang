@@ -37,6 +37,7 @@ equality.neon              # DictionaryComparisonExpression
 exception-as.neon          # exception offset
 exception-subexception.neon# exception multiple handlers
 exception-tostring.neon    # exception tostring
+exception-trace.neon       # exception
 export.neon                # method
 file-exists.neon           # module file
 file-filecopied.neon       # module file
