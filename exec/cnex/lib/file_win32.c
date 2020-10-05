@@ -22,7 +22,7 @@ static void handle_error(TExecutor *exec, DWORD error, TString *path)
         {
             char err[MAX_PATH + 32];
             snprintf(err, sizeof(err), "%s: %d", TCSTR(path), error);
-            exec->rtl_raise(exec, "FileException", err, number_from_uint32(error));
+            exec->rtl_raise(exec, "FileException", err);
             break;
         }
     }
