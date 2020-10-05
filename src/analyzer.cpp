@@ -4583,7 +4583,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 new ast::RaiseStatement(
                     statement->token.line,
                     exception,
-                    new ast::ConstantStringExpression(utf8string("No records found"))
+                    convert(ast::TYPE_OBJECT, new ast::ConstantStringExpression(utf8string("No records found")))
                 )
             );
             break;

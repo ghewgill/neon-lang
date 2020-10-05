@@ -1094,7 +1094,7 @@ class Executor {
 
     private void raiseLiteral(String name, String info)
     {
-        raiseLiteral(name, info);
+        raiseLiteral(name, new NeObjectString(info));
     }
 
     private void raiseLiteral(String name, NeObject info)

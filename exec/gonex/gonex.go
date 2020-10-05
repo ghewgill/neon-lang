@@ -3139,7 +3139,7 @@ func (self *executor) raise_literal(exception string, info object) {
 		tip = self.callstack[sp].ip
 	}
 
-	fmt.Fprintf(os.Stderr, "Unhandled exception %s (%s)\n", exception, info)
+	fmt.Fprintf(os.Stderr, "Unhandled exception %s (%s)\n", exception, info.toString())
 	os.Exit(1)
 }
 

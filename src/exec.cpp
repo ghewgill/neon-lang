@@ -470,13 +470,12 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
     }
 }
 
-int raise_exception(struct Ne_Cell *retval, const char *name, const char *info, int code)
+int raise_exception(struct Ne_Cell *retval, const char *name, const char *info, int /*code*/)
 {
     Cell *r = reinterpret_cast<Cell *>(retval);
-    r->array_for_write().resize(3);
+    r->array_for_write().resize(2);
     r->array_for_write()[0].string_for_write() = utf8string(name);
-    r->array_for_write()[1].string_for_write() = utf8string(info);
-    r->array_for_write()[2].number() = number_from_sint64(code);
+    r->array_for_write()[1] = Cell(rtl::ne_global::object__makeString(utf8string(info)));
     return Ne_EXCEPTION;
 }
 

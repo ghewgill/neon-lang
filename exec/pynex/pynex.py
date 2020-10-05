@@ -1267,6 +1267,7 @@ class Executor:
         self.ip = self.module.object.functions[index].entry
 
     def raise_literal(self, name, info):
+        assert isinstance(info, str)
         exceptionvar = [
             Value(name),
             Value(info),
@@ -2055,11 +2056,11 @@ def neon_object__subscript(self):
             self.raise_literal("DynamicConversionException", "to String")
             return
         if not i in v:
-            self.raise_literal("ObjectSubscriptException", i)
+            self.raise_literal("ObjectSubscriptException", str(i))
             return
         self.stack.append(v[i].value)
     else:
-        self.raise_literal("ObjectSubscriptException", i)
+        self.raise_literal("ObjectSubscriptException", str(i))
 
 def neon_object__toString(self):
     v = self.stack.pop()
