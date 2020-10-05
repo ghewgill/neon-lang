@@ -462,13 +462,7 @@ Program
   RaiseStatement(name,name)
     nullptr
   RaiseStatement(name)
-    FunctionCallExpression
-      IdentifierExpression(ExceptionInfo)
-      IdentifierExpression(expr)
-  RaiseStatement(name)
-    FunctionCallExpression
-      IdentifierExpression(ExceptionInfo)
-      IdentifierExpression(expr)
+    IdentityExpression
       IdentifierExpression(expr)
   RepeatStatement
     REPEAT

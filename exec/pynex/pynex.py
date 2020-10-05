@@ -1267,7 +1267,6 @@ class Executor:
         self.ip = self.module.object.functions[index].entry
 
     def raise_literal(self, name, info):
-        assert isinstance(info, str)
         exceptionvar = [
             Value(name),
             Value(info),
