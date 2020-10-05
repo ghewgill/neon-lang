@@ -43,7 +43,7 @@ std::shared_ptr<Object> open(const utf8string &name)
     sqlite3 *db;
     int r = sqlite3_open(name.c_str(), &db);
     if (r != SQLITE_OK) {
-        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db)), r);
+        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db)));
     }
     return std::shared_ptr<Object> { new DatabaseObject(db) };
 }
@@ -55,7 +55,7 @@ Cell exec(const std::shared_ptr<Object> &pdb, const utf8string &sql, const std::
     sqlite3_stmt *stmt;
     int r = sqlite3_prepare_v2(db->db, sql.c_str(), -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
+        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)));
     }
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
@@ -64,7 +64,7 @@ Cell exec(const std::shared_ptr<Object> &pdb, const utf8string &sql, const std::
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
+            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)));
         }
     }
     int columns = sqlite3_column_count(stmt);
@@ -80,7 +80,7 @@ Cell exec(const std::shared_ptr<Object> &pdb, const utf8string &sql, const std::
             }
             rows.push_back(Cell(row));
         } else {
-            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
+            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)));
         }
     }
     sqlite3_finalize(stmt);
@@ -93,7 +93,7 @@ bool execOne(const std::shared_ptr<Object> &pdb, const utf8string &sql, const st
     sqlite3_stmt *stmt;
     int r = sqlite3_prepare_v2(db->db, sql.c_str(), -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
+        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)));
     }
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
@@ -102,7 +102,7 @@ bool execOne(const std::shared_ptr<Object> &pdb, const utf8string &sql, const st
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
+            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)));
         }
     }
     int columns = sqlite3_column_count(stmt);
@@ -116,7 +116,7 @@ bool execOne(const std::shared_ptr<Object> &pdb, const utf8string &sql, const st
             result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
         }
     } else {
-        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
+        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)));
     }
     sqlite3_finalize(stmt);
     return true;
@@ -129,7 +129,7 @@ Cell execRaw(const std::shared_ptr<Object> &pdb, const utf8string &sql)
     char *errmsg;
     int r = sqlite3_exec(db->db, sql.c_str(), callback, &rows, &errmsg);
     if (r != SQLITE_OK) {
-        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)), r);
+        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)));
     }
     return Cell(rows);
 }
@@ -149,7 +149,7 @@ public:
     {
         int r = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
         if (r != SQLITE_OK) {
-            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db)), r);
+            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db)));
         }
         columns = sqlite3_column_count(stmt);
     }
@@ -165,7 +165,7 @@ public:
                 result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
             }
         } else {
-            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db)), r);
+            throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db)));
         }
         return true;
     }

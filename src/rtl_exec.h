@@ -8,10 +8,10 @@
 
 class RtlException {
 public:
-    RtlException(const ExceptionName &name, const utf8string &info, uint32_t code = 0): name(name.name), info(info), code(code) {}
     std::string name;
     utf8string info;
-    uint32_t code;
+public:
+    RtlException(const ExceptionName &name, const utf8string &info): name(name.name), info(info) {}
 };
 
 void rtl_exec_init(int argc, char *argv[]);

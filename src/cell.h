@@ -22,6 +22,12 @@ public:
     virtual utf8string toString() const = 0;
 };
 
+namespace rtl {
+namespace ne_global {
+std::shared_ptr<Object> object__makeString(const utf8string &s);
+}
+}
+
 // TODO: See if we can use std::variant (C++17) for this.
 
 class Cell {

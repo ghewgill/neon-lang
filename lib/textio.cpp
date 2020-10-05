@@ -61,7 +61,7 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
     }
     FILE *f = fopen(name.c_str(), m);
     if (f == NULL) {
-        throw RtlException(Exception_TextioException_Open, utf8string("open error"), errno);
+        throw RtlException(Exception_TextioException_Open, utf8string("open error " + std::to_string(errno)));
     }
     return std::shared_ptr<Object> { new TextFileObject(f) };
 }

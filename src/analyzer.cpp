@@ -4583,9 +4583,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 new ast::RaiseStatement(
                     statement->token.line,
                     exception,
-                    new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionInfo")), {
-                        new ast::ConstantStringExpression(utf8string("No records found"))
-                    })
+                    new ast::ConstantStringExpression(utf8string("No records found"))
                 )
             );
             break;
@@ -5198,10 +5196,9 @@ const ast::Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
     if (statement->info != nullptr) {
         info = analyze(statement->info.get());
     } else {
-        std::vector<const ast::Expression *> values;
-        info = new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(s->lookupName("ExceptionInfo")), values);
+        info = new ast::ConstantStringExpression(utf8string(""));
     }
-    return new ast::RaiseStatement(statement->token.line, sn, info);
+    return new ast::RaiseStatement(statement->token.line, sn, convert(ast::TYPE_OBJECT, info));
 }
 
 const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
