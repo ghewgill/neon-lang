@@ -468,7 +468,7 @@ FUNCTION Executor.raise_literal(INOUT self: Executor, exception: String, info: O
         END IF
         tip := self.callstack[sp]
     END LOOP
-    textio.writeLine(textio.stderr, "Unhandled exception \(exception) (\(info.info))")
+    textio.writeLine(textio.stderr, "Unhandled exception \(exception) (\(info))")
     sys.exit(1)
 END FUNCTION
 
@@ -1187,7 +1187,7 @@ FUNCTION f_callp(INOUT self: Executor)
                 name := p->s
             END IF
             IF VALID ei[1] AS p THEN
-                info := p->s
+                info := p->o
             END IF
             IF VALID ei[2] AS p THEN
                 offset := p->n
