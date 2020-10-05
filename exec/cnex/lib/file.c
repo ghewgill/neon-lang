@@ -16,7 +16,7 @@ void file_readBytes(TExecutor *exec)
 
     FILE *f = fopen(filename, "rb");
     if (!f) {
-        exec->rtl_raise(exec, "FileException.Open", filename, BID_ZERO);
+        exec->rtl_raise(exec, "FileException.Open", filename);
         free(filename);
         return;
     }
@@ -43,7 +43,7 @@ void file_readLines(TExecutor *exec)
 
     FILE *f = fopen(filename, "r");
     if (!f) {
-        exec->rtl_raise(exec, "FileException.Open", filename, BID_ZERO);
+        exec->rtl_raise(exec, "FileException.Open", filename);
         free(filename);
         return;
     }
@@ -78,12 +78,12 @@ void file_writeBytes(struct tagTExecutor *exec)
 
     FILE *f = fopen(filename, "wb");
     if (!f) {
-        exec->rtl_raise(exec, "FileException.Open", filename, BID_ZERO);
+        exec->rtl_raise(exec, "FileException.Open", filename);
         goto bail;
     }
 
     if (fwrite(bytes->string->data, sizeof(uint8_t), bytes->string->length, f) != bytes->string->length) {
-        exec->rtl_raise(exec, "FileException.Write", filename, BID_ZERO);
+        exec->rtl_raise(exec, "FileException.Write", filename);
         goto bail;
     }
     fclose(f);
@@ -101,12 +101,12 @@ void file_writeLines(TExecutor *exec)
 
     FILE *f = fopen(filename, "w");
     if (!f) {
-        exec->rtl_raise(exec, "FileException.Open", filename, BID_ZERO);
+        exec->rtl_raise(exec, "FileException.Open", filename);
         goto bail;
     }
     for (size_t i = 0; i < lines->array->size; i++) {
         if (fwrite(lines->array->data[i].string->data, sizeof(char), lines->array->data[i].string->length, f) != lines->array->data[i].string->length) {
-            exec->rtl_raise(exec, "FileException.Write", filename, BID_ZERO);
+            exec->rtl_raise(exec, "FileException.Write", filename);
             goto bail;
         }
         fwrite("\n", sizeof(char), 1, f); // Write line-ending for each element in the array.

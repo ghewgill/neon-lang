@@ -32,7 +32,7 @@ static FILE *check_file(TExecutor *exec, void *pf)
 {
     FILE *f = (FILE *)(pf);
     if (f == NULL) {
-        exec->rtl_raise(exec, "TextioException.InvalidFile", "", BID_ZERO);
+        exec->rtl_raise(exec, "TextioException.InvalidFile", "");
         // Exception code will return from here, since f is already NULL.
     }
     return f;
@@ -72,7 +72,7 @@ void textio_open(TExecutor *exec)
 
     FILE *f = fopen(pszName, m);
     if (f == NULL) {
-        exec->rtl_raise(exec, "TextioException.Open", "", number_from_sint32(errno));
+        exec->rtl_raise(exec, "TextioException.Open", "");
         return;
     }
     Object *r = object_createFileObject(f);
@@ -147,11 +147,11 @@ void textio_truncate(TExecutor *exec)
     long ofs = ftell(f);
 #ifdef _WIN32
     if (_chsize(_fileno(f), ofs) != 0) {
-        exec->rtl_raise(exec, "TextioException_Write", "", BID_ZERO);
+        exec->rtl_raise(exec, "TextioException_Write", "");
     }
 #else
     if (ftruncate(fileno(f), ofs) != 0) {
-        exec->rtl_raise(exec, "TextioException_Write", "", BID_ZERO);
+        exec->rtl_raise(exec, "TextioException_Write", "");
     }
 #endif
 }

@@ -35,12 +35,12 @@ void_function_t rtl_foreign_function(TExecutor *exec, const char *library, const
 {
     void *lib = get_library_handle(library);
     if (lib == NULL) {
-        exec->rtl_raise(exec, "LibraryNotFoundException", library, BID_ZERO);
+        exec->rtl_raise(exec, "LibraryNotFoundException", library);
         return NULL;
     }
     void_function_t fp = (void_function_t)dlsym(lib, function);
     if (fp == NULL) {
-        exec->rtl_raise(exec, "FunctionNotFoundException", function, BID_ZERO);
+        exec->rtl_raise(exec, "FunctionNotFoundException", function);
         return NULL;
     }
     return fp;

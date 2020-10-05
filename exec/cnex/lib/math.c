@@ -169,7 +169,7 @@ void math_ldexp(TExecutor *exec)
 
     if (!number_is_integer(exp)) {
         // TODO: more specific exception?
-        exec->rtl_raise(exec, "ValueRangeException", number_to_string(exp), BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", number_to_string(exp));
         return;
     }
 
@@ -247,7 +247,7 @@ void math_odd(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
 
     if (!number_is_integer(n)) {
-        exec->rtl_raise(exec, "ValueRangeException", "odd() requires integer", BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", "odd() requires integer");
         return;
     }
 
@@ -292,7 +292,7 @@ void math_sqrt(TExecutor *exec)
     Number x = top(exec->stack)->number; pop(exec->stack);
 
     if (number_is_negative(x)) {
-        exec->rtl_raise(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", number_to_string(x));
         return;
     }
 

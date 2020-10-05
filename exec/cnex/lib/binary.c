@@ -10,11 +10,11 @@
 static BOOL range_check32(TExecutor *exec, Number x)
 {
     if (number_is_less(x, BID_MIN_INT32) || number_is_greater(x, BID_MAX_INT32)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     if (!number_is_integer(x)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     return TRUE;
@@ -23,11 +23,11 @@ static BOOL range_check32(TExecutor *exec, Number x)
 static BOOL range_checkU32(TExecutor *exec, Number x)
 {
     if (number_is_less(x, BID_MIN_UINT32) || number_is_greater(x, BID_MAX_UINT32)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     if (!number_is_integer(x)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     return TRUE;
@@ -36,11 +36,11 @@ static BOOL range_checkU32(TExecutor *exec, Number x)
 static BOOL range_check64(TExecutor *exec, Number x)
 {
     if (number_is_less(x, BID_MIN_INT64) || number_is_greater(x, BID_MAX_INT64)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     if (!number_is_integer(x)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     return TRUE;
@@ -49,11 +49,11 @@ static BOOL range_check64(TExecutor *exec, Number x)
 static BOOL range_checkU64(TExecutor *exec, Number x)
 {
     if (number_is_less(x, BID_MIN_UINT64) || number_is_greater(x, BID_MAX_UINT64)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     if (!number_is_integer(x)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     return TRUE;
@@ -62,11 +62,11 @@ static BOOL range_checkU64(TExecutor *exec, Number x)
 static BOOL index_range_check(TExecutor *exec, Number x, int bits)
 {
     if (number_is_less(x, BID_ZERO) || number_is_greater(x, bid128_from_uint32(bits))) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     if (!number_is_integer(x)) {
-        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x), BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", number_to_string(x));
         return FALSE;
     }
     return TRUE;
@@ -531,7 +531,7 @@ void binary_andBytes(TExecutor *exec)
     TString *x = string_fromString(top(exec->stack)->string); pop(exec->stack);
 
     if (x->length != y->length) {
-        exec_rtl_raiseException(exec, "ValueRangeException", "", BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", "");
         return;
     }
 
@@ -566,7 +566,7 @@ void binary_orBytes(TExecutor *exec)
     TString *x = string_fromString(top(exec->stack)->string); pop(exec->stack);
 
     if (x->length != y->length) {
-        exec_rtl_raiseException(exec, "ValueRangeException", "", BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", "");
         return;
     }
 
@@ -587,7 +587,7 @@ void binary_xorBytes(TExecutor *exec)
     TString *x = string_fromString(top(exec->stack)->string); pop(exec->stack);
 
     if (x->length != y->length) {
-        exec_rtl_raiseException(exec, "ValueRangeException", "", BID_ZERO);
+        exec_rtl_raiseException(exec, "ValueRangeException", "");
         return;
     }
 

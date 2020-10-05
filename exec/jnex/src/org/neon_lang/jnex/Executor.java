@@ -985,15 +985,8 @@ class Executor {
         ip++;
         int val = getVint();
         ip = start_ip;
-        List<Cell> a = stack.removeFirst().getArray();
-        ExceptionInfo ei = new ExceptionInfo();
-        if (a.size() >= 1) {
-            ei.info = a.get(0).getString();
-        }
-        if (a.size() >= 2) {
-            ei.code = a.get(1).getNumber();
-        }
-        raiseLiteral(object.strtable[val], ei);
+        NeObject info = stack.removeFirst().getObject();
+        raiseLiteral(object.strtable[val], info);
     }
 
     private void doALLOC()
@@ -1096,22 +1089,19 @@ class Executor {
 
     private void raiseLiteral(String name)
     {
-        raiseLiteral(name, new ExceptionInfo());
+        raiseLiteral(name, "");
     }
 
     private void raiseLiteral(String name, String info)
     {
-        ExceptionInfo ei = new ExceptionInfo();
-        ei.info = info;
-        raiseLiteral(name, ei);
+        raiseLiteral(name, info);
     }
 
-    private void raiseLiteral(String name, ExceptionInfo info)
+    private void raiseLiteral(String name, NeObject info)
     {
         Cell exceptionvar = new Cell(new ArrayList<Cell>(Arrays.asList(
             new Cell(name),
-            new Cell(info.info),
-            new Cell(info.code),
+            new Cell(info),
             new Cell(BigDecimal.valueOf(ip))
         )));
 
@@ -1141,13 +1131,8 @@ class Executor {
             tip = si.next();
         }
 
-        System.err.println("Unhandled exception " + name + " (" + info.info + ") (code " + info.code + ")");
+        System.err.println("Unhandled exception " + name + " (" + info + ")");
         System.exit(1);
-    }
-
-    private class ExceptionInfo {
-        String info = "";
-        BigDecimal code = BigDecimal.valueOf(0);
     }
 
     public static final int OPCODE_VERSION = 3;
@@ -1534,7 +1519,7 @@ class Executor {
     private void exceptiontype__toString()
     {
         List<Cell> a = stack.removeFirst().getArray();
-        stack.addFirst(new Cell("<ExceptionType:" + a.get(0).getString() + "," + a.get(1).getString() + "," + a.get(2).getNumber() + "," + a.get(3).getNumber() + ">"));
+        stack.addFirst(new Cell("<ExceptionType:" + a.get(0).getString() + "," + a.get(1).getObject().toString() + "," + a.get(2).getNumber() + ">"));
     }
 
     private void num()

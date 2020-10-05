@@ -10,7 +10,7 @@ class NeObjectString implements NeObject {
     }
 
     public String toString() {
-        return "\"" + s + "\"";
+        return s;
     }
 
     private String s;

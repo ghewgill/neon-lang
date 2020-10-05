@@ -28,7 +28,7 @@ struct MmapObject {
 static struct MmapObject *check_file(TExecutor *exec, Object *pp)
 {
     if (pp == NULL || pp->ptr == NULL || ((struct MmapObject*)(pp->ptr))->fd < 0) {
-        exec->rtl_raise(exec, "MmapException.InvalidFile", "", BID_ZERO);
+        exec->rtl_raise(exec, "MmapException.InvalidFile", "");
         return NULL;
     }
     return pp->ptr;
@@ -104,7 +104,7 @@ void mmap_open(TExecutor *exec)
         free(f);
         free(name);
         snprintf(err, sizeof(err), "open: error (%d) %s", e, strerror(e));
-        exec->rtl_raise(exec, "OpenFileException", err, BID_ZERO);
+        exec->rtl_raise(exec, "OpenFileException", err);
         return;
     }
 
@@ -118,7 +118,7 @@ void mmap_open(TExecutor *exec)
         free(f);
         free(name);
         snprintf(err, sizeof(err), "mmap: error (%d) %s", e, strerror(e));
-        exec->rtl_raise(exec, "OpenFileException", err, BID_ZERO);
+        exec->rtl_raise(exec, "OpenFileException", err);
         return;
     }
 
@@ -175,7 +175,7 @@ void mmap_write(TExecutor *exec)
     uint64_t o = number_to_uint64(offset);
     if (o + data->length > f->len) {
         string_freeString(data);
-        exec->rtl_raise(exec, "ValueRangeException", "", BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", "");
         return;
     }
 

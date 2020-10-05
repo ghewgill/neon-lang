@@ -31,7 +31,7 @@ typedef struct tagTProcessHandle {
 static TProcessHandle *check_process(TExecutor *exec, Object *pp)
 {
     if (pp == NULL || pp->ptr == NULL || ((TProcessHandle*)pp->ptr)->pid == 0) {
-        exec->rtl_raise(exec, "OsException.InvalidProcess", "", BID_ZERO);
+        exec->rtl_raise(exec, "OsException.InvalidProcess", "");
         return NULL;
     }
     return pp->ptr;
@@ -103,7 +103,7 @@ void os_chdir(TExecutor *exec)
 
     int r = chdir(path);
     if (r != 0) {
-        exec->rtl_raise(exec, "OsException.PathNotFound", path, BID_ZERO);
+        exec->rtl_raise(exec, "OsException.PathNotFound", path);
     }
     free(path);
 }

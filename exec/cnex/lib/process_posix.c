@@ -23,13 +23,13 @@ void process_call(TExecutor *exec)
     if (pipe(pout) != 0) {
         char szErr[32];
         snprintf(szErr, 32, "%d", errno);
-        exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
+        exec->rtl_raise(exec, "ProcessException", szErr);
         return;
     }
     if (pipe(perr) != 0) {
         char szErr[32];
         snprintf(szErr, 32, "%d", errno);
-        exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
+        exec->rtl_raise(exec, "ProcessException", szErr);
         return;
     }
 
@@ -37,7 +37,7 @@ void process_call(TExecutor *exec)
     if (child < 0) {
         char szErr[32];
         snprintf(szErr, 32, "%d", errno);
-        exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
+        exec->rtl_raise(exec, "ProcessException", szErr);
         return;
     }
     if (child == 0) {
@@ -81,7 +81,7 @@ void process_call(TExecutor *exec)
         if (r < 0) {
             char szErr[32];
             snprintf(szErr, 32, "%d", errno);
-            exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
+            exec->rtl_raise(exec, "ProcessException", szErr);
             return;
         }
         if (pout[0] >= 0 && FD_ISSET(pout[0], &fds)) {
@@ -123,7 +123,7 @@ void process_call(TExecutor *exec)
     } else if (r < 0) {
         char szErr[32];
         snprintf(szErr, 32, "%d", errno);
-        exec->rtl_raise(exec, "ProcessException", szErr, BID_ZERO);
+        exec->rtl_raise(exec, "ProcessException", szErr);
         return;
     }
 

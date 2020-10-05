@@ -32,6 +32,7 @@
 #include "neonext.h"
 #include "nstring.h"
 #include "number.h"
+#include "object.h"
 #include "opcode.h"
 #include "rtl_platform.h"
 #include "stack.h"
@@ -284,12 +285,6 @@ TExecutor *exec_newExecutor(TModule *object)
     return r;
 }
 
-typedef struct tagTExceptionInfo {
-    TString **info;
-    size_t size;
-    Number code;
-} ExceptionInfo;
-
 void dump_frames(TExecutor *exec)
 {
     if (0) {
@@ -306,13 +301,12 @@ void dump_frames(TExecutor *exec)
     }
 }
 
-void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number code)
+void exec_raiseLiteral(TExecutor *self, TString *name, Cell *info)
 {
-    Cell *exceptionvar = cell_createArrayCell(4);
+    Cell *exceptionvar = cell_createArrayCell(3);
     cell_setString(&exceptionvar->array->data[0], string_fromString(name));
-    cell_setString(&exceptionvar->array->data[1], info);
-    cell_setNumber(&exceptionvar->array->data[2], code);
-    cell_setNumber(&exceptionvar->array->data[3], number_from_uint64(self->ip));
+    cell_copyCell(&exceptionvar->array->data[1], info);
+    cell_setNumber(&exceptionvar->array->data[2], number_from_uint64(self->ip));
     uint64_t tip = self->ip;
     TModule *tmodule = self->module;
     uint32_t sp = self->callstacktop;
@@ -343,7 +337,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         tmodule = self->callstack[sp].mod;
         sp -= 1;
     }
-    fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
+    fprintf(stderr, "Unhandled exception %s (%s)\n", TCSTR(name), TCSTR(cell_toString(info)));
     cell_freeCell(exceptionvar);
     cJSON *symbols = NULL;
     cJSON *pStart = NULL;
@@ -434,14 +428,12 @@ nextframe:
     self->exit_code = 1;
 }
 
-void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info, Number code)
+void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info)
 {
-    TString *n, *i;
+    TString *n = string_createCString(name);
+    Cell *i = cell_fromObject(object_createStringObject(string_createCString(info)));
 
-    n = string_createCString(name);
-    i = string_createCString(info);
-
-    exec_raiseLiteral(self, n, i, code);
+    exec_raiseLiteral(self, n, i);
     string_freeString(n);
 }
 
@@ -717,7 +709,7 @@ void exec_DIVN(TExecutor *self)
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
    if (number_is_zero(b)) {
-        self->rtl_raise(self, "DivideByZeroException", "", BID_ZERO);
+        self->rtl_raise(self, "DivideByZeroException", "");
         return;
     }
     push(self->stack, cell_fromNumber(number_divide(a, b)));
@@ -729,7 +721,7 @@ void exec_MODN(TExecutor *self)
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
    if (number_is_zero(b)) {
-        self->rtl_raise(self, "DivideByZeroException", "", BID_ZERO);
+        self->rtl_raise(self, "DivideByZeroException", "");
         return;
     }
     push(self->stack, cell_fromNumber(number_modulo(a, b)));
@@ -1051,17 +1043,17 @@ void exec_INDEXAR(TExecutor *self)
     Cell *addr = top(self->stack)->address; pop(self->stack);
 
     if (!number_is_integer(index)) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(index), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(index));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)));
         return;
     }
     uint64_t j = (uint64_t)i;
     if (j >= addr->array->size) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)));
         return;
     }
     push(self->stack, cell_fromAddress(cell_arrayIndexForRead(addr, j)));
@@ -1074,12 +1066,12 @@ void exec_INDEXAW(TExecutor *self)
     Cell *addr = top(self->stack)->address; pop(self->stack);
 
     if (!number_is_integer(index)) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(index), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(index));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)));
         return;
     }
     uint64_t j = (uint64_t)i;
@@ -1093,17 +1085,17 @@ void exec_INDEXAV(TExecutor *self)
     Cell *array = top(self->stack);
 
     if (!number_is_integer(index)) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(index), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(index));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)));
         return;
     }
     uint64_t j = (uint64_t)i;
     if (j >= array->array->size) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)));
         return;
     }
     assert(j < array->array->size);
@@ -1119,12 +1111,12 @@ void exec_INDEXAN(TExecutor *self)
     Cell *array = top(self->stack);
 
     if (!number_is_integer(index)) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(index), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(index));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)), BID_ZERO);
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)));
         return;
     }
     uint64_t j = (uint64_t)i;
@@ -1142,7 +1134,7 @@ void exec_INDEXDR(TExecutor *self)
     Cell *e = dictionary_findDictionaryEntry(addr->dictionary, index);
     if (e == NULL) {
         char *pszIndex = string_asCString(index);
-        self->rtl_raise(self, "DictionaryIndexException", pszIndex, BID_ZERO);
+        self->rtl_raise(self, "DictionaryIndexException", pszIndex);
         free(pszIndex);
         string_freeString(index);
         return;
@@ -1168,7 +1160,7 @@ void exec_INDEXDV(TExecutor *self)
     Cell *val = dictionary_findDictionaryEntry(dictionary->dictionary, index);
     if (val == NULL) {
         char *pszIndex = string_asCString(index);
-        self->rtl_raise(self, "DictionaryIndexException", pszIndex, BID_ZERO);
+        self->rtl_raise(self, "DictionaryIndexException", pszIndex);
         free(pszIndex);
         pop(self->stack);
         pop(self->stack);
@@ -1221,7 +1213,7 @@ void exec_CALLF(TExecutor *self)
     self->ip++;
     unsigned int val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "", BID_ZERO);
+        self->rtl_raise(self, "StackOverflowException", "");
         return;
     }
     invoke(self, self->module, val);
@@ -1234,7 +1226,7 @@ void exec_CALLMF(TExecutor *self)
     unsigned int fun = exec_getOperand(self);
     unsigned int efi = 0;
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "", BID_ZERO);
+        self->rtl_raise(self, "StackOverflowException", "");
         return;
     }
 
@@ -1260,7 +1252,7 @@ void exec_CALLI(TExecutor *self)
 {
     self->ip++;
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "", BID_ZERO);
+        self->rtl_raise(self, "StackOverflowException", "");
         return;
     }
 
@@ -1269,7 +1261,7 @@ void exec_CALLI(TExecutor *self)
     Number nindex = a->array->data[1].number;
     pop(self->stack);
     if (number_is_zero(nindex) || !number_is_integer(nindex)) {
-        self->rtl_raise(self, "InvalidFunctionException", "", BID_ZERO);
+        self->rtl_raise(self, "InvalidFunctionException", "");
         return;
     }
     uint32_t index = number_to_uint32(nindex);
@@ -1368,19 +1360,9 @@ void exec_EXCEPT(TExecutor *self)
     self->ip++;
     unsigned int val = exec_getOperand(self);
     self->ip = start_ip;
-    Cell *exinfo = top(self->stack);
-    TString *info = NULL;
-    Number code = BID_ZERO;
-
-    size_t size = exinfo->array->size;
-    if (size >= 1) {
-        info = string_fromString(exinfo->array->data[0].string);
-    }
-    if (size >= 2) {
-        code = exinfo->array->data[1].number;
-    }
+    Cell *info = cell_fromCell(top(self->stack));
     pop(self->stack);
-    exec_raiseLiteral(self, self->module->bytecode->strings[val], info, code);
+    exec_raiseLiteral(self, self->module->bytecode->strings[val], info);
 }
 
 void exec_ALLOC(TExecutor *self)
@@ -1482,8 +1464,7 @@ void exec_CALLX(TExecutor *self)
         case Ne_EXCEPTION: {
             const char *exceptionname = string_ensureNullTerminated(retval->array->data[0].string);
             const char *info = string_ensureNullTerminated(retval->array->data[1].string);
-            Number code = retval->array->data[2].number;
-            exec_rtl_raiseException(self, exceptionname, info, code);
+            exec_rtl_raiseException(self, exceptionname, info);
             break;
         }
         default:
@@ -1524,7 +1505,7 @@ void exec_CALLV(TExecutor *self)
     self->ip++;
     uint32_t val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "", BID_ZERO);
+        self->rtl_raise(self, "StackOverflowException", "");
         return;
     }
 
