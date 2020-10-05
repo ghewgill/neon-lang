@@ -1209,19 +1209,19 @@ FUNCTION f_callp(INOUT self: Executor)
                 END FOREACH
                 self.stack.append(makeValueArray(r))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Array"))
+                self.raise_literal("DynamicConversionException", "to Array")
             END TRY
         WHEN "object__getBoolean" DO
             TRY
                 self.stack.append(makeValueBoolean(self.pop()->o))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Boolean"))
+                self.raise_literal("DynamicConversionException", "to Boolean")
             END TRY
         WHEN "object__getBytes" DO
             TRY
                 self.stack.append(makeValueBytes(self.pop()->o))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Bytes"))
+                self.raise_literal("DynamicConversionException", "to Bytes")
             END TRY
         WHEN "object__getDictionary" DO
             TRY
@@ -1234,19 +1234,19 @@ FUNCTION f_callp(INOUT self: Executor)
                 END FOREACH
                 self.stack.append(makeValueDictionary(r))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Dictionary"))
+                self.raise_literal("DynamicConversionException", "to Dictionary")
             END TRY
         WHEN "object__getNumber" DO
             TRY
                 self.stack.append(makeValueNumber(self.pop()->o))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Number"))
+                self.raise_literal("DynamicConversionException", "to Number")
             END TRY
         WHEN "object__getString" DO
             TRY
                 self.stack.append(makeValueString(self.pop()->o))
             TRAP DynamicConversionException DO
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to String"))
+                self.raise_literal("DynamicConversionException", "to String")
             END TRY
         WHEN "object__isNull" DO
             self.stack.append(makeValueBoolean(self.pop()->o.isNull()))
@@ -1268,18 +1268,18 @@ FUNCTION f_callp(INOUT self: Executor)
             LET index: Object := self.pop()->o
             LET obj: Object := self.pop()->o
             IF obj.isNull() THEN
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "object is null"))
+                self.raise_literal("DynamicConversionException", "object is null")
             ELSIF index.isNull() THEN
-                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "index is null"))
+                self.raise_literal("DynamicConversionException", "index is null")
             ELSE
                 TRY
                     self.stack.append(makeValueObject(obj[index]))
                 TRAP ArrayIndexException AS e DO
-                    self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH e.info))
+                    self.raise_literal("ArrayIndexException", e.info)
                 TRAP DynamicConversionException AS e DO
-                    self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH e.info))
+                    self.raise_literal("DynamicConversionException", e.info)
                 TRAP ObjectSubscriptException AS e DO
-                    self.raise_literal("ObjectSubscriptException", ExceptionInfo(info WITH e.info))
+                    self.raise_literal("ObjectSubscriptException", e.info)
                 END TRY
             END IF
         WHEN "object__toString" DO
