@@ -9,6 +9,11 @@ CONSTANT OPCODE_VERSION: Number := 3
 
 EXCEPTION InternalException
 
+FUNCTION quoted(s: String): String
+    -- TODO: Do proper escaping.
+    RETURN "\"" & s & "\""
+END FUNCTION
+
 FUNCTION getVint(a: Array<Number>, INOUT i: Number): Number
     VAR r: Number := 0
     LOOP
@@ -236,6 +241,48 @@ FUNCTION makeValueClassInfo(ci: ClassInfo): VALID POINTER TO Value
     RETURN NEW Value(type WITH Type.classinfo, ci WITH ci)
 END FUNCTION
 
+FUNCTION makeObjectFromValue(v: VALID POINTER TO Value): Object
+    CASE v->type
+        WHEN Type.none DO
+            RETURN NIL
+        WHEN Type.pointer DO
+            RETURN NIL
+        WHEN Type.boolean DO
+            RETURN v->b
+        WHEN Type.number DO
+            RETURN v->n
+        WHEN Type.string DO
+            RETURN v->s
+        WHEN Type.bytes DO
+            RETURN v->y
+        WHEN Type.object DO
+            RETURN v->o
+        WHEN Type.array DO
+            VAR a: Array<Object> := []
+            FOREACH x IN v->a DO
+                IF VALID x THEN
+                    a.append(makeObjectFromValue(x))
+                ELSE
+                    a.append(NIL)
+                END IF
+            END FOREACH
+            RETURN a
+        WHEN Type.dictionary DO
+            VAR d: Dictionary<Object> := {}
+            FOREACH k IN v->d.keys() DO
+                IF VALID v->d[k] AS p THEN
+                    d[k] := makeObjectFromValue(p)
+                ELSE
+                    d[k] := NIL
+                END IF
+            END FOREACH
+            RETURN d
+        WHEN Type.classinfo DO
+            ASSERT FALSE
+    END CASE
+    RETURN NIL
+END FUNCTION
+
 TYPE Frame IS RECORD
     locals: Array<POINTER TO Value>
     opstack_depth: Number
@@ -355,7 +402,12 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
 
 FUNCTION Executor.run(INOUT self: Executor)
     WHILE self.ip < self.bytecode.code.size() DO
-        --textio.writeLine(textio.stderr, "ip=\(self.ip) depth=\(self.stack.size())")
+        --textio.writeLine(textio.stderr, "ip=\(self.ip) op=\(self.bytecode.code[self.ip]) depth=\(self.stack.size())")
+        --IF self.stack.size() > 0 THEN
+        --    IF VALID self.stack[LAST] AS p THEN
+        --        textio.writeLine(textio.stderr, "  top=\(p->type) o=\(p->o)")
+        --    END IF
+        --END IF
         LET f: FUNCTION(INOUT self: Executor) := DispatchTable[self.bytecode.code[self.ip]]
         f(INOUT self)
     END WHILE
@@ -540,7 +592,12 @@ FUNCTION f_loadp(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_loadj(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    self.stack.append(makeValueObject(addr->o))
 END FUNCTION
 
 FUNCTION f_loadv(INOUT self: Executor)
@@ -613,7 +670,13 @@ FUNCTION f_storep(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_storej(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET addr: POINTER TO Value := self.pop()->p
+    CHECK VALID addr ELSE
+        RAISE InternalException
+    END CHECK
+    addr->type := Type.object -- TODO: It looks like this is probably necessary for other store opcodes too.
+    addr->o := self.pop()->o
 END FUNCTION
 
 FUNCTION f_storev(INOUT self: Executor)
@@ -680,7 +743,10 @@ FUNCTION f_eqb(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_neb(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET b: Boolean := self.pop()->b
+    LET a: Boolean := self.pop()->b
+    self.stack.append(makeValueBoolean(a <> b))
 END FUNCTION
 
 FUNCTION f_eqn(INOUT self: Executor)
@@ -960,14 +1026,14 @@ FUNCTION f_callp(INOUT self: Executor)
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
     LET f: String := self.bytecode.strtable[val]
     CASE f
-        --WHEN "array__append" DO
-        --    LET v: Value := self.pop()
-        --    LET addr: POINTER TO Variable := self.pop().p
-        --    IF VALID addr THEN
-        --        addr->v.aa.append(NEW Variable(v WITH v))
-        --    ELSE
-        --        ASSERT FALSE
-        --    END IF
+        WHEN "array__append" DO
+            LET v: VALID POINTER TO Value := self.pop()
+            LET addr: POINTER TO Value := self.pop()->p
+            IF VALID addr THEN
+                addr->a.append(v)
+            ELSE
+                RAISE InternalException
+            END IF
         --WHEN "array__find" DO
         --    LET e: VALID POINTER TO Value := self.pop()
         --    LET a: Array<POINTER TO Value> := self.pop()->a
@@ -1003,6 +1069,32 @@ FUNCTION f_callp(INOUT self: Executor)
                 END IF
                 IF VALID a[i] AS x THEN
                     r.append(str(x->n))
+                END IF
+            END FOR
+            r.append("]")
+            self.stack.append(makeValueString(r))
+        WHEN "array__toString__object" DO
+            LET a: Array<POINTER TO Value> := self.pop()->a
+            VAR r: String := "["
+            FOREACH x IN a INDEX i DO
+                IF i > 0 THEN
+                    r.append(", ")
+                END IF
+                IF VALID x THEN
+                    r.append(x->o.toString())
+                END IF
+            END FOREACH
+            r.append("]")
+            self.stack.append(makeValueString(r))
+        WHEN "array__toString__string" DO
+            LET a: Array<POINTER TO Value> := self.pop()->a
+            VAR r: String := "["
+            FOR i := 0 TO a.size()-1 DO
+                IF i > 0 THEN
+                    r.append(", ")
+                END IF
+                IF VALID a[i] AS x THEN
+                    r.append(quoted(x->s))
                 END IF
             END FOR
             r.append("]")
@@ -1113,6 +1205,90 @@ FUNCTION f_callp(INOUT self: Executor)
             TRAP ValueRangeException DO
                 self.raise_literal("ValueRangeException", ExceptionInfo(info WITH s))
             END TRY
+        WHEN "object__getArray" DO
+            TRY
+                LET a: Array<Object> := self.pop()->o
+                VAR r: Array<POINTER TO Value> := []
+                FOREACH x IN a DO
+                    r.append(makeValueObject(x))
+                END FOREACH
+                self.stack.append(makeValueArray(r))
+            TRAP DynamicConversionException DO
+                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Array"))
+            END TRY
+        WHEN "object__getBoolean" DO
+            TRY
+                self.stack.append(makeValueBoolean(self.pop()->o))
+            TRAP DynamicConversionException DO
+                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Boolean"))
+            END TRY
+        WHEN "object__getBytes" DO
+            TRY
+                self.stack.append(makeValueBytes(self.pop()->o))
+            TRAP DynamicConversionException DO
+                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Bytes"))
+            END TRY
+        WHEN "object__getDictionary" DO
+            TRY
+                -- TODO: Evaluate right hand side only once, should not need temporary o.
+                LET o: Object := self.pop()->o
+                LET d: Dictionary<Object> := o
+                VAR r: Dictionary<POINTER TO Value> := {}
+                FOREACH k IN d.keys() DO
+                    r[k] := makeValueObject(d[k])
+                END FOREACH
+                self.stack.append(makeValueDictionary(r))
+            TRAP DynamicConversionException DO
+                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Dictionary"))
+            END TRY
+        WHEN "object__getNumber" DO
+            TRY
+                self.stack.append(makeValueNumber(self.pop()->o))
+            TRAP DynamicConversionException DO
+                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to Number"))
+            END TRY
+        WHEN "object__getString" DO
+            TRY
+                self.stack.append(makeValueString(self.pop()->o))
+            TRAP DynamicConversionException DO
+                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "to String"))
+            END TRY
+        WHEN "object__isNull" DO
+            self.stack.append(makeValueBoolean(self.pop()->o.isNull()))
+        WHEN "object__makeArray" DO
+            self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
+        WHEN "object__makeBoolean" DO
+            self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
+        WHEN "object__makeBytes" DO
+            self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
+        WHEN "object__makeDictionary" DO
+            self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
+        WHEN "object__makeNull" DO
+            self.stack.append(makeValueObject(NIL))
+        WHEN "object__makeNumber" DO
+            self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
+        WHEN "object__makeString" DO
+            self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
+        WHEN "object__subscript" DO
+            LET index: Object := self.pop()->o
+            LET obj: Object := self.pop()->o
+            IF obj.isNull() THEN
+                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "object is null"))
+            ELSIF index.isNull() THEN
+                self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH "index is null"))
+            ELSE
+                TRY
+                    self.stack.append(makeValueObject(obj[index]))
+                TRAP ArrayIndexException AS e DO
+                    self.raise_literal("ArrayIndexException", ExceptionInfo(info WITH e.info))
+                TRAP DynamicConversionException AS e DO
+                    self.raise_literal("DynamicConversionException", ExceptionInfo(info WITH e.info))
+                TRAP ObjectSubscriptException AS e DO
+                    self.raise_literal("ObjectSubscriptException", ExceptionInfo(info WITH e.info))
+                END TRY
+            END IF
+        WHEN "object__toString" DO
+            self.stack.append(makeValueString(self.pop()->o.toString()))
         WHEN "print" DO
             print(self.pop()->s)
         WHEN "runtime$assertionsEnabled" DO
