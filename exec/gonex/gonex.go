@@ -162,6 +162,7 @@ type object interface {
 	getArray() ([]object, error)
 	getDictionary() (map[string]object, error)
 	subscript(index object) (object, error)
+	toLiteralString() string
 	toString() string
 }
 
@@ -195,6 +196,10 @@ func (obj objectBoolean) getDictionary() (map[string]object, error) {
 
 func (obj objectBoolean) subscript(index object) (object, error) {
 	return nil, errors.New("type error")
+}
+
+func (obj objectBoolean) toLiteralString() string {
+	return obj.toString()
 }
 
 func (obj objectBoolean) toString() string {
@@ -237,6 +242,10 @@ func (obj objectNumber) subscript(index object) (object, error) {
 	return nil, errors.New("type error")
 }
 
+func (obj objectNumber) toLiteralString() string {
+	return obj.toString()
+}
+
 func (obj objectNumber) toString() string {
 	return strconv.FormatFloat(obj.num, 'g', -1, 64)
 }
@@ -273,8 +282,12 @@ func (obj objectString) subscript(index object) (object, error) {
 	return nil, errors.New("type error")
 }
 
-func (obj objectString) toString() string {
+func (obj objectString) toLiteralString() string {
 	return "\"" + obj.str + "\""
+}
+
+func (obj objectString) toString() string {
+	return obj.str
 }
 
 type objectBytes struct {
@@ -307,6 +320,10 @@ func (obj objectBytes) getDictionary() (map[string]object, error) {
 
 func (obj objectBytes) subscript(index object) (object, error) {
 	return nil, errors.New("type error")
+}
+
+func (obj objectBytes) toLiteralString() string {
+	return obj.toString()
 }
 
 func (obj objectBytes) toString() string {
@@ -361,6 +378,10 @@ func (obj objectArray) subscript(index object) (object, error) {
 	}
 }
 
+func (obj objectArray) toLiteralString() string {
+	return obj.toString()
+}
+
 func (obj objectArray) toString() string {
 	r := "["
 	for i, x := range obj.array {
@@ -368,7 +389,7 @@ func (obj objectArray) toString() string {
 			r += ", "
 		}
 		if x != nil {
-			r += x.toString()
+			r += x.toLiteralString()
 		} else {
 			r += "null"
 		}
@@ -410,11 +431,15 @@ func (obj objectDictionary) subscript(index object) (object, error) {
 		if r, ok := obj.dict[k]; ok {
 			return r, nil
 		} else {
-			return nil, &neonexception{"ObjectSubscriptException", "\"" + k + "\"", 0}
+			return nil, &neonexception{"ObjectSubscriptException", k, 0}
 		}
 	} else {
 		return nil, &neonexception{"DynamicConversionException", "to String", 0}
 	}
+}
+
+func (obj objectDictionary) toLiteralString() string {
+	return obj.toString()
 }
 
 func (obj objectDictionary) toString() string {
@@ -433,7 +458,7 @@ func (obj objectDictionary) toString() string {
 		}
 		r += "\"" + k + "\": "
 		if obj.dict[k] != nil {
-			r += obj.dict[k].toString()
+			r += obj.dict[k].toLiteralString()
 		} else {
 			r += "null"
 		}
@@ -2031,7 +2056,7 @@ func (self *executor) op_callp() {
 			if i > 0 {
 				r += ", "
 			}
-			r += x.obj.toString()
+			r += x.obj.toLiteralString()
 		}
 		r += "]"
 		self.push(make_cell_str(r))

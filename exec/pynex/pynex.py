@@ -2058,7 +2058,7 @@ def neon_object__subscript(self):
             self.raise_literal("DynamicConversionException", ("to String", 0))
             return
         if not i in v:
-            self.raise_literal("ObjectSubscriptException", ('"' + i + '"', 0))
+            self.raise_literal("ObjectSubscriptException", (i, 0))
             return
         self.stack.append(v[i].value)
     else:
@@ -2066,7 +2066,9 @@ def neon_object__subscript(self):
 
 def neon_object__toString(self):
     v = self.stack.pop()
-    if isinstance(v, list):
+    if isinstance(v, str):
+        self.stack.append(v)
+    elif isinstance(v, list):
         self.stack.append("[{}]".format(", ".join(literal(x.value) for x in v)))
     elif isinstance(v, dict):
         self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(x.value)) for k, x in sorted(v.items()))))

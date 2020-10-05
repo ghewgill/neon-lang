@@ -33,6 +33,7 @@ Object *object_createObject(void);
 
 void object_releaseObject(Object *o);
 
+Cell *object_toLiteralString(Object *s);
 Cell *object_toString(Object *s);
 
 Object *object_createArrayObject(Array *a);

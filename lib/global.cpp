@@ -483,7 +483,9 @@ class ObjectString: public Object {
 public:
     explicit ObjectString(const utf8string &s): s(s) {}
     virtual bool getString(utf8string &r) const override { r = s; return true; }
-    virtual utf8string toString() const override { return "\"" + s + "\""; }
+    // TODO: Use quoting function to quote the value properly.
+    virtual utf8string toLiteralString() const override { return "\"" + s + "\""; }
+    virtual utf8string toString() const override { return s; }
 private:
     const utf8string s;
 private:
@@ -553,7 +555,7 @@ public:
             } else {
                 first = false;
             }
-            r.append(x != nullptr ? x->toString() : utf8string("null"));
+            r.append(x != nullptr ? x->toLiteralString() : utf8string("null"));
         }
         r.append("]");
         return r;
@@ -598,7 +600,7 @@ public:
             r.append("\"");
             r.append(x.first.c_str());
             r.append("\": ");
-            r.append(x.second != nullptr ? x.second->toString() : utf8string("null"));
+            r.append(x.second != nullptr ? x.second->toLiteralString() : utf8string("null"));
         }
         r.append("}");
         return r;

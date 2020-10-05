@@ -11,6 +11,20 @@
 
 #include "object.h"
 
+Cell *object_toLiteralString(Object *obj)
+{
+    if (obj->type == oString) {
+        Cell *cell = cell_fromCString("\"");
+        Cell *str = object_toString(obj);
+        cell->string = string_appendString(cell->string, str->string);
+        cell_freeCell(str);
+        cell->string = string_appendCString(cell->string, "\"");
+        return cell;
+    } else {
+        return object_toString(obj);
+    }
+}
+
 Cell *object_toString(Object *obj)
 {
     if (obj->type == oArray) {
@@ -23,7 +37,7 @@ Cell *object_toString(Object *obj)
             if (r->length > 1) {
                 r = string_appendCString(r, ", ");
             }
-            Cell *es = object_toString(a->data[x].object);
+            Cell *es = object_toLiteralString(a->data[x].object);
             r = string_appendString(r, es->string);
             cell_freeCell(es);
         }
@@ -67,7 +81,7 @@ Cell *object_toString(Object *obj)
             r = string_appendCString(r, "\"");
             r = string_appendString(r, keys->array->data[x].string);
             r = string_appendCString(r, "\": ");
-            Cell *de = object_toString(dictionary_findDictionaryEntry(d, keys->array->data[x].string)->object);
+            Cell *de = object_toLiteralString(dictionary_findDictionaryEntry(d, keys->array->data[x].string)->object);
             r = string_appendString(r, de->string);
             cell_freeCell(de);
         }
@@ -78,10 +92,7 @@ Cell *object_toString(Object *obj)
     } else if (obj->type == oNumber) {
         return cell_fromCString(number_to_string(((Cell*)obj->ptr)->number));
     } else if (obj->type == oString) {
-        Cell *cell = cell_fromCString("\"");
-        cell->string = string_appendString(cell->string, ((Cell*)obj->ptr)->string);
-        cell->string = string_appendCString(cell->string, "\"");
-        return cell;
+        return cell_fromString(((Cell *)obj->ptr)->string);
     } else if (obj->ptr == NULL) {
         return cell_fromCString("null");
     }

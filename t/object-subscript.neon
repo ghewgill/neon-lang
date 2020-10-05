@@ -51,7 +51,7 @@ TRY
 TRAP ObjectSubscriptException AS os DO
     print(os.info)
 END TRY
---= "five"
+--= five
 
 TRY
     print(str(x[42]))

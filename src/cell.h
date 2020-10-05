@@ -18,6 +18,7 @@ public:
     virtual bool getArray(std::vector<std::shared_ptr<Object>> &) const { return false; }
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &) const { return false; }
     virtual bool subscript(std::shared_ptr<Object>, std::shared_ptr<Object> &) const { return false; }
+    virtual utf8string toLiteralString() const { return toString(); }
     virtual utf8string toString() const = 0;
 };
 
