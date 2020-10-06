@@ -25,13 +25,13 @@
 static void handle_error(TExecutor *exec, int error, const char *path)
 {
     switch (error) {
-        case EACCES: exec->rtl_raise(exec, "FileException.PermissionDenied", path, BID_ZERO);      break;
-        case EEXIST: exec->rtl_raise(exec, "FileException.DirectoryExists", path, BID_ZERO);       break;
-        case ENOENT: exec->rtl_raise(exec, "FileException.PathNotFound", path, BID_ZERO);          break;
+        case EACCES: exec->rtl_raise(exec, "FileException.PermissionDenied", path);      break;
+        case EEXIST: exec->rtl_raise(exec, "FileException.DirectoryExists", path);       break;
+        case ENOENT: exec->rtl_raise(exec, "FileException.PathNotFound", path);          break;
         default: {
             char err[PATH_MAX + 100];
             snprintf(err, sizeof(err), "%s: %s", path, strerror(error));
-            exec->rtl_raise(exec, "FileException", err, BID_ZERO);
+            exec->rtl_raise(exec, "FileException", err);
             break;
         }
     }
@@ -54,7 +54,7 @@ void file_copy(TExecutor *exec)
     int r = copyfile(filename->data, destination->data, NULL, COPYFILE_ALL | COPYFILE_EXCL);
     if (r != 0) {
         if (errno == EEXIST) {
-            exec->rtl_raise(exec, "FileException.Exists", TCSTR(destination), BID_ZERO);
+            exec->rtl_raise(exec, "FileException.Exists", TCSTR(destination));
             goto bail;
         }
         handle_error(exec, errno, filename->data);
@@ -79,7 +79,7 @@ void file_copy(TExecutor *exec)
         int error = errno;
         close(sourcefd);
         if (error == EEXIST) {
-            exec->rtl_raise(exec, "FileException.Exists", destination->data, BID_ZERO);
+            exec->rtl_raise(exec, "FileException.Exists", destination->data);
             goto bail;
         }
         handle_error(exec, error, destination->data);

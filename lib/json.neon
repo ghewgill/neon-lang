@@ -43,7 +43,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                     WHEN "true" DO
                         RETURN TRUE
                     WHEN OTHERS DO
-                        RAISE JsonFormatException(info WITH "null or false or true expected")
+                        RAISE JsonFormatException("null or false or true expected")
                 END CASE
             WHEN "-", "0" TO "9" DO
                 LET start: Number := index
@@ -54,7 +54,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                     INC index
                 ELSE
                     CHECK index < json.length() AND "1" <= json[index] <= "9" ELSE
-                        RAISE JsonFormatException(info WITH "digit expected")
+                        RAISE JsonFormatException("digit expected")
                     END CHECK
                     INC index
                     WHILE index < json.length() AND "0" <= json[index] <= "9" DO
@@ -64,7 +64,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                 IF index < json.length() AND json[index] = "." THEN
                     INC index
                     CHECK index < json.length() AND "0" <= json[index] <= "9" ELSE
-                        RAISE JsonFormatException(info WITH "digit expected")
+                        RAISE JsonFormatException("digit expected")
                     END CHECK
                     WHILE index < json.length() AND "0" <= json[index] <= "9" DO
                         INC index
@@ -76,7 +76,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                         INC index
                     END IF
                     CHECK index < json.length() AND "0" <= json[index] <= "9" ELSE
-                        RAISE JsonFormatException(info WITH "digit expected")
+                        RAISE JsonFormatException("digit expected")
                     END CHECK
                     WHILE index < json.length() AND "0" <= json[index] <= "9" DO
                         INC index
@@ -88,7 +88,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                 VAR t: String := ""
                 WHILE index < json.length() AND json[index] <> "\"" DO
                     CHECK 0x20 <= string.toCodePoint(json[index]) <= 0x10ffff ELSE
-                        RAISE JsonFormatException(info WITH "invalid character")
+                        RAISE JsonFormatException("invalid character")
                     END CHECK
                     IF json[index] = "\\" THEN
                         INC index
@@ -118,13 +118,13 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                                     ELSIF "A" <= json[index+i] <= "F" THEN
                                         char := char * 0x10 + (string.toCodePoint(json[index+i]) - string.toCodePoint("A"))
                                     ELSE
-                                        RAISE JsonFormatException(info WITH "invalid hex character")
+                                        RAISE JsonFormatException("invalid hex character")
                                     END IF
                                 END FOR
                                 t.append(string.fromCodePoint(char))
                                 index := index + 4
                             WHEN OTHERS DO
-                                RAISE JsonFormatException(info WITH "invalid escape sequence")
+                                RAISE JsonFormatException("invalid escape sequence")
                         END CASE
                     ELSE
                         t.append(json[index])
@@ -132,7 +132,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                     INC index
                 END WHILE
                 CHECK index < json.length() ELSE
-                    RAISE JsonFormatException(info WITH "missing trailing quote")
+                    RAISE JsonFormatException("missing trailing quote")
                 END CHECK
                 INC index
                 RETURN t
@@ -152,7 +152,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                     ELSIF index < json.length() AND json[index] = "]" THEN
                         EXIT LOOP
                     ELSE
-                        RAISE JsonFormatException(info WITH ", or ] expected")
+                        RAISE JsonFormatException(", or ] expected")
                     END IF
                     skipWhitespace(json, INOUT index)
                 END LOOP
@@ -169,12 +169,12 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                 LOOP
                     LET vkey: Object := decodePart(json, INOUT index)
                     IF NOT (vkey ISA String) THEN
-                        RAISE JsonFormatException(info WITH "string key expected")
+                        RAISE JsonFormatException("string key expected")
                     END IF
                     LET key: String := vkey
                     skipWhitespace(json, INOUT index)
                     IF index >= json.length() OR json[index] <> ":" THEN
-                        RAISE JsonFormatException(info WITH ": expected")
+                        RAISE JsonFormatException(": expected")
                     END IF
                     INC index
                     d[key] := decodePart(json, INOUT index)
@@ -184,7 +184,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                     ELSIF index < json.length() AND json[index] = "}" THEN
                         EXIT LOOP
                     ELSE
-                        RAISE JsonFormatException(info WITH ", or } expected")
+                        RAISE JsonFormatException(", or } expected")
                     END IF
                     skipWhitespace(json, INOUT index)
                 END LOOP
@@ -192,7 +192,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                 RETURN d
         END CASE
     END IF
-    RAISE JsonFormatException(info WITH "value expected")
+    RAISE JsonFormatException("value expected")
 END FUNCTION
 
 /*  Function: decode
@@ -204,7 +204,7 @@ FUNCTION decode(json: String): Object
     LET r: Object := decodePart(json, INOUT i)
     skipWhitespace(json, INOUT i)
     IF i < json.length() THEN
-        RAISE JsonFormatException(info WITH "unexpected input after value")
+        RAISE JsonFormatException("unexpected input after value")
     END IF
     RETURN r
 END FUNCTION

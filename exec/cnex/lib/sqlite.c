@@ -82,7 +82,7 @@ static void openCursor(Cursor *self)
 {
     int r = sqlite3_prepare_v2(self->db, self->query, -1, &self->stmt, NULL);
     if (r != SQLITE_OK) {
-        self->exec->rtl_raise(self->exec , "SqlException", sqlite3_errmsg(self->db), number_from_sint32(r));
+        self->exec->rtl_raise(self->exec , "SqlException", sqlite3_errmsg(self->db));
         return;
     }
     self->columns = sqlite3_column_count(self->stmt);
@@ -100,7 +100,7 @@ static BOOL fetchCursor(Cursor *self, Cell *result)
             cell_arrayAppendElementPointer(result, col);
         }
     } else {
-        self->exec->rtl_raise(self->exec, "SqlException", sqlite3_errmsg(self->db), number_from_sint32(r));
+        self->exec->rtl_raise(self->exec, "SqlException", sqlite3_errmsg(self->db));
         return FALSE;
     }
     return TRUE;
@@ -158,7 +158,7 @@ void sqlite_open(TExecutor *exec)
     sqlite3 *db;
     int r = sqlite3_open(name, &db);
     if (r != SQLITE_OK) {
-        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db), number_from_sint64(r));
+        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db));
         goto cleanup;
     }
 
@@ -176,24 +176,24 @@ void sqlite_exec(TExecutor *exec)
 
     sqlite3_stmt *stmt = NULL;
     if (db == NULL) {
-        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "", BID_ZERO);
+        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "");
         goto cleanup;
     }
     Cell *rows = cell_createArrayCell(0);
     int r = sqlite3_prepare_v2(db->ptr, sql, -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr), number_from_sint32(r));
+        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
         goto cleanup;
     }
     for (int i = 0; i < parameters->dictionary->len; i++) {
         int c = sqlite3_bind_parameter_index(stmt, TCSTR(parameters->dictionary->data[i].key));
         if (c == 0) {
-            exec->rtl_raise(exec, "SqlException.ParameterName", TCSTR(parameters->dictionary->data[i].key), BID_ZERO);
+            exec->rtl_raise(exec, "SqlException.ParameterName", TCSTR(parameters->dictionary->data[i].key));
             goto cleanup;
         }
         r = sqlite3_bind_text(stmt, c, TCSTR(parameters->dictionary->data[i].value->string), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr), number_from_sint32(r));
+            exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
             goto cleanup;
         }
     }
@@ -210,7 +210,7 @@ void sqlite_exec(TExecutor *exec)
             }
             cell_arrayAppendElementPointer(rows, row);
         } else {
-            exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr), number_from_sint32(r));
+            exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
             goto cleanup;
         }
     }
@@ -231,7 +231,7 @@ void sqlite_execOne(TExecutor *exec)
     sqlite3_stmt *stmt = NULL;
 
     if (db == NULL) {
-        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "", BID_ZERO);
+        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "");
         goto cleanup;
     }
 
@@ -240,18 +240,18 @@ void sqlite_execOne(TExecutor *exec)
 
     int r = sqlite3_prepare_v2(db->ptr, sql, -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr), number_from_sint32(r));
+        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
         goto cleanup;
     }
     for (int i = 0; i < parameters->dictionary->len; i++) {
         int c = sqlite3_bind_parameter_index(stmt, TCSTR(parameters->dictionary->data[i].key));
         if (c == 0) {
-            exec->rtl_raise(exec, "SqlException.ParameterName", TCSTR(parameters->dictionary->data[i].key), BID_ZERO);
+            exec->rtl_raise(exec, "SqlException.ParameterName", TCSTR(parameters->dictionary->data[i].key));
             goto cleanup;
         }
         r = sqlite3_bind_text(stmt, c, TCSTR(parameters->dictionary->data[i].value->string), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr), number_from_sint32(r));
+            exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
             goto cleanup;
         }
     }
@@ -265,7 +265,7 @@ void sqlite_execOne(TExecutor *exec)
             cell_arrayAppendElementPointer(result, cell_fromCString((const char *)sqlite3_column_text(stmt, i)));
         }
     } else {
-        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr), number_from_sint32(r));
+        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
         goto cleanup;
     }
     Retval = TRUE;
@@ -286,7 +286,7 @@ void sqlite_execRaw(TExecutor *exec)
     Object *db = check_database(top(exec->stack)); pop(exec->stack);
 
     if (db == NULL) {
-        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "", BID_ZERO);
+        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "");
         goto cleanup;
     }
 
@@ -294,7 +294,7 @@ void sqlite_execRaw(TExecutor *exec)
     char *errmsg = NULL;
     int r = sqlite3_exec(db->ptr, sql, callback, rows, &errmsg);
     if (r != SQLITE_OK) {
-        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr), number_from_sint32(r));
+        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
         goto cleanup;
     }
 
@@ -309,7 +309,7 @@ void sqlite_close(TExecutor *exec)
     Object *db = check_database(top(exec->stack)); pop(exec->stack);
 
     if (db == NULL) {
-        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "", BID_ZERO);
+        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "");
         return;
     }
 
@@ -317,7 +317,7 @@ void sqlite_close(TExecutor *exec)
     if (r == SQLITE_OK) {
         db->ptr = NULL;
     } else {
-        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr), number_from_sint32(r));
+        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
     }
 }
 
@@ -328,7 +328,7 @@ void sqlite_cursorDeclare(TExecutor *exec)
     Object *db = check_database(top(exec->stack)); pop(exec->stack);
 
     if (db == NULL) {
-        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "", BID_ZERO);
+        exec->rtl_raise(exec, "SqliteException.InvalidDatabase", "");
         free(query);
         string_freeString(name);
         return;
@@ -349,7 +349,7 @@ void sqlite_cursorOpen(TExecutor *exec)
 
     Cell *c = dictionary_findDictionaryEntry(Cursors, name->string);
     if (c == NULL) {
-        exec->rtl_raise(exec, "SqlException", TCSTR(name->string), BID_ZERO);
+        exec->rtl_raise(exec, "SqlException", TCSTR(name->string));
         goto done;
     }
     openCursor(c->other);
@@ -364,7 +364,7 @@ void sqlite_cursorFetch(TExecutor *exec)
 
     Cell *c = dictionary_findDictionaryEntry(Cursors, name->string);
     if (c == NULL) {
-        exec->rtl_raise(exec, "SqlException", TCSTR(name->string), BID_ZERO);
+        exec->rtl_raise(exec, "SqlException", TCSTR(name->string));
         goto done;
     }
     Cell *result = cell_createArrayCell(0);
@@ -382,7 +382,7 @@ void sqlite_cursorClose(TExecutor *exec)
 
     Cell *c = dictionary_findDictionaryEntry(Cursors, name->string);
     if (c == NULL) {
-        exec->rtl_raise(exec, "SqlException", TCSTR(name->string), BID_ZERO);
+        exec->rtl_raise(exec, "SqlException", TCSTR(name->string));
         goto cleanup;
     }
 

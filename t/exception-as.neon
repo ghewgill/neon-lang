@@ -1,7 +1,7 @@
 EXCEPTION PrinterOnFireException
 
 TRY
-    RAISE PrinterOnFireException(info WITH "A4")
+    RAISE PrinterOnFireException("A4")
 TRAP PrinterOnFireException AS x DO
     print(x.name)
     print(x.info)
@@ -10,4 +10,4 @@ END TRY
 
 --= PrinterOnFireException
 --= A4
---= 6
+--= 4

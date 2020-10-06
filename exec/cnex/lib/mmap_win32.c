@@ -23,7 +23,7 @@ struct MmapObject {
 static struct MmapObject *check_file(TExecutor *exec, Object *pp)
 {
     if (pp == NULL || pp->ptr == NULL || ((struct MmapObject*)(pp->ptr))->view == NULL) {
-        exec->rtl_raise(exec, "MmapException.InvalidFile", "", BID_ZERO);
+        exec->rtl_raise(exec, "MmapException.InvalidFile", "");
         return NULL;
     }
     return pp->ptr;
@@ -105,7 +105,7 @@ void mmap_open(TExecutor *exec)
             free(f);
             free(name);
             snprintf(err, sizeof(err), "CreateFile: error (%d)", e);
-            exec->rtl_raise(exec, "OpenFileException", err, BID_ZERO);
+            exec->rtl_raise(exec, "OpenFileException", err);
             return;
         }
     }
@@ -116,7 +116,7 @@ void mmap_open(TExecutor *exec)
         free(f);
         free(name);
         snprintf(err, sizeof(err), "GetFileSizeEx: error (%d)", e);
-        exec->rtl_raise(exec, "OpenFileException", err, BID_ZERO);
+        exec->rtl_raise(exec, "OpenFileException", err);
         return;
     }
     f->len = size.QuadPart;
@@ -127,7 +127,7 @@ void mmap_open(TExecutor *exec)
         free(f);
         free(name);
         snprintf(err, sizeof(err), "CreateFileMapping: error (%d)", e);
-        exec->rtl_raise(exec, "OpenFileException", err, BID_ZERO);
+        exec->rtl_raise(exec, "OpenFileException", err);
         return;
     }
     f->view = MapViewOfFile(f->map, FILE_MAP_READ, 0, 0, 0);
@@ -138,7 +138,7 @@ void mmap_open(TExecutor *exec)
         free(f);
         free(name);
         snprintf(err, sizeof(err), "MapViewOfFile: error (%d)", e);
-        exec->rtl_raise(exec, "OpenFileException", err, BID_ZERO);
+        exec->rtl_raise(exec, "OpenFileException", err);
         return;
     }
 
@@ -195,12 +195,12 @@ void mmap_write(TExecutor *exec)
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
         string_freeString(data);
-        exec->rtl_raise(exec, "ValueRangeException", "", BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", "");
         return;
     }
     if (o + data->length > f->len) {
         string_freeString(data);
-        exec->rtl_raise(exec, "ValueRangeException", "", BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", "");
         return;
     }
 

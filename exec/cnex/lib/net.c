@@ -272,7 +272,7 @@ void net_socket_select(TExecutor *exec)
     } while (FALSE);
 
     if (r < 0) {
-        exec->rtl_raise(exec, "SocketException", "", number_from_sint32(errno));
+        exec->rtl_raise(exec, "SocketException", number_to_string(number_from_sint32(errno)));
         return;
     }
 

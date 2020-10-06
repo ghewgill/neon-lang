@@ -474,7 +474,7 @@ TString *cell_toString(Cell *c)
             break;
         case cObject:
         {
-            assert(FALSE);
+            r = string_appendString(r, object_toString(c->object)->string);
             break;
         }
         case cString:

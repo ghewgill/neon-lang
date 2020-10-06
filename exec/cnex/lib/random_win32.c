@@ -22,14 +22,14 @@ void random_bytes(TExecutor *exec)
     HCRYPTPROV hCryptProv;
     if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, 0)) {
         cell_freeCell(r);
-        exec->rtl_raise(exec, "RandomException", "could not acquire default crypto context", BID_ZERO);
+        exec->rtl_raise(exec, "RandomException", "could not acquire default crypto context");
         return;
     }
     char *p = r->string->data;
     if (!CryptGenRandom(hCryptProv, (DWORD)count, (BYTE*)p)) {
         cell_freeCell(r);
         CryptReleaseContext(hCryptProv, 0);
-        exec->rtl_raise(exec, "RandomException", "failed to get random data", BID_ZERO);
+        exec->rtl_raise(exec, "RandomException", "failed to get random data");
         return;
     }
     CryptReleaseContext(hCryptProv, 0);

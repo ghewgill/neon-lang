@@ -31,11 +31,11 @@ void string_fromCodePoint(TExecutor *exec)
     Number x = top(exec->stack)->number; pop(exec->stack);
 
     if (!number_is_integer(x)) {
-        exec->rtl_raise(exec, "ValueRangeException", "fromCodePoint() argument not an integer", BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", "fromCodePoint() argument not an integer");
         return;
     }
     if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
-        exec->rtl_raise(exec, "ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff", BID_ZERO);
+        exec->rtl_raise(exec, "ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff");
         return;
     }
 
@@ -139,7 +139,7 @@ void string_toCodePoint(TExecutor *exec)
     Cell *s = top(exec->stack);
 
     if (s->string->length != 1) {
-        exec->rtl_raise(exec, "ArrayIndexException", "toCodePoint() requires string of length 1", BID_ZERO);
+        exec->rtl_raise(exec, "ArrayIndexException", "toCodePoint() requires string of length 1");
         return;
     }
     Number r = number_from_uint32((uint32_t)s->string->data[0]);

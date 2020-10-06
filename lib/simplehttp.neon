@@ -86,19 +86,19 @@ END FUNCTION
 FUNCTION decomposeUrl(url: String, OUT server: String, OUT port: Number, OUT path: String)
     LET schemecolon: Number := string.find(url, ":")
     CHECK schemecolon >= 0 ELSE
-        RAISE HttpException(info WITH "url format error")
+        RAISE HttpException("url format error")
     END CHECK
     LET scheme: String := url[FIRST TO schemecolon-1]
     CHECK scheme = "http" ELSE
-        RAISE HttpException(info WITH "url scheme not supported")
+        RAISE HttpException("url scheme not supported")
     END CHECK
     CHECK url[schemecolon TO schemecolon+2] = "://" ELSE
-        RAISE HttpException(info WITH "url format error")
+        RAISE HttpException("url format error")
     END CHECK
     LET tail: String := url[schemecolon+3 TO LAST]
     LET slash: Number := string.find(tail, "/")
     CHECK slash >= 0 ELSE
-        RAISE HttpException(info WITH "url format error")
+        RAISE HttpException("url format error")
     END CHECK
     LET portcolon: Number := string.find(tail, ":")
     server := tail[FIRST TO (IF portcolon >= 0 THEN portcolon-1 ELSE slash-1)]

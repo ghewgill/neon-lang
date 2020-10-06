@@ -1247,7 +1247,7 @@ class RaiseStatement:
     def run(self, env):
         if self.info is not None:
             info = self.info.eval(env)
-            raise NeonException(self.name, info.info, info.code)
+            raise NeonException(self.name, info)
         else:
             raise NeonException(self.name)
 
@@ -2261,18 +2261,13 @@ class Parser:
                     self.type = ClassRecord(
                         [
                             Field("info", TypeSimple("String")),
-                            Field("code", TypeSimple("Number")),
                             Field("offset", TypeSimple("Number")),
                         ],
                         {}
                     )
                 def resolve(self, env):
                     return self.type
-            et = ExceptionType()
-            info = NewRecordExpression(
-                et,
-                self.parse_function_call(et.type)
-            )
+            info = self.parse_expression()
         else:
             info = None
         return RaiseStatement(name, info)
@@ -2606,16 +2601,15 @@ class ExitException(BaseException):
         self.label = label
 
 class NeonException(BaseException):
-    def __init__(self, name, info=None, code=None):
+    def __init__(self, name, info=None):
         if isinstance(name, str):
             self.name = [name]
         else:
             self.name = name
         self.info = info
-        self.code = code
         self.offset = 0
     def toString(self, env, obj):
-        return "<ExceptionType:{},{},{},{}>".format(self.name[0], self.info, self.code, self.offset)
+        return "<ExceptionType:{},{},{}>".format(self.name[0], self.info, self.offset)
 
 class NextException(BaseException):
     def __init__(self, label):

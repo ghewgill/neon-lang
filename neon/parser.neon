@@ -3198,13 +3198,7 @@ FUNCTION Parser.parseRaiseStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     END LOOP
     VAR info: POINTER TO ParseTreeNode := NIL
     IF self.token.type = TokenType.lparen THEN
-        LET expr: POINTER TO ParseTreeNode := NEW ParseTreeNode(
-            type WITH Type.IdentifierExpression,
-            identifierexpression WITH IdentifierExpression(
-                name WITH "ExceptionInfo"
-            )
-        )
-        info := self.parseFunctionCall(expr)
+        info := self.parseExpression()
     ELSE
         info := NIL
     END IF

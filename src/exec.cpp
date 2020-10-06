@@ -83,18 +83,6 @@ public:
     size_t opstack_depth;
 };
 
-// The fields here must match the declaration of
-// ExceptionInfo in ast.cpp.
-class ExceptionInfo {
-public:
-    ExceptionInfo(): info(""), code(number_from_uint32(0)) {}
-    explicit ExceptionInfo(const utf8string &info): info(info), code(number_from_uint32(0)) {}
-    ExceptionInfo(const utf8string &info, Number code): info(info), code(code) {}
-    ExceptionInfo(const utf8string &info, uint32_t code): info(info), code(number_from_uint32(code)) {}
-    utf8string info;
-    Number code;
-};
-
 class Executor;
 
 class Module {
@@ -268,8 +256,8 @@ public:
     void exec_PUSHCI();
 
     void invoke(Module *m, uint32_t index);
-    void raise_literal(const utf8string &exception, const ExceptionInfo &info);
-    void raise(const ExceptionName &exception, const ExceptionInfo &info);
+    void raise_literal(const utf8string &exception, std::shared_ptr<Object> info);
+    void raise(const ExceptionName &exception, std::shared_ptr<Object> info);
     void raise(const RtlException &x);
 
     virtual void handle_GET(const std::string &path, HttpResponse &response);
@@ -454,14 +442,14 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
 {
     // TODO: move this into a method in Executor that's called by exec_CALLI too
     if (g_executor->callstack.size() >= g_executor->param_recursion_limit) {
-        g_executor->raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        g_executor->raise(rtl::ne_global::Exception_StackOverflowException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     std::vector<Cell> a = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(callback))->array();
     Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (mod == nullptr || number_is_zero(nindex) || not number_is_integer(nindex)) {
-        g_executor->raise(rtl::ne_global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
+        g_executor->raise(rtl::ne_global::Exception_InvalidFunctionException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     if (params != NULL) {
@@ -482,13 +470,12 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
     }
 }
 
-int raise_exception(struct Ne_Cell *retval, const char *name, const char *info, int code)
+int raise_exception(struct Ne_Cell *retval, const char *name, const char *info, int /*code*/)
 {
     Cell *r = reinterpret_cast<Cell *>(retval);
-    r->array_for_write().resize(3);
+    r->array_for_write().resize(2);
     r->array_for_write()[0].string_for_write() = utf8string(name);
-    r->array_for_write()[1].string_for_write() = utf8string(info);
-    r->array_for_write()[2].number() = number_from_sint64(code);
+    r->array_for_write()[1] = Cell(rtl::ne_global::object__makeString(utf8string(info)));
     return Ne_EXCEPTION;
 }
 
@@ -881,7 +868,7 @@ void Executor::exec_DIVN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise(rtl::ne_global::Exception_DivideByZeroException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_DivideByZeroException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     stack.push(Cell(number_divide(a, b)));
@@ -893,7 +880,7 @@ void Executor::exec_MODN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise(rtl::ne_global::Exception_DivideByZeroException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_DivideByZeroException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     stack.push(Cell(number_modulo(a, b)));
@@ -1172,17 +1159,17 @@ void Executor::exec_INDEXAR()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(std::to_string(i))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= addr->array().size()) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(j))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(std::to_string(j))));
         return;
     }
     stack.push(Cell(&addr->array_index_for_read(j)));
@@ -1194,12 +1181,12 @@ void Executor::exec_INDEXAW()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(std::to_string(i))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
@@ -1212,17 +1199,17 @@ void Executor::exec_INDEXAV()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(std::to_string(i))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= array.size()) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(j))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(std::to_string(j))));
         return;
     }
     assert(j < array.size());
@@ -1237,12 +1224,12 @@ void Executor::exec_INDEXAN()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(number_to_string(index))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, ExceptionInfo(utf8string(std::to_string(i))));
+        raise(rtl::ne_global::Exception_ArrayIndexException, rtl::ne_global::object__makeString(utf8string(std::to_string(i))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
@@ -1258,7 +1245,7 @@ void Executor::exec_INDEXDR()
     Cell *addr = stack.top().address(); stack.pop();
     auto e = addr->dictionary().find(index);
     if (e == addr->dictionary().end()) {
-        raise(rtl::ne_global::Exception_DictionaryIndexException, ExceptionInfo(index));
+        raise(rtl::ne_global::Exception_DictionaryIndexException, rtl::ne_global::object__makeString(index));
         return;
     }
     stack.push(Cell(&addr->dictionary_index_for_read(index)));
@@ -1279,7 +1266,7 @@ void Executor::exec_INDEXDV()
     const std::map<utf8string, Cell> &dictionary = stack.top().dictionary();
     auto e = dictionary.find(index);
     if (e == dictionary.end()) {
-        raise(rtl::ne_global::Exception_DictionaryIndexException, ExceptionInfo(index));
+        raise(rtl::ne_global::Exception_DictionaryIndexException, rtl::ne_global::object__makeString(index));
         return;
     }
     Cell val = e->second;
@@ -1328,7 +1315,7 @@ void Executor::exec_CALLF()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_StackOverflowException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     invoke(module, val);
@@ -1340,7 +1327,7 @@ void Executor::exec_CALLMF()
     uint32_t mod = Bytecode::get_vint(module->object.code, ip);
     uint32_t func = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_StackOverflowException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
@@ -1368,14 +1355,14 @@ void Executor::exec_CALLI()
 {
     ip++;
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_StackOverflowException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     std::vector<Cell> a = stack.top().array(); stack.pop();
     Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (number_is_zero(nindex) || not number_is_integer(nindex)) {
-        raise(rtl::ne_global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_InvalidFunctionException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     uint32_t index = number_to_uint32(nindex);
@@ -1472,16 +1459,8 @@ void Executor::exec_EXCEPT()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     ip = start_ip;
-    std::vector<Cell> info = stack.top().array(); stack.pop();
-    ExceptionInfo ei;
-    size_t size = info.size();
-    if (size >= 1) {
-        ei.info = info[0].string();
-    }
-    if (size >= 2) {
-        ei.code = info[1].number();
-    }
-    raise_literal(utf8string(module->object.strtable[val]), ei);
+    std::shared_ptr<Object> info = stack.top().object(); stack.pop();
+    raise_literal(utf8string(module->object.strtable[val]), info);
 }
 
 void Executor::exec_ALLOC()
@@ -1591,9 +1570,8 @@ void Executor::exec_CALLX()
         }
         case Ne_EXCEPTION: {
             utf8string exceptionname = Cell(retval.array()[0]).string();
-            utf8string info = Cell(retval.array()[1]).string();
-            Number code = Cell(retval.array()[2]).number();
-            raise_literal(exceptionname, ExceptionInfo(info, code));
+            std::shared_ptr<Object> info = Cell(retval.array()[1]).object();
+            raise_literal(exceptionname, info);
             break;
         }
         default:
@@ -1639,7 +1617,7 @@ void Executor::exec_CALLV()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        raise(rtl::ne_global::Exception_StackOverflowException, rtl::ne_global::object__makeString(utf8string("")));
         return;
     }
     std::vector<Cell> &pi = stack.top().array_for_write();
@@ -1708,15 +1686,14 @@ void Executor::invoke(Module *m, uint32_t index)
     ip = m->object.functions[index].entry;
 }
 
-void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
+void Executor::raise_literal(const utf8string &exception, std::shared_ptr<Object> info)
 {
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
     Cell exceptionvar;
     exceptionvar.array_index_for_write(0) = Cell(exception);
-    exceptionvar.array_index_for_write(1) = Cell(info.info);
-    exceptionvar.array_index_for_write(2) = Cell(info.code);
-    exceptionvar.array_index_for_write(3) = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
+    exceptionvar.array_index_for_write(1) = Cell(info);
+    exceptionvar.array_index_for_write(2) = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
     auto tmodule = module;
     auto tip = ip;
@@ -1749,7 +1726,9 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
         tip = callstack[sp].second;
     }
 
-    fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", exception.c_str(), info.info.c_str(), number_to_sint32(info.code));
+    utf8string detail;
+    info->getString(detail);
+    fprintf(stderr, "Unhandled exception %s (%s)\n", exception.c_str(), detail.c_str());
     while (ip < module->object.code.size()) {
         if (module->debug != nullptr) {
             auto line = module->debug->line_numbers.end();
@@ -1785,14 +1764,14 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
     exit_code = 1;
 }
 
-void Executor::raise(const ExceptionName &exception, const ExceptionInfo &info)
+void Executor::raise(const ExceptionName &exception, std::shared_ptr<Object> info)
 {
     raise_literal(utf8string(exception.name), info);
 }
 
 void Executor::raise(const RtlException &x)
 {
-    raise_literal(utf8string(x.name), ExceptionInfo(x.info, x.code));
+    raise_literal(utf8string(x.name), rtl::ne_global::object__makeString(x.info));
 }
 
 void Executor::breakpoint()

@@ -146,8 +146,7 @@ func get_vint(bytes []byte, i *int) int {
 
 type neonexception struct {
 	name string
-	info string
-	code float64
+	info object
 }
 
 func (e *neonexception) Error() string {
@@ -162,6 +161,7 @@ type object interface {
 	getArray() ([]object, error)
 	getDictionary() (map[string]object, error)
 	subscript(index object) (object, error)
+	toLiteralString() string
 	toString() string
 }
 
@@ -195,6 +195,10 @@ func (obj objectBoolean) getDictionary() (map[string]object, error) {
 
 func (obj objectBoolean) subscript(index object) (object, error) {
 	return nil, errors.New("type error")
+}
+
+func (obj objectBoolean) toLiteralString() string {
+	return obj.toString()
 }
 
 func (obj objectBoolean) toString() string {
@@ -237,6 +241,10 @@ func (obj objectNumber) subscript(index object) (object, error) {
 	return nil, errors.New("type error")
 }
 
+func (obj objectNumber) toLiteralString() string {
+	return obj.toString()
+}
+
 func (obj objectNumber) toString() string {
 	return strconv.FormatFloat(obj.num, 'g', -1, 64)
 }
@@ -273,8 +281,12 @@ func (obj objectString) subscript(index object) (object, error) {
 	return nil, errors.New("type error")
 }
 
-func (obj objectString) toString() string {
+func (obj objectString) toLiteralString() string {
 	return "\"" + obj.str + "\""
+}
+
+func (obj objectString) toString() string {
+	return obj.str
 }
 
 type objectBytes struct {
@@ -307,6 +319,10 @@ func (obj objectBytes) getDictionary() (map[string]object, error) {
 
 func (obj objectBytes) subscript(index object) (object, error) {
 	return nil, errors.New("type error")
+}
+
+func (obj objectBytes) toLiteralString() string {
+	return obj.toString()
 }
 
 func (obj objectBytes) toString() string {
@@ -354,11 +370,15 @@ func (obj objectArray) subscript(index object) (object, error) {
 		if int(i) < len(obj.array) {
 			return obj.array[int(i)], nil
 		} else {
-			return nil, &neonexception{"ArrayIndexException", fmt.Sprintf("%g", i), 0}
+			return nil, &neonexception{"ArrayIndexException", objectString{fmt.Sprintf("%g", i)}}
 		}
 	} else {
-		return nil, &neonexception{"DynamicConversionException", "to Number", 0}
+		return nil, &neonexception{"DynamicConversionException", objectString{"to Number"}}
 	}
+}
+
+func (obj objectArray) toLiteralString() string {
+	return obj.toString()
 }
 
 func (obj objectArray) toString() string {
@@ -368,7 +388,7 @@ func (obj objectArray) toString() string {
 			r += ", "
 		}
 		if x != nil {
-			r += x.toString()
+			r += x.toLiteralString()
 		} else {
 			r += "null"
 		}
@@ -410,11 +430,15 @@ func (obj objectDictionary) subscript(index object) (object, error) {
 		if r, ok := obj.dict[k]; ok {
 			return r, nil
 		} else {
-			return nil, &neonexception{"ObjectSubscriptException", "\"" + k + "\"", 0}
+			return nil, &neonexception{"ObjectSubscriptException", objectString{k}}
 		}
 	} else {
-		return nil, &neonexception{"DynamicConversionException", "to String", 0}
+		return nil, &neonexception{"DynamicConversionException", objectString{"to String"}}
 	}
+}
+
+func (obj objectDictionary) toLiteralString() string {
+	return obj.toString()
 }
 
 func (obj objectDictionary) toString() string {
@@ -433,7 +457,7 @@ func (obj objectDictionary) toString() string {
 		}
 		r += "\"" + k + "\": "
 		if obj.dict[k] != nil {
-			r += obj.dict[k].toString()
+			r += obj.dict[k].toLiteralString()
 		} else {
 			r += "null"
 		}
@@ -950,11 +974,6 @@ type frame struct {
 	outer         *frame
 	locals        []cell
 	opstack_depth int
-}
-
-type exceptioninfo struct {
-	info string
-	code float64
 }
 
 type module struct {
@@ -1496,7 +1515,7 @@ func (self *executor) op_divn() {
 	b := self.pop().num
 	a := self.pop().num
 	if b == 0 {
-		self.raise_literal("DivideByZeroException", exceptioninfo{})
+		self.raise_literal("DivideByZeroException", objectString{""})
 		return
 	}
 	self.push(make_cell_num(a / b))
@@ -1747,16 +1766,16 @@ func (self *executor) op_indexar() {
 	ref := self.pop().ref
 	a := ref.load().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", nindex), 0})
+		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", nindex), 0})
+		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
 		return
 	}
 	index := int(nindex)
 	if index >= len(a) {
-		self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", nindex), 0})
+		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
 		return
 	}
 	self.push(make_cell_addr(&a[index]))
@@ -1768,11 +1787,11 @@ func (self *executor) op_indexaw() {
 	ref := self.pop().ref
 	a := ref.load().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", nindex), 0})
+		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", nindex), 0})
+		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
 		return
 	}
 	index := int(nindex)
@@ -1788,11 +1807,11 @@ func (self *executor) op_indexav() {
 	nindex := self.pop().num
 	a := self.pop().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", nindex), 0})
+		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", nindex), 0})
+		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
 		return
 	}
 	index := int(nindex)
@@ -1815,7 +1834,7 @@ func (self *executor) op_indexdr() {
 	key := self.pop().str
 	ref := self.pop().ref
 	if _, present := ref.load().dict[key]; !present {
-		self.raise_literal("DictionaryIndexException", exceptioninfo{key, 0})
+		self.raise_literal("DictionaryIndexException", objectString{key})
 		return
 	}
 	self.push(make_cell_ref(referenceDictionary{ref, key}))
@@ -1889,14 +1908,14 @@ func (self *executor) op_callp() {
 			}
 		}
 		if !found {
-			self.raise_literal("ArrayIndexException", exceptioninfo{"value not found in array", 0})
+			self.raise_literal("ArrayIndexException", objectString{"value not found in array"})
 		}
 	case "array__range":
 		step := self.pop().num
 		last := self.pop().num
 		first := self.pop().num
 		if step == 0 {
-			self.raise_literal("ValueRangeException", exceptioninfo{fmt.Sprintf("%g", step), 0})
+			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("%g", step)})
 		} else {
 			r := []cell{}
 			if step < 0 {
@@ -1913,7 +1932,7 @@ func (self *executor) op_callp() {
 	case "array__remove":
 		index := self.pop().num
 		if index != math.Trunc(index) || index < 0 {
-			self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", index), 0})
+			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", index)})
 		} else {
 			index := int(index)
 			r := self.pop().ref
@@ -1924,7 +1943,7 @@ func (self *executor) op_callp() {
 	case "array__resize":
 		size := self.pop().num
 		if size != math.Trunc(size) || size < 0 {
-			self.raise_literal("ArrayIndexException", exceptioninfo{fmt.Sprintf("%g", size), 0})
+			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", size)})
 		} else {
 			size := int(size)
 			r := self.pop().ref
@@ -2031,7 +2050,7 @@ func (self *executor) op_callp() {
 			if i > 0 {
 				r += ", "
 			}
-			r += x.obj.toString()
+			r += x.obj.toLiteralString()
 		}
 		r += "]"
 		self.push(make_cell_str(r))
@@ -2159,11 +2178,11 @@ func (self *executor) op_callp() {
 			last += len(b) - 1
 		}
 		if first < 0 {
-			self.raise_literal("BytesIndexException", exceptioninfo{fmt.Sprintf("%v", first), 0})
+			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%v", first)})
 		} else if first >= len(b) {
-			self.raise_literal("BytesIndexException", exceptioninfo{fmt.Sprintf("%v", first), 0})
+			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%v", first)})
 		} else if last >= len(b) {
-			self.raise_literal("BytesIndexException", exceptioninfo{fmt.Sprintf("%v", last), 0})
+			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%v", last)})
 		} else {
 			if last < 0 {
 				last = -1
@@ -2218,7 +2237,7 @@ func (self *executor) op_callp() {
 			r = strings.TrimRight(r, "\n")
 			self.push(make_cell_str(r))
 		} else {
-			self.raise_literal("EndOfFileException", exceptioninfo{err.Error(), 0})
+			self.raise_literal("EndOfFileException", objectString{err.Error()})
 		}
 	case "dictionary__keys":
 		d := self.pop().dict
@@ -2241,7 +2260,7 @@ func (self *executor) op_callp() {
 		delete(d, key)
 	case "exceptiontype__toString":
 		et := self.pop().array
-		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v,%v>", et[0].str, et[1].str, et[2].num, et[3].num)))
+		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v>", et[0].str, et[1].obj.toString(), et[2].num)))
 	case "file$_CONSTANT_Separator":
 		self.push(make_cell_str(string(os.PathSeparator)))
 	case "file$copy":
@@ -2249,7 +2268,7 @@ func (self *executor) op_callp() {
 		srcname := self.pop().str
 		dst, err := os.OpenFile(dstname, os.O_CREATE|os.O_EXCL, 0644)
 		if err != nil && os.IsExist(err) {
-			self.raise_literal("FileException.Exists", exceptioninfo{err.Error(), 0})
+			self.raise_literal("FileException.Exists", objectString{err.Error()})
 		} else {
 			if err != nil {
 				panic(err)
@@ -2325,7 +2344,7 @@ func (self *executor) op_callp() {
 		name := self.pop().str
 		err := os.Mkdir(name, 0755)
 		if err != nil && os.IsExist(err) {
-			self.raise_literal("FileException.DirectoryExists", exceptioninfo{name, 0})
+			self.raise_literal("FileException.DirectoryExists", objectString{name})
 		} else if err != nil {
 			panic(err)
 		}
@@ -2357,7 +2376,7 @@ func (self *executor) op_callp() {
 		name := self.pop().str
 		err := os.Remove(name)
 		if err != nil {
-			self.raise_literal("FileException", exceptioninfo{err.Error(), 0})
+			self.raise_literal("FileException", objectString{err.Error()})
 		}
 	case "file$rename":
 		newname := self.pop().str
@@ -2492,7 +2511,7 @@ func (self *executor) op_callp() {
 	case "math$odd":
 		n := self.pop().num
 		if n != math.Trunc(n) {
-			self.raise_literal("ValueRangeException", exceptioninfo{"odd() requires integer", 0})
+			self.raise_literal("ValueRangeException", objectString{"odd() requires integer"})
 		} else {
 			self.push(make_cell_bool((int(n) & 1) != 0))
 		}
@@ -2531,7 +2550,7 @@ func (self *executor) op_callp() {
 		if err == nil {
 			self.push(make_cell_num(n))
 		} else {
-			self.raise_literal("ValueRangeException", exceptioninfo{"num() argument not a number", 0})
+			self.raise_literal("ValueRangeException", objectString{"num() argument not a number"})
 		}
 	case "object__isNull":
 		o := self.pop().obj
@@ -2545,28 +2564,28 @@ func (self *executor) op_callp() {
 		if b, err := o.getBoolean(); err == nil {
 			self.push(make_cell_bool(b))
 		} else {
-			self.raise_literal("DynamicConversionException", exceptioninfo{"to Boolean", 0})
+			self.raise_literal("DynamicConversionException", objectString{"to Boolean"})
 		}
 	case "object__getNumber":
 		o := self.pop().obj
 		if n, err := o.getNumber(); err == nil {
 			self.push(make_cell_num(n))
 		} else {
-			self.raise_literal("DynamicConversionException", exceptioninfo{"to Number", 0})
+			self.raise_literal("DynamicConversionException", objectString{"to Number"})
 		}
 	case "object__getString":
 		o := self.pop().obj
 		if s, err := o.getString(); err == nil {
 			self.push(make_cell_str(s))
 		} else {
-			self.raise_literal("DynamicConversionException", exceptioninfo{"to String", 0})
+			self.raise_literal("DynamicConversionException", objectString{"to String"})
 		}
 	case "object__getBytes":
 		o := self.pop().obj
 		if s, err := o.getBytes(); err == nil {
 			self.push(make_cell_bytes(s))
 		} else {
-			self.raise_literal("DynamicConversionException", exceptioninfo{"to Bytes", 0})
+			self.raise_literal("DynamicConversionException", objectString{"to Bytes"})
 		}
 	case "object__getArray":
 		o := self.pop().obj
@@ -2577,7 +2596,7 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_array(b))
 		} else {
-			self.raise_literal("DynamicConversionException", exceptioninfo{"to Array", 0})
+			self.raise_literal("DynamicConversionException", objectString{"to Array"})
 		}
 	case "object__getDictionary":
 		o := self.pop().obj
@@ -2588,7 +2607,7 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_dict(b))
 		} else {
-			self.raise_literal("DynamicConversionException", exceptioninfo{"to Dictionary", 0})
+			self.raise_literal("DynamicConversionException", objectString{"to Dictionary"})
 		}
 	case "object__makeNull":
 		self.push(make_cell_obj(nil))
@@ -2622,16 +2641,16 @@ func (self *executor) op_callp() {
 		i := self.pop().obj
 		o := self.pop().obj
 		if o == nil {
-			self.raise_literal("DynamicConversionException", exceptioninfo{"object is null", 0})
+			self.raise_literal("DynamicConversionException", objectString{"object is null"})
 		} else if i == nil {
-			self.raise_literal("DynamicConversionException", exceptioninfo{"index is null", 0})
+			self.raise_literal("DynamicConversionException", objectString{"index is null"})
 		} else if x, err := o.subscript(i); err == nil {
 			self.push(make_cell_obj(x))
 		} else {
 			if ne, ok := err.(*neonexception); ok {
-				self.raise_literal(ne.name, exceptioninfo{ne.info, ne.code})
+				self.raise_literal(ne.name, ne.info)
 			} else {
-				self.raise_literal("ObjectSubscriptException", exceptioninfo{i.toString(), 0})
+				self.raise_literal("ObjectSubscriptException", objectString{i.toString()})
 			}
 		}
 	case "object__toString":
@@ -2648,7 +2667,7 @@ func (self *executor) op_callp() {
 		cmd := exec.Command("/bin/sh", "-c", cmdline)
 		err := cmd.Start()
 		if err != nil {
-			self.raise_literal("OsException.Spawn", exceptioninfo{"", 0})
+			self.raise_literal("OsException.Spawn", objectString{""})
 		} else {
 			self.push(make_cell_other(cmd))
 		}
@@ -2711,9 +2730,9 @@ func (self *executor) op_callp() {
 	case "string$fromCodePoint":
 		c := self.pop().num
 		if c != math.Trunc(c) {
-			self.raise_literal("ValueRangeException", exceptioninfo{"fromCodePoint() argument not an integer", 0})
+			self.raise_literal("ValueRangeException", objectString{"fromCodePoint() argument not an integer"})
 		} else if c < 0 || c > 0x10ffff {
-			self.raise_literal("ValueRangeException", exceptioninfo{"fromCodePoint() argument out of range 0-0x10ffff", 0})
+			self.raise_literal("ValueRangeException", objectString{"fromCodePoint() argument out of range 0-0x10ffff"})
 		} else {
 			self.push(make_cell_str(string([]byte{byte(c)})))
 		}
@@ -2755,7 +2774,7 @@ func (self *executor) op_callp() {
 	case "string$toCodePoint":
 		s := self.pop().str
 		if len(s) != 1 {
-			self.raise_literal("ArrayIndexException", exceptioninfo{"toCodePoint() requires string of length 1", 0})
+			self.raise_literal("ArrayIndexException", objectString{"toCodePoint() requires string of length 1"})
 		} else {
 			self.push(make_cell_num(float64(s[0])))
 		}
@@ -2807,11 +2826,11 @@ func (self *executor) op_callp() {
 			last += len(s) - 1
 		}
 		if first < 0 {
-			self.raise_literal("StringIndexException", exceptioninfo{fmt.Sprintf("%v", first), 0})
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", first)})
 		} else if first >= len(s) {
-			self.raise_literal("StringIndexException", exceptioninfo{fmt.Sprintf("%v", first), 0})
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", first)})
 		} else if last >= len(s) {
-			self.raise_literal("StringIndexException", exceptioninfo{fmt.Sprintf("%v", last), 0})
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", last)})
 		} else {
 			if last < 0 {
 				last = -1
@@ -2831,9 +2850,9 @@ func (self *executor) op_callp() {
 	case "sys$exit":
 		n := self.pop().num
 		if n != math.Trunc(n) {
-			self.raise_literal("InvalidValueException", exceptioninfo{fmt.Sprintf("sys.exit invalid parameter: %g", n), 0})
+			self.raise_literal("InvalidValueException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else if n < 0 || n > 255 {
-			self.raise_literal("InvalidValueException", exceptioninfo{fmt.Sprintf("sys.exit invalid parameter: %g", n), 0})
+			self.raise_literal("InvalidValueException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else {
 			os.Exit(int(n))
 		}
@@ -2852,7 +2871,7 @@ func (self *executor) op_callf() {
 	self.ip++
 	val := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", exceptioninfo{"", 0})
+		self.raise_literal("StackOverflowException", objectString{""})
 		return
 	}
 	self.invoke(self.module, val)
@@ -2863,7 +2882,7 @@ func (self *executor) op_callmf() {
 	mod := get_vint(self.module.object.code, &self.ip)
 	fun := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", exceptioninfo{"", 0})
+		self.raise_literal("StackOverflowException", objectString{""})
 		return
 	}
 	m, found := self.modules[string(self.module.object.strtable[mod])]
@@ -2882,7 +2901,7 @@ func (self *executor) op_callmf() {
 func (self *executor) op_calli() {
 	self.ip++
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", exceptioninfo{"", 0})
+		self.raise_literal("StackOverflowException", objectString{""})
 		return
 	}
 	a := self.pop().array
@@ -2971,15 +2990,8 @@ func (self *executor) op_except() {
 	self.ip++
 	val := get_vint(self.module.object.code, &self.ip)
 	self.ip = start_ip
-	info := self.pop().array
-	ei := exceptioninfo{}
-	if len(info) >= 1 {
-		ei.info = info[0].str
-	}
-	if len(info) >= 2 {
-		ei.code = info[1].num
-	}
-	self.raise_literal(string(self.module.object.strtable[val]), ei)
+	info := self.pop().obj
+	self.raise_literal(string(self.module.object.strtable[val]), info)
 }
 
 func (self *executor) op_alloc() {
@@ -3045,7 +3057,7 @@ func (self *executor) op_callv() {
 	self.ip++
 	val := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", exceptioninfo{"", 0})
+		self.raise_literal("StackOverflowException", objectString{""})
 		return
 	}
 	pi := self.pop().array
@@ -3084,11 +3096,10 @@ func (self *executor) op_pushci() {
 	panic("neon: unknown class name")
 }
 
-func (self *executor) raise_literal(exception string, ei exceptioninfo) {
+func (self *executor) raise_literal(exception string, info object) {
 	exceptionvar := make_cell_array([]cell{
 		make_cell_str(exception),
-		make_cell_str(ei.info),
-		make_cell_num(ei.code),
+		make_cell_obj(info),
 		make_cell_num(float64(self.ip)),
 	})
 
@@ -3128,7 +3139,7 @@ func (self *executor) raise_literal(exception string, ei exceptioninfo) {
 		tip = self.callstack[sp].ip
 	}
 
-	fmt.Fprintf(os.Stderr, "Unhandled exception %s (%s) (code %g)\n", exception, ei.info, ei.code)
+	fmt.Fprintf(os.Stderr, "Unhandled exception %s (%s)\n", exception, info.toString())
 	os.Exit(1)
 }
 

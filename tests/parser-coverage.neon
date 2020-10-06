@@ -200,7 +200,6 @@ NEXT label
 RAISE name
 RAISE name.name
 RAISE name(expr)
-RAISE name(expr, expr)
 
 -- RepeatStatement
 REPEAT UNTIL expr

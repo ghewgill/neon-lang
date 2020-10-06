@@ -1,9 +1,9 @@
 EXCEPTION PrinterOnFireException
 
 TRY
-    RAISE PrinterOnFireException(info WITH "error", code WITH 404)
+    RAISE PrinterOnFireException({"message": "error", "code": 404})
 TRAP PrinterOnFireException AS x DO
-    print("conflagration \(x.info) \(x.code)")
+    print("conflagration \(x.info.message) \(x.info.code)")
 END TRY
 
 --= conflagration error 404

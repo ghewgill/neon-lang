@@ -2079,7 +2079,7 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
         stmt->generate(emitter);
     }
     emitter.emit(Opcode::PUSHS, emitter.str(source));
-    emitter.emit(Opcode::CONSA, 1);
+    emitter.emit(Opcode::CALLP, emitter.str("object__makeString"));
     emitter.emit(Opcode::EXCEPT, emitter.str("AssertFailedException"));
     emitter.jump_target(skip_label);
 }
@@ -2412,6 +2412,7 @@ void ast::TryStatement::generate_code(Emitter &emitter) const
 
 void ast::RaiseStatement::generate_code(Emitter &emitter) const
 {
+    assert(info->type == TYPE_OBJECT);
     info->generate(emitter);
     unsigned int index = emitter.str(exception->name);
     emitter.emit(Opcode::EXCEPT, index);

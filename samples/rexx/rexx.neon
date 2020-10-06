@@ -346,7 +346,7 @@ FUNCTION convert_binary_string(s: String): String
     VAR bit: Number := 0b1
     LOOP
         IF i < 0 OR s[i] NOT IN Digits THEN
-            RAISE SignalException.Syntax(info WITH "invalid binary string")
+            RAISE SignalException.Syntax("invalid binary string")
         END IF
         b := b + string.find(Digits, s[i]) * bit
         bit := bit * 2
@@ -356,7 +356,7 @@ FUNCTION convert_binary_string(s: String): String
                 -- Ignore missing leading digit.
                 EXIT FOR
             ELSIF s[i] NOT IN Digits THEN
-                RAISE SignalException.Syntax(info WITH "invalid binary string")
+                RAISE SignalException.Syntax("invalid binary string")
             ELSE
                 b := b + string.find(Digits, s[i]) * bit
                 bit := bit * 2
@@ -390,7 +390,7 @@ FUNCTION convert_hex_string(s: String): String
     LOOP
         IF i < 0 OR t[i] NOT IN Digits THEN
             error(15.3, {"char": t[i]})
-            -- TODO RAISE SignalException.Syntax(info WITH "invalid hex string")
+            -- TODO RAISE SignalException.Syntax("invalid hex string")
         END IF
         VAR b: Number := string.find(Digits, t[i])
         DEC i
@@ -398,7 +398,7 @@ FUNCTION convert_hex_string(s: String): String
             -- Ignore missing leading digit.
         ELSIF t[i] NOT IN Digits THEN
             error(15.3, {"char": t[i]})
-            -- TODO RAISE SignalException.Syntax(info WITH "invalid hex string")
+            -- TODO RAISE SignalException.Syntax("invalid hex string")
         ELSE
             b := b + string.find(Digits, t[i]) * 0x10
             DEC i
@@ -713,7 +713,7 @@ FUNCTION rxnum(s: String): Number
         END IF
         RETURN num(t)
     TRAP ValueRangeException DO
-        RAISE SignalException.Syntax(info WITH "not a number: <\(s)>")
+        RAISE SignalException.Syntax("not a number: <\(s)>")
     END TRY
 END FUNCTION
 
@@ -2364,7 +2364,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
             END CASE
         WHEN OTHERS DO
             IF tokens[i].type = TokenType.Const_symbol AND tokens[i+1].type = TokenType.Operator AND tokens[i+1].value IN ["=","=="] THEN
-                RAISE SignalException.Syntax(info WITH "assignment to constant")
+                RAISE SignalException.Syntax("assignment to constant")
             END IF
             LET r: String := evaluate(tokens, INOUT i, [])
             vars["RC"] := send_command(current_environment, r)

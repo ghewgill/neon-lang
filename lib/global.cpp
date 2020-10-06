@@ -420,11 +420,9 @@ utf8string exceptiontype__toString(Cell &ei)
     return utf8string("<ExceptionType:")
          + ei.array_for_write()[0].string()
          + utf8string(",")
-         + ei.array_for_write()[1].string()
+         + ei.array_for_write()[1].object()->toString()
          + utf8string(",")
          + utf8string(number_to_string(ei.array_for_write()[2].number()))
-         + utf8string(",")
-         + utf8string(number_to_string(ei.array_for_write()[3].number()))
          + utf8string(">");
 }
 
@@ -483,7 +481,9 @@ class ObjectString: public Object {
 public:
     explicit ObjectString(const utf8string &s): s(s) {}
     virtual bool getString(utf8string &r) const override { r = s; return true; }
-    virtual utf8string toString() const override { return "\"" + s + "\""; }
+    // TODO: Use quoting function to quote the value properly.
+    virtual utf8string toLiteralString() const override { return "\"" + s + "\""; }
+    virtual utf8string toString() const override { return s; }
 private:
     const utf8string s;
 private:
@@ -553,7 +553,7 @@ public:
             } else {
                 first = false;
             }
-            r.append(x != nullptr ? x->toString() : utf8string("null"));
+            r.append(x != nullptr ? x->toLiteralString() : utf8string("null"));
         }
         r.append("]");
         return r;
@@ -598,7 +598,7 @@ public:
             r.append("\"");
             r.append(x.first.c_str());
             r.append("\": ");
-            r.append(x.second != nullptr ? x.second->toString() : utf8string("null"));
+            r.append(x.second != nullptr ? x.second->toLiteralString() : utf8string("null"));
         }
         r.append("}");
         return r;

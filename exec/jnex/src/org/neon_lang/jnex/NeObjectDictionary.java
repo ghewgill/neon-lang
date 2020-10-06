@@ -19,7 +19,7 @@ class NeObjectDictionary implements NeObject {
         }
         NeObject r = d.get(s);
         if (r == null) {
-            throw new NeonException("ObjectSubscriptException", "\"" + s + "\"");
+            throw new NeonException("ObjectSubscriptException", s);
         }
         return r;
     }
@@ -37,7 +37,7 @@ class NeObjectDictionary implements NeObject {
             r.append("\"");
             r.append(x.getKey());
             r.append("\": ");
-            r.append(x.getValue() != null ? x.getValue().toString() : "null");
+            r.append(x.getValue() != null ? x.getValue().toLiteralString() : "null");
         }
         r.append("}");
         return r.toString();

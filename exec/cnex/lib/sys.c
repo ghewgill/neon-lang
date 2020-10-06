@@ -26,13 +26,13 @@ void sys_exit(TExecutor *exec)
 
     if (!number_is_integer(x)) {
         sprintf(ex, "%s %s", "sys.exit invalid parameter:", number_to_string(x));
-        exec->rtl_raise(exec, "InvalidValueException", ex, BID_ZERO);
+        exec->rtl_raise(exec, "InvalidValueException", ex);
         return;
     }
     int r = number_to_sint32(x);
     if (r < 0 || r > 255) {
         sprintf(ex, "%s %s", "sys.exit invalid parameter:", number_to_string(x));
-        exec->rtl_raise(exec, "InvalidValueException", ex, BID_ZERO);
+        exec->rtl_raise(exec, "InvalidValueException", ex);
         return;
     }
     exit(r);

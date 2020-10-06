@@ -29,7 +29,7 @@ print(s)
 --= "fork"
 v := json.decode(s)
 print("\(v)")
---= "fork"
+--= fork
 
 TESTCASE json.decode(@@""\"\\\/\b\n\f\r\t""@@) = "\"\\/\b\n\f\r\t"
 TESTCASE json.decode(@@""\u0021""@@) = "!"
@@ -39,7 +39,7 @@ print(s)
 --= [5,"fork"]
 v := json.decode(s)
 print("\(v[0]) \(v[1])")
---= 5 "fork"
+--= 5 fork
 
 s := json.encode({
     "null": NIL,

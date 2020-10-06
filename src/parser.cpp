@@ -1959,8 +1959,7 @@ std::unique_ptr<Statement> Parser::parseRaiseStatement()
     }
     std::unique_ptr<Expression> info { nullptr };
     if (tokens[i].type == LPAREN) {
-        std::unique_ptr<Expression> expr { new IdentifierExpression(Token(), "ExceptionInfo") };
-        info = parseFunctionCall(std::move(expr));
+        info = parseExpression();
     } else {
         info = nullptr;
     }
