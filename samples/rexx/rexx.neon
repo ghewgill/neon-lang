@@ -12,8 +12,9 @@ IMPORT textio
 IMPORT time
 
 EXCEPTION SignalException
-EXCEPTION SignalException.Syntax
 EXCEPTION SignalException.Notready
+EXCEPTION SignalException.Novalue
+EXCEPTION SignalException.Syntax
 
 CONSTANT Limit_EnvironmentName := 99
 CONSTANT Limit_Name := 99
@@ -284,6 +285,7 @@ END RECORD
 
 CONSTANT Signals := [
     "NOTREADY",
+    "NOVALUE",
     "SYNTAX",
 ]
 
@@ -439,12 +441,12 @@ FUNCTION tokenise(source: String): Array<Token>
         ELSIF is_digit(source[i]) OR source[i] = "." THEN
             t.type := TokenType.Const_symbol
             WHILE i < source.length() DO
-                IF is_var_symbol_char(source[i]) THEN
-                    t.value.append(source[i])
-                    INC i
-                ELSIF source[i] IN ["E","e"] AND source[i+1] IN ["+","-"] THEN
+                IF source[i] IN ["E","e"] AND source[i+1] IN ["+","-"] THEN
                     t.value.append(source[i TO i+1])
                     i := i + 2
+                ELSIF is_var_symbol_char(source[i]) THEN
+                    t.value.append(source[i])
+                    INC i
                 ELSE
                     EXIT WHILE
                 END IF
@@ -677,26 +679,50 @@ FUNCTION set_var(name: String, value: String)
     arrays[stem][tail] := value
 END FUNCTION
 
-FUNCTION is_number(s: String, OUT n: Number): Boolean
-    n := 0
-    TRY
-        n := num(s)
-        RETURN TRUE
-    TRAP ValueRangeException DO
-        RETURN FALSE
-    END TRY
-END FUNCTION
-
 FUNCTION rxnum(s: String): Number
     TRY
         VAR t: String := s
         t := string.trim(s)
+        VAR negative := FALSE
+        IF string.hasPrefix(t, "+") THEN
+            t := string.trim(t[FIRST+1 TO LAST])
+        ELSIF string.hasPrefix(t, "-") THEN
+            negative := TRUE
+            t := string.trim(t[FIRST+1 TO LAST])
+        END IF
+        IF t = "" OR t = "." THEN
+            error(41)
+            RETURN 0
+        END IF
         IF string.hasPrefix(t, ".") THEN
             t := "0" & t
         END IF
-        RETURN num(t)
+        IF string.hasSuffix(t, ".") THEN
+            t := t[FIRST TO LAST-1]
+        END IF
+        IF NOT is_digit(t[0]) THEN
+            error(41)
+            RETURN 0
+        END IF
+        LET r := num(t)
+        IF negative THEN
+            RETURN -r
+        ELSE
+            RETURN r
+        END IF
     TRAP ValueRangeException DO
-        RAISE SignalException.Syntax("not a number: <\(s)>")
+        error(41)
+    END TRY
+    RETURN 0
+END FUNCTION
+
+FUNCTION is_number(s: String, OUT n: Number): Boolean
+    n := 0
+    TRY
+        n := rxnum(s)
+        RETURN TRUE
+    TRAP SignalException DO
+        RETURN FALSE
     END TRY
 END FUNCTION
 
@@ -1101,6 +1127,9 @@ FUNCTION builtin_digits(args: Array<String>): String
 END FUNCTION
 
 FUNCTION builtin_errortext(args: Array<String>): String
+    CHECK args[0] IN ErrorText ELSE
+        RETURN ""
+    END CHECK
     RETURN ErrorText[args[0]]
 END FUNCTION
 
@@ -1487,11 +1516,23 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number, terminating_tokens: Arr
                 WHEN "=" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
-                    push_operand((IF string.trim(x) = string.trim(y) THEN "1" ELSE "0"))
+                    VAR a: Number
+                    VAR b: Number
+                    IF is_number(x, OUT a) AND is_number(y, OUT b) THEN
+                        push_operand((IF a = b THEN "1" ELSE "0"))
+                    ELSE
+                        push_operand((IF string.trim(x) = string.trim(y) THEN "1" ELSE "0"))
+                    END IF
                 WHEN "\\=", "<>" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
-                    push_operand((IF string.trim(x) <> string.trim(y) THEN "1" ELSE "0"))
+                    VAR a: Number
+                    VAR b: Number
+                    IF is_number(x, OUT a) AND is_number(y, OUT b) THEN
+                        push_operand((IF a <> b THEN "1" ELSE "0"))
+                    ELSE
+                        push_operand((IF string.trim(x) <> string.trim(y) THEN "1" ELSE "0"))
+                    END IF
                 WHEN "==" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
@@ -1549,15 +1590,30 @@ FUNCTION evaluate(tokens: Array<Token>, INOUT i: Number, terminating_tokens: Arr
                 WHEN "/" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
-                    push_operand(str(rxnum(x) / rxnum(y)))
+                    LET yy := rxnum(y)
+                    IF yy <> 0 THEN
+                        push_operand(str(rxnum(x) / yy))
+                    ELSE
+                        error(42.3)
+                    END IF
                 WHEN "%" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
-                    push_operand(str(rxnum(x) INTDIV rxnum(y)))
+                    LET yy := rxnum(y)
+                    IF yy <> 0 THEN
+                        push_operand(str(rxnum(x) INTDIV yy))
+                    ELSE
+                        error(42.3)
+                    END IF
                 WHEN "//" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
-                    push_operand(str(rxnum(x) MOD rxnum(y)))
+                    LET yy := rxnum(y)
+                    IF yy <> 0 THEN
+                        push_operand(str(rxnum(x) MOD yy))
+                    ELSE
+                        error(42.3)
+                    END IF
                 WHEN "**" DO
                     LET y: String := pop_operand()
                     LET x: String := pop_operand()
@@ -2072,8 +2128,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     INC i
                     LOOP
                         IF tokens[i].type = TokenType.Var_symbol THEN
-                            -- TODO: need dictionary remove
-                            -- vars.remove(tokens[i].value)
+                            vars.remove(tokens[i].value)
                             INC i
                         ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = "(" THEN
                             ASSERT FALSE, "indirect drop"
