@@ -323,6 +323,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, Cell *info)
                     }
                     self->callstacktop = sp;
                     push(self->stack, exceptionvar);
+                    cell_freeCell(info);
                     return;
                 }
             }
@@ -337,8 +338,11 @@ void exec_raiseLiteral(TExecutor *self, TString *name, Cell *info)
         tmodule = self->callstack[sp].mod;
         sp -= 1;
     }
-    fprintf(stderr, "Unhandled exception %s (%s)\n", TCSTR(name), TCSTR(cell_toString(info)));
+    Cell *inf = object_toString(info->object);
+    fprintf(stderr, "Unhandled exception %s (%s)\n", TCSTR(name), TCSTR(inf->string));
     cell_freeCell(exceptionvar);
+    cell_freeCell(info);
+    cell_freeCell(inf);
     cJSON *symbols = NULL;
     cJSON *pStart = NULL;
     while (self->ip < self->module->bytecode->codelen) {

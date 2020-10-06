@@ -1031,7 +1031,9 @@ void exceptiontype__toString(struct tagTExecutor *exec)
     Cell *r = cell_fromCString("<ExceptionType:");
     string_appendString(r->string, ex->array->data[0].string);
     string_appendChar(r->string, ',');
-    string_appendString(r->string, cell_toString(&ex->array->data[1]));
+    Cell *inf = object_toString(ex->array->data[1].object);
+    string_appendString(r->string, inf->string);
+    cell_freeCell(inf);
     string_appendChar(r->string, ',');
     string_appendCString(r->string, number_to_string(ex->array->data[2].number));
     string_appendChar(r->string, '>');
