@@ -56,6 +56,7 @@ struct Ne_MethodTable {
     struct Ne_Cell *(*cell_set_dictionary_cell)(struct Ne_Cell *cell, const char *key);
 
     void (*exec_callback)(const struct Ne_Cell *callback, const struct Ne_ParameterList *params, struct Ne_Cell *retval);
+    // TODO: Remove "code" and make "info" an Object when neonext gets object capability.
     int (*raise_exception)(struct Ne_Cell *retval, const char *name, const char *info, int code);
 };
 
