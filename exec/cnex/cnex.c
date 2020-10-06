@@ -435,10 +435,13 @@ nextframe:
 void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info)
 {
     TString *n = string_createCString(name);
-    Cell *i = cell_fromObject(object_createStringObject(string_createCString(info)));
+    TString *i = string_createCString(info);
 
-    exec_raiseLiteral(self, n, i);
+    Cell *ex = cell_fromObject(object_createStringObject(i));
+
+    exec_raiseLiteral(self, n, ex);
     string_freeString(n);
+    string_freeString(i);
 }
 
 static unsigned int exec_getOperand(TExecutor *self)
