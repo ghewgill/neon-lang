@@ -54,7 +54,7 @@ void file_copy(TExecutor *exec)
     int r = copyfile(filename->data, destination->data, NULL, COPYFILE_ALL | COPYFILE_EXCL);
     if (r != 0) {
         if (errno == EEXIST) {
-            exec->rtl_raise(exec, "FileException.Exists", TCSTR(destination));
+            exec->rtl_raise(exec, "FileException.Exists", destination->data);
             goto bail;
         }
         handle_error(exec, errno, filename->data);
@@ -277,6 +277,7 @@ void file_getInfo(TExecutor *exec)
     struct stat st;
     if (stat(name->data, &st) != 0) {
         handle_error(exec, errno, name->data);
+        string_freeString(name);
         return;
     }
 
