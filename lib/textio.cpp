@@ -54,8 +54,9 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
 {
     const char *m;
     switch (number_to_uint32(mode.number())) {
-        case ENUM_Mode_read:  m = "r"; break;
-        case ENUM_Mode_write: m = "w+"; break;
+        case ENUM_Mode_read:      m = "r"; break;
+        case ENUM_Mode_write:     m = "w+"; break;
+        case ENUM_Mode_readwrite: m = "r+"; break;
         default:
             return NULL;
     }

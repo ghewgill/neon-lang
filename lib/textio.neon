@@ -27,6 +27,7 @@ EXPORT writeLine
 TYPE Mode IS ENUM
     read
     write
+    readwrite
 END ENUM
 
 /*  Type: TextFile
