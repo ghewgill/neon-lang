@@ -297,27 +297,10 @@ VAR contexts: Array<ContextEntry>
 VAR signal_handlers: Dictionary<String>
 VAR streams: Dictionary<textio.TextFile>
 VAR current_environment: String := "SYSTEM"
+VAR trace: Boolean
 
 FUNCTION error(number: Number, values: Dictionary<String> DEFAULT {})
-    LET basenumber := str(math.trunc(number))
-    textio.writeLine(textio.stderr, "Error \(basenumber) running \"\(script_filename)\": \(ErrorText[basenumber])")
-    LET msg := ErrorText[str(number)]
-    VAR r := ""
-    VAR i := 0
-    WHILE i < msg.length() DO
-        LET left := i + string.find(msg[i TO LAST], "<")
-        IF left < i THEN
-            r.append(msg[i TO LAST])
-            EXIT WHILE
-        END IF
-        r.append(msg[i TO left-1])
-        LET right := left + string.find(msg[left TO LAST], ">")
-        ASSERT right > left
-        r.append(values[msg[left+1 TO right-1]])
-        i := right + 1
-    END WHILE
-    textio.writeLine(textio.stderr, "Error \(number): \(r)")
-    sys.exit(1)
+    RAISE SignalException.Syntax({"number": number, "values": values})
 END FUNCTION
 
 FUNCTION is_digit(c: String): Boolean
@@ -389,7 +372,7 @@ FUNCTION convert_hex_string(s: String): String
     VAR r: String := ""
     LOOP
         IF i < 0 OR t[i] NOT IN Digits THEN
-            error(15.3, {"char": t[i]})
+            error(15.3, {"char": (IF i >= 0 THEN t[i] ELSE "")})
             -- TODO RAISE SignalException.Syntax("invalid hex string")
         END IF
         VAR b: Number := string.find(Digits, t[i])
@@ -1968,6 +1951,9 @@ END FUNCTION
 FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
     --VAR o: Object := vars print(o.toString())
     --print("interpret \(contexts.size()) \(tokens[i])")
+    IF trace THEN
+        print("\(tokens[i].line:6) *-* \(string.trim(sourcelines[tokens[i].line]))")
+    END IF
     LET orig_i: Number := i
     CASE tokens[i].type
         WHEN TokenType.Label DO
@@ -2396,6 +2382,30 @@ FUNCTION interpret_function(start_tokens: Array<Token>, start_i: Number): String
     RETURN vars["RESULT"]
 END FUNCTION
 
+FUNCTION error_halt(e: ExceptionType)
+    LET number: Number := e.info.number
+    LET values: Dictionary<String> := e.info.values
+    LET basenumber := str(math.trunc(number))
+    textio.writeLine(textio.stderr, "Error \(basenumber) running \"\(script_filename)\": \(ErrorText[basenumber])")
+    LET msg := ErrorText[str(number)]
+    VAR r := ""
+    VAR i := 0
+    WHILE i < msg.length() DO
+        LET left := i + string.find(msg[i TO LAST], "<")
+        IF left < i THEN
+            r.append(msg[i TO LAST])
+            EXIT WHILE
+        END IF
+        r.append(msg[i TO left-1])
+        LET right := left + string.find(msg[left TO LAST], ">")
+        ASSERT right > left
+        r.append(values[msg[left+1 TO right-1]])
+        i := right + 1
+    END WHILE
+    textio.writeLine(textio.stderr, "Error \(number): \(r)")
+    sys.exit(1)
+END FUNCTION
+
 FUNCTION interpret()
     VAR tokens: Array<Token> := source_tokens
     VAR i: Number := 0
@@ -2409,20 +2419,39 @@ FUNCTION interpret()
             VAR lindex: Number
             IF find_label(source_tokens, signal_handlers[signal], OUT lindex) THEN
                 vars["SIGL"] := str(tokens[i].line)
-                contexts := []
+                contexts.resize(1)
                 tokens := source_tokens
                 i := lindex + 1
                 -- TODO: pop contexts and restore vars/arrays
             ELSE
-                print("unhandled signal: \(e.name) \(e.info)")
-                sys.exit(1)
+                error_halt(e)
             END IF
         END TRY
     END WHILE
 END FUNCTION
 
 BEGIN MAIN
-    script_filename := sys.args[1]
+    VAR a := 1
+    WHILE a < sys.args.size() DO
+        IF string.hasPrefix(sys.args[a], "-") THEN
+            CASE sys.args[a]
+                WHEN "-t" DO
+                    trace := TRUE
+                WHEN OTHERS DO
+                    textio.writeLine(textio.stderr, "Unknown option: \(sys.args[a])")
+                    sys.exit(1)
+            END CASE
+        ELSE
+            script_filename := sys.args[a]
+            INC a
+            EXIT WHILE
+        END IF
+        INC a
+    END WHILE
+    IF script_filename = "" THEN
+        textio.writeLine(textio.stderr, "Script name not specified")
+        sys.exit(1)
+    END IF
     TRY
         LET bytes: Bytes := file.readBytes(script_filename)
         LET source: String := bytes.decodeToString()
@@ -2430,6 +2459,8 @@ BEGIN MAIN
         source_tokens := tokenise(source)
     TRAP file.FileException DO
         error(3.1, {"description": "Program was not found"})
+    TRAP SignalException.Syntax AS e DO
+        error_halt(e)
     END TRY
     label_index := make_label_index(source_tokens)
     --FOREACH t IN source_tokens INDEX i DO
@@ -2438,7 +2469,7 @@ BEGIN MAIN
     FOREACH s IN Signals DO
         signal_handlers[s] := s
     END FOREACH
-    contexts.append(ContextEntry(call_return_ip WITH -1, call_args WITH [string.join(sys.args[2 TO LAST], " ")]))
+    contexts.append(ContextEntry(call_return_ip WITH -1, call_args WITH [string.join(sys.args[a TO LAST], " ")]))
     interpret()
     ASSERT contexts.size() = 1
 END MAIN
