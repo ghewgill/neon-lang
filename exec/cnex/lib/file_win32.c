@@ -10,18 +10,18 @@
 #include "util.h"
 
 
-static void handle_error(TExecutor *exec, DWORD error, TString *path)
+static void handle_error(TExecutor *exec, DWORD error, const char *path)
 {
     switch (error) {
-        case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException.DirectoryExists", TCSTR(path));     break;
-        case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException.PermissionDenied", TCSTR(path));    break;
-        case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException.PathNotFound", TCSTR(path));        break;
-        case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException.Exists", TCSTR(path));              break;
-        case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException.PermissionDenied", TCSTR(path));    break;
+        case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException.DirectoryExists", path);     break;
+        case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException.PermissionDenied", path);    break;
+        case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException.PathNotFound", path);        break;
+        case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException.Exists", path);              break;
+        case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException.PermissionDenied", path);    break;
         default:
         {
             char err[MAX_PATH + 32];
-            snprintf(err, sizeof(err), "%s: %d", TCSTR(path), error);
+            snprintf(err, sizeof(err), "%s: %d", path, error);
             exec->rtl_raise(exec, "FileException", err);
             break;
         }
@@ -49,9 +49,7 @@ void file_copy(TExecutor *exec)
 
     BOOL r = CopyFile(filename, destination, TRUE);
     if (!r) {
-        Cell *dest = cell_fromCString(destination);
-        handle_error(exec, GetLastError(), dest->string);
-        cell_clearCell(dest);
+        handle_error(exec, GetLastError(), destination);
     }
     free(destination);
     free(filename);
@@ -64,9 +62,7 @@ void file_copyOverwriteIfExists(TExecutor *exec)
 
     BOOL r = CopyFile(filename, destination, FALSE);
     if (!r) {
-        Cell *dest = cell_fromCString(destination);
-        handle_error(exec, GetLastError(), dest->string);
-        cell_clearCell(dest);
+        handle_error(exec, GetLastError(), destination);
     }
     free(destination);
     free(filename);
@@ -79,9 +75,7 @@ void file_delete(TExecutor *exec)
     BOOL r = DeleteFile(filename);
     if (!r) {
         if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-            Cell *file = cell_fromCString(filename);
-            handle_error(exec, GetLastError(), file->string);
-            cell_clearCell(file);
+            handle_error(exec, GetLastError(), filename);
         }
     }
     free(filename);
@@ -123,17 +117,18 @@ void file_files(TExecutor *exec)
 
 void file_getInfo(TExecutor *exec)
 {
-    TString *name = top(exec->stack)->string;
-    string_ensureNullTerminated(name);
+    char *name = string_asCString(top(exec->stack)->string);
 
     WIN32_FIND_DATA fd;
-    HANDLE ff = FindFirstFile(name->data, &fd);
+    HANDLE ff = FindFirstFile(name, &fd);
     if (ff == INVALID_HANDLE_VALUE) {
         handle_error(exec , GetLastError(), name);
+        free(name);
         pop(exec->stack);
         return;
     }
     FindClose(ff);
+    free(name);
 
     Cell *r = cell_createArrayCell(0);
     Cell t; t.type = cString;
@@ -189,9 +184,7 @@ void file_mkdir(TExecutor *exec)
 
     BOOL r = CreateDirectory(path, NULL);
     if (!r) {
-        Cell *dest = cell_fromCString(path);
-        handle_error(exec, GetLastError(), dest->string);
-        cell_freeCell(dest);
+        handle_error(exec, GetLastError(), path);
     }
     free(path);
 }
@@ -202,9 +195,7 @@ void file_removeEmptyDirectory(TExecutor *exec)
 
     BOOL r = RemoveDirectory(path);
     if (!r) {
-        Cell *dest = cell_fromCString(path);
-        handle_error(exec, GetLastError(), dest->string);
-        cell_freeCell(dest);
+        handle_error(exec, GetLastError(), path);
     }
     free(path);
 }
@@ -216,9 +207,7 @@ void file_rename(TExecutor *exec)
 
     BOOL r = MoveFile(oldname, newname);
     if (!r) {
-        Cell *dest = cell_fromCString(oldname);
-        handle_error(exec, GetLastError(), dest->string);
-        cell_freeCell(dest);
+        handle_error(exec, GetLastError(), oldname);
     }
     free(oldname);
     free(newname);
@@ -232,9 +221,7 @@ void file_symlink(TExecutor *exec)
 
     BOOL r = CreateSymbolicLink(newlink, target, targetIsDirectory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
     if (!r) {
-        Cell *dest = cell_fromCString(newlink);
-        handle_error(exec, GetLastError(), dest->string);
-        cell_clearCell(dest);
+        handle_error(exec, GetLastError(), newlink);
     }
     free(newlink);
     free(target);

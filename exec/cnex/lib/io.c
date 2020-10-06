@@ -106,7 +106,8 @@ void io_open(TExecutor *exec)
 
     FILE *f = fopen(pszName, m);
     if (f == NULL) {
-        exec->rtl_raise(exec, "IoException.Open", "");
+        exec->rtl_raise(exec, "IoException.Open", pszName);
+        free(pszName);
         return;
     }
     Object *r = object_createFileObject(f);
