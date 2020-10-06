@@ -167,17 +167,17 @@ int main(int argc, char* argv[])
         fprintf(stderr, "\n*** Neon C Executor Statistics ***\n----------------------------------\n"
                         "Total Opcodes Executed : %" PRIu64 "\n"
                         "Max Opstack Height     : %d\n"
-                        "Opstack Height         : %d\n"
+                        "Opstack Size           : %d\n"
                         "Max Callstack Height   : %" PRIu32 "\n"
-                        "CallStack Height       : %" PRId32 "\n"
+                        "CallStack Size         : %" PRId32 "\n"
                         "Global Size            : %" PRIu32 "\n"
                         "Max Framesets          : %d\n"
                         "Execution Time         : %fms\n",
                         g_executor->diagnostics.total_opcodes,
                         g_executor->stack->max + 1,
-                        g_executor->stack->top,
+                        g_executor->stack->top + 1,
                         g_executor->diagnostics.callstack_max_height + 1,
-                        g_executor->callstacktop,
+                        g_executor->callstacktop + 1,
                         g_executor->module[0].bytecode->global_size,
                         g_executor->framestack->max,
                         (((float)g_executor->diagnostics.time_end - g_executor->diagnostics.time_start) / CLOCKS_PER_SEC) * 1000
@@ -219,7 +219,8 @@ int exec_run(TExecutor *self, BOOL enable_assert)
     // Execute main Neon program.
     int r = exec_loop(self, 0);
 
-    if (r == 0 && gOptions.ExecutorDebugStats) {
+    if (gOptions.ExecutorDebugStats) {
+        // The stack should never have any items on it by this point in the execution.
         assert(isEmpty(self->stack));
     }
     return r;
@@ -429,6 +430,10 @@ nextframe:
         self->module = self->callstack[self->callstacktop].mod;
         self->ip = self->callstack[self->callstacktop].ip;
         self->callstacktop--;
+    }
+    // Clear the stack if there are no exception handlers available
+    while (!isEmpty(self->stack)) {
+        pop(self->stack);
     }
     // Setting exit_code here will cause exec_loop to terminate and return this exit code.
     self->exit_code = 1;
