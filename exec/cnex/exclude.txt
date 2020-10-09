@@ -2,11 +2,11 @@ bigint.neon                # gmp
 debug-example.neon         # debugger
 debug-server.neon          # debugger
 file-linelength.neon       # buffer size
-gc-array.neon              # class
-gc-long-chain.neon         # class
-gc1.neon                   # class
-gc2.neon                   # class
-gc3.neon                   # class
+gc-array.neon              # Object Count
+gc-long-chain.neon         # Object Count
+gc1.neon                   # Object Count
+gc2.neon                   # Object Count
+gc3.neon                   # Object Count
 gc-two-pointers.neon       # class
 math-test.neon             # math.powmod()
 rtl.neon                   # num() acceptable formats
