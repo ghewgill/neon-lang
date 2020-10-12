@@ -125,7 +125,7 @@ ForStatement = 'FOR', Identifier, ':=', Expression, 'TO', Expression, ['STEP', E
 
 ForeachStatement = 'FOREACH', Identifier, 'IN', Expression, ['INDEX', Identifier], ['LABEL', Identifier], 'DO', {Statement}, 'END', 'FOREACH';
 
-IfStatement = 'IF', (ExpressionOrValid | ("IMPORTED", Identifier)), 'THEN', {Statement}, {'ELSIF', ExpressionOrValid, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
+IfStatement = 'IF', (ExpressionOrValid | ('IMPORTED', Identifier)), 'THEN', {Statement}, {'ELSIF', ExpressionOrValid, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
 
 IncrementStatement = ('INC' | 'DEC'), Expression;
 
