@@ -13,8 +13,8 @@ doubleRawString = QuotedString(quoteChar='@@"', endQuoteChar='"@@', multiline=Tr
 rawString = singleRawString | doubleRawString
 
 table = {
-    # Non-greedy trick from http://pyparsing.wikispaces.com/share/view/178079
-    "Identifier": ~Literal('END') + Word(alphas, alphanums + "_"),
+    # The Identifier regex matches all identifiers but not all-uppercase keywords.
+    "Identifier": Regex("[a-z][A-Za-z0-9_]*|[A-Z][A-Za-z0-9_]*?[a-z0-9_][A-Za-z0-9_]*"),
     "Number": Word(nums, nums + "_e.") ^ ("0b" + Word("01_")) ^ ("0o" + Word("01234567_")) ^ ("0x" + Word("0123456789abcdefABCDEF_")),
     "StringLiteral": Regex(r'"(?:[^"\r\n\\]|(?:\\\((?:[^")]|"[^"]*")*\))|(?:\\.))*"') | rawString,
     "restOfLine": restOfLine,
