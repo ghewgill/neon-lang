@@ -676,7 +676,7 @@ std::unique_ptr<Expression> Parser::parseCompoundExpression()
                 if (tokens[i].type == FIRST || tokens[i].type == LAST) {
                     first_from_end = tokens[i].type == LAST;
                     ++i;
-                    if (tokens[i].type == RBRACKET || tokens[i].type == TO) {
+                    if (tokens[i].type == RBRACKET || tokens[i].type == TO || tokens[i].type == COMMA) {
                         index.reset(new NumberLiteralExpression(Token(), number_from_uint32(0)));
                     } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
                         error(2072, tokens[i], "'+' or '-' expected");
@@ -695,7 +695,7 @@ std::unique_ptr<Expression> Parser::parseCompoundExpression()
                     if (tokens[i].type == FIRST || tokens[i].type == LAST) {
                         last_from_end = tokens[i].type == LAST;
                         ++i;
-                        if (tokens[i].type == RBRACKET) {
+                        if (tokens[i].type == RBRACKET || tokens[i].type == COMMA) {
                             last.reset(new NumberLiteralExpression(Token(), number_from_uint32(0)));
                         } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
                             error(2073, tokens[i], "'+' or '-' expected");
