@@ -5,6 +5,7 @@ IMPORT file
 IMPORT io
 IMPORT math
 IMPORT os
+IMPORT process
 IMPORT random
 IMPORT string
 IMPORT sys
@@ -752,6 +753,20 @@ FUNCTION change_radix(s: String, from_radix: Number, to_radix: Number): String
     RETURN r
 END FUNCTION
 
+FUNCTION find_words(s: String): Array<Number>
+    VAR wordstarts: Array<Number> := []
+    VAR inword := FALSE
+    FOREACH c IN s INDEX i DO
+        IF inword AND c = " " THEN
+            inword := FALSE
+        ELSIF NOT inword AND c <> " " THEN
+            wordstarts.append(i)
+            inword := TRUE
+        END IF
+    END FOREACH
+    RETURN wordstarts
+END FUNCTION
+
 FUNCTION builtin_abbrev(args: Array<String>): String
     LET information: String := args[0]
     LET info: String := args[1]
@@ -1103,16 +1118,7 @@ FUNCTION builtin_delword(args: Array<String>): String
     LET s := args[0]
     LET start := rxnum(args[1])
     LET length := (IF args.size() >= 3 THEN rxnum(args[2]) ELSE -1)
-    VAR wordstarts: Array<Number> := [0]
-    VAR inword := FALSE
-    FOREACH c IN s INDEX i DO
-        IF inword AND c = " " THEN
-            inword := FALSE
-        ELSIF NOT inword AND c <> " " THEN
-            wordstarts.append(i)
-            inword := TRUE
-        END IF
-    END FOREACH
+    LET wordstarts := find_words(s)
     IF start >= wordstarts.size() THEN
         RETURN s
     END IF
@@ -1133,6 +1139,10 @@ FUNCTION builtin_errortext(args: Array<String>): String
     RETURN ErrorText[args[0]]
 END FUNCTION
 
+FUNCTION builtin_find(args: Array<String>): String
+    RETURN builtin_wordpos([args[1], args[0]] & args[2 TO LAST])
+END FUNCTION
+
 FUNCTION builtin_form(args: Array<String>): String
     RETURN "SCIENTIFIC" -- TODO
 END FUNCTION
@@ -1146,13 +1156,46 @@ FUNCTION builtin_fuzz(args: Array<String>): String
     RETURN "0"
 END FUNCTION
 
+FUNCTION builtin_insert(args: Array<String>): String
+    VAR s := args[0]
+    LET target := args[1]
+    LET position := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2]) ELSE 0)
+    LET length := (IF args.size() >= 4 AND args[3] <> "" THEN rxnum(args[3]) ELSE s.length())
+    LET pad := (IF args.size() >= 5 AND args[4] <> "" THEN args[4] ELSE " ")
+    IF length < s.length() THEN
+        s := s[0 TO length-1]
+    ELSIF length > s.length() THEN
+        s.append(string.repeat(pad, length - s.length()))
+    END IF
+    IF position >= target.length() THEN
+        RETURN target & string.repeat(pad, position - target.length()) & s
+    END IF
+    RETURN target[FIRST TO position-1] & s & target[position TO LAST]
+END FUNCTION
+
+FUNCTION builtin_lastpos(args: Array<String>): String
+    LET needle := args[0]
+    LET haystack := args[1]
+    LET start := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2])-1 ELSE haystack.length())
+    IF needle = "" THEN
+        RETURN "0"
+    END IF
+    FOR i := math.min(start, haystack.length()-1)-(needle.length()-1) TO 0 STEP -1 DO
+        IF haystack[i TO i+needle.length()-1] = needle THEN
+            RETURN str(i + 1)
+        END IF
+    END FOR
+    RETURN "0"
+END FUNCTION
+
 FUNCTION builtin_left(args: Array<String>): String
     LET s := args[0]
     LET length := rxnum(args[1])
+    LET pad := (IF args.size() >= 3 AND args[2] <> "" THEN args[2] ELSE " ")
     IF length <= s.length() THEN
         RETURN s[FIRST TO length-1]
     ELSE
-        RETURN s & string.repeat(" ", length - s.length())
+        RETURN s & string.repeat(pad, length - s.length())
     END IF
 END FUNCTION
 
@@ -1210,8 +1253,80 @@ FUNCTION builtin_lineout(args: Array<String>): String
     RETURN "0"
 END FUNCTION
 
+FUNCTION builtin_lines(args: Array<String>): String
+    RETURN str(file.readLines(args[0]).size())
+END FUNCTION
+
+FUNCTION builtin_lower(args: Array<String>): String
+    VAR s := args[0]
+    LET pos := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1])-1 ELSE 0)
+    LET length := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2]) ELSE s.length() - pos)
+    LET pad := (IF args.size() >= 4 AND args[3] <> "" THEN args[3] ELSE " ")
+    IF pos + length > s.length() THEN
+        s.append(string.repeat(pad, pos + length - s.length()))
+    END IF
+    IF pos+length < s.length() THEN
+        RETURN s[FIRST TO pos-1] & string.lower(s[pos TO pos+length-1]) & s[pos+length TO LAST]
+    ELSE
+        RETURN s[FIRST TO pos-1] & string.lower(s[pos TO pos+length-1])
+    END IF
+END FUNCTION
+
+FUNCTION builtin_max(args: Array<String>): String
+    VAR r := rxnum(args[0])
+    FOR i := 1 TO args.size()-1 DO
+        LET x := rxnum(args[i])
+        IF x > r THEN
+            r := x
+        END IF
+    END FOR
+    RETURN str(r)
+END FUNCTION
+
+FUNCTION builtin_min(args: Array<String>): String
+    VAR r := rxnum(args[0])
+    FOR i := 1 TO args.size()-1 DO
+        LET x := rxnum(args[i])
+        IF x < r THEN
+            r := x
+        END IF
+    END FOR
+    RETURN str(r)
+END FUNCTION
+
+FUNCTION builtin_overlay(args: Array<String>): String
+    VAR string1 := args[0]
+    LET string2 := args[1]
+    LET start := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2])-1 ELSE 0)
+    LET length := (IF args.size() >= 4 AND args[3] <> "" THEN rxnum(args[3]) ELSE string1.length())
+    LET pad := (IF args.size() >= 5 AND args[4] <> "" THEN args[4] ELSE " ")
+    IF length < string1.length() THEN
+        string1 := string1[FIRST TO length-1]
+    ELSIF length > string1.length() THEN
+        string1.append(string.repeat(pad, length - string1.length()))
+    END IF
+    IF start >= string2.length() THEN
+        RETURN string2 & string.repeat(pad, start - string2.length()) & string1
+    ELSIF start + string1.length() >= string2.length() THEN
+        RETURN string2[FIRST TO start-1] & string1
+    ELSE
+        RETURN string2[FIRST TO start-1] & string1 & string2[start+string1.length() TO LAST]
+    END IF
+END FUNCTION
+
 FUNCTION builtin_pos(args: Array<String>): String
-    RETURN str(string.find(args[1], args[0]) + 1)
+    LET needle := args[0]
+    LET haystack := args[1]
+    LET start := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2])-1 ELSE 0)
+    IF needle = "" THEN
+        RETURN "0"
+    END IF
+    FOR i := start TO haystack.length()-needle.length() DO
+        IF haystack[i TO i+needle.length()-1] = needle THEN
+            RETURN str(i + 1)
+        END IF
+    END FOR
+    RETURN "0"
 END FUNCTION
 
 VAR using_lfsr: Boolean := FALSE
@@ -1237,8 +1352,46 @@ FUNCTION builtin_random(args: Array<String>): String
     END IF
 END FUNCTION
 
+FUNCTION builtin_reverse(args: Array<String>): String
+    LET s := args[0]
+    VAR r := ""
+    FOR i := s.length()-1 TO 0 STEP -1 DO
+        r.append(s[i])
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION builtin_right(args: Array<String>): String
+    LET s := args[0]
+    LET length := rxnum(args[1])
+    LET pad := (IF args.size() >= 3 AND args[2] <> "" THEN args[2] ELSE " ")
+    IF length = 0 THEN
+        RETURN ""
+    END IF
+    IF length < s.length() THEN
+        RETURN s[s.length()-length TO LAST]
+    ELSE
+        RETURN string.repeat(pad, length - s.length()) & s
+    END IF
+END FUNCTION
+
+FUNCTION builtin_sign(args: Array<String>): String
+    RETURN str(math.sign(rxnum(args[0])))
+END FUNCTION
+
 FUNCTION builtin_sourceline(args: Array<String>): String
-    RETURN sourcelines[rxnum(args[0])]
+    IF args.size() = 0 THEN
+        RETURN str(sourcelines.size()-1)
+    END IF
+    LET line := rxnum(args[0])
+    RETURN sourcelines[line]
+END FUNCTION
+
+FUNCTION builtin_space(args: Array<String>): String
+    VAR s := args[0]
+    LET length := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1]) ELSE 1)
+    LET pad := (IF args.size() >= 3 AND args[2] <> "" THEN args[2] ELSE " ")
+    RETURN string.join(string.split(s, " "), string.repeat(pad, length))
 END FUNCTION
 
 FUNCTION builtin_stream(args: Array<String>): String
@@ -1272,13 +1425,60 @@ FUNCTION builtin_stream(args: Array<String>): String
     RETURN ""
 END FUNCTION
 
+FUNCTION builtin_strip(args: Array<String>): String
+    LET s := args[0]
+    LET option := (IF args.size() >= 2 AND args[1] <> "" THEN args[1] ELSE "B")
+    LET char := (IF args.size() >= 3 AND args[2] <> "" THEN args[2] ELSE " \n\r\t")
+    LET leading := (IF option IN ["L","B"] THEN char ELSE "")
+    LET trailing := (IF option IN ["T","B"] THEN char ELSE "")
+    RETURN string.trimCharacters(s, leading, trailing)
+END FUNCTION
+
 FUNCTION builtin_substr(args: Array<String>): String
-    LET start: Number := rxnum(args[1]) - 1
-    LET length: Number := rxnum(args[2])
-    IF start + length < args[0].length() THEN
-        RETURN args[0][start TO start+length-1]
+    LET s := args[0]
+    LET start := rxnum(args[1]) - 1
+    LET length := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2]) ELSE s.length() - start)
+    LET pad := (IF args.size() >= 4 AND args[3] <> "" THEN args[3] ELSE " ")
+    IF start >= s.length() THEN
+        RETURN ""
+    ELSIF start + length < s.length() THEN
+        RETURN s[start TO start+length-1]
     ELSE
-        RETURN args[0][start TO LAST] & string.repeat(" ", start + length - args[0].length())
+        RETURN s[start TO LAST] & string.repeat(pad, start + length - s.length())
+    END IF
+END FUNCTION
+
+FUNCTION builtin_subword(args: Array<String>): String
+    LET s := args[0]
+    LET start := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1]) ELSE 1)
+    LET length := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2]) ELSE -1)
+    LET wordstarts := find_words(s)
+    IF start >= wordstarts.size() THEN
+        RETURN ""
+    END IF
+    IF length < 0 OR start + length >= wordstarts.size() THEN
+        RETURN string.trim(s[wordstarts[start]-1 TO LAST])
+    END IF
+    RETURN string.trim(s[wordstarts[start]-1 TO wordstarts[start+length]-1])
+END FUNCTION
+
+FUNCTION builtin_symbol(args: Array<String>): String
+    LET name := args[0]
+    IF name = "" THEN
+        RETURN "BAD"
+    END IF
+    IF NOT is_general_letter(name[0]) THEN
+        RETURN "BAD"
+    END IF
+    FOR i := 2 TO name.length()-1 DO
+        IF NOT is_var_symbol_char(name[i]) THEN
+            RETURN "BAD"
+        END IF
+    END FOR
+    IF name IN vars THEN
+        RETURN "VAR"
+    ELSE
+        RETURN "LIT"
     END IF
 END FUNCTION
 
@@ -1303,8 +1503,11 @@ END FUNCTION
 
 FUNCTION builtin_translate(args: Array<String>): String
     LET s := args[0]
+    IF args.size() < 2 THEN
+        RETURN string.upper(s)
+    END IF
     VAR tableout := args[1]
-    LET tablein := args[2]
+    LET tablein := (IF args.size() >= 3 THEN args[2] ELSE builtin_xrange([]))
     LET pad := (IF args.size() >= 4 THEN args[3] ELSE " ")
     IF tableout.length() < tablein.length() THEN
         tableout.append(string.repeat(pad[0], tablein.length() - tableout.length()))
@@ -1321,16 +1524,124 @@ FUNCTION builtin_translate(args: Array<String>): String
     RETURN r
 END FUNCTION
 
+FUNCTION builtin_trunc(args: Array<String>): String
+    LET number := rxnum(args[0])
+    LET length := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1]) ELSE 0)
+    RETURN str(math.round(length, number))
+END FUNCTION
+
+FUNCTION builtin_upper(args: Array<String>): String
+    VAR s := args[0]
+    LET pos := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1])-1 ELSE 0)
+    LET length := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2]) ELSE s.length() - pos)
+    LET pad := (IF args.size() >= 4 AND args[3] <> "" THEN args[3] ELSE " ")
+    IF pos + length > s.length() THEN
+        s.append(string.repeat(pad, pos + length - s.length()))
+    END IF
+    IF pos+length < s.length() THEN
+        RETURN s[FIRST TO pos-1] & string.upper(s[pos TO pos+length-1]) & s[pos+length TO LAST]
+    ELSE
+        RETURN s[FIRST TO pos-1] & string.upper(s[pos TO pos+length-1])
+    END IF
+END FUNCTION
+
 FUNCTION builtin_value(args: Array<String>): String
-    RETURN get_var(args[0])
+    LET symbol := string.upper(args[0])
+    LET value := get_var(symbol)
+    IF args.size() >= 2 THEN
+        LET newvalue := args[1]
+        set_var(symbol, newvalue)
+    END IF
+    RETURN value
+END FUNCTION
+
+FUNCTION builtin_verify(args: Array<String>): String
+    LET s := args[0]
+    LET reference := args[1]
+    LET option := (IF args.size() >= 3 AND args[2] <> "" THEN args[2] ELSE "N")
+    LET start := (IF args.size() >= 4 AND args[3] <> "" THEN rxnum(args[3])-1 ELSE 0)
+    CASE option
+        WHEN "N" DO
+            FOR i := start TO s.length()-1 DO
+                IF s[i] NOT IN reference THEN
+                    RETURN str(i + 1)
+                END IF
+            END FOR
+        WHEN "M" DO
+            FOR i := start TO s.length()-1 DO
+                IF s[i] IN reference THEN
+                    RETURN str(i + 1)
+                END IF
+            END FOR
+    END CASE
+    RETURN "0"
 END FUNCTION
 
 FUNCTION builtin_word(args: Array<String>): String
-    RETURN string.split(args[0], " ")[rxnum(args[1]) - 1]
+    LET s := args[0]
+    LET wordno := rxnum(args[1]) - 1
+    LET wordstarts := find_words(s)
+    CHECK 0 <= wordno < wordstarts.size() ELSE
+        RETURN ""
+    END CHECK
+    IF wordno+1 < wordstarts.size() THEN
+        RETURN string.trim(s[wordstarts[wordno] TO wordstarts[wordno+1]-1])
+    ELSE
+        RETURN string.trim(s[wordstarts[wordno] TO LAST])
+    END IF
+END FUNCTION
+
+FUNCTION builtin_wordindex(args: Array<String>): String
+    LET s := args[0]
+    LET wordno := rxnum(args[1]) - 1
+    LET wordstarts := find_words(s)
+    IF 0 <= wordno < wordstarts.size() THEN
+        RETURN str(wordstarts[wordno] + 1)
+    ELSE
+        RETURN "0"
+    END IF
+END FUNCTION
+
+FUNCTION builtin_wordlength(args: Array<String>): String
+    RETURN str(builtin_word(args).length())
+END FUNCTION
+
+FUNCTION builtin_wordpos(args: Array<String>): String
+    LET phrase := args[0]
+    LET s := args[1]
+    LET start := (IF args.size() >= 3 AND args[2] <> "" THEN rxnum(args[2])-1 ELSE 0)
+    LET phrase_words := string.split(phrase, " ")
+    LET string_words := string.split(s, " ")
+    IF phrase_words.size() = 0 THEN
+        RETURN "0"
+    END IF
+    FOR i := start TO string_words.size()-1 DO
+        VAR found := TRUE
+        FOR j := 0 TO phrase_words.size()-1 DO
+            IF i+j >= string_words.size() OR phrase_words[j] <> string_words[i+j] THEN
+                found := FALSE
+                EXIT FOR
+            END IF
+        END FOR
+        IF found THEN
+            RETURN str(i + 1)
+        END IF
+    END FOR
+    RETURN "0"
 END FUNCTION
 
 FUNCTION builtin_words(args: Array<String>): String
     RETURN str(string.split(args[0], " ").size())
+END FUNCTION
+
+FUNCTION builtin_xrange(args: Array<String>): String
+    LET start := (IF args.size() >= 1 AND args[0] <> "" THEN args[0] ELSE "\u0000")
+    LET end := (IF args.size() >= 2 AND args[1] <> "" THEN args[1] ELSE "\u00ff")
+    VAR r := ""
+    FOR c := string.toCodePoint(start) TO string.toCodePoint(end) DO
+        r.append(string.fromCodePoint(c))
+    END FOR
+    RETURN r
 END FUNCTION
 
 VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
@@ -1358,24 +1669,46 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "DELWORD": builtin_delword,
     "DIGITS": builtin_digits,
     "ERRORTEXT": builtin_errortext,
+    "FIND": builtin_find,
     "FORM": builtin_form,
     "FORMAT": builtin_format,
     "FUZZ": builtin_fuzz,
+    "INSERT": builtin_insert,
+    "LASTPOS": builtin_lastpos,
     "LEFT": builtin_left,
     "LENGTH": builtin_length,
     "LINEIN": builtin_linein,
     "LINEOUT": builtin_lineout,
+    "LINES": builtin_lines,
+    "LOWER": builtin_lower,
+    "MAX": builtin_max,
+    "MIN": builtin_min,
+    "OVERLAY": builtin_overlay,
     "POS": builtin_pos,
     "RANDOM": builtin_random,
+    "REVERSE": builtin_reverse,
+    "RIGHT": builtin_right,
+    "SIGN": builtin_sign,
     "SOURCELINE": builtin_sourceline,
+    "SPACE": builtin_space,
     "STREAM": builtin_stream,
+    "STRIP": builtin_strip,
     "SUBSTR": builtin_substr,
+    "SUBWORD": builtin_subword,
+    "SYMBOL": builtin_symbol,
     "TIME": builtin_time,
     "TRACE": builtin_trace,
     "TRANSLATE": builtin_translate,
+    "TRUNC": builtin_trunc,
+    "UPPER": builtin_upper,
     "VALUE": builtin_value,
+    "VERIFY": builtin_verify,
     "WORD": builtin_word,
+    "WORDINDEX": builtin_wordindex,
+    "WORDLENGTH": builtin_wordlength,
+    "WORDPOS": builtin_wordpos,
     "WORDS": builtin_words,
+    "XRANGE": builtin_xrange,
 }
 
 FUNCTION builtin_function(name: String, args: Array<String>): String
@@ -1429,7 +1762,13 @@ FUNCTION evaluate_term(tokens: Array<Token>, INOUT i: Number): String
                 LET args: Array<String> := get_function_arguments(tokens, INOUT i)
                 ASSERT tokens[i].type = TokenType.Special AND tokens[i].value = ")"
                 INC i
-                r := builtin_function(r, args)
+                IF r IN BuiltinFunctions THEN
+                     r := builtin_function(r, args)
+                ELSE
+                    VAR stdout: Bytes
+                    _ := process.call(r & " " & string.join(args, " "), OUT stdout, OUT _)
+                    r := stdout.decodeToString()
+                END IF
             END IF
         WHEN OTHERS DO
             -- Must be empty argument, as in: call charout , 'a'
@@ -1750,7 +2089,7 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         WHEN "PULL" DO
             input := [console.input("")]
         WHEN "SOURCE" DO
-            input := ["LINUX", "COMMAND", script_filename]
+            input := ["LINUX COMMAND \(script_filename)"]
         WHEN "VALUE" DO
             input := [evaluate(tokens, INOUT i, ["WITH"])]
             IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WITH") THEN
@@ -1834,11 +2173,9 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
                     VAR next: Number := si
                     CASE template[ti+1].type
                         WHEN TemplateType.placeholder, TemplateType.target DO
-                            IF t.type = TemplateType.target THEN
-                                WHILE next < s.length() AND s[next] <> " " DO
-                                    INC next
-                                END WHILE
-                            END IF
+                            WHILE next < s.length() AND s[next] <> " " DO
+                                INC next
+                            END WHILE
                         WHEN TemplateType.pattern DO
                             LET j: Number := string.find(s[next TO LAST], template[ti+1].pattern)
                             IF j >= 0 THEN
