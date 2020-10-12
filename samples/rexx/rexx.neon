@@ -739,17 +739,27 @@ END FUNCTION
 FUNCTION change_radix(s: String, from_radix: Number, to_radix: Number): String
     CONSTANT Digits: String := "0123456789ABCDEF"
     VAR n: Number := 0
-    FOREACH c IN s DO
+    FOREACH c IN string.upper(s) DO
         IF c = " " THEN
             NEXT FOREACH
         END IF
-        n := n * from_radix + string.find(Digits, c)
+        LET d := string.find(Digits, c)
+        ASSERT d < from_radix
+        n := n * from_radix + d
     END FOREACH
     VAR r: String := ""
     WHILE n > 0 DO
         r := Digits[n MOD to_radix] & r
         n := n INTDIV to_radix
     END WHILE
+    IF to_radix = 10 AND r = "" THEN
+        r := "0"
+    END IF
+    IF from_radix = 16 AND to_radix = 2 THEN
+        WHILE r.length() MOD 4 > 0 DO
+            r := "0" & r
+        END WHILE
+    END IF
     RETURN r
 END FUNCTION
 
@@ -1634,6 +1644,29 @@ FUNCTION builtin_words(args: Array<String>): String
     RETURN str(string.split(args[0], " ").size())
 END FUNCTION
 
+FUNCTION builtin_x2b(args: Array<String>): String
+    RETURN change_radix(args[0], 16, 2)
+END FUNCTION
+
+FUNCTION builtin_x2c(args: Array<String>): String
+    RETURN convert_hex_string(args[0])
+END FUNCTION
+
+FUNCTION builtin_x2d(args: Array<String>): String
+    VAR hexstring := string.replaceAll(args[0], " ", "")
+    LET length := (IF args.size() >= 2 AND args[1] <> "" THEN rxnum(args[1]) ELSE 0)
+    VAR negative := FALSE
+    IF length > 0 THEN
+        IF length <= hexstring.length() THEN
+            hexstring := hexstring[LAST-(length-1) TO LAST]
+            ASSERT hexstring.length() = length
+            negative := hexstring[0] >= "8"
+        END IF
+    END IF
+    LET r := change_radix(hexstring, 16, 10)
+    RETURN (IF negative THEN str(-(2^(4*length)-num(r))) ELSE r)
+END FUNCTION
+
 FUNCTION builtin_xrange(args: Array<String>): String
     LET start := (IF args.size() >= 1 AND args[0] <> "" THEN args[0] ELSE "\u0000")
     LET end := (IF args.size() >= 2 AND args[1] <> "" THEN args[1] ELSE "\u00ff")
@@ -1708,6 +1741,9 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "WORDLENGTH": builtin_wordlength,
     "WORDPOS": builtin_wordpos,
     "WORDS": builtin_words,
+    "X2B": builtin_x2b,
+    "X2C": builtin_x2c,
+    "X2D": builtin_x2d,
     "XRANGE": builtin_xrange,
 }
 
