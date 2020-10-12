@@ -2125,7 +2125,7 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         WHEN "PULL" DO
             input := [console.input("")]
         WHEN "SOURCE" DO
-            input := ["LINUX COMMAND \(script_filename)"]
+            input := ["UNIX COMMAND \(script_filename)"]
         WHEN "VALUE" DO
             input := [evaluate(tokens, INOUT i, ["WITH"])]
             IF NOT (tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "WITH") THEN
