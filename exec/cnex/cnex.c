@@ -185,8 +185,8 @@ int main(int argc, char* argv[])
                         "CallStack Height       : %" PRId32 "\n"
                         "Global Size            : %" PRIu32 "\n"
                         "Max Framesets          : %d\n"
-                        "Max Allocations        : %" PRIu64 "\n"
-                        "Remaining Objects      : %" PRIu64 "\n"
+                        "Max Allocations        : %zu\n"
+                        "Remaining Objects      : %zu\n"
                         "Execution Time         : %fms\n",
                         g_executor->diagnostics.total_opcodes,
                         g_executor->stack->max + 1,
