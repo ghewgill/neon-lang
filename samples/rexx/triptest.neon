@@ -1,0 +1,16 @@
+IMPORT file
+IMPORT io
+IMPORT process
+IMPORT string
+
+LET dir := "regina/trip"
+
+FOREACH name IN file.files(dir) DO
+    IF string.hasSuffix(name, ".rexx") THEN
+        VAR stdout, stderr: Bytes
+        LET rc := process.call("bin/neon samples/rexx/rexx.neon \(dir)/\(name)", OUT stdout, OUT stderr)
+        io.writeBytes(io.stderr, stderr)
+        LET errors := "error in" IN stdout.decodeToString()
+        print("\(name) rc=\(rc) errors=\(errors)")
+    END IF
+END FOREACH
