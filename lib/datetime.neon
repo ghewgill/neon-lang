@@ -12,6 +12,7 @@ EXPORT now
 EXPORT makeFromInstant
 EXPORT makeFromParts
 
+EXPORT MonthNames
 EXPORT January
 EXPORT February
 EXPORT March
@@ -25,6 +26,7 @@ EXPORT October
 EXPORT November
 EXPORT December
 
+EXPORT WeekdayNames
 EXPORT Monday
 EXPORT Tuesday
 EXPORT Wednesday
@@ -38,6 +40,21 @@ IMPORT time
 
 EXCEPTION TodoException
 
+CONSTANT MonthNames := [
+    "",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
 CONSTANT January  : Number := 1
 CONSTANT February : Number := 2
 CONSTANT March    : Number := 3
@@ -51,6 +68,16 @@ CONSTANT October  : Number := 10
 CONSTANT November : Number := 11
 CONSTANT December : Number := 12
 
+CONSTANT WeekdayNames := [
+    "",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+]
 CONSTANT Monday   : Number := 1
 CONSTANT Tuesday  : Number := 2
 CONSTANT Wednesday: Number := 3
