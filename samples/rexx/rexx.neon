@@ -1,6 +1,7 @@
 IMPORT base
 IMPORT binary
 IMPORT console
+IMPORT datetime
 IMPORT file
 IMPORT io
 IMPORT math
@@ -1111,6 +1112,32 @@ FUNCTION builtin_datatype(args: Array<String>): String
     RETURN "0"
 END FUNCTION
 
+FUNCTION builtin_date(args: Array<String>): String
+    LET option_out := (IF args.size() >= 1 AND args[0] <> "" THEN string.upper(args[0]) ELSE "N")
+    LET now := datetime.now()
+    CASE option_out
+        WHEN "D" DO
+            RETURN str((now.instant - datetime.makeFromParts(datetime.DateTime(year WITH now.year, month WITH 1, day WITH 1)).instant) INTDIV 86400 + 1)
+        WHEN "E" DO
+            RETURN "\(now.day:02d)/\(now.month:02d)/\(now.year MOD 100:02d)"
+        WHEN "M" DO
+            RETURN datetime.MonthNames[now.month]
+        WHEN "N" DO
+            RETURN "\(now.day:02d) \(datetime.MonthNames[now.month][FIRST TO 2]) \(now.year:04d)"
+        WHEN "O" DO
+            RETURN "\(now.year MOD 100:02d)/\(now.month:02d)/\(now.day:02d)"
+        WHEN "S" DO
+            RETURN "\(now.year:04d)\(now.month:02d)\(now.day:02d)"
+        WHEN "U" DO
+            RETURN "\(now.month:02d)/\(now.day:02d)/\(now.year MOD 100:02d)"
+        WHEN "W" DO
+            RETURN datetime.WeekdayNames[now.weekday]
+        WHEN OTHERS DO
+            ASSERT FALSE, option_out
+    END CASE
+    RETURN ""
+END FUNCTION
+
 FUNCTION builtin_delstr(args: Array<String>): String
     LET s := args[0]
     LET start := rxnum(args[1]) - 1
@@ -1495,15 +1522,33 @@ END FUNCTION
 VAR time_reset: Number := 0
 
 FUNCTION builtin_time(args: Array<String>): String
-    IF args[0] = "R" THEN
-        LET now: Number := time.now()
-        LET r: Number := now - time_reset
-        time_reset := now
-        RETURN str(r)
-    ELSE
-        ASSERT FALSE, args
-        RETURN ""
-    END IF
+    LET option_out := (IF args.size() >= 1 AND args[0] <> "" THEN string.upper(args[0]) ELSE "N")
+    LET now := datetime.now()
+    CASE option_out
+        WHEN "C" DO
+            RETURN "\((now.hour + 11) MOD 12 + 1):\(now.minute:02d)\((IF now.hour >= 12 THEN "am" ELSE "pm"))"
+        WHEN "E" DO
+            LET time_now := time.now()
+            RETURN str(time_now - time_reset)
+        WHEN "H" DO
+            RETURN str(now.hour)
+        WHEN "L" DO
+            RETURN "\(now.hour:02d):\(now.minute:02d):\(now.second:02d).0"
+        WHEN "M" DO
+            RETURN str(now.hour * 60 + now.minute)
+        WHEN "N" DO
+            RETURN "\(now.hour:02d):\(now.minute:02d):\(math.trunc(now.second):02d)"
+        WHEN "R" DO
+            LET time_now: Number := time.now()
+            LET r: Number := time_now - time_reset
+            time_reset := time_now
+            RETURN str(r)
+        WHEN "S" DO
+            RETURN str((now.hour * 60 + now.minute) * 60 + math.trunc(now.second))
+        WHEN OTHERS DO
+            ASSERT FALSE, args
+    END CASE
+    RETURN ""
 END FUNCTION
 
 FUNCTION builtin_trace(args: Array<String>): String
@@ -1698,6 +1743,7 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "D2C": builtin_d2c,
     "D2X": builtin_d2x,
     "DATATYPE": builtin_datatype,
+    "DATE": builtin_date,
     "DELSTR": builtin_delstr,
     "DELWORD": builtin_delword,
     "DIGITS": builtin_digits,
@@ -1804,6 +1850,9 @@ FUNCTION evaluate_term(tokens: Array<Token>, INOUT i: Number): String
                     VAR stdout: Bytes
                     _ := process.call(r & " " & string.join(args, " "), OUT stdout, OUT _)
                     r := stdout.decodeToString()
+                    IF string.hasSuffix(r, "\n") THEN
+                        r := r[FIRST TO LAST-1]
+                    END IF
                 END IF
             END IF
         WHEN OTHERS DO
