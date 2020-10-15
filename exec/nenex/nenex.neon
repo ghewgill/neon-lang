@@ -1295,6 +1295,10 @@ FUNCTION f_callp(INOUT self: Executor)
             LET b: String := self.pop()->s
             LET a: String := self.pop()->s
             self.stack.append(makeValueString(a & b))
+        WHEN "string__index" DO
+            LET index: Number := self.pop()->n
+            LET s: String := self.pop()->s
+            self.stack.append(makeValueString(s[index TO index]))
         WHEN "string__length" DO
             LET s: String := self.pop()->s
             self.stack.append(makeValueNumber(s.length()))

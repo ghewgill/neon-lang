@@ -1128,13 +1128,12 @@ public:
 
 class StringReferenceIndexExpression: public Expression {
 public:
-    explicit StringReferenceIndexExpression(const ast::StringReferenceIndexExpression *srie): Expression(srie), srie(srie), ref(transform(srie->ref)), first(transform(srie->first)), last(transform(srie->last)) {}
+    explicit StringReferenceIndexExpression(const ast::StringReferenceIndexExpression *srie): Expression(srie), srie(srie), ref(transform(srie->ref)), index(transform(srie->index)) {}
     StringReferenceIndexExpression(const StringReferenceIndexExpression &) = delete;
     StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &) = delete;
     const ast::StringReferenceIndexExpression *srie;
     const Expression *ref;
-    const Expression *first;
-    const Expression *last;
+    const Expression *index;
 
     virtual void generate(Context &) const override {
         internal_error("StringReferenceIndexExpression");
@@ -1143,16 +1142,45 @@ public:
 
 class StringValueIndexExpression: public Expression {
 public:
-    explicit StringValueIndexExpression(const ast::StringValueIndexExpression *svie): Expression(svie), svie(svie), str(transform(svie->str)), first(transform(svie->first)), last(transform(svie->last)) {}
+    explicit StringValueIndexExpression(const ast::StringValueIndexExpression *svie): Expression(svie), svie(svie), str(transform(svie->str)), index(transform(svie->index)) {}
     StringValueIndexExpression(const StringValueIndexExpression &) = delete;
     StringValueIndexExpression &operator=(const StringValueIndexExpression &) = delete;
     const ast::StringValueIndexExpression *svie;
+    const Expression *str;
+    const Expression *index;
+
+    virtual void generate(Context &) const override {
+        internal_error("StringValueIndexExpression");
+    }
+};
+
+class StringReferenceRangeIndexExpression: public Expression {
+public:
+    explicit StringReferenceRangeIndexExpression(const ast::StringReferenceRangeIndexExpression *srie): Expression(srie), srie(srie), ref(transform(srie->ref)), first(transform(srie->first)), last(transform(srie->last)) {}
+    StringReferenceRangeIndexExpression(const StringReferenceRangeIndexExpression &) = delete;
+    StringReferenceRangeIndexExpression &operator=(const StringReferenceRangeIndexExpression &) = delete;
+    const ast::StringReferenceRangeIndexExpression *srie;
+    const Expression *ref;
+    const Expression *first;
+    const Expression *last;
+
+    virtual void generate(Context &) const override {
+        internal_error("StringReferenceRangeIndexExpression");
+    }
+};
+
+class StringValueRangeIndexExpression: public Expression {
+public:
+    explicit StringValueRangeIndexExpression(const ast::StringValueRangeIndexExpression *svie): Expression(svie), svie(svie), str(transform(svie->str)), first(transform(svie->first)), last(transform(svie->last)) {}
+    StringValueRangeIndexExpression(const StringValueRangeIndexExpression &) = delete;
+    StringValueRangeIndexExpression &operator=(const StringValueRangeIndexExpression &) = delete;
+    const ast::StringValueRangeIndexExpression *svie;
     const Expression *str;
     const Expression *first;
     const Expression *last;
 
     virtual void generate(Context &) const override {
-        internal_error("StringValueIndexExpression");
+        internal_error("StringValueRangeIndexExpression");
     }
 };
 
@@ -1937,6 +1965,8 @@ public:
     virtual void visit(const ast::DictionaryValueIndexExpression *) {}
     virtual void visit(const ast::StringReferenceIndexExpression *) {}
     virtual void visit(const ast::StringValueIndexExpression *) {}
+    virtual void visit(const ast::StringReferenceRangeIndexExpression *) {}
+    virtual void visit(const ast::StringValueRangeIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
     virtual void visit(const ast::ObjectSubscriptExpression *) {}
@@ -2062,6 +2092,8 @@ public:
     virtual void visit(const ast::DictionaryValueIndexExpression *) {}
     virtual void visit(const ast::StringReferenceIndexExpression *) {}
     virtual void visit(const ast::StringValueIndexExpression *) {}
+    virtual void visit(const ast::StringReferenceRangeIndexExpression *) {}
+    virtual void visit(const ast::StringValueRangeIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
     virtual void visit(const ast::ObjectSubscriptExpression *) {}
@@ -2187,6 +2219,8 @@ public:
     virtual void visit(const ast::DictionaryValueIndexExpression *node) { r = new DictionaryValueIndexExpression(node); }
     virtual void visit(const ast::StringReferenceIndexExpression *node) { r = new StringReferenceIndexExpression(node); }
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
+    virtual void visit(const ast::StringReferenceRangeIndexExpression *node) { r = new StringReferenceRangeIndexExpression(node); }
+    virtual void visit(const ast::StringValueRangeIndexExpression *node) { r = new StringValueRangeIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *node) { r = new BytesValueIndexExpression(node); }
     virtual void visit(const ast::ObjectSubscriptExpression *) { /* TODO */ }
@@ -2312,6 +2346,8 @@ public:
     virtual void visit(const ast::DictionaryValueIndexExpression *) {}
     virtual void visit(const ast::StringReferenceIndexExpression *) {}
     virtual void visit(const ast::StringValueIndexExpression *) {}
+    virtual void visit(const ast::StringReferenceRangeIndexExpression *) {}
+    virtual void visit(const ast::StringValueRangeIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
     virtual void visit(const ast::ObjectSubscriptExpression *) {}

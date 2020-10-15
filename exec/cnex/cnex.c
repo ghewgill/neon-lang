@@ -2,6 +2,7 @@
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#include <windows.h>
 #endif
 // The following is needed for strdup on Posix platforms.
 #define _POSIX_C_SOURCE 200809L
@@ -26,6 +27,7 @@
 #include "dictionary.h"
 #include "disassembly.h"
 #include "exec.h"
+#include "gc.h"
 #include "global.h"
 #include "framestack.h"
 #include "module.h"
@@ -72,8 +74,12 @@ void exec_freeExecutor(TExecutor *e)
     if (e->exit_code == 0) {
         assert(isEmpty(e->stack));
     }
+    // Next, destroy the opstack.
     destroyStack(e->stack);
     free(e->stack);
+
+    // Next, free all Neon-allocated objects.
+    heap_freeHeap(e);
 
     // Next, iterate all allocated modules, freeing them as we go.
     for (unsigned int m = e->module_count; m > 0; m--) {
@@ -144,6 +150,13 @@ BOOL ParseOptions(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+#ifdef __MS_HEAP_DBG
+    /* Used for debugging cnex, looking for memory leaks. */
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    if (IsDebuggerPresent()) {
+        _CrtSetBreakAlloc(0);  // Can be set to break on specific allocation.
+    }
+#endif
     int ret = 0;
     gOptions.pszExecutableName = path_getFileNameOnly(argv[0]);
 
@@ -173,6 +186,8 @@ int main(int argc, char* argv[])
                         "CallStack Height       : %" PRId32 "\n"
                         "Global Size            : %" PRIu32 "\n"
                         "Max Framesets          : %d\n"
+                        "Max Allocations        : %zu\n"
+                        "Remaining Objects      : %zu\n"
                         "Execution Time         : %fms\n",
                         g_executor->diagnostics.total_opcodes,
                         g_executor->stack->max + 1,
@@ -181,6 +196,8 @@ int main(int argc, char* argv[])
                         g_executor->callstacktop,
                         g_executor->module[0].bytecode->global_size,
                         g_executor->framestack->max,
+                        g_executor->diagnostics.total_allocations,
+                        heap_getObjectCount(g_executor),
                         (((float)g_executor->diagnostics.time_end - g_executor->diagnostics.time_start) / CLOCKS_PER_SEC) * 1000
         );
     }
@@ -193,7 +210,15 @@ shutdown:
     ext_cleanup();
 
     free(gOptions.pszExecutablePath);
-
+#ifdef __MS_HEAP_DBG
+    /* If you're doing HEAP tracking, and cnex leaks memory, then 
+       _CrtDempMemoryLeaks() will return true, to ensure that the 
+       test that is being debugged will fail.  (This will also dump
+       all of the allocations that were never free()'ed.)       */
+    if (_CrtDumpMemoryLeaks()) {
+        return 1;
+    }
+#endif
     return ret;
 }
 
@@ -247,7 +272,10 @@ TExecutor *exec_newExecutor(TModule *object)
     r->enable_assert = TRUE;
     r->debug = gOptions.ExecutorDebugStats;
     r->disassemble = gOptions.ExecutorDisassembly;
-    r->framestack = framestack_createFrameStack(r->callstacksize);
+    r->framestack = framestack_createFrameStack(r->param_recursion_limit);
+    r->allocations = 0;
+    r->collection_interval = 1000;
+    r->firstObject = NULL;
 
     // Load and initialize all the module code.  Note that there is always at least
     // one module!  See: runtime$moduleIsMain() call.
@@ -282,6 +310,8 @@ TExecutor *exec_newExecutor(TModule *object)
     /* Debug / Diagnostic fields */
     r->diagnostics.total_opcodes = 0;
     r->diagnostics.callstack_max_height = 0;
+    r->diagnostics.total_allocations = 0;
+    r->diagnostics.collected_objects = 0;
     return r;
 }
 
@@ -323,6 +353,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, Cell *info)
                     }
                     self->callstacktop = sp;
                     push(self->stack, exceptionvar);
+                    cell_freeCell(info);
                     return;
                 }
             }
@@ -337,8 +368,11 @@ void exec_raiseLiteral(TExecutor *self, TString *name, Cell *info)
         tmodule = self->callstack[sp].mod;
         sp -= 1;
     }
-    fprintf(stderr, "Unhandled exception %s (%s)\n", TCSTR(name), TCSTR(cell_toString(info)));
+    Cell *inf = object_toString(info->object);
+    fprintf(stderr, "Unhandled exception %s (%s)\n", TCSTR(name), TCSTR(inf->string));
     cell_freeCell(exceptionvar);
+    cell_freeCell(info);
+    cell_freeCell(inf);
     cJSON *symbols = NULL;
     cJSON *pStart = NULL;
     while (self->ip < self->module->bytecode->codelen) {
@@ -431,10 +465,13 @@ nextframe:
 void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info)
 {
     TString *n = string_createCString(name);
-    Cell *i = cell_fromObject(object_createStringObject(string_createCString(info)));
+    TString *i = string_createCString(info);
 
-    exec_raiseLiteral(self, n, i);
+    Cell *ex = cell_fromObject(object_createStringObject(i));
+
+    exec_raiseLiteral(self, n, ex);
     string_freeString(n);
+    string_freeString(i);
 }
 
 static unsigned int exec_getOperand(TExecutor *self)
@@ -1370,8 +1407,15 @@ void exec_ALLOC(TExecutor *self)
     self->ip++;
     uint32_t val = exec_getOperand(self);
 
-    Cell *cell = cell_createArrayCell(val);
+    Cell *cell = heap_allocObject(self);
+    cell->array = array_createArrayFromSize(val);
+    cell->type = cArray;
     push(self->stack, cell_fromAddress(cell));
+    self->allocations++;
+    if (self->collection_interval > 0 && self->allocations >= self->collection_interval) {
+        // ToDo: Implement heap sweep and clear
+        //heap_sweepHeap(self, gOptions.ExecutorDebugStats);
+    }
 }
 
 void exec_PUSHNIL(TExecutor *self)
