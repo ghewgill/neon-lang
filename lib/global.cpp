@@ -240,6 +240,23 @@ void string__append(utf8string *self, const utf8string &t)
     self->append(t);
 }
 
+utf8string string__index(const utf8string &s, Number index)
+{
+    if (not number_is_integer(index)) {
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(index)));
+    }
+    int64_t i = number_to_sint64(index);
+    if (i < 0) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(i)));
+    }
+    if (i >= static_cast<int64_t>(s.size())) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(i)));
+    }
+    size_t start = s.index(i);
+    size_t end = s.index(i+1);
+    return utf8string(s.substr(start, end-start));
+}
+
 Number string__length(const utf8string &self)
 {
     return number_from_uint64(self.length());

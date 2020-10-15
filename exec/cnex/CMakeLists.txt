@@ -71,6 +71,7 @@ add_executable(cnex
     disassembly.c
     extension.c
     framestack.c
+    gc.c
     global.c
     module.c
     nstring.c

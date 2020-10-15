@@ -27,6 +27,9 @@ typedef struct tagTExecutor {
     unsigned int *init_order;
     unsigned int init_count;
     int exit_code;
+    struct tagTAllocationObject *firstObject;
+    size_t allocations;
+    size_t collection_interval;
 
     /* Debug / Diagnostic fields */
     struct {
@@ -34,6 +37,8 @@ typedef struct tagTExecutor {
         uint32_t callstack_max_height;
         clock_t time_start;
         clock_t time_end;
+        size_t total_allocations;
+        size_t collected_objects;
     } diagnostics;
 } TExecutor;
 

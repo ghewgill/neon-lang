@@ -69,7 +69,7 @@ ClassType = 'CLASS', {'IMPLEMENTS', Identifier, ['.', Identifier], {',', Identif
 
 EnumType = 'ENUM', {Identifier}, 'END', 'ENUM';
 
-PointerType = ['VALID'], 'POINTER', 'TO', Type;
+PointerType = 'POINTER' | (['VALID'], 'POINTER', 'TO', Type);
 
 FunctionPointerType = 'FUNCTION', FunctionParameterList;
 
@@ -125,7 +125,7 @@ ForStatement = 'FOR', Identifier, ':=', Expression, 'TO', Expression, ['STEP', E
 
 ForeachStatement = 'FOREACH', Identifier, 'IN', Expression, ['INDEX', Identifier], ['LABEL', Identifier], 'DO', {Statement}, 'END', 'FOREACH';
 
-IfStatement = 'IF', (ExpressionOrValid | ("IMPORTED", Identifier)), 'THEN', {Statement}, {'ELSIF', ExpressionOrValid, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
+IfStatement = 'IF', (ExpressionOrValid | ('IMPORTED', Identifier)), 'THEN', {Statement}, {'ELSIF', ExpressionOrValid, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
 
 IncrementStatement = ('INC' | 'DEC'), Expression;
 
@@ -206,4 +206,6 @@ CompoundExpressionTail =
 
 FunctionArgument = ['IN' | 'INOUT' | 'OUT'], ((Expression | '_') | (Identifier, 'WITH', (Expression | '_'))), ['...'];
 
-ArrayIndexExpression = Expression | (Expression, 'TO', Expression);
+ArrayRangeBound = (('FIRST' | 'LAST'), [('+' | '-'), Expression]) | Expression;
+
+ArrayIndexExpression = ArrayRangeBound, ['TO', ArrayRangeBound];

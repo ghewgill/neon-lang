@@ -2796,6 +2796,16 @@ func (self *executor) op_callp() {
 		b := self.pop().str
 		a := self.pop().str
 		self.push(make_cell_str(a + b))
+	case "string__index":
+		index := int(self.pop().num)
+		s := self.pop().str
+		if index < 0 {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+		} else if index >= len(s) {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+		} else {
+			self.push(make_cell_str(s[index : index+1]))
+		}
 	case "string__length":
 		s := self.pop().str
 		self.push(make_cell_num(float64(len(s))))

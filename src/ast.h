@@ -107,6 +107,8 @@ public:
     virtual void visit(const class DictionaryValueIndexExpression *node) = 0;
     virtual void visit(const class StringReferenceIndexExpression *node) = 0;
     virtual void visit(const class StringValueIndexExpression *node) = 0;
+    virtual void visit(const class StringReferenceRangeIndexExpression *node) = 0;
+    virtual void visit(const class StringValueRangeIndexExpression *node) = 0;
     virtual void visit(const class BytesReferenceIndexExpression *node) = 0;
     virtual void visit(const class BytesValueIndexExpression *node) = 0;
     virtual void visit(const class ObjectSubscriptExpression *node) = 0;
@@ -1969,9 +1971,56 @@ public:
 
 class StringReferenceIndexExpression: public ReferenceExpression {
 public:
-    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index, Analyzer *analyzer);
     StringReferenceIndexExpression(const StringReferenceIndexExpression &) = delete;
     StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &) = delete;
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const ReferenceExpression *ref;
+    const Expression *index;
+
+    const FunctionCall *load;
+    const FunctionCall *store;
+
+    virtual bool is_pure(std::set<const ast::Function *> &context) const override { return ref->is_pure(context) && index->is_pure(context); }
+    virtual bool eval_boolean() const override { internal_error("StringReferenceIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("StringReferenceIndexExpression"); }
+    virtual utf8string eval_string() const override { internal_error("StringReferenceIndexExpression"); }
+    virtual bool can_generate_address() const override { return false; }
+    virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_load(Emitter &) const override;
+    virtual void generate_store(Emitter &) const override;
+
+    virtual std::string text() const override { return "StringReferenceIndexExpression(" + ref->text() + ", " + index->text() + ")"; }
+};
+
+class StringValueIndexExpression: public Expression {
+public:
+    StringValueIndexExpression(const Expression *str, const Expression *index, Analyzer *analyzer);
+    StringValueIndexExpression(const StringValueIndexExpression &) = delete;
+    StringValueIndexExpression &operator=(const StringValueIndexExpression &) = delete;
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *str;
+    const Expression *index;
+
+    const FunctionCall *load;
+
+    virtual bool is_pure(std::set<const ast::Function *> &context) const override { return str->is_pure(context) && index->is_pure(context); }
+    virtual bool eval_boolean() const override { internal_error("StringValueIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("StringValueIndexExpression"); }
+    virtual utf8string eval_string() const override { internal_error("StringValueIndexExpression"); }
+    virtual void generate_expr(Emitter &) const override;
+
+    virtual std::string text() const override { return "StringValueIndexExpression(" + str->text() + ", " + index->text() + ")"; }
+};
+
+class StringReferenceRangeIndexExpression: public ReferenceExpression {
+public:
+    StringReferenceRangeIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    StringReferenceRangeIndexExpression(const StringReferenceRangeIndexExpression &) = delete;
+    StringReferenceRangeIndexExpression &operator=(const StringReferenceRangeIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
@@ -1984,23 +2033,23 @@ public:
     const FunctionCall *store;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return ref->is_pure(context) && first->is_pure(context) && last->is_pure(context); }
-    virtual bool eval_boolean() const override { internal_error("StringReferenceIndexExpression"); }
-    virtual Number eval_number() const override { internal_error("StringReferenceIndexExpression"); }
-    virtual utf8string eval_string() const override { internal_error("StringReferenceIndexExpression"); }
+    virtual bool eval_boolean() const override { internal_error("StringReferenceRangeIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("StringReferenceRangeIndexExpression"); }
+    virtual utf8string eval_string() const override { internal_error("StringReferenceRangeIndexExpression"); }
     virtual bool can_generate_address() const override { return false; }
-    virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
-    virtual void generate_address_write(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceRangeIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("StringReferenceRangeIndexExpression"); }
     virtual void generate_load(Emitter &) const override;
     virtual void generate_store(Emitter &) const override;
 
-    virtual std::string text() const override { return "StringReferenceIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
+    virtual std::string text() const override { return "StringReferenceRangeIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
 };
 
-class StringValueIndexExpression: public Expression {
+class StringValueRangeIndexExpression: public Expression {
 public:
-    StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
-    StringValueIndexExpression(const StringValueIndexExpression &) = delete;
-    StringValueIndexExpression &operator=(const StringValueIndexExpression &) = delete;
+    StringValueRangeIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    StringValueRangeIndexExpression(const StringValueRangeIndexExpression &) = delete;
+    StringValueRangeIndexExpression &operator=(const StringValueRangeIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *str;
@@ -2012,12 +2061,12 @@ public:
     const FunctionCall *load;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return str->is_pure(context) && first->is_pure(context) && last->is_pure(context); }
-    virtual bool eval_boolean() const override { internal_error("StringValueIndexExpression"); }
-    virtual Number eval_number() const override { internal_error("StringValueIndexExpression"); }
-    virtual utf8string eval_string() const override { internal_error("StringValueIndexExpression"); }
+    virtual bool eval_boolean() const override { internal_error("StringValueRangeIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("StringValueRangeIndexExpression"); }
+    virtual utf8string eval_string() const override { internal_error("StringValueRangeIndexExpression"); }
     virtual void generate_expr(Emitter &) const override;
 
-    virtual std::string text() const override { return "StringValueIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
+    virtual std::string text() const override { return "StringValueRangeIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
 };
 
 class BytesReferenceIndexExpression: public ReferenceExpression {

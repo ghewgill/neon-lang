@@ -347,6 +347,12 @@ public class Global {
         };
     }
 
+    public static java.lang.String string__index(java.lang.String str, neon.type.Number index) {
+        assert(index.isInteger());
+        int i = index.intValue();
+        return str.substring(i, i + 1);
+    }
+
     public static java.lang.String string__concat(java.lang.String a, java.lang.String b) {
         return a.concat(b);
     }

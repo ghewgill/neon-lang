@@ -1800,6 +1800,22 @@ void ast::StringValueIndexExpression::generate_expr(Emitter &emitter) const
     load->generate(emitter);
 }
 
+void ast::StringReferenceRangeIndexExpression::generate_load(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
+void ast::StringReferenceRangeIndexExpression::generate_store(Emitter &emitter) const
+{
+    store->generate(emitter);
+    ref->generate_store(emitter);
+}
+
+void ast::StringValueRangeIndexExpression::generate_expr(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
 void ast::BytesReferenceIndexExpression::generate_load(Emitter &emitter) const
 {
     load->generate(emitter);
@@ -1947,7 +1963,7 @@ void ast::FunctionCall::generate_parameters(Emitter &emitter) const
         }
     }
     // TODO: This is a ridiculous hack because the way we compile
-    // StringIndexExpression::store is not really legal. This assertion
+    // StringRangeIndexExpression::store is not really legal. This assertion
     // holds true for any other function call.
     bool check = true;
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
