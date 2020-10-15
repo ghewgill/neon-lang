@@ -1,16 +1,40 @@
 IMPORT file
 IMPORT io
+IMPORT os
 IMPORT process
 IMPORT string
+IMPORT sys
 
-LET dir := "regina/trip"
+LET dir := "samples/rexx/regina/trip"
+
+IF NOT file.isDirectory(dir) THEN
+    IF os.system("git clone https://github.com/0branch/regina samples/rexx/regina") <> 0 THEN
+        print("Could not clone regina")
+        sys.exit(1)
+    END IF
+END IF
 
 FOREACH name IN file.files(dir) DO
     IF string.hasSuffix(name, ".rexx") THEN
+        print("--- \(name)")
+        IF name IN ["error.rexx", "stack.rexx"] THEN
+            print("(skip)")
+            NEXT FOREACH
+        END IF
         VAR stdout, stderr: Bytes
         LET rc := process.call("bin/neon samples/rexx/rexx.neon \(dir)/\(name)", OUT stdout, OUT stderr)
-        io.writeBytes(io.stderr, stderr)
-        LET errors := "error in" IN stdout.decodeToString()
-        print("\(name) rc=\(rc) errors=\(errors)")
+        VAR errors := 0
+        IF rc = 0 THEN
+            LET lines := string.splitLines(stdout.decodeToString())
+            FOREACH s IN lines DO
+                IF "error in" IN s OR "wrong in" IN s OR "trapped in" IN s OR "Tripped in" IN s OR ", but" IN s THEN
+                    INC errors
+                    print(s)
+                END IF
+            END FOREACH
+        ELSE
+            io.writeBytes(io.stderr, stderr)
+        END IF
+        print("  rc=\(rc) errors=\(errors)")
     END IF
 END FOREACH

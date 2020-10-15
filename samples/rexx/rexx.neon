@@ -253,6 +253,11 @@ TYPE Token IS RECORD
     value: String
 END RECORD
 
+TYPE NumericForm IS ENUM
+    engineering
+    scientific
+END ENUM
+
 FUNCTION Token.toString(self: Token): String
     RETURN "<\(self.line):\(self.type):\(self.value)>"
 END FUNCTION
@@ -286,6 +291,7 @@ TYPE ContextEntry IS RECORD
 END RECORD
 
 CONSTANT Signals := [
+    "LOSTDIGITS",
     "NOTREADY",
     "NOVALUE",
     "SYNTAX",
@@ -295,12 +301,16 @@ VAR script_filename: String
 VAR sourcelines: Array<String>
 VAR source_tokens: Array<Token>
 VAR label_index: Dictionary<Number>
+VAR numeric_digits := 9
+VAR numeric_form := NumericForm.scientific
+VAR numeric_fuzz := 0
 VAR vars: Dictionary<String>
 VAR arrays: Dictionary<Dictionary<String>>
 VAR contexts: Array<ContextEntry>
 VAR signal_handlers: Dictionary<String>
 VAR streams: Dictionary<textio.TextFile>
 VAR current_environment: String := "SYSTEM"
+VAR queue: Array<String>
 VAR trace: Boolean
 
 FUNCTION error(number: Number, values: Dictionary<String> DEFAULT {})
@@ -1166,7 +1176,7 @@ FUNCTION builtin_delword(args: Array<String>): String
 END FUNCTION
 
 FUNCTION builtin_digits(args: Array<String>): String
-    RETURN "9" -- TODO
+    RETURN str(numeric_digits)
 END FUNCTION
 
 FUNCTION builtin_errortext(args: Array<String>): String
@@ -1181,7 +1191,7 @@ FUNCTION builtin_find(args: Array<String>): String
 END FUNCTION
 
 FUNCTION builtin_form(args: Array<String>): String
-    RETURN "SCIENTIFIC" -- TODO
+    RETURN string.upper(numeric_form.toString())
 END FUNCTION
 
 FUNCTION builtin_format(args: Array<String>): String
@@ -1190,7 +1200,7 @@ FUNCTION builtin_format(args: Array<String>): String
 END FUNCTION
 
 FUNCTION builtin_fuzz(args: Array<String>): String
-    RETURN "0"
+    RETURN str(numeric_fuzz)
 END FUNCTION
 
 FUNCTION builtin_insert(args: Array<String>): String
@@ -1272,17 +1282,28 @@ FUNCTION builtin_lineout(args: Array<String>): String
     LET line := (IF args.size() >= 3 THEN rxnum(args[2]) ELSE 0)
     IF args.size() >= 2 THEN
         IF name NOT IN streams THEN
-            TRY
-                streams[name] := textio.open(name, textio.Mode.readwrite)
-            TRAP textio.TextioException.Open DO
-                streams[name] := textio.open(name, textio.Mode.write)
-            END TRY
+            CASE name
+                WHEN "", "<stdout>" DO
+                    streams[name] := textio.stdout
+                WHEN "<stderr>" DO
+                    streams[name] := textio.stderr
+                WHEN OTHERS DO
+                    TRY
+                        streams[name] := textio.open(name, textio.Mode.readwrite)
+                    TRAP textio.TextioException.Open DO
+                        streams[name] := textio.open(name, textio.Mode.write)
+                    END TRY
+            END CASE
         END IF
         FOR i := 2 TO line DO
             _ := textio.readLine(streams[name], OUT _)
         END FOR
         textio.writeLine(streams[name], s)
-        textio.truncate(streams[name])
+        TRY
+            textio.truncate(streams[name])
+        TRAP textio.TextioException.Write DO
+            -- ignore
+        END TRY
     ELSE
         textio.close(streams[name])
         streams.remove(name)
@@ -1372,6 +1393,10 @@ VAR random_seed: Number := 0
 FUNCTION random_lfsr(): Number
     random_seed := (random_seed * 22695477 + 1) MOD 2^32
     RETURN random_seed INTDIV 2^16
+END FUNCTION
+
+FUNCTION builtin_queued(args: Array<String>): String
+    RETURN str(queue.size())
 END FUNCTION
 
 FUNCTION builtin_random(args: Array<String>): String
@@ -1764,6 +1789,7 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "MIN": builtin_min,
     "OVERLAY": builtin_overlay,
     "POS": builtin_pos,
+    "QUEUED": builtin_queued,
     "RANDOM": builtin_random,
     "REVERSE": builtin_reverse,
     "RIGHT": builtin_right,
@@ -2172,7 +2198,12 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
         WHEN "ARG" DO
             input := contexts[LAST].call_args
         WHEN "PULL" DO
-            input := [console.input("")]
+            IF queue.size() > 0 THEN
+                input := [queue[FIRST]]
+                queue[FIRST TO FIRST] := []
+            ELSE
+                input := [console.input("")]
+            END IF
         WHEN "SOURCE" DO
             input := ["UNIX COMMAND \(script_filename)"]
         WHEN "VALUE" DO
@@ -2653,6 +2684,39 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                 WHEN "NOP" DO
                     INC i
                     -- No operation.
+                WHEN "NUMERIC" DO
+                    INC i
+                    CASE tokens[i].value
+                        WHEN "DIGITS" DO
+                            INC i
+                            IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                                LET digits := evaluate(tokens, INOUT i, [])
+                                numeric_digits := num(digits)
+                            END IF
+                        WHEN "FORM" DO
+                            INC i
+                            VAR form := tokens[i].value
+                            IF form = "VALUE" THEN
+                                INC i
+                                form := evaluate(tokens, INOUT i, [])
+                            END IF
+                            CASE form
+                                WHEN "ENGINEERING" DO
+                                    numeric_form := NumericForm.engineering
+                                WHEN "SCIENTIFIC" DO
+                                    numeric_form := NumericForm.scientific
+                                WHEN OTHERS DO
+                                    error(25.11, {"keywords": "ENGINEERING SCIENTIFIC VALUE", "token": form})
+                            END CASE
+                        WHEN "FUZZ" DO
+                            INC i
+                            IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
+                                LET fuzz := evaluate(tokens, INOUT i, [])
+                                numeric_fuzz := num(fuzz)
+                            END IF
+                        WHEN OTHERS DO
+                            error(25.15, {"keywords": "DIGITS FORM FUZZ", "token": tokens[i].value})
+                    END CASE
                 WHEN "OPTIONS" DO
                     INC i
                     WHILE NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") DO
@@ -2702,6 +2766,14 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     -- TODO: expose arrays
                 WHEN "PULL" DO
                     do_parse(tokens, INOUT i, upper WITH TRUE)
+                WHEN "PUSH" DO
+                    INC i
+                    LET expr := evaluate(tokens, INOUT i, [])
+                    queue := [expr] & queue
+                WHEN "QUEUE" DO
+                    INC i
+                    LET expr := evaluate(tokens, INOUT i, [])
+                    queue.append(expr)
                 WHEN "RETURN" DO
                     INC i
                     WHILE contexts.size() > 0 AND contexts[LAST].type <> ContextType.call DO
