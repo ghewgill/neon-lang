@@ -83,6 +83,7 @@ class Executor {
         predefined.put("str", this::number__toString);
         predefined.put("string__append", this::string__append);
         predefined.put("string__concat", this::string__concat);
+        predefined.put("string__index", this::string__index);
         predefined.put("string__length", this::string__length);
         predefined.put("string__substring", this::string__substring);
         predefined.put("string__toBytes", this::string__toBytes);
@@ -1769,6 +1770,13 @@ class Executor {
         String b = stack.removeFirst().getString();
         String a = stack.removeFirst().getString();
         stack.addFirst(new Cell(a + b));
+    }
+
+    private void string__index()
+    {
+        int index = stack.removeFirst().getNumber().intValue();
+        String s = stack.removeFirst().getString();
+        stack.addFirst(new Cell(s.substring(index, index+1)));
     }
 
     private void string__length()

@@ -1146,7 +1146,45 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
     }
 }
 
-ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index, Analyzer *analyzer)
+  : ReferenceExpression(TYPE_STRING, ref->is_readonly),
+    ref(ref),
+    index(index),
+    load(nullptr),
+    store(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(ref);
+        args.push_back(index);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__index"))), args);
+    }
+    {
+        std::vector<const Expression *> args;
+        args.push_back(ref);
+        args.push_back(index);
+        args.push_back(new ConstantBooleanExpression(false));
+        args.push_back(index);
+        args.push_back(new ConstantBooleanExpression(false));
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__splice"))), args);
+    }
+}
+
+ast::StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *index, Analyzer *analyzer)
+  : Expression(TYPE_STRING, str->is_readonly),
+    str(str),
+    index(index),
+    load(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(str);
+        args.push_back(index);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__index"))), args);
+    }
+}
+
+ast::StringReferenceRangeIndexExpression::StringReferenceRangeIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(TYPE_STRING, ref->is_readonly),
     ref(ref),
     first(first),
@@ -1176,7 +1214,7 @@ ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const Refere
     }
 }
 
-ast::StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::StringValueRangeIndexExpression::StringValueRangeIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : Expression(TYPE_STRING, str->is_readonly),
     str(str),
     first(first),
@@ -2041,9 +2079,17 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         }
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new ast::StringReferenceIndexExpression(ref, index, expr->from_last, index, expr->from_last, this);
+            if (expr->from_last) {
+                return new ast::StringReferenceRangeIndexExpression(ref, index, expr->from_last, index, expr->from_last, this);
+            } else {
+                return new ast::StringReferenceIndexExpression(ref, index, this);
+            }
         } else {
-            return new ast::StringValueIndexExpression(base, index, expr->from_last, index, expr->from_last, this);
+            if (expr->from_last) {
+                return new ast::StringValueRangeIndexExpression(base, index, expr->from_last, index, expr->from_last, this);
+            } else {
+                return new ast::StringValueIndexExpression(base, index, this);
+            }
         }
     } else if (type == ast::TYPE_OBJECT) {
         index = convert(ast::TYPE_OBJECT, index);
@@ -2871,9 +2917,9 @@ const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *exp
     } else if (type == ast::TYPE_STRING) {
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new ast::StringReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::StringReferenceRangeIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         } else {
-            return new ast::StringValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::StringValueRangeIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         }
     } else if (type == ast::TYPE_BYTES) {
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
@@ -5017,7 +5063,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         ),
         new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(var) },
             arrtype ? static_cast<ast::Expression *>(new ast::ArrayValueIndexExpression(var->type, new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false)) :
-            strtype ? static_cast<ast::Expression *>(new ast::StringValueIndexExpression(new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false, new ast::VariableExpression(index), false, this)) :
+            strtype ? static_cast<ast::Expression *>(new ast::StringValueRangeIndexExpression(new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false, new ast::VariableExpression(index), false, this)) :
             nullptr
         ),
     };

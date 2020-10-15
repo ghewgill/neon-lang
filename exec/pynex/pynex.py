@@ -2103,6 +2103,17 @@ def neon_string__concat(self):
     a = self.stack.pop()
     self.stack.append(a + b)
 
+def neon_string__index(self):
+    index = int(self.stack.pop())
+    s = self.stack.pop()
+    if index < 0:
+        self.raise_literal("StringIndexException", (str(index), 0))
+        return
+    if index >= len(s):
+        self.raise_literal("StringIndexException", (str(index), 0))
+        return
+    self.stack.append(s[index:index+1])
+
 def neon_string__length(self):
     s = self.stack.pop()
     self.stack.append(len(s))

@@ -371,6 +371,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("string__concat",            string__concat),
     PDFUNC("string__toBytes",           string__toBytes),
     PDFUNC("string__toString",          string__toString),
+    PDFUNC("string__index",             string__index),
     PDFUNC("string__length",            string__length),
     PDFUNC("string__splice",            string__splice),
     PDFUNC("string__substring",         string__substring),
@@ -1311,6 +1312,35 @@ void string__toString(TExecutor *exec)
 {
     Cell *r = cell_fromCell(top(exec->stack)); pop(exec->stack);
     push(exec->stack, r);
+}
+
+void string__index(TExecutor *exec)
+{
+    Number index = top(exec->stack)->number;          pop(exec->stack);
+    Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
+
+    if (!number_is_integer(index)) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(index), BID_ZERO);
+        return;
+    }
+
+    int64_t i = number_to_sint64(index);
+    if (i < 0) {
+        char n[128];
+        snprintf(n, 128, "%" PRId64, i);
+        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        return;
+    }
+    if (i >= (int64_t)a->string->length) {
+        char n[128];
+        snprintf(n, 128, "%" PRId64, i);
+        exec->rtl_raise(exec, "StringIndexException", n, BID_ZERO);
+        return;
+    }
+
+    Cell *r = cell_fromStringLength((char*)a->string->data+i, 1);
+    push(exec->stack, r);
+    cell_freeCell(a);
 }
 
 void string__length(TExecutor *exec)
