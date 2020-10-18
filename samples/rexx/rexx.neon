@@ -13,6 +13,8 @@ IMPORT sys
 IMPORT textio
 IMPORT time
 
+IMPORT OPTIONAL posix
+
 EXCEPTION SignalException
 EXCEPTION SignalException.Notready
 EXCEPTION SignalException.Novalue
@@ -291,6 +293,7 @@ TYPE ContextEntry IS RECORD
 END RECORD
 
 CONSTANT Signals := [
+    "HALT",
     "LOSTDIGITS",
     "NOTREADY",
     "NOVALUE",
@@ -309,7 +312,9 @@ VAR arrays: Dictionary<Dictionary<String>>
 VAR contexts: Array<ContextEntry>
 VAR signal_handlers: Dictionary<String>
 VAR streams: Dictionary<textio.TextFile>
+-- TODO: these need to go into contexts
 VAR current_environment: String := "SYSTEM"
+VAR last_environment: String
 VAR queue: Array<String>
 VAR trace: Boolean
 
@@ -807,8 +812,7 @@ FUNCTION builtin_abs(args: Array<String>): String
 END FUNCTION
 
 FUNCTION builtin_address(args: Array<String>): String
-    -- TODO
-    RETURN ""
+    RETURN current_environment
 END FUNCTION
 
 FUNCTION builtin_arg(args: Array<String>): String
@@ -1202,6 +1206,14 @@ END FUNCTION
 
 FUNCTION builtin_fuzz(args: Array<String>): String
     RETURN str(numeric_fuzz)
+END FUNCTION
+
+FUNCTION builtin_getpid(args: Array<String>): String
+    IF IMPORTED posix THEN
+        RETURN str(posix.getpid())
+    ELSE
+        RETURN "0"
+    END IF
 END FUNCTION
 
 FUNCTION builtin_insert(args: Array<String>): String
@@ -1778,6 +1790,7 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "FORM": builtin_form,
     "FORMAT": builtin_format,
     "FUZZ": builtin_fuzz,
+    "GETPID": builtin_getpid,
     "INSERT": builtin_insert,
     "LASTPOS": builtin_lastpos,
     "LEFT": builtin_left,
@@ -2317,8 +2330,14 @@ FUNCTION do_parse(tokens: Array<Token>, INOUT i: Number, upper: Boolean)
                     END IF
                     si := next
                 WHEN TemplateType.pattern DO
-                    ASSERT s[si TO si+t.pattern.length()-1] = t.pattern
-                    si := si + t.pattern.length()
+                    WHILE si < s.length() DO
+                        IF s[si TO si+t.pattern.length()-1] = t.pattern THEN
+                            si := si + t.pattern.length()
+                            EXIT WHILE
+                        END IF
+                        INC si
+                    END WHILE
+                    ASSERT si < s.length(), s, t
                 WHEN TemplateType.positional DO
                     IF t.position_relative THEN
                         si := si + t.position
@@ -2345,7 +2364,7 @@ FUNCTION send_command(environment: String, command: String): String
             ELSE
                 ASSERT FALSE, "unknown command", command
             END IF
-        WHEN "SYSTEM" DO
+        WHEN "PATH", "SYSTEM" DO
             RETURN str(os.system(command))
     END CASE
     ASSERT FALSE, "unknown environment", environment
@@ -2489,6 +2508,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     IF tokens[i].type = TokenType.Var_symbol THEN
                         IF tokens[i].value = "VALUE" THEN
                             INC i
+                            last_environment := current_environment
                             current_environment := evaluate(tokens, INOUT i, ["WITH"])
                         ELSE
                             LET environment := tokens[i].value
@@ -2496,7 +2516,16 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
                                 LET command := evaluate(tokens, INOUT i, ["WITH"])
                                 vars["RC"] := send_command(environment, command)
+                            ELSE
+                                last_environment := current_environment
+                                current_environment := environment
                             END IF
+                        END IF
+                    ELSIF tokens[i].type = TokenType.Special AND tokens[i].value = ";" THEN
+                        IF last_environment <> "" THEN
+                            LET cur := current_environment
+                            current_environment := last_environment
+                            last_environment := cur
                         END IF
                     ELSE
                         ASSERT FALSE, "unexpected token", tokens[i]
@@ -2505,7 +2534,35 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     do_parse(tokens, INOUT i, upper WITH TRUE)
                 WHEN "CALL" DO
                     INC i
-                    IF tokens[i].type IN [TokenType.Const_symbol, TokenType.Var_symbol] THEN
+                    IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "ON" THEN
+                        INC i
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN Signals THEN
+                            LET signal: String := tokens[i].value
+                            VAR label: String := signal
+                            INC i
+                            IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "NAME" THEN
+                                INC i
+                                IF tokens[i].type = TokenType.Var_symbol THEN
+                                    label := tokens[i].value
+                                    INC i
+                                ELSE
+                                    ASSERT FALSE, "label expected", tokens[i]
+                                END IF
+                            END IF
+                            signal_handlers[signal] := label
+                        ELSE
+                            ASSERT FALSE, "unknown signal type", tokens[i]
+                        END IF
+                    ELSIF tokens[i].type = TokenType.Var_symbol AND tokens[i].value = "OFF" THEN
+                        INC i
+                        IF tokens[i].type = TokenType.Var_symbol AND tokens[i].value IN Signals THEN
+                            LET signal := tokens[i].value
+                            INC i
+                            signal_handlers.remove(signal)
+                        ELSE
+                            ASSERT FALSE, "unknown signal type", tokens[i]
+                        END IF
+                    ELSIF tokens[i].type IN [TokenType.Const_symbol, TokenType.Var_symbol] THEN
                         LET name: String := tokens[i].value
                         INC i
                         LET args: Array<String> := get_function_arguments(tokens, INOUT i)
