@@ -421,12 +421,13 @@ FUNCTION tokenise(source: String): Array<Token>
         t.line := line
         t.abuttal := NOT last_was_space
         last_was_space := FALSE
-        IF source[i] IN [",", ":", ";", ")", "("] THEN
+        LET c := source[i]
+        IF c IN [",", ":", ";", ")", "("] THEN
             t.type := TokenType.Special
-            t.value := source[i]
+            t.value := c
             tokens.append(t)
             INC i
-        ELSIF source[i] = "\n" THEN
+        ELSIF c = "\n" THEN
             IF tokens.size() > 0 AND tokens[LAST].type = TokenType.Special AND tokens[LAST].value = "," THEN
                 -- Comma continuation, delete last token.
                 tokens.resize(tokens.size() - 1)
@@ -438,7 +439,7 @@ FUNCTION tokenise(source: String): Array<Token>
             END IF
             INC i
             INC line
-        ELSIF is_general_letter(source[i]) THEN
+        ELSIF is_general_letter(c) THEN
             t.type := TokenType.Var_symbol
             WHILE i < source.length() AND is_var_symbol_char(source[i]) DO
                 t.value.append(source[i])
@@ -450,7 +451,7 @@ FUNCTION tokenise(source: String): Array<Token>
                 INC i
             END IF
             tokens.append(t)
-        ELSIF is_digit(source[i]) OR source[i] = "." THEN
+        ELSIF is_digit(c) OR c = "." THEN
             t.type := TokenType.Const_symbol
             WHILE i < source.length() DO
                 IF source[i] IN ["E","e"] AND source[i+1] IN ["+","-"] THEN
@@ -468,8 +469,8 @@ FUNCTION tokenise(source: String): Array<Token>
                 INC i
             END IF
             tokens.append(t)
-        ELSIF source[i] IN ["'", "\""] THEN
-            LET delim: String := source[i]
+        ELSIF c IN ["'", "\""] THEN
+            LET delim: String := c
             INC i
             t.type := TokenType.String
             LOOP
@@ -500,7 +501,7 @@ FUNCTION tokenise(source: String): Array<Token>
             END IF
             tokens.append(t)
         ELSIF source[i] IN ["+", "-", "%", "|", "&", "=", "\\", "^", ">", "<", "/", "*"] THEN
-            IF source[i] = "/" AND source[i+1] = "*" THEN
+            IF c = "/" AND source[i+1] = "*" THEN
                 VAR level: Number := 0
                 REPEAT
                     IF i+1 >= source.length() THEN
@@ -521,7 +522,7 @@ FUNCTION tokenise(source: String): Array<Token>
                 UNTIL level = 0
             ELSE
                 t.type := TokenType.Operator
-                CASE source[i]
+                CASE c
                     WHEN "|" DO
                         CASE source[i+1]
                             WHEN "|" DO
@@ -621,16 +622,16 @@ FUNCTION tokenise(source: String): Array<Token>
                                 t.value := "&"
                         END CASE
                     WHEN OTHERS DO
-                        t.value := source[i]
+                        t.value := c
                 END CASE
                 tokens.append(t)
                 INC i
             END IF
-        ELSIF source[i] IN [" "] THEN
+        ELSIF c IN [" "] THEN
             INC i
             last_was_space := TRUE
         ELSE
-            error(13.1, {"char": source[i], "hex-encoding": base.toHex(string.toCodePoint(source[i]))})
+            error(13.1, {"char": c, "hex-encoding": base.toHex(string.toCodePoint(c))})
         END IF
     END WHILE
     RETURN tokens
