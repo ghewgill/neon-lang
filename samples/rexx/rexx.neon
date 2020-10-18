@@ -300,6 +300,21 @@ CONSTANT Signals := [
     "SYNTAX",
 ]
 
+CONSTANT ConditionDescription := {
+    "": "none",
+    "HALT": "halt",
+    "LOSTDIGITS": "lostdigits",
+    "NOTREADY": "not ready",
+    "NOVALUE": "no value",
+    "SYNTAX": "syntax"
+}
+
+TYPE Condition IS RECORD
+    name: String
+    instruction: String
+    state: String
+END RECORD
+
 VAR script_filename: String
 VAR sourcelines: Array<String>
 VAR source_tokens: Array<Token>
@@ -311,6 +326,7 @@ VAR vars: Dictionary<String>
 VAR arrays: Dictionary<Dictionary<String>>
 VAR contexts: Array<ContextEntry>
 VAR signal_handlers: Dictionary<String>
+VAR current_condition: Condition
 VAR streams: Dictionary<textio.TextFile>
 -- TODO: these need to go into contexts
 VAR current_environment: String := "SYSTEM"
@@ -999,6 +1015,23 @@ FUNCTION builtin_compare(args: Array<String>): String
         END IF
     END FOR
     RETURN "0"
+END FUNCTION
+
+FUNCTION builtin_condition(args: Array<String>): String
+    LET option := (IF args.size() >= 1 AND args[0] <> "" THEN string.upper(args[0]) ELSE "I")
+    CASE option
+        WHEN "C" DO
+            RETURN current_condition.name
+        WHEN "D" DO
+            RETURN ConditionDescription[current_condition.name]
+        WHEN "I" DO
+            RETURN current_condition.instruction
+        WHEN "S" DO
+            RETURN current_condition.state
+        WHEN OTHERS DO
+            ASSERT FALSE, option
+    END CASE
+    RETURN ""
 END FUNCTION
 
 FUNCTION builtin_copies(args: Array<String>): String
@@ -1776,6 +1809,7 @@ VAR BuiltinFunctions: Dictionary<FUNCTION(args: Array<String>): String> := {
     "CHAROUT": builtin_charout,
     "CHANGESTR": builtin_changestr,
     "COMPARE": builtin_compare,
+    "CONDITION": builtin_condition,
     "COPIES": builtin_copies,
     "COUNTSTR": builtin_countstr,
     "D2C": builtin_d2c,
@@ -2502,6 +2536,9 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                 set_var(var, s)
                 RETURN TRUE
             END IF
+            IF tokens[i+1].type = TokenType.Operator AND tokens[i+1].value = "==" THEN
+                error(35.1, {"token": tokens[i+1].value})
+            END IF
             CASE tokens[i].value
                 WHEN "ADDRESS" DO
                     INC i
@@ -2528,7 +2565,8 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                             last_environment := cur
                         END IF
                     ELSE
-                        ASSERT FALSE, "unexpected token", tokens[i]
+                        last_environment := current_environment
+                        current_environment := evaluate(tokens, INOUT i, [])
                     END IF
                 WHEN "ARG" DO
                     do_parse(tokens, INOUT i, upper WITH TRUE)
@@ -2724,6 +2762,9 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                     i := 0
                 WHEN "ITERATE" DO
                     WHILE contexts.size() > 0 AND contexts[LAST].type <> ContextType.do_repetitive DO
+                        --IF contexts[LAST].type = ContextType.call THEN
+                        --    error(28.2)
+                        --END IF
                         contexts.resize(contexts.size() - 1)
                     END WHILE
                     do_iterate(contexts[LAST])
@@ -2766,6 +2807,7 @@ FUNCTION interpret_step(INOUT tokens: Array<Token>, INOUT i: Number): Boolean
                                 WHEN OTHERS DO
                                     error(25.11, {"keywords": "ENGINEERING SCIENTIFIC VALUE", "token": form})
                             END CASE
+                            INC i
                         WHEN "FUZZ" DO
                             INC i
                             IF NOT (tokens[i].type = TokenType.Special AND tokens[i].value = ";") THEN
