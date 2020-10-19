@@ -87,6 +87,7 @@ void array_removeItem(Array *self, size_t index)
     if (self != NULL && self->data != NULL) {
         for(size_t i = index; i+1 < self->size; i++) {
             cell_copyCell(&self->data[i], &self->data[i+1]);
+            cell_clearCell(&self->data[i+1]);
         }
         self->size--;
     }
