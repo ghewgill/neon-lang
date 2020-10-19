@@ -17,7 +17,7 @@ END IF
 FOREACH name IN file.files(dir) DO
     IF string.hasSuffix(name, ".rexx") THEN
         print("--- \(name)")
-        IF name IN ["error.rexx", "stack.rexx"] THEN
+        IF name IN ["error.rexx", "files.rexx", "lexical2.rexx", "signal.rexx", "stack.rexx"] THEN
             print("(skip)")
             NEXT FOREACH
         END IF
