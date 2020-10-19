@@ -594,11 +594,11 @@ void array__range(TExecutor *exec)
 
     if (number_is_negative(step)) {
         for (Number i = first; number_is_greater_equal(i, last); i = number_add(i, step)) {
-            cell_arrayAppendElement(r, *cell_fromNumber(i));
+            cell_arrayAppendElementPointer(r, cell_fromNumber(i));
         }
     } else {
         for (Number i = first; number_is_less_equal(i, last); i = number_add(i, step)) {
-            cell_arrayAppendElement(r, *cell_fromNumber(i));
+            cell_arrayAppendElementPointer(r, cell_fromNumber(i));
         }
     }
 
@@ -1396,10 +1396,12 @@ void string__substring(TExecutor *exec)
 
     if (!number_is_integer(first)) {
         exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
+        cell_freeCell(a);
         return;
     }
     if (!number_is_integer(last)) {
         exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
+        cell_freeCell(a);
         return;
     }
 
@@ -1415,18 +1417,21 @@ void string__substring(TExecutor *exec)
         char n[128];
         snprintf(n, 128, "%" PRId64, f);
         exec->rtl_raise(exec, "StringIndexException", n);
+        cell_freeCell(a);
         return;
     }
     if (f >= (int64_t)a->string->length) {
         char n[128];
         snprintf(n, 128, "%" PRId64, f);
         exec->rtl_raise(exec, "StringIndexException", n);
+        cell_freeCell(a);
         return;
     }
     if (l >= (int64_t)a->string->length) {
         char n[128];
         snprintf(n, 128, "%" PRId64, l);
         exec->rtl_raise(exec, "StringIndexException", n);
+        cell_freeCell(a);
         return;
     }
 

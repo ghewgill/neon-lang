@@ -458,6 +458,12 @@ nextframe:
         self->ip = self->callstack[self->callstacktop].ip;
         self->callstacktop--;
     }
+
+    // Destroy the stack if there are no exception handlers available.
+    // This is important to properly shut cnex down.
+    while (!isEmpty(self->stack)) {
+        pop(self->stack);
+    }
     // Setting exit_code here will cause exec_loop to terminate and return this exit code.
     self->exit_code = 1;
 }
