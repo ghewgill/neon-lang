@@ -1395,11 +1395,11 @@ void string__substring(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
+        push(exec->stack, cell_fromCString(""));
         return;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
+        push(exec->stack, cell_fromCString(""));
         return;
     }
 
@@ -1412,24 +1412,14 @@ void string__substring(TExecutor *exec)
         l += a->string->length - 1;
     }
     if (f < 0) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, f);
-        exec->rtl_raise(exec, "StringIndexException", n);
-        return;
+        f = 0;
     }
-    if (f >= (int64_t)a->string->length) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, f);
-        exec->rtl_raise(exec, "StringIndexException", n);
-        return;
+    if (f > (int64_t)a->string->length) {
+        f = (int64_t)a->string->length;
     }
     if (l >= (int64_t)a->string->length) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, l);
-        exec->rtl_raise(exec, "StringIndexException", n);
-        return;
+        l = (int64_t)a->string->length - 1;
     }
-
     if (l < 0) {
         l = -1;
     }

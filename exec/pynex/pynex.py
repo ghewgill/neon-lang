@@ -2140,14 +2140,11 @@ def neon_string__substring(self):
     if last_from_end:
         last += len(s) - 1
     if first < 0:
-        self.raise_literal("StringIndexException", str(first))
-        return
-    if first >= len(s):
-        self.raise_literal("StringIndexException", str(first))
-        return
+        first = 0
+    if first > len(s):
+        first = len(s)
     if last >= len(s):
-        self.raise_literal("StringIndexException", str(last))
-        return
+        last = len(s) - 1
     if last < 0:
         last = -1
     self.stack.append(s[first:last+1])
