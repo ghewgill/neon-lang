@@ -1414,27 +1414,14 @@ void string__substring(TExecutor *exec)
         l += a->string->length - 1;
     }
     if (f < 0) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, f);
-        exec->rtl_raise(exec, "StringIndexException", n);
-        cell_freeCell(a);
-        return;
+        f = 0;
     }
-    if (f >= (int64_t)a->string->length) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, f);
-        exec->rtl_raise(exec, "StringIndexException", n);
-        cell_freeCell(a);
-        return;
+    if (f > (int64_t)a->string->length) {
+        f = (int64_t)a->string->length;
     }
     if (l >= (int64_t)a->string->length) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, l);
-        exec->rtl_raise(exec, "StringIndexException", n);
-        cell_freeCell(a);
-        return;
+        l = (int64_t)a->string->length - 1;
     }
-
     if (l < 0) {
         l = -1;
     }

@@ -2836,20 +2836,19 @@ func (self *executor) op_callp() {
 			last += len(s) - 1
 		}
 		if first < 0 {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", first)})
-		} else if first >= len(s) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", first)})
-		} else if last >= len(s) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", last)})
+			first = 0
+		} else if first > len(s) {
+			first = len(s)
+		}
+		if last >= len(s) {
+			last = len(s) - 1
+		} else if last < 0 {
+			last = -1
+		}
+		if last < first {
+			self.push(make_cell_bytes([]byte{}))
 		} else {
-			if last < 0 {
-				last = -1
-			}
-			if last < first {
-				self.push(make_cell_bytes([]byte{}))
-			} else {
-				self.push(make_cell_str(s[first : last+1]))
-			}
+			self.push(make_cell_str(s[first : last+1]))
 		}
 	case "string__toBytes":
 		s := self.pop().str

@@ -279,10 +279,10 @@ utf8string string__splice(const utf8string &t, const utf8string &s, Number first
 utf8string string__substring(const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {
-        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(first)));
+        return utf8string();
     }
     if (not number_is_integer(last)) {
-        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(last)));
+        return utf8string();
     }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
@@ -293,13 +293,13 @@ utf8string string__substring(const utf8string &s, Number first, bool first_from_
         l += s.size() - 1;
     }
     if (f < 0) {
-        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(f)));
+        f = 0;
     }
-    if (f >= static_cast<int64_t>(s.size())) {
-        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(f)));
+    if (f > static_cast<int64_t>(s.size())) {
+        f = static_cast<int64_t>(s.size());
     }
     if (l >= static_cast<int64_t>(s.size())) {
-        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(l)));
+        l = static_cast<int64_t>(s.size()) - 1;
     }
     if (l < 0) {
         l = -1;
