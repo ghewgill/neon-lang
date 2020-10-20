@@ -1121,20 +1121,19 @@ FUNCTION f_callp(INOUT self: Executor)
                 last := last + y.size() - 1
             END IF
             IF first < 0 THEN
-                self.raise_literal("BytesIndexException", first)
-            ELSIF first >= y.size() THEN
-                self.raise_literal("BytesIndexException", first)
-            ELSIF last >= y.size() THEN
-                self.raise_literal("BytesIndexException", last)
+                first := 0
+            ELSIF first > y.size() THEN
+                first := y.size()
+            END IF
+            IF last >= y.size() THEN
+                last := y.size() - 1
+            ELSIF last < 0 THEN
+                last := -1
+            END IF
+            IF last < first THEN
+                self.stack.append(makeValueBytes(HEXBYTES ""))
             ELSE
-                IF last < 0 THEN
-                    last := -1
-                END IF
-                IF last < first THEN
-                    self.stack.append(makeValueBytes(HEXBYTES ""))
-                ELSE
-                    self.stack.append(makeValueBytes(y[first TO last]))
-                END IF
+                self.stack.append(makeValueBytes(y[first TO last]))
             END IF
         WHEN "bytes__size" DO
             LET y: Bytes := self.pop()->y

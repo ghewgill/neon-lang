@@ -1859,14 +1859,11 @@ def neon_bytes__range(self):
     if last_from_end:
         last += len(b) - 1
     if first < 0:
-        self.raise_literal("BytesIndexException", str(first))
-        return
-    if first >= len(b):
-        self.raise_literal("BytesIndexException", str(first))
-        return
+        first = 0
+    if first > len(b):
+        first = len(b)
     if last >= len(b):
-        self.raise_literal("BytesIndexException", str(last))
-        return
+        last = len(b) - 1
     if last < 0:
         last = -1
     self.stack.append(b[first:last+1])
