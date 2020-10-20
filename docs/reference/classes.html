@@ -1,61 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>5.7. Classes &#8212; Neon 1.0 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>5.7. Classes &mdash; Neon 1.0 documentation</title>
+    
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="Neon 1.0 documentation" href="../index.html" />
+    <link rel="up" title="5. Language Reference" href="index.html" />
     <link rel="next" title="5.8. Modules" href="modules.html" />
     <link rel="prev" title="5.6. Functions" href="functions.html" />
    
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="classes">
 <h1>5.7. Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h1>
 <p>Classes are similar to records with some additional features:</p>
 <ul class="simple">
-<li><p>Instances of classes must be dynamically allocated with <code class="docutils literal notranslate"><span class="pre">NEW</span></code>.</p></li>
-<li><p>Class instances are always referenced by pointer.</p></li>
-<li><p>Classes support interfaces.</p></li>
+<li>Instances of classes must be dynamically allocated with <code class="docutils literal"><span class="pre">NEW</span></code>.</li>
+<li>Class instances are always referenced by pointer.</li>
+<li>Classes support interfaces.</li>
 </ul>
 <div class="section" id="declaration">
 <h2>5.7.1. Declaration<a class="headerlink" href="#declaration" title="Permalink to this headline">¶</a></h2>
-<p>Classes are declared using <code class="docutils literal notranslate"><span class="pre">TYPE</span></code> with <code class="docutils literal notranslate"><span class="pre">CLASS</span></code>:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>TYPE Person IS CLASS
+<p>Classes are declared using <code class="docutils literal"><span class="pre">TYPE</span></code> with <code class="docutils literal"><span class="pre">CLASS</span></code>:</p>
+<div class="highlight-none"><div class="highlight"><pre>TYPE Person IS CLASS
     name: String
     phone: String
     pets: Number
 END CLASS
 </pre></div>
 </div>
-<p>Like records, classes may declare <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></code> fields.</p>
+<p>Like records, classes may declare <code class="docutils literal"><span class="pre">PRIVATE</span></code> fields.</p>
 </div>
 <div class="section" id="allocation">
 <h2>5.7.2. Allocation<a class="headerlink" href="#allocation" title="Permalink to this headline">¶</a></h2>
-<p>A new instance of a class must be created using the <code class="docutils literal notranslate"><span class="pre">NEW</span></code> keyword:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>TYPE Person IS CLASS
+<p>A new instance of a class must be created using the <code class="docutils literal"><span class="pre">NEW</span></code> keyword:</p>
+<div class="highlight-none"><div class="highlight"><pre>TYPE Person IS CLASS
     name: String
     phone: String
     pets: Number
@@ -68,12 +75,12 @@ print(p-&gt;name)
 </div>
 <div class="section" id="interfaces">
 <h2>5.7.3. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h2>
-<p>An interface is declared using the <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code> declaration:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INTERFACE Animal
+<p>An interface is declared using the <code class="docutils literal"><span class="pre">INTERFACE</span></code> declaration:</p>
+<div class="highlight-none"><div class="highlight"><pre>INTERFACE Animal
     FUNCTION voice(self: Animal)
 END INTERFACE
 
-#########################
+-------------------------
 
 TYPE Cat IS CLASS IMPLEMENTS Animal
     furColour: String
@@ -83,7 +90,7 @@ FUNCTION Cat.voice(self: VALID POINTER TO Cat)
     print(&quot;meow&quot;)
 END FUNCTION
 
-#########################
+-------------------------
 
 TYPE Bird IS CLASS IMPLEMENTS Animal
     featherColour: String
@@ -93,7 +100,7 @@ FUNCTION Bird.voice(self: VALID POINTER TO Bird)
     print(&quot;chirp&quot;)
 END FUNCTION
 
-#########################
+-------------------------
 
 VAR animals: Array&lt;VALID POINTER TO Animal&gt; := []
 animals.append(NEW Cat)
@@ -103,14 +110,13 @@ FOREACH x IN animals DO
 END FOREACH
 </pre></div>
 </div>
-<p>Each class that implements the interface uses the <code class="docutils literal notranslate"><span class="pre">IMPLEMENTS</span></code> keyword to indicate.
-The type <code class="docutils literal notranslate"><span class="pre">POINTER</span> <span class="pre">TO</span> <span class="pre">Animal</span></code> refers to instances of classes that implement the <code class="docutils literal notranslate"><span class="pre">Animal</span></code> interface.</p>
+<p>Each class that implements the interface uses the <code class="docutils literal"><span class="pre">IMPLEMENTS</span></code> keyword to indicate.
+The type <code class="docutils literal"><span class="pre">POINTER</span> <span class="pre">TO</span> <span class="pre">Animal</span></code> refers to instances of classes that implement the <code class="docutils literal"><span class="pre">Animal</span></code> interface.</p>
 </div>
 </div>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -120,6 +126,11 @@ The type <code class="docutils literal notranslate"><span class="pre">POINTER</s
 
 
 
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=&repo=&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
 
 
 
@@ -138,7 +149,7 @@ The type <code class="docutils literal notranslate"><span class="pre">POINTER</s
 <li class="toctree-l2"><a class="reference internal" href="expressions.html">5.4. Expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="statements.html">5.5. Statements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="functions.html">5.6. Functions</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">5.7. Classes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">5.7. Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">5.8. Modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="grammar.html">5.9. Grammar</a></li>
 </ul>
@@ -160,23 +171,18 @@ The type <code class="docutils literal notranslate"><span class="pre">POINTER</s
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
         </div>
       </div>
       <div class="clearer"></div>
@@ -185,11 +191,11 @@ The type <code class="docutils literal notranslate"><span class="pre">POINTER</s
       &copy;2017, Greg Hewgill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../_sources/reference/classes.rst.txt"
+      <a href="../_sources/reference/classes.txt"
           rel="nofollow">Page source</a>
     </div>
 

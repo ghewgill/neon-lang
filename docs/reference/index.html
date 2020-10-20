@@ -1,42 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>5. Language Reference &#8212; Neon 1.0 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>5. Language Reference &mdash; Neon 1.0 documentation</title>
+    
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="Neon 1.0 documentation" href="../index.html" />
     <link rel="next" title="5.1. Lexical Structure" href="lexical.html" />
     <link rel="prev" title="4. Neon Overview" href="../overview.html" />
    
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="language-reference">
 <h1>5. Language Reference<a class="headerlink" href="#language-reference" title="Permalink to this headline">¶</a></h1>
 <p>This section documents the language as a technical reference manual.</p>
-<div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<div class="toctree-wrapper compound" id="contents">
+<p class="caption"><span class="caption-text">Contents:</span><a class="headerlink" href="#contents" title="Permalink to this toctree">¶</a></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="lexical.html">5.1. Lexical Structure</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="lexical.html#comments">5.1.1. Comments</a></li>
@@ -89,23 +95,23 @@
 <li class="toctree-l1"><a class="reference internal" href="statements.html">5.5. Statements</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="statements.html#assignment">5.5.1. Assignment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="statements.html#function-call">5.5.2. Function Call</a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#assert">5.5.3. <code class="docutils literal notranslate"><span class="pre">ASSERT</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#case">5.5.4. <code class="docutils literal notranslate"><span class="pre">CASE</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#check">5.5.5. <code class="docutils literal notranslate"><span class="pre">CHECK</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#exec">5.5.6. <code class="docutils literal notranslate"><span class="pre">EXEC</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#exit">5.5.7. <code class="docutils literal notranslate"><span class="pre">EXIT</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#for">5.5.8. <code class="docutils literal notranslate"><span class="pre">FOR</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#foreach">5.5.9. <code class="docutils literal notranslate"><span class="pre">FOREACH</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#if">5.5.10. <code class="docutils literal notranslate"><span class="pre">IF</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#inc">5.5.11. <code class="docutils literal notranslate"><span class="pre">INC</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#let">5.5.12. <code class="docutils literal notranslate"><span class="pre">LET</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#loop">5.5.13. <code class="docutils literal notranslate"><span class="pre">LOOP</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#next">5.5.14. <code class="docutils literal notranslate"><span class="pre">NEXT</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#raise">5.5.15. <code class="docutils literal notranslate"><span class="pre">RAISE</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#repeat">5.5.16. <code class="docutils literal notranslate"><span class="pre">REPEAT</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#return">5.5.17. <code class="docutils literal notranslate"><span class="pre">RETURN</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#try">5.5.18. <code class="docutils literal notranslate"><span class="pre">TRY</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="statements.html#while">5.5.19. <code class="docutils literal notranslate"><span class="pre">WHILE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#assert">5.5.3. <code class="docutils literal"><span class="pre">ASSERT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#case">5.5.4. <code class="docutils literal"><span class="pre">CASE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#check">5.5.5. <code class="docutils literal"><span class="pre">CHECK</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#exec">5.5.6. <code class="docutils literal"><span class="pre">EXEC</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#exit">5.5.7. <code class="docutils literal"><span class="pre">EXIT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#for">5.5.8. <code class="docutils literal"><span class="pre">FOR</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#foreach">5.5.9. <code class="docutils literal"><span class="pre">FOREACH</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#if">5.5.10. <code class="docutils literal"><span class="pre">IF</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#inc">5.5.11. <code class="docutils literal"><span class="pre">INC</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#let">5.5.12. <code class="docutils literal"><span class="pre">LET</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#loop">5.5.13. <code class="docutils literal"><span class="pre">LOOP</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#next">5.5.14. <code class="docutils literal"><span class="pre">NEXT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#raise">5.5.15. <code class="docutils literal"><span class="pre">RAISE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#repeat">5.5.16. <code class="docutils literal"><span class="pre">REPEAT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#return">5.5.17. <code class="docutils literal"><span class="pre">RETURN</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#try">5.5.18. <code class="docutils literal"><span class="pre">TRY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#while">5.5.19. <code class="docutils literal"><span class="pre">WHILE</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">5.6. Functions</a><ul>
@@ -131,7 +137,6 @@
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -141,6 +146,11 @@
 
 
 
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=&repo=&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
 
 
 
@@ -152,7 +162,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../manifesto.html">2. Manifesto</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">3. Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">4. Overview (for experienced programmers)</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Language Reference</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="">5. Language Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="lexical.html">5.1. Lexical Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="types.html">5.2. Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="declarations.html">5.3. Declarations</a></li>
@@ -179,23 +189,18 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
         </div>
       </div>
       <div class="clearer"></div>
@@ -204,11 +209,11 @@
       &copy;2017, Greg Hewgill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../_sources/reference/index.rst.txt"
+      <a href="../_sources/reference/index.txt"
           rel="nofollow">Page source</a>
     </div>
 
