@@ -853,12 +853,16 @@ void bytes__range(TExecutor *exec)
 
     if (!number_is_integer(first)) {
         pop(exec->stack);
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
+        Cell *sub = cell_newCellType(cBytes);
+        sub->string = string_newString();
+        push(exec->stack, sub);
         return;
     }
     if (!number_is_integer(last)) {
         pop(exec->stack);
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
+        Cell *sub = cell_newCellType(cBytes);
+        sub->string = string_newString();
+        push(exec->stack, sub);
         return;
     }
 
@@ -871,27 +875,14 @@ void bytes__range(TExecutor *exec)
         lst += t->string->length - 1;
     }
     if (fst < 0) {
-        pop(exec->stack);
-        char n[128];
-        snprintf(n, 128, "%" PRId64, fst);
-        exec->rtl_raise(exec, "BytesIndexException", n);
-        return;
+        fst = 0;
     }
-    if (fst >= (int64_t)t->string->length) {
-        pop(exec->stack);
-        char n[128];
-        snprintf(n, 128, "%" PRId64, fst);
-        exec->rtl_raise(exec, "BytesIndexException", n);
-        return;
+    if (fst > (int64_t)t->string->length) {
+        fst = (int64_t)t->string->length;
     }
     if (lst >= (int64_t)t->string->length) {
-        pop(exec->stack);
-        char n[128];
-        snprintf(n, 128, "%" PRId64, lst);
-        exec->rtl_raise(exec, "BytesIndexException", n);
-        return;
+        lst = (int64_t)t->string->length - 1;
     }
-
     if (lst < 0) {
         lst = -1;
     }

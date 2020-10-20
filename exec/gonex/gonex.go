@@ -2178,20 +2178,19 @@ func (self *executor) op_callp() {
 			last += len(b) - 1
 		}
 		if first < 0 {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%v", first)})
-		} else if first >= len(b) {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%v", first)})
-		} else if last >= len(b) {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%v", last)})
+			first = 0
+		} else if first > len(b) {
+			first = len(b)
+		}
+		if last >= len(b) {
+			last = len(b) - 1
+		} else if last < 0 {
+			last = -1
+		}
+		if last < first {
+			self.push(make_cell_bytes([]byte{}))
 		} else {
-			if last < 0 {
-				last = -1
-			}
-			if last < first {
-				self.push(make_cell_bytes([]byte{}))
-			} else {
-				self.push(make_cell_bytes(b[first : last+1]))
-			}
+			self.push(make_cell_bytes(b[first : last+1]))
 		}
 	case "bytes__size":
 		b := self.pop().bytes

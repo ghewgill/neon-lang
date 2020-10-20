@@ -325,10 +325,10 @@ utf8string string__toString(const utf8string &self)
 std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(first)));
+        return {};
     }
     if (not number_is_integer(last)) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(last)));
+        return {};
     }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
@@ -339,13 +339,13 @@ std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Num
         l += t.size() - 1;
     }
     if (f < 0) {
-        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(f)));
+        f = 0;
     }
-    if (f >= static_cast<int64_t>(t.size())) {
-        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(f)));
+    if (f > static_cast<int64_t>(t.size())) {
+        f = static_cast<int64_t>(t.size());
     }
     if (l >= static_cast<int64_t>(t.size())) {
-        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(l)));
+        l = static_cast<int64_t>(t.size()) - 1;
     }
     if (l < 0) {
         l = -1;
