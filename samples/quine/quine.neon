@@ -1,5 +1,17 @@
+/*
+ *  File: quine
+ *
+ *  Program that prints out its own source code.
+ */
+
 IMPORT string
-LET s: String := @@"IMPORT string
+LET s: String := @@"/*
+ *  File: quine
+ *
+ *  Program that prints out its own source code.
+ */
+
+IMPORT string
 LET s: String := {}
 print(string.replaceOne(s, "{}", "\u0040\u0040\u0022" & s & "\u0022\u0040\u0040"))"@@
 print(string.replaceOne(s, "{}", "\u0040\u0040\u0022" & s & "\u0022\u0040\u0040"))

@@ -1,3 +1,9 @@
+/*
+ *  File: bbs
+ *
+ *  Implements a simple 1990s style BBS application.
+ */
+
 IMPORT net
 IMPORT sodium
 IMPORT string

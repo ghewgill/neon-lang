@@ -1,3 +1,9 @@
+/*
+ *  File: editor
+ *
+ *  Simple text editor, with Neon syntax highlighting.
+ */
+
 IMPORT curses
 IMPORT file
 IMPORT math
