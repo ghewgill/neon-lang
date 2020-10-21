@@ -49,6 +49,7 @@ void object_releaseMMapObject(Object *o)
                 }
                 free(o->ptr);
             }
+            free(o);
         }
     }
 }
@@ -123,6 +124,7 @@ void mmap_open(TExecutor *exec)
     }
 
     push(exec->stack, cell_fromObject(object_createMMapObject(f)));
+    free(name);
 }
 
 void mmap_read(TExecutor *exec)
