@@ -73,6 +73,7 @@ void textio_open(TExecutor *exec)
     FILE *f = fopen(pszName, m);
     if (f == NULL) {
         exec->rtl_raise(exec, "TextioException.Open", number_to_string(number_from_sint32(errno)));
+        free(pszName);
         return;
     }
     Object *r = object_createFileObject(f);

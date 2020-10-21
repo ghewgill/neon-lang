@@ -267,6 +267,7 @@ void file_files(TExecutor *exec)
     }
 
     push(exec->stack, r);
+    string_freeString(path);
 }
 
 void file_getInfo(TExecutor *exec)
