@@ -49,24 +49,24 @@ Operators are logical, arithmetic, or string and the valid operators depend on t
 <p>Literal values can be individual lexical elements such as <a class="reference internal" href="lexical.html#identifiers"><span>identifiers</span></a>, <a class="reference internal" href="lexical.html#numbers"><span>numbers</span></a>, and <a class="reference internal" href="lexical.html#strings"><span>strings</span></a>.</p>
 <p>Literal arrays are sequences of comma-separated values surrounded by brackets <code class="docutils literal"><span class="pre">[</span> <span class="pre">]</span></code>.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET a: Array&lt;Number&gt; := [1, 2, 3]
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">Number</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="m">1</span><span class="o">,</span> <span class="m">2</span><span class="o">,</span> <span class="m">3</span><span class="o">]</span>
 </pre></div>
 </div>
 <p>Literal dictionaries are sequences of comma-separated name/value pairs surrounded by braces <code class="docutils literal"><span class="pre">{</span> <span class="pre">}</span></code>.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET d: Dictionary&lt;Number&gt; := {
-    &quot;one&quot;: 1,
-    &quot;two&quot;: 2,
-    &quot;three&quot;: 3
-}
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">d</span><span class="o">:</span> <span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">Number</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">{</span>
+    <span class="s">&quot;one&quot;</span><span class="o">:</span> <span class="m">1</span><span class="o">,</span>
+    <span class="s">&quot;two&quot;</span><span class="o">:</span> <span class="m">2</span><span class="o">,</span>
+    <span class="s">&quot;three&quot;</span><span class="o">:</span> <span class="m">3</span>
+<span class="o">}</span>
 </pre></div>
 </div>
 <p>For convenience, both literal arrays and dictionaries accept a trailing comma after the final element:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET numbers: Array&lt;String&gt; := [
-    &quot;zero&quot;,
-    &quot;one&quot;,
-    &quot;two&quot;,
-]
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">numbers</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span>
+    <span class="s">&quot;zero&quot;</span><span class="o">,</span>
+    <span class="s">&quot;one&quot;</span><span class="o">,</span>
+    <span class="s">&quot;two&quot;</span><span class="o">,</span>
+<span class="o">]</span>
 </pre></div>
 </div>
 </div>
@@ -359,24 +359,24 @@ Operators are logical, arithmetic, or string and the valid operators depend on t
 <div class="section" id="array-subscripts">
 <h2>5.4.10. Array Subscripts<a class="headerlink" href="#array-subscripts" title="Permalink to this headline">¶</a></h2>
 <p>Array subscripts are normally integers greater than or equal to zero:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET a: Array&lt;String&gt; := [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]
-print(a[0])
-print(a[2])
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;foo&quot;</span><span class="o">,</span> <span class="s">&quot;bar&quot;</span><span class="o">,</span> <span class="s">&quot;baz&quot;</span><span class="o">]</span>
+<span class="n">print</span><span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="m">0</span><span class="o">])</span>
+<span class="n">print</span><span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="m">2</span><span class="o">])</span>
 </pre></div>
 </div>
 <p>Two special values may be used, <code class="docutils literal"><span class="pre">FIRST</span></code> and <code class="docutils literal"><span class="pre">LAST</span></code>:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET a: Array&lt;String&gt; := [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]
-print(a[FIRST])
-print(a[LAST])
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;foo&quot;</span><span class="o">,</span> <span class="s">&quot;bar&quot;</span><span class="o">,</span> <span class="s">&quot;baz&quot;</span><span class="o">]</span>
+<span class="n">print</span><span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="k">FIRST</span><span class="o">])</span>
+<span class="n">print</span><span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="k">LAST</span><span class="o">])</span>
 </pre></div>
 </div>
 <p><code class="docutils literal"><span class="pre">FIRST</span></code> always means the same as <cite>0</cite> and is provided for completeness.
 <code class="docutils literal"><span class="pre">LAST</span></code> refers to the index of the last element of the array (if the array is not empty).</p>
 <p>Array slices are also possible using the <code class="docutils literal"><span class="pre">TO</span></code> keyword.
 Both indexes are inclusive:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET a: Array&lt;String&gt; := [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]
-LET b: Array&lt;String&gt; := a[0 TO 1]
-LET c: Array&lt;String&gt; := a[LAST-1 TO LAST]
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;foo&quot;</span><span class="o">,</span> <span class="s">&quot;bar&quot;</span><span class="o">,</span> <span class="s">&quot;baz&quot;</span><span class="o">]</span>
+<span class="k">LET</span> <span class="n">b</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="n">a</span><span class="o">[</span><span class="m">0</span> <span class="k">TO</span> <span class="m">1</span><span class="o">]</span>
+<span class="k">LET</span> <span class="n">c</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="n">a</span><span class="o">[</span><span class="k">LAST</span><span class="o">-</span><span class="m">1</span> <span class="k">TO</span> <span class="k">LAST</span><span class="o">]</span>
 </pre></div>
 </div>
 <p>In the above example, <code class="docutils literal"><span class="pre">b</span></code> contains <code class="docutils literal"><span class="pre">[&quot;foo&quot;,</span> <span class="pre">&quot;bar&quot;]</span></code> and <code class="docutils literal"><span class="pre">c</span></code> contains <code class="docutils literal"><span class="pre">[&quot;bar&quot;,</span> <span class="pre">&quot;baz&quot;]</span></code>.</p>
@@ -384,21 +384,21 @@ LET c: Array&lt;String&gt; := a[LAST-1 TO LAST]
 <div class="section" id="dictionary-subscripts">
 <h2>5.4.11. Dictionary Subscripts<a class="headerlink" href="#dictionary-subscripts" title="Permalink to this headline">¶</a></h2>
 <p>Dictionary subscripts are strings:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET d: Dictionary&lt;String&gt; := {
-    &quot;apple&quot;: &quot;red&quot;,
-    &quot;orange&quot;: &quot;orange&quot;,
-    &quot;banana&quot;: &quot;yellow&quot;
-}
-print(d[&quot;apple&quot;])
-print(d[&quot;banana&quot;])
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">d</span><span class="o">:</span> <span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">{</span>
+    <span class="s">&quot;apple&quot;</span><span class="o">:</span> <span class="s">&quot;red&quot;</span><span class="o">,</span>
+    <span class="s">&quot;orange&quot;</span><span class="o">:</span> <span class="s">&quot;orange&quot;</span><span class="o">,</span>
+    <span class="s">&quot;banana&quot;</span><span class="o">:</span> <span class="s">&quot;yellow&quot;</span>
+<span class="o">}</span>
+<span class="n">print</span><span class="o">(</span><span class="n">d</span><span class="o">[</span><span class="s">&quot;apple&quot;</span><span class="o">])</span>
+<span class="n">print</span><span class="o">(</span><span class="n">d</span><span class="o">[</span><span class="s">&quot;banana&quot;</span><span class="o">])</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="conditional-expression">
 <h2>5.4.12. Conditional Expression<a class="headerlink" href="#conditional-expression" title="Permalink to this headline">¶</a></h2>
 <p>A conditional expression is like an inline <code class="docutils literal"><span class="pre">IF</span></code> statement:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET n: Number := 5
-LET s: String := (IF n &gt;= 0 THEN &quot;positive&quot; ELSE &quot;negative&quot;)
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">n</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">5</span>
+<span class="k">LET</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="o">(</span><span class="k">IF</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="m">0</span> <span class="k">THEN</span> <span class="s">&quot;positive&quot;</span> <span class="k">ELSE</span> <span class="s">&quot;negative&quot;</span><span class="o">)</span>
 </pre></div>
 </div>
 <p>The condition following <code class="docutils literal"><span class="pre">IF</span></code> is evaluated.
@@ -414,9 +414,9 @@ This means that if a branch not taken is a function call, the function will not 
 <div class="section" id="try-expression">
 <h2>5.4.13. Try Expression<a class="headerlink" href="#try-expression" title="Permalink to this headline">¶</a></h2>
 <p>A try expression is like an inline <code class="docutils literal"><span class="pre">TRY</span></code> statement:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET a: Number := 5
-LET b: Number := 0
-LET n: Number := (TRY a / b TRAP DivideByZeroException GIVES -1)
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">5</span>
+<span class="k">LET</span> <span class="n">b</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
+<span class="k">LET</span> <span class="n">n</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="o">(</span><span class="k">TRY</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span> <span class="k">TRAP</span> <span class="n">DivideByZeroException</span> <span class="k">GIVES</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
 </pre></div>
 </div>
 <p>The expression following <code class="docutils literal"><span class="pre">TRY</span></code> is evaluated.
@@ -431,10 +431,10 @@ The <code class="docutils literal"><span class="pre">DO</span></code> keywords i
 These expressions are evaluated at run time.
 The type of the embedded expression must have a <code class="docutils literal"><span class="pre">.toString()</span></code> method which will be called automatically to convert the result to a string.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET a: Array&lt;String&gt; := [&quot;one&quot;, &quot;two&quot;, &quot;three&quot;]
-FOR i := 0 TO 2 DO
-    print(&quot;i is \(i) and the array element is \(a[i])&quot;)
-END FOR
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;one&quot;</span><span class="o">,</span> <span class="s">&quot;two&quot;</span><span class="o">,</span> <span class="s">&quot;three&quot;</span><span class="o">]</span>
+<span class="k">FOR</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span> <span class="k">TO</span> <span class="m">2</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;i is \(i) and the array element is \(a[i])&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">FOR</span>
 </pre></div>
 </div>
 <div class="admonition-todo admonition">

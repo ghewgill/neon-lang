@@ -44,51 +44,51 @@
 <div class="section" id="types">
 <h2>5.3.1. Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h2>
 <p>New type names are introduced using the <code class="docutils literal"><span class="pre">TYPE</span></code> keyword:</p>
-<div class="highlight-none"><div class="highlight"><pre>TYPE Length IS Number
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">TYPE</span> <span class="n">Length</span> <span class="k">IS</span> <span class="n">Number</span>
 
-VAR len: Length
+<span class="k">VAR</span> <span class="n">len</span><span class="o">:</span> <span class="n">Length</span>
 </pre></div>
 </div>
 <p>In the above case, <code class="docutils literal"><span class="pre">Length</span></code> is an alias for <code class="docutils literal"><span class="pre">Number</span></code> and the two can be used interchangeably.</p>
 <p>More often the <code class="docutils literal"><span class="pre">TYPE</span></code> keyword is used for introducing aggregate types:</p>
-<div class="highlight-none"><div class="highlight"><pre>TYPE Widget IS RECORD
-    size: Number
-    colour: String
-END RECORD
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">TYPE</span> <span class="n">Widget</span> <span class="k">IS</span> <span class="k">RECORD</span>
+    <span class="n">size</span><span class="o">:</span> <span class="n">Number</span>
+    <span class="n">colour</span><span class="o">:</span> <span class="n">String</span>
+<span class="k">END</span> <span class="k">RECORD</span>
 
-VAR r: Widget
+<span class="k">VAR</span> <span class="n">r</span><span class="o">:</span> <span class="n">Widget</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="constants">
 <h2>5.3.2. Constants<a class="headerlink" href="#constants" title="Permalink to this headline">¶</a></h2>
 <p>Constants are defined using the <code class="docutils literal"><span class="pre">CONSTANT</span></code> keyword:</p>
-<div class="highlight-none"><div class="highlight"><pre>CONSTANT Pi: Number := 3.141592653589793
-CONSTANT Sky: String := &quot;blue&quot;
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">CONSTANT</span> <span class="n">Pi</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">3.141592653589793</span>
+<span class="k">CONSTANT</span> <span class="n">Sky</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="s">&quot;blue&quot;</span>
 </pre></div>
 </div>
 <p>The value assigned to a constant must be able to be evaluated at compile time.
 This may be an expression:</p>
-<div class="highlight-none"><div class="highlight"><pre>CONSTANT Pi: Number := 3.141592653589793
-CONSTANT Pi2: Number := Pi ^ 2
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">CONSTANT</span> <span class="n">Pi</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">3.141592653589793</span>
+<span class="k">CONSTANT</span> <span class="n">Pi2</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="n">Pi</span> <span class="o">^</span> <span class="m">2</span>
 
-CONSTANT Greeting: String := &quot;Hello &quot; &amp; &quot;world&quot;
+<span class="k">CONSTANT</span> <span class="n">Greeting</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="s">&quot;Hello &quot;</span> <span class="o">&amp;</span> <span class="s">&quot;world&quot;</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="variables">
 <h2>5.3.3. Variables<a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h2>
 <p>Variables are declared using the <code class="docutils literal"><span class="pre">VAR</span></code> keyword:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR count: Number
-VAR colour: String
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">count</span><span class="o">:</span> <span class="n">Number</span>
+<span class="k">VAR</span> <span class="n">colour</span><span class="o">:</span> <span class="n">String</span>
 </pre></div>
 </div>
 <p>Variables declared outside a function are <em>global</em> variables.
 Variables declared inside a function are visible only from within the scope where they are declared.</p>
 <p>Read-only values (therefore not actually <em>variables</em>) are declared with the <code class="docutils literal"><span class="pre">LET</span></code> keyword:</p>
-<div class="highlight-none"><div class="highlight"><pre>IMPORT os
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">IMPORT</span> <span class="n">os</span>
 
-LET path: String := os.getenv(&quot;PATH&quot;)
+<span class="k">LET</span> <span class="n">path</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="o">(</span><span class="s">&quot;PATH&quot;</span><span class="o">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -105,23 +105,23 @@ Use <code class="docutils literal"><span class="pre">VAR</span></code> only when
 <div class="section" id="exceptions">
 <h2>5.3.4. Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
 <p>Exceptions are declared with the <code class="docutils literal"><span class="pre">EXCEPTION</span></code> keyword:</p>
-<div class="highlight-none"><div class="highlight"><pre>EXCEPTION PrinterOutOfPaperException
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">EXCEPTION</span> <span class="n">PrinterOutOfPaperException</span>
 </pre></div>
 </div>
 <p>Exception names must end with the word <code class="docutils literal"><span class="pre">Exception</span></code>.</p>
 <p>Exceptions may also declare <em>subexceptions</em>:</p>
-<div class="highlight-none"><div class="highlight"><pre>EXCEPTION PrinterException
-EXCEPTION PrinterException.OutOfPaper
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">EXCEPTION</span> <span class="n">PrinterException</span>
+<span class="k">EXCEPTION</span> <span class="n">PrinterException</span><span class="o">.</span><span class="n">OutOfPaper</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="interfaces">
 <h2>5.3.5. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h2>
 <p>Interfaces are declared with the <code class="docutils literal"><span class="pre">INTERFACE</span></code> keyword:</p>
-<div class="highlight-none"><div class="highlight"><pre>INTERFACE Shape
-    FUNCTION perimeter(self: Shape): Number
-    FUNCTION area(self: Shape): Number
-END INTERFACE
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">INTERFACE</span> <span class="n">Shape</span>
+    <span class="k">FUNCTION</span> <span class="n">perimeter</span><span class="o">(</span><span class="n">self</span><span class="o">:</span> <span class="n">Shape</span><span class="o">):</span> <span class="n">Number</span>
+    <span class="k">FUNCTION</span> <span class="n">area</span><span class="o">(</span><span class="n">self</span><span class="o">:</span> <span class="n">Shape</span><span class="o">):</span> <span class="n">Number</span>
+<span class="k">END</span> <span class="k">INTERFACE</span>
 </pre></div>
 </div>
 <p>Interfaces are used with classes to declare that a class must implement a specific set of functions.</p>
@@ -129,13 +129,13 @@ END INTERFACE
 <div class="section" id="exports">
 <h2>5.3.6. Exports<a class="headerlink" href="#exports" title="Permalink to this headline">¶</a></h2>
 <p>Identifiers can be exported using the <code class="docutils literal"><span class="pre">EXPORT</span></code> keyword:</p>
-<div class="highlight-none"><div class="highlight"><pre>EXPORT name
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">EXPORT</span> <span class="n">name</span>
 
-VAR name: String
+<span class="k">VAR</span> <span class="n">name</span><span class="o">:</span> <span class="n">String</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal"><span class="pre">EXPORT</span></code> keyword may be combined with the declaration:</p>
-<div class="highlight-none"><div class="highlight"><pre>EXPORT VAR name: String
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">EXPORT</span> <span class="k">VAR</span> <span class="n">name</span><span class="o">:</span> <span class="n">String</span>
 </pre></div>
 </div>
 </div>

@@ -44,18 +44,18 @@
 There are plenty of examples, because experienced programmers know how to read code, and can pick up concepts more quickly by reading code than by reading a description of code.</p>
 <p>Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and <a class="reference external" href="/motivation.html">others</a>.
 Program structure and modules are influenced by Python.</p>
-<div class="highlight-none"><div class="highlight"><pre>-- This sample program greets the user
--- until an empty line is entered.
+<div class="highlight-neon"><div class="highlight"><pre><span class="c1">-- This sample program greets the user</span>
+<span class="c1">-- until an empty line is entered.</span>
 
-IMPORT console
+<span class="k">IMPORT</span> <span class="n">console</span>
 
-LOOP
-    LET name: String := console.input(&quot;What is your name? &quot;)
-    IF name = &quot;&quot; THEN
-        EXIT LOOP
-    END IF
-    print(&quot;Hello, \(name).&quot;)
-END LOOP
+<span class="k">LOOP</span>
+    <span class="k">LET</span> <span class="n">name</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="n">console</span><span class="o">.</span><span class="n">input</span><span class="o">(</span><span class="s">&quot;What is your name? &quot;</span><span class="o">)</span>
+    <span class="k">IF</span> <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;&quot;</span> <span class="k">THEN</span>
+        <span class="k">EXIT</span> <span class="k">LOOP</span>
+    <span class="k">END</span> <span class="k">IF</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;Hello, \(name).&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">LOOP</span>
 </pre></div>
 </div>
 <div class="section" id="general">
@@ -86,145 +86,145 @@ All variables must be explicitly initialised before use.</p>
 <li><code class="docutils literal"><span class="pre">Dictionary</span></code> (map indexed by a <code class="docutils literal"><span class="pre">String</span></code> key)</li>
 </ul>
 <p>There is a dynamic <code class="docutils literal"><span class="pre">Object</span></code> type which can hold values of any of the concrete types.</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR x: Object
-x := 5
-print(str(x))
-x := &quot;hello&quot;
-print(x)
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">x</span><span class="o">:</span> <span class="n">Object</span>
+<span class="n">x</span> <span class="o">:=</span> <span class="m">5</span>
+<span class="n">print</span><span class="o">(</span><span class="n">str</span><span class="o">(</span><span class="n">x</span><span class="o">))</span>
+<span class="n">x</span> <span class="o">:=</span> <span class="s">&quot;hello&quot;</span>
+<span class="n">print</span><span class="o">(</span><span class="n">x</span><span class="o">)</span>
 </pre></div>
 </div>
 <p>Dynamic heap allocation is supported by a <code class="docutils literal"><span class="pre">POINTER</span></code> type.</p>
-<div class="highlight-none"><div class="highlight"><pre>TYPE Colour IS ENUM
-    red
-    green
-    blue
-END ENUM
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">TYPE</span> <span class="n">Colour</span> <span class="k">IS</span> <span class="k">ENUM</span>
+    <span class="n">red</span>
+    <span class="n">green</span>
+    <span class="n">blue</span>
+<span class="k">END</span> <span class="k">ENUM</span>
 
-TYPE Person IS RECORD
-    name: String
-    eyes: Colour
-END RECORD
+<span class="k">TYPE</span> <span class="n">Person</span> <span class="k">IS</span> <span class="k">RECORD</span>
+    <span class="n">name</span><span class="o">:</span> <span class="n">String</span>
+    <span class="n">eyes</span><span class="o">:</span> <span class="n">Colour</span>
+<span class="k">END</span> <span class="k">RECORD</span>
 
-TYPE Node IS CLASS
-    value: String
-    next: POINTER TO Node
-END CLASS
+<span class="k">TYPE</span> <span class="n">Node</span> <span class="k">IS</span> <span class="k">CLASS</span>
+    <span class="n">value</span><span class="o">:</span> <span class="n">String</span>
+    <span class="n">next</span><span class="o">:</span> <span class="k">POINTER</span> <span class="k">TO</span> <span class="n">Node</span>
+<span class="k">END</span> <span class="k">CLASS</span>
 
-LET b: Boolean := TRUE
-LET n: Number := 123.456
-LET s: String := &quot;Hello world&quot;
-LET y: Bytes := HEXBYTES &quot;00 01 02 03&quot;
-LET e: Colour := Colour.green
-LET r: Person := Person(name WITH &quot;Alice&quot;, eyes WITH Colour.green)
-LET a: Array&lt;String&gt; := [&quot;fork&quot;, &quot;knife&quot;, &quot;spoon&quot;]
-LET d: Dictionary&lt;Number&gt; := {&quot;fork&quot;: 5, &quot;knife&quot;: 6, &quot;spoon&quot;: 1}
-LET p: POINTER TO Node := NEW Node(value WITH &quot;green&quot;)
+<span class="k">LET</span> <span class="n">b</span><span class="o">:</span> <span class="n">Boolean</span> <span class="o">:=</span> <span class="k">TRUE</span>
+<span class="k">LET</span> <span class="n">n</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">123.456</span>
+<span class="k">LET</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="s">&quot;Hello world&quot;</span>
+<span class="k">LET</span> <span class="n">y</span><span class="o">:</span> <span class="n">Bytes</span> <span class="o">:=</span> <span class="k">HEXBYTES</span> <span class="s">&quot;00 01 02 03&quot;</span>
+<span class="k">LET</span> <span class="n">e</span><span class="o">:</span> <span class="n">Colour</span> <span class="o">:=</span> <span class="n">Colour</span><span class="o">.</span><span class="n">green</span>
+<span class="k">LET</span> <span class="n">r</span><span class="o">:</span> <span class="n">Person</span> <span class="o">:=</span> <span class="n">Person</span><span class="o">(</span><span class="n">name</span> <span class="k">WITH</span> <span class="s">&quot;Alice&quot;</span><span class="o">,</span> <span class="n">eyes</span> <span class="k">WITH</span> <span class="n">Colour</span><span class="o">.</span><span class="n">green</span><span class="o">)</span>
+<span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;fork&quot;</span><span class="o">,</span> <span class="s">&quot;knife&quot;</span><span class="o">,</span> <span class="s">&quot;spoon&quot;</span><span class="o">]</span>
+<span class="k">LET</span> <span class="n">d</span><span class="o">:</span> <span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">Number</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">{</span><span class="s">&quot;fork&quot;</span><span class="o">:</span> <span class="m">5</span><span class="o">,</span> <span class="s">&quot;knife&quot;</span><span class="o">:</span> <span class="m">6</span><span class="o">,</span> <span class="s">&quot;spoon&quot;</span><span class="o">:</span> <span class="m">1</span><span class="o">}</span>
+<span class="k">LET</span> <span class="n">p</span><span class="o">:</span> <span class="k">POINTER</span> <span class="k">TO</span> <span class="n">Node</span> <span class="o">:=</span> <span class="k">NEW</span> <span class="n">Node</span><span class="o">(</span><span class="n">value</span> <span class="k">WITH</span> <span class="s">&quot;green&quot;</span><span class="o">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="expressions">
 <h2>4.3. Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h2>
 <p>There is a rich expression syntax including arithmetic, array slicing, conditionals, and string interpolation.</p>
-<div class="highlight-none"><div class="highlight"><pre>LET x: Number := 5
-LET y: Number := (6 + x) / 2
-ASSERT y = 5.5
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">x</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">5</span>
+<span class="k">LET</span> <span class="n">y</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="o">(</span><span class="m">6</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">/</span> <span class="m">2</span>
+<span class="k">ASSERT</span> <span class="n">y</span> <span class="o">=</span> <span class="m">5.5</span>
 
-LET a: Array&lt;String&gt; := [&quot;fork&quot;, &quot;knife&quot;, &quot;spoon&quot;]
-ASSERT a[1 TO LAST] = [&quot;knife&quot;, &quot;spoon&quot;]
+<span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;fork&quot;</span><span class="o">,</span> <span class="s">&quot;knife&quot;</span><span class="o">,</span> <span class="s">&quot;spoon&quot;</span><span class="o">]</span>
+<span class="k">ASSERT</span> <span class="n">a</span><span class="o">[</span><span class="m">1</span> <span class="k">TO</span> <span class="k">LAST</span><span class="o">]</span> <span class="o">=</span> <span class="o">[</span><span class="s">&quot;knife&quot;</span><span class="o">,</span> <span class="s">&quot;spoon&quot;</span><span class="o">]</span>
 
-LET r: String := (IF y &lt; 5 THEN &quot;small&quot; ELSE &quot;big&quot;)
-ASSERT r = &quot;big&quot;
+<span class="k">LET</span> <span class="n">r</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="o">(</span><span class="k">IF</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="m">5</span> <span class="k">THEN</span> <span class="s">&quot;small&quot;</span> <span class="k">ELSE</span> <span class="s">&quot;big&quot;</span><span class="o">)</span>
+<span class="k">ASSERT</span> <span class="n">r</span> <span class="o">=</span> <span class="s">&quot;big&quot;</span>
 
-LET t: String := &quot;y is a \(r) value&quot;
-ASSERT t = &quot;y is a big value&quot;
+<span class="k">LET</span> <span class="n">t</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="s">&quot;y is a \(r) value&quot;</span>
+<span class="k">ASSERT</span> <span class="n">t</span> <span class="o">=</span> <span class="s">&quot;y is a big value&quot;</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="statements">
 <h2>4.4. Statements<a class="headerlink" href="#statements" title="Permalink to this headline">¶</a></h2>
 <p>There are two variable declarations: <code class="docutils literal"><span class="pre">LET</span></code> (read-only value), and <code class="docutils literal"><span class="pre">VAR</span></code> (modifiable value).</p>
-<div class="highlight-none"><div class="highlight"><pre>LET a: Number := 5
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">5</span>
 
-VAR b: Number
-b := a
-b := 6
+<span class="k">VAR</span> <span class="n">b</span><span class="o">:</span> <span class="n">Number</span>
+<span class="n">b</span> <span class="o">:=</span> <span class="n">a</span>
+<span class="n">b</span> <span class="o">:=</span> <span class="m">6</span>
 
-print(&quot;\(a), \(b)&quot;)
+<span class="n">print</span><span class="o">(</span><span class="s">&quot;\(a), \(b)&quot;</span><span class="o">)</span>
 </pre></div>
 </div>
 <p>There are two conditional blocks: <code class="docutils literal"><span class="pre">CASE</span></code> (multiple branches), and <code class="docutils literal"><span class="pre">IF</span></code> (single test).</p>
-<div class="highlight-none"><div class="highlight"><pre>FOR a := 0 TO 9 DO
-    VAR s: String
-    CASE a
-        WHEN &lt; 2 DO
-            s := &quot;less than two&quot;
-        WHEN 2 DO
-            s := &quot;two&quot;
-        WHEN 3 TO 5 DO
-            s := &quot;three to five&quot;
-        WHEN 7, 9 DO
-            s := &quot;seven or nine&quot;
-        WHEN OTHERS DO
-            s := &quot;something else&quot;
-    END CASE
-    print(&quot;\(a) is \(s)&quot;)
-END FOR
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">FOR</span> <span class="n">a</span> <span class="o">:=</span> <span class="m">0</span> <span class="k">TO</span> <span class="m">9</span> <span class="k">DO</span>
+    <span class="k">VAR</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span>
+    <span class="k">CASE</span> <span class="n">a</span>
+        <span class="k">WHEN</span> <span class="o">&lt;</span> <span class="m">2</span> <span class="k">DO</span>
+            <span class="n">s</span> <span class="o">:=</span> <span class="s">&quot;less than two&quot;</span>
+        <span class="k">WHEN</span> <span class="m">2</span> <span class="k">DO</span>
+            <span class="n">s</span> <span class="o">:=</span> <span class="s">&quot;two&quot;</span>
+        <span class="k">WHEN</span> <span class="m">3</span> <span class="k">TO</span> <span class="m">5</span> <span class="k">DO</span>
+            <span class="n">s</span> <span class="o">:=</span> <span class="s">&quot;three to five&quot;</span>
+        <span class="k">WHEN</span> <span class="m">7</span><span class="o">,</span> <span class="m">9</span> <span class="k">DO</span>
+            <span class="n">s</span> <span class="o">:=</span> <span class="s">&quot;seven or nine&quot;</span>
+        <span class="k">WHEN</span> <span class="k">OTHERS</span> <span class="k">DO</span>
+            <span class="n">s</span> <span class="o">:=</span> <span class="s">&quot;something else&quot;</span>
+    <span class="k">END</span> <span class="k">CASE</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;\(a) is \(s)&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">FOR</span>
 
-IMPORT random
-IF random.uint32() &lt; 10 THEN
-    print(&quot;small&quot;)
-END IF
+<span class="k">IMPORT</span> <span class="n">random</span>
+<span class="k">IF</span> <span class="n">random</span><span class="o">.</span><span class="n">uint32</span><span class="o">()</span> <span class="o">&lt;</span> <span class="m">10</span> <span class="k">THEN</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;small&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">IF</span>
 </pre></div>
 </div>
 <p>There are four kinds of loops: <code class="docutils literal"><span class="pre">FOR</span></code> (bounded iteration), <code class="docutils literal"><span class="pre">LOOP</span></code> (infinite loop), <code class="docutils literal"><span class="pre">REPEAT</span></code> (bottom-tested condition), and <code class="docutils literal"><span class="pre">WHILE</span></code> (top-tested condition).
 The <code class="docutils literal"><span class="pre">EXIT</span></code> and <code class="docutils literal"><span class="pre">NEXT</span></code> statements branch out of the loop or to the next iteration, respectively.</p>
-<div class="highlight-none"><div class="highlight"><pre>FOR i := 1 TO 10 DO
-    print(&quot;\(i)&quot;)
-END FOR
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">FOR</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">1</span> <span class="k">TO</span> <span class="m">10</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;\(i)&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">FOR</span>
 
-VAR a: Number := 1
-LOOP
-    print(&quot;\(a)&quot;)
-    IF a = 10 THEN
-        EXIT LOOP
-    END IF
-    INC a
-END LOOP
+<span class="k">VAR</span> <span class="n">a</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">1</span>
+<span class="k">LOOP</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;\(a)&quot;</span><span class="o">)</span>
+    <span class="k">IF</span> <span class="n">a</span> <span class="o">=</span> <span class="m">10</span> <span class="k">THEN</span>
+        <span class="k">EXIT</span> <span class="k">LOOP</span>
+    <span class="k">END</span> <span class="k">IF</span>
+    <span class="k">INC</span> <span class="n">a</span>
+<span class="k">END</span> <span class="k">LOOP</span>
 
-a := 1
-REPEAT
-    print(&quot;\(a)&quot;)
-    INC a
-UNTIL a = 10
+<span class="n">a</span> <span class="o">:=</span> <span class="m">1</span>
+<span class="k">REPEAT</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;\(a)&quot;</span><span class="o">)</span>
+    <span class="k">INC</span> <span class="n">a</span>
+<span class="k">UNTIL</span> <span class="n">a</span> <span class="o">=</span> <span class="m">10</span>
 
-a := 1
-WHILE a &lt;= 10 DO
-    print(&quot;\(a)&quot;)
-    INC a
-END WHILE
+<span class="n">a</span> <span class="o">:=</span> <span class="m">1</span>
+<span class="k">WHILE</span> <span class="n">a</span> <span class="o">&lt;=</span> <span class="m">10</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;\(a)&quot;</span><span class="o">)</span>
+    <span class="k">INC</span> <span class="n">a</span>
+<span class="k">END</span> <span class="k">WHILE</span>
 </pre></div>
 </div>
 <p>The exception handling statements are <code class="docutils literal"><span class="pre">TRY</span></code> (introduces a new handling scope), and <code class="docutils literal"><span class="pre">RAISE</span></code> to raise an exception.</p>
-<div class="highlight-none"><div class="highlight"><pre>EXCEPTION PrinterOutOfPaperException
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">EXCEPTION</span> <span class="n">PrinterOutOfPaperException</span>
 
-FUNCTION printFile(name: String)
-    -- Save the trees, don&#39;t print anything.
-    RAISE PrinterOutOfPaperException
-END FUNCTION
+<span class="k">FUNCTION</span> <span class="n">printFile</span><span class="o">(</span><span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="o">)</span>
+    <span class="c1">-- Save the trees, don&#39;t print anything.</span>
+    <span class="k">RAISE</span> <span class="n">PrinterOutOfPaperException</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 
-TRY
-    printFile(&quot;hello.txt&quot;)
-TRAP PrinterOutOfPaperException DO
-    print(&quot;Sorry, out of paper.&quot;)
-END TRY
+<span class="k">TRY</span>
+    <span class="n">printFile</span><span class="o">(</span><span class="s">&quot;hello.txt&quot;</span><span class="o">)</span>
+<span class="k">TRAP</span> <span class="n">PrinterOutOfPaperException</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;Sorry, out of paper.&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">TRY</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal"><span class="pre">ASSERT</span></code> statement is used to check program invariants.
 Execution stops with a diagnostic dump if the condition is not satisfied.</p>
-<div class="highlight-none"><div class="highlight"><pre>FUNCTION setRatio(percent: Number)
-    ASSERT 0 &lt;= percent &lt;= 100
-    -- ... use percent value
-END FUNCTION
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">FUNCTION</span> <span class="n">setRatio</span><span class="o">(</span><span class="n">percent</span><span class="o">:</span> <span class="n">Number</span><span class="o">)</span>
+    <span class="k">ASSERT</span> <span class="m">0</span> <span class="o">&lt;=</span> <span class="n">percent</span> <span class="o">&lt;=</span> <span class="m">100</span>
+    <span class="c1">-- ... use percent value</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 </pre></div>
 </div>
 </div>
@@ -233,50 +233,50 @@ END FUNCTION
 <p>Functions may or may not return a value.
 If a function returns a value, then the return value cannot be silently ignored by the caller.
 Function parameters can be <code class="docutils literal"><span class="pre">IN</span></code> (default), <code class="docutils literal"><span class="pre">OUT</span></code> (passed back to caller), or <code class="docutils literal"><span class="pre">INOUT</span></code> (references caller value).</p>
-<div class="highlight-none"><div class="highlight"><pre>IMPORT string
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">IMPORT</span> <span class="n">string</span>
 
-FUNCTION func(name: String, OUT result: String, INOUT count: Number)
-    result := string.upper(name)
-    INC count
-END FUNCTION
+<span class="k">FUNCTION</span> <span class="n">func</span><span class="o">(</span><span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="o">,</span> <span class="k">OUT</span> <span class="n">result</span><span class="o">:</span> <span class="n">String</span><span class="o">,</span> <span class="k">INOUT</span> <span class="n">count</span><span class="o">:</span> <span class="n">Number</span><span class="o">)</span>
+    <span class="n">result</span> <span class="o">:=</span> <span class="n">string</span><span class="o">.</span><span class="n">upper</span><span class="o">(</span><span class="n">name</span><span class="o">)</span>
+    <span class="k">INC</span> <span class="n">count</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 
-VAR uname: String
-VAR n: Number := 0
+<span class="k">VAR</span> <span class="n">uname</span><span class="o">:</span> <span class="n">String</span>
+<span class="k">VAR</span> <span class="n">n</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
 
--- The parameter mode (if not IN) must be explicitly indicated
--- on the function call.
-func(&quot;charlie&quot;, OUT uname, INOUT n)
+<span class="c1">-- The parameter mode (if not IN) must be explicitly indicated</span>
+<span class="c1">-- on the function call.</span>
+<span class="n">func</span><span class="o">(</span><span class="s">&quot;charlie&quot;</span><span class="o">,</span> <span class="k">OUT</span> <span class="n">uname</span><span class="o">,</span> <span class="k">INOUT</span> <span class="n">n</span><span class="o">)</span>
 
--- The caller may choose to pass parameters in a different
--- order using the WITH keyword.
-func(&quot;charlie&quot;, INOUT count WITH n, OUT result WITH uname)
+<span class="c1">-- The caller may choose to pass parameters in a different</span>
+<span class="c1">-- order using the WITH keyword.</span>
+<span class="n">func</span><span class="o">(</span><span class="s">&quot;charlie&quot;</span><span class="o">,</span> <span class="k">INOUT</span> <span class="n">count</span> <span class="k">WITH</span> <span class="n">n</span><span class="o">,</span> <span class="k">OUT</span> <span class="n">result</span> <span class="k">WITH</span> <span class="n">uname</span><span class="o">)</span>
 
-ASSERT uname = &quot;CHARLIE&quot;
-ASSERT n = 2
+<span class="k">ASSERT</span> <span class="n">uname</span> <span class="o">=</span> <span class="s">&quot;CHARLIE&quot;</span>
+<span class="k">ASSERT</span> <span class="n">n</span> <span class="o">=</span> <span class="m">2</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="methods">
 <h2>4.6. Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
 <p>Records and classes may have methods attached to them, to be called with the usual method syntax.</p>
-<div class="highlight-none"><div class="highlight"><pre>TYPE Rectangle IS RECORD
-    width: Number
-    height: Number
-END RECORD
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">TYPE</span> <span class="n">Rectangle</span> <span class="k">IS</span> <span class="k">RECORD</span>
+    <span class="n">width</span><span class="o">:</span> <span class="n">Number</span>
+    <span class="n">height</span><span class="o">:</span> <span class="n">Number</span>
+<span class="k">END</span> <span class="k">RECORD</span>
 
-FUNCTION Rectangle.area(self: Rectangle): Number
-    RETURN self.width * self.height
-END FUNCTION
+<span class="k">FUNCTION</span> <span class="n">Rectangle</span><span class="o">.</span><span class="n">area</span><span class="o">(</span><span class="n">self</span><span class="o">:</span> <span class="n">Rectangle</span><span class="o">):</span> <span class="n">Number</span>
+    <span class="k">RETURN</span> <span class="n">self</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="n">self</span><span class="o">.</span><span class="n">height</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 
-FUNCTION Rectangle.expand(INOUT self: Rectangle, edge: Number)
-    self.width := self.width + 2 * edge
-    self.height := self.height + 2 * edge
-END FUNCTION
+<span class="k">FUNCTION</span> <span class="n">Rectangle</span><span class="o">.</span><span class="n">expand</span><span class="o">(</span><span class="k">INOUT</span> <span class="n">self</span><span class="o">:</span> <span class="n">Rectangle</span><span class="o">,</span> <span class="n">edge</span><span class="o">:</span> <span class="n">Number</span><span class="o">)</span>
+    <span class="n">self</span><span class="o">.</span><span class="n">width</span> <span class="o">:=</span> <span class="n">self</span><span class="o">.</span><span class="n">width</span> <span class="o">+</span> <span class="m">2</span> <span class="o">*</span> <span class="n">edge</span>
+    <span class="n">self</span><span class="o">.</span><span class="n">height</span> <span class="o">:=</span> <span class="n">self</span><span class="o">.</span><span class="n">height</span> <span class="o">+</span> <span class="m">2</span> <span class="o">*</span> <span class="n">edge</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 
-LET r: Rectangle := Rectangle(width WITH 4, height WITH 5)
-ASSERT r.area() = 20
-r.expand(1)
-ASSERT r.area() = 42
+<span class="k">LET</span> <span class="n">r</span><span class="o">:</span> <span class="n">Rectangle</span> <span class="o">:=</span> <span class="n">Rectangle</span><span class="o">(</span><span class="n">width</span> <span class="k">WITH</span> <span class="m">4</span><span class="o">,</span> <span class="n">height</span> <span class="k">WITH</span> <span class="m">5</span><span class="o">)</span>
+<span class="k">ASSERT</span> <span class="n">r</span><span class="o">.</span><span class="n">area</span><span class="o">()</span> <span class="o">=</span> <span class="m">20</span>
+<span class="n">r</span><span class="o">.</span><span class="n">expand</span><span class="o">(</span><span class="m">1</span><span class="o">)</span>
+<span class="k">ASSERT</span> <span class="n">r</span><span class="o">.</span><span class="n">area</span><span class="o">()</span> <span class="o">=</span> <span class="m">42</span>
 </pre></div>
 </div>
 </div>
@@ -284,27 +284,27 @@ ASSERT r.area() = 42
 <h2>4.7. Pointers<a class="headerlink" href="#pointers" title="Permalink to this headline">¶</a></h2>
 <p>Pointers can only point to classes.
 Pointers are declared with <code class="docutils literal"><span class="pre">POINTER</span> <span class="pre">TO</span></code> and allocated with <code class="docutils literal"><span class="pre">NEW</span></code>.</p>
-<div class="highlight-none"><div class="highlight"><pre>TYPE Person IS CLASS
-    name: String
-    age: Number
-END CLASS
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">TYPE</span> <span class="n">Person</span> <span class="k">IS</span> <span class="k">CLASS</span>
+    <span class="n">name</span><span class="o">:</span> <span class="n">String</span>
+    <span class="n">age</span><span class="o">:</span> <span class="n">Number</span>
+<span class="k">END</span> <span class="k">CLASS</span>
 
-LET p: POINTER TO Person := NEW Person
-p-&gt;name := &quot;Alice&quot;
-p-&gt;age := 23
+<span class="k">LET</span> <span class="n">p</span><span class="o">:</span> <span class="k">POINTER</span> <span class="k">TO</span> <span class="n">Person</span> <span class="o">:=</span> <span class="k">NEW</span> <span class="n">Person</span>
+<span class="n">p</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">:=</span> <span class="s">&quot;Alice&quot;</span>
+<span class="n">p</span><span class="o">-&gt;</span><span class="n">age</span> <span class="o">:=</span> <span class="m">23</span>
 </pre></div>
 </div>
 <p>Pointers must be checked for validity (non-NIL) before they can be used using the <code class="docutils literal"><span class="pre">IF</span> <span class="pre">VALID</span></code> block.</p>
-<div class="highlight-none"><div class="highlight"><pre>TYPE Person IS CLASS
-    name: String
-    age: Number
-END CLASS
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">TYPE</span> <span class="n">Person</span> <span class="k">IS</span> <span class="k">CLASS</span>
+    <span class="n">name</span><span class="o">:</span> <span class="n">String</span>
+    <span class="n">age</span><span class="o">:</span> <span class="n">Number</span>
+<span class="k">END</span> <span class="k">CLASS</span>
 
-FUNCTION incrementAge(p: POINTER TO Person)
-    IF VALID p THEN
-        INC p-&gt;age
-    END IF
-END FUNCTION
+<span class="k">FUNCTION</span> <span class="n">incrementAge</span><span class="o">(</span><span class="n">p</span><span class="o">:</span> <span class="k">POINTER</span> <span class="k">TO</span> <span class="n">Person</span><span class="o">)</span>
+    <span class="k">IF</span> <span class="k">VALID</span> <span class="n">p</span> <span class="k">THEN</span>
+        <span class="k">INC</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">age</span>
+    <span class="k">END</span> <span class="k">IF</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 </pre></div>
 </div>
 </div>

@@ -51,12 +51,12 @@ A block comment is introduced with <code class="docutils literal"><span class="p
 Block comments may span multiple lines.
 Block comments may not nest.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>-- The following line prints some text.
-print(&quot;Hello, World.&quot;)
+<div class="highlight-neon"><div class="highlight"><pre><span class="c1">-- The following line prints some text.</span>
+<span class="n">print</span><span class="o">(</span><span class="s">&quot;Hello, World.&quot;</span><span class="o">)</span>
 
-/* This comment spans multiple
-   lines of text until the comment
-   closing characters. */
+<span class="cm">/* This comment spans multiple</span>
+<span class="cm">   lines of text until the comment</span>
+<span class="cm">   closing characters. */</span>
 </pre></div>
 </div>
 </div>
@@ -358,25 +358,25 @@ The allowed character escapes are:</p>
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR s: String
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span>
 
-s := &quot;Hello, World&quot;
+<span class="n">s</span> <span class="o">:=</span> <span class="s">&quot;Hello, World&quot;</span>
 </pre></div>
 </div>
 <p>Literal strings may need to contain backslashes (such as when used for regular expressions).
 Instead of using normal double-quoted strings, there are two varieties of &#8220;raw strings&#8221;.
 The first can contain any character except <code class="docutils literal"><span class="pre">&quot;</span></code>:</p>
-<div class="highlight-none"><div class="highlight"><pre>CONSTANT s: String := @&quot;This string contains backslash (\) characters&quot;
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">CONSTANT</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="s">@&quot;This string contains backslash (\) characters&quot;</span>
 </pre></div>
 </div>
 <p>The second type of string uses arbitrary delimiters so that any literal string can be included in source.
 The simplest form is:</p>
-<div class="highlight-none"><div class="highlight"><pre>CONSTANT s: String := @@&quot;This string contains backslashes (\) and &quot;quotes&quot;.&quot;@@
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">CONSTANT</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="s">@@&quot;This string contains backslashes (\) and &quot;quotes&quot;.&quot;@@</span>
 </pre></div>
 </div>
 <p>If there is a need to include the sequence <code class="docutils literal"><span class="pre">&quot;&#64;&#64;</span></code> within the string, an arbitrary identifier may appear between the <code class="docutils literal"><span class="pre">&#64;</span></code> at the start and end of the stiring.
 For example:</p>
-<div class="highlight-none"><div class="highlight"><pre>CONSTANT s: String := @raw@&quot;A raw string example is @@&quot;like this&quot;@@.&quot;@raw@
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">CONSTANT</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="s">@raw@&quot;A raw string example is @@&quot;like this&quot;@@.&quot;@raw@</span>
 </pre></div>
 </div>
 </div>

@@ -45,24 +45,24 @@
 A module named <code class="docutils literal"><span class="pre">example</span></code> would be found in a file called <code class="docutils literal"><span class="pre">example.neon</span></code>.</p>
 <p>Module source code must <em>export</em> identifiers before they can be used outside the module file.
 This is done with the <code class="docutils literal"><span class="pre">EXPORT</span></code> declaration:</p>
-<div class="highlight-none"><div class="highlight"><pre>EXPORT hello
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">EXPORT</span> <span class="n">hello</span>
 
-FUNCTION hello()
-    print(&quot;Hello world&quot;)
-END FUNCTION
+<span class="k">FUNCTION</span> <span class="n">hello</span><span class="o">()</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;Hello world&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 </pre></div>
 </div>
 <p>In order to use an identifier exported by another module, the <code class="docutils literal"><span class="pre">IMPORT</span></code> declaration must be used.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>IMPORT os
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">IMPORT</span> <span class="n">os</span>
 
-print(os.getenv(&quot;PATH&quot;))
+<span class="n">print</span><span class="o">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="o">(</span><span class="s">&quot;PATH&quot;</span><span class="o">))</span>
 </pre></div>
 </div>
 <p>Individual identifiers may also be imported:</p>
-<div class="highlight-none"><div class="highlight"><pre>IMPORT os.getenv
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">IMPORT</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span>
 
-print(getenv(&quot;PATH&quot;))
+<span class="n">print</span><span class="o">(</span><span class="n">getenv</span><span class="o">(</span><span class="s">&quot;PATH&quot;</span><span class="o">))</span>
 </pre></div>
 </div>
 <div class="section" id="module-path">

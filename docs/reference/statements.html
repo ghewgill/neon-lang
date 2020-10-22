@@ -45,9 +45,9 @@
 <h2>5.5.1. Assignment<a class="headerlink" href="#assignment" title="Permalink to this headline">¶</a></h2>
 <p>Assignment evaluates the expression on the right hand side and assigns it to the storage location identified on the left hand side.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR a: Number
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">a</span><span class="o">:</span> <span class="n">Number</span>
 
-a := 5
+<span class="n">a</span> <span class="o">:=</span> <span class="m">5</span>
 </pre></div>
 </div>
 </div>
@@ -60,12 +60,12 @@ See <a href="#id1"><span class="problematic" id="id2">Functions_</span></a> for 
 <h2>5.5.3. <code class="docutils literal"><span class="pre">ASSERT</span></code><a class="headerlink" href="#assert" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">ASSERT</span></code> statement evaluates an expression and if the expression is <code class="docutils literal"><span class="pre">FALSE</span></code>, prints a diagnostic message and raises an exception.</p>
 <p>For example:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET s: String := &quot;foo&quot;
-ASSERT s[0] = &quot;x&quot;       -- exception
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="s">&quot;foo&quot;</span>
+<span class="k">ASSERT</span> <span class="n">s</span><span class="o">[</span><span class="m">0</span><span class="o">]</span> <span class="o">=</span> <span class="s">&quot;x&quot;</span>       <span class="c1">-- exception</span>
 </pre></div>
 </div>
 <p>The output is:</p>
-<div class="highlight-none"><div class="highlight"><pre>Assert failed (test.neon line 2):
+<div class="highlight-neon"><div class="highlight"><pre>Assert failed (test.neon line 2):
 ASSERT s[0] = &quot;x&quot;
 Assert expression dump:
   s[0]  is f
@@ -80,20 +80,20 @@ Unhandled exception AssertFailedException (ASSERT s[0] = &quot;x&quot;) (code 0)
 <h2>5.5.4. <code class="docutils literal"><span class="pre">CASE</span></code><a class="headerlink" href="#case" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">CASE</span></code> statement selects one of a number of alternative code paths based on the value of an expression.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR x: Number := 0
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">x</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
 
-CASE x
-    WHEN &lt; 2 DO
-        print(&quot;less than two&quot;)
-    WHEN 2 DO
-        print(&quot;is two&quot;)
-    WHEN 3 TO 5 DO
-        print(&quot;three to five&quot;)
-    WHEN 7, 9 DO
-        print(&quot;seven or nine&quot;)
-    WHEN OTHERS DO
-        print(&quot;is something else&quot;)
-END CASE
+<span class="k">CASE</span> <span class="n">x</span>
+    <span class="k">WHEN</span> <span class="o">&lt;</span> <span class="m">2</span> <span class="k">DO</span>
+        <span class="n">print</span><span class="o">(</span><span class="s">&quot;less than two&quot;</span><span class="o">)</span>
+    <span class="k">WHEN</span> <span class="m">2</span> <span class="k">DO</span>
+        <span class="n">print</span><span class="o">(</span><span class="s">&quot;is two&quot;</span><span class="o">)</span>
+    <span class="k">WHEN</span> <span class="m">3</span> <span class="k">TO</span> <span class="m">5</span> <span class="k">DO</span>
+        <span class="n">print</span><span class="o">(</span><span class="s">&quot;three to five&quot;</span><span class="o">)</span>
+    <span class="k">WHEN</span> <span class="m">7</span><span class="o">,</span> <span class="m">9</span> <span class="k">DO</span>
+        <span class="n">print</span><span class="o">(</span><span class="s">&quot;seven or nine&quot;</span><span class="o">)</span>
+    <span class="k">WHEN</span> <span class="k">OTHERS</span> <span class="k">DO</span>
+        <span class="n">print</span><span class="o">(</span><span class="s">&quot;is something else&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">CASE</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal"><span class="pre">CASE</span></code> statement expression may be of type <code class="docutils literal"><span class="pre">Number</span></code>, <code class="docutils literal"><span class="pre">String</span></code>, or an enumeration.
@@ -127,12 +127,12 @@ The optional <code class="docutils literal"><span class="pre">WHEN</span> <span 
 <div class="section" id="check">
 <h2>5.5.5. <code class="docutils literal"><span class="pre">CHECK</span></code><a class="headerlink" href="#check" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">CHECK</span></code> statement evaluates a boolean expression and, if it is <code class="docutils literal"><span class="pre">FALSE</span></code>, evaluates a block:</p>
-<div class="highlight-none"><div class="highlight"><pre>FUNCTION foo(n: Number)
-    CHECK n &gt;= 0 ELSE
-        RAISE InvalidValueException
-    END CHECK
-    print(&quot;\(n)&quot;)
-END FUNCTION
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">FUNCTION</span> <span class="n">foo</span><span class="o">(</span><span class="n">n</span><span class="o">:</span> <span class="n">Number</span><span class="o">)</span>
+    <span class="k">CHECK</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="m">0</span> <span class="k">ELSE</span>
+        <span class="k">RAISE</span> <span class="n">InvalidValueException</span>
+    <span class="k">END</span> <span class="k">CHECK</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;\(n)&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 </pre></div>
 </div>
 <p>The block of statements must end in a block-exiting statement which is one of <code class="docutils literal"><span class="pre">EXIT</span></code>, <code class="docutils literal"><span class="pre">NEXT</span></code>, <code class="docutils literal"><span class="pre">RAISE</span></code>, or <code class="docutils literal"><span class="pre">RETURN</span></code>.
@@ -185,19 +185,19 @@ This statement is useful to check a condition while guaranteeing that execution 
 <p>The <code class="docutils literal"><span class="pre">FOR</span></code> loop iterates a numeric variable over a range of values.
 The loop control variable is implicitly a <code class="docutils literal"><span class="pre">Number</span></code> and must not be already declared outside the <code class="docutils literal"><span class="pre">FOR</span></code> statement.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>FOR i := 1 TO 10 STEP 2 DO
-    print(&quot;i is \(i)&quot;)
-END FOR
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">FOR</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">1</span> <span class="k">TO</span> <span class="m">10</span> <span class="k">STEP</span> <span class="m">2</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;i is \(i)&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">FOR</span>
 </pre></div>
 </div>
 <p>The above example is equivalent to:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR i: Number
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">i</span><span class="o">:</span> <span class="n">Number</span>
 
-i := 1
-WHILE i &lt;= 10 DO
-    print(&quot;i is \(i)&quot;)
-    i := i + 2
-END WHILE
+<span class="n">i</span> <span class="o">:=</span> <span class="m">1</span>
+<span class="k">WHILE</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="m">10</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;i is \(i)&quot;</span><span class="o">)</span>
+    <span class="n">i</span> <span class="o">:=</span> <span class="n">i</span> <span class="o">+</span> <span class="m">2</span>
+<span class="k">END</span> <span class="k">WHILE</span>
 </pre></div>
 </div>
 <p>The exception is that in the <code class="docutils literal"><span class="pre">FOR</span></code> loop, the value of <code class="docutils literal"><span class="pre">i</span></code> cannot be modified.</p>
@@ -210,10 +210,10 @@ It must, however, be a compile time constant.</p>
 <p>The <code class="docutils literal"><span class="pre">FOREACH</span></code> loop iterates through an array from the first element to a last, executing the statements within the block.
 The loop control variable is implicitly declared and must not be already declared outside the <code class="docutils literal"><span class="pre">FOREACH</span></code> statement.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>LET a: Array&lt;String&gt; := [&quot;one&quot;, &quot;two&quot;, &quot;three&quot;]
-FOREACH x IN a DO
-    print(x)
-END FOREACH
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;one&quot;</span><span class="o">,</span> <span class="s">&quot;two&quot;</span><span class="o">,</span> <span class="s">&quot;three&quot;</span><span class="o">]</span>
+<span class="k">FOREACH</span> <span class="n">x</span> <span class="k">IN</span> <span class="n">a</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">x</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">FOREACH</span>
 </pre></div>
 </div>
 </div>
@@ -221,38 +221,38 @@ END FOREACH
 <h2>5.5.10. <code class="docutils literal"><span class="pre">IF</span></code><a class="headerlink" href="#if" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">IF</span></code> statement tests a condition of type <code class="docutils literal"><span class="pre">Boolean</span></code> and executes one of two alternatives.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR x: Number := 0
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">x</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
 
-IF x &lt; 10 THEN
-    print(&quot;x is less than 10&quot;)
-ELSE
-    print(&quot;not less than 10&quot;)
-END IF
+<span class="k">IF</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="m">10</span> <span class="k">THEN</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;x is less than 10&quot;</span><span class="o">)</span>
+<span class="k">ELSE</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;not less than 10&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">IF</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal"><span class="pre">ELSE</span></code> clause is optional.</p>
 <p>Additional alternatives may be introduced with the <code class="docutils literal"><span class="pre">ELSIF</span></code> clause:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR x: Number := 0
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">x</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
 
-IF x &lt; 10 THEN
-    print(&quot;x is less than 10&quot;)
-ELSIF x &lt; 20 THEN
-    print(&quot;x is less than 20&quot;)
-ELSE
-    print(&quot;not less than 20&quot;)
-END IF
+<span class="k">IF</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="m">10</span> <span class="k">THEN</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;x is less than 10&quot;</span><span class="o">)</span>
+<span class="k">ELSIF</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="m">20</span> <span class="k">THEN</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;x is less than 20&quot;</span><span class="o">)</span>
+<span class="k">ELSE</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;not less than 20&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">IF</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal"><span class="pre">IF</span> <span class="pre">VALID</span></code> form is used to test a pointer value to check whether it is <code class="docutils literal"><span class="pre">NIL</span></code>, and capture the pointer value in a new variable for use within the <code class="docutils literal"><span class="pre">IF</span> <span class="pre">VALID</span></code> block:</p>
-<div class="highlight-none"><div class="highlight"><pre>TYPE Record IS CLASS
-    name: String
-END CLASS
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">TYPE</span> <span class="n">Record</span> <span class="k">IS</span> <span class="k">CLASS</span>
+    <span class="n">name</span><span class="o">:</span> <span class="n">String</span>
+<span class="k">END</span> <span class="k">CLASS</span>
 
-VAR p: POINTER TO Record := NIL
+<span class="k">VAR</span> <span class="n">p</span><span class="o">:</span> <span class="k">POINTER</span> <span class="k">TO</span> <span class="n">Record</span> <span class="o">:=</span> <span class="k">NIL</span>
 
-IF VALID p AS q THEN
-    print(q-&gt;name)
-END IF
+<span class="k">IF</span> <span class="k">VALID</span> <span class="n">p</span> <span class="k">AS</span> <span class="n">q</span> <span class="k">THEN</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">q</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">IF</span>
 </pre></div>
 </div>
 </div>
@@ -260,9 +260,9 @@ END IF
 <h2>5.5.11. <code class="docutils literal"><span class="pre">INC</span></code><a class="headerlink" href="#inc" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">INC</span></code> statement increments a variable of type <code class="docutils literal"><span class="pre">Number</span></code>.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR x: Number := 5
-INC x
-ASSERT x = 6
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">x</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">5</span>
+<span class="k">INC</span> <span class="n">x</span>
+<span class="k">ASSERT</span> <span class="n">x</span> <span class="o">=</span> <span class="m">6</span>
 </pre></div>
 </div>
 <p>In this example, <code class="docutils literal"><span class="pre">INC</span> <span class="pre">x</span></code> is equivalent to <code class="docutils literal"><span class="pre">x</span> <span class="pre">:=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">1</span></code>.</p>
@@ -271,11 +271,11 @@ ASSERT x = 6
 <h2>5.5.12. <code class="docutils literal"><span class="pre">LET</span></code><a class="headerlink" href="#let" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">LET</span></code> statement introduces a new read-only variable and assigns a value (which can be an arbitrary expression, evaluated at run time).</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>FUNCTION five(): Number
-    RETURN 5
-END FUNCTION
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">FUNCTION</span> <span class="n">five</span><span class="o">():</span> <span class="n">Number</span>
+    <span class="k">RETURN</span> <span class="m">5</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 
-LET ten: Number := 2 * five()
+<span class="k">LET</span> <span class="n">ten</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">2</span> <span class="o">*</span> <span class="n">five</span><span class="o">()</span>
 </pre></div>
 </div>
 </div>
@@ -284,15 +284,15 @@ LET ten: Number := 2 * five()
 <p>The <code class="docutils literal"><span class="pre">LOOP</span></code> statement begins a loop with no specific exit condition.
 There is normally an <code class="docutils literal"><span class="pre">EXIT</span> <span class="pre">LOOP</span></code> statement within the loop for a termination condition.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR i: Number := 0
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">i</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
 
-LOOP
-    INC i
-    IF i &gt;= 10 THEN
-        EXIT LOOP
-    END IF
-    print(&quot;i is \(i)&quot;)
-END LOOP
+<span class="k">LOOP</span>
+    <span class="k">INC</span> <span class="n">i</span>
+    <span class="k">IF</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="m">10</span> <span class="k">THEN</span>
+        <span class="k">EXIT</span> <span class="k">LOOP</span>
+    <span class="k">END</span> <span class="k">IF</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;i is \(i)&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">LOOP</span>
 </pre></div>
 </div>
 </div>
@@ -334,12 +334,12 @@ END LOOP
 <h2>5.5.15. <code class="docutils literal"><span class="pre">RAISE</span></code><a class="headerlink" href="#raise" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">RAISE</span></code> statement raises an exception.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>EXCEPTION InvalidWidgetSizeException
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">EXCEPTION</span> <span class="n">InvalidWidgetSizeException</span>
 
-VAR size: Number := 3
-IF size &gt; 4 THEN
-    RAISE InvalidWidgetSizeException(size.toString())
-END IF
+<span class="k">VAR</span> <span class="n">size</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">3</span>
+<span class="k">IF</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="m">4</span> <span class="k">THEN</span>
+    <span class="k">RAISE</span> <span class="n">InvalidWidgetSizeException</span><span class="o">(</span><span class="n">size</span><span class="o">.</span><span class="n">toString</span><span class="o">())</span>
+<span class="k">END</span> <span class="k">IF</span>
 </pre></div>
 </div>
 <p>The executor searches for an exception handler that can handle the given expression type, and execution resumes with the exception handler.
@@ -350,12 +350,12 @@ If no exception handler is found, the program terminates with a message and stac
 <p>The <code class="docutils literal"><span class="pre">REPEAT</span></code> statement begins a loop with a bottom-tested condition.
 Execution always proceeds into the loop body at least once.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR x: Number := 0
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">x</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
 
-REPEAT
-    print(&quot;x is \(x)&quot;)
-    INC x
-UNTIL x = 10
+<span class="k">REPEAT</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;x is \(x)&quot;</span><span class="o">)</span>
+    <span class="k">INC</span> <span class="n">x</span>
+<span class="k">UNTIL</span> <span class="n">x</span> <span class="o">=</span> <span class="m">10</span>
 </pre></div>
 </div>
 <p>The above loop will print the whole numbers 0 through 9.</p>
@@ -365,9 +365,9 @@ UNTIL x = 10
 <p>The <code class="docutils literal"><span class="pre">RETURN</span></code> statement returns a value from a function.
 The type of the expression in the <code class="docutils literal"><span class="pre">RETURN</span></code> statement must match the return type declared in the function header (which means that it is only valid to use <code class="docutils literal"><span class="pre">RETURN</span></code> for a function that actually returns a value).</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>FUNCTION square(x: Number): Number
-    RETURN x ^ 2
-END FUNCTION
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">FUNCTION</span> <span class="n">square</span><span class="o">(</span><span class="n">x</span><span class="o">:</span> <span class="n">Number</span><span class="o">):</span> <span class="n">Number</span>
+    <span class="k">RETURN</span> <span class="n">x</span> <span class="o">^</span> <span class="m">2</span>
+<span class="k">END</span> <span class="k">FUNCTION</span>
 </pre></div>
 </div>
 </div>
@@ -377,16 +377,16 @@ END FUNCTION
 After entering a <code class="docutils literal"><span class="pre">TRY</span></code> block, any exception that happens within the block is checked against the <code class="docutils literal"><span class="pre">TRAP</span></code> clauses.
 If an exception matching a clause is raised, the corresponding exception handler starts running.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>EXCEPTION InvalidWidgetSizeException
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">EXCEPTION</span> <span class="n">InvalidWidgetSizeException</span>
 
-VAR size: Number := 5
-TRY
-    IF size &gt; 4 THEN
-        RAISE InvalidWidgetSizeException(size.toString())
-    END IF
-TRAP InvalidWidgetSizeException AS x DO
-    print(&quot;Invalid size \(x.info)&quot;)
-END TRY
+<span class="k">VAR</span> <span class="n">size</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">5</span>
+<span class="k">TRY</span>
+    <span class="k">IF</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="m">4</span> <span class="k">THEN</span>
+        <span class="k">RAISE</span> <span class="n">InvalidWidgetSizeException</span><span class="o">(</span><span class="n">size</span><span class="o">.</span><span class="n">toString</span><span class="o">())</span>
+    <span class="k">END</span> <span class="k">IF</span>
+<span class="k">TRAP</span> <span class="n">InvalidWidgetSizeException</span> <span class="k">AS</span> <span class="n">x</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;Invalid size \(x.info)&quot;</span><span class="o">)</span>
+<span class="k">END</span> <span class="k">TRY</span>
 </pre></div>
 </div>
 </div>
@@ -395,12 +395,12 @@ END TRY
 <p>The <code class="docutils literal"><span class="pre">WHILE</span></code> statement begins a loop with a top-tested condition.
 The condition is tested before every loop iteration, including the first one.</p>
 <p>Example:</p>
-<div class="highlight-none"><div class="highlight"><pre>VAR x: Number := 0
+<div class="highlight-neon"><div class="highlight"><pre><span class="k">VAR</span> <span class="n">x</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
 
-WHILE x &lt; 10 DO
-    print(&quot;x is \(x)&quot;)
-    INC x
-END WHILE
+<span class="k">WHILE</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="m">10</span> <span class="k">DO</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">&quot;x is \(x)&quot;</span><span class="o">)</span>
+    <span class="k">INC</span> <span class="n">x</span>
+<span class="k">END</span> <span class="k">WHILE</span>
 </pre></div>
 </div>
 <p>The above loop will print the whole numbers 0 through 9.</p>
