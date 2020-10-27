@@ -1,7 +1,7 @@
 image: openbsd/latest
 packages:
 - cmake
-- python%3.7
+- python3
 - gmpxx
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
