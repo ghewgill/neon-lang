@@ -1,5 +1,8 @@
 CONSTANT s: String := "abc"
 
+TESTCASE s[1.5] EXPECT StringIndexException
+TESTCASE s[0.2 TO 1.9] EXPECT StringIndexException
+
 TESTCASE s[-2] EXPECT StringIndexException
 TESTCASE s[-1] EXPECT StringIndexException
 TESTCASE s[ 0] = "a"

@@ -1321,10 +1321,20 @@ class Executor {
     private void array__slice()
     {
         boolean last_from_end = stack.removeFirst().getBoolean();
-        int last = stack.removeFirst().getNumber().intValueExact();
+        BigDecimal nlast = stack.removeFirst().getNumber();
         boolean first_from_end = stack.removeFirst().getBoolean();
-        int first = stack.removeFirst().getNumber().intValueExact();
+        BigDecimal nfirst = stack.removeFirst().getNumber();
         List<Cell> a = stack.removeFirst().getArray();
+        if (nfirst.stripTrailingZeros().scale() > 0) {
+            raiseLiteral("ArrayIndexException", nfirst.toString());
+            return;
+        }
+        if (nlast.stripTrailingZeros().scale() > 0) {
+            raiseLiteral("ArrayIndexException", nlast.toString());
+            return;
+        }
+        int first = nfirst.intValue();
+        int last = nlast.intValue();
         if (first_from_end) {
             first += a.size() - 1;
         }

@@ -1969,32 +1969,40 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(float64(len(a))))
 	case "array__slice":
 		last_from_end := self.pop().bool
-		last := int(self.pop().num)
+		nlast := self.pop().num
 		first_from_end := self.pop().bool
-		first := int(self.pop().num)
+		nfirst := self.pop().num
 		a := self.pop().array
-		if first_from_end {
-			first += len(a) - 1
+		if nfirst != math.Trunc(nfirst) {
+			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+		} else if nlast != math.Trunc(nlast) {
+			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nlast)})
+		} else {
+			first := int(nfirst)
+			last := int(nlast)
+			if first_from_end {
+				first += len(a) - 1
+			}
+			if first < 0 {
+				first = 0
+			}
+			if first > len(a) {
+				first = len(a)
+			}
+			if last_from_end {
+				last += len(a) - 1
+			}
+			if last < -1 {
+				last = -1
+			}
+			if last >= len(a) {
+				last = len(a) - 1
+			}
+			if last < first {
+				last = first - 1
+			}
+			self.push(make_cell_array(a[first : last+1]))
 		}
-		if first < 0 {
-			first = 0
-		}
-		if first > len(a) {
-			first = len(a)
-		}
-		if last_from_end {
-			last += len(a) - 1
-		}
-		if last < -1 {
-			last = -1
-		}
-		if last >= len(a) {
-			last = len(a) - 1
-		}
-		if last < first {
-			last = first - 1
-		}
-		self.push(make_cell_array(a[first : last+1]))
 	case "array__splice":
 		last_from_end := self.pop().bool
 		last := int(self.pop().num)
@@ -2170,30 +2178,38 @@ func (self *executor) op_callp() {
 		self.push(make_cell_str(string(b)))
 	case "bytes__range":
 		last_from_end := self.pop().bool
-		last := int(self.pop().num)
+		nlast := self.pop().num
 		first_from_end := self.pop().bool
-		first := int(self.pop().num)
+		nfirst := self.pop().num
 		b := self.pop().bytes
-		if first_from_end {
-			first += len(b) - 1
-		}
-		if last_from_end {
-			last += len(b) - 1
-		}
-		if first < 0 {
-			first = 0
-		} else if first > len(b) {
-			first = len(b)
-		}
-		if last >= len(b) {
-			last = len(b) - 1
-		} else if last < 0 {
-			last = -1
-		}
-		if last < first {
-			self.push(make_cell_bytes([]byte{}))
+		if nfirst != math.Trunc(nfirst) {
+			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+		} else if nlast != math.Trunc(nlast) {
+			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nlast)})
 		} else {
-			self.push(make_cell_bytes(b[first : last+1]))
+			first := int(nfirst)
+			last := int(nlast)
+			if first_from_end {
+				first += len(b) - 1
+			}
+			if last_from_end {
+				last += len(b) - 1
+			}
+			if first < 0 {
+				first = 0
+			} else if first > len(b) {
+				first = len(b)
+			}
+			if last >= len(b) {
+				last = len(b) - 1
+			} else if last < 0 {
+				last = -1
+			}
+			if last < first {
+				self.push(make_cell_bytes([]byte{}))
+			} else {
+				self.push(make_cell_bytes(b[first : last+1]))
+			}
 		}
 	case "bytes__size":
 		b := self.pop().bytes
@@ -2799,14 +2815,19 @@ func (self *executor) op_callp() {
 		a := self.pop().str
 		self.push(make_cell_str(a + b))
 	case "string__index":
-		index := int(self.pop().num)
+		nindex := self.pop().num
 		s := self.pop().str
-		if index < 0 {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
-		} else if index >= len(s) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+		if nindex != math.Trunc(nindex) {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", nindex)})
 		} else {
-			self.push(make_cell_str(s[index : index+1]))
+			index := int(nindex)
+			if index < 0 {
+				self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+			} else if index >= len(s) {
+				self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+			} else {
+				self.push(make_cell_str(s[index : index+1]))
+			}
 		}
 	case "string__length":
 		s := self.pop().str
@@ -2827,30 +2848,38 @@ func (self *executor) op_callp() {
 		self.push(make_cell_str(s[:first] + t + s[last+1:]))
 	case "string__substring":
 		last_from_end := self.pop().bool
-		last := int(self.pop().num)
+		nlast := self.pop().num
 		first_from_end := self.pop().bool
-		first := int(self.pop().num)
+		nfirst := self.pop().num
 		s := self.pop().str
-		if first_from_end {
-			first += len(s) - 1
-		}
-		if last_from_end {
-			last += len(s) - 1
-		}
-		if first < 0 {
-			first = 0
-		} else if first > len(s) {
-			first = len(s)
-		}
-		if last >= len(s) {
-			last = len(s) - 1
-		} else if last < 0 {
-			last = -1
-		}
-		if last < first {
-			self.push(make_cell_bytes([]byte{}))
+		if nfirst != math.Trunc(nfirst) {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+		} else if nlast != math.Trunc(nlast) {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", nlast)})
 		} else {
-			self.push(make_cell_str(s[first : last+1]))
+			first := int(nfirst)
+			last := int(nlast)
+			if first_from_end {
+				first += len(s) - 1
+			}
+			if last_from_end {
+				last += len(s) - 1
+			}
+			if first < 0 {
+				first = 0
+			} else if first > len(s) {
+				first = len(s)
+			}
+			if last >= len(s) {
+				last = len(s) - 1
+			} else if last < 0 {
+				last = -1
+			}
+			if last < first {
+				self.push(make_cell_bytes([]byte{}))
+			} else {
+				self.push(make_cell_str(s[first : last+1]))
+			}
 		}
 	case "string__toBytes":
 		s := self.pop().str
