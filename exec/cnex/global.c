@@ -690,6 +690,9 @@ void array__slice(TExecutor *exec)
     if (lst >= (int64_t)array->array->size) {
         lst = array->array->size - 1;
     }
+    if (lst < fst) {
+        lst = fst - 1;
+    }
     Cell *r = cell_createArrayCell(lst - fst + 1);
 
     for (int64_t i = fst; i < lst + 1; i++) {

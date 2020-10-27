@@ -7,6 +7,7 @@ array-concat.neon
 array-extend.neon
 array-find.neon
 array-fraction.neon
+array-index.neon
 array-index-write.neon
 array-last-method.neon
 array-negative.neon

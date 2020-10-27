@@ -1991,6 +1991,9 @@ func (self *executor) op_callp() {
 		if last >= len(a) {
 			last = len(a) - 1
 		}
+		if last < first {
+			last = first - 1
+		}
 		self.push(make_cell_array(a[first : last+1]))
 	case "array__splice":
 		last_from_end := self.pop().bool

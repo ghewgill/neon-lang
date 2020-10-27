@@ -1,0 +1,65 @@
+CONSTANT a: Array<Number> := [1, 2, 3]
+
+TESTCASE a[-2] EXPECT ArrayIndexException
+TESTCASE a[-1] EXPECT ArrayIndexException
+TESTCASE a[ 0] = 1
+TESTCASE a[ 1] = 2
+TESTCASE a[ 2] = 3
+TESTCASE a[ 3] EXPECT ArrayIndexException
+TESTCASE a[ 4] EXPECT ArrayIndexException
+
+TESTCASE a[-2 TO -2] = []
+TESTCASE a[-2 TO -1] = []
+TESTCASE a[-2 TO  0] = [1]
+TESTCASE a[-2 TO  1] = [1, 2]
+TESTCASE a[-2 TO  2] = [1, 2, 3]
+TESTCASE a[-2 TO  3] = [1, 2, 3]
+TESTCASE a[-2 TO  4] = [1, 2, 3]
+
+TESTCASE a[-1 TO -2] = []
+TESTCASE a[-1 TO -1] = []
+TESTCASE a[-1 TO  0] = [1]
+TESTCASE a[-1 TO  1] = [1, 2]
+TESTCASE a[-1 TO  2] = [1, 2, 3]
+TESTCASE a[-1 TO  3] = [1, 2, 3]
+TESTCASE a[-1 TO  4] = [1, 2, 3]
+
+TESTCASE a[ 0 TO -2] = []
+TESTCASE a[ 0 TO -1] = []
+TESTCASE a[ 0 TO  0] = [1]
+TESTCASE a[ 0 TO  1] = [1, 2]
+TESTCASE a[ 0 TO  2] = [1, 2, 3]
+TESTCASE a[ 0 TO  3] = [1, 2, 3]
+TESTCASE a[ 0 TO  4] = [1, 2, 3]
+
+TESTCASE a[ 1 TO -2] = []
+TESTCASE a[ 1 TO -1] = []
+TESTCASE a[ 1 TO  0] = []
+TESTCASE a[ 1 TO  1] = [2]
+TESTCASE a[ 1 TO  2] = [2, 3]
+TESTCASE a[ 1 TO  3] = [2, 3]
+TESTCASE a[ 1 TO  4] = [2, 3]
+
+TESTCASE a[ 2 TO -2] = []
+TESTCASE a[ 2 TO -1] = []
+TESTCASE a[ 2 TO  0] = []
+TESTCASE a[ 2 TO  1] = []
+TESTCASE a[ 2 TO  2] = [3]
+TESTCASE a[ 2 TO  3] = [3]
+TESTCASE a[ 2 TO  4] = [3]
+
+TESTCASE a[ 3 TO -2] = []
+TESTCASE a[ 3 TO -1] = []
+TESTCASE a[ 3 TO  0] = []
+TESTCASE a[ 3 TO  1] = []
+TESTCASE a[ 3 TO  2] = []
+TESTCASE a[ 3 TO  3] = []
+TESTCASE a[ 3 TO  4] = []
+
+TESTCASE a[ 4 TO -2] = []
+TESTCASE a[ 4 TO -1] = []
+TESTCASE a[ 4 TO  0] = []
+TESTCASE a[ 4 TO  1] = []
+TESTCASE a[ 4 TO  2] = []
+TESTCASE a[ 4 TO  3] = []
+TESTCASE a[ 4 TO  4] = []

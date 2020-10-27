@@ -1328,8 +1328,20 @@ class Executor {
         if (first_from_end) {
             first += a.size() - 1;
         }
+        if (first < 0) {
+            first = 0;
+        }
+        if (first > a.size()) {
+            first = a.size();
+        }
         if (last_from_end) {
             last += a.size() - 1;
+        }
+        if (last >= a.size()) {
+            last = a.size() - 1;
+        }
+        if (last < first) {
+            last = first - 1;
         }
         stack.addFirst(new Cell(a.subList(first, last+1)));
     }

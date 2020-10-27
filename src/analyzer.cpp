@@ -2597,6 +2597,9 @@ ast::ComparisonExpression *Analyzer::analyze_comparison(const Token &token, cons
             if (ta1->is_structure_compatible(ta2)) {
                 return new ast::ArrayComparisonExpression(left, right, comp);
             }
+            if (ta1->elementtype == nullptr || ta2->elementtype == nullptr) {
+                return new ast::ArrayComparisonExpression(left, right, comp);
+            }
         }
     }
     {
