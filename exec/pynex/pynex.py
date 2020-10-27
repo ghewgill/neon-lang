@@ -1480,10 +1480,18 @@ def neon_array__size(self):
 
 def neon_array__slice(self):
     last_from_end = self.stack.pop()
-    last = int(self.stack.pop())
+    last = self.stack.pop()
     first_from_end = self.stack.pop()
-    first = int(self.stack.pop())
+    first = self.stack.pop()
     a = self.stack.pop()
+    if first != int(first):
+        self.raise_literal("ArrayIndexException", first)
+        return
+    if last != int(last):
+        self.raise_literal("ArrayIndexException", last)
+        return
+    first = int(first)
+    last = int(last)
     if first_from_end:
         first += len(a) - 1
     if first < 0:
@@ -1854,10 +1862,18 @@ def neon_bytes__decodeToString(self):
 
 def neon_bytes__range(self):
     last_from_end = self.stack.pop()
-    last = int(self.stack.pop())
+    last = self.stack.pop()
     first_from_end = self.stack.pop()
-    first = int(self.stack.pop())
+    first = self.stack.pop()
     b = self.stack.pop()
+    if first != int(first):
+        self.raise_literal("BytesIndexException", first)
+        return
+    if last != int(last):
+        self.raise_literal("BytesIndexException", last)
+        return
+    first = int(first)
+    last = int(last)
     if first_from_end:
         first += len(b) - 1
     if last_from_end:
@@ -2102,8 +2118,12 @@ def neon_string__concat(self):
     self.stack.append(a + b)
 
 def neon_string__index(self):
-    index = int(self.stack.pop())
+    index = self.stack.pop()
     s = self.stack.pop()
+    if index != int(index):
+        self.raise_literal("StringIndexException", (str(index), 0))
+        return
+    index = int(index)
     if index < 0:
         self.raise_literal("StringIndexException", (str(index), 0))
         return
@@ -2132,10 +2152,18 @@ def neon_string__splice(self):
 
 def neon_string__substring(self):
     last_from_end = self.stack.pop()
-    last = int(self.stack.pop())
+    last = self.stack.pop()
     first_from_end = self.stack.pop()
-    first = int(self.stack.pop())
+    first = self.stack.pop()
     s = self.stack.pop()
+    if first != int(first):
+        self.raise_literal("StringIndexException", first)
+        return
+    if last != int(last):
+        self.raise_literal("StringIndexException", last)
+        return
+    first = int(first)
+    last = int(last)
     if first_from_end:
         first += len(s) - 1
     if last_from_end:

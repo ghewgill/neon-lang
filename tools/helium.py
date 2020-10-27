@@ -581,6 +581,15 @@ class SubscriptExpression:
         i = self.index.eval(env)
         try:
             a = self.expr.eval(env)
+            if isinstance(a, (str, bytes, list)):
+                if i != int(i):
+                    if isinstance(a, str):
+                        raise NeonException("StringIndexException", i)
+                    if isinstance(a, bytes):
+                        raise NeonException("BytesIndexException", i)
+                    if isinstance(a, list):
+                        raise NeonException("ArrayIndexException", i)
+                    assert False
             if isinstance(a, list):
                 if self.from_end:
                     i += len(a) - 1
@@ -617,6 +626,18 @@ class RangeSubscriptExpression:
         a = self.expr.eval(env)
         f = self.first.eval(env)
         l = self.last.eval(env)
+        def check_index_integer(i):
+            if i != int(i):
+                if isinstance(a, str):
+                    raise NeonException("StringIndexException", i)
+                if isinstance(a, bytes):
+                    raise NeonException("BytesIndexException", i)
+                if isinstance(a, list):
+                    raise NeonException("ArrayIndexException", i)
+                assert False
+        if isinstance(a, (str, bytes, list)):
+            check_index_integer(f)
+            check_index_integer(l)
         if self.first_from_end:
             f += len(a) - 1
         else:

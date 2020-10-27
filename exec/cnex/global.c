@@ -670,6 +670,15 @@ void array__slice(TExecutor *exec)
     Number first = top(exec->stack)->number;          pop(exec->stack);
     const Cell *array = top(exec->stack);
 
+    if (!number_is_integer(first)) {
+        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(first));
+        return;
+    }
+    if (!number_is_integer(last)) {
+        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(last));
+        return;
+    }
+
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
     if (first_from_end) {
@@ -855,17 +864,11 @@ void bytes__range(TExecutor *exec)
     Cell *t = top(exec->stack);
 
     if (!number_is_integer(first)) {
-        pop(exec->stack);
-        Cell *sub = cell_newCellType(cBytes);
-        sub->string = string_newString();
-        push(exec->stack, sub);
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
         return;
     }
     if (!number_is_integer(last)) {
-        pop(exec->stack);
-        Cell *sub = cell_newCellType(cBytes);
-        sub->string = string_newString();
-        push(exec->stack, sub);
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
         return;
     }
 

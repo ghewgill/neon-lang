@@ -108,8 +108,12 @@ public class Global {
     }
 
     public static neon.type.Array array__slice(neon.type.Array a, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
-        assert(first.isInteger());
-        assert(last.isInteger());
+        if (!first.isInteger()) {
+            throw new neon.type.NeonException("ArrayIndexException", first.toString());
+        }
+        if (!last.isInteger()) {
+            throw new neon.type.NeonException("ArrayIndexException", last.toString());
+        }
         int f = first.intValue();
         int l = last.intValue();
         if (first_from_end) {

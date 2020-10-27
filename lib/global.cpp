@@ -106,6 +106,12 @@ Number array__size(Cell &self)
 
 Cell array__slice(Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
 {
+    if (not number_is_integer(first)) {
+        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(first)));
+    }
+    if (not number_is_integer(last)) {
+        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(last)));
+    }
     const std::vector<Cell> &array = a.array();
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
@@ -279,10 +285,10 @@ utf8string string__splice(const utf8string &t, const utf8string &s, Number first
 utf8string string__substring(const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {
-        return utf8string();
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(first)));
     }
     if (not number_is_integer(last)) {
-        return utf8string();
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(last)));
     }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
@@ -325,10 +331,10 @@ utf8string string__toString(const utf8string &self)
 std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {
-        return {};
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(first)));
     }
     if (not number_is_integer(last)) {
-        return {};
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(last)));
     }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);

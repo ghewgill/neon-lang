@@ -15,6 +15,7 @@ assert-multiline.neon       # pushppg
 base-test.neon              # callmf
 bigint.neon                 # math$abs
 binary-test.neon            # exception Utf8DecodingException
+bytes-index.neon            # bytes__range
 cal-test.neon               # os$system
 cformat-test.neon           # object__makeString
 cmdline.neon                # pushppg
