@@ -1486,8 +1486,12 @@ def neon_array__slice(self):
     a = self.stack.pop()
     if first_from_end:
         first += len(a) - 1
+    if first < 0:
+        first = 0
     if last_from_end:
         last += len(a) - 1
+    if last < 0:
+        last = -1
     self.stack.append(a[first:last+1])
 
 def neon_array__splice(self):

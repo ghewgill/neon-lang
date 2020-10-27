@@ -573,13 +573,20 @@ class LogicalNotExpression:
         return not self.expr.eval(env)
 
 class SubscriptExpression:
-    def __init__(self, expr, index):
+    def __init__(self, expr, index, from_end):
         self.expr = expr
         self.index = index
+        self.from_end = from_end
     def eval(self, env):
         i = self.index.eval(env)
         try:
-            return self.expr.eval(env)[i]
+            a = self.expr.eval(env)
+            if isinstance(a, list):
+                if self.from_end:
+                    i += len(a) - 1
+                if i < 0:
+                    raise IndexError
+            return a[i]
         except TypeError:
             if i != int(i):
                 raise NeonException("ArrayIndexException")
@@ -594,6 +601,9 @@ class SubscriptExpression:
         if isinstance(a, list):
             while len(a) <= i:
                 a.append(None) # TODO: default()
+        if isinstance(a, list):
+            if self.from_end:
+                i += len(a) - 1
         a[i] = value
 
 class RangeSubscriptExpression:
@@ -604,17 +614,18 @@ class RangeSubscriptExpression:
         self.last = last
         self.last_from_end = last_from_end
     def eval(self, env):
+        a = self.expr.eval(env)
         f = self.first.eval(env)
         l = self.last.eval(env)
         if self.first_from_end:
-            f = f if f < 0 else None
+            f += len(a) - 1
         else:
             f = max(0, f)
         if self.last_from_end:
-            l = l if l < 0 else None
+            l += len(a) - 1
         else:
-            l = max(0, l+1)
-        return self.expr.eval(env)[f:l]
+            l = max(-1, l)
+        return a[f:l+1]
     def set(self, env, value):
         a = self.expr.eval(env)
         f = self.first.eval(env)
@@ -1738,9 +1749,9 @@ class Parser:
                         self.i += 1
                         first_from_end = True
                         if self.tokens[self.i] in [PLUS, MINUS]:
-                            index = SubtractionExpression(self.parse_expression(), NumberLiteralExpression(1))
+                            index = self.parse_expression()
                         else:
-                            index = NumberLiteralExpression(-1)
+                            index = NumberLiteralExpression(0)
                     else:
                         index = self.parse_expression()
                     if self.tokens[self.i] == TO:
@@ -1762,7 +1773,7 @@ class Parser:
                             last = self.parse_expression()
                         expr = RangeSubscriptExpression(expr, index, first_from_end, last, last_from_end)
                     else:
-                        expr = SubscriptExpression(expr, index)
+                        expr = SubscriptExpression(expr, index, first_from_end)
                     if self.tokens[self.i] is RBRACKET:
                         self.i += 1
                         break
