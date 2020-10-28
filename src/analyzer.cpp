@@ -1234,7 +1234,45 @@ ast::StringValueRangeIndexExpression::StringValueRangeIndexExpression(const Expr
     }
 }
 
-ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index, Analyzer *analyzer)
+  : ReferenceExpression(TYPE_NUMBER, ref->is_readonly),
+    ref(ref),
+    index(index),
+    load(nullptr),
+    store(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(ref);
+        args.push_back(index);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__index"))), args);
+    }
+    {
+        std::vector<const Expression *> args;
+        args.push_back(ref);
+        args.push_back(index);
+        args.push_back(new ConstantBooleanExpression(false));
+        args.push_back(index);
+        args.push_back(new ConstantBooleanExpression(false));
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__splice"))), args);
+    }
+}
+
+ast::BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str, const Expression *index, Analyzer *analyzer)
+  : Expression(TYPE_NUMBER, str->is_readonly),
+    str(str),
+    index(index),
+    load(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(str);
+        args.push_back(index);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__index"))), args);
+    }
+}
+
+ast::BytesReferenceRangeIndexExpression::BytesReferenceRangeIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(TYPE_BYTES, ref->is_readonly),
     ref(ref),
     first(first),
@@ -1264,7 +1302,7 @@ ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const Referenc
     }
 }
 
-ast::BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::BytesValueRangeIndexExpression::BytesValueRangeIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : Expression(TYPE_BYTES, str->is_readonly),
     str(str),
     first(first),
@@ -2089,6 +2127,25 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
                 return new ast::StringValueRangeIndexExpression(base, index, expr->from_last, index, expr->from_last, this);
             } else {
                 return new ast::StringValueIndexExpression(base, index, this);
+            }
+        }
+    } else if (type == ast::TYPE_BYTES) {
+        index = convert(ast::TYPE_NUMBER, index);
+        if (index == nullptr) {
+            error(3296, expr->index->token, "index must be a number");
+        }
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
+        if (ref != nullptr) {
+            if (expr->from_last) {
+                return new ast::BytesReferenceRangeIndexExpression(ref, index, expr->from_last, index, expr->from_last, this);
+            } else {
+                return new ast::BytesReferenceIndexExpression(ref, index, this);
+            }
+        } else {
+            if (expr->from_last) {
+                return new ast::BytesValueRangeIndexExpression(base, index, expr->from_last, index, expr->from_last, this);
+            } else {
+                return new ast::BytesValueIndexExpression(base, index, this);
             }
         }
     } else if (type == ast::TYPE_OBJECT) {
@@ -2927,9 +2984,9 @@ const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *exp
     } else if (type == ast::TYPE_BYTES) {
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new ast::BytesReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::BytesReferenceRangeIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         } else {
-            return new ast::BytesValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::BytesValueRangeIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         }
     } else {
         error2(3143, expr->base->token, "not an array or string", type->declaration, "declaration here");

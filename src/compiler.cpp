@@ -1832,6 +1832,22 @@ void ast::BytesValueIndexExpression::generate_expr(Emitter &emitter) const
     load->generate(emitter);
 }
 
+void ast::BytesReferenceRangeIndexExpression::generate_load(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
+void ast::BytesReferenceRangeIndexExpression::generate_store(Emitter &emitter) const
+{
+    store->generate(emitter);
+    ref->generate_store(emitter);
+}
+
+void ast::BytesValueRangeIndexExpression::generate_expr(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
 void ast::ObjectSubscriptExpression::generate_expr(Emitter &emitter) const
 {
     obj->generate(emitter);

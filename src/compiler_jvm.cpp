@@ -2203,10 +2203,54 @@ public:
 
 class BytesReferenceIndexExpression: public Expression {
 public:
-    explicit BytesReferenceIndexExpression(const ast::BytesReferenceIndexExpression *brie): Expression(brie), brie(brie), ref(transform(brie->ref)), first(transform(brie->first)), last(transform(brie->last)) {}
+    explicit BytesReferenceIndexExpression(const ast::BytesReferenceIndexExpression *brie): Expression(brie), brie(brie), ref(transform(brie->ref)), index(transform(brie->index)) {}
     BytesReferenceIndexExpression(const BytesReferenceIndexExpression &) = delete;
     BytesReferenceIndexExpression &operator=(const BytesReferenceIndexExpression &) = delete;
     const ast::BytesReferenceIndexExpression *brie;
+    const Expression *ref;
+    const Expression *index;
+
+    virtual void generate(Context &context) const override {
+        ref->generate(context);
+        index->generate(context);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__index", "([BLneon/type/Number;)Lneon/type/Number;");
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_store(Context &context) const override {
+        ref->generate(context);
+        index->generate(context);
+        context.push_integer(false);
+        index->generate(context);
+        context.push_integer(false);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__splice", "([B[BLneon/type/Number;ZLneon/type/Number;Z)[B");
+        ref->generate_store(context);
+    }
+};
+
+class BytesValueIndexExpression: public Expression {
+public:
+    explicit BytesValueIndexExpression(const ast::BytesValueIndexExpression *bvie): Expression(bvie), bvie(bvie), data(transform(bvie->str)), index(transform(bvie->index)) {}
+    BytesValueIndexExpression(const BytesValueIndexExpression &) = delete;
+    BytesValueIndexExpression &operator=(const BytesValueIndexExpression &) = delete;
+    const ast::BytesValueIndexExpression *bvie;
+    const Expression *data;
+    const Expression *index;
+
+    virtual void generate(Context &context) const override {
+        data->generate(context);
+        index->generate(context);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__index", "([BLneon/type/Number;)Lneon/type/Number;");
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesValueIndexExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("BytesValueIndexExpression"); }
+};
+
+class BytesReferenceRangeIndexExpression: public Expression {
+public:
+    explicit BytesReferenceRangeIndexExpression(const ast::BytesReferenceRangeIndexExpression *brie): Expression(brie), brie(brie), ref(transform(brie->ref)), first(transform(brie->first)), last(transform(brie->last)) {}
+    BytesReferenceRangeIndexExpression(const BytesReferenceRangeIndexExpression &) = delete;
+    BytesReferenceRangeIndexExpression &operator=(const BytesReferenceRangeIndexExpression &) = delete;
+    const ast::BytesReferenceRangeIndexExpression *brie;
     const Expression *ref;
     const Expression *first;
     const Expression *last;
@@ -2219,7 +2263,7 @@ public:
         context.push_integer(brie->last_from_end);
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
     }
-    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesReferenceRangeIndexExpression"); }
     virtual void generate_store(Context &context) const override {
         ref->generate(context);
         first->generate(context);
@@ -2231,12 +2275,12 @@ public:
     }
 };
 
-class BytesValueIndexExpression: public Expression {
+class BytesValueRangeIndexExpression: public Expression {
 public:
-    explicit BytesValueIndexExpression(const ast::BytesValueIndexExpression *bvie): Expression(bvie), bvie(bvie), data(transform(bvie->str)), first(transform(bvie->first)), last(transform(bvie->last)) {}
-    BytesValueIndexExpression(const BytesValueIndexExpression &) = delete;
-    BytesValueIndexExpression &operator=(const BytesValueIndexExpression &) = delete;
-    const ast::BytesValueIndexExpression *bvie;
+    explicit BytesValueRangeIndexExpression(const ast::BytesValueRangeIndexExpression *bvie): Expression(bvie), bvie(bvie), data(transform(bvie->str)), first(transform(bvie->first)), last(transform(bvie->last)) {}
+    BytesValueRangeIndexExpression(const BytesValueRangeIndexExpression &) = delete;
+    BytesValueRangeIndexExpression &operator=(const BytesValueRangeIndexExpression &) = delete;
+    const ast::BytesValueRangeIndexExpression *bvie;
     const Expression *data;
     const Expression *first;
     const Expression *last;
@@ -2249,8 +2293,8 @@ public:
         context.push_integer(bvie->last_from_end);
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
     }
-    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesValueIndexExpression"); }
-    virtual void generate_store(Context &) const override { internal_error("BytesValueIndexExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesValueRangeIndexExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("BytesValueRangeIndexExpression"); }
 };
 
 class RecordReferenceFieldExpression: public Expression {
@@ -3294,6 +3338,8 @@ public:
     virtual void visit(const ast::StringValueRangeIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::BytesReferenceRangeIndexExpression *) {}
+    virtual void visit(const ast::BytesValueRangeIndexExpression *) {}
     virtual void visit(const ast::ObjectSubscriptExpression *) {}
     virtual void visit(const ast::RecordReferenceFieldExpression *) {}
     virtual void visit(const ast::RecordValueFieldExpression *) {}
@@ -3421,6 +3467,8 @@ public:
     virtual void visit(const ast::StringValueRangeIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::BytesReferenceRangeIndexExpression *) {}
+    virtual void visit(const ast::BytesValueRangeIndexExpression *) {}
     virtual void visit(const ast::ObjectSubscriptExpression *) {}
     virtual void visit(const ast::RecordReferenceFieldExpression *) {}
     virtual void visit(const ast::RecordValueFieldExpression *) {}
@@ -3548,6 +3596,8 @@ public:
     virtual void visit(const ast::StringValueRangeIndexExpression *node) { r = new StringValueRangeIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *node) { r = new BytesValueIndexExpression(node); }
+    virtual void visit(const ast::BytesReferenceRangeIndexExpression *node) { r = new BytesReferenceRangeIndexExpression(node); }
+    virtual void visit(const ast::BytesValueRangeIndexExpression *node) { r = new BytesValueRangeIndexExpression(node); }
     virtual void visit(const ast::ObjectSubscriptExpression *) { internal_error("ObjectSubscriptExpression"); }
     virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
@@ -3675,6 +3725,8 @@ public:
     virtual void visit(const ast::StringValueRangeIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::BytesReferenceRangeIndexExpression *) {}
+    virtual void visit(const ast::BytesValueRangeIndexExpression *) {}
     virtual void visit(const ast::ObjectSubscriptExpression *) {}
     virtual void visit(const ast::RecordReferenceFieldExpression *) {}
     virtual void visit(const ast::RecordValueFieldExpression *) {}

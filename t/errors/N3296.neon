@@ -1,0 +1,3 @@
+LET b: Bytes := HEXBYTES "01"
+_ := b["hello"]
+       --<

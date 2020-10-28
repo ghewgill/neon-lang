@@ -328,6 +328,18 @@ utf8string string__toString(const utf8string &self)
     return self;
 }
 
+Number bytes__index(const std::vector<unsigned char> &t, Number index)
+{
+    if (not number_is_integer(index)) {
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(index)));
+    }
+    int64_t i = number_to_sint64(index);
+    if (i < 0 || i >= static_cast<int64_t>(t.size())) {
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(index)));
+    }
+    return number_from_uint8(t[i]);
+}
+
 std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {

@@ -111,6 +111,8 @@ public:
     virtual void visit(const class StringValueRangeIndexExpression *node) = 0;
     virtual void visit(const class BytesReferenceIndexExpression *node) = 0;
     virtual void visit(const class BytesValueIndexExpression *node) = 0;
+    virtual void visit(const class BytesReferenceRangeIndexExpression *node) = 0;
+    virtual void visit(const class BytesValueRangeIndexExpression *node) = 0;
     virtual void visit(const class ObjectSubscriptExpression *node) = 0;
     virtual void visit(const class RecordReferenceFieldExpression *node) = 0;
     virtual void visit(const class RecordValueFieldExpression *node) = 0;
@@ -2071,9 +2073,56 @@ public:
 
 class BytesReferenceIndexExpression: public ReferenceExpression {
 public:
-    BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index, Analyzer *analyzer);
     BytesReferenceIndexExpression(const BytesReferenceIndexExpression &) = delete;
     BytesReferenceIndexExpression &operator=(const BytesReferenceIndexExpression &) = delete;
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const ReferenceExpression *ref;
+    const Expression *index;
+
+    const FunctionCall *load;
+    const FunctionCall *store;
+
+    virtual bool is_pure(std::set<const ast::Function *> &context) const override { return ref->is_pure(context) && index->is_pure(context); }
+    virtual bool eval_boolean() const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual utf8string eval_string() const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual bool can_generate_address() const override { return false; }
+    virtual void generate_address_read(Emitter &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_load(Emitter &) const override;
+    virtual void generate_store(Emitter &) const override;
+
+    virtual std::string text() const override { return "BytesReferenceIndexExpression(" + ref->text() + ", " + index->text() + ")"; }
+};
+
+class BytesValueIndexExpression: public Expression {
+public:
+    BytesValueIndexExpression(const Expression *str, const Expression *index, Analyzer *analyzer);
+    BytesValueIndexExpression(const BytesValueIndexExpression &) = delete;
+    BytesValueIndexExpression &operator=(const BytesValueIndexExpression &) = delete;
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *str;
+    const Expression *index;
+
+    const FunctionCall *load;
+
+    virtual bool is_pure(std::set<const ast::Function *> &context) const override { return str->is_pure(context) && index->is_pure(context); }
+    virtual bool eval_boolean() const override { internal_error("BytesValueIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("BytesValueIndexExpression"); }
+    virtual utf8string eval_string() const override { internal_error("BytesValueIndexExpression"); }
+    virtual void generate_expr(Emitter &) const override;
+
+    virtual std::string text() const override { return "BytesValueIndexExpression(" + str->text() + ", " + index->text() + ")"; }
+};
+
+class BytesReferenceRangeIndexExpression: public ReferenceExpression {
+public:
+    BytesReferenceRangeIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    BytesReferenceRangeIndexExpression(const BytesReferenceRangeIndexExpression &) = delete;
+    BytesReferenceRangeIndexExpression &operator=(const BytesReferenceRangeIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
@@ -2086,23 +2135,23 @@ public:
     const FunctionCall *store;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return ref->is_pure(context) && first->is_pure(context) && last->is_pure(context); }
-    virtual bool eval_boolean() const override { internal_error("BytesReferenceIndexExpression"); }
-    virtual Number eval_number() const override { internal_error("BytesReferenceIndexExpression"); }
-    virtual utf8string eval_string() const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual bool eval_boolean() const override { internal_error("BytesReferenceRangeIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("BytesReferenceRangeIndexExpression"); }
+    virtual utf8string eval_string() const override { internal_error("BytesReferenceRangeIndexExpression"); }
     virtual bool can_generate_address() const override { return false; }
-    virtual void generate_address_read(Emitter &) const override { internal_error("BytesReferenceIndexExpression"); }
-    virtual void generate_address_write(Emitter &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const override { internal_error("BytesReferenceRangeIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("BytesReferenceRangeIndexExpression"); }
     virtual void generate_load(Emitter &) const override;
     virtual void generate_store(Emitter &) const override;
 
-    virtual std::string text() const override { return "BytesReferenceIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
+    virtual std::string text() const override { return "BytesReferenceRangeIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
 };
 
-class BytesValueIndexExpression: public Expression {
+class BytesValueRangeIndexExpression: public Expression {
 public:
-    BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
-    BytesValueIndexExpression(const BytesValueIndexExpression &) = delete;
-    BytesValueIndexExpression &operator=(const BytesValueIndexExpression &) = delete;
+    BytesValueRangeIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    BytesValueRangeIndexExpression(const BytesValueRangeIndexExpression &) = delete;
+    BytesValueRangeIndexExpression &operator=(const BytesValueRangeIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *str;
@@ -2114,12 +2163,12 @@ public:
     const FunctionCall *load;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return str->is_pure(context) && first->is_pure(context) && last->is_pure(context); }
-    virtual bool eval_boolean() const override { internal_error("BytesValueIndexExpression"); }
-    virtual Number eval_number() const override { internal_error("BytesValueIndexExpression"); }
-    virtual utf8string eval_string() const override { internal_error("BytesValueIndexExpression"); }
+    virtual bool eval_boolean() const override { internal_error("BytesValueRangeIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("BytesValueRangeIndexExpression"); }
+    virtual utf8string eval_string() const override { internal_error("BytesValueRangeIndexExpression"); }
     virtual void generate_expr(Emitter &) const override;
 
-    virtual std::string text() const override { return "BytesValueIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
+    virtual std::string text() const override { return "BytesValueRangeIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
 };
 
 class ObjectSubscriptExpression: public Expression {

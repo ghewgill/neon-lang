@@ -1108,6 +1108,10 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "bytes__decodeToString" DO
             LET y: Bytes := self.pop()->y
             self.stack.append(makeValueString(y.decodeToString()))
+        WHEN "bytes__index" DO
+            LET index: Number := self.pop()->n
+            LET y: Bytes := self.pop()->y
+            self.stack.append(makeValueNumber(y[index]))
         WHEN "bytes__range" DO
             LET last_from_end: Boolean := self.pop()->b
             VAR last: Number := self.pop()->n

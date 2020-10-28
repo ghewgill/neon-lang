@@ -228,6 +228,12 @@ public class Global {
         return r;
     }
 
+    public static neon.type.Number bytes__index(byte[] data, neon.type.Number index) {
+        assert(index.isInteger());
+        int i = index.intValue();
+        return new neon.type.Number(data[i]);
+    }
+
     public static byte[] bytes__range(byte[] data, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
         assert(first.isInteger());
         assert(last.isInteger());

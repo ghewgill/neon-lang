@@ -191,6 +191,7 @@ DECLARE NATIVE FUNCTION string__substring(s: String, first: Number, first_from_e
 DECLARE NATIVE FUNCTION string__toBytes(self: String): Bytes
 DECLARE NATIVE FUNCTION string__toString(self: String): String
 DECLARE NATIVE FUNCTION bytes__concat(a: Bytes, b: Bytes): Bytes
+DECLARE NATIVE FUNCTION bytes__index(s: Bytes, index: Number): Number
 DECLARE NATIVE FUNCTION bytes__range(s: Bytes, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Bytes
 DECLARE NATIVE FUNCTION bytes__size(self: Bytes): Number
 DECLARE NATIVE FUNCTION bytes__splice(t: Bytes, s: Bytes, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Bytes

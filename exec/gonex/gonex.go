@@ -2176,6 +2176,19 @@ func (self *executor) op_callp() {
 	case "bytes__decodeToString":
 		b := self.pop().bytes
 		self.push(make_cell_str(string(b)))
+	case "bytes__index":
+		nindex := self.pop().num
+		b := self.pop().bytes
+		if nindex != math.Trunc(nindex) {
+			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		} else {
+			index := int(nindex)
+			if index < 0 || index >= len(b) {
+				self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", index)})
+			} else {
+				self.push(make_cell_num(float64(b[index])))
+			}
+		}
 	case "bytes__range":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num

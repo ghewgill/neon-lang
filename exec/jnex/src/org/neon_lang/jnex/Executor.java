@@ -53,6 +53,7 @@ class Executor {
         predefined.put("array__toString__object", this::array__toString__object);
         predefined.put("boolean__toString", this::boolean__toString);
         predefined.put("bytes__decodeToString", this::bytes__decodeToString);
+        predefined.put("bytes__index", this::bytes__index);
         predefined.put("bytes__range", this::bytes__range);
         predefined.put("bytes__size", this::bytes__size);
         predefined.put("bytes__splice", this::bytes__splice);
@@ -1450,6 +1451,13 @@ class Executor {
     {
         byte[] b = stack.removeFirst().getBytes();
         stack.addFirst(new Cell(new String(b)));
+    }
+
+    private void bytes__index()
+    {
+        int index = stack.removeFirst().getNumber().intValueExact();
+        byte[] b = stack.removeFirst().getBytes();
+        stack.addFirst(new Cell(BigDecimal.valueOf(b[index])));
     }
 
     private void bytes__range()

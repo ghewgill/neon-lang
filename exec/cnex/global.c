@@ -335,6 +335,7 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("bytes__concat",             bytes__concat),
     PDFUNC("bytes__decodeToString",     bytes__decodeToString),
+    PDFUNC("bytes__index",              bytes__index),
     PDFUNC("bytes__range",              bytes__range),
     PDFUNC("bytes__size",               bytes__size),
     PDFUNC("bytes__splice",             bytes__splice),
@@ -853,6 +854,29 @@ void bytes__decodeToString(TExecutor *exec)
 
     pop(exec->stack);
     push(exec->stack, r);
+}
+
+void bytes__index(TExecutor *exec)
+{
+    Number index = top(exec->stack)->number;          pop(exec->stack);
+    Cell *t = top(exec->stack);
+
+    if (!number_is_integer(index)) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(index));
+        return;
+    }
+
+    int64_t i = number_to_sint64(index);
+    if (i < 0 || i >= (int64_t)t->string->length) {
+        char n[128];
+        snprintf(n, sizeof(n), "%" PRId64, i);
+        exec->rtl_raise(exec, "BytesIndexException", n);
+        return;
+    }
+
+    unsigned char c = t->string->data[i];
+    pop(exec->stack);
+    push(exec->stack, cell_fromNumber(number_from_uint8(c)));
 }
 
 void bytes__range(TExecutor *exec)

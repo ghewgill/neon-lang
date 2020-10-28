@@ -1860,6 +1860,18 @@ def neon_bytes__decodeToString(self):
     b = self.stack.pop()
     self.stack.append(b.decode())
 
+def neon_bytes__index(self):
+    index = self.stack.pop()
+    b = self.stack.pop()
+    if index != int(index):
+        self.raise_literal("BytesIndexException", index)
+        return
+    index = int(index)
+    if index < 0 or index >= len(b):
+        self.raise_literal("BytesIndexException", index)
+        return
+    self.stack.append(b[index])
+
 def neon_bytes__range(self):
     last_from_end = self.stack.pop()
     last = self.stack.pop()
