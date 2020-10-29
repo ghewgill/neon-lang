@@ -2,6 +2,7 @@
 
 // Needed for gethostbyname() on some Linux platforms.
 #define _DEFAULT_SOURCE
+#include <assert.h>
 #include <errno.h>
 #include <iso646.h>
 #include <stdio.h>
@@ -10,10 +11,51 @@
 #include "array.h"
 #include "cell.h"
 #include "exec.h"
+#include "object.h"
 #include "socketx.h"
 #include "stack.h"
 #include "nstring.h"
 
+
+void object_releaseSocketObject(Object *o)
+{
+    if (o != NULL) {
+        assert(o->refcount > 0);
+        o->refcount--;
+
+        if (o->refcount <= 0) {
+            if (o->ptr != NULL) {
+                SOCKET s = *(SOCKET*)o->ptr;
+                if (s != INVALID_SOCKET) {
+                    closesocket(s);
+                }
+            }
+            free(o->ptr);
+            free(o);
+        }
+    }
+}
+
+Object *object_createSocketObject(SOCKET s)
+{
+    Object *r = object_createObject();
+    r->ptr = malloc(sizeof(SOCKET));
+    *(SOCKET *)r->ptr = s;
+    r->release = object_releaseSocketObject;
+
+    return r;
+}
+
+
+static SOCKET *check_socket(TExecutor *exec, Object *o)
+{
+    // TODO: How can this function tell whether this is actually a socket object?
+    if (o == NULL || o->ptr == NULL || *(SOCKET *)o->ptr == INVALID_SOCKET) {
+        exec->rtl_raise(exec, "SocketException", "invalid socket");
+        return NULL;
+    }
+    return o->ptr;
+}
 
 
 #ifdef _WIN32
@@ -28,35 +70,32 @@ static void initWinsock()
 }
 #endif
 
-void net_tcpSocket(TExecutor *exec)
+void net_socket_tcpSocket(TExecutor *exec)
 {
 #ifdef _WIN32
     initWinsock();
 #endif
-    Cell *r = cell_createArrayCell(0);
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-    Cell handle; handle.type = cNumber;
-    handle.number = number_from_sint32((int32_t)(s));
-    cell_arrayAppendElement(r, handle);
-    push(exec->stack, r);
+    push(exec->stack, cell_fromObject(object_createSocketObject(s)));
 }
 
-void net_udpSocket(TExecutor *exec)
+void net_socket_udpSocket(TExecutor *exec)
 {
 #ifdef _WIN32
     initWinsock();
 #endif
-    Cell *r = cell_createArrayCell(0);
     SOCKET s = socket(AF_INET, SOCK_DGRAM, 0);
-    Cell handle; handle.type = cNumber;
-    handle.number = number_from_sint32((int32_t)(s));
-    cell_arrayAppendElement(r, handle);
-    push(exec->stack, r);
+    push(exec->stack, cell_fromObject(object_createSocketObject(s)));
 }
 
 void net_socket_accept(TExecutor *exec)
 {
-    SOCKET s = number_to_sint32(top(exec->stack)->number); pop(exec->stack);
+    Object *o = top(exec->stack)->object; pop(exec->stack);
+    SOCKET *ps = check_socket(exec, o);
+    if (ps == NULL) {
+        return;
+    }
+    SOCKET s = *ps;
 
     struct sockaddr_in sin;
     socklen_t slen = sizeof(sin);
@@ -66,21 +105,20 @@ void net_socket_accept(TExecutor *exec)
         push(exec->stack, cell_newCell());
         return;
     }
-    Cell *client = cell_createArrayCell(0);
-    Cell handle; handle.type = cNumber;
-    handle.number = number_from_sint32((int32_t)(r));
-    cell_arrayAppendElement(client, handle);
-
-    push(exec->stack, client);
+    push(exec->stack, cell_fromObject(object_createSocketObject(r)));
 }
 
 void net_socket_bind(TExecutor *exec)
 {
     Number port = peek(exec->stack, 0)->number;
     const char *address = string_ensureNullTerminated(peek(exec->stack, 1)->string);
-    Cell *handle = peek(exec->stack, 2);
+    Object *o = peek(exec->stack, 2)->object;
+    SOCKET *ps = check_socket(exec, o);
+    if (ps == NULL) {
+        return;
+    }
+    SOCKET s = *ps;
 
-    SOCKET s = number_to_sint32(handle->number);
     int p = number_to_sint32(port);
     struct in_addr addr;
     if (strlen(address) == 0) {
@@ -114,18 +152,28 @@ bail:
 
 void net_socket_close(TExecutor *exec)
 {
-    SOCKET s = number_to_sint32(top(exec->stack)->number); pop(exec->stack);
+    Object *o = top(exec->stack)->object; pop(exec->stack);
+    SOCKET *ps = check_socket(exec, o);
+    if (ps == NULL) {
+        return;
+    }
+    SOCKET s = *ps;
 
     closesocket(s);
+    *ps = INVALID_SOCKET;
 }
 
 void net_socket_connect(TExecutor *exec)
 {
     Number port = peek(exec->stack, 0)->number;
     const char *host = string_ensureNullTerminated(peek(exec->stack, 1)->string);
-    Number handle = peek(exec->stack, 2)->number;
+    Object *o = peek(exec->stack, 2)->object;
+    SOCKET *ps = check_socket(exec, o);
+    if (ps == NULL) {
+        return;
+    }
+    SOCKET s = *ps;
 
-    SOCKET s = number_to_sint32(handle);
     int p = number_to_sint32(port);
     struct in_addr addr;
     addr.s_addr = inet_addr(host);
@@ -157,9 +205,13 @@ bail:
 void net_socket_listen(TExecutor *exec)
 {
     Number port = top(exec->stack)->number; pop(exec->stack);
-    Number handle = top(exec->stack)->number; pop(exec->stack);
+    Object *o = top(exec->stack)->object; pop(exec->stack);
+    SOCKET *ps = check_socket(exec, o);
+    if (ps == NULL) {
+        return;
+    }
+    SOCKET s = *ps;
 
-    SOCKET s = number_to_sint32(handle);
     int on = 1;
     setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on));
     int p = number_to_sint32(port);
@@ -182,9 +234,13 @@ void net_socket_listen(TExecutor *exec)
 void net_socket_recv(TExecutor *exec)
 {
     Number count = top(exec->stack)->number; pop(exec->stack);
-    Number handle = top(exec->stack)->number; pop(exec->stack);
+    Object *o = top(exec->stack)->object; pop(exec->stack);
+    SOCKET *ps = check_socket(exec, o);
+    if (ps == NULL) {
+        return;
+    }
+    SOCKET s = *ps;
 
-    SOCKET s = number_to_sint32(handle);
     int n = number_to_sint32(count);
     unsigned char *buf = malloc(n);
     if (buf == NULL) {
@@ -210,9 +266,13 @@ void net_socket_recv(TExecutor *exec)
 void net_socket_send(TExecutor *exec)
 {
     TString *data = top(exec->stack)->string;
-    Number handle = peek(exec->stack, 1)->number;
+    Object *o = peek(exec->stack, 1)->object;
+    SOCKET *ps = check_socket(exec, o);
+    if (ps == NULL) {
+        return;
+    }
+    SOCKET s = *ps;
 
-    SOCKET s = number_to_sint32(handle);
     send(s, data->data, (int)data->length, 0);
 
     pop(exec->stack);
@@ -233,7 +293,8 @@ void net_socket_select(TExecutor *exec)
     int nfds = 0;
 
     for (size_t i = 0; i < read->array->size; i++) {
-        int fd = number_to_sint32(read->array->data[i].array->data[0].number);
+        SOCKET *ps = check_socket(exec, read->array->data[i].object);
+        SOCKET fd = *ps;
         FD_SET(fd, &rfds);
         if (fd + 1 > nfds) {
             nfds = fd+1;
@@ -241,7 +302,8 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < write->array->size; i++) {
-        int fd = number_to_sint32(write->array->data[i].array->data[0].number);
+        SOCKET *ps = check_socket(exec, read->array->data[i].object);
+        SOCKET fd = *ps;
         FD_SET(fd, &wfds);
         if (fd + 1 > nfds) {
             nfds = fd+1;
@@ -249,7 +311,8 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < error->array->size; i++) {
-        int fd = number_to_sint32(error->array->data[i].array->data[0].number);
+        SOCKET *ps = check_socket(exec, read->array->data[i].object);
+        SOCKET fd = *ps;
         FD_SET(fd, &efds);
         if (fd + 1 > nfds) {
             nfds = fd+1;
@@ -285,7 +348,9 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < read->array->size; ) {
-        if (FD_ISSET(number_to_sint32(read->array->data[i].array->data[0].number), &rfds)) {
+        SOCKET *ps = check_socket(exec, read->array->data[i].object);
+        SOCKET fd = *ps;
+        if (FD_ISSET(fd, &rfds)) {
             ++i;
         } else {
             array_removeItem(read->array, i);
@@ -293,7 +358,9 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < write->array->size; ) {
-        if (FD_ISSET(number_to_sint32(write->array->data[i].array->data[0].number), &rfds)) {
+        SOCKET *ps = check_socket(exec, write->array->data[i].object);
+        SOCKET fd = *ps;
+        if (FD_ISSET(fd, &rfds)) {
             ++i;
         } else {
             array_removeItem(write->array, i);
@@ -301,7 +368,9 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < error->array->size; ) {
-        if (FD_ISSET(number_to_sint32(error->array->data[i].array->data[0].number), &rfds)) {
+        SOCKET *ps = check_socket(exec, error->array->data[i].object);
+        SOCKET fd = *ps;
+        if (FD_ISSET(fd, &rfds)) {
             ++i;
         } else {
             array_removeItem(error->array, i);

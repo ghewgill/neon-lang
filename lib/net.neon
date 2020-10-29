@@ -16,32 +16,39 @@ EXPORT udpSocket
  */
 EXCEPTION SocketException
 
-TYPE Handle IS Number
-
 /*  Type: Socket
  *
  *  Opaque type representing a network socket.
  */
-TYPE Socket IS RECORD
-    PRIVATE handle: Handle
-END RECORD
+TYPE Socket IS Object
+
+DECLARE NATIVE FUNCTION socket_accept(socket: Socket): Socket
+DECLARE NATIVE FUNCTION socket_bind(socket: Socket, address: String, port: Number)
+DECLARE NATIVE FUNCTION socket_close(socket: Socket)
+DECLARE NATIVE FUNCTION socket_connect(socket: Socket, host: String, port: Number)
+DECLARE NATIVE FUNCTION socket_listen(socket: Socket, port: Number)
+DECLARE NATIVE FUNCTION socket_recv(socket: Socket, count: Number): Bytes
+DECLARE NATIVE FUNCTION socket_recvfrom(socket: Socket, count: Number, OUT remote_address: String, OUT remote_port: Number): Bytes
+DECLARE NATIVE FUNCTION socket_send(socket: Socket, data: Bytes)
+DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
+DECLARE NATIVE FUNCTION socket_tcpSocket(): Socket
+DECLARE NATIVE FUNCTION socket_udpSocket(): Socket
 
 /*  Function: tcpSocket
  *
  *  Create a new TCP/IP (stream) socket.
  */
-DECLARE NATIVE FUNCTION tcpSocket(): Socket
-DECLARE NATIVE FUNCTION udpSocket(): Socket
+FUNCTION tcpSocket(): Socket
+    RETURN socket_tcpSocket()
+END FUNCTION
 
-DECLARE NATIVE FUNCTION socket_accept(handle: Handle): Socket
-DECLARE NATIVE FUNCTION socket_bind(handle: Handle, address: String, port: Number)
-DECLARE NATIVE FUNCTION socket_close(handle: Handle)
-DECLARE NATIVE FUNCTION socket_connect(handle: Handle, host: String, port: Number)
-DECLARE NATIVE FUNCTION socket_listen(handle: Handle, port: Number)
-DECLARE NATIVE FUNCTION socket_recv(handle: Handle, count: Number): Bytes
-DECLARE NATIVE FUNCTION socket_recvfrom(handle: Handle, count: Number, OUT remote_address: String, OUT remote_port: Number): Bytes
-DECLARE NATIVE FUNCTION socket_send(handle: Handle, data: Bytes)
-DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
+/*  Function: udpSocket
+ *
+ *  Create a new UDP/IP (datagram) socket.
+ */
+FUNCTION udpSocket(): Socket
+    RETURN socket_udpSocket()
+END FUNCTION
 
 /*  Function: select
  *
@@ -58,7 +65,7 @@ END FUNCTION
  *  Accept an incoming connection request on a socket and returns a new socket.
  */
 FUNCTION Socket.accept(self: Socket): Socket
-    RETURN socket_accept(self.handle)
+    RETURN socket_accept(self)
 END FUNCTION
 
 /*  Function: Socket.bind
@@ -66,7 +73,7 @@ END FUNCTION
  *  Bind a socket to an address and port number.
  */
 FUNCTION Socket.bind(self: Socket, address: String, port: Number)
-    socket_bind(self.handle, address, port)
+    socket_bind(self, address, port)
 END FUNCTION
 
 /*  Function: Socket.close
@@ -74,7 +81,7 @@ END FUNCTION
  *  Close a socket.
  */
 FUNCTION Socket.close(self: Socket)
-    socket_close(self.handle)
+    socket_close(self)
 END FUNCTION
 
 /*  Function: Socket.connect
@@ -82,7 +89,7 @@ END FUNCTION
  *  Connect a socket to a given host and port.
  */
 FUNCTION Socket.connect(self: Socket, host: String, port: Number)
-    socket_connect(self.handle, host, port)
+    socket_connect(self, host, port)
 END FUNCTION
 
 /*  Function: Socket.listen
@@ -90,7 +97,7 @@ END FUNCTION
  *  Listen for incoming connections on a specific port.
  */
 FUNCTION Socket.listen(self: Socket, port: Number)
-    socket_listen(self.handle, port)
+    socket_listen(self, port)
 END FUNCTION
 
 /*  Function: Socket.recv
@@ -98,7 +105,7 @@ END FUNCTION
  *  Receive (read) bytes from a socket.
  */
 FUNCTION Socket.recv(self: Socket, count: Number): Bytes
-    RETURN socket_recv(self.handle, count)
+    RETURN socket_recv(self, count)
 END FUNCTION
 
 /*  Function: Socket.recvfrom
@@ -106,7 +113,7 @@ END FUNCTION
  *  Receive (read) bytes from a socket, also returning the remote address where they came from.
  */
 FUNCTION Socket.recvfrom(self: Socket, count: Number, OUT remote_address: String, OUT remote_port: Number): Bytes
-    RETURN socket_recvfrom(self.handle, count, OUT remote_address, OUT remote_port)
+    RETURN socket_recvfrom(self, count, OUT remote_address, OUT remote_port)
 END FUNCTION
 
 /*  Function: Socket.send
@@ -114,5 +121,5 @@ END FUNCTION
  *  Send (write) bytes to a socket.
  */
 FUNCTION Socket.send(self: Socket, data: Bytes)
-    socket_send(self.handle, data)
+    socket_send(self, data)
 END FUNCTION

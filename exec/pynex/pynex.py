@@ -2568,7 +2568,7 @@ def neon_mmap_read(self):
 def neon_net_socket_accept(self):
     sock = self.stack.pop()
     (t, _) = sock.accept()
-    self.stack.append([Value(t)])
+    self.stack.append(t)
 
 def neon_net_socket_bind(self):
     port = int(self.stack.pop())
@@ -2604,13 +2604,13 @@ def neon_net_socket_send(self):
     sock = self.stack.pop()
     sock.send(b)
 
-def neon_net_tcpSocket(self):
+def neon_net_socket_tcpSocket(self):
     r = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.stack.append([Value(r)])
+    self.stack.append(r)
 
-def neon_net_udpSocket(self):
+def neon_net_socket_udpSocket(self):
     r = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    self.stack.append([Value(r)])
+    self.stack.append(r)
 
 def neon_os_system(self):
     s = self.stack.pop()

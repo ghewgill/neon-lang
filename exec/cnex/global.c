@@ -159,8 +159,8 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("mmap$write",                mmap_write),
 
     // net - network module functions
-    PDFUNC("net$tcpSocket",             net_tcpSocket),
-    PDFUNC("net$udpSocket",             net_udpSocket),
+    PDFUNC("net$socket_tcpSocket",      net_socket_tcpSocket),
+    PDFUNC("net$socket_udpSocket",      net_socket_udpSocket),
     PDFUNC("net$socket_accept",         net_socket_accept),
     PDFUNC("net$socket_bind",           net_socket_bind),
     PDFUNC("net$socket_close",          net_socket_close),

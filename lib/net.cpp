@@ -6,6 +6,30 @@
 #include "rtl_exec.h"
 #include "socketx.h"
 
+class SocketObject: public Object {
+public:
+    SOCKET handle;
+public:
+    explicit SocketObject(SOCKET handle): handle(handle) {}
+    SocketObject(const SocketObject &) = delete;
+    SocketObject &operator=(const SocketObject &) = delete;
+    ~SocketObject() {
+        if (handle != INVALID_SOCKET) {
+            closesocket(handle);
+        }
+    }
+    virtual utf8string toString() const { return utf8string("<Socket:" + std::to_string(handle) + ">"); }
+};
+
+static SocketObject *check_socket(const std::shared_ptr<Object> &ps)
+{
+    SocketObject *so = dynamic_cast<SocketObject *>(ps.get());
+    if (so == nullptr || so->handle == INVALID_SOCKET) {
+        throw RtlException(rtl::ne_net::Exception_SocketException, utf8string(""));
+    }
+    return so;
+}
+
 namespace rtl {
 
 namespace ne_net {
@@ -22,46 +46,40 @@ void initWinsock()
 }
 #endif
 
-Cell tcpSocket()
+std::shared_ptr<Object> socket_tcpSocket()
 {
 #ifdef _WIN32
     initWinsock();
 #endif
-    Cell r;
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-    r.array_index_for_write(0) = Cell(number_from_sint32(static_cast<int32_t>(s)));
-    return r;
+    return std::make_shared<SocketObject>(s);
 }
 
-Cell udpSocket()
+std::shared_ptr<Object> socket_udpSocket()
 {
 #ifdef _WIN32
     initWinsock();
 #endif
-    Cell r;
     SOCKET s = socket(AF_INET, SOCK_DGRAM, 0);
-    r.array_index_for_write(0) = Cell(number_from_sint32(static_cast<int32_t>(s)));
-    return r;
+    return std::make_shared<SocketObject>(s);
 }
 
-Cell socket_accept(Cell &handle)
+std::shared_ptr<Object> socket_accept(const std::shared_ptr<Object> &socket)
 {
-    SOCKET s = number_to_sint32(handle.number());
+    SOCKET s = check_socket(socket)->handle;
     sockaddr_in sin;
     socklen_t slen = sizeof(sin);
     SOCKET r = accept(s, reinterpret_cast<sockaddr *>(&sin), &slen);
     if (r < 0) {
         perror("accept");
-        return Cell();
+        return nullptr;
     }
-    Cell client;
-    client.array_index_for_write(0) = Cell(number_from_sint32(static_cast<int32_t>(r)));
-    return client;
+    return std::make_shared<SocketObject>(r);
 }
 
-void socket_bind(Cell &handle, const utf8string &address, Number port)
+void socket_bind(const std::shared_ptr<Object> &socket, const utf8string &address, Number port)
 {
-    SOCKET s = number_to_sint32(handle.number());
+    SOCKET s = check_socket(socket)->handle;
     int p = number_to_sint32(port);
     in_addr addr;
     if (address.empty()) {
@@ -86,15 +104,16 @@ void socket_bind(Cell &handle, const utf8string &address, Number port)
     }
 }
 
-void socket_close(Cell &handle)
+void socket_close(const std::shared_ptr<Object> &socket)
 {
-    SOCKET s = number_to_sint32(handle.number());
-    closesocket(s);
+    SocketObject *s = check_socket(socket);
+    closesocket(s->handle);
+    s->handle = -1;
 }
 
-void socket_connect(Cell &handle, const utf8string &host, Number port)
+void socket_connect(const std::shared_ptr<Object> &socket, const utf8string &host, Number port)
 {
-    SOCKET s = number_to_sint32(handle.number());
+    SOCKET s = check_socket(socket)->handle;
     int p = number_to_sint32(port);
     in_addr addr;
     addr.s_addr = inet_addr(host.c_str());
@@ -115,9 +134,9 @@ void socket_connect(Cell &handle, const utf8string &host, Number port)
     }
 }
 
-void socket_listen(Cell &handle, Number port)
+void socket_listen(const std::shared_ptr<Object> &socket, Number port)
 {
-    SOCKET s = number_to_sint32(handle.number());
+    SOCKET s = check_socket(socket)->handle;
     int on = 1;
     setsockopt(s, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&on), sizeof(on));
     int p = number_to_sint32(port);
@@ -137,9 +156,9 @@ void socket_listen(Cell &handle, Number port)
     }
 }
 
-std::vector<unsigned char> socket_recv(Cell &handle, Number count)
+std::vector<unsigned char> socket_recv(const std::shared_ptr<Object> &socket, Number count)
 {
-    SOCKET s = number_to_sint32(handle.number());
+    SOCKET s = check_socket(socket)->handle;
     int n = number_to_sint32(count);
     std::vector<unsigned char> buf(n);
     int r = recv(s, reinterpret_cast<char *>(const_cast<unsigned char *>(buf.data())), n, 0);
@@ -151,9 +170,9 @@ std::vector<unsigned char> socket_recv(Cell &handle, Number count)
     return buf;
 }
 
-std::vector<unsigned char> socket_recvfrom(Cell &handle, Number count, utf8string *remote_address, Number *remote_port)
+std::vector<unsigned char> socket_recvfrom(const std::shared_ptr<Object> &socket, Number count, utf8string *remote_address, Number *remote_port)
 {
-    SOCKET s = number_to_sint32(handle.number());
+    SOCKET s = check_socket(socket)->handle;
     int n = number_to_sint32(count);
     std::vector<unsigned char> buf(n);
     struct sockaddr_in sin;
@@ -169,9 +188,9 @@ std::vector<unsigned char> socket_recvfrom(Cell &handle, Number count, utf8strin
     return buf;
 }
 
-void socket_send(Cell &handle, const std::vector<unsigned char> &data)
+void socket_send(const std::shared_ptr<Object> &socket, const std::vector<unsigned char> &data)
 {
-    SOCKET s = number_to_sint32(handle.number());
+    SOCKET s = check_socket(socket)->handle;
     send(s, reinterpret_cast<const char *>(data.data()), static_cast<int>(data.size()), 0);
 }
 
@@ -184,8 +203,8 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     int nfds = 0;
 
     std::vector<Cell> &ra = read->array_for_write();
-    for (auto s: ra) {
-        int fd = number_to_sint32(s.array_for_write()[0].number());
+    for (auto &s: ra) {
+        int fd = check_socket(s.object())->handle;
         FD_SET(fd, &rfds);
         if (fd+1 > nfds) {
             nfds = fd+1;
@@ -193,8 +212,8 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     std::vector<Cell> &wa = write->array_for_write();
-    for (auto s: wa) {
-        int fd = number_to_sint32(s.array_for_write()[0].number());
+    for (auto &s: wa) {
+        int fd = check_socket(s.object())->handle;
         FD_SET(fd, &wfds);
         if (fd+1 > nfds) {
             nfds = fd+1;
@@ -202,8 +221,8 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     std::vector<Cell> &ea = error->array_for_write();
-    for (auto s: ea) {
-        int fd = number_to_sint32(s.array_for_write()[0].number());
+    for (auto &s: ea) {
+        int fd = check_socket(s.object())->handle;
         FD_SET(fd, &efds);
         if (fd+1 > nfds) {
             nfds = fd+1;
@@ -235,7 +254,8 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = ra.begin(); i != ra.end(); ) {
-        if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &rfds)) {
+        int fd = check_socket(i->object())->handle;
+        if (FD_ISSET(fd, &rfds)) {
             ++i;
         } else {
             i = ra.erase(i);
@@ -243,7 +263,8 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = wa.begin(); i != wa.end(); ) {
-        if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &wfds)) {
+        int fd = check_socket(i->object())->handle;
+        if (FD_ISSET(fd, &wfds)) {
             ++i;
         } else {
             i = wa.erase(i);
@@ -251,7 +272,8 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = ea.begin(); i != ea.end(); ) {
-        if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &efds)) {
+        int fd = check_socket(i->object())->handle;
+        if (FD_ISSET(fd, &efds)) {
             ++i;
         } else {
             i = ea.erase(i);

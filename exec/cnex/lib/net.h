@@ -3,8 +3,8 @@
 
 struct tagTExecutor;
 
-void net_tcpSocket(struct tagTExecutor *exec);
-void net_udpSocket(struct tagTExecutor *exec);
+void net_socket_tcpSocket(struct tagTExecutor *exec);
+void net_socket_udpSocket(struct tagTExecutor *exec);
 
 void net_socket_accept(struct tagTExecutor *exec);
 void net_socket_bind(struct tagTExecutor *exec);

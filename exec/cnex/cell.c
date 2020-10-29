@@ -634,7 +634,7 @@ int32_t cell_compareCell(const Cell * s, const Cell * d)
         case cDictionary:   return !dictionary_compareDictionary(s->dictionary, d->dictionary);
         case cNothing:      return s != d;
         case cNumber:       return !number_is_equal(s->number, d->number);
-        case cObject:       assert(FALSE); return 0;
+        case cObject:       return s->object != d->object;
         case cString:       return string_compareString(s->string, d->string);
         case cOther:        return s->other != d->other;
     }
