@@ -156,36 +156,46 @@ void socket_listen(const std::shared_ptr<Object> &socket, Number port)
     }
 }
 
-std::vector<unsigned char> socket_recv(const std::shared_ptr<Object> &socket, Number count)
+bool socket_recv(const std::shared_ptr<Object> &socket, Number count, std::vector<unsigned char> *buffer)
 {
     SOCKET s = check_socket(socket)->handle;
     int n = number_to_sint32(count);
-    std::vector<unsigned char> buf(n);
-    int r = recv(s, reinterpret_cast<char *>(const_cast<unsigned char *>(buf.data())), n, 0);
+    buffer->resize(n);
+    int r = recv(s, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer->data())), n, 0);
     if (r < 0) {
         perror("recv");
-        return std::vector<unsigned char>();
+        buffer->clear();
+        return false;
     }
-    buf.resize(r);
-    return buf;
+    if (r == 0) {
+        buffer->clear();
+        return false;
+    }
+    buffer->resize(r);
+    return true;
 }
 
-std::vector<unsigned char> socket_recvfrom(const std::shared_ptr<Object> &socket, Number count, utf8string *remote_address, Number *remote_port)
+bool socket_recvfrom(const std::shared_ptr<Object> &socket, Number count, utf8string *remote_address, Number *remote_port, std::vector<unsigned char> *buffer)
 {
     SOCKET s = check_socket(socket)->handle;
     int n = number_to_sint32(count);
-    std::vector<unsigned char> buf(n);
+    buffer->resize(n);
     struct sockaddr_in sin;
     socklen_t sin_len = sizeof(sin);
-    int r = recvfrom(s, reinterpret_cast<char *>(const_cast<unsigned char *>(buf.data())), n, 0, reinterpret_cast<sockaddr *>(&sin), &sin_len);
+    int r = recvfrom(s, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer->data())), n, 0, reinterpret_cast<sockaddr *>(&sin), &sin_len);
     if (r < 0) {
         perror("recvfrom");
-        return std::vector<unsigned char>();
+        buffer->clear();
+        return false;
     }
-    buf.resize(r);
+    if (r == 0) {
+        buffer->clear();
+        return false;
+    }
+    buffer->resize(r);
     *remote_address = utf8string(inet_ntoa(sin.sin_addr));
     *remote_port = number_from_uint32(ntohs(sin.sin_port));
-    return buf;
+    return true;
 }
 
 void socket_send(const std::shared_ptr<Object> &socket, const std::vector<unsigned char> &data)

@@ -223,8 +223,8 @@ LOOP
         END IF
         FOR i := clients.size()-1 TO 0 STEP -1 DO
             IF clients[i].socket IN read THEN
-                LET buf: Bytes := clients[i].socket.recv(1000)
-                IF buf.size() > 0 THEN
+                VAR buf: Bytes
+                IF clients[i].socket.recv(1000, OUT buf) THEN
                     clients[i].handleInput(buf)
                     IF clients[i].handler = NOWHERE THEN
                         clients[i].close()

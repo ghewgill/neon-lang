@@ -254,11 +254,17 @@ void net_socket_recv(TExecutor *exec)
         empty->type = cBytes;
         push(exec->stack, empty);
     }
+    if (r == 0) {
+        push(exec->stack, cell_fromBoolean(FALSE));
+        push(exec->stack, cell_fromBytes(string_newString()));
+        return;
+    }
     TString *ret = string_newString();
     ret->data = (char*)buf;
     ret->length = r;
 
     // Note that cell_fromBytes() will automatically resize (truncate) the returned buffer to r.
+    push(exec->stack, cell_fromBoolean(TRUE));
     push(exec->stack, cell_fromBytes(ret));
     string_freeString(ret);
 }
