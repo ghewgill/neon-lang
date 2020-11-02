@@ -70,7 +70,11 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
 END FUNCTION
 
 FUNCTION HttpServer.handle_incoming(INOUT self: HttpServer, INOUT client: Client): Boolean
-    client.header.append(client.socket.recv(1000).toString())
+    VAR buf: Bytes
+    IF NOT client.socket.recv(1000, OUT buf) THEN
+        RETURN TRUE
+    END IF
+    client.header.append(buf.decodeToString())
     IF client.header[LAST-3 TO LAST] = "\r\n\r\n" THEN
         self.handle_request(INOUT client)
         RETURN TRUE

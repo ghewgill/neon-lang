@@ -2597,6 +2597,7 @@ def neon_net_socket_recv(self):
     count = int(self.stack.pop())
     sock = self.stack.pop()
     r = sock.recv(count)
+    self.stack.append(len(r) > 0)
     self.stack.append(r)
 
 def neon_net_socket_send(self):
