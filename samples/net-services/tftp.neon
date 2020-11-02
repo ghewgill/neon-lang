@@ -44,7 +44,10 @@ FUNCTION Client.close(INOUT self: Client)
 END FUNCTION
 
 FUNCTION Client.handleRead(INOUT self: Client): Boolean
-    LET buf: Bytes := self.socket.recv(1024)
+    VAR buf: Bytes
+    IF NOT self.socket.recv(1024, OUT buf) THEN
+        RETURN FALSE
+    END IF
     LET a: Array<Number> := buf.toArray()
     IF a[0] = 0 THEN
         IF a[1] = Type_ACK THEN
@@ -91,7 +94,10 @@ LOOP
         IF server IN read THEN
             VAR remote_address: String
             VAR remote_port: Number
-            LET data: Bytes := server.recvfrom(1024, OUT remote_address, OUT remote_port)
+            VAR data: Bytes
+            IF NOT server.recvfrom(1024, OUT remote_address, OUT remote_port, OUT data) THEN
+                EXIT LOOP
+            END IF
             LET a: Array<Number> := data.toArray()
             IF a[0] = 0 THEN
                 IF a[1] = Type_RRQ THEN
