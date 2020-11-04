@@ -157,6 +157,7 @@ void cell_array_clear(struct Ne_Cell *cell)
 {
     cell_ensureArray((Cell*)cell);
     array_freeArray(((Cell*)cell)->array);
+    ((Cell*)cell)->array = NULL;
     cell_ensureArray((Cell*)cell);
 }
 
