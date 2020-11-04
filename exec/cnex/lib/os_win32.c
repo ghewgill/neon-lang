@@ -125,8 +125,8 @@ void os_spawn(TExecutor *exec)
                             &si,
                             &pi);
     if (r == FALSE) {
-        free(cmd);
         exec->rtl_raise(exec, "OsException.PathNotFound", cmd);
+        free(cmd);
         return;
     }
     AssignProcessToJobObject(job, pi.hProcess);
