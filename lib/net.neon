@@ -27,6 +27,7 @@ DECLARE NATIVE FUNCTION socket_accept(socket: Socket): Socket
 DECLARE NATIVE FUNCTION socket_bind(socket: Socket, address: String, port: Number)
 DECLARE NATIVE FUNCTION socket_close(socket: Socket)
 DECLARE NATIVE FUNCTION socket_connect(socket: Socket, host: String, port: Number)
+DECLARE NATIVE FUNCTION socket_getTlsVersion(socket: Socket): String
 DECLARE NATIVE FUNCTION socket_listen(socket: Socket, port: Number)
 DECLARE NATIVE FUNCTION socket_recv(socket: Socket, count: Number, OUT buffer: Bytes): Boolean
 DECLARE NATIVE FUNCTION socket_recvfrom(socket: Socket, count: Number, OUT remote_address: String, OUT remote_port: Number, OUT buffer: Bytes): Boolean
@@ -96,6 +97,10 @@ END FUNCTION
  */
 FUNCTION Socket.connect(self: Socket, host: String, port: Number)
     socket_connect(self, host, port)
+END FUNCTION
+
+FUNCTION Socket.getTlsVersion(self: Socket): String
+    RETURN socket_getTlsVersion(self)
 END FUNCTION
 
 /*  Function: Socket.listen

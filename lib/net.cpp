@@ -22,6 +22,7 @@ public:
     virtual void bind(const utf8string &address, Number port) = 0;
     virtual void close() = 0;
     virtual void connect(const utf8string &host, Number port) = 0;
+    virtual utf8string getTlsVersion() { return utf8string(); }
     virtual void listen(Number port) = 0;
     virtual bool recv(Number count, std::vector<unsigned char> *buffer) = 0;
     virtual bool recvfrom(Number count, utf8string *remote_address, Number *remote_port, std::vector<unsigned char> *buffer) = 0;
@@ -29,16 +30,13 @@ public:
 };
 
 class RawSocketObject: public SocketObject {
-public:
     SOCKET handle;
 public:
     explicit RawSocketObject(SOCKET handle): handle(handle) {}
     RawSocketObject(const RawSocketObject &) = delete;
     RawSocketObject &operator=(const RawSocketObject &) = delete;
     virtual ~RawSocketObject() {
-        if (handle != INVALID_SOCKET) {
-            closesocket(handle);
-        }
+        close();
     }
     virtual utf8string toString() const override { return utf8string("<RawSocket:" + std::to_string(handle) + ">"); }
     virtual bool is_valid() override { return handle != INVALID_SOCKET; }
@@ -78,8 +76,10 @@ public:
         }
     }
     virtual void close() override {
-        closesocket(handle);
-        handle = -1;
+        if (handle != INVALID_SOCKET) {
+            closesocket(handle);
+            handle = INVALID_SOCKET;
+        }
     }
     virtual void connect(const utf8string &host, Number port) override {
         int p = number_to_sint32(port);
@@ -161,38 +161,165 @@ public:
     }
 };
 
+SSL_CTX *ctx = nullptr;
+
 class TlsClientObject: public SocketObject {
-public:
-    SSL_CTX *ctx = nullptr;
-    BIO *bio = nullptr;
+    std::shared_ptr<SocketObject> socket;
     SSL *ssl = nullptr;
+    BIO *read_bio = nullptr;
+    BIO *write_bio = nullptr;
+    std::vector<unsigned char> write_buf;
+    std::vector<unsigned char> encrypt_buf;
 public:
-    TlsClientObject() {}
+    TlsClientObject(std::shared_ptr<SocketObject> socket): socket(socket) {
+        if (ctx == nullptr) {
+            SSL_library_init();
+            OpenSSL_add_all_algorithms();
+            ctx = SSL_CTX_new(SSLv23_method());
+            SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+        }
+        ssl = SSL_new(ctx);
+        read_bio = BIO_new(BIO_s_mem());
+        write_bio = BIO_new(BIO_s_mem());
+        SSL_set_connect_state(ssl);
+        SSL_set_bio(ssl, read_bio, write_bio);
+    }
     TlsClientObject(const TlsClientObject &) = delete;
     TlsClientObject &operator=(const TlsClientObject &) = delete;
     virtual ~TlsClientObject() {
+        close();
+        SSL_free(ssl);
     }
     virtual utf8string toString() const override { return utf8string("<TlsSocket:" + std::to_string(ctx != nullptr) + ">"); }
     virtual bool is_valid() override { return ctx != nullptr; }
-    virtual SOCKET get_handle() override { return INVALID_SOCKET; }
+    virtual SOCKET get_handle() override { return socket->get_handle(); }
     virtual std::shared_ptr<Object> accept() override {
-        return nullptr;
+        return socket->accept();
     }
-    virtual void bind(const utf8string &, Number) override {
+    virtual void bind(const utf8string &address, Number port) override {
+        socket->bind(address, port);
     }
     virtual void close() override {
+        socket->close();
     }
-    virtual void connect(const utf8string &, Number) override {
+    virtual void connect(const utf8string &host, Number port) override {
+        socket->connect(host, port);
+        SSL_set_tlsext_host_name(ssl, host.c_str());
+        do_handshake();
     }
-    virtual void listen(Number) override {
+    virtual utf8string getTlsVersion() override {
+        return utf8string(SSL_get_version(ssl));
     }
-    virtual bool recv(Number, std::vector<unsigned char> *) override {
-        return false;
+    virtual void listen(Number port) override {
+        socket->listen(port);
+    }
+    virtual bool recv(Number count, std::vector<unsigned char> *buffer) override {
+        //printf("recv\n");
+        buffer->clear();
+        std::vector<unsigned char> raw_buffer;
+        bool r = socket->recv(count, &raw_buffer);
+        if (not r) {
+            //printf("  close\n");
+            return false;
+        }
+        //printf("  raw_buffer=%zd\n", raw_buffer.size());
+        size_t i = 0;
+        while (i < raw_buffer.size()) {
+            //printf("  i=%zd size=%zd\n", i, raw_buffer.size());
+            int n = BIO_write(read_bio, raw_buffer.data() + i, raw_buffer.size() - i);
+            if (n <= 0) {
+                abort(); // TODO
+            }
+            i += n;
+            if (not SSL_is_init_finished(ssl)) {
+                do_handshake();
+                if (not SSL_is_init_finished(ssl)) {
+                    return true;
+                }
+                process_outgoing_data();
+            }
+            for (;;) {
+                unsigned char buf[1024];
+                int r = SSL_read(ssl, buf, sizeof(buf));
+                //printf("  r=%d\n", r);
+                if (r <= 0) {
+                    break;
+                }
+                std::copy(buf, buf + r, std::back_inserter(*buffer));
+            }
+            int err = SSL_get_error(ssl, n);
+            err=err; //printf("  err=%d\n", err);
+        }
+        return true;
     }
     virtual bool recvfrom(Number, utf8string *, Number *, std::vector<unsigned char> *) override {
         return false;
     }
-    virtual void send(const std::vector<unsigned char> &) override {
+    virtual void send(const std::vector<unsigned char> &data) override {
+        //printf("send %zd\n", data.size());
+        std::copy(data.begin(), data.end(), std::back_inserter(encrypt_buf));
+        process_outgoing_data();
+    }
+private:
+    void do_handshake() {
+        //printf("do_handshake\n");
+        int r = SSL_do_handshake(ssl);
+        //printf("  r=%d\n", r);
+        int err = SSL_get_error(ssl, r);
+        //printf("  err=%d\n", err);
+        switch (err) {
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+                process_send_data();
+                break;
+        }
+        if (not write_buf.empty()) {
+            //printf("  send write_buf %zd\n", write_buf.size());
+            socket->send(write_buf);
+            write_buf.clear();
+        }
+    }
+    void process_outgoing_data() {
+        //printf("process_outgoing_data\n");
+        if (not SSL_is_init_finished(ssl)) {
+            //printf("  waiting until init finished buffer=%zd\n", encrypt_buf.size());
+            return;
+        }
+        //printf("  encrypting %zd\n", encrypt_buf.size());
+        while (not encrypt_buf.empty()) {
+            int n = SSL_write(ssl, encrypt_buf.data(), encrypt_buf.size());
+            // TODO: check status
+            if (n > 0) {
+                encrypt_buf.erase(encrypt_buf.begin(), encrypt_buf.begin() + n);
+                process_send_data();
+            } else {
+                break;
+            }
+        }
+    }
+    void process_send_data() {
+        //printf("process_send_data\n");
+        for (;;) {
+            unsigned char buf[1024];
+            int r = BIO_read(write_bio, buf, sizeof(buf));
+            if (r > 0) {
+                //printf("  copy %d to write_buf\n", r);
+                std::copy(buf, buf+r, std::back_inserter(write_buf));
+                fd_set fds;
+                FD_ZERO(&fds);
+                SOCKET h = socket->get_handle();
+                FD_SET(h, &fds);
+                if (select(h+1, NULL, &fds, NULL, 0) > 0) {
+                    //printf("  actually sending write_buf\n");
+                    socket->send(write_buf);
+                    write_buf.clear();
+                }
+            } else if (not BIO_should_retry(write_bio)) {
+                abort(); // TODO
+            } else {
+                break;
+            }
+        }
     }
 };
 
@@ -232,7 +359,8 @@ std::shared_ptr<Object> socket_tcpSocket()
 
 std::shared_ptr<Object> socket_tlsClientSocket()
 {
-    return std::make_shared<TlsClientObject>();
+    SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
+    return std::make_shared<TlsClientObject>(std::make_shared<RawSocketObject>(s));
 }
 
 std::shared_ptr<Object> socket_udpSocket()
@@ -262,6 +390,11 @@ void socket_close(const std::shared_ptr<Object> &socket)
 void socket_connect(const std::shared_ptr<Object> &socket, const utf8string &host, Number port)
 {
     check_socket(socket)->connect(host, port);
+}
+
+utf8string socket_getTlsVersion(const std::shared_ptr<Object> &socket)
+{
+    return check_socket(socket)->getTlsVersion();
 }
 
 void socket_listen(const std::shared_ptr<Object> &socket, Number port)

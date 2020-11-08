@@ -438,6 +438,8 @@ target_include_directories(executor
 target_link_libraries(executor
     common
     sqlite3
+    crypto
+    ssl
 )
 if (WIN32)
     target_link_libraries(executor wsock32)
