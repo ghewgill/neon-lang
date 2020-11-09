@@ -259,6 +259,7 @@ public:
                     return true;
                 }
                 //printf("  init finished\n");
+                process_send_data();
                 process_outgoing_data();
             }
             for (;;) {
@@ -308,8 +309,8 @@ private:
             //printf("  waiting until init finished buffer=%zd\n", encrypt_buf.size());
             return;
         }
-        //printf("  encrypting %zd\n", encrypt_buf.size());
         while (not encrypt_buf.empty()) {
+            //printf("  encrypting %zd\n", encrypt_buf.size());
             int n = SSL_write(ssl, encrypt_buf.data(), encrypt_buf.size());
             // TODO: check status
             if (n > 0) {
