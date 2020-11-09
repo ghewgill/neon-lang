@@ -18,7 +18,7 @@ public:
     virtual ~SocketObject() {}
     virtual bool is_valid() = 0;
     virtual SOCKET get_handle() = 0;
-    virtual std::shared_ptr<Object> accept() = 0; 
+    virtual std::shared_ptr<SocketObject> accept() = 0;
     virtual void bind(const utf8string &address, Number port) = 0;
     virtual void close() = 0;
     virtual void connect(const utf8string &host, Number port) = 0;
@@ -41,7 +41,7 @@ public:
     virtual utf8string toString() const override { return utf8string("<RawSocket:" + std::to_string(handle) + ">"); }
     virtual bool is_valid() override { return handle != INVALID_SOCKET; }
     virtual SOCKET get_handle() override { return handle; }
-    virtual std::shared_ptr<Object> accept() override {
+    virtual std::shared_ptr<SocketObject> accept() override {
         sockaddr_in sin;
         socklen_t slen = sizeof(sin);
         SOCKET r = ::accept(handle, reinterpret_cast<sockaddr *>(&sin), &slen);
@@ -163,7 +163,7 @@ public:
 
 SSL_CTX *ctx = nullptr;
 
-class TlsClientObject: public SocketObject {
+class TlsSocketObject: public SocketObject {
     std::shared_ptr<SocketObject> socket;
     SSL *ssl = nullptr;
     BIO *read_bio = nullptr;
@@ -171,30 +171,47 @@ class TlsClientObject: public SocketObject {
     std::vector<unsigned char> write_buf;
     std::vector<unsigned char> encrypt_buf;
 public:
-    TlsClientObject(std::shared_ptr<SocketObject> socket): socket(socket) {
+    enum class TlsMode { CLIENT, SERVER };
+    TlsSocketObject(std::shared_ptr<SocketObject> socket, TlsMode mode, const char *certfile, const char *keyfile): socket(socket) {
         if (ctx == nullptr) {
             SSL_library_init();
             OpenSSL_add_all_algorithms();
             ctx = SSL_CTX_new(SSLv23_method());
             SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+            if (certfile != nullptr && keyfile != nullptr) {
+                SSL_CTX_use_certificate_chain_file(ctx, certfile);
+                SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM);
+                if (SSL_CTX_check_private_key(ctx) != 1) {
+                    abort();
+                }
+            }
         }
         ssl = SSL_new(ctx);
         read_bio = BIO_new(BIO_s_mem());
         write_bio = BIO_new(BIO_s_mem());
-        SSL_set_connect_state(ssl);
+        switch (mode) {
+            case TlsMode::CLIENT:
+                SSL_set_connect_state(ssl);
+                break;
+            case TlsMode::SERVER:
+                SSL_set_accept_state(ssl);
+                break;
+            default:
+                abort();
+        }
         SSL_set_bio(ssl, read_bio, write_bio);
     }
-    TlsClientObject(const TlsClientObject &) = delete;
-    TlsClientObject &operator=(const TlsClientObject &) = delete;
-    virtual ~TlsClientObject() {
+    TlsSocketObject(const TlsSocketObject &) = delete;
+    TlsSocketObject &operator=(const TlsSocketObject &) = delete;
+    virtual ~TlsSocketObject() {
         close();
         SSL_free(ssl);
     }
     virtual utf8string toString() const override { return utf8string("<TlsSocket:" + std::to_string(ctx != nullptr) + ">"); }
     virtual bool is_valid() override { return ctx != nullptr; }
     virtual SOCKET get_handle() override { return socket->get_handle(); }
-    virtual std::shared_ptr<Object> accept() override {
-        return socket->accept();
+    virtual std::shared_ptr<SocketObject> accept() override {
+        return std::make_shared<TlsSocketObject>(socket->accept(), TlsMode::SERVER, nullptr, nullptr);
     }
     virtual void bind(const utf8string &address, Number port) override {
         socket->bind(address, port);
@@ -232,10 +249,12 @@ public:
             }
             i += n;
             if (not SSL_is_init_finished(ssl)) {
+                //printf("  init not finished\n");
                 do_handshake();
                 if (not SSL_is_init_finished(ssl)) {
                     return true;
                 }
+                //printf("  init finished\n");
                 process_outgoing_data();
             }
             for (;;) {
@@ -360,7 +379,13 @@ std::shared_ptr<Object> socket_tcpSocket()
 std::shared_ptr<Object> socket_tlsClientSocket()
 {
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-    return std::make_shared<TlsClientObject>(std::make_shared<RawSocketObject>(s));
+    return std::make_shared<TlsSocketObject>(std::make_shared<RawSocketObject>(s), TlsSocketObject::TlsMode::CLIENT, nullptr, nullptr);
+}
+
+std::shared_ptr<Object> socket_tlsServerSocket(const utf8string &certfile, const utf8string &keyfile)
+{
+    SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
+    return std::make_shared<TlsSocketObject>(std::make_shared<RawSocketObject>(s), TlsSocketObject::TlsMode::SERVER, certfile.c_str(), keyfile.c_str());
 }
 
 std::shared_ptr<Object> socket_udpSocket()

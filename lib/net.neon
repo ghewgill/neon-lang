@@ -10,6 +10,7 @@ EXPORT select
 EXPORT tcpSocket
 EXPORT udpSocket
 EXPORT tlsClientSocket
+EXPORT tlsServerSocket
 
 /*  Exception: SocketException
  *
@@ -35,6 +36,7 @@ DECLARE NATIVE FUNCTION socket_send(socket: Socket, data: Bytes)
 DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
 DECLARE NATIVE FUNCTION socket_tcpSocket(): Socket
 DECLARE NATIVE FUNCTION socket_tlsClientSocket(): Socket
+DECLARE NATIVE FUNCTION socket_tlsServerSocket(certfile, keyfile: String): Socket
 DECLARE NATIVE FUNCTION socket_udpSocket(): Socket
 
 /*  Function: tcpSocket
@@ -47,6 +49,10 @@ END FUNCTION
 
 FUNCTION tlsClientSocket(): Socket
     RETURN socket_tlsClientSocket()
+END FUNCTION
+
+FUNCTION tlsServerSocket(certfile, keyfile: String): Socket
+    RETURN socket_tlsServerSocket(certfile, keyfile)
 END FUNCTION
 
 /*  Function: udpSocket
