@@ -24,6 +24,7 @@ public:
     virtual void connect(const utf8string &host, Number port) = 0;
     virtual utf8string getTlsVersion() { return utf8string(); }
     virtual void listen(Number port) = 0;
+    virtual bool needsWrite() { return false; }
     virtual bool recv(Number count, std::vector<unsigned char> *buffer) = 0;
     virtual bool recvfrom(Number count, utf8string *remote_address, Number *remote_port, std::vector<unsigned char> *buffer) = 0;
     virtual void send(const std::vector<unsigned char> &data) = 0;
@@ -230,6 +231,9 @@ public:
     virtual void listen(Number port) override {
         socket->listen(port);
     }
+    virtual bool needsWrite() override {
+        return write_buf.size() > 0;
+    }
     virtual bool recv(Number count, std::vector<unsigned char> *buffer) override {
         //printf("recv\n");
         buffer->clear();
@@ -267,7 +271,7 @@ public:
                 std::copy(buf, buf + r, std::back_inserter(*buffer));
             }
             int err = SSL_get_error(ssl, n);
-            err=err; //printf("  err=%d\n", err);
+            (void)err; //printf("  err=%d\n", err);
         }
         return true;
     }
@@ -425,6 +429,11 @@ utf8string socket_getTlsVersion(const std::shared_ptr<Object> &socket)
 void socket_listen(const std::shared_ptr<Object> &socket, Number port)
 {
     check_socket(socket)->listen(port);
+}
+
+bool socket_needsWrite(const std::shared_ptr<Object> &socket)
+{
+    return check_socket(socket)->needsWrite();
 }
 
 bool socket_recv(const std::shared_ptr<Object> &socket, Number count, std::vector<unsigned char> *buffer)
