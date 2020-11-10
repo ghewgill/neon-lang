@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Ubuntu
 
 on:
   push:
@@ -8,9 +8,7 @@ on:
 
 jobs:
   build:
-    
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v2
     - name: prep
@@ -18,4 +16,4 @@ jobs:
     - name: build
       run: cmake --build .
     - name: test
-      run: ctest
+      run: ctest --output-on-failure
