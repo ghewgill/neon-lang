@@ -9,6 +9,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: prep
       run: |
+        dir c:\
+        where python
         copy c:\python37\python.exe c:\python37\python3.exe
         cmake .
     - name: build
