@@ -8,9 +8,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: prep
-      run:
-        - "copy c:\\python37\\python.exe c:\\python37\\python3.exe"
-        - cmake .
+      run: "copy c:\\python37\\python.exe c:\\python37\\python3.exe"
+      run: cmake .
     - name: build
       run: cmake --build .
     - name: test
