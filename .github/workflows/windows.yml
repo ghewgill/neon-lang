@@ -9,7 +9,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: prep
       run: |
-        dir c:\
+        dir c:\python.exe /s
         where python
         cmake .
     - name: build
