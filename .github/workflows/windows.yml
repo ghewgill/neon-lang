@@ -12,6 +12,7 @@ jobs:
         dir c:\python.exe /s
         where python
         cmake .
+      shell: cmd
     - name: build
       run: cmake --build .
     - name: test
