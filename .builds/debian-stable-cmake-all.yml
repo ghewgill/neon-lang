@@ -1,5 +1,6 @@
 image: debian/stable
 packages:
+- python3
 - cmake
 - ncurses-dev
 - libgmp-dev
