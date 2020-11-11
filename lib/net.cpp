@@ -255,7 +255,11 @@ public:
             int index = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
             X509_NAME_ENTRY *entry = X509_NAME_get_entry(name, index);
             ASN1_STRING *cn = X509_NAME_ENTRY_get_data(entry);
-            const unsigned char *data = ASN1_STRING_data(cn);
+            #if OPENSSL_VERSION_NUMBER >= 0x10100000
+                const unsigned char *data = ASN1_STRING_get0_data(cn);
+            #else
+                const unsigned char *data = ASN1_STRING_data(cn);
+            #endif
             int len = ASN1_STRING_length(cn);
             certificate->array_index_for_write(0) = Cell(utf8string(std::string(reinterpret_cast<const char *>(data), len)));
             X509_free(cert);
