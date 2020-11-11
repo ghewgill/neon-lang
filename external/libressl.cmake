@@ -17,7 +17,7 @@ else ()
     else (WIN32)
         add_custom_command(
             OUTPUT lib/libssl.a lib/libcrypto.a
-            COMMAND cd libressl-3.2.2.tar.gz && ./configure --prefix=`pwd`/.. --with-pic && make && make install
+            COMMAND cd libressl-3.2.2 && ./configure --prefix=`pwd`/.. --with-pic && make && make install
         )
         add_custom_target(libssl DEPENDS lib/libssl.a)
         add_library(RESSL::SSL STATIC IMPORTED GLOBAL)
