@@ -120,6 +120,7 @@ endif ()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(GMP)
 find_package(ZLIB)
+#find_package(OpenSSL)
 add_subdirectory(external)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
@@ -438,8 +439,7 @@ target_include_directories(executor
 target_link_libraries(executor
     common
     sqlite3
-    crypto
-    ssl
+    ${OPENSSL_TARGET}
 )
 if (WIN32)
     target_link_libraries(executor wsock32)

@@ -35,6 +35,7 @@ external/minijson_writer-master/
 external/NaturalDocs/
 external/pyparsing-2.4.5/
 external/minizip11/
+external/libressl-3.2.2/
 
 external/etc
 external/include
