@@ -8,6 +8,8 @@
 #include "rtl_exec.h"
 #include "socketx.h"
 
+#include "enums.inc"
+
 // https://wiki.openssl.org/index.php/SSL/TLS_Client
 
 class SocketObject: public Object {
@@ -22,7 +24,9 @@ public:
     virtual void bind(const utf8string &address, Number port) = 0;
     virtual void close() = 0;
     virtual void connect(const utf8string &host, Number port) = 0;
+    virtual bool getTlsPeerCertificate(Cell * /*certificate*/) { return false; }
     virtual utf8string getTlsVersion() { return utf8string(); }
+    virtual bool isTlsInitComplete() { return false; }
     virtual void listen(Number port) = 0;
     virtual bool needsWrite() { return false; }
     virtual bool recv(Number count, std::vector<unsigned char> *buffer) = 0;
@@ -166,6 +170,7 @@ SSL_CTX *ctx = nullptr;
 
 class TlsSocketObject: public SocketObject {
     std::shared_ptr<SocketObject> socket;
+    const uint32_t validateMode;
     SSL *ssl = nullptr;
     BIO *read_bio = nullptr;
     BIO *write_bio = nullptr;
@@ -173,7 +178,7 @@ class TlsSocketObject: public SocketObject {
     std::vector<unsigned char> encrypt_buf;
 public:
     enum class TlsMode { CLIENT, SERVER };
-    TlsSocketObject(std::shared_ptr<SocketObject> socket, TlsMode mode, const char *certfile, const char *keyfile): socket(socket) {
+    TlsSocketObject(std::shared_ptr<SocketObject> socket, TlsMode mode, uint32_t validateMode, const char *certfile, const char *keyfile): socket(socket), validateMode(validateMode) {
         if (ctx == nullptr) {
             SSL_library_init();
             OpenSSL_add_all_algorithms();
@@ -212,7 +217,7 @@ public:
     virtual bool is_valid() override { return ctx != nullptr; }
     virtual SOCKET get_handle() override { return socket->get_handle(); }
     virtual std::shared_ptr<SocketObject> accept() override {
-        return std::make_shared<TlsSocketObject>(socket->accept(), TlsMode::SERVER, nullptr, nullptr);
+        return std::make_shared<TlsSocketObject>(socket->accept(), TlsMode::SERVER, ENUM_TlsPeerValidateMode_AllowInvalidCertificate, nullptr, nullptr);
     }
     virtual void bind(const utf8string &address, Number port) override {
         socket->bind(address, port);
@@ -225,8 +230,44 @@ public:
         SSL_set_tlsext_host_name(ssl, host.c_str());
         do_handshake();
     }
+    virtual bool getTlsPeerCertificate(Cell *certificate) override {
+        *certificate = Cell();
+        for (;;) {
+            do_handshake();
+            if (SSL_is_init_finished(ssl)) {
+                break;
+            }
+            if (validateMode == ENUM_TlsPeerValidateMode_RequireValidCertificate && SSL_get_verify_result(ssl) != X509_V_OK) {
+                throw RtlException(rtl::ne_net::Exception_SocketException_PeerCertificateInvalid, utf8string(""));
+            }
+            std::vector<unsigned char> raw_buffer;
+            if (not socket->recv(number_from_uint32(1000), &raw_buffer)) {
+                return false;
+            }
+            int n = BIO_write(read_bio, raw_buffer.data(), raw_buffer.size());
+            if (n < static_cast<int>(raw_buffer.size())) {
+                abort(); // TODO
+            }
+        }
+        X509 *cert = SSL_get_peer_certificate(ssl);
+        if (cert != nullptr) {
+            X509_NAME *name = X509_get_subject_name(cert);
+            int index = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
+            X509_NAME_ENTRY *entry = X509_NAME_get_entry(name, index);
+            ASN1_STRING *cn = X509_NAME_ENTRY_get_data(entry);
+            const unsigned char *data = ASN1_STRING_data(cn);
+            int len = ASN1_STRING_length(cn);
+            certificate->array_index_for_write(0) = Cell(utf8string(std::string(reinterpret_cast<const char *>(data), len)));
+            X509_free(cert);
+            return true;
+        }
+        return false;
+    }
     virtual utf8string getTlsVersion() override {
         return utf8string(SSL_get_version(ssl));
+    }
+    virtual bool isTlsInitComplete() override {
+        return SSL_is_init_finished(ssl);
     }
     virtual void listen(Number port) override {
         socket->listen(port);
@@ -257,6 +298,9 @@ public:
                 do_handshake();
                 if (not SSL_is_init_finished(ssl)) {
                     return true;
+                }
+                if (validateMode == ENUM_TlsPeerValidateMode_RequireValidCertificate && SSL_get_verify_result(ssl) != X509_V_OK) {
+                    throw RtlException(rtl::ne_net::Exception_SocketException_PeerCertificateInvalid, utf8string(""));
                 }
                 //printf("  init finished\n");
                 process_send_data();
@@ -381,16 +425,16 @@ std::shared_ptr<Object> socket_tcpSocket()
     return std::make_shared<RawSocketObject>(s);
 }
 
-std::shared_ptr<Object> socket_tlsClientSocket()
+std::shared_ptr<Object> socket_tlsClientSocket(Cell &validateMode)
 {
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-    return std::make_shared<TlsSocketObject>(std::make_shared<RawSocketObject>(s), TlsSocketObject::TlsMode::CLIENT, nullptr, nullptr);
+    return std::make_shared<TlsSocketObject>(std::make_shared<RawSocketObject>(s), TlsSocketObject::TlsMode::CLIENT, number_to_uint32(validateMode.number()), nullptr, nullptr);
 }
 
 std::shared_ptr<Object> socket_tlsServerSocket(const utf8string &certfile, const utf8string &keyfile)
 {
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-    return std::make_shared<TlsSocketObject>(std::make_shared<RawSocketObject>(s), TlsSocketObject::TlsMode::SERVER, certfile.c_str(), keyfile.c_str());
+    return std::make_shared<TlsSocketObject>(std::make_shared<RawSocketObject>(s), TlsSocketObject::TlsMode::SERVER, ENUM_TlsPeerValidateMode_RequireValidCertificate, certfile.c_str(), keyfile.c_str());
 }
 
 std::shared_ptr<Object> socket_udpSocket()
@@ -422,9 +466,19 @@ void socket_connect(const std::shared_ptr<Object> &socket, const utf8string &hos
     check_socket(socket)->connect(host, port);
 }
 
+bool socket_getTlsPeerCertificate(const std::shared_ptr<Object> &socket, Cell *certificate)
+{
+    return check_socket(socket)->getTlsPeerCertificate(certificate);
+}
+
 utf8string socket_getTlsVersion(const std::shared_ptr<Object> &socket)
 {
     return check_socket(socket)->getTlsVersion();
+}
+
+bool socket_isTlsInitComplete(const std::shared_ptr<Object> &socket)
+{
+    return check_socket(socket)->isTlsInitComplete();
 }
 
 void socket_listen(const std::shared_ptr<Object> &socket, Number port)

@@ -5,6 +5,8 @@
 
 EXPORT Socket
 EXPORT SocketException
+EXPORT TlsCertificate
+EXPORT TlsPeerValidateMode
 
 EXPORT select
 EXPORT tcpSocket
@@ -17,6 +19,7 @@ EXPORT tlsServerSocket
  *  Indicates some kind of socket error.
  */
 EXCEPTION SocketException
+EXCEPTION SocketException.PeerCertificateInvalid
 
 /*  Type: Socket
  *
@@ -24,11 +27,23 @@ EXCEPTION SocketException
  */
 TYPE Socket IS Object
 
+TYPE TlsCertificate IS RECORD
+    commonName: String
+    -- TODO
+END RECORD
+
+TYPE TlsPeerValidateMode IS ENUM
+    RequireValidCertificate
+    AllowInvalidCertificate
+END ENUM
+
 DECLARE NATIVE FUNCTION socket_accept(socket: Socket): Socket
 DECLARE NATIVE FUNCTION socket_bind(socket: Socket, address: String, port: Number)
 DECLARE NATIVE FUNCTION socket_close(socket: Socket)
 DECLARE NATIVE FUNCTION socket_connect(socket: Socket, host: String, port: Number)
+DECLARE NATIVE FUNCTION socket_getTlsPeerCertificate(socket: Socket, OUT certificate: TlsCertificate): Boolean
 DECLARE NATIVE FUNCTION socket_getTlsVersion(socket: Socket): String
+DECLARE NATIVE FUNCTION socket_isTlsInitComplete(socket: Socket): Boolean
 DECLARE NATIVE FUNCTION socket_listen(socket: Socket, port: Number)
 DECLARE NATIVE FUNCTION socket_needsWrite(socket: Socket): Boolean
 DECLARE NATIVE FUNCTION socket_recv(socket: Socket, count: Number, OUT buffer: Bytes): Boolean
@@ -36,7 +51,7 @@ DECLARE NATIVE FUNCTION socket_recvfrom(socket: Socket, count: Number, OUT remot
 DECLARE NATIVE FUNCTION socket_send(socket: Socket, data: Bytes)
 DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
 DECLARE NATIVE FUNCTION socket_tcpSocket(): Socket
-DECLARE NATIVE FUNCTION socket_tlsClientSocket(): Socket
+DECLARE NATIVE FUNCTION socket_tlsClientSocket(validateMode: TlsPeerValidateMode): Socket
 DECLARE NATIVE FUNCTION socket_tlsServerSocket(certfile, keyfile: String): Socket
 DECLARE NATIVE FUNCTION socket_udpSocket(): Socket
 
@@ -48,8 +63,8 @@ FUNCTION tcpSocket(): Socket
     RETURN socket_tcpSocket()
 END FUNCTION
 
-FUNCTION tlsClientSocket(): Socket
-    RETURN socket_tlsClientSocket()
+FUNCTION tlsClientSocket(validateMode: TlsPeerValidateMode DEFAULT TlsPeerValidateMode.RequireValidCertificate): Socket
+    RETURN socket_tlsClientSocket(validateMode)
 END FUNCTION
 
 FUNCTION tlsServerSocket(certfile, keyfile: String): Socket
@@ -106,8 +121,16 @@ FUNCTION Socket.connect(self: Socket, host: String, port: Number)
     socket_connect(self, host, port)
 END FUNCTION
 
+FUNCTION Socket.getTlsPeerCertificate(self: Socket, OUT certificate: TlsCertificate): Boolean
+    RETURN socket_getTlsPeerCertificate(self, OUT certificate)
+END FUNCTION
+
 FUNCTION Socket.getTlsVersion(self: Socket): String
     RETURN socket_getTlsVersion(self)
+END FUNCTION
+
+FUNCTION Socket.isTlsInitComplete(self: Socket): Boolean
+    RETURN socket_isTlsInitComplete(self)
 END FUNCTION
 
 /*  Function: Socket.listen
