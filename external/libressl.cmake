@@ -287,10 +287,14 @@ else ()
         target_compile_definitions(RESSL PRIVATE -D__END_HIDDEN_DECLS=)
         target_include_directories(RESSL
             PUBLIC libressl-3.2.2/include
-            PUBLIC libressl-3.2.2/include/compat
-            PUBLIC libressl-3.2.2/crypto
-            PUBLIC libressl-3.2.2/crypto/asn1
-            PUBLIC libressl-3.2.2/crypto/evp
+            PRIVATE libressl-3.2.2/include/compat
+            PRIVATE libressl-3.2.2/crypto
+            PRIVATE libressl-3.2.2/crypto/asn1
+            PRIVATE libressl-3.2.2/crypto/bn
+            PRIVATE libressl-3.2.2/crypto/ec
+            PRIVATE libressl-3.2.2/crypto/ecdh
+            PRIVATE libressl-3.2.2/crypto/evp
+            PRIVATE libressl-3.2.2/crypto/modes
         )
         set(OPENSSL_TARGET "RESSL")
     else (WIN32)
