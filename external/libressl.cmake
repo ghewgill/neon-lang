@@ -18,25 +18,21 @@ else ()
             libressl-3.2.2/crypto/aes/aes_core.c
             libressl-3.2.2/crypto/asn1/a_bitstr.c
             libressl-3.2.2/crypto/asn1/a_bool.c
-            libressl-3.2.2/crypto/asn1/a_bytes.c
             libressl-3.2.2/crypto/asn1/a_d2i_fp.c
             libressl-3.2.2/crypto/asn1/a_digest.c
             libressl-3.2.2/crypto/asn1/a_dup.c
             libressl-3.2.2/crypto/asn1/a_enum.c
-            libressl-3.2.2/crypto/asn1/a_gentm.c
             libressl-3.2.2/crypto/asn1/a_i2d_fp.c
             libressl-3.2.2/crypto/asn1/a_int.c
             libressl-3.2.2/crypto/asn1/a_mbstr.c
             libressl-3.2.2/crypto/asn1/a_object.c
             libressl-3.2.2/crypto/asn1/a_octet.c
             libressl-3.2.2/crypto/asn1/a_print.c
-            libressl-3.2.2/crypto/asn1/a_set.c
             libressl-3.2.2/crypto/asn1/a_sign.c
             libressl-3.2.2/crypto/asn1/a_strex.c
             libressl-3.2.2/crypto/asn1/a_strnid.c
             libressl-3.2.2/crypto/asn1/a_time.c
             libressl-3.2.2/crypto/asn1/a_type.c
-            libressl-3.2.2/crypto/asn1/a_utctm.c
             libressl-3.2.2/crypto/asn1/a_utf8.c
             libressl-3.2.2/crypto/asn1/a_verify.c
             libressl-3.2.2/crypto/asn1/ameth_lib.c
@@ -163,7 +159,6 @@ else ()
             libressl-3.2.2/crypto/ec/ecp_smpl.c
             libressl-3.2.2/crypto/ecdh/ech_key.c
             libressl-3.2.2/crypto/ecdh/ech_lib.c
-            libressl-3.2.2/crypto/ecdh/ech_ossl.c
             libressl-3.2.2/crypto/ecdsa/ecs_asn1.c
             libressl-3.2.2/crypto/ecdsa/ecs_lib.c
             libressl-3.2.2/crypto/ecdsa/ecs_ossl.c
@@ -265,7 +260,6 @@ else ()
             libressl-3.2.2/crypto/rsa/rsa_pmeth.c
             libressl-3.2.2/crypto/rsa/rsa_pss.c
             libressl-3.2.2/crypto/rsa/rsa_sign.c
-            libressl-3.2.2/crypto/rsa/rsa_ssl.c
             libressl-3.2.2/crypto/rsa/rsa_x931.c
             libressl-3.2.2/crypto/sha/sha1_one.c
             libressl-3.2.2/crypto/sha/sha1dgst.c
@@ -286,40 +280,11 @@ else ()
             libressl-3.2.2/crypto/x509/x509_vpm.c
             libressl-3.2.2/crypto/x509/x509name.c
             libressl-3.2.2/crypto/x509/x509rset.c
-            libressl-3.2.2/crypto/x509v3/pcy_cache.c
-            libressl-3.2.2/crypto/x509v3/pcy_data.c
-            libressl-3.2.2/crypto/x509v3/pcy_lib.c
-            libressl-3.2.2/crypto/x509v3/pcy_map.c
-            libressl-3.2.2/crypto/x509v3/pcy_node.c
-            libressl-3.2.2/crypto/x509v3/pcy_tree.c
-            libressl-3.2.2/crypto/x509v3/v3_akey.c
-            libressl-3.2.2/crypto/x509v3/v3_akeya.c
-            libressl-3.2.2/crypto/x509v3/v3_alt.c
-            libressl-3.2.2/crypto/x509v3/v3_bcons.c
-            libressl-3.2.2/crypto/x509v3/v3_bitst.c
-            libressl-3.2.2/crypto/x509v3/v3_conf.c
-            libressl-3.2.2/crypto/x509v3/v3_cpols.c
-            libressl-3.2.2/crypto/x509v3/v3_crld.c
-            libressl-3.2.2/crypto/x509v3/v3_enum.c
-            libressl-3.2.2/crypto/x509v3/v3_extku.c
-            libressl-3.2.2/crypto/x509v3/v3_genn.c
-            libressl-3.2.2/crypto/x509v3/v3_ia5.c
-            libressl-3.2.2/crypto/x509v3/v3_info.c
-            libressl-3.2.2/crypto/x509v3/v3_int.c
-            libressl-3.2.2/crypto/x509v3/v3_lib.c
-            libressl-3.2.2/crypto/x509v3/v3_ncons.c
-            libressl-3.2.2/crypto/x509v3/v3_ocsp.c
-            libressl-3.2.2/crypto/x509v3/v3_pci.c
-            libressl-3.2.2/crypto/x509v3/v3_pcia.c
-            libressl-3.2.2/crypto/x509v3/v3_pcons.c
-            libressl-3.2.2/crypto/x509v3/v3_pku.c
-            libressl-3.2.2/crypto/x509v3/v3_pmaps.c
-            libressl-3.2.2/crypto/x509v3/v3_prn.c
-            libressl-3.2.2/crypto/x509v3/v3_purp.c
-            libressl-3.2.2/crypto/x509v3/v3_skey.c
-            libressl-3.2.2/crypto/x509v3/v3_sxnet.c
-            libressl-3.2.2/crypto/x509v3/v3_utl.c
         )
+        target_compile_definitions(RESSL PRIVATE -DLIBRESSL_INTERNAL)
+        target_compile_definitions(RESSL PRIVATE -DOPENSSL_NO_HW_PADLOCK)
+        target_compile_definitions(RESSL PRIVATE -D__BEGIN_HIDDEN_DECLS=)
+        target_compile_definitions(RESSL PRIVATE -D__END_HIDDEN_DECLS=)
         target_include_directories(RESSL
             PUBLIC libressl-3.2.2/include
             PUBLIC libressl-3.2.2/include/compat
