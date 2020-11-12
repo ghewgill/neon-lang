@@ -3,6 +3,7 @@ packages:
 - cmake
 - gmp-dev
 - zlib-dev
+- openssl-dev
 - perl
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
