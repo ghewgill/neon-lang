@@ -19,17 +19,23 @@ void random_bytes(TExecutor *exec)
     Cell *r = cell_createStringCell(count);
     r->type = cBytes;
 
+    char err[64];
     HCRYPTPROV hCryptProv;
     if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, 0)) {
-        cell_freeCell(r);
-        exec->rtl_raise(exec, "RandomException", "could not acquire default crypto context");
-        return;
+        // No default context/container was found, so we'll attempt to just create one.
+        if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
+            snprintf(err, sizeof(err), "could not create crypto context. Error: 0x%08x", GetLastError());
+            cell_freeCell(r);
+            exec->rtl_raise(exec, "RandomException", err);
+            return;
+        }
     }
     char *p = r->string->data;
     if (!CryptGenRandom(hCryptProv, (DWORD)count, (BYTE*)p)) {
-        cell_freeCell(r);
+        snprintf(err, sizeof(err), "failed to get random data. Error: 0x%08x", GetLastError());
         CryptReleaseContext(hCryptProv, 0);
-        exec->rtl_raise(exec, "RandomException", "failed to get random data");
+        cell_freeCell(r);
+        exec->rtl_raise(exec, "RandomException", err);
         return;
     }
     CryptReleaseContext(hCryptProv, 0);
