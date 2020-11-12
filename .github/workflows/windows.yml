@@ -1,0 +1,19 @@
+name: Windows
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: prep
+      run: |
+        where python
+        copy c:\hostedtoolcache\windows\Python\3.7.9\x64\python.exe c:\hostedtoolcache\windows\Python\3.7.9\x64\python3.exe
+        cmake .
+      shell: cmd
+    - name: build
+      run: cmake --build .
+    - name: test
+      run: ctest -C Debug --output-on-failure

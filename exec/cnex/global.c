@@ -173,6 +173,7 @@ TDispatch gfuncDispatch[] = {
     // OS - Operating System function calls
     PDFUNC("os$getenv",                 os_getenv),
     PDFUNC("os$platform",               os_platform),
+    PDFUNC("os$kill",                   os_kill),
     PDFUNC("os$spawn",                  os_spawn),
     PDFUNC("os$system",                 os_system),
     PDFUNC("os$wait",                   os_wait),

@@ -1,0 +1,15 @@
+name: Ubuntu
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: prep
+      run: cmake .
+    - name: build
+      run: cmake --build .
+    - name: test
+      run: ctest --output-on-failure
