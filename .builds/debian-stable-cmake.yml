@@ -5,6 +5,7 @@ packages:
 - ncurses-dev
 - libgmp-dev
 - zlib1g-dev
+- libssl-dev
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 tasks:

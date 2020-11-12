@@ -5,6 +5,7 @@ packages:
 - ncurses-dev
 - libgmp-dev
 - zlib1g-dev
+- libssl-dev
 - default-jdk
 - mono-mcs
 - nodejs
