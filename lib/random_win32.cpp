@@ -13,17 +13,21 @@ std::vector<unsigned char> bytes(Number count)
 {
     size_t icount = number_to_uint32(count);
     std::vector<unsigned char> r(icount);
+    char err[64];
 
     HCRYPTPROV hCryptProv;
     if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, 0)) {
-        // Should we return GetLastError() in the exception too?
-        throw RtlException(Exception_RandomException, utf8string("could not acquire default crypto context"));
+        // No default context/container was found, so we'll attempt to just create one.
+        if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
+            snprintf(err, sizeof(err), "could not create crypto context. Error 0x%08x", GetLastError());
+            throw RtlException(Exception_RandomException, utf8string(err));
+        }
     }
     unsigned char *p = r.data();
     if (!CryptGenRandom(hCryptProv, static_cast<DWORD>(icount), p)) {
+        snprintf(err, sizeof(err), "failed to get random data. Error: 0x%08x", GetLastError());
         CryptReleaseContext(hCryptProv, 0);
-        // Should we return GetLastError() in the exception too?
-        throw RtlException(Exception_RandomException, utf8string("failed to get random data"));
+        throw RtlException(Exception_RandomException, utf8string(err));
     }
     CryptReleaseContext(hCryptProv, 0);
 
