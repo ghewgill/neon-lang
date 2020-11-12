@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include <openssl/ssl.h>
+#include <openssl/x509.h>
 
 #include "cell.h"
 #include "rtl_exec.h"
