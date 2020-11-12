@@ -252,7 +252,7 @@ public:
         }
         X509 *cert = SSL_get_peer_certificate(ssl);
         if (cert != nullptr) {
-            X509_NAME *name = X509_get_subject_name(cert);
+            struct X509_name_st *name = X509_get_subject_name(cert);
             int index = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
             X509_NAME_ENTRY *entry = X509_NAME_get_entry(name, index);
             ASN1_STRING *cn = X509_NAME_ENTRY_get_data(entry);

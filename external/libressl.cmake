@@ -32,6 +32,7 @@ else ()
             libressl-3.2.2/crypto/asn1/a_strex.c
             libressl-3.2.2/crypto/asn1/a_strnid.c
             libressl-3.2.2/crypto/asn1/a_time.c
+            libressl-3.2.2/crypto/asn1/a_time_tm.c
             libressl-3.2.2/crypto/asn1/a_type.c
             libressl-3.2.2/crypto/asn1/a_utf8.c
             libressl-3.2.2/crypto/asn1/a_verify.c
@@ -105,6 +106,13 @@ else ()
             libressl-3.2.2/crypto/cmac/cm_ameth.c
             libressl-3.2.2/crypto/cmac/cm_pmeth.c
             libressl-3.2.2/crypto/cmac/cmac.c
+            libressl-3.2.2/crypto/cms/cms_asn1.c
+            libressl-3.2.2/crypto/cms/cms_att.c
+            libressl-3.2.2/crypto/cms/cms_dd.c
+            libressl-3.2.2/crypto/cms/cms_env.c
+            libressl-3.2.2/crypto/cms/cms_kari.c
+            libressl-3.2.2/crypto/cms/cms_lib.c
+            libressl-3.2.2/crypto/cms/cms_sd.c
             libressl-3.2.2/crypto/compat/arc4random.c
             libressl-3.2.2/crypto/compat/bsd-asprintf.c
             libressl-3.2.2/crypto/compat/explicit_bzero_win.c
@@ -114,6 +122,7 @@ else ()
             libressl-3.2.2/crypto/compat/strcasecmp.c
             libressl-3.2.2/crypto/compat/strlcat.c
             libressl-3.2.2/crypto/compat/strlcpy.c
+            libressl-3.2.2/crypto/compat/timingsafe_bcmp.c
             libressl-3.2.2/crypto/compat/timingsafe_memcmp.c
             libressl-3.2.2/crypto/conf/conf_api.c
             libressl-3.2.2/crypto/conf/conf_def.c
@@ -267,17 +276,42 @@ else ()
             libressl-3.2.2/crypto/sha/sha512.c
             libressl-3.2.2/crypto/stack/stack.c
             libressl-3.2.2/crypto/x509/x_all.c
+            libressl-3.2.2/crypto/x509/x509_akey.c
+            libressl-3.2.2/crypto/x509/x509_alt.c
             libressl-3.2.2/crypto/x509/x509_att.c
+            libressl-3.2.2/crypto/x509/x509_bcons.c
+            libressl-3.2.2/crypto/x509/x509_bitst.c
             libressl-3.2.2/crypto/x509/x509_cmp.c
+            libressl-3.2.2/crypto/x509/x509_conf.c
+            libressl-3.2.2/crypto/x509/x509_cpols.c
+            libressl-3.2.2/crypto/x509/x509_crld.c
             libressl-3.2.2/crypto/x509/x509_def.c
+            libressl-3.2.2/crypto/x509/x509_enum.c
             libressl-3.2.2/crypto/x509/x509_ext.c
+            libressl-3.2.2/crypto/x509/x509_extku.c
+            libressl-3.2.2/crypto/x509/x509_genn.c
+            libressl-3.2.2/crypto/x509/x509_ia5.c
+            libressl-3.2.2/crypto/x509/x509_info.c
+            libressl-3.2.2/crypto/x509/x509_int.c
+            libressl-3.2.2/crypto/x509/x509_lib.c
             libressl-3.2.2/crypto/x509/x509_lu.c
+            libressl-3.2.2/crypto/x509/x509_ncons.c
             libressl-3.2.2/crypto/x509/x509_obj.c
+            libressl-3.2.2/crypto/x509/x509_ocsp.c
+            libressl-3.2.2/crypto/x509/x509_pci.c
+            libressl-3.2.2/crypto/x509/x509_pcia.c
+            libressl-3.2.2/crypto/x509/x509_pcons.c
+            libressl-3.2.2/crypto/x509/x509_pku.c
+            libressl-3.2.2/crypto/x509/x509_pmaps.c
+            libressl-3.2.2/crypto/x509/x509_prn.c
             libressl-3.2.2/crypto/x509/x509_req.c
+            libressl-3.2.2/crypto/x509/x509_skey.c
+            libressl-3.2.2/crypto/x509/x509_sxnet.c
             libressl-3.2.2/crypto/x509/x509_trs.c
             libressl-3.2.2/crypto/x509/x509_v3.c
             libressl-3.2.2/crypto/x509/x509_vfy.c
             libressl-3.2.2/crypto/x509/x509_vpm.c
+            libressl-3.2.2/crypto/x509/x509_utl.c
             libressl-3.2.2/crypto/x509/x509name.c
             libressl-3.2.2/crypto/x509/x509rset.c
         )
