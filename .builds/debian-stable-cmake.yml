@@ -7,6 +7,10 @@ packages:
 - zlib1g-dev
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
+triggers:
+- action: email
+  condition: failure
+  to: ~ghewgill/neon-builds@lists.sr.ht
 tasks:
 - prep: |
     cd neon-lang
