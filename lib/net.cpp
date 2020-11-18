@@ -204,7 +204,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
 
     std::vector<Cell> &ra = read->array_for_write();
     for (auto &s: ra) {
-        int fd = check_socket(s.object())->handle;
+        int fd = check_socket(s.array_index_for_read(0).object())->handle;
         FD_SET(fd, &rfds);
         if (fd+1 > nfds) {
             nfds = fd+1;
@@ -213,7 +213,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
 
     std::vector<Cell> &wa = write->array_for_write();
     for (auto &s: wa) {
-        int fd = check_socket(s.object())->handle;
+        int fd = check_socket(s.array_index_for_read(0).object())->handle;
         FD_SET(fd, &wfds);
         if (fd+1 > nfds) {
             nfds = fd+1;
@@ -222,7 +222,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
 
     std::vector<Cell> &ea = error->array_for_write();
     for (auto &s: ea) {
-        int fd = check_socket(s.object())->handle;
+        int fd = check_socket(s.array_index_for_read(0).object())->handle;
         FD_SET(fd, &efds);
         if (fd+1 > nfds) {
             nfds = fd+1;
@@ -254,7 +254,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = ra.begin(); i != ra.end(); ) {
-        int fd = check_socket(i->object())->handle;
+        int fd = check_socket(i->array_index_for_read(0).object())->handle;
         if (FD_ISSET(fd, &rfds)) {
             ++i;
         } else {
@@ -263,7 +263,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = wa.begin(); i != wa.end(); ) {
-        int fd = check_socket(i->object())->handle;
+        int fd = check_socket(i->array_index_for_read(0).object())->handle;
         if (FD_ISSET(fd, &wfds)) {
             ++i;
         } else {
@@ -272,7 +272,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = ea.begin(); i != ea.end(); ) {
-        int fd = check_socket(i->object())->handle;
+        int fd = check_socket(i->array_index_for_read(0).object())->handle;
         if (FD_ISSET(fd, &efds)) {
             ++i;
         } else {
