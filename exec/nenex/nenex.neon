@@ -1252,7 +1252,7 @@ FUNCTION f_callp(INOUT self: Executor)
                 self.raise_literal("DynamicConversionException", "to String")
             END TRY
         WHEN "object__isNull" DO
-            self.stack.append(makeValueBoolean(self.pop()->o.isNull()))
+            self.stack.append(makeValueBoolean(self.pop()->o = NIL))
         WHEN "object__makeArray" DO
             self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
         WHEN "object__makeBoolean" DO
@@ -1270,9 +1270,9 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "object__subscript" DO
             LET index: Object := self.pop()->o
             LET obj: Object := self.pop()->o
-            IF obj.isNull() THEN
+            IF obj = NIL THEN
                 self.raise_literal("DynamicConversionException", "object is null")
-            ELSIF index.isNull() THEN
+            ELSIF index = NIL THEN
                 self.raise_literal("DynamicConversionException", "index is null")
             ELSE
                 TRY
