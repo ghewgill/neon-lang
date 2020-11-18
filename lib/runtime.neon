@@ -4,6 +4,7 @@
  */
 
 EXPORT assertionsEnabled
+EXPORT createObject
 EXPORT executorName
 EXPORT garbageCollect
 EXPORT getAllocatedObjectCount
@@ -17,6 +18,8 @@ EXPORT setRecursionLimit
  *  Return TRUE if assertions are currently enabled.
  */
 DECLARE NATIVE FUNCTION assertionsEnabled(): Boolean
+
+DECLARE NATIVE FUNCTION createObject(name: String): Object
 
 /*  Function: executorName
  *

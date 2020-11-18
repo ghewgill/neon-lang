@@ -2219,6 +2219,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     const ast::Expression *func = nullptr;
     const ast::Expression *dispatch = nullptr;
     const ast::TypeFunction *ftype = nullptr;
+    std::vector<const ast::Expression *> initial_args;
     if (dotmethod != nullptr) {
         // This check avoids trying to evaluate foo.bar as an
         // expression in foo.bar() where foo is actually a module.
@@ -2230,16 +2231,26 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         if (not is_module_call) {
             const ast::Expression *base = analyze(dotmethod->base.get());
-            auto m = base->type->methods.find(dotmethod->name.text);
-            if (m == base->type->methods.end()) {
-                error(3137, dotmethod->name, "method not found");
-            } else {
-                if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
-                    internal_error("class not expected here");
+            if (base->type == ast::TYPE_OBJECT) {
+                auto invoke = dynamic_cast<ast::Variable *>(scope.top()->lookupName("object__invokeMethod"));
+                if (invoke == nullptr) {
+                    internal_error("could not find object__invokeMethod");
                 }
                 self = base;
+                initial_args.push_back(new ast::ConstantStringExpression(utf8string(dotmethod->name.text)));
+                func = new ast::VariableExpression(invoke);
+            } else {
+                auto m = base->type->methods.find(dotmethod->name.text);
+                if (m == base->type->methods.end()) {
+                    error(3137, dotmethod->name, "method not found");
+                } else {
+                    if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
+                        internal_error("class not expected here");
+                    }
+                    self = base;
+                }
+                func = new ast::VariableExpression(m->second);
             }
-            func = new ast::VariableExpression(m->second);
         } else {
             recordtype = dynamic_cast<const ast::TypeRecord *>(analyze_qualified_name(expr->base.get()));
             if (recordtype == nullptr) {
@@ -2334,9 +2345,6 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             dispatch = func;
         }
     }
-    std::vector<const ast::Expression *> varargs_array;
-    bool in_varargs = ftype->variadic && ftype->params.size() == 1;
-    const ast::Type *varargs_type = in_varargs ? dynamic_cast<const ast::TypeArray *>(ftype->params[0]->type)->elementtype : nullptr;
     int param_index = 0;
     std::vector<const ast::Expression *> args(ftype->params.size());
     if (self != nullptr) {
@@ -2357,6 +2365,11 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         args[0] = self;
         ++param_index;
     }
+    std::copy(initial_args.begin(), initial_args.end(), &args[param_index]);
+    param_index += initial_args.size();
+    std::vector<const ast::Expression *> varargs_array;
+    bool in_varargs = ftype->variadic && ftype->params.size() - param_index == 1;
+    const ast::Type *varargs_type = in_varargs ? dynamic_cast<const ast::TypeArray *>(ftype->params[param_index]->type)->elementtype : nullptr;
     for (auto &a: expr->args) {
         const ast::Expression *e = analyze(a->expr.get());
         if (param_index >= static_cast<int>(ftype->params.size())) {

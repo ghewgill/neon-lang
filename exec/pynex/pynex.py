@@ -2030,6 +2030,13 @@ def neon_object__getString(self):
         return
     self.stack.append(v)
 
+def neon_object__invokeMethod(self):
+    args = self.stack.pop()
+    name = self.stack.pop()
+    obj = self.stack.pop()
+    r = getattr(obj, name)(*[x.value for x in args])
+    self.stack.append(r)
+
 def neon_object__isNull(self):
     v = self.stack.pop()
     self.stack.append(v is None)
@@ -2633,6 +2640,13 @@ def neon_random_uint32(self):
 
 def neon_runtime_assertionsEnabled(self):
     self.stack.append(Value(enable_assert))
+
+def neon_runtime_createObject(self):
+    name = self.stack.pop()
+    mod, cls = name.split(".")
+    constructor = getattr(sys.modules[mod], cls)
+    obj = constructor()
+    self.stack.append(obj)
 
 def neon_runtime_executorName(self):
     self.stack.append("pynex")
