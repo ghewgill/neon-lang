@@ -1,4 +1,4 @@
 VAR x: Object := NIL
-TESTCASE x.isNull()
+TESTCASE x = NIL
 x := 5
-TESTCASE NOT x.isNull()
+TESTCASE x <> NIL

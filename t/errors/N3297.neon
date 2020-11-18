@@ -1,0 +1,3 @@
+VAR o: Object
+_ := o = NIL = o
+     --<

@@ -702,8 +702,6 @@ class DotExpression:
             return obj.env.get_value(self.field)
         elif hasattr(obj, self.field):
             return getattr(obj, self.field)
-        if self.field == "isNull":
-            return lambda env, self: obj is None
         assert False, (self.field, obj)
     def set(self, env, value):
         setattr(self.expr.eval(env), self.field, value)

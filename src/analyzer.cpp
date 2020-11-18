@@ -148,7 +148,7 @@ private:
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches, const ast::Type *expression_match_type);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
-    ast::ComparisonExpression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
+    const ast::Expression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
 };
 
 class TypeAnalyzer: public pt::IParseTreeVisitor {
@@ -2624,7 +2624,7 @@ const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr
     }
 }
 
-ast::ComparisonExpression *Analyzer::analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right)
+const ast::Expression *Analyzer::analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right)
 {
     if (left->type == ast::TYPE_OBJECT && right->type == ast::TYPE_OBJECT) {
         error(3261, token, "cannot compare two values of type Object");
@@ -2722,6 +2722,35 @@ ast::ComparisonExpression *Analyzer::analyze_comparison(const Token &token, cons
             }
         }
     }
+    if (comp == ast::ComparisonExpression::Comparison::EQ || comp == ast::ComparisonExpression::Comparison::NE) {
+        const ast::Expression *r = nullptr;
+        if (left->type == ast::TYPE_OBJECT && dynamic_cast<const ast::ConstantNilExpression *>(right) != nullptr) {
+            r = new ast::FunctionCall(
+                new ast::VariableExpression(
+                    dynamic_cast<const ast::Variable *>(scope.top()->lookupName("object__isNull"))
+                ),
+                {
+                    left
+                }
+            );
+        }
+        if (dynamic_cast<const ast::ConstantNilExpression *>(left) != nullptr && right->type == ast::TYPE_OBJECT) {
+            r = new ast::FunctionCall(
+                new ast::VariableExpression(
+                    dynamic_cast<const ast::Variable *>(scope.top()->lookupName("object__isNull"))
+                ),
+                {
+                    right
+                }
+            );
+        }
+        if (r != nullptr) {
+            if (comp == ast::ComparisonExpression::Comparison::NE) {
+                r = new ast::LogicalNotExpression(r);
+            }
+            return r;
+        }
+    }
     error(3030, token, "type mismatch");
 }
 
@@ -2741,7 +2770,12 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
     for (auto &x: expr->comps) {
         ast::ComparisonExpression::Comparison comp = static_cast<ast::ComparisonExpression::Comparison>(x->comp); // TODO: remove cast
         const ast::Expression *right = analyze(x->right.get());
-        comps.push_back(analyze_comparison(token, left, comp, right));
+        const ast::Expression *e = analyze_comparison(token, left, comp, right);
+        const ast::ComparisonExpression *c = dynamic_cast<const ast::ComparisonExpression *>(e);
+        if (c == nullptr) {
+            error(3297, expr->token, "cannot use this kind of comparison in a chained manner");
+        }
+        comps.push_back(c);
         token = x->right->token;
     }
     return new ast::ChainedComparisonExpression(comps);
