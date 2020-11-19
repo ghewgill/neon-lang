@@ -70,6 +70,7 @@ class Executor {
         predefined.put("object__getDictionary", this::object__getDictionary);
         predefined.put("object__getNumber", this::object__getNumber);
         predefined.put("object__getString", this::object__getString);
+        predefined.put("object__invokeMethod", this::object__invokeMethod);
         predefined.put("object__isNull", this::object__isNull);
         predefined.put("object__makeArray", this::object__makeArray);
         predefined.put("object__makeBoolean", this::object__makeBoolean);
@@ -97,6 +98,7 @@ class Executor {
         predefined.put("math$trunc", this::math$trunc);
         predefined.put("random$uint32", this::random$uint32);
         predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
+        predefined.put("runtime$createObject", this::runtime$createObject);
         predefined.put("runtime$executorName", this::runtime$executorName);
         predefined.put("string$fromCodePoint", this::string$fromCodePoint);
         predefined.put("string$toCodePoint", this::string$toCodePoint);
@@ -1687,6 +1689,15 @@ class Executor {
         stack.addFirst(new Cell(s));
     }
 
+    private void object__invokeMethod()
+    {
+        List<Cell> args = stack.removeFirst().getArray();
+        String name = stack.removeFirst().getString();
+        Object o = stack.removeFirst().getObject().getNative();
+        // TODO: look up method using reflection
+        stack.addFirst(new Cell(new NeObjectString("foo")));
+    }
+
     private void object__isNull()
     {
         NeObject o = stack.removeFirst().getObject();
@@ -1872,6 +1883,21 @@ class Executor {
     private void runtime$assertionsEnabled()
     {
         stack.addFirst(new Cell(enable_assert));
+    }
+
+    private void runtime$createObject()
+    {
+        String name = stack.removeFirst().getString();
+        try {
+            Object obj = Class.forName(name).newInstance();
+            stack.addFirst(new Cell(new NeObjectNative(obj)));
+        } catch (ClassNotFoundException cnfe) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        } catch (InstantiationException ie) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        } catch (IllegalAccessException iae) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        }
     }
 
     private void runtime$executorName()
