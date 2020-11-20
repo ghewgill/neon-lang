@@ -14,8 +14,33 @@ public:
     ~ComObject() {
         obj->Release();
     }
+    virtual std::shared_ptr<Object> invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args) override;
     virtual utf8string toString() const { return utf8string("<ComObject:" + name + ">"); }
 };
+
+bool ComObject::invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result)
+{
+    if (obj == NULL) {
+        return false; // TODO: Exception
+    }
+    OLECHAR wname[200];
+    MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
+    OLECHAR *a = wname;
+    DISPID dispid;
+    HRESULT r = obj->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
+    if (r != S_OK) {
+        return false; // TODO: Exception
+    }
+    DISPPARAMS params = {NULL, NULL, 0, 0};
+    VARIANT result;
+    VariantInit(&result);
+    // TODO: exceptions, argument errors
+    r = obj->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_METHOD, &params, &result, NULL, NULL);
+    if (r != S_OK) {
+        return false; // TODO: Exception
+    }
+    return true;
+}
 
 namespace rtl {
 
@@ -48,35 +73,5 @@ std::shared_ptr<Object> createObject(const utf8string &name)
 }
 
 } // namespace ne_runtime
-
-namespace ne_global {
-
-std::shared_ptr<Object> object__invokeMethod(const std::shared_ptr<Object> &obj, const utf8string &name, std::vector<std::shared_ptr<Object>> /*args*/)
-{
-    ComObject *comobj = dynamic_cast<ComObject *>(obj.get());
-    if (comobj == nullptr || comobj->obj == NULL) {
-        return nullptr; // TODO: Exception
-    }
-    IDispatch *disp = comobj->obj;
-    OLECHAR wname[200];
-    MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
-    OLECHAR *a = wname;
-    DISPID dispid;
-    HRESULT r = disp->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
-    if (r != S_OK) {
-        return nullptr; // TODO: Exception
-    }
-    DISPPARAMS params = {NULL, NULL, 0, 0};
-    VARIANT result;
-    VariantInit(&result);
-    // TODO: exceptions, argument errors
-    r = disp->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_METHOD, &params, &result, NULL, NULL);
-    if (r != S_OK) {
-        return nullptr; // TODO: Exception
-    }
-    return nullptr; // TODO: result
-}
-
-} // namespace ne_global
 
 } // namespace rtl

@@ -1291,6 +1291,8 @@ FUNCTION f_callp(INOUT self: Executor)
             print(self.pop()->s)
         WHEN "runtime$assertionsEnabled" DO
             self.stack.append(makeValueBoolean(TRUE))
+        WHEN "runtime$executorName" DO
+            self.stack.append(makeValueString("nenex"))
         WHEN "str", "number__toString" DO
             LET n: Number := self.pop()->n
             self.stack.append(makeValueString(str(n)))

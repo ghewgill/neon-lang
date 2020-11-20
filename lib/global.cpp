@@ -709,6 +709,18 @@ bool object__isNull(const std::shared_ptr<Object> &obj)
     return obj == nullptr;
 }
 
+std::shared_ptr<Object> object__invokeMethod(const std::shared_ptr<Object> &obj, const utf8string &name, std::vector<std::shared_ptr<Object>> args)
+{
+    if (obj == nullptr) {
+        throw RtlException(Exception_DynamicConversionException, utf8string("object is null"));
+    }
+    std::shared_ptr<Object> result;
+    if (not obj->invokeMethod(name, args, result)) {
+        throw RtlException(Exception_DynamicConversionException, utf8string("object does not support calling methods"));
+    }
+    return result;
+}
+
 utf8string object__toString(const std::shared_ptr<Object> &obj)
 {
     if (obj == nullptr) {

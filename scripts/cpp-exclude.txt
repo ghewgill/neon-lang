@@ -244,6 +244,7 @@ object-isa-case.neon
 object-isa-inconvertible.neon
 object-isa.neon
 object.neon
+object-native.neon
 object-null.neon
 object-null2.neon
 object-operator.neon

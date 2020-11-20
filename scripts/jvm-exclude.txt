@@ -57,6 +57,7 @@ object.neon                # object
 object-isa.neon            # object
 object-isa-case.neon       # object
 object-isa-inconvertible.neon
+object-native.neon         # object
 object-null.neon           # object
 object-null2.neon          # object
 object-operator.neon       # object
