@@ -15,18 +15,18 @@ public:
     ~ComObject() {
         obj->Release();
     }
-    virtual bool invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const override;
+    virtual bool invokeMethod(const utf8string &methodname, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const override;
     virtual bool subscript(std::shared_ptr<Object>, std::shared_ptr<Object> &) const override;
     virtual utf8string toString() const { return utf8string("<ComObject:" + name + ">"); }
 };
 
-bool ComObject::invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
+bool ComObject::invokeMethod(const utf8string &methodname, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
 {
     if (obj == NULL) {
         return false; // TODO: Exception
     }
     OLECHAR wname[200];
-    MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
+    MultiByteToWideChar(CP_UTF8, 0, methodname.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
     OLECHAR *a = wname;
     DISPID dispid;
     HRESULT r = obj->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
@@ -47,6 +47,10 @@ bool ComObject::invokeMethod(const utf8string &name, const std::vector<std::shar
 bool ComObject::subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &result) const
 {
     if (obj == NULL) {
+        return false; // TODO: Exception
+    }
+    utf8string name;
+    if (not index->getString(name)) {
         return false; // TODO: Exception
     }
     OLECHAR wname[200];
