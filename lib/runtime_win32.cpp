@@ -33,7 +33,7 @@ std::shared_ptr<Object> createObject(const utf8string &name)
         }
     }
     OLECHAR wname[200];
-    MultiByteToWideChar(CP_UTF8, 0, name.c_str(), name.length(), wname, sizeof(wname)/sizeof(wname[0]));
+    MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
     CLSID clsid;
     HRESULT r = CLSIDFromProgID(wname, &clsid);
     if (r != S_OK) {
@@ -59,7 +59,7 @@ std::shared_ptr<Object> object__invokeMethod(const std::shared_ptr<Object> &obj,
     }
     IDispatch *disp = comobj->obj;
     OLECHAR wname[200];
-    MultiByteToWideChar(CP_UTF8, 0, name.c_str(), name.length(), wname, sizeof(wname)/sizeof(wname[0]));
+    MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
     OLECHAR *a = wname;
     DISPID dispid;
     HRESULT r = disp->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
