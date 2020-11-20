@@ -2365,8 +2365,10 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         args[0] = self;
         ++param_index;
     }
-    std::copy(initial_args.begin(), initial_args.end(), &args[param_index]);
-    param_index += initial_args.size();
+    if (not initial_args.empty()) {
+        std::copy(initial_args.begin(), initial_args.end(), &args[param_index]);
+        param_index += initial_args.size();
+    }
     std::vector<const ast::Expression *> varargs_array;
     bool in_varargs = ftype->variadic && ftype->params.size() - param_index == 1;
     const ast::Type *varargs_type = in_varargs ? dynamic_cast<const ast::TypeArray *>(ftype->params[param_index]->type)->elementtype : nullptr;
