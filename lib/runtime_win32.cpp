@@ -1,3 +1,4 @@
+#include <iso646.h>
 #include <windows.h>
 
 #include "cell.h"
