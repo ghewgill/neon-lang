@@ -404,6 +404,7 @@ add_library(executor STATIC
     src/cell.cpp
     src/exec.cpp
     src/httpserver.cpp
+    src/object.cpp
     src/rtl_exec.cpp
     src/support_exec.cpp
     lib/binary.cpp

@@ -6,28 +6,8 @@
 #include <vector>
 
 #include "number.h"
+#include "object.h"
 #include "utf8string.h"
-
-class Object {
-public:
-    virtual ~Object() {}
-    virtual bool getBoolean(bool &) const { return false; }
-    virtual bool getNumber(Number &) const { return false; }
-    virtual bool getString(utf8string &) const { return false; }
-    virtual bool getBytes(std::vector<unsigned char> &) const { return false; }
-    virtual bool getArray(std::vector<std::shared_ptr<Object>> &) const { return false; }
-    virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &) const { return false; }
-    virtual bool invokeMethod(const utf8string &/*name*/, const std::vector<std::shared_ptr<Object>> &/*args*/, std::shared_ptr<Object> &/*result*/) { return false; }
-    virtual bool subscript(std::shared_ptr<Object>, std::shared_ptr<Object> &) const { return false; }
-    virtual utf8string toLiteralString() const { return toString(); }
-    virtual utf8string toString() const = 0;
-};
-
-namespace rtl {
-namespace ne_global {
-std::shared_ptr<Object> object__makeString(const utf8string &s);
-}
-}
 
 // TODO: See if we can use std::variant (C++17) for this.
 
