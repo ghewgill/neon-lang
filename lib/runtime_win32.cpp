@@ -14,7 +14,7 @@ public:
     ~ComObject() {
         obj->Release();
     }
-    virtual std::shared_ptr<Object> invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args) override;
+    virtual bool invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) override;
     virtual utf8string toString() const { return utf8string("<ComObject:" + name + ">"); }
 };
 
@@ -32,10 +32,10 @@ bool ComObject::invokeMethod(const utf8string &name, const std::vector<std::shar
         return false; // TODO: Exception
     }
     DISPPARAMS params = {NULL, NULL, 0, 0};
-    VARIANT result;
-    VariantInit(&result);
+    VARIANT rv;
+    VariantInit(&rv);
     // TODO: exceptions, argument errors
-    r = obj->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_METHOD, &params, &result, NULL, NULL);
+    r = obj->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_METHOD, &params, &rv, NULL, NULL);
     if (r != S_OK) {
         return false; // TODO: Exception
     }
