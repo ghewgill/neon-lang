@@ -3,6 +3,8 @@
  *  Functions that interact with the Neon runtime system.
  */
 
+EXPORT NativeObjectException
+
 EXPORT assertionsEnabled
 EXPORT createObject
 EXPORT executorName
@@ -12,6 +14,12 @@ EXPORT isModuleImported
 EXPORT moduleIsMain
 EXPORT setGarbageCollectionInterval
 EXPORT setRecursionLimit
+
+/*  Exception: NativeObjectException
+ *
+ *  Exception raised by native object support.
+ */
+EXCEPTION NativeObjectException
 
 /*  Function: assertionsEnabled
  *

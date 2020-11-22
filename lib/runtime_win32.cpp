@@ -4,6 +4,11 @@
 #include "cell.h"
 #include "exec.h"
 #include "object.h"
+#include "rtl_exec.h"
+
+namespace rtl {
+
+namespace ne_runtime {
 
 class ComObject: public Object {
 public:
@@ -59,6 +64,7 @@ void VariantFromObject(VARIANT *v, std::shared_ptr<Object> obj)
         co->obj->AddRef();
         return;
     }
+    throw RtlException(Exception_NativeObjectException, utf8string("could not convert Object to VARIANT"));
 }
 
 std::shared_ptr<Object> ObjectFromVariant(VARIANT &v)
@@ -81,21 +87,50 @@ std::shared_ptr<Object> ObjectFromVariant(VARIANT &v)
             v.pdispVal->AddRef();
             return std::make_shared<ComObject>("IDispatch", v.pdispVal);
     }
-    return nullptr;
+    throw RtlException(Exception_NativeObjectException, utf8string("could not convert VARIANT (vt=" + std::to_string(v.vt) + ") to Object"));
+}
+
+void handleInvokeResult(HRESULT r, UINT cArgs, EXCEPINFO &ei, UINT &argerr)
+{
+    switch (r) {
+        case S_OK:
+            break;
+        case DISP_E_BADPARAMCOUNT:
+            throw RtlException(Exception_NativeObjectException, utf8string("incorrect number of arguments for this method"));
+        case DISP_E_BADVARTYPE:
+            throw RtlException(Exception_NativeObjectException, utf8string("invalid variant type in arguments"));
+        case DISP_E_EXCEPTION:
+            throw RtlException(Exception_NativeObjectException, utf8string("exception raised by object"));
+        case DISP_E_MEMBERNOTFOUND:
+            throw RtlException(Exception_NativeObjectException, utf8string("the requested member does not exist"));
+        case DISP_E_NONAMEDARGS:
+            throw RtlException(Exception_NativeObjectException, utf8string("this method does not support named arguments"));
+        case DISP_E_OVERFLOW:
+            throw RtlException(Exception_NativeObjectException, utf8string("invalid type in parameters"));
+        case DISP_E_PARAMNOTFOUND:
+            throw RtlException(Exception_NativeObjectException, utf8string("parameter not found (" + std::to_string(cArgs - argerr) + ")"));
+        case DISP_E_TYPEMISMATCH:
+            throw RtlException(Exception_NativeObjectException, utf8string("type mismatch in parameter (" + std::to_string(cArgs - argerr) + ")"));
+        case DISP_E_UNKNOWNINTERFACE:
+            throw RtlException(Exception_NativeObjectException, utf8string("unknown interface"));
+        case DISP_E_UNKNOWNLCID:
+            throw RtlException(Exception_NativeObjectException, utf8string("unknown lcid"));
+        case DISP_E_PARAMNOTOPTIONAL:
+            throw RtlException(Exception_NativeObjectException, utf8string("a required parameter was omitted"));
+        default:
+            throw RtlException(Exception_NativeObjectException, utf8string("unknown error from IDispatch::Invoke (" + std::to_string(r) + ")"));
+    }
 }
 
 bool ComObject::invokeMethod(const utf8string &methodname, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
 {
-    if (obj == NULL) {
-        return false; // TODO: Exception
-    }
     OLECHAR wname[200];
     MultiByteToWideChar(CP_UTF8, 0, methodname.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
     OLECHAR *a = wname;
     DISPID dispid;
     HRESULT r = obj->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
     if (r != S_OK) {
-        return false; // TODO: Exception
+        throw RtlException(Exception_NativeObjectException, utf8string("method not found in object (" + methodname.str() + ")"));
     }
     DISPPARAMS params = {NULL, NULL, 0, 0};
     params.cArgs = args.size();
@@ -107,15 +142,14 @@ bool ComObject::invokeMethod(const utf8string &methodname, const std::vector<std
     }
     VARIANT rv;
     VariantInit(&rv);
-    // TODO: exceptions, argument errors
-    r = obj->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_METHOD, &params, &rv, NULL, NULL);
+    EXCEPINFO ei;
+    UINT argerr;
+    r = obj->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_METHOD, &params, &rv, &ei, &argerr);
     for (size_t i = 0; i < args.size(); i++) {
         VariantClear(&params.rgvarg[i]);
     }
     delete[] params.rgvarg;
-    if (r != S_OK) {
-        return false; // TODO: Exception
-    }
+    handleInvokeResult(r, params.cArgs, ei, argerr);
     result = ObjectFromVariant(rv);
     VariantClear(&rv);
     return true;
@@ -123,12 +157,9 @@ bool ComObject::invokeMethod(const utf8string &methodname, const std::vector<std
 
 bool ComObject::subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &result) const
 {
-    if (obj == NULL) {
-        return false; // TODO: Exception
-    }
     utf8string name;
     if (not index->getString(name)) {
-        return false; // TODO: Exception
+        throw RtlException(Exception_NativeObjectException, utf8string("property name must be a string"));
     }
     OLECHAR wname[200];
     MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
@@ -136,24 +167,19 @@ bool ComObject::subscript(std::shared_ptr<Object> index, std::shared_ptr<Object>
     DISPID dispid;
     HRESULT r = obj->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
     if (r != S_OK) {
-        return false; // TODO: Exception
+        throw RtlException(Exception_NativeObjectException, utf8string("property not found in object (" + name.str() + ")"));
     }
     DISPPARAMS params = {NULL, NULL, 0, 0};
     VARIANT rv;
     VariantInit(&rv);
-    // TODO: exceptions, argument errors
-    r = obj->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_PROPERTYGET, &params, &rv, NULL, NULL);
-    if (r != S_OK) {
-        return false; // TODO: Exception
-    }
+    EXCEPINFO ei;
+    UINT argerr;
+    r = obj->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_PROPERTYGET, &params, &rv, &ei, &argerr);
+    handleInvokeResult(r, params.cArgs, ei, argerr);
     result = ObjectFromVariant(rv);
     VariantClear(&rv);
     return true;
 }
-
-namespace rtl {
-
-namespace ne_runtime {
 
 std::shared_ptr<Object> createObject(const utf8string &name)
 {
@@ -163,7 +189,7 @@ std::shared_ptr<Object> createObject(const utf8string &name)
         if (r == S_OK || r == S_FALSE) {
             com_init = true;
         } else {
-            return nullptr; // TODO: Exception
+            throw RtlException(Exception_NativeObjectException, utf8string("CoInitializeEx error (" + std::to_string(r) + ")"));
         }
     }
     OLECHAR wname[200];
@@ -171,12 +197,12 @@ std::shared_ptr<Object> createObject(const utf8string &name)
     CLSID clsid;
     HRESULT r = CLSIDFromProgID(wname, &clsid);
     if (r != S_OK) {
-        return nullptr; // TODO: Exception
+        throw RtlException(Exception_NativeObjectException, utf8string("class not found (" + name.str() + ")"));
     }
     IDispatch *obj;
     r = CoCreateInstance(clsid, NULL, CLSCTX_ALL, IID_IDispatch, reinterpret_cast<void **>(&obj));
     if (r != S_OK) {
-        return nullptr; // TODO: Exception
+        throw RtlException(Exception_NativeObjectException, utf8string("could not create object (" + name.str() + ") result (" + std::to_string(r) + ")"));
     }
     return std::make_shared<ComObject>(name.str(), obj);
 }
