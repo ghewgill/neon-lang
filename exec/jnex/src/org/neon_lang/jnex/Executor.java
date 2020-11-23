@@ -1691,11 +1691,14 @@ class Executor {
 
     private void object__invokeMethod()
     {
-        List<Cell> args = stack.removeFirst().getArray();
+        List<Cell> a = stack.removeFirst().getArray();
         String name = stack.removeFirst().getString();
-        Object o = stack.removeFirst().getObject().getNative();
-        // TODO: look up method using reflection
-        stack.addFirst(new Cell(new NeObjectString("foo")));
+        List<NeObject> args = new ArrayList<NeObject>();
+        for (Cell x: a) {
+            args.add(x.getObject());
+        }
+        NeObject r = stack.removeFirst().getObject().invokeMethod(name, args);
+        stack.addFirst(new Cell(r));
     }
 
     private void object__isNull()

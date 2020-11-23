@@ -83,7 +83,6 @@ net-test.neon              # import
 net-test-udp.neon          # import
 new-init-module.neon       # module
 number-ceil.neon           # math
-object-native.neon         # object native
 object-record.neon         # EQA
 opcode-coverage.neon       # runtime$moduleIsMain
 os-test.neon               # os
