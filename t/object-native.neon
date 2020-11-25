@@ -7,8 +7,8 @@ CASE runtime.executorName()
             WHEN os.Platform.posix DO
                 -- pass
             WHEN os.Platform.win32 DO
-                LET db := runtime.createObject("ADODB.Connection")
-                print(db.Version)
+                LET fso := runtime.createObject("Scripting.FileSystemObject")
+                TESTCASE fso.BuildPath("foo", "bar") = @"foo\bar"
         END CASE
     WHEN "pynex" DO
         LET a := runtime.createObject("builtins.list")

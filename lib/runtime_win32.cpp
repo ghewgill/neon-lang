@@ -70,6 +70,7 @@ void VariantFromObject(VARIANT *v, std::shared_ptr<Object> obj)
 std::shared_ptr<Object> ObjectFromVariant(VARIANT &v)
 {
     switch (v.vt) {
+        case VT_EMPTY:
         case VT_NULL:
             return nullptr;
         case VT_BOOL:
@@ -100,7 +101,9 @@ void handleInvokeResult(HRESULT r, UINT cArgs, EXCEPINFO &ei, UINT &argerr)
         case DISP_E_BADVARTYPE:
             throw RtlException(Exception_NativeObjectException, utf8string("invalid variant type in arguments"));
         case DISP_E_EXCEPTION:
-            throw RtlException(Exception_NativeObjectException, utf8string("exception raised by object"));
+            char buf[200];
+            WideCharToMultiByte(CP_UTF8, 0, ei.bstrDescription, -1, buf, sizeof(buf), NULL, NULL);
+            throw RtlException(Exception_NativeObjectException, utf8string(buf));
         case DISP_E_MEMBERNOTFOUND:
             throw RtlException(Exception_NativeObjectException, utf8string("the requested member does not exist"));
         case DISP_E_NONAMEDARGS:
