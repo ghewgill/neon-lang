@@ -28,6 +28,26 @@ public:
     virtual utf8string toString() const { return utf8string("<ComObject:" + name + ">"); }
 };
 
+BSTR bstr_from_utf8string(const utf8string &s)
+{
+    int nchars = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, NULL, 0);
+    OLECHAR *wstr = new OLECHAR[nchars];
+    MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, wstr, nchars);
+    BSTR bstr = SysAllocString(wstr);
+    delete[] wstr;
+    return bstr;
+}
+
+utf8string utf8string_from_bstr(BSTR bstr)
+{
+    int nchars = WideCharToMultiByte(CP_UTF8, 0, bstr, -1, NULL, 0, NULL, NULL);
+    char *buf = new char[nchars];
+    WideCharToMultiByte(CP_UTF8, 0, bstr, -1, buf, nchars, NULL, NULL);
+    utf8string r { buf };
+    delete[] buf;
+    return r;
+}
+
 void VariantFromObject(VARIANT *v, std::shared_ptr<Object> obj)
 {
     if (obj == nullptr) {
@@ -54,11 +74,7 @@ void VariantFromObject(VARIANT *v, std::shared_ptr<Object> obj)
     utf8string s;
     if (obj->getString(s)) {
         v->vt = VT_BSTR;
-        int nchars = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, NULL, 0);
-        OLECHAR *wstr = new OLECHAR[nchars];
-        MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, wstr, nchars);
-        v->bstrVal = SysAllocString(wstr);
-        delete[] wstr;
+        v->bstrVal = bstr_from_utf8string(s);
         return;
     }
     ComObject *co = dynamic_cast<ComObject *>(obj.get());
@@ -69,16 +85,6 @@ void VariantFromObject(VARIANT *v, std::shared_ptr<Object> obj)
         return;
     }
     throw RtlException(Exception_NativeObjectException, utf8string("could not convert Object to VARIANT"));
-}
-
-utf8string utf8string_from_bstr(BSTR bstr)
-{
-    int nchars = WideCharToMultiByte(CP_UTF8, 0, bstr, -1, NULL, 0, NULL, NULL);
-    char *buf = new char[nchars];
-    WideCharToMultiByte(CP_UTF8, 0, bstr, -1, buf, nchars, NULL, NULL);
-    utf8string r { buf };
-    delete[] buf;
-    return r;
 }
 
 std::shared_ptr<Object> ObjectFromVariant(VARIANT &v)
@@ -136,11 +142,11 @@ void handleInvokeResult(HRESULT r, UINT cArgs, EXCEPINFO &ei, UINT &argerr)
 
 bool ComObject::invokeMethod(const utf8string &methodname, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
 {
-    OLECHAR wname[200];
-    MultiByteToWideChar(CP_UTF8, 0, methodname.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
-    OLECHAR *a = wname;
+    BSTR mname = bstr_from_utf8string(methodname);
+    OLECHAR *a = mname;
     DISPID dispid;
     HRESULT r = obj->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
+    SysFreeString(mname);
     if (r != S_OK) {
         throw RtlException(Exception_NativeObjectException, utf8string("method not found in object (" + methodname.str() + ")"));
     }
@@ -173,11 +179,11 @@ bool ComObject::subscript(std::shared_ptr<Object> index, std::shared_ptr<Object>
     if (not index->getString(name)) {
         throw RtlException(Exception_NativeObjectException, utf8string("property name must be a string"));
     }
-    OLECHAR wname[200];
-    MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, wname, sizeof(wname)/sizeof(wname[0]));
-    OLECHAR *a = wname;
+    BSTR pname = bstr_from_utf8string(name);
+    OLECHAR *a = pname;
     DISPID dispid;
     HRESULT r = obj->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
+    SysFreeString(pname);
     if (r != S_OK) {
         throw RtlException(Exception_NativeObjectException, utf8string("property not found in object (" + name.str() + ")"));
     }
