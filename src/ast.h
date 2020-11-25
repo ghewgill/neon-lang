@@ -2405,7 +2405,7 @@ public:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args) {}
+    FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr, bool allow_ignore_result = false): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args), allow_ignore_result(allow_ignore_result) {}
     FunctionCall(const FunctionCall &) = delete;
     FunctionCall &operator=(const FunctionCall &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2413,6 +2413,7 @@ public:
     const Expression *const func;
     const Expression *const dispatch;
     const std::vector<const Expression *> args;
+    const bool allow_ignore_result;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return func->is_pure(context) && std::all_of(args.begin(), args.end(), [&context](const Expression *x) { return x->is_pure(context); }); }
     virtual bool eval_boolean() const override;

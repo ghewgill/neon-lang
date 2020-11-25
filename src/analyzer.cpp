@@ -2218,6 +2218,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     const ast::Expression *self = nullptr;
     const ast::Expression *func = nullptr;
     const ast::Expression *dispatch = nullptr;
+    bool allow_ignore_result = false;
     const ast::TypeFunction *ftype = nullptr;
     std::vector<const ast::Expression *> initial_args;
     if (dotmethod != nullptr) {
@@ -2239,6 +2240,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 self = base;
                 initial_args.push_back(new ast::ConstantStringExpression(utf8string(dotmethod->name.text)));
                 func = new ast::VariableExpression(invoke);
+                allow_ignore_result = true;
             } else {
                 auto m = base->type->methods.find(dotmethod->name.text);
                 if (m == base->type->methods.end()) {
@@ -2481,7 +2483,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         p++;
     }
-    return new ast::FunctionCall(func, args, dispatch);
+    return new ast::FunctionCall(func, args, dispatch, allow_ignore_result);
 }
 
 const ast::Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
@@ -4993,7 +4995,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExitStatement *statement)
 const ast::Statement *Analyzer::analyze(const pt::ExpressionStatement *statement)
 {
     const ast::Expression *expr = analyze(statement->expr.get());
-    if (expr->type == ast::TYPE_NOTHING) {
+    if (expr->type == ast::TYPE_NOTHING || (dynamic_cast<const ast::FunctionCall *>(expr) != nullptr && dynamic_cast<const ast::FunctionCall *>(expr)->allow_ignore_result)) {
         return new ast::ExpressionStatement(statement->token.line, analyze(statement->expr.get()));
     }
     if (dynamic_cast<const ast::ComparisonExpression *>(expr) != nullptr) {

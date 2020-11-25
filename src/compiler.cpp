@@ -2131,6 +2131,9 @@ void ast::AssignmentStatement::generate_code(Emitter &emitter) const
 void ast::ExpressionStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
+    if (expr->type != ast::TYPE_NOTHING) {
+        emitter.emit(Opcode::DROP);
+    }
 }
 
 void ast::IncrementStatement::generate_code(Emitter &emitter) const
