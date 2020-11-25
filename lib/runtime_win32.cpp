@@ -40,6 +40,9 @@ BSTR bstr_from_utf8string(const utf8string &s)
 
 utf8string utf8string_from_bstr(BSTR bstr)
 {
+    if (bstr == NULL) {
+        return utf8string("null");
+    }
     int nchars = WideCharToMultiByte(CP_UTF8, 0, bstr, -1, NULL, 0, NULL, NULL);
     char *buf = new char[nchars];
     WideCharToMultiByte(CP_UTF8, 0, bstr, -1, buf, nchars, NULL, NULL);
