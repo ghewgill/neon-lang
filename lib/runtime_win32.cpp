@@ -10,6 +10,8 @@ namespace rtl {
 
 namespace ne_runtime {
 
+namespace {
+
 class ComObject: public Object {
 public:
     const std::string name;
@@ -52,9 +54,11 @@ void VariantFromObject(VARIANT *v, std::shared_ptr<Object> obj)
     utf8string s;
     if (obj->getString(s)) {
         v->vt = VT_BSTR;
-        OLECHAR wstr[200];
-        MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, wstr, sizeof(wstr)/sizeof(wstr[0]));
+        int nchars = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, NULL, 0);
+        OLECHAR *wstr = new OLECHAR[nchars];
+        MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, wstr, nchars);
         v->bstrVal = SysAllocString(wstr);
+        delete[] wstr;
         return;
     }
     ComObject *co = dynamic_cast<ComObject *>(obj.get());
@@ -65,6 +69,16 @@ void VariantFromObject(VARIANT *v, std::shared_ptr<Object> obj)
         return;
     }
     throw RtlException(Exception_NativeObjectException, utf8string("could not convert Object to VARIANT"));
+}
+
+utf8string utf8string_from_bstr(BSTR bstr)
+{
+    int nchars = WideCharToMultiByte(CP_UTF8, 0, bstr, -1, NULL, 0, NULL, NULL);
+    char *buf = new char[nchars];
+    WideCharToMultiByte(CP_UTF8, 0, bstr, -1, buf, nchars, NULL, NULL);
+    utf8string r { buf };
+    delete[] buf;
+    return r;
 }
 
 std::shared_ptr<Object> ObjectFromVariant(VARIANT &v)
@@ -79,11 +93,8 @@ std::shared_ptr<Object> ObjectFromVariant(VARIANT &v)
             return std::make_shared<ObjectNumber>(number_from_sint8(v.bVal));
         case VT_I4:
             return std::make_shared<ObjectNumber>(number_from_sint32(v.lVal));
-        case VT_BSTR: {
-            char buf[200];
-            WideCharToMultiByte(CP_UTF8, 0, v.bstrVal, -1, buf, sizeof(buf), NULL, NULL);
-            return std::make_shared<ObjectString>(utf8string(buf));
-        }
+        case VT_BSTR:
+            return std::make_shared<ObjectString>(utf8string_from_bstr(v.bstrVal));
         case VT_DISPATCH:
             v.pdispVal->AddRef();
             return std::make_shared<ComObject>("IDispatch", v.pdispVal);
@@ -101,9 +112,7 @@ void handleInvokeResult(HRESULT r, UINT cArgs, EXCEPINFO &ei, UINT &argerr)
         case DISP_E_BADVARTYPE:
             throw RtlException(Exception_NativeObjectException, utf8string("invalid variant type in arguments"));
         case DISP_E_EXCEPTION:
-            char buf[200];
-            WideCharToMultiByte(CP_UTF8, 0, ei.bstrDescription, -1, buf, sizeof(buf), NULL, NULL);
-            throw RtlException(Exception_NativeObjectException, utf8string(buf));
+            throw RtlException(Exception_NativeObjectException, utf8string_from_bstr(ei.bstrDescription));
         case DISP_E_MEMBERNOTFOUND:
             throw RtlException(Exception_NativeObjectException, utf8string("the requested member does not exist"));
         case DISP_E_NONAMEDARGS:
@@ -183,6 +192,8 @@ bool ComObject::subscript(std::shared_ptr<Object> index, std::shared_ptr<Object>
     VariantClear(&rv);
     return true;
 }
+
+} // anonymous namespace
 
 std::shared_ptr<Object> createObject(const utf8string &name)
 {
