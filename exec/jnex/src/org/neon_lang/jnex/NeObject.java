@@ -13,6 +13,7 @@ interface NeObject {
     default Map<String, NeObject> getDictionary() { return null; }
     default Object getNative() { return null; }
     default NeObject invokeMethod(String name, List<NeObject> args) { return null; }
+    default void setProperty(NeObject index, NeObject value) {}
     default NeObject subscript(NeObject index) { return null; }
     default String toLiteralString() { return toString(); }
 }

@@ -24,7 +24,8 @@ public:
         obj->Release();
     }
     virtual bool invokeMethod(const utf8string &methodname, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const override;
-    virtual bool subscript(std::shared_ptr<Object>, std::shared_ptr<Object> &) const override;
+    virtual bool setProperty(std::shared_ptr<Object> index, std::shared_ptr<Object> value) const override;
+    virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &result) const override;
     virtual utf8string toString() const { return utf8string("<ComObject:" + name + ">"); }
 };
 
@@ -173,6 +174,32 @@ bool ComObject::invokeMethod(const utf8string &methodname, const std::vector<std
     handleInvokeResult(r, params.cArgs, ei, argerr);
     result = ObjectFromVariant(rv);
     VariantClear(&rv);
+    return true;
+}
+
+bool ComObject::setProperty(std::shared_ptr<Object> index, std::shared_ptr<Object> value) const
+{
+    utf8string name;
+    if (not index->getString(name)) {
+        throw RtlException(Exception_NativeObjectException, utf8string("property name must be a string"));
+    }
+    BSTR pname = bstr_from_utf8string(name);
+    OLECHAR *a = pname;
+    DISPID dispid;
+    HRESULT r = obj->GetIDsOfNames(IID_NULL, &a, 1, GetUserDefaultLCID(), &dispid);
+    SysFreeString(pname);
+    if (r != S_OK) {
+        throw RtlException(Exception_NativeObjectException, utf8string("property not found in object (" + name.str() + ")"));
+    }
+    DISPID dispidNamed = DISPID_PROPERTYPUT;
+    VARIANTARG arg;
+    VariantInit(&arg);
+    VariantFromObject(&arg, value);
+    DISPPARAMS params = {&arg, &dispidNamed, 1, 1};
+    EXCEPINFO ei;
+    UINT argerr;
+    r = obj->Invoke(dispid, IID_NULL, GetUserDefaultLCID(), DISPATCH_PROPERTYPUT, &params, NULL, &ei, &argerr);
+    handleInvokeResult(r, params.cArgs, ei, argerr);
     return true;
 }
 

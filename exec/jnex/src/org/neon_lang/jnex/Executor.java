@@ -79,6 +79,7 @@ class Executor {
         predefined.put("object__makeNull", this::object__makeNull);
         predefined.put("object__makeNumber", this::object__makeNumber);
         predefined.put("object__makeString", this::object__makeString);
+        predefined.put("object__setProperty", this::object__setProperty);
         predefined.put("object__subscript", this::object__subscript);
         predefined.put("object__toString", this::object__toString);
         predefined.put("print", this::print);
@@ -1754,6 +1755,22 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(new NeObjectString(s)));
+    }
+
+    private void object__setProperty()
+    {
+        NeObject i = stack.removeFirst().getObject();
+        NeObject o = stack.removeFirst().getObject();
+        NeObject v = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException", "object is null");
+            return;
+        }
+        if (i == null) {
+            raiseLiteral("DynamicConversionException", "index is null");
+            return;
+        }
+        o.setProperty(i, v);
     }
 
     private void object__subscript()

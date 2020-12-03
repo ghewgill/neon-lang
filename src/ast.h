@@ -2171,9 +2171,9 @@ public:
     virtual std::string text() const override { return "BytesValueRangeIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
 };
 
-class ObjectSubscriptExpression: public Expression {
+class ObjectSubscriptExpression: public ReferenceExpression {
 public:
-    ObjectSubscriptExpression(const Expression *obj, const Expression *index): Expression(TYPE_OBJECT, false), obj(obj), index(index) {}
+    ObjectSubscriptExpression(const Expression *obj, const Expression *index): ReferenceExpression(TYPE_OBJECT, false), obj(obj), index(index) {}
     ObjectSubscriptExpression(const ObjectSubscriptExpression &) = delete;
     ObjectSubscriptExpression &operator=(const ObjectSubscriptExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2186,6 +2186,11 @@ public:
     virtual Number eval_number() const override { internal_error("ObjectSubscriptExpression"); }
     virtual utf8string eval_string() const override { internal_error("ObjectSubscriptExpression"); }
     virtual void generate_expr(Emitter &) const override;
+    virtual bool can_generate_address() const override { return false; }
+    virtual void generate_address_read(Emitter &) const override { internal_error("ObjectSubscriptExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("ObjectSubscriptExpression"); }
+    virtual void generate_load(Emitter &) const override { internal_error("ObjectSubscriptExpression"); }
+    virtual void generate_store(Emitter &) const override;
 
     virtual std::string text() const override { return "ObjectSubscriptExpression(" + obj->text() + ", " + index->text() + ")"; }
 };
