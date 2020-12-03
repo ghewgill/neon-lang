@@ -4788,10 +4788,14 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             target = new ast::ConstantStringExpression(utf8string(target_literal->value));
         } else if (target_variable != nullptr) {
             const ast::Variable *var = dynamic_cast<ast::Variable *>(scope.top()->lookupName(target_variable->variable.text));
-            if (var == nullptr) {
+            const ast::Constant *constant = dynamic_cast<ast::Constant *>(scope.top()->lookupName(target_variable->variable.text));
+            if (var != nullptr) {
+                target = new ast::VariableExpression(var);
+            } else if (constant != nullptr) {
+                target = new ast::ConstantStringExpression(constant->value->eval_string(target_variable->variable));
+            } else {
                 error(4302, target_variable->variable, "variable not found");
             }
-            target = new ast::VariableExpression(var);
         } else {
             internal_error("unexpected target type");
         }
