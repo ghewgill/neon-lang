@@ -143,7 +143,11 @@ static int callback(void *rowscell, int columns, char **values, char **names)
     Cell *row = cell_createArrayCell(columns);
     for (int i = 0; i < columns; i++) {
         row->array->data[i].type = cString;
-        row->array->data[i].string = string_createCString(values[i]);
+        if (values[i] != NULL) {
+            row->array->data[i].string = string_createCString(values[i]);
+        } else {
+            row->array->data[i].string = string_createCString("");
+        }
     }
     cell_arrayAppendElementPointer(rowscell, row);
     return 0;
@@ -206,7 +210,12 @@ void sqlite_exec(TExecutor *exec)
         if (r == SQLITE_ROW) {
             Cell *row = cell_createArrayCell(0);
             for (int i = 0; i < columns; i++) {
-                cell_arrayAppendElementPointer(row, cell_fromCString((const char *)sqlite3_column_text(stmt, i)));
+                const unsigned char *value = sqlite3_column_text(stmt, i);
+                if (value != NULL) {
+                    cell_arrayAppendElementPointer(row, cell_fromCString((const char *)value));
+                } else {
+                    cell_arrayAppendElementPointer(row, cell_fromCString(""));
+                }
             }
             cell_arrayAppendElementPointer(rows, row);
         } else {
@@ -262,7 +271,12 @@ void sqlite_execOne(TExecutor *exec)
     }
     if (r == SQLITE_ROW) {
         for (int i = 0; i < columns; i++) {
-            cell_arrayAppendElementPointer(result, cell_fromCString((const char *)sqlite3_column_text(stmt, i)));
+            const unsigned char *value = sqlite3_column_text(stmt, i);
+            if (value != NULL) {
+                cell_arrayAppendElementPointer(result, cell_fromCString((const char *)value));
+            } else {
+                cell_arrayAppendElementPointer(result, cell_fromCString(""));
+            }
         }
     } else {
         exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db->ptr));
