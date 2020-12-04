@@ -587,6 +587,19 @@ utf8string object__toString(const std::shared_ptr<Object> &obj)
     return obj->toString();
 }
 
+void object__setProperty(const std::shared_ptr<Object> &value, const std::shared_ptr<Object> &obj, const std::shared_ptr<Object> &index)
+{
+    if (obj == nullptr) {
+        throw RtlException(Exception_DynamicConversionException, utf8string("object is null"));
+    }
+    if (index == nullptr) {
+        throw RtlException(Exception_DynamicConversionException, utf8string("index is null"));
+    }
+    if (not obj->setProperty(index, value)) {
+        throw RtlException(Exception_ObjectSubscriptException, index->toString());
+    }
+}
+
 std::shared_ptr<Object> object__subscript(const std::shared_ptr<Object> &obj, const std::shared_ptr<Object> &index)
 {
     if (obj == nullptr) {

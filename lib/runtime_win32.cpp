@@ -26,7 +26,7 @@ public:
     virtual bool invokeMethod(const utf8string &methodname, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const override;
     virtual bool setProperty(std::shared_ptr<Object> index, std::shared_ptr<Object> value) const override;
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &result) const override;
-    virtual utf8string toString() const { return utf8string("<ComObject:" + name + ">"); }
+    virtual utf8string toString() const override { return utf8string("<ComObject:" + name + ">"); }
 };
 
 BSTR bstr_from_utf8string(const utf8string &s)
