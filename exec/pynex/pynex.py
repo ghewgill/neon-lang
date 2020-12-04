@@ -2070,32 +2070,34 @@ def neon_object__makeString(self):
 
 def neon_object__subscript(self):
     i = self.stack.pop()
-    v = self.stack.pop()
-    if v is None:
+    o = self.stack.pop()
+    if o is None:
         self.raise_literal("DynamicConversionException", "object is null")
     elif i is None:
         self.raise_literal("DynamicConversionException", "index is null")
-    elif isinstance(v, list):
+    elif isinstance(o, list):
         try:
             ii = math.trunc(i)
         except:
             self.raise_literal("DynamicConversionException", "to Number")
             return
         try:
-            self.stack.append(v[ii].value)
+            self.stack.append(o[ii].value)
         except IndexError:
             self.raise_literal("ArrayIndexException", str(ii))
             return
-    elif isinstance(v, dict):
+    elif isinstance(o, dict):
         if not isinstance(i, str):
             self.raise_literal("DynamicConversionException", "to String")
             return
-        if not i in v:
+        if not i in o:
             self.raise_literal("ObjectSubscriptException", str(i))
             return
-        self.stack.append(v[i].value)
+        self.stack.append(o[i].value)
+    elif isinstance(i, str):
+        self.stack.append(getattr(o, i))
     else:
-        self.stack.append(getattr(v, i))
+        self.raise_literal("ObjectSubscriptException", str(i))
 
 def neon_object__setProperty(self):
     i = self.stack.pop()
