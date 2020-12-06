@@ -17,8 +17,8 @@ LOOP
         END IF
         FOR i := clients.size()-1 TO 0 STEP -1 DO
             IF clients[i] IN read THEN
-                LET buf: Bytes := clients[i].recv(1000)
-                IF buf.size() > 0 THEN
+                VAR buf: Bytes
+                IF clients[i].recv(1000, OUT buf) THEN
                     -- do nothing
                 ELSE
                     clients[i].close()
