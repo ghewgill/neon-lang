@@ -1080,7 +1080,7 @@ FUNCTION f_callp(INOUT self: Executor)
                     r.append(", ")
                 END IF
                 IF VALID x THEN
-                    r.append(x->o.toString())
+                    r.append("\(x->o)")
                 END IF
             END FOREACH
             r.append("]")
@@ -1286,11 +1286,13 @@ FUNCTION f_callp(INOUT self: Executor)
                 END TRY
             END IF
         WHEN "object__toString" DO
-            self.stack.append(makeValueString(self.pop()->o.toString()))
+            self.stack.append(makeValueString("\(self.pop()->o)"))
         WHEN "print" DO
             print(self.pop()->s)
         WHEN "runtime$assertionsEnabled" DO
             self.stack.append(makeValueBoolean(TRUE))
+        WHEN "runtime$executorName" DO
+            self.stack.append(makeValueString("nenex"))
         WHEN "str", "number__toString" DO
             LET n: Number := self.pop()->n
             self.stack.append(makeValueString(str(n)))

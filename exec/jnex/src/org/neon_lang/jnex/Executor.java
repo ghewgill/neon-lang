@@ -70,6 +70,7 @@ class Executor {
         predefined.put("object__getDictionary", this::object__getDictionary);
         predefined.put("object__getNumber", this::object__getNumber);
         predefined.put("object__getString", this::object__getString);
+        predefined.put("object__invokeMethod", this::object__invokeMethod);
         predefined.put("object__isNull", this::object__isNull);
         predefined.put("object__makeArray", this::object__makeArray);
         predefined.put("object__makeBoolean", this::object__makeBoolean);
@@ -78,6 +79,7 @@ class Executor {
         predefined.put("object__makeNull", this::object__makeNull);
         predefined.put("object__makeNumber", this::object__makeNumber);
         predefined.put("object__makeString", this::object__makeString);
+        predefined.put("object__setProperty", this::object__setProperty);
         predefined.put("object__subscript", this::object__subscript);
         predefined.put("object__toString", this::object__toString);
         predefined.put("print", this::print);
@@ -97,6 +99,7 @@ class Executor {
         predefined.put("math$trunc", this::math$trunc);
         predefined.put("random$uint32", this::random$uint32);
         predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
+        predefined.put("runtime$createObject", this::runtime$createObject);
         predefined.put("runtime$executorName", this::runtime$executorName);
         predefined.put("string$fromCodePoint", this::string$fromCodePoint);
         predefined.put("string$toCodePoint", this::string$toCodePoint);
@@ -1687,6 +1690,18 @@ class Executor {
         stack.addFirst(new Cell(s));
     }
 
+    private void object__invokeMethod()
+    {
+        List<Cell> a = stack.removeFirst().getArray();
+        String name = stack.removeFirst().getString();
+        List<NeObject> args = new ArrayList<NeObject>();
+        for (Cell x: a) {
+            args.add(x.getObject());
+        }
+        NeObject r = stack.removeFirst().getObject().invokeMethod(name, args);
+        stack.addFirst(new Cell(r));
+    }
+
     private void object__isNull()
     {
         NeObject o = stack.removeFirst().getObject();
@@ -1740,6 +1755,22 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(new NeObjectString(s)));
+    }
+
+    private void object__setProperty()
+    {
+        NeObject i = stack.removeFirst().getObject();
+        NeObject o = stack.removeFirst().getObject();
+        NeObject v = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException", "object is null");
+            return;
+        }
+        if (i == null) {
+            raiseLiteral("DynamicConversionException", "index is null");
+            return;
+        }
+        o.setProperty(i, v);
     }
 
     private void object__subscript()
@@ -1872,6 +1903,21 @@ class Executor {
     private void runtime$assertionsEnabled()
     {
         stack.addFirst(new Cell(enable_assert));
+    }
+
+    private void runtime$createObject()
+    {
+        String name = stack.removeFirst().getString();
+        try {
+            Object obj = Class.forName(name).newInstance();
+            stack.addFirst(new Cell(new NeObjectNative(obj)));
+        } catch (ClassNotFoundException cnfe) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        } catch (InstantiationException ie) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        } catch (IllegalAccessException iae) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        }
     }
 
     private void runtime$executorName()

@@ -1,0 +1,32 @@
+IMPORT os
+IMPORT runtime
+
+CASE runtime.executorName()
+    WHEN "neonx" DO
+        CASE os.platform()
+            WHEN os.Platform.posix DO
+                -- pass
+            WHEN os.Platform.win32 DO
+                LET fso := runtime.createObject("Scripting.FileSystemObject")
+                LET t := fso.CreateTextFile("tmp/foo.txt")
+                t.WriteLine("this is a test")
+                t.Close()
+                LET f := fso.GetFile("tmp/foo.txt")
+                f.Name := "bar.txt"
+                TESTCASE f.Name = "bar.txt"
+                TESTCASE fso.BuildPath("foo", "bar") = @"foo\bar"
+        END CASE
+    WHEN "pynex" DO
+        LET a := runtime.createObject("builtins.list")
+        _ := a.append(1)
+        _ := a.append(2)
+        TESTCASE a.count(1) = 1
+        TESTCASE a.count(2) = 1
+        TESTCASE a.count(3) = 0
+    WHEN "jnex" DO
+        LET a := runtime.createObject("java.util.ArrayList")
+        _ := a.add(1)
+        _ := a.add(2)
+        TESTCASE a.size() = 2
+        TESTCASE a.get(1) = 2
+END CASE

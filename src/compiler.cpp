@@ -1856,6 +1856,14 @@ void ast::ObjectSubscriptExpression::generate_expr(Emitter &emitter) const
     emitter.adjust_stack_depth(-1);
 }
 
+void ast::ObjectSubscriptExpression::generate_store(Emitter &emitter) const
+{
+    obj->generate(emitter);
+    index->generate(emitter);
+    emitter.emit(Opcode::CALLP, emitter.str("object__setProperty"));
+    emitter.adjust_stack_depth(-3);
+}
+
 void ast::RecordReferenceFieldExpression::generate_address_read(Emitter &emitter) const
 {
     ref->generate_address_read(emitter);
@@ -2131,6 +2139,9 @@ void ast::AssignmentStatement::generate_code(Emitter &emitter) const
 void ast::ExpressionStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
+    if (expr->type != ast::TYPE_NOTHING) {
+        emitter.emit(Opcode::DROP);
+    }
 }
 
 void ast::IncrementStatement::generate_code(Emitter &emitter) const

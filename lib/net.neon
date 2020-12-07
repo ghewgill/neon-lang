@@ -20,26 +20,33 @@ EXCEPTION SocketException
  *
  *  Opaque type representing a network socket.
  */
-TYPE Socket IS Object
+-- TODO: This should be just
+--   TYPE Socket IS Object
+-- but there is a conflict with the new generic object method call
+-- support. The fact that this is a new Socket type should allow us
+-- to add methods to the Socket type without interfering with Object.
+TYPE Socket IS RECORD
+    s: Object
+END RECORD
 
-DECLARE NATIVE FUNCTION socket_accept(socket: Socket): Socket
-DECLARE NATIVE FUNCTION socket_bind(socket: Socket, address: String, port: Number)
-DECLARE NATIVE FUNCTION socket_close(socket: Socket)
-DECLARE NATIVE FUNCTION socket_connect(socket: Socket, host: String, port: Number)
-DECLARE NATIVE FUNCTION socket_listen(socket: Socket, port: Number)
-DECLARE NATIVE FUNCTION socket_recv(socket: Socket, count: Number, OUT buffer: Bytes): Boolean
-DECLARE NATIVE FUNCTION socket_recvfrom(socket: Socket, count: Number, OUT remote_address: String, OUT remote_port: Number, OUT buffer: Bytes): Boolean
-DECLARE NATIVE FUNCTION socket_send(socket: Socket, data: Bytes)
+DECLARE NATIVE FUNCTION socket_accept(socket: Object): Object
+DECLARE NATIVE FUNCTION socket_bind(socket: Object, address: String, port: Number)
+DECLARE NATIVE FUNCTION socket_close(socket: Object)
+DECLARE NATIVE FUNCTION socket_connect(socket: Object, host: String, port: Number)
+DECLARE NATIVE FUNCTION socket_listen(socket: Object, port: Number)
+DECLARE NATIVE FUNCTION socket_recv(socket: Object, count: Number, OUT buffer: Bytes): Boolean
+DECLARE NATIVE FUNCTION socket_recvfrom(socket: Object, count: Number, OUT remote_address: String, OUT remote_port: Number, OUT buffer: Bytes): Boolean
+DECLARE NATIVE FUNCTION socket_send(socket: Object, data: Bytes)
 DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
-DECLARE NATIVE FUNCTION socket_tcpSocket(): Socket
-DECLARE NATIVE FUNCTION socket_udpSocket(): Socket
+DECLARE NATIVE FUNCTION socket_tcpSocket(): Object
+DECLARE NATIVE FUNCTION socket_udpSocket(): Object
 
 /*  Function: tcpSocket
  *
  *  Create a new TCP/IP (stream) socket.
  */
 FUNCTION tcpSocket(): Socket
-    RETURN socket_tcpSocket()
+    RETURN Socket(s WITH socket_tcpSocket())
 END FUNCTION
 
 /*  Function: udpSocket
@@ -47,7 +54,7 @@ END FUNCTION
  *  Create a new UDP/IP (datagram) socket.
  */
 FUNCTION udpSocket(): Socket
-    RETURN socket_udpSocket()
+    RETURN Socket(s WITH socket_udpSocket())
 END FUNCTION
 
 /*  Function: select
@@ -65,7 +72,7 @@ END FUNCTION
  *  Accept an incoming connection request on a socket and returns a new socket.
  */
 FUNCTION Socket.accept(self: Socket): Socket
-    RETURN socket_accept(self)
+    RETURN Socket(s WITH socket_accept(self.s))
 END FUNCTION
 
 /*  Function: Socket.bind
@@ -73,7 +80,7 @@ END FUNCTION
  *  Bind a socket to an address and port number.
  */
 FUNCTION Socket.bind(self: Socket, address: String, port: Number)
-    socket_bind(self, address, port)
+    socket_bind(self.s, address, port)
 END FUNCTION
 
 /*  Function: Socket.close
@@ -81,7 +88,7 @@ END FUNCTION
  *  Close a socket.
  */
 FUNCTION Socket.close(self: Socket)
-    socket_close(self)
+    socket_close(self.s)
 END FUNCTION
 
 /*  Function: Socket.connect
@@ -89,7 +96,7 @@ END FUNCTION
  *  Connect a socket to a given host and port.
  */
 FUNCTION Socket.connect(self: Socket, host: String, port: Number)
-    socket_connect(self, host, port)
+    socket_connect(self.s, host, port)
 END FUNCTION
 
 /*  Function: Socket.listen
@@ -97,7 +104,7 @@ END FUNCTION
  *  Listen for incoming connections on a specific port.
  */
 FUNCTION Socket.listen(self: Socket, port: Number)
-    socket_listen(self, port)
+    socket_listen(self.s, port)
 END FUNCTION
 
 /*  Function: Socket.recv
@@ -105,7 +112,7 @@ END FUNCTION
  *  Receive (read) bytes from a socket.
  */
 FUNCTION Socket.recv(self: Socket, count: Number, OUT buffer: Bytes): Boolean
-    RETURN socket_recv(self, count, OUT buffer)
+    RETURN socket_recv(self.s, count, OUT buffer)
 END FUNCTION
 
 /*  Function: Socket.recvfrom
@@ -113,7 +120,7 @@ END FUNCTION
  *  Receive (read) bytes from a socket, also returning the remote address where they came from.
  */
 FUNCTION Socket.recvfrom(self: Socket, count: Number, OUT remote_address: String, OUT remote_port: Number, OUT buffer: Bytes): Boolean
-    RETURN socket_recvfrom(self, count, OUT remote_address, OUT remote_port, OUT buffer)
+    RETURN socket_recvfrom(self.s, count, OUT remote_address, OUT remote_port, OUT buffer)
 END FUNCTION
 
 /*  Function: Socket.send
@@ -121,5 +128,5 @@ END FUNCTION
  *  Send (write) bytes to a socket.
  */
 FUNCTION Socket.send(self: Socket, data: Bytes)
-    socket_send(self, data)
+    socket_send(self.s, data)
 END FUNCTION

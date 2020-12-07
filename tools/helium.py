@@ -3090,6 +3090,12 @@ def neon_regex_search(env, r, s, match):
 def neon_runtime_assertionsEnabled(env):
     return True
 
+def neon_runtime_createObject(env, name):
+    mod, cls = name.split(".")
+    constructor = getattr(sys.modules[mod], cls)
+    obj = constructor()
+    return obj
+
 def neon_runtime_executorName(env):
     return "helium"
 

@@ -567,12 +567,37 @@ bool object__isNull(const std::shared_ptr<Object> &obj)
     return obj == nullptr;
 }
 
+std::shared_ptr<Object> object__invokeMethod(const std::shared_ptr<Object> &obj, const utf8string &name, std::vector<std::shared_ptr<Object>> args)
+{
+    if (obj == nullptr) {
+        throw RtlException(Exception_DynamicConversionException, utf8string("object is null"));
+    }
+    std::shared_ptr<Object> result;
+    if (not obj->invokeMethod(name, args, result)) {
+        throw RtlException(Exception_DynamicConversionException, utf8string("object does not support calling methods"));
+    }
+    return result;
+}
+
 utf8string object__toString(const std::shared_ptr<Object> &obj)
 {
     if (obj == nullptr) {
         return utf8string("null");
     }
     return obj->toString();
+}
+
+void object__setProperty(const std::shared_ptr<Object> &value, const std::shared_ptr<Object> &obj, const std::shared_ptr<Object> &index)
+{
+    if (obj == nullptr) {
+        throw RtlException(Exception_DynamicConversionException, utf8string("object is null"));
+    }
+    if (index == nullptr) {
+        throw RtlException(Exception_DynamicConversionException, utf8string("index is null"));
+    }
+    if (not obj->setProperty(index, value)) {
+        throw RtlException(Exception_ObjectSubscriptException, index->toString());
+    }
 }
 
 std::shared_ptr<Object> object__subscript(const std::shared_ptr<Object> &obj, const std::shared_ptr<Object> &index)
