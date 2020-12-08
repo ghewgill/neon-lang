@@ -560,7 +560,11 @@ double number_to_double(Number x)
 Number number_from_string(const std::string &s)
 {
     std::string::size_type i = 0;
-    if (s[i] == '-') {
+    std::string::size_type skip = 0;
+    if (s[i] == '+') {
+        i++;
+        skip = i;
+    } else if (s[i] == '-') {
         i++;
     }
     std::string::size_type next = s.find_first_not_of("0123456789", i);
@@ -571,7 +575,7 @@ Number number_from_string(const std::string &s)
     // If all digits, then do a large integer conversion.
     if (next == std::string::npos) {
         try {
-            return mpz_class(s, 10);
+            return mpz_class(s.substr(skip), 10);
         } catch (std::invalid_argument &) {
             return bid128_nan(NULL);
         }
@@ -609,7 +613,7 @@ Number number_from_string(const std::string &s)
     if (next != std::string::npos) {
         return bid128_nan(NULL);
     }
-    return bid128_from_string(const_cast<char *>(s.c_str()));
+    return bid128_from_string(const_cast<char *>(s.c_str() + skip));
 }
 
 Number number_from_uint8(uint8_t x)

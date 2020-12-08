@@ -14,6 +14,18 @@ TESTCASE num("12e") EXPECT ValueRangeException
 TESTCASE num("12e-") EXPECT ValueRangeException
 TESTCASE num("12e1.2") EXPECT ValueRangeException
 TESTCASE num("12e1-") EXPECT ValueRangeException
+-- Valid numbers.
+TESTCASE num("-123") = -123
+TESTCASE num("-123.45") = -123.45
+TESTCASE num("-0") = 0
+TESTCASE num("-0.0") = 0
+TESTCASE num("0.0") = 0
+TESTCASE num("+0.0") = 0
+TESTCASE num("+0") = 0
+TESTCASE num("123") = 123
+TESTCASE num("123.45") = 123.45
+TESTCASE num("00123") = 123
+TESTCASE num("123.00") = 123
 
 print("hello")
 --= hello
