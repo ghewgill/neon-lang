@@ -574,7 +574,7 @@ class Executor {
         ip++;
         BigDecimal b = stack.removeFirst().getNumber();
         BigDecimal a = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(a.equals(b)));
+        stack.addFirst(new Cell(a.compareTo(b) == 0));
     }
 
     private void doNEN()
@@ -582,7 +582,7 @@ class Executor {
         ip++;
         BigDecimal b = stack.removeFirst().getNumber();
         BigDecimal a = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(!a.equals(b)));
+        stack.addFirst(new Cell(a.compareTo(b) != 0));
     }
 
     private void doLTN()
@@ -1880,7 +1880,7 @@ class Executor {
     private void math$odd()
     {
         BigDecimal x = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(!x.remainder(new BigDecimal(2)).equals(BigDecimal.ZERO)));
+        stack.addFirst(new Cell(x.remainder(new BigDecimal(2)).compareTo(BigDecimal.ZERO) != 0));
     }
 
     private void math$sign()
