@@ -4,4 +4,4 @@ VAR timer: time.Stopwatch := time.Stopwatch()
 timer.start()
 time.sleep(0.2)
 LET e: Number := timer.elapsed()
-TESTCASE 0.19 <= e < 0.4  -- Wiggle room for Travis builds.
+TESTCASE 0.19 <= e -- Avoid checking upper bound to avoid false fails on CI builds.
