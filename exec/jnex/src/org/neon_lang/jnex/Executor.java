@@ -103,6 +103,7 @@ class Executor {
         predefined.put("runtime$executorName", this::runtime$executorName);
         predefined.put("string$fromCodePoint", this::string$fromCodePoint);
         predefined.put("string$toCodePoint", this::string$toCodePoint);
+        predefined.put("sys$exit", this::sys$exit);
         predefined.put("textio$close", this::textio$close);
         predefined.put("textio$open", this::textio$open);
         predefined.put("textio$readLine", this::textio$readLine);
@@ -1935,6 +1936,12 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(BigDecimal.valueOf(s.charAt(0))));
+    }
+
+    private void sys$exit()
+    {
+        BigDecimal n = stack.removeFirst().getNumber();
+        System.exit(n.intValue());
     }
 
     private void textio$close()
