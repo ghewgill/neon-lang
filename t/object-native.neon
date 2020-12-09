@@ -11,6 +11,9 @@ CASE runtime.executorName()
                 LET t := fso.CreateTextFile("tmp/foo.txt")
                 t.WriteLine("this is a test")
                 t.Close()
+                IF fso.FileExists("tmp/bar.txt") THEN
+                    fso.DeleteFile("tmp/bar.txt")
+                END IF
                 LET f := fso.GetFile("tmp/foo.txt")
                 f.Name := "bar.txt"
                 TESTCASE f.Name = "bar.txt"
