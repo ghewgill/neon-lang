@@ -1802,7 +1802,12 @@ class Executor {
 
     private void print()
     {
-        System.out.println(stack.removeFirst().getString());
+        NeObject x = stack.removeFirst().getObject();
+        if (x != null) {
+            System.out.println(x.toString());
+        } else {
+            System.out.println("NIL");
+        }
     }
 
     private void string__append()

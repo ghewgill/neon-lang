@@ -158,6 +158,8 @@ class bytes:
         self.a = a
     def __getitem__(self, key):
         return bytes(self.a.__getitem__(key))
+    def __str__(self):
+        return "HEXBYTES \"" + " ".join("{:02x}".format(b) for b in self.a) + "\""
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -2531,6 +2533,8 @@ class ClassRecord(Class):
                 setattr(self, x.name, None) # TODO: default()
         def __eq__(self, other):
             return all(getattr(self, x.name) == getattr(other, x.name) for x in self._fields)
+        def __str__(self):
+            return "{" + ", ".join("{}: {}".format(neon_string_quoted(None, f.name), neon_string_quoted(None, getattr(self, f.name)) if isinstance(getattr(self, f.name), str) else getattr(self, f.name)) for f in self._fields) + "}"
     def __init__(self, fields, methods):
         self.fields = fields
         self.methods = methods

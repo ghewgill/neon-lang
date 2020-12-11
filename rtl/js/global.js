@@ -61,12 +61,16 @@ neon = {
             return x.toString();
         },
 
+        object__makeString: function(s) {
+            return s;
+        },
+
         object__toString: function(x) {
             return x.toString();
         },
 
-        print: function(s) {
-            console.log(s);
+        print: function(x) {
+            console.log(x);
         },
 
         str: function(x) {

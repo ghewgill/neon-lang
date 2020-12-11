@@ -113,6 +113,7 @@ const uint32_t TypeAttributes_Visibility_Public = 0x00000001;
 //const uint8_t ELEMENT_TYPE_END      = 0x00;
 const uint8_t ELEMENT_TYPE_VOID     = 0x01;
 const uint8_t ELEMENT_TYPE_STRING   = 0x0e;
+const uint8_t ELEMENT_TYPE_OBJECT   = 0x1c;
 const uint8_t ELEMENT_TYPE_SZARRAY  = 0x1d;
 
 const uint8_t op_call  = 0x28;
@@ -1547,10 +1548,25 @@ public:
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
-        // TODO: this is only appropriate for void WriteLine(string)
+        // TODO: this is only appropriate for void WriteLine(object)
         r << static_cast<uint8_t>(0);
         r << compressUnsigned(1);
         r << ELEMENT_TYPE_VOID;
+        r << ELEMENT_TYPE_OBJECT;
+        return r;
+    }
+};
+
+class MethodRefSig_makeString {
+public:
+    MethodRefSig_makeString() {}
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        // TODO: this is only appropriate for void WriteLine(object)
+        r << static_cast<uint8_t>(0);
+        r << compressUnsigned(1);
+        r << ELEMENT_TYPE_OBJECT;
         r << ELEMENT_TYPE_STRING;
         return r;
     }
@@ -1941,6 +1957,17 @@ public:
     const ast::TypeBytes *tb;
     virtual void generate_default(Context &context) const override {
         context.unimplemented("TypeBytes");
+    }
+};
+
+class TypeObject: public Type {
+public:
+    explicit TypeObject(const ast::TypeObject *to): Type(to, "object"), to(to) {}
+    TypeObject(const TypeObject &) = delete;
+    TypeObject &operator=(const TypeObject &) = delete;
+    const ast::TypeObject *to;
+    virtual void generate_default(Context &context) const override {
+        context.unimplemented("TypeObject");
     }
 };
 
@@ -3464,18 +3491,35 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        context.code << op_call << context.md.MemberRefToken(MemberRef(
-            MemberRefParent_TypeRef(context.md.TypeRefIndex(TypeRef(
-                ResolutionScope_AssemblyRef(context.md.AssemblyRefIndex(AssemblyRef(
-                    context.md.String("Neon"),
-                    0, // TODO: not sure where to get this or whether it's necessary
-                    AssemblyFlags_Retargetable
-                ))),
-                context.md.String("Global"),
-                context.md.String("Neon")))),
-            context.md.String("print"),
-            context.md.Blob(MethodRefSig_WriteLine().serialize())
-        ));
+        if (pf->name == "print") {
+            context.code << op_call << context.md.MemberRefToken(MemberRef(
+                MemberRefParent_TypeRef(context.md.TypeRefIndex(TypeRef(
+                    ResolutionScope_AssemblyRef(context.md.AssemblyRefIndex(AssemblyRef(
+                        context.md.String("Neon"),
+                        0, // TODO: not sure where to get this or whether it's necessary
+                        AssemblyFlags_Retargetable
+                    ))),
+                    context.md.String("Global"),
+                    context.md.String("Neon")))),
+                context.md.String("print"),
+                context.md.Blob(MethodRefSig_WriteLine().serialize())
+            ));
+        } else if (pf->name == "object__makeString") {
+            context.code << op_call << context.md.MemberRefToken(MemberRef(
+                MemberRefParent_TypeRef(context.md.TypeRefIndex(TypeRef(
+                    ResolutionScope_AssemblyRef(context.md.AssemblyRefIndex(AssemblyRef(
+                        context.md.String("Neon"),
+                        0, // TODO: not sure where to get this or whether it's necessary
+                        AssemblyFlags_Retargetable
+                    ))),
+                    context.md.String("Global"),
+                    context.md.String("Neon")))),
+                context.md.String("object__makeString"),
+                context.md.Blob(MethodRefSig_makeString().serialize())
+            ));
+        } else {
+            internal_error("predefined function: " + pf->name);
+        }
     }
 };
 
@@ -3568,7 +3612,7 @@ public:
     virtual void visit(const ast::TypeNumber *node) { r = new TypeNumber(node); }
     virtual void visit(const ast::TypeString *node) { r = new TypeString(node); }
     virtual void visit(const ast::TypeBytes *node) { r = new TypeBytes(node); }
-    virtual void visit(const ast::TypeObject *) { internal_error("TypeObject"); }
+    virtual void visit(const ast::TypeObject *node) { r = new TypeObject(node); }
     virtual void visit(const ast::TypeFunction *node) { r = new TypeFunction(node); }
     virtual void visit(const ast::TypeArray *node) { r = new TypeArray(node); }
     virtual void visit(const ast::TypeDictionary *node) { r = new TypeDictionary(node); }

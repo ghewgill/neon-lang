@@ -10,6 +10,7 @@ gc-two-pointers.neon       # gc
 math-test.neon             # precision
 number-ceil.neon           # precision
 opcode-coverage.neon       # GTY opcode
+print-object.neon          # object print format
 win32-test.neon            # win32
 
 compress-test.neon

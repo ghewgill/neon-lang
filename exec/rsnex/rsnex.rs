@@ -121,6 +121,11 @@ fn get_vint(bytes: &[u8], i: &mut usize) -> usize {
 }
 
 #[derive(Clone)]
+enum Object {
+    String(String),
+}
+
+#[derive(Clone)]
 enum Cell {
     None,
     //Boolean(bool),
@@ -128,6 +133,7 @@ enum Cell {
     String(String),
     //Array(Vec<Cell>),
     //Dictionary(Vec<Cell>),
+    Object(Object),
 }
 
 struct Function {
@@ -677,9 +683,19 @@ impl Executor {
     fn op_callp(&mut self) {
         self.ip += 1;
         let val = get_vint(&self.object.code, &mut self.ip);
-        if self.object.strtable[val] == "print" {
+        if self.object.strtable[val] == "object__makeString" {
             if let Some(Cell::String(s)) = self.stack.pop() {
-                println!("{}", s);
+                self.stack.push(Cell::Object(Object::String(s)));
+            } else {
+                assert!(false, "type mismatch");
+            }
+        } else if self.object.strtable[val] == "print" {
+            if let Some(Cell::Object(x)) = self.stack.pop() {
+                if let Object::String(s) = x {
+                    println!("{}", s);
+                } else {
+                    assert!(false, "not actually a string");
+                }
             } else {
                 assert!(false, "type mismatch");
             }

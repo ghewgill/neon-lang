@@ -1288,7 +1288,7 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "object__toString" DO
             self.stack.append(makeValueString("\(self.pop()->o)"))
         WHEN "print" DO
-            print(self.pop()->s)
+            print(self.pop()->o)
         WHEN "runtime$assertionsEnabled" DO
             self.stack.append(makeValueBoolean(TRUE))
         WHEN "runtime$executorName" DO
