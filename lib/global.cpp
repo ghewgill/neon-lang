@@ -468,9 +468,13 @@ std::vector<unsigned char> bytes__concat(const std::vector<unsigned char> &a, co
     return r;
 }
 
-void print(const utf8string &s)
+void print(const std::shared_ptr<Object> &x)
 {
-    std::cout << s.str() << "\n";
+    if (x == nullptr) {
+        std::cout << "NIL\n";
+        return;
+    }
+    std::cout << x->toString().str() << "\n";
 }
 
 std::shared_ptr<Object> object__makeNull()

@@ -338,12 +338,16 @@ public class Global {
         return x.toString();
     }
 
+    public static java.lang.Object object__makeString(java.lang.String s) {
+        return s;
+    }
+
     public static java.lang.String pointer__toString(java.lang.Object p) {
         return "<p:" + Integer.toString(System.identityHashCode(p)) + ">";
     }
 
-    public static void print(java.lang.String s) {
-        System.out.println(s);
+    public static void print(java.lang.Object x) {
+        System.out.println(x);
     }
 
     public static java.lang.String str(neon.type.Number x) {

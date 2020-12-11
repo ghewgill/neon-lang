@@ -2728,8 +2728,12 @@ func (self *executor) op_callp() {
 		p := self.pop().ref.(referenceDirect).addr
 		self.push(make_cell_str(fmt.Sprintf("<p:%p>", p)))
 	case "print":
-		str := self.pop()
-		fmt.Println(str.str)
+		x := self.pop()
+		if x.obj != nil {
+			fmt.Println(x.obj.toString())
+		} else {
+			fmt.Println("NIL")
+		}
 	case "random$uint32":
 		self.push(make_cell_num(float64(rand.Uint32())))
 	case "runtime$assertionsEnabled":

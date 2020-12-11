@@ -59,6 +59,7 @@ outer-tail.neon        # Feature not required
 parameter-out-array.neon # Feature not required
 parameter-out-string.neon # Feature not required
 posix-fork.neon        # fork not required
+print-object.neon      # object print format
 process-test.neon      # Module not required
 recursion-limit.neon   # Feature not required
 repl_import.neon       # Module not required

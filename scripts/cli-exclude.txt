@@ -282,6 +282,7 @@ predeclare1.neon
 predeclare2.neon
 predeclare3.neon
 predefined-generation.neon
+print-object.neon
 process-test.neon
 random-test.neon
 record-empty.neon

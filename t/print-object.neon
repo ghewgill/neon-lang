@@ -1,0 +1,25 @@
+print(NIL)
+--= NIL
+print(TRUE)
+--= TRUE
+print(5)
+--= 5
+print("hello")
+--= hello
+print(HEXBYTES "01 02 03")
+--= HEXBYTES "01 02 03"
+print([1, 2, 3])
+--= [1, 2, 3]
+print(["four", "five", "six"])
+--= ["four", "five", "six"]
+print({"eggs": 6, "flour": 2, "water": 1})
+--= {"eggs": 6, "flour": 2, "water": 1}
+
+TYPE Rec IS RECORD
+    name: String
+    size: Number
+END RECORD
+
+LET r: Rec := Rec(name WITH "ball", size WITH 5)
+print(r)
+--= {"name": "ball", "size": 5}
