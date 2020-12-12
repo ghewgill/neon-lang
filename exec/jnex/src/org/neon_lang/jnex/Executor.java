@@ -101,6 +101,7 @@ class Executor {
         predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
         predefined.put("runtime$createObject", this::runtime$createObject);
         predefined.put("runtime$executorName", this::runtime$executorName);
+        predefined.put("runtime$moduleIsMain", this::runtime$moduleIsMain);
         predefined.put("string$fromCodePoint", this::string$fromCodePoint);
         predefined.put("string$toCodePoint", this::string$toCodePoint);
         predefined.put("sys$exit", this::sys$exit);
@@ -1924,6 +1925,11 @@ class Executor {
     private void runtime$executorName()
     {
         stack.addFirst(new Cell("jnex"));
+    }
+
+    private void runtime$moduleIsMain()
+    {
+        stack.addFirst(new Cell(true)); // TODO modules
     }
 
     private void string$fromCodePoint()
