@@ -9,4 +9,6 @@ void runtime_isModuleImported(struct tagTExecutor *exec);
 void runtime_moduleIsMain(struct tagTExecutor *exec);
 void runtime_setRecursionLimit(struct tagTExecutor *exec);
 
+void runtime_createObject(struct tagTExecutor *exec);
+
 #endif
