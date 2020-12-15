@@ -263,6 +263,7 @@ TDispatch gfuncDispatch[] = {
 
     // runtime - runtime support services
     PDFUNC("runtime$assertionsEnabled", runtime_assertionsEnabled),
+    PDFUNC("runtime$createObject",      runtime_createObject),
     PDFUNC("runtime$executorName",      runtime_executorName),
     PDFUNC("runtime$isModuleImported",  runtime_isModuleImported),
     PDFUNC("runtime$moduleIsMain",      runtime_moduleIsMain),
@@ -363,7 +364,9 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("object__makeNumber",        object__makeNumber),
     PDFUNC("object__getString",         object__getString),
     PDFUNC("object__makeString",        object__makeString),
+    PDFUNC("object__invokeMethod",      object__invokeMethod),
     PDFUNC("object__isNull",            object__isNull),
+    PDFUNC("object__setProperty",       object__setProperty),
     PDFUNC("object__subscript",         object__subscript),
     PDFUNC("object__toString",          object__toString),
 
@@ -1193,6 +1196,32 @@ void object__makeString(TExecutor *exec)
 }
 
 
+void object__invokeMethod(TExecutor *exec)
+{
+    Cell *args = cell_fromCell(top(exec->stack)); pop(exec->stack);
+    char *name = string_asCString(top(exec->stack)->string); pop(exec->stack);
+    Cell *obj = cell_fromCell(top(exec->stack)); pop(exec->stack);
+
+    if (obj->object == NULL || obj->object->ptr == NULL) {
+        exec->rtl_raise(exec, "DynamicConversionException", "object is null");
+        goto cleanup;
+    }
+
+    Cell *result = cell_newCell();
+    if (!obj->object->invokeMethod(obj->object, exec, name, args, &result)) {
+        exec->rtl_raise(exec, "DynamicConversionException", "object does not support calling methods");
+        cell_freeCell(result);
+        goto cleanup;
+    }
+
+    push(exec->stack, result);
+
+cleanup:
+    free(name);
+    cell_freeCell(args);
+    cell_freeCell(obj);
+}
+
 void object__isNull(TExecutor *exec)
 {
     BOOL r = FALSE;
@@ -1205,11 +1234,43 @@ void object__isNull(TExecutor *exec)
     push(exec->stack, cell_fromBoolean(r));
 }
 
+void object__setProperty(TExecutor *exec)
+{
+    Cell *index = cell_fromCell(top(exec->stack)); pop(exec->stack);
+    Cell *obj = cell_fromCell(top(exec->stack)); pop(exec->stack);
+    Cell *value = cell_fromCell(top(exec->stack)); pop(exec->stack);
+
+    if (obj->object == NULL || obj->object->ptr == NULL) {
+        exec->rtl_raise(exec, "DynamicConversionException", "object is null");
+        goto cleanup;
+    }
+    if (index->object == NULL || index->object->ptr == NULL) {
+        exec->rtl_raise(exec, "DynamicConversionException", "index is null");
+        goto cleanup;
+    }
+
+    if (!((Object*)obj->object)->setProperty(obj->object, exec, index->object, value->object)) {
+        // ToDo: Debug this!  Make sure it does what is expected, and cleans up properly.
+        Cell *str = ((Object*)index->object)->toString(index->object);
+        char *pszStr = string_asCString(str->string);
+        exec->rtl_raise(exec, "ObjectSubscriptException", pszStr);
+        free(pszStr);
+        cell_freeCell(str);
+        goto cleanup;
+    }
+
+cleanup:
+    cell_freeCell(obj);
+    cell_freeCell(index);
+    cell_freeCell(value);
+}
+
 void object__subscript(struct tagTExecutor *exec)
 {
     Cell *index = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *o = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *r = cell_newCell();
+
     if (o->object->ptr == NULL) {
         exec->rtl_raise(exec, "DynamicConversionException", "object is null");
         cell_freeCell(index);
@@ -1264,6 +1325,19 @@ void object__subscript(struct tagTExecutor *exec)
             return;
         }
         cell_copyCell(r, e);
+    } else if (o->object->type == oNative) {
+        r->type = cObject;
+        if (!o->object->subscript(o->object, exec, index->object, &r->object)) {
+            TString *str = cell_toString(index->object->ptr);
+            char *x = string_asCString(str);
+            exec->rtl_raise(exec, "ObjectSubscriptException", x);
+            string_freeString(str);
+            free(x);
+            cell_freeCell(index);
+            cell_freeCell(o);
+            cell_freeCell(r);
+            return;
+        }
     } else {
         TString *str = cell_toString(index->object->ptr);
         char *x = string_asCString(str);
@@ -1275,9 +1349,11 @@ void object__subscript(struct tagTExecutor *exec)
         cell_freeCell(r);
         return;
     }
+
+    push(exec->stack, r);
+
     cell_freeCell(index);
     cell_freeCell(o);
-    push(exec->stack, r);
 }
 
 void object__toString(TExecutor *exec)
@@ -1289,6 +1365,8 @@ void object__toString(TExecutor *exec)
     }
     push(exec->stack, s);
 }
+
+
 
 void pointer__toString(TExecutor *exec)
 {
