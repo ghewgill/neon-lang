@@ -883,6 +883,20 @@ add_test(
     NAME hello_exe
     COMMAND tmp/hello.exe
 )
+if (WIN32)
+    # Windows needs extra goodies to be able to execute shebang files.
+else (WIN32)
+    # exec/cnex/cnex.sh is a shebang stub, since CMake does not like the # in the COMMAND command.  This means that
+    # we have to give that script execute permissions before we actually run it.
+    add_custom_target(cnex_shebang ALL
+        COMMAND chmod +x exec/cnex/cnex.sh && exec/cnex/cnex.sh samples/hello/hello.neonx tmp/hello.sh
+        DEPENDS cnex samples/hello/hello.neonx
+    )
+    add_test(
+        NAME cnex_shebang
+        COMMAND tmp/hello.sh
+    )
+endif (WIN32)
 
 add_test(
     NAME lexer_coverage_cpp

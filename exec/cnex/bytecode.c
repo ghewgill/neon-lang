@@ -109,7 +109,16 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
 
     assert(b != NULL);
 
-    if (memcmp(bytecode, "Ne\0n", 4) != 0) {
+    if (memcmp(bytecode, "#!", 2) == 0) {
+        while (i < len && bytecode[i] != '\n') {
+            i++;
+        }
+        i++;
+        if (i >= len) {
+            fatal_error("No Bytecode found in file.");
+        }
+    }
+    if (memcmp(bytecode+i, "Ne\0n", 4) != 0) {
         fatal_error("Bytecode signature not found.");
     }
     i += 4;
