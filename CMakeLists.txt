@@ -200,7 +200,7 @@ else (WIN32)
 endif (WIN32)
 
 add_custom_command(
-    OUTPUT src/thunks.inc src/functions_compile.inc src/functions_exec.inc src/enums.inc src/exceptions.inc
+    OUTPUT ${CMAKE_BINARY_DIR}/src/thunks.inc ${CMAKE_BINARY_DIR}/src/functions_compile.inc ${CMAKE_BINARY_DIR}/src/functions_exec.inc ${CMAKE_BINARY_DIR}/src/enums.inc ${CMAKE_BINARY_DIR}/src/exceptions.inc
     COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/make_thunks.py ${RTL_NEON}
     DEPENDS scripts/make_thunks.py
     DEPENDS ${RTL_NEON}
@@ -337,7 +337,10 @@ add_library(compiler STATIC
 )
 set_source_files_properties(
     src/support_compiler.cpp
-    PROPERTIES OBJECT_DEPENDS src/rtl.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/src/rtl.inc
+)
+target_include_directories(compiler
+    PRIVATE ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(compiler
     common
@@ -439,6 +442,7 @@ set_source_files_properties(
 )
 target_include_directories(executor
     PRIVATE common
+    PRIVATE src
     PRIVATE ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(executor
@@ -856,21 +860,21 @@ add_custom_target(docs_samples ALL
 )
 
 add_custom_command(
-    OUTPUT samples/hello/hello.neonx
-    COMMAND neonc samples/hello/hello.neon
-    DEPENDS neonc samples/hello/hello.neon
+    OUTPUT ${CMAKE_BINARY_DIR}/bin/hello.neonx
+    COMMAND neonc -o ${CMAKE_BINARY_DIR}/bin/hello.neonx ${CMAKE_SOURCE_DIR}/samples/hello/hello.neon
+    DEPENDS neonc ${CMAKE_SOURCE_DIR}/samples/hello/hello.neon
 )
 add_custom_target(hello_neb ALL
-    COMMAND neonbind -stub $<TARGET_FILE:neonstub> tmp/hello.neb samples/hello/hello.neonx
-    DEPENDS neonbind samples/hello/hello.neonx
+    COMMAND neonbind -stub $<TARGET_FILE:neonstub> tmp/hello.neb ${CMAKE_BINARY_DIR}/bin/hello.neonx
+    DEPENDS neonbind ${CMAKE_BINARY_DIR}/bin/hello.neonx
 )
 add_test(
     NAME hello_neb
     COMMAND neonx tmp/hello.neb
 )
 add_custom_target(hello_exe ALL
-    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e tmp/hello.exe ${CMAKE_SOURCE_DIR}/samples/hello/hello.neonx
-    DEPENDS neonbind neonstub samples/hello/hello.neonx
+    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e tmp/hello.exe ${CMAKE_BINARY_DIR}/bin/hello.neonx
+    DEPENDS neonbind neonstub ${CMAKE_BINARY_DIR}/bin/hello.neonx
 )
 add_test(
     NAME hello_exe
