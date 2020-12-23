@@ -132,6 +132,10 @@ int main(int argc, char *argv[])
                 }
                 if (name != "-") {
                     std::ofstream outf(objname, std::ios::binary);
+                    if (not outf) {
+                        std::cerr << "Could not create output file: " << objname << "\n";
+                        exit(1);
+                    }
                     outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
                 }
             } else {
