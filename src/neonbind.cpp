@@ -29,7 +29,7 @@
 #define DEFAULT_STUB_NAME "neonstub"
 #endif
 
-RuntimeSupport support(".");
+RuntimeSupport support(".", {});
 
 void get_modules(const Bytecode &obj, std::map<std::string, Bytecode> &modules)
 {
