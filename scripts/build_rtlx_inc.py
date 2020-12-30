@@ -3,7 +3,7 @@
 import os
 import sys
 
-with open("src/rtlx.inc", "w") as f:
+with open("gen/rtlx.inc", "w") as f:
     for fn in sys.argv[1:]:
         bytecode = open(fn, "rb").read()
         print("static const unsigned char bytecode_{}[] = {{{}}};".format(

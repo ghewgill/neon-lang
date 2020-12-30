@@ -106,7 +106,7 @@ set_property(DIRECTORY APPEND
     PROPERTY CMAKE_CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/.git/index
 )
-configure_file("src/version.cpp.in" "src/version.cpp")
+configure_file("src/version.cpp.in" "gen/version.cpp")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -200,7 +200,7 @@ else (WIN32)
 endif (WIN32)
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/src/thunks.inc ${CMAKE_BINARY_DIR}/src/functions_compile.inc ${CMAKE_BINARY_DIR}/src/functions_exec.inc ${CMAKE_BINARY_DIR}/src/enums.inc ${CMAKE_BINARY_DIR}/src/exceptions.inc
+    OUTPUT ${CMAKE_BINARY_DIR}/gen/thunks.inc ${CMAKE_BINARY_DIR}/gen/functions_compile.inc ${CMAKE_BINARY_DIR}/gen/functions_exec.inc ${CMAKE_BINARY_DIR}/gen/enums.inc ${CMAKE_BINARY_DIR}/gen/exceptions.inc
     COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/make_thunks.py ${RTL_NEON}
     DEPENDS scripts/make_thunks.py
     DEPENDS ${RTL_NEON}
@@ -208,19 +208,19 @@ add_custom_command(
 set_source_files_properties(
     src/ast.cpp
     src/intrinsic.cpp
-    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/src/exceptions.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/gen/exceptions.inc
 )
 
 add_custom_command(
-    OUTPUT src/unicodedata.inc
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/scripts/make_unicode.neon ${CMAKE_SOURCE_DIR}/data/UnicodeData.txt >src/unicodedata.inc
+    OUTPUT gen/unicodedata.inc
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/scripts/make_unicode.neon ${CMAKE_SOURCE_DIR}/data/UnicodeData.txt >gen/unicodedata.inc
     DEPENDS tools/helium.py
     DEPENDS scripts/make_unicode.neon
     DEPENDS data/UnicodeData.txt
 )
 set_source_files_properties(
     src/lexer.cpp
-    PROPERTIES OBJECT_DEPENDS src/unicodedata.inc
+    PROPERTIES OBJECT_DEPENDS gen/unicodedata.inc
 )
 
 if (JAVAC)
@@ -301,13 +301,14 @@ add_library(common STATIC
     src/intrinsic.cpp
     src/number.cpp
     src/support.cpp
-    src/version.cpp
+    gen/version.cpp
 )
 target_include_directories(common
     PRIVATE ${CMAKE_BINARY_DIR}/src
     INTERFACE external/hash-library
     INTERFACE external/minijson_writer-master
     PUBLIC external/utfcpp-master/source
+    PRIVATE gen
 )
 target_link_libraries(common
     bid
@@ -316,7 +317,7 @@ target_link_libraries(common
 )
 
 add_custom_command(
-    OUTPUT src/rtl.inc
+    OUTPUT gen/rtl.inc
     COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/build_rtl_inc.py ${RTL_NEON}
     DEPENDS scripts/build_rtl_inc.py
     DEPENDS ${RTL_NEON}
@@ -337,10 +338,10 @@ add_library(compiler STATIC
 )
 set_source_files_properties(
     src/support_compiler.cpp
-    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/src/rtl.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/gen/rtl.inc
 )
 target_include_directories(compiler
-    PRIVATE ${CMAKE_BINARY_DIR}/src
+    PRIVATE gen
 )
 target_link_libraries(compiler
     common
@@ -398,7 +399,7 @@ endif ()
 #    list(APPEND RTL_NEONX ${NEONX})
 #endforeach ()
 #add_custom_command(
-#    OUTPUT src/rtlx.inc
+#    OUTPUT gen/rtlx.inc
 #    COMMAND python3 scripts/build_rtlx_inc.py ${RTL_NEONX}
 #    DEPENDS scripts/build_rtlx_inc.py
 #    DEPENDS ${RTL_NEONX}
@@ -433,15 +434,16 @@ add_library(executor STATIC
 )
 #set_source_files_properties(
 #    src/support_exec.cpp
-#    PROPERTIES OBJECT_DEPENDS src/rtlx.inc
+#    PROPERTIES OBJECT_DEPENDS gen/rtlx.inc
 #)
 target_compile_options(executor PRIVATE)
 set_source_files_properties(
     src/exec.cpp
-    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/src/exceptions.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/gen/exceptions.inc
 )
 target_include_directories(executor
     PRIVATE common
+    PRIVATE gen
     PRIVATE src
     PRIVATE ${CMAKE_BINARY_DIR}/src
 )
@@ -465,6 +467,9 @@ add_executable(neonc
     src/compiler_cpp.cpp
     src/compiler_js.cpp
     src/compiler_jvm.cpp
+)
+target_include_directories(neonc
+    PRIVATE gen
 )
 target_link_libraries(neonc
     compiler
@@ -607,7 +612,7 @@ add_test(
 )
 
 add_custom_command(
-    OUTPUT src/errors.txt
+    OUTPUT gen/errors.txt
     COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/scripts/extract_errors.neon ${CMAKE_SOURCE_DIR}/src
     DEPENDS src/lexer.cpp
     DEPENDS src/parser.cpp
@@ -616,7 +621,7 @@ add_custom_command(
     DEPENDS src/ast.cpp
 )
 add_custom_target(errors_txt ALL
-    DEPENDS src/errors.txt
+    DEPENDS gen/errors.txt
 )
 
 add_custom_command(

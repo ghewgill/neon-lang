@@ -1,7 +1,6 @@
 .sconsign.dblite
 .sconf_temp/
 config.log
-*.inc
 *.o
 *.os
 *.obj
@@ -19,11 +18,10 @@ config.log
 lib/*.js
 t/*.cpp
 t/*.js
+gen/
 bin/
-errors.txt
 config.cache
 test_grammar
-src/version.cpp
 
 external/IntelRDFPMathLib20U2/
 external/gmp-6.1.2/
