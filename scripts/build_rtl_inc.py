@@ -2,7 +2,7 @@
 
 import sys
 
-with open("src/rtl.inc", "w") as f:
+with open("gen/rtl.inc", "w") as f:
     print("static struct {", file=f)
     print("    const char *name;", file=f)
     print("    const char *source;", file=f)
