@@ -1,31 +1,31 @@
-set(JNEX
-    src/org/nevec/rjm/BigIntegerMath.java
-    src/org/nevec/rjm/BigComplex.java
-    src/org/nevec/rjm/Ifactor.java
-    src/org/nevec/rjm/Rational.java
-    src/org/nevec/rjm/Factorial.java
-    src/org/nevec/rjm/Prime.java
-    src/org/nevec/rjm/Bernoulli.java
-    src/org/nevec/rjm/BigDecimalMath.java
-    src/org/neon_lang/jnex/Bytecode.java
-    src/org/neon_lang/jnex/Cell.java
-    src/org/neon_lang/jnex/Executor.java
-    src/org/neon_lang/jnex/NeObject.java
-    src/org/neon_lang/jnex/NeObjectArray.java
-    src/org/neon_lang/jnex/NeObjectBoolean.java
-    src/org/neon_lang/jnex/NeObjectBytes.java
-    src/org/neon_lang/jnex/NeObjectDictionary.java
-    src/org/neon_lang/jnex/NeObjectNative.java
-    src/org/neon_lang/jnex/NeObjectNumber.java
-    src/org/neon_lang/jnex/NeObjectString.java
-    src/org/neon_lang/jnex/NeonException.java
+set(JNEX_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigIntegerMath.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigComplex.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/Ifactor.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/Rational.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/Factorial.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/Prime.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/Bernoulli.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigDecimalMath.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/Bytecode.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/Cell.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/Executor.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObject.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectArray.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectBoolean.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectBytes.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectDictionary.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectNative.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectNumber.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectString.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeonException.java
 )
-string(REPLACE ".java" ".class" JNEX_CLASSES "${JNEX}")
-foreach (java ${JNEX})
+string(REPLACE ".java" ".class" JNEX_CLASSES "${JNEX_SOURCES}")
+foreach (java ${JNEX_SOURCES})
     string(REPLACE ".java" ".class" class ${java})
     add_custom_command(
         OUTPUT ${class}
-        COMMAND javac -cp src ${java}
+        COMMAND javac -cp ${CMAKE_CURRENT_SOURCE_DIR}/src ${java}
         DEPENDS ${java}
     )
 endforeach ()

@@ -1,4 +1,4 @@
-IMPORT "t/interface-parameter-export" ALIAS export
+IMPORT "interface-parameter-export" ALIAS export
 
 LET c2: POINTER TO export.Interface := NEW export.Cls
 export.fi(c2)

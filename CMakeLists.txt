@@ -253,8 +253,8 @@ if (JAVAC)
     add_custom_target(neon_jvm ALL
         DEPENDS ${NEON_JVM_CLASSES}
     )
-    string(REPLACE "lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
-    string(REPLACE "lib/struct.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON_WITHOUT_GLOBAL}") # TODO
+    string(REPLACE "${CMAKE_SOURCE_DIR}/lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
+    string(REPLACE "${CMAKE_SOURCE_DIR}/lib/struct.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON_WITHOUT_GLOBAL}") # TODO
     string(REPLACE ".neon" ".class" RTL_CLASSES "${RTL_NEON_WITHOUT_GLOBAL}")
     foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
         string(REPLACE ".neon" ".class" class ${rtl_neon})
@@ -566,7 +566,7 @@ add_test(
 )
 add_test(
     NAME test_lexer_coverage
-    COMMAND test_lexer tests/lexer-coverage.neon
+    COMMAND test_lexer ${CMAKE_SOURCE_DIR}/tests/lexer-coverage.neon
 )
 
 add_executable(test_number
@@ -650,13 +650,13 @@ function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
             if (NOT ";${EXCLUDE};" MATCHES ";${T};")
                 add_test(
                     NAME "${TAG}:${T}"
-                    COMMAND python3 scripts/run_test.py --runner "${RUNNER}" ${TEST}
+                    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/run_test.py --runner "${RUNNER}" ${TEST}
                 )
             endif()
         else()
             add_test(
                 NAME "${T}"
-                COMMAND python3 scripts/run_test.py --runner "${RUNNER}" ${TEST}
+                COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/run_test.py --runner "${RUNNER}" ${TEST}
             )
         endif()
     endforeach()
@@ -687,7 +687,7 @@ foreach (TEST ${RUN_TESTS})
     endif (TEST_PLATFORM)
     add_custom_command(
         OUTPUT "${TEST}x"
-        COMMAND neonc -q ${TEST}
+        COMMAND neonc --neonpath ${CMAKE_SOURCE_DIR}/lib -q ${TEST}
         DEPENDS neonc ${TEST}
     )
     list(APPEND TESTS ${TEST})
@@ -768,7 +768,7 @@ add_test(
 
 add_test(
     NAME "errors"
-    COMMAND python3 scripts/run_test.py --runner "$<TARGET_FILE:neonc> -q" --errors t/errors
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/run_test.py --runner "$<TARGET_FILE:neonc> -q" --errors t/errors
 )
 
 file(GLOB TESTS_REPL t/repl_*.neon)
