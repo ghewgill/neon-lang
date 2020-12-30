@@ -18,8 +18,8 @@ Repl::Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool 
     stop_on_any_error(stop_on_any_error),
     dump_listing(dump_listing),
     options(options),
-    compiler_support("", nullptr),
-    runtime_support(""),
+    compiler_support("", {}, nullptr),
+    runtime_support("", {}),
     globals_ast(),
     globals_cells(),
     input()
