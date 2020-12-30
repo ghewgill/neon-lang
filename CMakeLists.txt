@@ -525,7 +525,7 @@ add_executable(fuzz_lexer
     tests/fuzz_lexer.cpp
 )
 target_include_directories(fuzz_lexer PRIVATE
-    ${CMAKE_BINARY_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(fuzz_lexer
     compiler
@@ -535,7 +535,7 @@ add_executable(fuzz_parser
     tests/fuzz_parser.cpp
 )
 target_include_directories(fuzz_parser PRIVATE
-    ${CMAKE_BINARY_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(fuzz_parser
     compiler
@@ -545,7 +545,7 @@ add_executable(perf_lexer
     tests/perf_lexer.cpp
 )
 target_include_directories(perf_lexer PRIVATE
-    ${CMAKE_BINARY_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(perf_lexer
     compiler
@@ -555,7 +555,7 @@ add_executable(test_lexer
     tests/test_lexer.cpp
 )
 target_include_directories(test_lexer PRIVATE
-    ${CMAKE_BINARY_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(test_lexer
     compiler
@@ -587,7 +587,7 @@ add_executable(test_parser
     tests/test_parser.cpp
 )
 target_include_directories(test_parser PRIVATE
-    ${CMAKE_BINARY_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(test_parser
     compiler
@@ -625,14 +625,14 @@ add_custom_target(errors_txt ALL
 )
 
 add_custom_command(
-    OUTPUT contrib/grammar/neon.w3c.ebnf
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/contrib/grammar/ebnf_w3c.neon <${CMAKE_SOURCE_DIR}/contrib/grammar/neon.ebnf >contrib/grammar/neon.w3c.ebnf
+    OUTPUT ${CMAKE_BINARY_DIR}/gen/neon.w3c.ebnf
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/contrib/grammar/ebnf_w3c.neon <${CMAKE_SOURCE_DIR}/contrib/grammar/neon.ebnf >${CMAKE_BINARY_DIR}/gen/neon.w3c.ebnf
     DEPENDS tools/helium.py
     DEPENDS contrib/grammar/ebnf_w3c.neon
     DEPENDS contrib/grammar/neon.ebnf
 )
 add_custom_target(w3c_ebnf ALL
-    DEPENDS contrib/grammar/neon.w3c.ebnf
+    DEPENDS ${CMAKE_BINARY_DIR}/gen/neon.w3c.ebnf
 )
 
 function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
@@ -878,12 +878,12 @@ add_test(
     COMMAND neonx tmp/hello.neb
 )
 add_custom_target(hello_exe ALL
-    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e tmp/hello.exe ${CMAKE_BINARY_DIR}/bin/hello.neonx
+    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e ${CMAKE_BINARY_DIR}/tmp/hello.exe ${CMAKE_BINARY_DIR}/bin/hello.neonx
     DEPENDS neonbind neonstub ${CMAKE_BINARY_DIR}/bin/hello.neonx
 )
 add_test(
     NAME hello_exe
-    COMMAND tmp/hello.exe
+    COMMAND ${CMAKE_BINARY_DIR}/tmp/hello.exe
 )
 
 add_test(
