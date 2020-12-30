@@ -536,14 +536,24 @@ private:
     std::vector<const ast::Statement *> &v;
 };
 
+#ifdef _WIN32
+    static const std::string PATH_DELIMITER = "/\\:";
+#else
+    static const std::string PATH_DELIMITER = "/";
+#endif
+
+static std::string path_dirname(const std::string &path)
+{
+    std::string::size_type i = path.find_last_of(PATH_DELIMITER);
+    if (i == std::string::npos) {
+        return "";
+    }
+    return path.substr(0, i + 1);
+}
+
 static std::string path_basename(const std::string &path)
 {
-#ifdef _WIN32
-    static const std::string delim = "/\\:";
-#else
-    static const std::string delim = "/";
-#endif
-    std::string::size_type i = path.find_last_of(delim);
+    std::string::size_type i = path.find_last_of(PATH_DELIMITER);
     if (i == std::string::npos) {
         return path;
     }
@@ -1787,9 +1797,10 @@ const ast::Expression *Analyzer::analyze(const pt::StringLiteralExpression *expr
 
 const ast::Expression *Analyzer::analyze(const pt::FileLiteralExpression *expr)
 {
-    std::ifstream f(expr->name, std::ios::binary);
+    std::string name = path_dirname(program->source_path) + expr->name;
+    std::ifstream f(name, std::ios::binary);
     if (not f) {
-        error(3182, expr->token, "could not open file");
+        error(3182, expr->token, "could not open file (" + name + ")");
     }
     std::stringstream buffer;
     buffer << f.rdbuf();
