@@ -1,3 +1,13 @@
+// Before VS 2017 15.8, std::aligned_storage<Len, Align> with extended alignment(where Align is > alignof(max_align_t)),
+// would non-conformingly have an alignment of only alignof(max_align_t).  VS 2017 15.8 was fixed to handle this
+// correctly, but the fix inherently breaks binary compatibility but only for uses of aligned_storage with extended
+// alignments.
+// _ENABLE_EXTENDED_ALIGNED_STORAGE acknowledges that we actually want a type with an extended alignment.
+// _DISABLE_EXTENDED_ALIGNED_STORAGE will provide the old non-conformant behavior.
+ // MSVC 15.8.0 (VS 2017 Update 8) defines _MSC_VER as 1915.
+#if _MSC_VER >= 1915
+#define _ENABLE_EXTENDED_ALIGNED_STORAGE
+#endif
 #include <iso646.h>
 #include <windows.h>
 
