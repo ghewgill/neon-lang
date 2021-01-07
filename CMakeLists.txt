@@ -304,11 +304,11 @@ add_library(common STATIC
     gen/version.cpp
 )
 target_include_directories(common
-    PRIVATE ${CMAKE_BINARY_DIR}/src
+    PRIVATE src
     INTERFACE external/hash-library
     INTERFACE external/minijson_writer-master
     PUBLIC external/utfcpp-master/source
-    PRIVATE gen
+    PRIVATE ${CMAKE_BINARY_DIR}/gen
 )
 target_link_libraries(common
     bid
@@ -341,7 +341,7 @@ set_source_files_properties(
     PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/gen/rtl.inc
 )
 target_include_directories(compiler
-    PRIVATE gen
+    PRIVATE ${CMAKE_BINARY_DIR}/gen
 )
 target_link_libraries(compiler
     common
@@ -443,9 +443,8 @@ set_source_files_properties(
 )
 target_include_directories(executor
     PRIVATE common
-    PRIVATE gen
+    PRIVATE ${CMAKE_BINARY_DIR}/gen
     PRIVATE src
-    PRIVATE ${CMAKE_BINARY_DIR}/src
 )
 target_link_libraries(executor
     common
@@ -469,7 +468,7 @@ add_executable(neonc
     src/compiler_jvm.cpp
 )
 target_include_directories(neonc
-    PRIVATE gen
+    PRIVATE ${CMAKE_BINARY_DIR}/gen
 )
 target_link_libraries(neonc
     compiler
@@ -612,7 +611,7 @@ add_test(
 )
 
 add_custom_command(
-    OUTPUT gen/errors.txt
+    OUTPUT ${CMAKE_BINARY_DIR}/gen/errors.txt
     COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/scripts/extract_errors.neon ${CMAKE_SOURCE_DIR}/src
     DEPENDS src/lexer.cpp
     DEPENDS src/parser.cpp
@@ -621,7 +620,7 @@ add_custom_command(
     DEPENDS src/ast.cpp
 )
 add_custom_target(errors_txt ALL
-    DEPENDS gen/errors.txt
+    DEPENDS ${CMAKE_BINARY_DIR}/gen/errors.txt
 )
 
 add_custom_command(
