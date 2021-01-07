@@ -5,11 +5,11 @@ set(GONEX_SOURCES
 )
 
 add_custom_command(
-    OUTPUT gonex
+    OUTPUT gonex${CMAKE_EXECUTABLE_SUFFIX}
     COMMAND ${GO} build ${GONEX_SOURCES}
     DEPENDS ${GONEX_SOURCES}
 )
 
 add_custom_target(gonex_target ALL
-    DEPENDS gonex
+    DEPENDS gonex${CMAKE_EXECUTABLE_SUFFIX}
 )

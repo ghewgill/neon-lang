@@ -152,9 +152,59 @@ void number_toString(Number x, char *buf, size_t len)
     memcpy(buf, r, slen+1); // Be sure to include the terminating NULL char.
 }
 
-Number number_from_string(char *s)
+Number number_from_string(const char *s)
 {
-    return bid128_from_string(s);
+    size_t i = 0;
+    size_t npos = strlen(s);
+
+    // Skip any sign notations that may exist.
+    if (s[i] == '-' || s[i] == '+') {
+        i++;
+    }
+
+    // First, our number must start with a digit.
+    size_t next = i + strspn(&s[i], "0123456789");
+    if (next == i) {
+        return bid128_nan(NULL);
+    }
+
+    // If we're dealing strictly with an integer, then we pass it off to gmp.
+    // ToDo: implement libgmp!
+
+    // Next, check for allowed formats because bid128_from_string() is a bit too permissive.
+    if (s[next] == '.') {
+        i = next + 1;
+        if (i >= npos) {
+            return bid128_nan(NULL);
+        }
+        next = i + strspn(&s[i], "0123456789");
+        // Must have digits after a decimal point, otherwise fail.
+        if (next == i) {
+            return bid128_nan(NULL);
+        }
+    }
+    // Check for exponential notation.
+    if (next != npos && (s[next] == 'e' || s[next] == 'E')) {
+        i = next + 1;
+        // Exponent can be followed by a + or -...
+        if (i < npos && (s[i] == '+' || s[i] == '-')) {
+            i++;
+        }
+        if (i >= npos) {
+            return bid128_nan(NULL);
+        }
+        // ...that must have one or more digits in the exponent.
+        next = i + strspn(&s[i], "0123456789");
+        if (next == i) {
+            return bid128_nan(NULL);
+        }
+    }
+    // Reject if we have any trailing non-numerical junk.
+    if (next != npos) {
+        return bid128_nan(NULL);
+    }
+    // Note: bid128_from_string() takes a char*, not a const char*.
+    return bid128_from_string((char*)s);
 }
 
 

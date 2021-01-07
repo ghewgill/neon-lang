@@ -5,11 +5,11 @@ set(RSNEX_SOURCES
 )
 
 add_custom_command(
-    OUTPUT rsnex
-    COMMAND ${RUSTC} -o rsnex ${RSNEX_SOURCES}
+    OUTPUT rsnex${CMAKE_EXECUTABLE_SUFFIX}
+    COMMAND ${RUSTC} -o rsnex${CMAKE_EXECUTABLE_SUFFIX} ${RSNEX_SOURCES}
     DEPENDS ${RSNEX_SOURCES}
 )
 
 add_custom_target(rsnex_target ALL
-    DEPENDS rsnex
+    DEPENDS rsnex${CMAKE_EXECUTABLE_SUFFIX}
 )
