@@ -241,6 +241,8 @@ def quoted(s):
     r += '"'
     return r
 
+BYTECODE_VERSION = 3
+
 class Type:
     def __init__(self):
         self.name = 0
@@ -301,7 +303,7 @@ class Bytecode:
         i += 4
 
         self.version, i = get_vint(bytecode, i)
-        assert self.version == OPCODE_VERSION
+        assert self.version == BYTECODE_VERSION
 
         self.source_hash = bytecode[i:i+32]
         i += 32
@@ -1297,8 +1299,6 @@ class Executor:
 
         print("Unhandled exception {} ({})".format(name, info), file=sys.stderr)
         sys.exit(1)
-
-OPCODE_VERSION = 3
 
 Dispatch = [
     Executor.PUSHB,

@@ -5,7 +5,7 @@ IMPORT string
 IMPORT sys
 IMPORT textio
 
-CONSTANT OPCODE_VERSION: Number := 3
+CONSTANT BYTECODE_VERSION: Number := 3
 
 EXCEPTION InternalException
 
@@ -87,7 +87,7 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     i := i + 4
 
     r.version := getVint(a, INOUT i)
-    ASSERT r.version = OPCODE_VERSION
+    ASSERT r.version = BYTECODE_VERSION
 
     r.sourceHash := bytes[i TO i+31]
     i := i + 32
