@@ -1,4 +1,6 @@
-EXEC SQL CONNECT TO "tmp/tmp.db";
+CONSTANT DatabaseName := "tmp/tmp.db"
+
+EXEC SQL CONNECT TO :DatabaseName;
 
 EXEC SQL DROP TABLE IF EXISTS user;
 EXEC SQL CREATE TABLE user(name STRING PRIMARY KEY, password STRING);

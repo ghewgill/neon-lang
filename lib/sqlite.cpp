@@ -113,7 +113,12 @@ bool execOne(const std::shared_ptr<Object> &pdb, const utf8string &sql, const st
     }
     if (r == SQLITE_ROW) {
         for (int i = 0; i < columns; i++) {
-            result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
+            const unsigned char *value = sqlite3_column_text(stmt, i);
+            if (value != nullptr) {
+                result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(value)));
+            } else {
+                result->array_for_write().push_back(Cell(""));
+            }
         }
     } else {
         throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db->db)));

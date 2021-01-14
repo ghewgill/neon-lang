@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-const OPCODE_VERSION int = 3
+const BYTECODE_VERSION int = 3
 
 const (
 	PUSHB   = iota // push boolean immediate
@@ -838,7 +838,7 @@ func make_bytecode(bytes []byte) bytecode {
 	i += 4
 
 	r.version = get_vint(bytes, &i)
-	assert(r.version == OPCODE_VERSION, "bytecode version mismatch")
+	assert(r.version == BYTECODE_VERSION, "bytecode version mismatch")
 
 	r.source_hash = bytes[i : i+32]
 	i += 32
@@ -2728,8 +2728,12 @@ func (self *executor) op_callp() {
 		p := self.pop().ref.(referenceDirect).addr
 		self.push(make_cell_str(fmt.Sprintf("<p:%p>", p)))
 	case "print":
-		str := self.pop()
-		fmt.Println(str.str)
+		x := self.pop()
+		if x.obj != nil {
+			fmt.Println(x.obj.toString())
+		} else {
+			fmt.Println("NIL")
+		}
 	case "random$uint32":
 		self.push(make_cell_num(float64(rand.Uint32())))
 	case "runtime$assertionsEnabled":

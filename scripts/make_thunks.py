@@ -330,7 +330,7 @@ thunks = set()
 for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
     thunks.add((rtype, tuple(params)))
 
-with open("src/thunks.inc", "w") as inc:
+with open("gen/thunks.inc", "w") as inc:
     for rtype, params in thunks:
         print("static void thunk_{}_{}(opstack<Cell> &{}, void *func)".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params), "stack" if (params or rtype[0] != "TYPE_NOTHING") else ""), file=inc)
         print("{", file=inc)
@@ -405,7 +405,7 @@ with open("src/thunks.inc", "w") as inc:
         print("}", file=inc)
         print("", file=inc)
 
-with open("src/variables_compile.inc", "w") as inc:
+with open("gen/variables_compile.inc", "w") as inc:
     print("static void init_builtin_variables(const std::string &module, ast::Scope *scope)", file=inc)
     print("{", file=inc)
     for name, atype in variables.values():
@@ -415,7 +415,7 @@ with open("src/variables_compile.inc", "w") as inc:
         print("    if (module == \"{}\") scope->addName(Token(IDENTIFIER, \"{}\"), \"{}\", new ast::PredefinedVariable(\"{}\", {}));".format(module, modname, modname, name, atype), file=inc)
     print("}", file=inc)
 
-with open("src/variables_exec.inc", "w") as inc:
+with open("gen/variables_exec.inc", "w") as inc:
     print("namespace rtl {", file=inc)
     for name, atype in variables.values():
         a = name.split("$")
@@ -430,7 +430,7 @@ with open("src/variables_exec.inc", "w") as inc:
         print("    {{\"{}\", &rtl::ne_{}::VAR_{}}},".format(name, a[0], a[1]), file=inc)
     print("};", file=inc)
 
-with open("src/functions_compile.inc", "w") as inc:
+with open("gen/functions_compile.inc", "w") as inc:
     print("struct PredefinedType {", file=inc)
     print("    const ast::Type *type;", file=inc)
     print("    const char *modtypename;", file=inc)
@@ -459,7 +459,7 @@ with open("src/functions_compile.inc", "w") as inc:
         bfi += 1
     print("}", file=inc)
 
-with open("src/functions_compile_jvm.inc", "w") as inc:
+with open("gen/functions_compile_jvm.inc", "w") as inc:
     print("static struct {", file=inc)
     print("    const char *name;", file=inc)
     print("    const char *module;", file=inc)
@@ -480,7 +480,7 @@ with open("src/functions_compile_jvm.inc", "w") as inc:
         ), file=inc)
     print("};", file=inc)
 
-with open("src/functions_exec.inc", "w") as inc:
+with open("gen/functions_exec.inc", "w") as inc:
     print("namespace rtl {", file=inc)
     cpp_name = {}
     for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
@@ -503,12 +503,12 @@ with open("src/functions_exec.inc", "w") as inc:
         print("    {{\"{}\", {}, reinterpret_cast<void *>(rtl::ne_{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name]), file=inc)
     print("};", file=inc)
 
-with open("src/enums.inc", "w") as inc:
+with open("gen/enums.inc", "w") as inc:
     for name, values in enums.items():
         for i, v in enumerate(values):
             print("static const uint32_t ENUM_{}_{} = {};".format(name, v, i), file=inc)
 
-with open("src/exceptions.inc", "w") as inc:
+with open("gen/exceptions.inc", "w") as inc:
     print("struct ExceptionName {", file=inc)
     print("    const char *name;", file=inc)
     print("};", file=inc)

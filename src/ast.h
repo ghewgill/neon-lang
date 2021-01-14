@@ -2171,9 +2171,9 @@ public:
     virtual std::string text() const override { return "BytesValueRangeIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
 };
 
-class ObjectSubscriptExpression: public Expression {
+class ObjectSubscriptExpression: public ReferenceExpression {
 public:
-    ObjectSubscriptExpression(const Expression *obj, const Expression *index): Expression(TYPE_OBJECT, false), obj(obj), index(index) {}
+    ObjectSubscriptExpression(const Expression *obj, const Expression *index): ReferenceExpression(TYPE_OBJECT, false), obj(obj), index(index) {}
     ObjectSubscriptExpression(const ObjectSubscriptExpression &) = delete;
     ObjectSubscriptExpression &operator=(const ObjectSubscriptExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2186,6 +2186,11 @@ public:
     virtual Number eval_number() const override { internal_error("ObjectSubscriptExpression"); }
     virtual utf8string eval_string() const override { internal_error("ObjectSubscriptExpression"); }
     virtual void generate_expr(Emitter &) const override;
+    virtual bool can_generate_address() const override { return false; }
+    virtual void generate_address_read(Emitter &) const override { internal_error("ObjectSubscriptExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("ObjectSubscriptExpression"); }
+    virtual void generate_load(Emitter &) const override { internal_error("ObjectSubscriptExpression"); }
+    virtual void generate_store(Emitter &) const override;
 
     virtual std::string text() const override { return "ObjectSubscriptExpression(" + obj->text() + ", " + index->text() + ")"; }
 };
@@ -2405,7 +2410,7 @@ public:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args) {}
+    FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr, bool allow_ignore_result = false): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args), allow_ignore_result(allow_ignore_result) {}
     FunctionCall(const FunctionCall &) = delete;
     FunctionCall &operator=(const FunctionCall &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2413,6 +2418,7 @@ public:
     const Expression *const func;
     const Expression *const dispatch;
     const std::vector<const Expression *> args;
+    const bool allow_ignore_result;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return func->is_pure(context) && std::all_of(args.begin(), args.end(), [&context](const Expression *x) { return x->is_pure(context); }); }
     virtual bool eval_boolean() const override;

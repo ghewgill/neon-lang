@@ -214,7 +214,9 @@ DECLARE NATIVE FUNCTION object__getString(obj: Object): String
 DECLARE NATIVE FUNCTION object__getBytes(obj: Object): Bytes
 DECLARE NATIVE FUNCTION object__getArray(obj: Object): Array<Object>
 DECLARE NATIVE FUNCTION object__getDictionary(obj: Object): Dictionary<Object>
+DECLARE NATIVE FUNCTION object__invokeMethod(obj: Object, name: String, params: Object...): Object
 DECLARE NATIVE FUNCTION object__isNull(obj: Object): Boolean
+DECLARE NATIVE FUNCTION object__setProperty(value: Object, obj: Object, index: Object)
 DECLARE NATIVE FUNCTION object__subscript(obj: Object, index: Object): Object
 DECLARE NATIVE FUNCTION object__toString(obj: Object): String
 DECLARE NATIVE FUNCTION exceptiontype__toString(ei: ExceptionType): String
@@ -229,7 +231,7 @@ DECLARE NATIVE FUNCTION num(s: String): Number
  *
  *  Print a string to standard output followed by a newline.
  */
-DECLARE NATIVE FUNCTION print(s: String)
+DECLARE NATIVE FUNCTION print(x: Object)
 
 /*  Function: str
  *

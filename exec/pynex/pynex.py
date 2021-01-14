@@ -241,6 +241,8 @@ def quoted(s):
     r += '"'
     return r
 
+BYTECODE_VERSION = 3
+
 class Type:
     def __init__(self):
         self.name = 0
@@ -301,7 +303,7 @@ class Bytecode:
         i += 4
 
         self.version, i = get_vint(bytecode, i)
-        assert self.version == OPCODE_VERSION
+        assert self.version == BYTECODE_VERSION
 
         self.source_hash = bytecode[i:i+32]
         i += 32
@@ -1298,8 +1300,6 @@ class Executor:
         print("Unhandled exception {} ({})".format(name, info), file=sys.stderr)
         sys.exit(1)
 
-OPCODE_VERSION = 3
-
 Dispatch = [
     Executor.PUSHB,
     Executor.PUSHN,
@@ -2030,6 +2030,13 @@ def neon_object__getString(self):
         return
     self.stack.append(v)
 
+def neon_object__invokeMethod(self):
+    args = self.stack.pop()
+    name = self.stack.pop()
+    obj = self.stack.pop()
+    r = getattr(obj, name)(*[x.value for x in args])
+    self.stack.append(r)
+
 def neon_object__isNull(self):
     v = self.stack.pop()
     self.stack.append(v is None)
@@ -2063,32 +2070,61 @@ def neon_object__makeString(self):
 
 def neon_object__subscript(self):
     i = self.stack.pop()
-    v = self.stack.pop()
-    if v is None:
+    o = self.stack.pop()
+    if o is None:
         self.raise_literal("DynamicConversionException", "object is null")
     elif i is None:
         self.raise_literal("DynamicConversionException", "index is null")
-    elif isinstance(v, list):
+    elif isinstance(o, list):
         try:
             ii = math.trunc(i)
         except:
             self.raise_literal("DynamicConversionException", "to Number")
             return
         try:
-            self.stack.append(v[ii].value)
+            self.stack.append(o[ii].value)
         except IndexError:
             self.raise_literal("ArrayIndexException", str(ii))
             return
-    elif isinstance(v, dict):
+    elif isinstance(o, dict):
         if not isinstance(i, str):
             self.raise_literal("DynamicConversionException", "to String")
             return
-        if not i in v:
+        if not i in o:
             self.raise_literal("ObjectSubscriptException", str(i))
             return
-        self.stack.append(v[i].value)
+        self.stack.append(o[i].value)
+    elif isinstance(i, str):
+        self.stack.append(getattr(o, i))
     else:
         self.raise_literal("ObjectSubscriptException", str(i))
+
+def neon_object__setProperty(self):
+    i = self.stack.pop()
+    o = self.stack.pop()
+    v = self.stack.pop().value
+    if o is None:
+        self.raise_literal("DynamicConversionException", "object is null")
+    elif i is None:
+        self.raise_literal("DynamicConversionException", "index is null")
+    elif isinstance(o, list):
+        try:
+            ii = math.trunc(i)
+        except:
+            self.raise_literal("DynamicConversionException", "to Number")
+            return
+        try:
+            o[ii].value = v
+        except IndexError:
+            self.raise_literal("ArrayIndexException", str(ii))
+            return
+    elif isinstance(o, dict):
+        if not isinstance(i, str):
+            self.raise_literal("DynamicConversionException", "to String")
+            return
+        o[i] = v
+    else:
+        setattr(o, i, v)
 
 def neon_object__toString(self):
     v = self.stack.pop()
@@ -2634,6 +2670,13 @@ def neon_random_uint32(self):
 
 def neon_runtime_assertionsEnabled(self):
     self.stack.append(Value(enable_assert))
+
+def neon_runtime_createObject(self):
+    name = self.stack.pop()
+    mod, cls = name.split(".")
+    constructor = getattr(sys.modules[mod], cls)
+    obj = constructor()
+    self.stack.append(obj)
 
 def neon_runtime_executorName(self):
     self.stack.append("pynex")

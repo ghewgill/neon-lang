@@ -148,7 +148,7 @@ private:
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches, const ast::Type *expression_match_type);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
-    ast::ComparisonExpression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
+    const ast::Expression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
 };
 
 class TypeAnalyzer: public pt::IParseTreeVisitor {
@@ -536,14 +536,24 @@ private:
     std::vector<const ast::Statement *> &v;
 };
 
+#ifdef _WIN32
+    static const std::string PATH_DELIMITER = "/\\:";
+#else
+    static const std::string PATH_DELIMITER = "/";
+#endif
+
+static std::string path_dirname(const std::string &path)
+{
+    std::string::size_type i = path.find_last_of(PATH_DELIMITER);
+    if (i == std::string::npos) {
+        return "";
+    }
+    return path.substr(0, i + 1);
+}
+
 static std::string path_basename(const std::string &path)
 {
-#ifdef _WIN32
-    static const std::string delim = "/\\:";
-#else
-    static const std::string delim = "/";
-#endif
-    std::string::size_type i = path.find_last_of(delim);
+    std::string::size_type i = path.find_last_of(PATH_DELIMITER);
     if (i == std::string::npos) {
         return path;
     }
@@ -1787,9 +1797,10 @@ const ast::Expression *Analyzer::analyze(const pt::StringLiteralExpression *expr
 
 const ast::Expression *Analyzer::analyze(const pt::FileLiteralExpression *expr)
 {
-    std::ifstream f(expr->name, std::ios::binary);
+    std::string name = path_dirname(program->source_path) + expr->name;
+    std::ifstream f(name, std::ios::binary);
     if (not f) {
-        error(3182, expr->token, "could not open file");
+        error(3182, expr->token, "could not open file (" + name + ")");
     }
     std::stringstream buffer;
     buffer << f.rdbuf();
@@ -2218,7 +2229,9 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     const ast::Expression *self = nullptr;
     const ast::Expression *func = nullptr;
     const ast::Expression *dispatch = nullptr;
+    bool allow_ignore_result = false;
     const ast::TypeFunction *ftype = nullptr;
+    std::vector<const ast::Expression *> initial_args;
     if (dotmethod != nullptr) {
         // This check avoids trying to evaluate foo.bar as an
         // expression in foo.bar() where foo is actually a module.
@@ -2230,16 +2243,27 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         if (not is_module_call) {
             const ast::Expression *base = analyze(dotmethod->base.get());
-            auto m = base->type->methods.find(dotmethod->name.text);
-            if (m == base->type->methods.end()) {
-                error(3137, dotmethod->name, "method not found");
-            } else {
-                if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
-                    internal_error("class not expected here");
+            if (base->type == ast::TYPE_OBJECT) {
+                auto invoke = dynamic_cast<ast::Variable *>(scope.top()->lookupName("object__invokeMethod"));
+                if (invoke == nullptr) {
+                    internal_error("could not find object__invokeMethod");
                 }
                 self = base;
+                initial_args.push_back(new ast::ConstantStringExpression(utf8string(dotmethod->name.text)));
+                func = new ast::VariableExpression(invoke);
+                allow_ignore_result = true;
+            } else {
+                auto m = base->type->methods.find(dotmethod->name.text);
+                if (m == base->type->methods.end()) {
+                    error(3137, dotmethod->name, "method not found");
+                } else {
+                    if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
+                        internal_error("class not expected here");
+                    }
+                    self = base;
+                }
+                func = new ast::VariableExpression(m->second);
             }
-            func = new ast::VariableExpression(m->second);
         } else {
             recordtype = dynamic_cast<const ast::TypeRecord *>(analyze_qualified_name(expr->base.get()));
             if (recordtype == nullptr) {
@@ -2334,9 +2358,6 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             dispatch = func;
         }
     }
-    std::vector<const ast::Expression *> varargs_array;
-    bool in_varargs = ftype->variadic && ftype->params.size() == 1;
-    const ast::Type *varargs_type = in_varargs ? dynamic_cast<const ast::TypeArray *>(ftype->params[0]->type)->elementtype : nullptr;
     int param_index = 0;
     std::vector<const ast::Expression *> args(ftype->params.size());
     if (self != nullptr) {
@@ -2357,6 +2378,13 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         args[0] = self;
         ++param_index;
     }
+    if (not initial_args.empty()) {
+        std::copy(initial_args.begin(), initial_args.end(), &args[param_index]);
+        param_index += initial_args.size();
+    }
+    std::vector<const ast::Expression *> varargs_array;
+    bool in_varargs = ftype->variadic && ftype->params.size() - param_index == 1;
+    const ast::Type *varargs_type = in_varargs ? dynamic_cast<const ast::TypeArray *>(ftype->params[param_index]->type)->elementtype : nullptr;
     for (auto &a: expr->args) {
         const ast::Expression *e = analyze(a->expr.get());
         if (param_index >= static_cast<int>(ftype->params.size())) {
@@ -2466,7 +2494,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         p++;
     }
-    return new ast::FunctionCall(func, args, dispatch);
+    return new ast::FunctionCall(func, args, dispatch, allow_ignore_result);
 }
 
 const ast::Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
@@ -2624,7 +2652,7 @@ const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr
     }
 }
 
-ast::ComparisonExpression *Analyzer::analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right)
+const ast::Expression *Analyzer::analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right)
 {
     if (left->type == ast::TYPE_OBJECT && right->type == ast::TYPE_OBJECT) {
         error(3261, token, "cannot compare two values of type Object");
@@ -2722,6 +2750,35 @@ ast::ComparisonExpression *Analyzer::analyze_comparison(const Token &token, cons
             }
         }
     }
+    if (comp == ast::ComparisonExpression::Comparison::EQ || comp == ast::ComparisonExpression::Comparison::NE) {
+        const ast::Expression *r = nullptr;
+        if (left->type == ast::TYPE_OBJECT && dynamic_cast<const ast::ConstantNilExpression *>(right) != nullptr) {
+            r = new ast::FunctionCall(
+                new ast::VariableExpression(
+                    dynamic_cast<const ast::Variable *>(scope.top()->lookupName("object__isNull"))
+                ),
+                {
+                    left
+                }
+            );
+        }
+        if (dynamic_cast<const ast::ConstantNilExpression *>(left) != nullptr && right->type == ast::TYPE_OBJECT) {
+            r = new ast::FunctionCall(
+                new ast::VariableExpression(
+                    dynamic_cast<const ast::Variable *>(scope.top()->lookupName("object__isNull"))
+                ),
+                {
+                    right
+                }
+            );
+        }
+        if (r != nullptr) {
+            if (comp == ast::ComparisonExpression::Comparison::NE) {
+                r = new ast::LogicalNotExpression(r);
+            }
+            return r;
+        }
+    }
     error(3030, token, "type mismatch");
 }
 
@@ -2741,7 +2798,12 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
     for (auto &x: expr->comps) {
         ast::ComparisonExpression::Comparison comp = static_cast<ast::ComparisonExpression::Comparison>(x->comp); // TODO: remove cast
         const ast::Expression *right = analyze(x->right.get());
-        comps.push_back(analyze_comparison(token, left, comp, right));
+        const ast::Expression *e = analyze_comparison(token, left, comp, right);
+        const ast::ComparisonExpression *c = dynamic_cast<const ast::ComparisonExpression *>(e);
+        if (c == nullptr) {
+            error(3297, expr->token, "cannot use this kind of comparison in a chained manner");
+        }
+        comps.push_back(c);
         token = x->right->token;
     }
     return new ast::ChainedComparisonExpression(comps);
@@ -4754,10 +4816,14 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             target = new ast::ConstantStringExpression(utf8string(target_literal->value));
         } else if (target_variable != nullptr) {
             const ast::Variable *var = dynamic_cast<ast::Variable *>(scope.top()->lookupName(target_variable->variable.text));
-            if (var == nullptr) {
+            const ast::Constant *constant = dynamic_cast<ast::Constant *>(scope.top()->lookupName(target_variable->variable.text));
+            if (var != nullptr) {
+                target = new ast::VariableExpression(var);
+            } else if (constant != nullptr) {
+                target = new ast::ConstantStringExpression(constant->value->eval_string(target_variable->variable));
+            } else {
                 error(4302, target_variable->variable, "variable not found");
             }
-            target = new ast::VariableExpression(var);
         } else {
             internal_error("unexpected target type");
         }
@@ -4944,7 +5010,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExitStatement *statement)
 const ast::Statement *Analyzer::analyze(const pt::ExpressionStatement *statement)
 {
     const ast::Expression *expr = analyze(statement->expr.get());
-    if (expr->type == ast::TYPE_NOTHING) {
+    if (expr->type == ast::TYPE_NOTHING || (dynamic_cast<const ast::FunctionCall *>(expr) != nullptr && dynamic_cast<const ast::FunctionCall *>(expr)->allow_ignore_result)) {
         return new ast::ExpressionStatement(statement->token.line, analyze(statement->expr.get()));
     }
     if (dynamic_cast<const ast::ComparisonExpression *>(expr) != nullptr) {

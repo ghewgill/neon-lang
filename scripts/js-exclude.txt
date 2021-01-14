@@ -101,6 +101,7 @@ object.neon                # object
 object-isa.neon            # object
 object-isa-case.neon       # object
 object-isa-inconvertible.neon
+object-native.neon         # object
 object-null.neon           # object
 object-null2.neon          # object
 object-operator.neon       # object
@@ -117,6 +118,7 @@ pointer-method.neon        # methods
 pointer-print.neon         # pointer__toString
 posix-fork.neon            # module posix
 predeclare1.neon           # something
+print-object.neon          # object
 process-test.neon          # module process
 random-test.neon           # module random
 record-private.neon        # methods

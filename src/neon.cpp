@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    std::vector<std::string> neonpath;
     int a = 1;
     while (a < argc && argv[a][0] == '-' && argv[a][1] != '\0') {
         std::string arg = argv[a];
@@ -111,6 +112,13 @@ int main(int argc, char *argv[])
             dump_listing = true;
         } else if (arg == "-n") {
             enable_assert = false;
+        } else if (arg == "--neonpath") {
+            a++;
+            if (argv[a] == NULL) {
+                fprintf(stderr, "%s: --neonpath requires path name\n", argv[0]);
+                exit(1);
+            }
+            neonpath.push_back(argv[a]);
         } else if (arg == "--repl-input") {
             a++;
             if (argv[a] == NULL) {
@@ -143,8 +151,8 @@ int main(int argc, char *argv[])
     auto i = name.find_last_of("/:\\");
     const std::string source_path { i != std::string::npos ? name.substr(0, i+1) : "" };
 
-    CompilerSupport compiler_support(source_path, nullptr);
-    RuntimeSupport runtime_support(source_path);
+    CompilerSupport compiler_support(source_path, neonpath, nullptr);
+    RuntimeSupport runtime_support(source_path, neonpath);
     std::unique_ptr<DebugInfo> debug;
 
     std::vector<unsigned char> bytecode;

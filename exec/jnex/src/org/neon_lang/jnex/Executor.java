@@ -70,6 +70,7 @@ class Executor {
         predefined.put("object__getDictionary", this::object__getDictionary);
         predefined.put("object__getNumber", this::object__getNumber);
         predefined.put("object__getString", this::object__getString);
+        predefined.put("object__invokeMethod", this::object__invokeMethod);
         predefined.put("object__isNull", this::object__isNull);
         predefined.put("object__makeArray", this::object__makeArray);
         predefined.put("object__makeBoolean", this::object__makeBoolean);
@@ -78,6 +79,7 @@ class Executor {
         predefined.put("object__makeNull", this::object__makeNull);
         predefined.put("object__makeNumber", this::object__makeNumber);
         predefined.put("object__makeString", this::object__makeString);
+        predefined.put("object__setProperty", this::object__setProperty);
         predefined.put("object__subscript", this::object__subscript);
         predefined.put("object__toString", this::object__toString);
         predefined.put("print", this::print);
@@ -97,9 +99,12 @@ class Executor {
         predefined.put("math$trunc", this::math$trunc);
         predefined.put("random$uint32", this::random$uint32);
         predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
+        predefined.put("runtime$createObject", this::runtime$createObject);
         predefined.put("runtime$executorName", this::runtime$executorName);
+        predefined.put("runtime$moduleIsMain", this::runtime$moduleIsMain);
         predefined.put("string$fromCodePoint", this::string$fromCodePoint);
         predefined.put("string$toCodePoint", this::string$toCodePoint);
+        predefined.put("sys$exit", this::sys$exit);
         predefined.put("textio$close", this::textio$close);
         predefined.put("textio$open", this::textio$open);
         predefined.put("textio$readLine", this::textio$readLine);
@@ -571,7 +576,7 @@ class Executor {
         ip++;
         BigDecimal b = stack.removeFirst().getNumber();
         BigDecimal a = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(a.equals(b)));
+        stack.addFirst(new Cell(a.compareTo(b) == 0));
     }
 
     private void doNEN()
@@ -579,7 +584,7 @@ class Executor {
         ip++;
         BigDecimal b = stack.removeFirst().getNumber();
         BigDecimal a = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(!a.equals(b)));
+        stack.addFirst(new Cell(a.compareTo(b) != 0));
     }
 
     private void doLTN()
@@ -1137,8 +1142,6 @@ class Executor {
         System.exit(1);
     }
 
-    public static final int OPCODE_VERSION = 3;
-
     public enum Opcode {
         PUSHB,
         PUSHN,
@@ -1687,6 +1690,18 @@ class Executor {
         stack.addFirst(new Cell(s));
     }
 
+    private void object__invokeMethod()
+    {
+        List<Cell> a = stack.removeFirst().getArray();
+        String name = stack.removeFirst().getString();
+        List<NeObject> args = new ArrayList<NeObject>();
+        for (Cell x: a) {
+            args.add(x.getObject());
+        }
+        NeObject r = stack.removeFirst().getObject().invokeMethod(name, args);
+        stack.addFirst(new Cell(r));
+    }
+
     private void object__isNull()
     {
         NeObject o = stack.removeFirst().getObject();
@@ -1742,6 +1757,22 @@ class Executor {
         stack.addFirst(new Cell(new NeObjectString(s)));
     }
 
+    private void object__setProperty()
+    {
+        NeObject i = stack.removeFirst().getObject();
+        NeObject o = stack.removeFirst().getObject();
+        NeObject v = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException", "object is null");
+            return;
+        }
+        if (i == null) {
+            raiseLiteral("DynamicConversionException", "index is null");
+            return;
+        }
+        o.setProperty(i, v);
+    }
+
     private void object__subscript()
     {
         NeObject i = stack.removeFirst().getObject();
@@ -1770,7 +1801,12 @@ class Executor {
 
     private void print()
     {
-        System.out.println(stack.removeFirst().getString());
+        NeObject x = stack.removeFirst().getObject();
+        if (x != null) {
+            System.out.println(x.toString());
+        } else {
+            System.out.println("NIL");
+        }
     }
 
     private void string__append()
@@ -1849,7 +1885,7 @@ class Executor {
     private void math$odd()
     {
         BigDecimal x = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(!x.remainder(new BigDecimal(2)).equals(BigDecimal.ZERO)));
+        stack.addFirst(new Cell(x.remainder(new BigDecimal(2)).compareTo(BigDecimal.ZERO) != 0));
     }
 
     private void math$sign()
@@ -1874,9 +1910,29 @@ class Executor {
         stack.addFirst(new Cell(enable_assert));
     }
 
+    private void runtime$createObject()
+    {
+        String name = stack.removeFirst().getString();
+        try {
+            Object obj = Class.forName(name).newInstance();
+            stack.addFirst(new Cell(new NeObjectNative(obj)));
+        } catch (ClassNotFoundException cnfe) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        } catch (InstantiationException ie) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        } catch (IllegalAccessException iae) {
+            stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
+        }
+    }
+
     private void runtime$executorName()
     {
         stack.addFirst(new Cell("jnex"));
+    }
+
+    private void runtime$moduleIsMain()
+    {
+        stack.addFirst(new Cell(true)); // TODO modules
     }
 
     private void string$fromCodePoint()
@@ -1889,6 +1945,12 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(BigDecimal.valueOf(s.charAt(0))));
+    }
+
+    private void sys$exit()
+    {
+        BigDecimal n = stack.removeFirst().getNumber();
+        System.exit(n.intValue());
     }
 
     private void textio$close()

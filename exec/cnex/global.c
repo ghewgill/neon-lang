@@ -503,9 +503,15 @@ void neon_num(TExecutor *exec)
 
 void neon_print(TExecutor *exec)
 {
-    const Cell *s = top(exec->stack);
-    fwrite(s->string->data, 1, s->string->length, stdout);
-    puts("");
+    const Cell *x = top(exec->stack);
+    if (x->object->type != oNone) {
+        Cell *s = object_toString(x->object);
+        fwrite(s->string->data, 1, s->string->length, stdout);
+        puts("");
+        cell_freeCell(s);
+    } else {
+        puts("NIL");
+    }
     pop(exec->stack);
 }
 

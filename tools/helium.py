@@ -158,6 +158,8 @@ class bytes:
         self.a = a
     def __getitem__(self, key):
         return bytes(self.a.__getitem__(key))
+    def __str__(self):
+        return "HEXBYTES \"" + " ".join("{:02x}".format(b) for b in self.a) + "\""
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -702,8 +704,6 @@ class DotExpression:
             return obj.env.get_value(self.field)
         elif hasattr(obj, self.field):
             return getattr(obj, self.field)
-        if self.field == "isNull":
-            return lambda env, self: obj is None
         assert False, (self.field, obj)
     def set(self, env, value):
         setattr(self.expr.eval(env), self.field, value)
@@ -2533,6 +2533,8 @@ class ClassRecord(Class):
                 setattr(self, x.name, None) # TODO: default()
         def __eq__(self, other):
             return all(getattr(self, x.name) == getattr(other, x.name) for x in self._fields)
+        def __str__(self):
+            return "{" + ", ".join("{}: {}".format(neon_string_quoted(None, f.name), neon_string_quoted(None, getattr(self, f.name)) if isinstance(getattr(self, f.name), str) else getattr(self, f.name)) for f in self._fields) + "}"
     def __init__(self, fields, methods):
         self.fields = fields
         self.methods = methods
@@ -3091,6 +3093,12 @@ def neon_regex_search(env, r, s, match):
 
 def neon_runtime_assertionsEnabled(env):
     return True
+
+def neon_runtime_createObject(env, name):
+    mod, cls = name.split(".")
+    constructor = getattr(sys.modules[mod], cls)
+    obj = constructor()
+    return obj
 
 def neon_runtime_executorName(env):
     return "helium"

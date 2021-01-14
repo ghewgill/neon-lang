@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 class Bytecode {
+    public static final int BYTECODE_VERSION = 3;
+
     class FunctionInfo {
         int name;
         int nest;
@@ -37,7 +39,7 @@ class Bytecode {
             assert Arrays.equals(sig, new byte[]{0x4e, 0x65, 0x00, 0x6e});
 
             version = readVint(in);
-            assert version == Executor.OPCODE_VERSION;
+            assert version == BYTECODE_VERSION;
 
             in.readFully(new byte[32]);
             global_size = readVint(in);

@@ -9,5 +9,10 @@ class NeObjectBoolean implements NeObject {
         return b;
     }
 
+    public String toString()
+    {
+        return b ? "TRUE" : "FALSE";
+    }
+
     private boolean b;
 }

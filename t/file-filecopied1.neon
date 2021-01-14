@@ -4,7 +4,7 @@ file.delete("tmp/license-copy.txt")
 file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "the Neon test suite, and can be ", "safely deleted."])
 
 TRY
-    -- Try this a few times because sometimes on the OS X build on Travis,
+    -- Try this a few times because sometimes on the OS X build on CI,
     -- we get an ENOENT error from copyfile() which is not the result we
     -- expected. Trying again seems to fix it.
     FOR i := 1 TO 3 DO

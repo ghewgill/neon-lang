@@ -174,7 +174,7 @@ def main():
     while i < len(sys.argv):
         a = sys.argv[i]
         if a == "--errors":
-            errors = dict(x.strip().split(" ", 1) for x in open("src/errors.txt"))
+            errors = dict(x.strip().split(" ", 1) for x in open("gen/errors.txt"))
         elif a == "--runner":
             i += 1
             runner = sys.argv[i].split()

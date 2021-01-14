@@ -7,7 +7,7 @@ s := json.encode(NIL)
 print(s)
 --= null
 v := json.decode(s)
-print("\(v.isNull())")
+print("\(v = NIL)")
 --= TRUE
 
 s := json.encode(TRUE)
@@ -50,7 +50,7 @@ s := json.encode({
 print(s)
 --= {"boolean":true,"null":null,"number":5,"string":"fork"}
 v := json.decode(s)
-print(v["null"].isNull().toString())
+print((v["null"] = NIL).toString())
 --= TRUE
 print((IF v["boolean"] THEN "TRUE" ELSE "FALSE"))
 --= TRUE
@@ -79,7 +79,7 @@ LET a: Object := json.decode(@@"
         }
     }
 "@@)
-TESTCASE a.z.isNull() = TRUE
+TESTCASE a.z = NIL
 TESTCASE a.b = TRUE
 TESTCASE a.s = "one"
 TESTCASE a.n = 5

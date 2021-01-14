@@ -106,7 +106,7 @@ set_property(DIRECTORY APPEND
     PROPERTY CMAKE_CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/.git/index
 )
-configure_file("src/version.cpp.in" "src/version.cpp")
+configure_file("src/version.cpp.in" "gen/version.cpp")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -201,7 +201,7 @@ else (WIN32)
 endif (WIN32)
 
 add_custom_command(
-    OUTPUT src/thunks.inc src/functions_compile.inc src/functions_exec.inc src/enums.inc src/exceptions.inc
+    OUTPUT gen/thunks.inc gen/functions_compile.inc gen/functions_exec.inc gen/enums.inc gen/exceptions.inc
     COMMAND python3 scripts/make_thunks.py ${RTL_NEON}
     DEPENDS scripts/make_thunks.py
     DEPENDS ${RTL_NEON}
@@ -209,19 +209,19 @@ add_custom_command(
 set_source_files_properties(
     src/ast.cpp
     src/intrinsic.cpp
-    PROPERTIES OBJECT_DEPENDS src/exceptions.inc
+    PROPERTIES OBJECT_DEPENDS gen/exceptions.inc
 )
 
 add_custom_command(
-    OUTPUT src/unicodedata.inc
-    COMMAND python3 tools/helium.py scripts/make_unicode.neon data/UnicodeData.txt >src/unicodedata.inc
+    OUTPUT gen/unicodedata.inc
+    COMMAND python3 tools/helium.py scripts/make_unicode.neon data/UnicodeData.txt >gen/unicodedata.inc
     DEPENDS tools/helium.py
     DEPENDS scripts/make_unicode.neon
     DEPENDS data/UnicodeData.txt
 )
 set_source_files_properties(
     src/lexer.cpp
-    PROPERTIES OBJECT_DEPENDS src/unicodedata.inc
+    PROPERTIES OBJECT_DEPENDS gen/unicodedata.inc
 )
 
 if (JAVAC)
@@ -302,12 +302,13 @@ add_library(common STATIC
     src/intrinsic.cpp
     src/number.cpp
     src/support.cpp
-    src/version.cpp
+    gen/version.cpp
 )
 target_include_directories(common
     INTERFACE external/hash-library
     INTERFACE external/minijson_writer-master
     PUBLIC external/utfcpp-master/source
+    PRIVATE gen
 )
 target_link_libraries(common
     bid
@@ -316,7 +317,7 @@ target_link_libraries(common
 )
 
 add_custom_command(
-    OUTPUT src/rtl.inc
+    OUTPUT gen/rtl.inc
     COMMAND python3 scripts/build_rtl_inc.py ${RTL_NEON}
     DEPENDS scripts/build_rtl_inc.py
     DEPENDS ${RTL_NEON}
@@ -337,7 +338,10 @@ add_library(compiler STATIC
 )
 set_source_files_properties(
     src/support_compiler.cpp
-    PROPERTIES OBJECT_DEPENDS src/rtl.inc
+    PROPERTIES OBJECT_DEPENDS gen/rtl.inc
+)
+target_include_directories(compiler
+    PRIVATE gen
 )
 target_link_libraries(compiler
     common
@@ -352,6 +356,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         lib/posix.cpp
         lib/process_posix.cpp
         lib/random_posix.cpp
+        lib/runtime_posix.cpp
         lib/time_posix.cpp
         lib/time_darwin.cpp
     )
@@ -364,6 +369,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "
         lib/posix.cpp
         lib/process_posix.cpp
         lib/random_posix.cpp
+        lib/runtime_posix.cpp
         lib/time_posix.cpp
         lib/time_linux.cpp
     )
@@ -375,6 +381,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         lib/os_win32.cpp
         lib/process_win32.cpp
         lib/random_win32.cpp
+        lib/runtime_win32.cpp
         lib/time_win32.cpp
     )
 endif ()
@@ -392,7 +399,7 @@ endif ()
 #    list(APPEND RTL_NEONX ${NEONX})
 #endforeach ()
 #add_custom_command(
-#    OUTPUT src/rtlx.inc
+#    OUTPUT gen/rtlx.inc
 #    COMMAND python3 scripts/build_rtlx_inc.py ${RTL_NEONX}
 #    DEPENDS scripts/build_rtlx_inc.py
 #    DEPENDS ${RTL_NEONX}
@@ -402,6 +409,7 @@ add_library(executor STATIC
     src/cell.cpp
     src/exec.cpp
     src/httpserver.cpp
+    src/object.cpp
     src/rtl_exec.cpp
     src/support_exec.cpp
     lib/binary.cpp
@@ -426,15 +434,16 @@ add_library(executor STATIC
 )
 #set_source_files_properties(
 #    src/support_exec.cpp
-#    PROPERTIES OBJECT_DEPENDS src/rtlx.inc
+#    PROPERTIES OBJECT_DEPENDS gen/rtlx.inc
 #)
 target_compile_options(executor PRIVATE)
 set_source_files_properties(
     src/exec.cpp
-    PROPERTIES OBJECT_DEPENDS src/exceptions.inc
+    PROPERTIES OBJECT_DEPENDS gen/exceptions.inc
 )
 target_include_directories(executor
     PRIVATE common
+    PRIVATE gen
     PRIVATE src
 )
 target_link_libraries(executor
@@ -458,6 +467,9 @@ add_executable(neonc
     src/compiler_cpp.cpp
     src/compiler_js.cpp
     src/compiler_jvm.cpp
+)
+target_include_directories(neonc
+    PRIVATE gen
 )
 target_link_libraries(neonc
     compiler
@@ -597,7 +609,7 @@ add_test(
 )
 
 add_custom_command(
-    OUTPUT src/errors.txt
+    OUTPUT gen/errors.txt
     COMMAND python3 tools/helium.py scripts/extract_errors.neon
     DEPENDS src/lexer.cpp
     DEPENDS src/parser.cpp
@@ -606,7 +618,7 @@ add_custom_command(
     DEPENDS src/ast.cpp
 )
 add_custom_target(errors_txt ALL
-    DEPENDS src/errors.txt
+    DEPENDS gen/errors.txt
 )
 
 add_custom_command(
@@ -683,14 +695,17 @@ add_custom_target(testx ALL
 )
 add_tests("${TESTS}" "" $<TARGET_FILE:neon> "")
 add_tests("${TESTS}" "helium" "python3 tools/helium.py" "tools/helium-exclude.txt")
-add_tests("${TESTS}" "cpp" "python3 scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "scripts/cpp-exclude.txt")
+if (NOT (WIN32 AND DEFINED ENV{GITHUB_ACTIONS}))
+    # TODO: Github Actions does not seem to be able to run the C++ compiler on Windows sensibly.
+    add_tests("${TESTS}" "cpp" "python3 scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "scripts/cpp-exclude.txt")
+endif ()
 if (NODEJS)
     add_tests("${TESTS}" "js" "python3 scripts/run_js.py --neonc $<TARGET_FILE:neonc>" "scripts/js-exclude.txt")
 endif (NODEJS)
 if (JAVAC)
     add_tests("${TESTS}" "jvm" "python3 scripts/run_jvm.py  --neonc $<TARGET_FILE:neonc> --java ${JAVA}" "scripts/jvm-exclude.txt")
 endif (JAVAC)
-if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR MONO)
+if (CSC)
     add_tests("${TESTS}" "cli" "python3 scripts/run_cli.py --neonc $<TARGET_FILE:neonc>" "scripts/cli-exclude.txt")
 endif ()
 add_tests("${TESTS}" "nenex" "python3 exec/nenex/run_test.py --neon $<TARGET_FILE:neon>" "exec/nenex/exclude.txt")

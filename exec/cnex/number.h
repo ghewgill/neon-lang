@@ -37,7 +37,7 @@ typedef BID_UINT128 Number;
 void number_toString(Number x, char *buf, size_t len);
 char *number_to_string(Number x);
 
-Number number_from_string(char *s);
+Number number_from_string(const char *s);
 
 int32_t number_to_sint32(Number x);
 uint32_t number_to_uint32(Number x);

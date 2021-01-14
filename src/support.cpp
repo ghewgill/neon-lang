@@ -42,13 +42,16 @@ std::vector<std::string> split(const std::string &s, char d)
 
 } // namespace
 
-PathSupport::PathSupport(const std::string &source_path)
+PathSupport::PathSupport(const std::string &source_path, const std::vector<std::string> &libpath)
   : paths()
 {
     if (not source_path.empty()) {
         paths.push_back(source_path);
     }
     paths.push_back("./");
+    for (auto &p: libpath) {
+        paths.push_back(p);
+    }
     const char *neonpath = std::getenv("NEONPATH");
     if (neonpath != NULL) {
         std::vector<std::string> p = split(neonpath, PATHSEP);

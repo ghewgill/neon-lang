@@ -5,7 +5,7 @@ IMPORT string
 IMPORT sys
 IMPORT textio
 
-CONSTANT OPCODE_VERSION: Number := 3
+CONSTANT BYTECODE_VERSION: Number := 3
 
 EXCEPTION InternalException
 
@@ -87,7 +87,7 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     i := i + 4
 
     r.version := getVint(a, INOUT i)
-    ASSERT r.version = OPCODE_VERSION
+    ASSERT r.version = BYTECODE_VERSION
 
     r.sourceHash := bytes[i TO i+31]
     i := i + 32
@@ -1080,7 +1080,7 @@ FUNCTION f_callp(INOUT self: Executor)
                     r.append(", ")
                 END IF
                 IF VALID x THEN
-                    r.append(x->o.toString())
+                    r.append("\(x->o)")
                 END IF
             END FOREACH
             r.append("]")
@@ -1252,7 +1252,7 @@ FUNCTION f_callp(INOUT self: Executor)
                 self.raise_literal("DynamicConversionException", "to String")
             END TRY
         WHEN "object__isNull" DO
-            self.stack.append(makeValueBoolean(self.pop()->o.isNull()))
+            self.stack.append(makeValueBoolean(self.pop()->o = NIL))
         WHEN "object__makeArray" DO
             self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
         WHEN "object__makeBoolean" DO
@@ -1270,9 +1270,9 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "object__subscript" DO
             LET index: Object := self.pop()->o
             LET obj: Object := self.pop()->o
-            IF obj.isNull() THEN
+            IF obj = NIL THEN
                 self.raise_literal("DynamicConversionException", "object is null")
-            ELSIF index.isNull() THEN
+            ELSIF index = NIL THEN
                 self.raise_literal("DynamicConversionException", "index is null")
             ELSE
                 TRY
@@ -1286,11 +1286,13 @@ FUNCTION f_callp(INOUT self: Executor)
                 END TRY
             END IF
         WHEN "object__toString" DO
-            self.stack.append(makeValueString(self.pop()->o.toString()))
+            self.stack.append(makeValueString("\(self.pop()->o)"))
         WHEN "print" DO
-            print(self.pop()->s)
+            print(self.pop()->o)
         WHEN "runtime$assertionsEnabled" DO
             self.stack.append(makeValueBoolean(TRUE))
+        WHEN "runtime$executorName" DO
+            self.stack.append(makeValueString("nenex"))
         WHEN "str", "number__toString" DO
             LET n: Number := self.pop()->n
             self.stack.append(makeValueString(str(n)))

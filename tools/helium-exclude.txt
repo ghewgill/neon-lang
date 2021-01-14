@@ -47,6 +47,7 @@ net-test-udp.neon      # Module not required
 number-ceil.neon       # Feature not required
 number-underscore.neon # Feature not required
 object-isa-inconvertible.neon
+object-native.neon     # Feature not required
 object-record.neon     # Feature not required
 object-subscript.neon  # Feature not required
 os-test.neon           # Module not required
@@ -58,6 +59,7 @@ outer-tail.neon        # Feature not required
 parameter-out-array.neon # Feature not required
 parameter-out-string.neon # Feature not required
 posix-fork.neon        # fork not required
+print-object.neon      # object print format
 process-test.neon      # Module not required
 recursion-limit.neon   # Feature not required
 repl_import.neon       # Module not required

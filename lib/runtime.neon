@@ -3,7 +3,10 @@
  *  Functions that interact with the Neon runtime system.
  */
 
+EXPORT NativeObjectException
+
 EXPORT assertionsEnabled
+EXPORT createObject
 EXPORT executorName
 EXPORT garbageCollect
 EXPORT getAllocatedObjectCount
@@ -12,11 +15,19 @@ EXPORT moduleIsMain
 EXPORT setGarbageCollectionInterval
 EXPORT setRecursionLimit
 
+/*  Exception: NativeObjectException
+ *
+ *  Exception raised by native object support.
+ */
+EXCEPTION NativeObjectException
+
 /*  Function: assertionsEnabled
  *
  *  Return TRUE if assertions are currently enabled.
  */
 DECLARE NATIVE FUNCTION assertionsEnabled(): Boolean
+
+DECLARE NATIVE FUNCTION createObject(name: String): Object
 
 /*  Function: executorName
  *

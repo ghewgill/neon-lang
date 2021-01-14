@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    std::vector<std::string> neonpath;
     int a = 1;
     while (a < argc && argv[a][0] == '-' && argv[a][1] != '\0') {
         std::string arg = argv[a];
@@ -51,6 +52,13 @@ int main(int argc, char *argv[])
             listing = true;
         } else if (arg == "--json") {
             error_json = true;
+        } else if (arg == "--neonpath") {
+            a++;
+            if (a >= argc) {
+                std::cerr << "--neonpath option requires path name\n";
+                exit(1);
+            }
+            neonpath.push_back(argv[a]);
         } else if (arg == "-o") {
             a++;
             if (a >= argc) {
@@ -114,7 +122,7 @@ int main(int argc, char *argv[])
             std::cout << "...\n";
         }
 
-        CompilerSupport compiler_support(source_path, target_proc);
+        CompilerSupport compiler_support(source_path, neonpath, target_proc);
 
         const std::string objname = output.empty() ? std::string(argv[a]) + "x" : output;
         if (target_proc == nullptr) {
@@ -132,6 +140,10 @@ int main(int argc, char *argv[])
                 }
                 if (name != "-") {
                     std::ofstream outf(objname, std::ios::binary);
+                    if (not outf) {
+                        std::cerr << "Could not create output file: " << objname << "\n";
+                        exit(1);
+                    }
                     outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
                 }
             } else {

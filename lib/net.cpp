@@ -521,7 +521,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
 
     std::vector<Cell> &ra = read->array_for_write();
     for (auto &s: ra) {
-        SOCKET fd = check_socket(s.object())->get_handle();
+        SOCKET fd = check_socket(s.array_index_for_read(0).object())->get_handle();
         if (fd != INVALID_SOCKET) {
             FD_SET(fd, &rfds);
             if (fd+1 > nfds) {
@@ -532,7 +532,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
 
     std::vector<Cell> &wa = write->array_for_write();
     for (auto &s: wa) {
-        SOCKET fd = check_socket(s.object())->get_handle();
+        SOCKET fd = check_socket(s.array_index_for_read(0).object())->get_handle();
         if (fd != INVALID_SOCKET) {
             FD_SET(fd, &wfds);
             if (fd+1 > nfds) {
@@ -543,7 +543,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
 
     std::vector<Cell> &ea = error->array_for_write();
     for (auto &s: ea) {
-        SOCKET fd = check_socket(s.object())->get_handle();
+        SOCKET fd = check_socket(s.array_index_for_read(0).object())->get_handle();
         if (fd != INVALID_SOCKET) {
             FD_SET(fd, &efds);
             if (fd+1 > nfds) {
@@ -577,7 +577,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = ra.begin(); i != ra.end(); ) {
-        SOCKET fd = check_socket(i->object())->get_handle();
+        SOCKET fd = check_socket(i->array_index_for_read(0).object())->get_handle();
         if (fd != INVALID_SOCKET) {
             if (FD_ISSET(fd, &rfds)) {
                 ++i;
@@ -588,7 +588,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = wa.begin(); i != wa.end(); ) {
-        SOCKET fd = check_socket(i->object())->get_handle();
+        SOCKET fd = check_socket(i->array_index_for_read(0).object())->get_handle();
         if (fd != INVALID_SOCKET) {
             if (FD_ISSET(fd, &wfds)) {
                 ++i;
@@ -599,7 +599,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     for (auto i = ea.begin(); i != ea.end(); ) {
-        SOCKET fd = check_socket(i->object())->get_handle();
+        SOCKET fd = check_socket(i->array_index_for_read(0).object())->get_handle();
         if (fd != INVALID_SOCKET) {
             if (FD_ISSET(fd, &efds)) {
                 ++i;
