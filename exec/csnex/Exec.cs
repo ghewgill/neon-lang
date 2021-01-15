@@ -19,12 +19,17 @@ namespace csnex
         private readonly Bytecode bytecode;
         public Stack<Cell> stack;
         public bool enable_assert;
-        private uint ip;
+        private int ip;
         private Global global;
 
         public int Run(bool EnableAssertions)
         {
             ip = 0;
+
+            for (int g = 0; g < bytecode.globals.Capacity; g++)
+            {
+                bytecode.globals.Add(new Cell(Cell.Type.None));
+            }
 
             exit_code = Loop();
 
@@ -43,14 +48,16 @@ namespace csnex
 
         void PUSHN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            stack.Push(new Cell(Number.FromString(bytecode.strtable[val])));
         }
 
         void PUSHS()
         {
             ip++;
-            uint val = Bytecode.Get_VInt(bytecode.code, ref ip);
-            stack.Push(new Cell(bytecode.strtable[(int)val]));
+            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            stack.Push(new Cell(bytecode.strtable[val]));
         }
 
         void PUSHY()
@@ -60,7 +67,10 @@ namespace csnex
 
         void PUSHPG()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            int addr = Bytecode.Get_VInt(bytecode.code, ref ip);
+            Debug.Assert(addr < bytecode.globals.Count);
+            stack.Push(new Cell(bytecode.globals[addr]));
         }
 
         void PUSHPPG()
@@ -116,7 +126,9 @@ namespace csnex
 
         void LOADN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(new Cell(addr.Number));
         }
 
         void LOADS()
@@ -162,7 +174,10 @@ namespace csnex
 
         void STOREN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Cell addr = stack.Pop().Address;
+            Number num = stack.Pop().Number;
+            addr.Set(num);
         }
 
         void STORES()
@@ -444,8 +459,8 @@ namespace csnex
         void CALLP()
         {
             ip++;
-            UInt32 val = Bytecode.Get_VInt(bytecode.code, ref ip);
-            string func = bytecode.strtable[(int)val];
+            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            string func = bytecode.strtable[val];
             global.Dispatch(func);
         }
 
@@ -566,7 +581,9 @@ namespace csnex
 
         void RESETC()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Cell addr = stack.Pop().Address;
+            addr.ResetCell();
         }
 #endregion
 #endregion

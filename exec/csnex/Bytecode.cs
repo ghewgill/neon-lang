@@ -13,21 +13,22 @@ namespace csnex
         public byte[] code;
 
         public List<FunctionInfo> functions;
+        public List<Cell> globals;
 
         public Bytecode()
         {
         }
 
-        public static UInt32 Get_VInt(byte[] pobj, ref uint i)
+        public static int Get_VInt(byte[] pobj, ref int i)
         {
-            uint r = 0;
+            int r = 0;
             while (i < pobj.Length) {
                 byte x = pobj[i];
                 i++;
-                if ((r & ~(uint.MaxValue >> 7)) != 0) {
+                if ((r & ~(int.MaxValue >> 7)) != 0) {
                     throw new BytecodeException(string.Format("Integer value exceeds maximum ({0})", int.MaxValue));
                 }
-                r = (r << 7) | (uint)(x & 0x7f);
+                r = (r << 7) | (x & 0x7f);
                 if ((x & 0x80) == 0) {
                     break;
                 }
@@ -35,13 +36,13 @@ namespace csnex
             return r;
         }
 
-        public List<String> GetStrTable(byte[] obj, uint size, ref uint i)
+        public List<String> GetStrTable(byte[] obj, int size, ref int i)
         {
             List<String> r = new List<string>();
 
             while (i < size) {
-                uint len = Get_VInt(obj, ref i);
-                string ts = new string(System.Text.Encoding.UTF8.GetChars(obj, (int)i, (int)len));
+                int len = Get_VInt(obj, ref i);
+                string ts = new string(System.Text.Encoding.UTF8.GetChars(obj, i, len));
                 r.Add(ts);
                 i += len;
             }
@@ -52,18 +53,18 @@ namespace csnex
         {
             source_path = a_source_path;
             obj = bytes;
-            uint i = 0;
+            int i = 0;
 
             if (i + 4 > obj.Length) {
                 throw new BytecodeException("unexpected end of bytecode");
             }
-            string sig = new string(System.Text.Encoding.ASCII.GetChars(obj, (int)i, 4));
+            string sig = new string(System.Text.Encoding.ASCII.GetChars(obj, i, 4));
             if (sig != "Ne\0n") {
                 throw new BytecodeException("bytecode signature missing");
             }
             i += 4;
 
-            uint version = Get_VInt(obj, ref i);
+            int version = Get_VInt(obj, ref i);
 
             if (version != BYTECODE_VERSION) {
                 throw new BytecodeException("bytecode version mismatch");
@@ -78,39 +79,39 @@ namespace csnex
             i += 32;
 
             /* Globals */
-            uint global_size = Get_VInt(obj, ref i);
-            Debug.Assert(global_size == 0);
+            int global_size = Get_VInt(obj, ref i);
+            globals = new List<Cell>(global_size);
 
             /* String Table */
-            uint strtablesize = Get_VInt(obj, ref i);
+            int strtablesize = Get_VInt(obj, ref i);
             strtable = GetStrTable(obj, strtablesize + i, ref i);
 
             /* Types */
-            uint typesize = Get_VInt(obj, ref i);
+            int typesize = Get_VInt(obj, ref i);
             Debug.Assert(typesize == 0);
 
             /* Constants */
-            uint constantsize = Get_VInt(obj, ref i);
+            int constantsize = Get_VInt(obj, ref i);
             Debug.Assert(constantsize == 0);
 
             /* Exported Variabes */
-            uint variablesize = Get_VInt(obj, ref i);
+            int variablesize = Get_VInt(obj, ref i);
             Debug.Assert(variablesize == 0);
 
             /* Exported Functions */
-            uint functionsize = Get_VInt(obj, ref i);
+            int functionsize = Get_VInt(obj, ref i);
             Debug.Assert(functionsize == 0);
 
             /* Exported Exceptions */
-            uint exceptionexportsize = Get_VInt(obj, ref i);
+            int exceptionexportsize = Get_VInt(obj, ref i);
             Debug.Assert(exceptionexportsize == 0);
 
             /* Exported Interfaces */
-            uint interfaceexportsize = Get_VInt(obj, ref i);
+            int interfaceexportsize = Get_VInt(obj, ref i);
             Debug.Assert(interfaceexportsize == 0);
 
             /* Imported Modules */
-            uint importsize = Get_VInt(obj, ref i);
+            int importsize = Get_VInt(obj, ref i);
             Debug.Assert(importsize == 0);
 
             /* Functions */
@@ -128,11 +129,11 @@ namespace csnex
             }
 
             /* Exception Handlers */
-            uint exceptionsize = Get_VInt(obj, ref i);
+            int exceptionsize = Get_VInt(obj, ref i);
             Debug.Assert(exceptionsize == 0);
 
             /* Classes */
-            uint classsize = Get_VInt(obj, ref i);
+            int classsize = Get_VInt(obj, ref i);
             Debug.Assert(classsize == 0);
 
             code = new byte[obj.Length - i];
@@ -141,11 +142,11 @@ namespace csnex
 
         public struct FunctionInfo
         {
-            public uint name;
-            public uint nest;
-            public uint args;
-            public uint locals;
-            public uint entry;
+            public int name;
+            public int nest;
+            public int args;
+            public int locals;
+            public int entry;
         }
     }
 }

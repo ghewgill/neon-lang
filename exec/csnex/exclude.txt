@@ -1,4 +1,3 @@
-42.neon
 arithmetic.neon
 arithmetic2.neon
 array-append.neon
