@@ -18,6 +18,9 @@
                 case "print":
                     print();
                     break;
+                case "str":
+                    str();
+                    break;
 
                 // Object
                 case "object__makeString":
@@ -25,7 +28,7 @@
                     break;
 
                 default:
-                    throw new NotImplementedException(string.Format("global_callFunction(): \"{0}\" - invalid or unsupported predefined function call.", name));
+                    throw new NotImplementedException(string.Format("Global::Dispatch(\"{0}\"); - invalid or unsupported predefined function call.", name));
             }
         }
 
@@ -37,6 +40,12 @@
                 return;
             }
             System.Console.Out.WriteLine(o.toString());
+        }
+
+        public void str()
+        {
+            Number v = Exec.stack.Pop().Number;
+            Exec.stack.Push(new Cell(v.ToString()));
         }
 
         public void object__makeString()

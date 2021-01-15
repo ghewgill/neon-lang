@@ -5,6 +5,7 @@ set(CSNEX_SOURCES
     Exceptions.cs
     Exec.cs
     Global.cs
+    Number.cs
     Object.cs
     Opcode.cs
 )
