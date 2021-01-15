@@ -9,12 +9,14 @@ namespace csnex
         {
             None,
             Address,
+            Boolean,
             Number,
             Object,
             String,
         }
 
         private Cell m_Address;
+        private Boolean m_Boolean;
         private Number m_Number;
         private Object m_Object;
         private String m_String;
@@ -28,6 +30,17 @@ namespace csnex
             set {
                 type = Type.Address;
                 m_Address = value;
+            }
+        }
+
+        public Boolean Boolean {
+            get {
+                Debug.Assert(type == Type.Boolean);
+                return m_Boolean;
+            }
+            set {
+                type = Type.Boolean;
+                m_Boolean = value;
             }
         }
 
@@ -78,6 +91,12 @@ namespace csnex
             type = t;
         }
 
+        public Cell(Boolean b)
+        {
+            type = Type.Boolean;
+            m_Boolean = b;
+        }
+
         public Cell(Cell c)
         {
             type = Type.Address;
@@ -106,13 +125,35 @@ namespace csnex
         public void ResetCell()
         {
             m_Address = null;
+            m_Boolean = false;
             m_Number = null;
             m_Object = null;
             m_String = null;
             type = Type.None;
         }
 
-#region 'Set' Functions
+        public static string toString(Cell c)
+        {
+            switch (c.type) {
+                case Type.Boolean:
+                    if (c.Boolean) {
+                        return "TRUE";
+                    }
+                    return "FALSE";
+            }
+            throw new NotImplementedException(string.Format("ToString not implemented for the {0} Cell.", c.type.ToString()));
+        }
+
+#region Set functions
+        public void Set(Boolean b)
+        {
+            if (type == Type.None) {
+                type = Type.Boolean;
+            }
+            Debug.Assert(type == Type.Boolean);
+            Boolean = b;
+        }
+
         public void Set(Cell c)
         {
             if (type == Type.None) {

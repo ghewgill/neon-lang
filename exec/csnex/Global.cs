@@ -22,6 +22,11 @@
                     str();
                     break;
 
+                // Boolean
+                case "boolean__toString":
+                    boolean__toString();
+                    break;
+
                 // Object
                 case "object__makeString":
                     object__makeString();
@@ -46,6 +51,12 @@
         {
             Number v = Exec.stack.Pop().Number;
             Exec.stack.Push(new Cell(v.ToString()));
+        }
+
+        public void boolean__toString()
+        {
+            string s = Cell.toString(Exec.stack.Pop());
+            Exec.stack.Push(new Cell(s));
         }
 
         public void object__makeString()
