@@ -31,7 +31,6 @@ base-test.neon
 bases.neon
 bigint.neon
 binary-test.neon
-boolean.neon
 bytecode-stringtable.neon
 bytes-embed.neon
 bytes-index.neon
@@ -58,7 +57,6 @@ complex-test.neon
 concat-bytes.neon
 concat.neon
 conditional.neon
-const-boolean.neon
 const-chain.neon
 const-expression.neon
 const-string.neon

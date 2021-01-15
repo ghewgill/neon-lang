@@ -43,7 +43,9 @@ namespace csnex
 #region PUSHx Opcodes
         void PUSHB()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            Boolean val = bytecode.code[ip + 1] != 0;
+            ip += 2;
+            stack.Push(new Cell(val));
         }
 
         void PUSHN()
@@ -121,7 +123,9 @@ namespace csnex
 #region LOADx Opcodes
         void LOADB()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(new Cell(addr.Boolean));
         }
 
         void LOADN()
@@ -133,7 +137,9 @@ namespace csnex
 
         void LOADS()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(new Cell(addr.String));
         }
 
         void LOADY()
@@ -169,7 +175,10 @@ namespace csnex
 #region STOREx Opcodes
         void STOREB()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Cell addr = stack.Pop().Address;
+            Boolean b = stack.Pop().Boolean;
+            addr.Set(b);
         }
 
         void STOREN()
@@ -182,7 +191,10 @@ namespace csnex
 
         void STORES()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Cell addr = stack.Pop().Address;
+            string str = stack.Pop().String;
+            addr.Set(str);
         }
 
         void STOREY()
@@ -497,12 +509,19 @@ namespace csnex
 #region JUMP Opcodes
         void JUMP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            int target = Bytecode.Get_VInt(bytecode.code, ref ip);
+            ip = target;
         }
 
         void JF()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            int target = Bytecode.Get_VInt(bytecode.code, ref ip);
+            bool a = stack.Pop().Boolean;
+            if (!a) {
+                ip = target;
+            }
         }
 
         void JT()
