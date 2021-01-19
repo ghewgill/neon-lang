@@ -19,6 +19,7 @@ namespace csnex
         private Object m_Object;
         private String m_String;
 
+#region Cell Property Accessors
         public Cell Address {
             get {
                 Debug.Assert(type == Type.Address);
@@ -64,11 +65,17 @@ namespace csnex
         }
 
         public Type type { get; private set; }
+#endregion
 
 #region Constructors
         public Cell()
         {
             type = Type.None;
+        }
+
+        public Cell(Type t)
+        {
+            type = t;
         }
 
         public Cell(Cell c)
@@ -77,9 +84,10 @@ namespace csnex
             m_Address = c;
         }
 
-        public Cell(Type t)
+        public Cell(Number d)
         {
-            type = t;
+            type = Type.Number;
+            m_Number = d;
         }
 
         public Cell(Object o)
@@ -93,12 +101,6 @@ namespace csnex
             type = Type.String;
             m_String = s;
         }
-
-        public Cell(Number d)
-        {
-            type = Type.Number;
-            m_Number = d;
-        }
 #endregion
 
         public void ResetCell()
@@ -110,6 +112,7 @@ namespace csnex
             type = Type.None;
         }
 
+#region 'Set' Functions
         public void Set(Cell c)
         {
             if (type == Type.None) {
@@ -136,5 +139,6 @@ namespace csnex
             Debug.Assert(type == Type.String);
             String = s;
         }
+#endregion
     }
 }
