@@ -74,7 +74,7 @@ namespace csnex
         public Cell(Cell c)
         {
             type = Type.Address;
-            Address = c;
+            m_Address = c;
         }
 
         public Cell(Type t)
@@ -84,29 +84,29 @@ namespace csnex
 
         public Cell(Object o)
         {
-            Object = o;
             type = Type.Object;
+            m_Object = o;
         }
 
         public Cell(String s)
         {
-            String = s;
             type = Type.String;
+            m_String = s;
         }
 
         public Cell(Number d)
         {
-            Number = d;
             type = Type.Number;
+            m_Number = d;
         }
 #endregion
 
         public void ResetCell()
         {
-            Address = null;
-            Number = null;
-            Object = null;
-            String = null;
+            m_Address = null;
+            m_Number = null;
+            m_Object = null;
+            m_String = null;
             type = Type.None;
         }
 
