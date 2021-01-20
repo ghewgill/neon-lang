@@ -279,12 +279,18 @@ namespace csnex
 
         void EQN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(Number.IsEqual(a, b)));
         }
 
         void NEN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(!Number.IsEqual(a, b)));
         }
 
         void LTN()
