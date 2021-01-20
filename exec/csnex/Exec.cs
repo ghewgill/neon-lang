@@ -240,7 +240,10 @@ namespace csnex
 
         void SUBN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(Number.Subtract(a, b)));
         }
 
         void MULN()
@@ -536,7 +539,19 @@ namespace csnex
 
         void JUMPTBL()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            ip++;
+            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            Number n = stack.Pop().Number;
+            if (n.IsInteger() && !n.IsNegative()) {
+                int i = Number.number_to_int32(n);
+                if (i < val) {
+                    ip += 6 * i;
+                } else {
+                    ip += 6 * val;
+                }
+            } else {
+                ip += 6 * val;
+            }
         }
 
         void JNASSERT()

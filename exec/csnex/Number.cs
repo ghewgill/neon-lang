@@ -23,9 +23,39 @@ namespace csnex {
             return new Number(Decimal.Parse(str, System.Globalization.NumberStyles.Float));
         }
 
+#region Static Arithmetic Functions
+        public static Number Subtract(Number x, Number y)
+        {
+            return new Number(x.val - y.val);
+        }
+#endregion
+
+        public bool IsInteger()
+        {
+            Decimal i = Decimal.Truncate(val);
+            return Decimal.Compare(val, i) == 0;
+        }
+
+        public bool IsNegative()
+        {
+            return Math.Sign(val) == -1;
+        }
+#region Static Number Conversions
+        public static UInt32 number_to_uint32(Number n)
+        {
+            return Decimal.ToUInt32(n.val);
+        }
+
+        public static Int32 number_to_int32(Number n)
+        {
+            return Decimal.ToInt32(n.val);
+        }
+#endregion
+#region Overrides
         public override string ToString()
         {
             return val.ToString();
         }
     }
+#endregion
 }
