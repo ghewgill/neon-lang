@@ -123,7 +123,6 @@ gc-two-pointers.neon
 gc1.neon
 gc2.neon
 gc3.neon
-if.neon
 import-dup.neon
 import-optional-missing.neon
 import-optional.neon

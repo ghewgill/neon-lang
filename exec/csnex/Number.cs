@@ -29,6 +29,11 @@ namespace csnex {
             return new Number(x.val - y.val);
         }
 #endregion
+#region Static "Is" Functions
+        public static bool IsEqual(Number x, Number y)
+        {
+            return Decimal.Equals(x.val, y.val);
+        }
 
         public bool IsInteger()
         {
@@ -40,6 +45,7 @@ namespace csnex {
         {
             return Math.Sign(val) == -1;
         }
+#endregion
 #region Static Number Conversions
         public static UInt32 number_to_uint32(Number n)
         {
