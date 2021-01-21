@@ -64,7 +64,7 @@ namespace csnex
 
         void PUSHY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHPG()
@@ -77,47 +77,47 @@ namespace csnex
 
         void PUSHPPG()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHPMG()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHPL()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHPOL()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHI()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHNIL()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHFP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHCI()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void PUSHPEG()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region LOADx Opcodes
@@ -144,32 +144,32 @@ namespace csnex
 
         void LOADY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LOADA()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LOADD()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LOADP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LOADJ()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LOADV()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region STOREx Opcodes
@@ -199,43 +199,43 @@ namespace csnex
 
         void STOREY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void STOREA()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void STORED()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void STOREP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void STOREJ()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void STOREV()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Arithmetic Opcodes
         void NEGN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void ADDN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void SUBN()
@@ -248,33 +248,33 @@ namespace csnex
 
         void MULN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void DIVN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void MODN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void EXPN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Comparison Opcodes
         void EQB()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void NEB()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void EQN()
@@ -295,185 +295,185 @@ namespace csnex
 
         void LTN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void GTN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LEN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void GEN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void EQS()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void NES()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LTS()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void GTS()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LES()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void GES()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void EQY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void NEY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LTY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void GTY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void LEY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void GEY()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void EQA()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void NEA()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void EQD()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void NED()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void EQP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void NEP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void EQV()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void NEV()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Logic Opcodes
         void ANDB()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void ORB()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void NOTB()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Index Opcodes
         void INDEXAR()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void INDEXAW()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void INDEXAV()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void INDEXAN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void INDEXDR()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void INDEXDW()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void INDEXDV()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region INx Opcdes
         void INA()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void IND()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region CALLx Opcodes
@@ -487,32 +487,32 @@ namespace csnex
 
         void CALLF()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void CALLMF()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void CALLI()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void CALLE()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void CALLX()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void CALLV()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region JUMP Opcodes
@@ -535,12 +535,12 @@ namespace csnex
 
         void JT()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void JFCHAIN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void JUMPTBL()
@@ -562,7 +562,7 @@ namespace csnex
 
         void JNASSERT()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void RET()
@@ -573,50 +573,50 @@ namespace csnex
 #region Stack Handler Opcodes
         void DUP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void DUPX1()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void DROP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void DROPN()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void SWAP()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Construct Opcodes
         void CONSA()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void CONSD()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Exception Opcodes
         void EXCEPT()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Memory Opcodes
         void ALLOC()
         {
-            throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 
         void RESETC()
