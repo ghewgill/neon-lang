@@ -101,7 +101,6 @@ file-writelines.neon
 for-bounds.neon
 for-nested2.neon
 for-scope.neon
-for.neon
 foreach-eval.neon
 foreach-function.neon
 foreach-literal-empty.neon
@@ -164,7 +163,6 @@ loop-label.neon
 loop-return-loop.neon
 loop-return-repeat-infinite.neon
 loop-return-while-infinite.neon
-loop.neon
 math-test.neon
 methods-declare.neon
 methods.neon
@@ -238,8 +236,6 @@ record-init2.neon
 record-private.neon
 recursion-limit.neon
 recursion.neon
-repeat-next.neon
-repeat.neon
 repl_assign.neon
 repl_assign2.neon
 repl_constant.neon
@@ -312,7 +308,6 @@ var.neon
 varargs-functionpointer.neon
 varargs.neon
 while-valid.neon
-while.neon
 
 compress-test.neon           # module
 extsample-test.neon          # module

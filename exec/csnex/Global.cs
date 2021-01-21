@@ -49,8 +49,16 @@
 
         public void str()
         {
-            Number v = Exec.stack.Pop().Number;
-            Exec.stack.Push(new Cell(v.ToString()));
+            string sbuf = Exec.stack.Pop().Number.ToString();
+            if (sbuf.IndexOf('.') >= 0) {
+                while (sbuf.Length > 1 && sbuf[sbuf.Length-1] == '0') {
+                    sbuf = sbuf.Substring(0, sbuf.Length-1);
+                }
+                if (sbuf[sbuf.Length-1] == '.') {
+                    sbuf = sbuf.Substring(0, sbuf.Length-1);
+                }
+            }
+            Exec.stack.Push(new Cell(sbuf));
         }
 
         public void boolean__toString()

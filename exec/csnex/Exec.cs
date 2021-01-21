@@ -230,12 +230,17 @@ namespace csnex
 #region Arithmetic Opcodes
         void NEGN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number x = stack.Pop().Number;
+            stack.Push(new Cell(Number.Negate(x)));
         }
 
         void ADDN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(Number.Add(a, b)));
         }
 
         void SUBN()
@@ -295,12 +300,18 @@ namespace csnex
 
         void LTN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(Number.IsLessThan(a, b)));
         }
 
         void GTN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(Number.IsGreaterThan(a, b)));
         }
 
         void LEN()
@@ -426,7 +437,9 @@ namespace csnex
 
         void NOTB()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            bool x = stack.Pop().Boolean;
+            stack.Push(new Cell(!x));
         }
 #endregion
 #region Index Opcodes
@@ -573,7 +586,8 @@ namespace csnex
 #region Stack Handler Opcodes
         void DUP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            stack.Push(stack.Peek());
         }
 
         void DUPX1()
@@ -593,7 +607,11 @@ namespace csnex
 
         void SWAP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell a = stack.Pop();
+            Cell b = stack.Pop();
+            stack.Push(a);
+            stack.Push(b);
         }
 #endregion
 #region Construct Opcodes

@@ -24,12 +24,32 @@ namespace csnex {
         }
 
 #region Static Arithmetic Functions
+        public static Number Add(Number x, Number y)
+        {
+            return new Number(x.val + y.val);
+        }
+
         public static Number Subtract(Number x, Number y)
         {
             return new Number(x.val - y.val);
         }
+
+        public static Number Negate(Number x)
+        {
+            return new Number(Decimal.Negate(x.val));
+        }
 #endregion
 #region Static "Is" Functions
+        public static bool IsGreaterThan(Number x, Number y)
+        {
+            return Decimal.Compare(x.val, y.val) > 0;
+        }
+
+        public static bool IsLessThan(Number x, Number y)
+        {
+            return Decimal.Compare(x.val, y.val) < 0;
+        }
+
         public static bool IsEqual(Number x, Number y)
         {
             return Decimal.Equals(x.val, y.val);
