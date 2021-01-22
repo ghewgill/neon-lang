@@ -256,22 +256,43 @@ namespace csnex
 
         void MULN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(Number.Multiply(a, b)));
         }
 
         void DIVN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            if (b.IsZero()) {
+                throw new NeonDivideByZeroException("DivideByZeroException", "");
+            }
+            stack.Push(new Cell(Number.Divide(a, b)));
         }
 
         void MODN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            if (b.IsZero()) {
+                throw new NeonDivideByZeroException("DivideByZeroException", "");
+            }
+            stack.Push(new Cell(Number.Modulo(a, b)));
         }
 
         void EXPN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            if (b.IsZero()) {
+                throw new NeonDivideByZeroException("DivideByZeroException", "");
+            }
+            stack.Push(new Cell(Number.Pow(a, b)));
         }
 #endregion
 #region Comparison Opcodes
