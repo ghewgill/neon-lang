@@ -110,7 +110,6 @@ function-local.neon
 function-namedargs.neon
 function-pointer-nowhere.neon
 function-pointer.neon
-function.neon
 gc-array.neon
 gc-long-chain.neon
 gc-two-pointers.neon
