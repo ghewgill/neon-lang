@@ -209,7 +209,10 @@ namespace csnex
 
         void STORED()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            Dictionary<string, Cell> dict = stack.Pop().Dictionary;
+            addr.Set(dict);
         }
 
         void STOREP()
@@ -622,7 +625,17 @@ namespace csnex
 
         void CONSD()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            Dictionary<string, Cell> d = new Dictionary<string, Cell>();
+
+            while (val > 0) {
+                Cell value = stack.Pop();
+                string key = stack.Pop().String;
+                d.Add(key, value);
+                val--;
+            }
+            stack.Push(new Cell(d));
         }
 #endregion
 #region Exception Opcodes

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace csnex
@@ -10,6 +11,7 @@ namespace csnex
             None,
             Address,
             Boolean,
+            Dictionary,
             Number,
             Object,
             String,
@@ -17,6 +19,7 @@ namespace csnex
 
         private Cell m_Address;
         private Boolean m_Boolean;
+        private Dictionary<string, Cell> m_Dictionary;
         private Number m_Number;
         private Object m_Object;
         private String m_String;
@@ -41,6 +44,17 @@ namespace csnex
             set {
                 type = Type.Boolean;
                 m_Boolean = value;
+            }
+        }
+
+        public Dictionary<string, Cell> Dictionary {
+            get {
+                Debug.Assert(type == Type.Dictionary);
+                return m_Dictionary;
+            }
+            set {
+                type = Type.Dictionary;
+                m_Dictionary = value;
             }
         }
 
@@ -103,6 +117,12 @@ namespace csnex
             m_Address = c;
         }
 
+        public Cell(Dictionary<string, Cell> d)
+        {
+            type = Type.Dictionary;
+            m_Dictionary = d;
+        }
+
         public Cell(Number d)
         {
             type = Type.Number;
@@ -126,6 +146,7 @@ namespace csnex
         {
             m_Address = null;
             m_Boolean = false;
+            m_Dictionary = null;
             m_Number = null;
             m_Object = null;
             m_String = null;
@@ -161,6 +182,15 @@ namespace csnex
             }
             Debug.Assert(type == Type.Address);
             Address = c;
+        }
+
+        public void Set(Dictionary<string, Cell> d)
+        {
+            if (type == Type.None) {
+                type = Type.Dictionary;
+            }
+            Debug.Assert(type == Type.Dictionary);
+            Dictionary = d;
         }
 
         public void Set(Number n)
