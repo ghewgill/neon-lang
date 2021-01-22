@@ -55,6 +55,22 @@ namespace csnex
     }
 
     [Serializable]
+    public class NeonStackOverflowException : NeonException
+    {
+        public NeonStackOverflowException() {
+        }
+
+        public NeonStackOverflowException(string message) : base(message) {
+        }
+
+        public NeonStackOverflowException(string message, params object[] args) : base(string.Format(message, args)) {
+        }
+
+        public NeonStackOverflowException(string message, Exception innerException) : base(message, innerException) {
+        }
+    }
+
+    [Serializable]
     public class NotImplementedException: NeonException
     {
         public NotImplementedException() {
