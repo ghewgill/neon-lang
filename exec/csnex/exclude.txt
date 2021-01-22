@@ -63,7 +63,6 @@ const.neon
 datetime-test.neon
 debug-example.neon
 decimal.neon
-dictionary-keys.neon
 dictionary-sorted.neon
 dictionary.neon
 divide-by-zero.neon
