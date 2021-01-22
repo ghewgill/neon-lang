@@ -34,6 +34,38 @@ namespace csnex {
             return new Number(x.val - y.val);
         }
 
+        public static Number Multiply(Number x, Number y)
+        {
+            return new Number(x.val * y.val);
+        }
+
+        public static Number Divide(Number x, Number y)
+        {
+            return new Number(x.val / y.val);
+        }
+
+        public static Number Pow(Number x, Number y)
+        {
+            if (y.IsInteger() && !y.IsNegative()) {
+                UInt32 iy = number_to_uint32(y);
+                Number r = new Number(1);
+                while (iy != 0) {
+                    if ((iy & 1) == 1) {
+                        r = Multiply(r, x);
+                    }
+                    x = Multiply(x, x);
+                    iy >>= 1;
+                }
+                return r;
+            }
+            return new Number(Decimal.ToInt64(x.val) ^ Decimal.ToInt64(y.val));
+        }
+
+        public static Number Modulo(Number x, Number y)
+        {
+            return new Number(Decimal.Remainder(x.val, y.val));
+        }
+
         public static Number Negate(Number x)
         {
             return new Number(Decimal.Negate(x.val));
@@ -54,7 +86,8 @@ namespace csnex {
         {
             return Decimal.Equals(x.val, y.val);
         }
-
+#endregion
+#region "Is" Tests
         public bool IsInteger()
         {
             Decimal i = Decimal.Truncate(val);
@@ -64,6 +97,11 @@ namespace csnex {
         public bool IsNegative()
         {
             return Math.Sign(val) == -1;
+        }
+
+        public bool IsZero()
+        {
+            return val == Decimal.Zero;
         }
 #endregion
 #region Static Number Conversions

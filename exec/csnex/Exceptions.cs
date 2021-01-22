@@ -39,6 +39,22 @@ namespace csnex
     }
 
     [Serializable]
+    public class NeonDivideByZeroException : NeonException
+    {
+        public NeonDivideByZeroException() {
+        }
+
+        public NeonDivideByZeroException(string message) : base(message) {
+        }
+
+        public NeonDivideByZeroException(string message, params object[] args) : base(string.Format(message, args)) {
+        }
+
+        public NeonDivideByZeroException(string message, Exception innerException) : base(message, innerException) {
+        }
+    }
+
+    [Serializable]
     public class NotImplementedException: NeonException
     {
         public NotImplementedException() {
