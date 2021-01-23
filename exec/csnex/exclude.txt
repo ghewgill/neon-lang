@@ -15,7 +15,6 @@ array-slice.neon                                # array__splice(), array__slice(
 array-sparse.neon                               # imports / textio
 array-subscript.neon                            # imports / textio
 array-tostring.neon                             # imports / string / textio
-array.neon                                      # Exceptions
 array2d.neon                                    # imports / string
 assert-enum.neon
 assert-fail.neon
@@ -66,16 +65,11 @@ encoding-base64.neon
 enum.neon
 enum3.neon
 equality.neon
-exception-as.neon
-exception-code.neon
-exception-function.neon
-exception-nested.neon
-exception-opstack-depth.neon
-exception-opstack.neon
-exception-subexception.neon
-exception-tostring.neon
-exception-trace.neon
-exception.neon
+exception-as.neon                               # LOADJ
+exception-code.neon                             # imports
+exception-opstack-depth.neon                    # PUSHPL
+exception-opstack.neon                          # PUSHPL
+exception-tostring.neon                         # imports
 exit-for.neon
 exit-while.neon
 export-function-indent.neon

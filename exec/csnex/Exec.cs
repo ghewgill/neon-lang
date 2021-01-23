@@ -44,6 +44,50 @@ namespace csnex
             return exit_code;
         }
 
+        private void RaiseLiteral(string name, Cell info)
+        {
+            List<Cell> exceptionvar = new List<Cell>();
+            exceptionvar.Add(new Cell(name));
+            exceptionvar.Add(info);
+            exceptionvar.Add(new Cell(new Number(ip)));
+            int tip = ip;
+            int sp = callstack.Count;
+            for (;;) {
+                int i;
+                for (i = 0; i < bytecode.exceptions.Count; i++) {
+                    if ((bytecode.exceptions[i].start <= tip) && (tip < bytecode.exceptions[i].end)) {
+                        string handler = bytecode.strtable[bytecode.exceptions[i].exid];
+                        if ((string.Compare(name, handler) == 0) || (name.Length > handler.Length && name.StartsWith(handler) && name[handler.Length] == '.')) {
+                            ip = bytecode.exceptions[i].handler;
+                            while (stack.Count > bytecode.exceptions[i].stack_depth) {
+                                stack.Pop();
+                            }
+                            while (sp > callstack.Count) {
+                                callstack.Pop();
+                            }
+                            stack.Push(new Cell(exceptionvar));
+                            return;
+                        }
+                    }
+                }
+                if (sp == 0) {
+                    break;
+                }
+                tip = callstack.Peek();
+                sp -= 1;
+            }
+            Console.Error.WriteLine(string.Format("Unhandled exception {0} ({1})\n", name, info.ToString()));
+            // Destroy the stack if there are no exception handlers available.
+            while (stack.Count > 0) {
+                stack.Pop();
+            }
+        }
+
+        void Raise(string name, string info)
+        {
+            RaiseLiteral(name, new Cell(info));
+        }
+
 #region Opcode Handlers
 #region PUSHx Opcodes
         void PUSHB()
@@ -278,7 +322,8 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                throw new NeonDivideByZeroException("DivideByZeroException", "");
+                Raise("DivideByZeroException", "");
+                return;
             }
             stack.Push(new Cell(Number.Divide(a, b)));
         }
@@ -289,7 +334,8 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                throw new NeonDivideByZeroException("DivideByZeroException", "");
+                Raise("DivideByZeroException", "");
+                return;
             }
             stack.Push(new Cell(Number.Modulo(a, b)));
         }
@@ -300,7 +346,8 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                throw new NeonDivideByZeroException("DivideByZeroException", "");
+                Raise("DivideByZeroException", "");
+                return;
             }
             stack.Push(new Cell(Number.Pow(a, b)));
         }
@@ -493,15 +540,18 @@ namespace csnex
             Cell addr = stack.Pop().Address;
 
             if (!index.IsInteger()) {
-                throw new ArrayIndexException(index.ToString());
+                Raise("ArrayIndexException", index.ToString());
+                return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                throw new ArrayIndexException(index.ToString());
+                Raise("ArrayIndexException", index.ToString());
+                return;
             }
 
             if (i >= addr.Array.Count) {
-                throw new ArrayIndexException(index.ToString());
+                Raise("ArrayIndexException", index.ToString());
+                return;
             }
             stack.Push(new Cell(addr.ArrayIndexForRead(i)));
         }
@@ -513,11 +563,13 @@ namespace csnex
             Cell addr = stack.Pop().Address;
 
             if (!index.IsInteger()) {
-                throw new ArrayIndexException(index.ToString());
+                Raise("ArrayIndexException", index.ToString());
+                return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                throw new ArrayIndexException(index.ToString());
+                Raise("ArrayIndexException", index.ToString());
+                return;
             }
             stack.Push(new Cell(addr.ArrayIndexForWrite(i)));
         }
@@ -572,7 +624,8 @@ namespace csnex
             ip++;
             int val = Bytecode.Get_VInt(bytecode.code, ref ip);
             if (callstack.Count >= param_recursion_limit) {
-                throw new NeonStackOverflowException("StackOverflowException");
+                Raise("StackOverflowException", "");
+                return;
             }
             Invoke(val);
         }
@@ -726,7 +779,12 @@ namespace csnex
 #region Exception Opcodes
         void EXCEPT()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            int start_ip = ip;
+            ip++;
+            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            ip = start_ip;
+            Cell info = stack.Pop();
+            RaiseLiteral(bytecode.strtable[val], info);
         }
 #endregion
 #region Memory Opcodes
