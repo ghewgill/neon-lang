@@ -182,11 +182,27 @@ namespace csnex
                         return "TRUE";
                     }
                     return "FALSE";
+                case Type.String:
+                    return c.String;
             }
             throw new NotImplementedException(string.Format("ToString not implemented for the {0} Cell.", c.type.ToString()));
         }
 
-#region Set functions
+        public override String ToString()
+        {
+            switch (type) {
+                case Type.Boolean:
+                    if (Boolean) {
+                        return "TRUE";
+                    }
+                    return "FALSE";
+                case Type.String:
+                    return String;
+            }
+            return null;
+        }
+
+        #region Set functions
         public void Set(List<Cell> a)
         {
             if (type == Type.None) {

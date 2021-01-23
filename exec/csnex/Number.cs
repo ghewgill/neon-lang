@@ -16,6 +16,11 @@ namespace csnex {
         {
             val = n;
         }
+
+        public Number(Int32 n)
+        {
+            val = n;
+        }
 #endregion
 
         public static Number FromString(string str)

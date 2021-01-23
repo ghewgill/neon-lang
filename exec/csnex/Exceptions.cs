@@ -29,44 +29,12 @@ namespace csnex
     }
 
     [Serializable]
-    public class BytecodeException: NeonException 
+    public class BytecodeException: NeonException
     {
         public BytecodeException() {
         }
 
         public BytecodeException(string message) : base(message) {
-        }
-    }
-
-    [Serializable]
-    public class NeonDivideByZeroException : NeonException
-    {
-        public NeonDivideByZeroException() {
-        }
-
-        public NeonDivideByZeroException(string message) : base(message) {
-        }
-
-        public NeonDivideByZeroException(string message, params object[] args) : base(string.Format(message, args)) {
-        }
-
-        public NeonDivideByZeroException(string message, Exception innerException) : base(message, innerException) {
-        }
-    }
-
-    [Serializable]
-    public class NeonStackOverflowException : NeonException
-    {
-        public NeonStackOverflowException() {
-        }
-
-        public NeonStackOverflowException(string message) : base(message) {
-        }
-
-        public NeonStackOverflowException(string message, params object[] args) : base(string.Format(message, args)) {
-        }
-
-        public NeonStackOverflowException(string message, Exception innerException) : base(message, innerException) {
         }
     }
 
@@ -77,22 +45,6 @@ namespace csnex
         }
 
         public NotImplementedException(string message) : base(message) {
-        }
-    }
-
-    [Serializable]
-    public class ArrayIndexException : NeonException
-    {
-        public ArrayIndexException() {
-        }
-
-        public ArrayIndexException(string message) : base(message) {
-        }
-
-        public ArrayIndexException(string message, params object[] args) : base(string.Format(message, args)) {
-        }
-
-        public ArrayIndexException(string message, Exception innerException) : base(message, innerException) {
         }
     }
 }

@@ -13,6 +13,7 @@ namespace csnex
         public byte[] code;
 
         public List<FunctionInfo> functions;
+        public List<ExceptionInfo> exceptions;
         public List<Cell> globals;
 
         public Bytecode()
@@ -130,7 +131,17 @@ namespace csnex
 
             /* Exception Handlers */
             int exceptionsize = Get_VInt(obj, ref i);
-            Debug.Assert(exceptionsize == 0);
+            exceptions = new List<ExceptionInfo>();
+            while (exceptionsize > 0) {
+                ExceptionInfo ex = new ExceptionInfo();
+                ex.start = Get_VInt(obj, ref i);
+                ex.end = Get_VInt(obj, ref i);
+                ex.exid = Get_VInt(obj, ref i);
+                ex.handler = Get_VInt(obj, ref i);
+                ex.stack_depth = Get_VInt(obj, ref i);
+                exceptions.Add(ex);
+                exceptionsize--;
+            }
 
             /* Classes */
             int classsize = Get_VInt(obj, ref i);
@@ -147,6 +158,15 @@ namespace csnex
             public int args;
             public int locals;
             public int entry;
+        }
+
+        public struct ExceptionInfo
+        {
+            public int start;
+            public int end;
+            public int exid;
+            public int handler;
+            public int stack_depth;
         }
     }
 }
