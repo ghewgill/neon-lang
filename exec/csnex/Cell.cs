@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace csnex
 {
@@ -10,6 +11,7 @@ namespace csnex
         {
             None,
             Address,
+            Array,
             Boolean,
             Dictionary,
             Number,
@@ -18,6 +20,7 @@ namespace csnex
         }
 
         private Cell m_Address;
+        private List<Cell> m_Array;
         private Boolean m_Boolean;
         private Dictionary<string, Cell> m_Dictionary;
         private Number m_Number;
@@ -33,6 +36,17 @@ namespace csnex
             set {
                 type = Type.Address;
                 m_Address = value;
+            }
+        }
+
+        public List<Cell> Array {
+            get {
+                Debug.Assert(type == Type.Array);
+                return m_Array;
+            }
+            set {
+                type = Type.Array;
+                m_Array = value;
             }
         }
 
@@ -105,6 +119,12 @@ namespace csnex
             type = t;
         }
 
+        public Cell(List<Cell> a)
+        {
+            type = Type.Array;
+            m_Array = a;
+        }
+
         public Cell(Boolean b)
         {
             type = Type.Boolean;
@@ -145,6 +165,7 @@ namespace csnex
         public void ResetCell()
         {
             m_Address = null;
+            m_Array = null;
             m_Boolean = false;
             m_Dictionary = null;
             m_Number = null;
@@ -166,6 +187,15 @@ namespace csnex
         }
 
 #region Set functions
+        public void Set(List<Cell> a)
+        {
+            if (type == Type.None) {
+                type = Type.Array;
+            }
+            Debug.Assert(type == Type.Array);
+            Array = a;
+        }
+
         public void Set(Boolean b)
         {
             if (type == Type.None) {
@@ -209,6 +239,38 @@ namespace csnex
             }
             Debug.Assert(type == Type.String);
             String = s;
+        }
+        #endregion
+
+#region Index functions
+        public Cell ArrayIndexForWrite(int i)
+        {
+            if (type == Type.None) {
+                type = Type.Array;
+            }
+            Debug.Assert(type == Type.Array);
+            if (Array == null) {
+                Array = new List<Cell>(i);
+            }
+            if (i >= Array.Count) {
+                int s = Array.Count;
+                for (int n = s; n < i+1; n++) {
+                    Array.Insert(n, new Cell(Type.None));
+                }
+            }
+            return Array.ElementAt(i);
+        }
+
+        public Cell ArrayIndexForRead(int i)
+        {
+            if (type == Type.None) {
+                type = Type.Array;
+            }
+            Debug.Assert(type == Type.Array);
+            if (m_Array == null) {
+                m_Array = new List<Cell>(i+1);
+            }
+            return Array.ElementAt(i);
         }
 #endregion
     }

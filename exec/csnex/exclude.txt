@@ -1,23 +1,22 @@
 arithmetic2.neon
-array-append.neon
-array-concat.neon
-array-extend.neon
-array-find.neon
-array-fraction.neon
-array-index-write.neon
-array-index.neon
-array-last-method.neon
-array-negative.neon
-array-remove.neon
-array-resize.neon
-array-reversed.neon
-array-slice.neon
-array-sparse.neon
-array-subscript.neon
-array-tostring.neon
-array.neon
-array2d.neon
-arraysize.neon
+array-append.neon                               # imports / string
+array-concat.neon                               # imports / string
+array-extend.neon                               # imports / string
+array-find.neon                                 # imports / textio
+array-fraction.neon                             # Exceptions / ArrayIndexException
+array-index-write.neon                          # imports / string
+array-index.neon                                # Exceptions / textio
+array-last-method.neon                          # string__append()
+array-negative.neon                             # Exceptions / ArrayIndexException
+array-remove.neon                               # imports / textio
+array-resize.neon                               # Exceptions / imports /textio
+array-reversed.neon                             # imports / textio
+array-slice.neon                                # array__splice(), array__slice(), number__toString()
+array-sparse.neon                               # imports / textio
+array-subscript.neon                            # imports / textio
+array-tostring.neon                             # imports / string / textio
+array.neon                                      # Exceptions
+array2d.neon                                    # imports / string
 assert-enum.neon
 assert-fail.neon
 assert-fail2.neon

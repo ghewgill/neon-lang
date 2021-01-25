@@ -130,6 +130,11 @@ namespace csnex {
         {
             return val.ToString();
         }
+
+        internal static Int64 number_to_int64(Number index)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 #endregion
 }
