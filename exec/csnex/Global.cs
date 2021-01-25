@@ -1,4 +1,6 @@
-﻿namespace csnex
+﻿using System.Collections.Generic;
+
+namespace csnex
 {
     public class Global
     {
@@ -20,6 +22,11 @@
                     break;
                 case "str":
                     str();
+                    break;
+
+                // Array
+                case "array__size":
+                    array__size();
                     break;
 
                 // Boolean
@@ -65,6 +72,14 @@
             }
             Exec.stack.Push(new Cell(sbuf));
         }
+
+        public void array__size()
+        {
+            List<Cell> a = Exec.stack.Pop().Array;
+
+            Exec.stack.Push(new Cell(new Number(a.Count)));
+        }
+
 
         public void boolean__toString()
         {

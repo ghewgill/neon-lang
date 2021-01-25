@@ -154,7 +154,9 @@ namespace csnex
 
         void LOADA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(new Cell(addr.Array));
         }
 
         void LOADD()
@@ -209,7 +211,10 @@ namespace csnex
 
         void STOREA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            List<Cell> arr = stack.Pop().Array;
+            addr.Set(arr);
         }
 
         void STORED()
@@ -483,12 +488,38 @@ namespace csnex
 #region Index Opcodes
         void INDEXAR()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number index = stack.Pop().Number;
+            Cell addr = stack.Pop().Address;
+
+            if (!index.IsInteger()) {
+                throw new ArrayIndexException(index.ToString());
+            }
+            int i = Number.number_to_int32(index);
+            if (i < 0) {
+                throw new ArrayIndexException(index.ToString());
+            }
+
+            if (i >= addr.Array.Count) {
+                throw new ArrayIndexException(index.ToString());
+            }
+            stack.Push(new Cell(addr.ArrayIndexForRead(i)));
         }
 
         void INDEXAW()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number index = stack.Pop().Number;
+            Cell addr = stack.Pop().Address;
+
+            if (!index.IsInteger()) {
+                throw new ArrayIndexException(index.ToString());
+            }
+            int i = Number.number_to_int32(index);
+            if (i < 0) {
+                throw new ArrayIndexException(index.ToString());
+            }
+            stack.Push(new Cell(addr.ArrayIndexForWrite(i)));
         }
 
         void INDEXAV()
@@ -666,7 +697,15 @@ namespace csnex
 #region Construct Opcodes
         void CONSA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            List<Cell> a = new List<Cell>();
+
+            while (val > 0) {
+                a.Add(stack.Pop());
+                val--;
+            }
+            stack.Push(new Cell(a));
         }
 
         void CONSD()

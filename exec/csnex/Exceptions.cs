@@ -79,4 +79,20 @@ namespace csnex
         public NotImplementedException(string message) : base(message) {
         }
     }
+
+    [Serializable]
+    public class ArrayIndexException : NeonException
+    {
+        public ArrayIndexException() {
+        }
+
+        public ArrayIndexException(string message) : base(message) {
+        }
+
+        public ArrayIndexException(string message, params object[] args) : base(string.Format(message, args)) {
+        }
+
+        public ArrayIndexException(string message, Exception innerException) : base(message, innerException) {
+        }
+    }
 }
