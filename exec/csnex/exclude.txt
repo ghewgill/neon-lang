@@ -38,9 +38,6 @@ bytes-slice.neon
 bytes-tostring.neon
 bytes-value-index.neon
 bytes.neon
-case-overlap.neon
-case.neon
-case3.neon
 cformat-test.neon
 check-if.neon
 check-valid.neon

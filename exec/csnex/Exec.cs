@@ -340,12 +340,18 @@ namespace csnex
 
         void LEN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(Number.IsLessOrEqual(a, b)));
         }
 
         void GEN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number b = stack.Pop().Number;
+            Number a = stack.Pop().Number;
+            stack.Push(new Cell(Number.IsGreaterOrEqual(a, b)));
         }
 
         void EQS()
@@ -365,7 +371,10 @@ namespace csnex
 
         void GTS()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(new Cell(string.Compare(a, b) > 0));
         }
 
         void LES()
@@ -572,7 +581,12 @@ namespace csnex
 
         void JT()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int target = Bytecode.Get_VInt(bytecode.code, ref ip);
+            bool a = stack.Pop().Boolean;
+            if (a) {
+                ip = target;
+            }
         }
 
         void JFCHAIN()
@@ -621,7 +635,8 @@ namespace csnex
 
         void DROP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            stack.Pop();
         }
 
         void DROPN()

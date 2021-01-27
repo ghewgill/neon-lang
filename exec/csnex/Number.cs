@@ -82,6 +82,16 @@ namespace csnex {
             return Decimal.Compare(x.val, y.val) < 0;
         }
 
+        public static bool IsLessOrEqual(Number x, Number y)
+        {
+            return Decimal.Compare(x.val, y.val) <= 0;
+        }
+
+        public static bool IsGreaterOrEqual(Number x, Number y)
+        {
+            return Decimal.Compare(x.val, y.val) >= 0;
+        }
+
         public static bool IsEqual(Number x, Number y)
         {
             return Decimal.Equals(x.val, y.val);
