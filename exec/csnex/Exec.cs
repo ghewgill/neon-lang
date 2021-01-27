@@ -635,7 +635,12 @@ namespace csnex
             ip++;
             int val = Bytecode.Get_VInt(bytecode.code, ref ip);
             string func = bytecode.strtable[val];
-            global.Dispatch(func);
+            try {
+                MethodInfo mi = global.GetType().GetMethod(func);
+                mi.Invoke(global, null);
+            } catch {
+                throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined function call.", func));
+            }
         }
 
         void CALLF()
