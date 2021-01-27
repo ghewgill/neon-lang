@@ -11,61 +11,7 @@ namespace csnex
             Exec = exec;
         }
 
-        public void Dispatch(string name)
-        {
-            // ToDo: Use System.Reflection to call functions out of
-            //       the assembly.
-            // Globals
-            switch (name) {
-                case "print":
-                    print();
-                    break;
-                case "str":
-                    str();
-                    break;
-
-                // Array
-                case "array__append":
-                    array__append();
-                    break;
-                case "array__concat":
-                    array__concat();
-                    break;
-                case "array__extend":
-                    array__extend();
-                    break;
-                case "array__size":
-                    array__size();
-                    break;
-                case "array__toString__number":
-                    array__toString__number();
-                    break;
-
-                // Boolean
-                case "boolean__toString":
-                    boolean__toString();
-                    break;
-
-                // Number
-                case "number__toString":
-                    number__toString();
-                    break;
-
-                // Object
-                case "object__makeString":
-                    object__makeString();
-                    break;
-
-                // String
-                case "string__concat":
-                    string__concat();
-                    break;
-
-                default:
-                    throw new NotImplementedException(string.Format("Global::Dispatch(\"{0}\"); - invalid or unsupported predefined function call.", name));
-            }
-        }
-
+#region Global Functions
         public void print()
         {
             Object o = Exec.stack.Pop().Object;
@@ -89,7 +35,8 @@ namespace csnex
             }
             Exec.stack.Push(new Cell(sbuf));
         }
-
+#endregion
+#region Array Functions
         public void array__append()
         {
             Cell element = Exec.stack.Pop();
@@ -131,25 +78,29 @@ namespace csnex
             string s = Cell.toString(Exec.stack.Pop());
             Exec.stack.Push(new Cell(s));
         }
-
+#endregion
+#region Boolean Functions
         public void boolean__toString()
         {
             string s = Cell.toString(Exec.stack.Pop());
             Exec.stack.Push(new Cell(s));
         }
-
+#endregion
+#region Number Functions
         public void number__toString()
         {
             Number n = Exec.stack.Pop().Number;
             Exec.stack.Push(new Cell(n.ToString()));
         }
-
+#endregion
+#region Object Functions
         public void object__makeString()
         {
             Cell o = Exec.stack.Pop();
             Exec.stack.Push(new Cell(new ObjectString(o.String)));
         }
-
+#endregion
+#region String Functions
         public void string__concat()
         {
             Cell b = Exec.stack.Pop();
@@ -157,6 +108,6 @@ namespace csnex
 
             Exec.stack.Push(new Cell(a.String + b.String));
         }
-
+#endregion
     }
 }
