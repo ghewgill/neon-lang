@@ -32,6 +32,11 @@
                     object__makeString();
                     break;
 
+                // String
+                case "string__concat":
+                    string__concat();
+                    break;
+
                 default:
                     throw new NotImplementedException(string.Format("Global::Dispatch(\"{0}\"); - invalid or unsupported predefined function call.", name));
             }
@@ -71,6 +76,14 @@
         {
             Cell o = Exec.stack.Pop();
             Exec.stack.Push(new Cell(new ObjectString(o.String)));
+        }
+
+        public void string__concat()
+        {
+            Cell b = Exec.stack.Pop();
+            Cell a = Exec.stack.Pop();
+
+            Exec.stack.Push(new Cell(a.String + b.String));
         }
 
     }
