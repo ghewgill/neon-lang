@@ -21,9 +21,7 @@ assert-fail.neon
 assert-fail2.neon
 assert-multiline.neon
 assert.neon
-assign-ignore.neon
-assign.neon
-assignment.neon
+assignment.neon                                 # PUSHPPG
 base-test.neon
 bases.neon
 bigint.neon
@@ -44,26 +42,21 @@ class-empty.neon
 cmdline.neon
 comments-block5.neon
 comments.neon
-comparison.neon
+comparison.neon                                 # EQS
 comparison2.neon
 complex-test.neon
 concat-bytes.neon
-concat.neon
-conditional.neon
 const-chain.neon
 const-expression.neon
 const-string.neon
-const.neon
 datetime-test.neon
 debug-example.neon
 decimal.neon
 dictionary-sorted.neon
 dictionary.neon
 divide-by-zero.neon
-empty.neon
 encoding-base64.neon
-enum.neon
-enum3.neon
+enum.neon                                       # PUSHPL
 equality.neon
 exception-as.neon                               # LOADJ
 exception-code.neon                             # imports
@@ -75,7 +68,6 @@ exit-while.neon
 export-function-indent.neon
 export-inline.neon
 export.neon
-expr.neon
 file-exists.neon
 file-filecopied.neon
 file-filecopied1.neon
@@ -94,9 +86,9 @@ foreach-function.neon
 foreach-literal-empty.neon
 foreach-string.neon
 foreach-value.neon
-foreach.neon
+foreach.neon                                    # INDEXAV
 format.neon
-forward.neon
+forward.neon                                    # PUSHPL
 function-args.neon
 function-defaultargs.neon
 function-local.neon
@@ -116,15 +108,14 @@ import-string.neon
 import.neon
 in.neon
 inc-reference.neon
-inc.neon
-indent.neon
-index.neon
+inc.neon                                        # number__toString
+index.neon                                      # invalid output, test fails
 inline-construct-record.neon
 inline-init-record.neon
 inline-init.neon
 inline-init4.neon
 input.neon
-intdiv.neon
+intdiv.neon                                     # math$intdiv
 interface-multiple.neon
 interface-parameter-export.neon
 interface-parameter-export2.neon
@@ -134,7 +125,7 @@ interface.neon
 intrinsic.neon
 io-test.neon
 json-test.neon
-let.neon
+let.neon                                        # number__toString
 lexer-raw.neon
 lexer-unicode.neon
 lexical-scope.neon
@@ -144,15 +135,13 @@ literal-method.neon
 literal-string.neon
 literal.neon
 local-clear.neon
-logical.neon
-logical2.neon
 loop-label.neon
 loop-return-loop.neon
 loop-return-repeat-infinite.neon
 loop-return-while-infinite.neon
 math-test.neon
 methods-declare.neon
-methods.neon
+methods.neon                                    # PUSHPL
 mkdir.neon
 mmap-test.neon
 module-alias.neon
@@ -198,7 +187,7 @@ outer2.neon
 parameter-out-array.neon
 parameter-out-string.neon
 parameters-ignore.neon
-parameters.neon
+parameters.neon                                 # PUSHPL
 pointer-method.neon
 pointer-nil.neon
 pointer-print.neon
@@ -222,7 +211,7 @@ record-init.neon
 record-init2.neon
 record-private.neon
 recursion-limit.neon
-recursion.neon
+recursion.neon                                  # PUSHPL
 repl_assign.neon
 repl_assign2.neon
 repl_constant.neon
@@ -256,7 +245,7 @@ string-index.neon
 string-multiline.neon
 string-slice.neon
 string-test.neon
-strings.neon
+strings.neon                                    # string__index
 struct-test.neon
 structure.neon
 sys-exit.neon
@@ -268,7 +257,6 @@ tostring.neon
 try-expression.neon
 type-compat.neon
 type-nested.neon
-type.neon
 unary-plus.neon
 unicode-char.neon
 unicode-length.neon
@@ -291,7 +279,6 @@ value-method.neon
 value-method2.neon
 var-declaration.neon
 var-reset.neon
-var.neon
 varargs-functionpointer.neon
 varargs.neon
 while-valid.neon
