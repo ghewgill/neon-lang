@@ -12,6 +12,7 @@ namespace csnex
         public List<String> strtable;
         public byte[] code;
 
+        public List<ModuleImport> imports;
         public List<FunctionInfo> functions;
         public List<ExceptionInfo> exceptions;
         public List<Cell> globals;
@@ -113,7 +114,20 @@ namespace csnex
 
             /* Imported Modules */
             int importsize = Get_VInt(obj, ref i);
-            Debug.Assert(importsize == 0);
+            imports = new List<ModuleImport>();
+            while (importsize > 0) {
+                ModuleImport imp = new ModuleImport();
+                imp.name = Get_VInt(obj, ref i);
+                imp.optional = Get_VInt(obj, ref i) != 0;
+                if (i + 32 > obj.Length) {
+                    throw new BytecodeException("unexpected end of bytecode");
+                }
+                imp.hash = new byte[32];
+                Array.Copy(obj, i, imp.hash, 0, 32);
+                i += 32;
+                imports.Add(imp);
+                importsize--;
+            }
 
             /* Functions */
             functionsize = Get_VInt(obj, ref i);
@@ -149,6 +163,13 @@ namespace csnex
 
             code = new byte[obj.Length - i];
             Array.Copy(obj, i, code, 0, obj.Length - i);
+        }
+
+        public struct ModuleImport
+        {
+            public int name;
+            public bool optional;
+            public byte[] hash;
         }
 
         public struct FunctionInfo
