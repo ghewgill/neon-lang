@@ -90,6 +90,7 @@ struct-test.neon           # ExpressionTransformer
 sys-exit.neon              # ExceptionType
 textio-test.neon           # PredefinedVariable textio$stdout
 tostring.neon              # enum tostring
+unicode-string.neon        # UTF-8
 value-copy.neon            # value copy
 win32-test.neon            # win32
 

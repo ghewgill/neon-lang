@@ -17,3 +17,5 @@ jobs:
             - run:
                 name: Test
                 command: ctest --output-on-failure
+                environment:
+                    PYTHONIOENCODING: utf8

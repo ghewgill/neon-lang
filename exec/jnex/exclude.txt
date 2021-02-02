@@ -117,6 +117,7 @@ time-stopwatch.neon        # CALLMF
 time-test.neon             # import
 unicode-char.neon          # UTF-8
 unicode-length.neon        # UTF-8
+unicode-string.neon        # UTF-8
 value-copy.neon            # copy
 varargs-functionpointer.neon # PUSHFP
 win32-test.neon            # CALLMF

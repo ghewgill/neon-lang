@@ -154,6 +154,7 @@ tostring.neon              # keyword enum
 try-expression.neon        # TryExpression
 unicode-char.neon          # StringReferenceIndexExpression
 unicode-length.neon        # StringReferenceIndexExpression
+unicode-string.neon        # UTF-8
 uninitialised-out.neon     # out parameter
 uninitialised-try.neon     # js syntax error
 value-copy.neon            # value copy
