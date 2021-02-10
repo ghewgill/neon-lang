@@ -2721,14 +2721,9 @@ def run(program):
     program.env.declare("String", Class(), ClassString())
     program.env.declare("Bytes", Class(), ClassBytes())
     program.env.declare("Object", Class(), ClassObject())
-    program.env.declare("concat", None, neon_concat)
-    program.env.declare("format", None, neon_format)
-    program.env.declare("input", None, neon_input)
-    program.env.declare("int", None, neon_int)
     program.env.declare("num", None, neon_num)
     program.env.declare("print", None, neon_print)
     program.env.declare("str", None, neon_str)
-    program.env.declare("substring", None, neon_substring)
     program.run(program.env)
 
 def eval_cond(left, cond, right):
@@ -2764,9 +2759,6 @@ def neon_array_resize(a, n):
 def neon_array_reversed(a):
     return list(reversed(a))
 
-def neon_concat(env, x, y):
-    return x + y
-
 def neon_dictionary_remove(d, k):
     if k in d:
         del d[k]
@@ -2776,12 +2768,6 @@ def neon_format(env, s, fmt):
         return format(int(s), fmt)
     else:
         return format(s, fmt)
-
-def neon_input(env, x):
-    return input()
-
-def neon_int(env, x):
-    return int(x)
 
 def neon_num(env, x):
     if not any(c.isdigit() for c in x):
@@ -2804,9 +2790,6 @@ def neon_str(env, x):
         else:
             r = re.sub(r"\.0+$", "", r)
     return r
-
-def neon_substring(env, s, start, length):
-    return s[start:start+length]
 
 def neon_console_input(env, prompt):
     try:
