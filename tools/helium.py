@@ -592,10 +592,15 @@ class SubscriptExpression:
                     if isinstance(a, list):
                         raise NeonException("ArrayIndexException", i)
                     assert False
-            if isinstance(a, list):
+            if isinstance(a, (list, str)):
                 if self.from_end:
                     i += len(a) - 1
                 if i < 0:
+                    if self.from_end:
+                        if isinstance(a, list):
+                            return []
+                        if isinstance(a, str):
+                            return ""
                     raise IndexError
             return a[i]
         except TypeError:
@@ -615,7 +620,10 @@ class SubscriptExpression:
         if isinstance(a, list):
             if self.from_end:
                 i += len(a) - 1
-        a[i] = value
+        if isinstance(a, str):
+            self.expr.set(env, a[:i] + value + a[i+1:])
+        else:
+            a[i] = value
 
 class RangeSubscriptExpression:
     def __init__(self, expr, first, first_from_end, last, last_from_end):
@@ -1354,7 +1362,7 @@ class TryStatement:
         except NeonException as x:
             for exceptions, name, statements in self.catches:
                 # Match either unqualified or module qualified name.
-                if any(x.name[:len(h)] == h or x.name[:len(h)-1] == h[1:] for h in exceptions):
+                if any(x.name[:len(h)] == h or len(h) > 1 and x.name[:len(h)-1] == h[1:] for h in exceptions):
                     env.declare(name, None, x)
                     for s in statements:
                         s.declare(env)
