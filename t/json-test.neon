@@ -7,28 +7,28 @@ s := json.encode(NIL)
 print(s)
 --= null
 v := json.decode(s)
-print("\(v = NIL)")
+print(v = NIL)
 --= TRUE
 
 s := json.encode(TRUE)
 print(s)
 --= true
 v := json.decode(s)
-print("\(v)")
+print(v)
 --= TRUE
 
 s := json.encode(5)
 print(s)
 --= 5
 v := json.decode(s)
-print("\(v)")
+print(v)
 --= 5
 
 s := json.encode("fork")
 print(s)
 --= "fork"
 v := json.decode(s)
-print("\(v)")
+print(v)
 --= fork
 
 TESTCASE json.decode(@@""\"\\\/\b\n\f\r\t""@@) = "\"\\/\b\n\f\r\t"

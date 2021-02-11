@@ -7,5 +7,5 @@ END FUNCTION
 
 VAR a: Array<Number> := [0, 0]
 INC a[f()]
-print("\(a)")
+print(a)
 --= [0, 1]

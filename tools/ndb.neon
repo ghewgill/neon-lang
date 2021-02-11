@@ -124,8 +124,7 @@ LOOP
     ELSIF a[0] IN ["p", "print"] THEN
         LET g: Global := Globals[a[1]]
         r := get("/module/-/global/\(g.index)")
-        LET v: Object := r.value
-        print("\(v)")
+        print(r.value)
     ELSIF a[0] IN ["q", "quit"] THEN
         r := post("/quit", "")
         EXIT LOOP

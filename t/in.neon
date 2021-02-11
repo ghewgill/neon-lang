@@ -2,20 +2,20 @@ VAR a: Array<Number> := []
 
 a[0] := 5
 a[1] := 6
-print("\(5 IN a)")
+print(5 IN a)
 --= TRUE
-print("\(7 IN a)")
+print(7 IN a)
 --= FALSE
-print("\(7 NOT IN a)")
+print(7 NOT IN a)
 --= TRUE
 
 VAR d: Dictionary<Number> := {}
 
 d["foo"] := 5
 d["bar"] := 6
-print("\("foo" IN d)")
+print("foo" IN d)
 --= TRUE
-print("\("baz" IN d)")
+print("baz" IN d)
 --= FALSE
-print("\("baz" NOT IN d)")
+print("baz" NOT IN d)
 --= TRUE

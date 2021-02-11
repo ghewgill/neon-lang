@@ -4303,6 +4303,6 @@ BEGIN MAIN
     --print("tokens \(tokens.size())")
     VAR parser: Parser := makeParser(tokens)
     LET pt: POINTER TO ParseTreeNode := parser.parse()
-    --print("\(pt)")
+    --print(pt)
     dumpParseTree(pt, 0)
 END MAIN

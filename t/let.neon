@@ -1,7 +1,7 @@
 VAR a: Number := 5
 LET b: Number := a
 
-print("\(b)")
+print(b)
 --= 5
 
 LET s := "hello"

@@ -85,7 +85,7 @@ The ``CHECK`` statement evaluates a boolean expression and, if it is ``FALSE``, 
         CHECK n >= 0 ELSE
             RAISE InvalidValueException
         END CHECK
-        print("\(n)")
+        print(n)
     END FUNCTION
 
 The block of statements must end in a block-exiting statement which is one of ``EXIT``, ``NEXT``, ``RAISE``, or ``RETURN``.

@@ -7,13 +7,13 @@ b := 3
 c := 4
 
 -- Both conditions true.
-print("\(a < b < c)")
+print(a < b < c)
 --= TRUE
 
 -- First condition false.
-print("\(a > b < c)")
+print(a > b < c)
 --= FALSE
 
 -- Second condition false.
-print("\(a < b > c)")
+print(a < b > c)
 --= FALSE

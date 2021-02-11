@@ -941,10 +941,10 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(binary.xor32(x1, x2))
         WHEN TOOLS_QUESTION DO
             LET addr: Number := stack.pop()
-            print("\(storage[addr])")
+            print(storage[addr])
         WHEN TOOLS_PRINT_S DO
             FOR i := 0 TO stack.size()-1 DO
-                print("\(stack.peek(i))")
+                print(stack.peek(i))
             END FOR
         WHEN TOOLS_DUMP DO
             LET u: Number := stack.pop()

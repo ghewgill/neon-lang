@@ -158,12 +158,12 @@ The ``EXIT`` and ``NEXT`` statements branch out of the loop or to the next itera
 ::
 
     FOR i := 1 TO 10 DO
-        print("\(i)")
+        print(i)
     END FOR
 
     VAR a: Number := 1
     LOOP
-        print("\(a)")
+        print(a)
         IF a = 10 THEN
             EXIT LOOP
         END IF
@@ -172,13 +172,13 @@ The ``EXIT`` and ``NEXT`` statements branch out of the loop or to the next itera
 
     a := 1
     REPEAT
-        print("\(a)")
+        print(a)
         INC a
     UNTIL a = 10
 
     a := 1
     WHILE a <= 10 DO
-        print("\(a)")
+        print(a)
         INC a
     END WHILE
 

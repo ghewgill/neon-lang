@@ -19,7 +19,7 @@ buf := file.readBytes("LICENSE.txt")
 print(bstr(buf.size() = 1076 OR buf.size() = 1097)) -- account for lf vs crlf
 --= TRUE
 VAR arr: Array<Number> := buf.toArray()
-print("\(arr[0])")
+print(arr[0])
 --= 84
 
 print(bstr(file.isDirectory("t")))

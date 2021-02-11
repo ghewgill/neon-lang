@@ -12,7 +12,7 @@ set(CSNEX_SOURCES
 
 add_custom_command(
     OUTPUT csnex.exe
-    COMMAND ${CSC} -warn:4 -warnaserror+ -debug+ -d:DEBUG -appconfig:App.config -out:csnex.exe ${CSNEX_SOURCES}
+    COMMAND ${CSC} -warn:4 -warnaserror+ -debug+ -d:DEBUG -out:csnex.exe ${CSNEX_SOURCES}
     DEPENDS ${CSNEX_SOURCES}
 )
 

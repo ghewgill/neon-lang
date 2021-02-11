@@ -12,9 +12,9 @@ VAR p: os.Process := os.spawn(@@"bin/neon -c "IMPORT time time.sleep(1)""@@)
 LET start: Number := time.now()
 r := os.wait(p)
 LET end: Number := time.now()
-print("\(end - start >= 1)")
+print(end - start >= 1)
 --= TRUE
 
 LET plat: os.Platform := os.platform()
-print("\(plat)")
+print(plat.toString())
 --? (posix|win32)

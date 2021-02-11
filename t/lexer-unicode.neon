@@ -33,20 +33,20 @@ IF p ∨ q THEN
 END IF
 --= 6
 
-print("\(a − b)")
+print(a − b)
 --= -3
 
-print("\(a × b)")
+print(a × b)
 --= 40
 
-print("\(a ∕ b)")
+print(a ∕ b)
 --= 0.625
 
-print("\(a ÷ b)")
+print(a ÷ b)
 --= 0.625
 
-print("\(a ∈ [4, 5])")
+print(a ∈ [4, 5])
 --= TRUE
 
---print("\(a ∉ [4, 5])")
+--print(a ∉ [4, 5])
 --#= FALSE

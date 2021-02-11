@@ -1,3 +1,4 @@
+array-concat.neon          # print array
 array-resize.neon          # array default item
 array-sparse.neon          # array default item
 array2d.neon               # array copying semantics
@@ -70,6 +71,7 @@ outer-parameter.neon       # verifier
 outer-tail.neon            # verifier
 outer.neon                 # verifier
 outer2.neon                # verifier
+parameter-out-array.neon   # print array
 posix-fork.neon            # module posix
 predeclare1.neon           # something
 print-object.neon          # object

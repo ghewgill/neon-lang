@@ -146,7 +146,7 @@ To resolve this problem, Neon requires an explicitly terminated block in every c
     VAR x: Number := 0
 
     WHILE x < 5 DO
-        print("\(x)")
+        print(x)
         INC x
     END WHILE
 

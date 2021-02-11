@@ -3,6 +3,6 @@ EXCEPTION TestException
 TRY
     RAISE TestException("info")
 TRAP TestException AS e DO
-    print("\(e)")
+    print(e.toString())
 END TRY
 --? <ExceptionType:TestException,info,\d+>

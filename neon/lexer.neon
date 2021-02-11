@@ -793,7 +793,7 @@ BEGIN MAIN
         TRY
             LET tokens: Array<Token> := tokenize(fn, bytes.decodeToString())
             FOREACH t IN tokens DO
-                print("\(t)")
+                print(t.toString())
             END FOREACH
         TRAP Utf8DecodingException AS x DO
             LET offset: Number := num(x.info)

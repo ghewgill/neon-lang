@@ -10,6 +10,6 @@ END WHILE
 b := time.now()
 --print(str(a))
 --print(str(b))
-print("\(a < b)")
+print(a < b)
 
 --= TRUE

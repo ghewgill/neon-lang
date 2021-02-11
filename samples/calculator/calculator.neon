@@ -274,7 +274,7 @@ BEGIN MAIN
             LET tokens: Array<Token> := tokenise(s)
             LET expr: Expression := parse(tokens)
             LET r: Number := eval(expr, {})
-            print("\(r)")
+            print(r)
             sys.exit(0)
         TRAP SyntaxException AS e DO
             textio.writeLine(textio.stderr, e.info)

@@ -338,6 +338,14 @@ public class Global {
         return x.toString();
     }
 
+    public static java.lang.Object object__makeBoolean(java.lang.Boolean b) {
+        return b;
+    }
+
+    public static java.lang.Object object__makeNumber(neon.type.Number n) {
+        return n;
+    }
+
     public static java.lang.Object object__makeString(java.lang.String s) {
         return s;
     }
@@ -347,7 +355,11 @@ public class Global {
     }
 
     public static void print(java.lang.Object x) {
-        System.out.println(x);
+        if (x instanceof java.lang.Boolean) {
+            System.out.println((java.lang.Boolean)x ? "TRUE" : "FALSE");
+        } else {
+            System.out.println(x);
+        }
     }
 
     public static java.lang.String str(neon.type.Number x) {

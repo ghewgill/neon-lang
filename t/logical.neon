@@ -4,14 +4,14 @@ VAR b: Number
 a := 4
 b := 5
 
-print("\(a = 4 AND b = 5)")
+print(a = 4 AND b = 5)
 --= TRUE
 
-print("\(a = 0 OR b = 5)")
+print(a = 0 OR b = 5)
 --= TRUE
 
-print("\(a = 0 AND b = 0)")
+print(a = 0 AND b = 0)
 --= FALSE
 
-print("\(NOT (a = 0))")
+print(NOT (a = 0))
 --= TRUE

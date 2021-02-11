@@ -2786,7 +2786,12 @@ def neon_num(env, x):
         raise NeonException("ValueRangeException", x)
 
 def neon_print(env, x):
-    print(x)
+    if isinstance(x, bool):
+        print("TRUE" if x else "FALSE")
+    elif isinstance(x, dict):
+        print("{{{}}}".format(", ".join("{}: {}".format(k, v) for k, v in x.items())))
+    else:
+        print(x)
 
 def neon_str(env, x):
     r = str(x)
