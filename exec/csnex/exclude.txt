@@ -1,13 +1,7 @@
 arithmetic2.neon
-array-append.neon                               # imports / string
-array-concat.neon                               # imports / string
-array-extend.neon                               # imports / string
 array-find.neon                                 # imports / textio
-array-fraction.neon                             # Exceptions / ArrayIndexException
-array-index-write.neon                          # imports / string
 array-index.neon                                # Exceptions / textio
 array-last-method.neon                          # string__append()
-array-negative.neon                             # Exceptions / ArrayIndexException
 array-remove.neon                               # imports / textio
 array-resize.neon                               # Exceptions / imports /textio
 array-reversed.neon                             # imports / textio
@@ -15,7 +9,7 @@ array-slice.neon                                # array__splice(), array__slice(
 array-sparse.neon                               # imports / textio
 array-subscript.neon                            # imports / textio
 array-tostring.neon                             # imports / string / textio
-array2d.neon                                    # imports / string
+array2d.neon                                    # copy semantics
 assert-enum.neon
 assert-fail.neon
 assert-fail2.neon
@@ -54,7 +48,6 @@ debug-example.neon
 decimal.neon
 dictionary-sorted.neon
 dictionary.neon
-divide-by-zero.neon
 encoding-base64.neon
 enum.neon                                       # PUSHPL
 equality.neon
@@ -109,7 +102,7 @@ import.neon
 in.neon
 inc-reference.neon
 inc.neon                                        # number__toString
-index.neon                                      # invalid output, test fails
+index.neon                                      # copy semantics
 inline-construct-record.neon
 inline-init-record.neon
 inline-init.neon
@@ -236,7 +229,6 @@ sql-execute.neon
 sql-query.neon
 sql-whenever.neon
 sqlite-test.neon
-stack-overflow.neon
 string-bytes.neon
 string-escape.neon
 string-format.neon

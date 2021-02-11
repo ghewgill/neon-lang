@@ -576,7 +576,26 @@ namespace csnex
 
         void INDEXAV()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number index = stack.Pop().Number;
+            Cell array = stack.Pop();
+
+            if (!index.IsInteger()) {
+                RaiseLiteral("ArrayIndexException", new Cell(index.ToString()));
+                return;
+            }
+            int i = Number.number_to_int32(index);
+            if (i < 0) {
+                RaiseLiteral("ArrayIndexException", new Cell(new Number(i).ToString()));
+                return;
+            }
+            uint j = (uint)i;
+            if (j >= array.Array.Count) {
+                RaiseLiteral("ArrayIndexException", new Cell(new Number(j).ToString()));
+                return;
+            }
+            Debug.Assert(j < array.Array.Count);
+            stack.Push(array.Array[(int)j]);
         }
 
         void INDEXAN()
