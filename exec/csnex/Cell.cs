@@ -176,12 +176,32 @@ namespace csnex
 
         public static string toString(Cell c)
         {
+            string r;
             switch (c.type) {
+                case Type.Array:
+                {
+                    int x;
+                    r = "[";
+                    for (x = 0; x < c.Array.Count; x++) {
+                        if (r.Length > 1) {
+                            r += ", ";
+                        }
+                        if (c.Array[x].type == Type.String) {
+                            throw new NeonException("Array<String>.toString() not implemented.");
+                        } else {
+                            r += toString(c.Array[x]);
+                        }
+                    }
+                    r += "]";
+                    return r;
+                }
                 case Type.Boolean:
                     if (c.Boolean) {
                         return "TRUE";
                     }
                     return "FALSE";
+                case Type.Number:
+                    return c.Number.ToString();
                 case Type.String:
                     return c.String;
             }
