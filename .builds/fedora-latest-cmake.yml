@@ -5,6 +5,11 @@ packages:
 - ncurses
 - gmp-devel
 - zlib-devel
+# These perl modules are just for NaturalDocs
+- perl-English
+- perl-FindBin
+- perl-File-Copy
+- perl-Tie-RefHash
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 triggers:
