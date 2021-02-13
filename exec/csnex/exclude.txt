@@ -242,6 +242,7 @@ struct-test.neon
 structure.neon
 sys-exit.neon
 tail-call.neon
+textio-random.neon
 textio-test.neon
 time-stopwatch.neon
 time-test.neon

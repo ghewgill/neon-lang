@@ -124,6 +124,7 @@ string-test.neon            # string$find
 strings.neon                # string__splice
 struct-test.neon            # exception Utf8DecodingException
 sys-exit.neon               # sys$exit
+textio-random.neon          # random
 textio-test.neon            # pushppg
 time-stopwatch.neon         # callmf
 time-test.neon              # time$now
