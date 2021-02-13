@@ -3196,6 +3196,8 @@ def neon_textio_open(env, fn, mode):
 
 def neon_textio_readLine(env, f, r):
     r = f.readline()
+    if not r:
+        return False, ""
     return r is not None, r.rstrip("\r\n")
 
 def neon_textio_seekEnd(env, f):

@@ -1,0 +1,12 @@
+IMPORT textio
+
+VAR f: textio.TextFile := textio.open("tmp/textio-test.tmp", textio.Mode.write)
+textio.writeLine(f, "Hello world")
+textio.seekStart(f)
+textio.truncate(f)
+textio.close(f)
+f := textio.open("tmp/textio-test.tmp", textio.Mode.read)
+print("\(textio.readLine(f, OUT _))")
+--= FALSE
+
+textio.close(f)

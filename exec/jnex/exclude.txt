@@ -113,6 +113,7 @@ strings.neon               # string__splice
 struct-test.neon           # CALLMF
 sudoku-test.neon           # import
 sys-exit.neon              # sys
+textio-seek.neon           # TextFile.seek
 time-stopwatch.neon        # CALLMF
 time-test.neon             # import
 unicode-char.neon          # UTF-8

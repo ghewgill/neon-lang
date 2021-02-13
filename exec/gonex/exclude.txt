@@ -39,6 +39,7 @@ string-bytes.neon          # utf8
 string-escape.neon         # utf8
 struct-test.neon           # bigint
 textio-random.neon         # textio.TextFile
+textio-seek.neon           # textio.TextFile
 textio-test.neon           # textio.TextFile
 time-stopwatch.neon        # time$tick
 time-test.neon             # precision

@@ -338,6 +338,7 @@ sys-exit.neon
 tail-call.neon
 testcase.neon
 textio-random.neon
+textio-seek.neon
 textio-test.neon
 time-stopwatch.neon
 time-test.neon

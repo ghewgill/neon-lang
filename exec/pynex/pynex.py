@@ -2865,11 +2865,28 @@ def neon_textio_open(self):
 def neon_textio_readLine(self):
     f = self.stack.pop()
     try:
-        s = f.readline().rstrip("\n")
+        s = f.readline()
+        if not s:
+            self.stack.append(False)
+            self.stack.append("")
+            return
+        s = s.rstrip("\n")
         self.stack.append(True)
         self.stack.append(s)
     except IOError:
         self.raise_literal("TextioException", "")
+
+def neon_textio_seekEnd(self):
+    f = self.stack.pop()
+    f.seek(0, os.SEEK_END)
+
+def neon_textio_seekStart(self):
+    f = self.stack.pop()
+    f.seek(0, os.SEEK_SET)
+
+def neon_textio_truncate(self):
+    f = self.stack.pop()
+    f.truncate()
 
 def neon_textio_writeLine(self):
     s = self.stack.pop()
