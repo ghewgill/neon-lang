@@ -215,7 +215,9 @@ namespace csnex
 
         void LOADJ()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(new Cell(addr.Object));
         }
 
         void LOADV()
@@ -276,7 +278,10 @@ namespace csnex
 
         void STOREJ()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            Object obj = stack.Pop().Object;
+            addr.Set(obj);
         }
 
         void STOREV()
