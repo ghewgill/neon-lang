@@ -85,7 +85,7 @@ namespace csnex
 
         void Raise(string name, string info)
         {
-            RaiseLiteral(name, new Cell(info));
+            RaiseLiteral(name, new Cell(new ObjectString(info)));
         }
 
 #region Opcode Handlers
