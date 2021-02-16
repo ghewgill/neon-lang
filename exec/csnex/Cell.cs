@@ -268,6 +268,15 @@ namespace csnex
             Number = n;
         }
 
+        public void Set(Object o)
+        {
+            if (type == Type.None) {
+                type = Type.Object;
+            }
+            Debug.Assert(type == Type.Object);
+            Object = o;
+        }
+
         public void Set(string s)
         {
             if (type == Type.None) {
