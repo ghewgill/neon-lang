@@ -216,6 +216,8 @@ namespace csnex
                         return "TRUE";
                     }
                     return "FALSE";
+                case Type.Object:
+                    return Object.toString();
                 case Type.String:
                     return String;
             }

@@ -81,11 +81,13 @@ namespace csnex
             while (stack.Count > 0) {
                 stack.Pop();
             }
+            // Setting exit_code here will cause the executor Loop() to terminate and return this exit code.
+            exit_code = 1;
         }
 
         void Raise(string name, string info)
         {
-            RaiseLiteral(name, new Cell(info));
+            RaiseLiteral(name, new Cell(new ObjectString(info)));
         }
 
 #region Opcode Handlers
