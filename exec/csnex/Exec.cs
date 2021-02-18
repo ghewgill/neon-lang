@@ -15,7 +15,11 @@ namespace csnex
             global = new Global(this);
             bytecode = bc;
             param_recursion_limit = 2000; // ToDo: Add runtime$setRecursionLimit()
+            library = new List<KeyValuePair<string, object>>();
+            library.Add(new KeyValuePair<string, object>("textio", new rtl.textio(this)));
         }
+
+        private List<KeyValuePair<string, object>> library;
 
         private int exit_code;
         private readonly Bytecode bytecode;
@@ -85,7 +89,7 @@ namespace csnex
             exit_code = 1;
         }
 
-        void Raise(string name, string info)
+        public void Raise(string name, string info)
         {
             RaiseLiteral(name, new Cell(new ObjectString(info)));
         }
@@ -128,7 +132,16 @@ namespace csnex
 
         void PUSHPPG()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int addr = Bytecode.Get_VInt(bytecode.code, ref ip);
+            string var = bytecode.strtable[addr];
+            try {
+                object obj = library.Find(a => a.Key == var.Substring(0, var.IndexOf('$'))).Value;
+                PropertyInfo pi = obj.GetType().GetProperty(var.Substring(var.IndexOf('$')+1));
+                stack.Push(new Cell((Cell)pi.GetValue(obj)));
+            } catch {
+                throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined variable.", var));
+            }
         }
 
         void PUSHPMG()
@@ -643,8 +656,16 @@ namespace csnex
             int val = Bytecode.Get_VInt(bytecode.code, ref ip);
             string func = bytecode.strtable[val];
             try {
-                MethodInfo mi = global.GetType().GetMethod(func);
-                mi.Invoke(global, null);
+                if (func.IndexOf('$') > 0) {
+                    // Call a module function from our csnex.rtl namspace
+                    object lib = library.Find(a => a.Key == func.Substring(0, func.IndexOf('$'))).Value;
+                    MethodInfo mi = lib.GetType().GetMethod(func.Substring(func.IndexOf('$')+1));
+                    mi.Invoke(lib, null);
+                } else {
+                    // Call a global function
+                    MethodInfo mi = global.GetType().GetMethod(func);
+                    mi.Invoke(global, null);
+                }
             } catch {
                 throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined function call.", func));
             }
