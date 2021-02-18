@@ -198,7 +198,7 @@ predeclare2.neon
 predeclare3.neon
 predefined-generation.neon
 print-object.neon
-random-test.neon
+random-test.neon                                # random module
 record-empty.neon
 record-init.neon
 record-init2.neon
@@ -240,11 +240,9 @@ string-test.neon
 strings.neon                                    # string__index
 struct-test.neon
 structure.neon
-sys-exit.neon
+sys-exit.neon                                   # sys module
 tail-call.neon
-textio-random.neon
-textio-seek.neon
-textio-test.neon
+textio-random.neon                              # random module
 time-stopwatch.neon
 time-test.neon
 tostring.neon
