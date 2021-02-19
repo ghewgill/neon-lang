@@ -6,13 +6,14 @@ namespace csnex
     public struct CommandLineOptions
     {
         public Boolean EnableAssertions;
+        public int ArgStart;
         public string Filename;
         public string ExecutableName;
     }
 
     static class csnex
     {
-        private static CommandLineOptions gOptions;
+        public static CommandLineOptions gOptions;
 
         private static void ShowUsage()
         {
@@ -38,8 +39,9 @@ namespace csnex
                         return false;
                     }
                 } else {
-                    Retval = true;
+                    gOptions.ArgStart = nIndex;
                     gOptions.Filename = args[nIndex];
+                    return true;
                 }
             }
             if (gOptions.Filename.Length == 0) {

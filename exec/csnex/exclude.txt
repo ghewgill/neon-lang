@@ -33,7 +33,6 @@ check-if.neon
 check-valid.neon
 check.neon
 class-empty.neon
-cmdline.neon
 comments-block5.neon
 comments.neon
 comparison.neon                                 # EQS
@@ -240,7 +239,6 @@ string-test.neon
 strings.neon                                    # string__index
 struct-test.neon
 structure.neon
-sys-exit.neon                                   # sys module
 tail-call.neon
 textio-random.neon                              # random module
 time-stopwatch.neon
