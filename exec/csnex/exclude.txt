@@ -218,7 +218,6 @@ return-nothing.neon
 return-try.neon
 retval-index.neon
 rtl.neon
-runtime-test.neon
 shebang.neon
 shortcut.neon
 sql-connect.neon
