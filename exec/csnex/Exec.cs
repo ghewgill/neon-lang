@@ -14,8 +14,9 @@ namespace csnex
             callstack = new Stack<int>();
             global = new Global(this);
             bytecode = bc;
-            param_recursion_limit = 2000; // ToDo: Add runtime$setRecursionLimit()
+            param_recursion_limit = 1000;
             library = new List<KeyValuePair<string, object>>();
+            library.Add(new KeyValuePair<string, object>("runtime", new rtl.runtime(this)));
             library.Add(new KeyValuePair<string, object>("sys", new rtl.sys(this)));
             library.Add(new KeyValuePair<string, object>("textio", new rtl.textio(this)));
         }
@@ -29,7 +30,7 @@ namespace csnex
         public bool enable_assert;
         private int ip;
         private Global global;
-        private Int32 param_recursion_limit;
+        public Int32 param_recursion_limit;
 
         public int Run(bool EnableAssertions)
         {

@@ -12,6 +12,7 @@ set(CSNEX_SOURCES
 )
 
 set(CSNEX_RUNTIME
+    lib/runtime.cs
     lib/sys.cs
     lib/textio.cs
 )
