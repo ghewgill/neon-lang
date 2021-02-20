@@ -241,6 +241,8 @@ def quoted(s):
     r += '"'
     return r
 
+BYTECODE_VERSION = 3
+
 class Type:
     def __init__(self):
         self.name = 0
@@ -301,7 +303,7 @@ class Bytecode:
         i += 4
 
         self.version, i = get_vint(bytecode, i)
-        assert self.version == OPCODE_VERSION
+        assert self.version == BYTECODE_VERSION
 
         self.source_hash = bytecode[i:i+32]
         i += 32
@@ -1297,8 +1299,6 @@ class Executor:
 
         print("Unhandled exception {} ({})".format(name, info), file=sys.stderr)
         sys.exit(1)
-
-OPCODE_VERSION = 3
 
 Dispatch = [
     Executor.PUSHB,
@@ -2865,11 +2865,28 @@ def neon_textio_open(self):
 def neon_textio_readLine(self):
     f = self.stack.pop()
     try:
-        s = f.readline().rstrip("\n")
+        s = f.readline()
+        if not s:
+            self.stack.append(False)
+            self.stack.append("")
+            return
+        s = s.rstrip("\n")
         self.stack.append(True)
         self.stack.append(s)
     except IOError:
         self.raise_literal("TextioException", "")
+
+def neon_textio_seekEnd(self):
+    f = self.stack.pop()
+    f.seek(0, os.SEEK_END)
+
+def neon_textio_seekStart(self):
+    f = self.stack.pop()
+    f.seek(0, os.SEEK_SET)
+
+def neon_textio_truncate(self):
+    f = self.stack.pop()
+    f.truncate()
 
 def neon_textio_writeLine(self):
     s = self.stack.pop()

@@ -1,4 +1,3 @@
--- SKIP (unicode in python 2 run_test.py)
 VAR ar: String
 VAR el: String
 VAR en: String

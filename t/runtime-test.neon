@@ -1,4 +1,4 @@
 IMPORT runtime
 
 print(runtime.executorName())
---? (neonx|helium|cnex|gonex|jnex|pynex|rsnex)
+--? (neonx|helium|cnex|csnex|gonex|jnex|pynex|rsnex)

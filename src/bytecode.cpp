@@ -108,7 +108,7 @@ void Bytecode::load(const std::string &a_source_path, const std::vector<unsigned
     i += 4;
 
     version = get_vint(obj, i);
-    if (version != OPCODE_VERSION) {
+    if (version != BYTECODE_VERSION) {
         throw BytecodeException("bytecode version mismatch");
     }
 
@@ -265,7 +265,7 @@ Bytecode::Bytes Bytecode::getBytes() const
     objret.push_back('\0');
     objret.push_back('n');
 
-    put_vint(objret, OPCODE_VERSION);
+    put_vint(objret, BYTECODE_VERSION);
 
     assert(source_hash.length() == 32);
     for (int i = 0; i < 32; i++) {

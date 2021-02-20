@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use std::io::Read;
 
-const OPCODE_VERSION: usize = 3;
+const BYTECODE_VERSION: usize = 3;
 
 enum Opcode {
     PUSHB,      // push boolean immediate
@@ -176,7 +176,7 @@ impl Bytecode {
         i += 4;
 
         r.version = get_vint(&bytecode, &mut i);
-        assert!(r.version == OPCODE_VERSION);
+        assert!(r.version == BYTECODE_VERSION);
 
         r.source_hash = bytecode[i..i+32].to_vec();
         i += 32;

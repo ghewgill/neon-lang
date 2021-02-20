@@ -1142,8 +1142,6 @@ class Executor {
         System.exit(1);
     }
 
-    public static final int OPCODE_VERSION = 3;
-
     public enum Opcode {
         PUSHB,
         PUSHN,

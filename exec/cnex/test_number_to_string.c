@@ -1,3 +1,5 @@
+#undef NDEBUG // This is test code, calls to assert() are required.
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

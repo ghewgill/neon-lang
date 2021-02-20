@@ -66,7 +66,9 @@ void object__getNumber(struct tagTExecutor *exec);
 void object__makeNumber(struct tagTExecutor *exec);
 void object__getString(struct tagTExecutor *exec);
 void object__makeString(struct tagTExecutor *exec);
+void object__invokeMethod(struct tagTExecutor *exec);
 void object__isNull(struct tagTExecutor *exec);
+void object__setProperty(struct tagTExecutor *exec);
 void object__subscript(struct tagTExecutor *exec);
 void object__toString(struct tagTExecutor *exec);
 

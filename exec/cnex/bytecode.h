@@ -2,6 +2,8 @@
 #define BYTECODE_H
 #include <stdint.h>
 
+#define BYTECODE_VERSION 3
+
 typedef struct tagTExportType {
     unsigned int name;
     unsigned int descriptor;

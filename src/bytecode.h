@@ -15,6 +15,8 @@ public:
     Bytecode();
     void load(const std::string &source_path, const std::vector<unsigned char> &bytes);
 
+    static const int BYTECODE_VERSION = 3;
+
     typedef std::vector<unsigned char> Bytes;
 
     /*

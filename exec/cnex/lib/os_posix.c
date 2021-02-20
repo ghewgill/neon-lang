@@ -111,7 +111,10 @@ void os_chdir(TExecutor *exec)
 void os_getcwd(TExecutor *exec)
 {
     char buf[MAXPATHLEN];
-    getcwd(buf, sizeof(buf));
+    if (getcwd(buf, sizeof(buf)) == NULL) {
+        exec->rtl_raise(exec, "OsException", "could not get current directory");
+        return;
+    }
 
     push(exec->stack, cell_fromString(string_createCString(buf)));
 }

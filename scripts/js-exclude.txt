@@ -147,6 +147,8 @@ struct-test.neon           # DictionaryInExpression
 sudoku-test.neon           # ArrayReferenceRangeExpression
 sys-exit.neon              # module sys
 tail-call.neon             # recursion limit
+textio-random.neon         # module textio
+textio-seek.neon           # module textio
 textio-test.neon           # module textio
 time-stopwatch.neon        # module time
 time-test.neon             # module time
@@ -154,6 +156,7 @@ tostring.neon              # keyword enum
 try-expression.neon        # TryExpression
 unicode-char.neon          # StringReferenceIndexExpression
 unicode-length.neon        # StringReferenceIndexExpression
+unicode-string.neon        # UTF-8
 uninitialised-out.neon     # out parameter
 uninitialised-try.neon     # js syntax error
 value-copy.neon            # value copy

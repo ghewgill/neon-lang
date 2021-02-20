@@ -115,7 +115,7 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
     i += 4;
 
     b->version = get_vint(bytecode, len, &i);
-    if (b->version != OPCODE_VERSION) {
+    if (b->version != BYTECODE_VERSION) {
         fatal_error("Bytecode version mismatch");
     }
 

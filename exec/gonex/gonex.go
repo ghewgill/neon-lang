@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-const OPCODE_VERSION int = 3
+const BYTECODE_VERSION int = 3
 
 const (
 	PUSHB   = iota // push boolean immediate
@@ -838,7 +838,7 @@ func make_bytecode(bytes []byte) bytecode {
 	i += 4
 
 	r.version = get_vint(bytes, &i)
-	assert(r.version == OPCODE_VERSION, "bytecode version mismatch")
+	assert(r.version == BYTECODE_VERSION, "bytecode version mismatch")
 
 	r.source_hash = bytes[i : i+32]
 	i += 32
