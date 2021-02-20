@@ -5,6 +5,7 @@ set(CSNEX_SOURCES
     Enums.cs
     Exceptions.cs
     Exec.cs
+    Extensions.cs
     Global.cs
     Number.cs
     Object.cs

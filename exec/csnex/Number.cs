@@ -12,6 +12,11 @@ namespace csnex {
             val = 0;
         }
 
+        public Number(byte n)
+        {
+            val = n;
+        }
+
         public Number(Decimal n)
         {
             val = n;
@@ -129,16 +134,16 @@ namespace csnex {
         {
             return Decimal.ToInt32(n.val);
         }
+
+        public static Int64 number_to_int64(Number n)
+        {
+            return Decimal.ToInt64(n.val);
+        }
 #endregion
 #region Overrides
         public override string ToString()
         {
             return val.ToString();
-        }
-
-        internal static Int64 number_to_int64(Number index)
-        {
-            throw new System.NotImplementedException();
         }
     }
 #endregion
