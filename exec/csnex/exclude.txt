@@ -18,21 +18,15 @@ assert.neon
 assignment.neon                                 # PUSHPPG
 base-test.neon
 bases.neon
-bigint.neon
-binary-test.neon
+bigint.neon                                     # bigint
+binary-test.neon                                # binary module
 bytecode-stringtable.neon
-bytes-embed.neon
-bytes-index.neon
-bytes-literal.neon
-bytes-slice.neon
-bytes-tostring.neon
-bytes-value-index.neon
-bytes.neon
+bytes-embed.neon                               # string__substring
 cformat-test.neon
 check-if.neon
 check-valid.neon
 check.neon
-class-empty.neon
+class-empty.neon                                # Classes
 comments-block5.neon
 comments.neon
 comparison.neon                                 # EQS
@@ -42,12 +36,12 @@ concat-bytes.neon
 const-chain.neon
 const-expression.neon
 const-string.neon
-datetime-test.neon
+datetime-test.neon                              # date module
 debug-example.neon
 decimal.neon
 dictionary-sorted.neon
 dictionary.neon
-encoding-base64.neon
+encoding-base64.neon                            # modules
 enum.neon                                       # PUSHPL
 equality.neon
 exception-as.neon                               # LOADJ
@@ -60,16 +54,16 @@ exit-while.neon
 export-function-indent.neon
 export-inline.neon
 export.neon
-file-exists.neon
-file-filecopied.neon
-file-filecopied1.neon
-file-filecopied2.neon
-file-filecopied3.neon
-file-linelength.neon
-file-symlink.neon
-file-test.neon
-file-writebytes.neon
-file-writelines.neon
+file-exists.neon                                # file module
+file-filecopied.neon                            # file module
+file-filecopied1.neon                           # file module
+file-filecopied2.neon                           # file module
+file-filecopied3.neon                           # file module
+file-linelength.neon                            # file module
+file-symlink.neon                               # file module
+file-test.neon                                  # file module
+file-writebytes.neon                            # file module
+file-writelines.neon                            # file module
 for-bounds.neon
 for-nested2.neon
 for-scope.neon
@@ -87,12 +81,12 @@ function-local.neon
 function-namedargs.neon
 function-pointer-nowhere.neon
 function-pointer.neon
-gc-array.neon
-gc-long-chain.neon
-gc-two-pointers.neon
-gc1.neon
-gc2.neon
-gc3.neon
+gc-array.neon                                   # garbage collection
+gc-long-chain.neon                              # garbage collection
+gc-two-pointers.neon                            # garbage collection
+gc1.neon                                        # garbage collection
+gc2.neon                                        # garbage collection
+gc3.neon                                        # garbage collection
 import-dup.neon
 import-optional-missing.neon
 import-optional.neon
@@ -106,7 +100,7 @@ inline-construct-record.neon
 inline-init-record.neon
 inline-init.neon
 inline-init4.neon
-input.neon
+input.neon                                      # console module
 intdiv.neon                                     # math$intdiv
 interface-multiple.neon
 interface-parameter-export.neon
@@ -115,8 +109,8 @@ interface-parameter-import.neon
 interface-parameter-import2.neon
 interface.neon
 intrinsic.neon
-io-test.neon
-json-test.neon
+io-test.neon                                    # io module
+json-test.neon                                  # json module
 let.neon                                        # number__toString
 lexer-raw.neon
 lexer-unicode.neon
@@ -131,28 +125,28 @@ loop-label.neon
 loop-return-loop.neon
 loop-return-repeat-infinite.neon
 loop-return-while-infinite.neon
-math-test.neon
+math-test.neon                                  # math module
 methods-declare.neon
 methods.neon                                    # PUSHPL
 mkdir.neon
-mmap-test.neon
-module-alias.neon
-module-alias2.neon
-module-import-name-alias.neon
-module-import-name-alias2.neon
-module-import-name.neon
-module-import-name2.neon
-module-load-order-1.neon
-module-load-order-2.neon
-module-load-order-3.neon
-module-load-order.neon
-module.neon
-module2.neon
+mmap-test.neon                                  # mmap module
+module-alias.neon                               # modules
+module-alias2.neon                              # modules
+module-import-name-alias.neon                   # modules
+module-import-name-alias2.neon                  # modules
+module-import-name.neon                         # modules
+module-import-name2.neon                        # modules
+module-load-order-1.neon                        # modules
+module-load-order-2.neon                        # modules
+module-load-order-3.neon                        # modules
+module-load-order.neon                          # modules
+module.neon                                     # modules
+module2.neon                                    # modules
 modulo.neon
 multiarray-test.neon
 nested-substitution.neon
-net-test-udp.neon
-net-test.neon
+net-test-udp.neon                               # net module
+net-test.neon                                   # net module
 new-init-module.neon
 new-init.neon
 next-for.neon
@@ -220,13 +214,13 @@ retval-index.neon
 rtl.neon
 shebang.neon
 shortcut.neon
-sql-connect.neon
-sql-cursor.neon
-sql-embed.neon
-sql-execute.neon
-sql-query.neon
-sql-whenever.neon
-sqlite-test.neon
+sql-connect.neon                                # SQLite / sql module
+sql-cursor.neon                                 # SQLite / sql module
+sql-embed.neon                                  # SQLite / sql module
+sql-execute.neon                                # SQLite / sql module
+sql-query.neon                                  # SQLite / sql module
+sql-whenever.neon                               # SQLite / sql module
+sqlite-test.neon                                # SQLite / sql module
 string-bytes.neon
 string-escape.neon
 string-format.neon
@@ -234,14 +228,14 @@ string-in.neon
 string-index.neon
 string-multiline.neon
 string-slice.neon
-string-test.neon
+string-test.neon                                # string module
 strings.neon                                    # string__index
-struct-test.neon
+struct-test.neon                                # struct module
 structure.neon
 tail-call.neon
 textio-random.neon                              # random module
-time-stopwatch.neon
-time-test.neon
+time-stopwatch.neon                             # time module
+time-test.neon                                  # time module
 tostring.neon
 try-expression.neon
 type-compat.neon

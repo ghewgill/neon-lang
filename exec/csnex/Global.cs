@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace csnex
 {
@@ -73,6 +74,23 @@ namespace csnex
             Exec.stack.Push(new Cell(new Number(a.Count)));
         }
 
+        public void array__toBytes__number()
+        {
+            Cell a = Exec.stack.Pop();
+
+            Cell r = new Cell(Cell.Type.Bytes);
+            r.Bytes = new byte[a.Array.Count];
+            for (int x = 0, i = 0; x < a.Array.Count; x++) {
+                uint b = Number.number_to_uint32(a.Array[x].Number);
+                if (b >= 256) {
+                    Exec.Raise("BytesOutOfRangeException", b.ToString());
+                }
+                r.Bytes[i++] = (byte)b;
+            }
+
+            Exec.stack.Push(r);
+        }
+
         public void array__toString__number()
         {
             string s = Cell.toString(Exec.stack.Pop());
@@ -84,6 +102,152 @@ namespace csnex
         {
             string s = Cell.toString(Exec.stack.Pop());
             Exec.stack.Push(new Cell(s));
+        }
+#endregion
+#region Bytes Functions
+        public void bytes__decodeToString()
+        {
+            Cell s = Exec.stack.Pop();
+
+            Exec.stack.Push(new Cell(new string(System.Text.Encoding.UTF8.GetChars(s.Bytes, 0, s.Bytes.Length))));
+        }
+
+        public void bytes__index()
+        {
+            Number index = Exec.stack.Pop().Number;
+            Cell t = Exec.stack.Pop();
+
+            if (!index.IsInteger()) {
+                Exec.Raise("BytesIndexException", index.ToString());
+                return;
+            }
+
+            Int64 i = Number.number_to_int64(index);
+            if (i < 0 || i >= t.Bytes.LongLength) {
+                Exec.Raise("BytesIndexException", i.ToString());
+                return;
+            }
+
+            byte c = t.Bytes[i];
+            Exec.stack.Push(new Cell(new Number(c)));
+        }
+
+        public void bytes__range()
+        {
+            bool last_from_end = Exec.stack.Pop().Boolean;
+            Number last = Exec.stack.Pop().Number;
+            bool first_from_end = Exec.stack.Pop().Boolean;
+            Number first  = Exec.stack.Pop().Number;
+            Cell t = Exec.stack.Pop();
+
+            if (!first.IsInteger()) {
+                Exec.Raise("BytesIndexException", first.ToString());
+                return;
+            }
+            if (!last.IsInteger()) {
+                Exec.Raise("BytesIndexException", last.ToString());
+                return;
+            }
+
+            Int64 fst = Number.number_to_int64(first);
+            Int64 lst = Number.number_to_int64(last);
+            if (first_from_end) {
+                fst += t.Bytes.LongLength - 1;
+            }
+            if (last_from_end) {
+                lst += t.Bytes.LongLength - 1;
+            }
+            if (fst < 0) {
+                fst = 0;
+            }
+            if (fst > t.Bytes.LongLength - 1) {
+                fst = t.Bytes.LongLength;
+            }
+            if (lst > t.Bytes.LongLength - 1) {
+                lst = t.Bytes.LongLength - 1;
+            }
+            if (lst < 0) {
+                lst = -1;
+            }
+
+            Cell sub = new Cell(Cell.Type.Bytes);
+            if (lst < fst) {
+                Exec.stack.Push(sub);
+                return;
+            }
+            sub.Bytes = new byte[lst + 1 - fst];
+            Array.Copy(t.Bytes, fst, sub.Bytes, 0, lst + 1 - fst);
+
+            Exec.stack.Push(sub);
+        }
+
+        public void bytes__size()
+        {
+            Cell b = Exec.stack.Pop();
+
+            Exec.stack.Push(new Cell(new Number(b.Bytes.Length)));
+        }
+
+        public void bytes__splice()
+        {
+            bool last_from_end = Exec.stack.Pop().Boolean;
+            Number last = Exec.stack.Pop().Number;
+            bool first_from_end = Exec.stack.Pop().Boolean;
+            Number first  = Exec.stack.Pop().Number;
+            Cell s = Exec.stack.Pop();
+            Cell t = Exec.stack.Pop();
+
+            Int64 fst = Number.number_to_int64(first);
+            Int64 lst = Number.number_to_int64(last);
+            if (first_from_end) {
+                fst += t.Bytes.Length - 1;
+            }
+            if (last_from_end) {
+                lst += t.Bytes.Length - 1;
+            }
+
+            Cell sub = new Cell(Cell.Type.Bytes);
+            sub.Bytes = new byte[t.Bytes.Length + (((fst - 1) + s.Bytes.Length) - lst)];
+            Array.Copy(s.Bytes, sub.Bytes, fst);
+            Array.Copy(t.Bytes, 0, sub.Bytes, fst, (t.Bytes.Length - fst));
+            Array.Copy(s.Bytes, lst + 1, sub.Bytes, t.Bytes.Length, s.Bytes.Length - (lst + 1));
+
+            Exec.stack.Push(sub);
+        }
+
+        public void bytes__toArray()
+        {
+            Cell s = Exec.stack.Pop();
+            List<Cell> a = new List<Cell>(s.Bytes.Length);
+
+            for (int i = 0; i < s.Bytes.Length; i++) {
+                a.Add(new Cell(new Number(s.Bytes[i])));
+            }
+
+            Exec.stack.Push(new Cell(a));
+        }
+
+        public void bytes__toString()
+        {
+            bool first;
+            int i;
+            Cell s = Exec.stack.Pop();
+            string r = "HEXBYTES \"";
+
+            first = true;
+            for (i = 0; i < s.Bytes.Length; i++) {
+                if (first) {
+                    first = false;
+                } else {
+                    r += " ";
+                }
+                const string hex = @"0123456789abcdef";
+                r += string.Format("{0}{1}", hex.ToCharArray()[(s.Bytes[i] >> 4) & 0xf], hex.ToCharArray()[s.Bytes[i] & 0xf]);
+            }
+            r += "\"";
+            Cell ret = new Cell(r);
+
+            Exec.stack.Push(ret);
         }
 #endregion
 #region Number Functions

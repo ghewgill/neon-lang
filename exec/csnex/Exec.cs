@@ -121,7 +121,9 @@ namespace csnex
 
         void PUSHY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            stack.Push(new Cell(bytecode.bytetable[val]));
         }
 
         void PUSHPG()
@@ -210,7 +212,9 @@ namespace csnex
 
         void LOADY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(new Cell(addr.Bytes));
         }
 
         void LOADA()
@@ -269,7 +273,10 @@ namespace csnex
 
         void STOREY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            byte[] b = stack.Pop().Bytes;
+            addr.Set(b);
         }
 
         void STOREA()
@@ -468,32 +475,50 @@ namespace csnex
 
         void EQY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) == 0));
         }
 
         void NEY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) != 0));
         }
 
         void LTY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) < 0));
         }
 
         void GTY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) > 0));
         }
 
         void LEY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) <= 0));
         }
 
         void GEY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) >= 0));
         }
 
         void EQA()

@@ -13,6 +13,7 @@ namespace csnex
             Address,
             Array,
             Boolean,
+            Bytes,
             Dictionary,
             Number,
             Object,
@@ -22,6 +23,7 @@ namespace csnex
         private Cell m_Address;
         private List<Cell> m_Array;
         private Boolean m_Boolean;
+        private byte[] m_Bytes;
         private Dictionary<string, Cell> m_Dictionary;
         private Number m_Number;
         private Object m_Object;
@@ -58,6 +60,18 @@ namespace csnex
             set {
                 type = Type.Boolean;
                 m_Boolean = value;
+            }
+        }
+
+        public byte[] Bytes {
+            get {
+                Debug.Assert(type == Type.Bytes);
+                return m_Bytes;
+            }
+            set {
+                type = Type.Bytes;
+                m_Bytes = new byte[value.Length];
+                value.CopyTo(m_Bytes, 0);
             }
         }
 
@@ -131,6 +145,13 @@ namespace csnex
             m_Boolean = b;
         }
 
+        public Cell(byte[] b)
+        {
+            type = Type.Bytes;
+            m_Bytes = new byte[b.Length];
+            b.CopyTo(m_Bytes, 0);
+        }
+
         public Cell(Cell c)
         {
             type = Type.Address;
@@ -167,6 +188,7 @@ namespace csnex
             m_Address = null;
             m_Array = null;
             m_Boolean = false;
+            m_Bytes = null;
             m_Dictionary = null;
             m_Number = null;
             m_Object = null;
@@ -241,6 +263,16 @@ namespace csnex
             }
             Debug.Assert(type == Type.Boolean);
             Boolean = b;
+        }
+
+        public void Set(byte[] b)
+        {
+            if (type == Type.None) {
+                type = Type.Bytes;
+            }
+            Debug.Assert(type == Type.Bytes);
+            m_Bytes = new byte[b.Length];
+            b.CopyTo(m_Bytes, 0);
         }
 
         public void Set(Cell c)

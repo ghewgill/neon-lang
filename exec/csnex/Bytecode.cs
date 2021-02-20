@@ -9,7 +9,8 @@ namespace csnex
         private const int BYTECODE_VERSION = 3;
         private byte[] obj;
         public string source_path;
-        public List<String> strtable;
+        public List<string> strtable;
+        public List<byte[]> bytetable;
         public byte[] code;
 
         public List<ModuleImport> imports;
@@ -38,17 +39,19 @@ namespace csnex
             return r;
         }
 
-        public List<String> GetStrTable(byte[] obj, int size, ref int i)
+        public void GetStringBytesTable(byte[] obj, int size, ref int i)
         {
-            List<String> r = new List<string>();
-
+            bytetable = new List<byte[]>();
+            strtable = new List<string>();
             while (i < size) {
                 int len = Get_VInt(obj, ref i);
-                string ts = new string(System.Text.Encoding.UTF8.GetChars(obj, i, len));
-                r.Add(ts);
+                byte[] ts = new byte[len];
+                Array.Copy(obj, i, ts, 0, len);
+                bytetable.Add(ts);
+                // Yea, we're keeping two copies of the data here.  This could probably be optimized.
+                strtable.Add(new string(System.Text.Encoding.UTF8.GetChars(obj, i, len)));
                 i += len;
             }
-            return r;
         }
 
         public void LoadBytecode(string a_source_path, byte[] bytes)
@@ -84,9 +87,9 @@ namespace csnex
             int global_size = Get_VInt(obj, ref i);
             globals = new List<Cell>(global_size);
 
-            /* String Table */
+            /* Byte / String Table */
             int strtablesize = Get_VInt(obj, ref i);
-            strtable = GetStrTable(obj, strtablesize + i, ref i);
+            GetStringBytesTable(obj, strtablesize + i, ref i);
 
             /* Types */
             int typesize = Get_VInt(obj, ref i);
