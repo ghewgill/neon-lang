@@ -351,6 +351,35 @@ namespace csnex
             }
             return Array.ElementAt(i);
         }
+
+        public Cell DictionaryIndexForWrite(string index)
+        {
+            if (type == Type.None) {
+                type = Type.Dictionary;
+            }
+            Debug.Assert(type == Type.Dictionary);
+            if (m_Dictionary == null) {
+                m_Dictionary = new Dictionary<string, Cell>();
+            }
+            if (m_Dictionary.ContainsKey(index)) {
+                return m_Dictionary[index];
+            }
+            m_Dictionary.Add(index, new Cell(Type.None));
+            return m_Dictionary[index];
+        }
+
+        public Cell DictionaryIndexForRead(string index)
+        {
+            if (type == Type.None) {
+                type = Type.Dictionary;
+            }
+            Debug.Assert(type == Type.Dictionary);
+            if (m_Dictionary == null) {
+                m_Dictionary = new Dictionary<string, Cell>();
+                m_Dictionary.Add(index, new Cell(Type.None));
+            }
+            return m_Dictionary[index];
+        }
 #endregion
     }
 }

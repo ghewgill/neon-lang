@@ -39,8 +39,6 @@ const-string.neon
 datetime-test.neon                              # date module
 debug-example.neon
 decimal.neon
-dictionary-sorted.neon
-dictionary.neon
 encoding-base64.neon                            # modules
 enum.neon                                       # PUSHPL
 equality.neon

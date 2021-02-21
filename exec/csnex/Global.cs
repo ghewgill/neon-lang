@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace csnex
 {
@@ -248,6 +249,26 @@ namespace csnex
             Cell ret = new Cell(r);
 
             Exec.stack.Push(ret);
+        }
+#endregion
+#region Dictionary Functions
+        public void dictionary__keys()
+        {
+            Dictionary<string, Cell> d = Exec.stack.Pop().Dictionary;
+            List<string> keys = d.Keys.ToList();
+            List<Cell> r = new List<Cell>();
+            keys.Sort();
+            foreach (string k in keys) {
+                r.Add(new Cell(k));
+            }
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void dictionary__remove()
+        {
+            string key = Exec.stack.Pop().String;
+            Cell addr = Exec.stack.Pop().Address;
+            addr.Dictionary.Remove(key);
         }
 #endregion
 #region Number Functions

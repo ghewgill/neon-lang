@@ -226,7 +226,9 @@ namespace csnex
 
         void LOADD()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(new Cell(addr.Dictionary));
         }
 
         void LOADP()
@@ -452,7 +454,10 @@ namespace csnex
 
         void LTS()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(new Cell(string.Compare(a, b) < 0));
         }
 
         void GTS()
@@ -652,12 +657,22 @@ namespace csnex
 
         void INDEXDR()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string index = stack.Pop().String;
+            Cell addr = stack.Pop().Address;
+            if (addr.Dictionary.ContainsKey(index) == false) {
+                Raise("DictionaryIndexException", index);
+                return;
+            }
+            stack.Push(new Cell(addr.DictionaryIndexForRead(index)));
         }
 
         void INDEXDW()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string index = stack.Pop().String;
+            Cell dict = stack.Pop().Address;
+            stack.Push(new Cell(dict.DictionaryIndexForWrite(index)));
         }
 
         void INDEXDV()
