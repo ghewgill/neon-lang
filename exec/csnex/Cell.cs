@@ -24,7 +24,7 @@ namespace csnex
         private List<Cell> m_Array;
         private Boolean m_Boolean;
         private byte[] m_Bytes;
-        private Dictionary<string, Cell> m_Dictionary;
+        private SortedDictionary<string, Cell> m_Dictionary;
         private Number m_Number;
         private Object m_Object;
         private String m_String;
@@ -75,7 +75,7 @@ namespace csnex
             }
         }
 
-        public Dictionary<string, Cell> Dictionary {
+        public SortedDictionary<string, Cell> Dictionary {
             get {
                 Debug.Assert(type == Type.Dictionary);
                 return m_Dictionary;
@@ -158,7 +158,7 @@ namespace csnex
             m_Address = c;
         }
 
-        public Cell(Dictionary<string, Cell> d)
+        public Cell(SortedDictionary<string, Cell> d)
         {
             type = Type.Dictionary;
             m_Dictionary = d;
@@ -284,7 +284,7 @@ namespace csnex
             Address = c;
         }
 
-        public void Set(Dictionary<string, Cell> d)
+        public void Set(SortedDictionary<string, Cell> d)
         {
             if (type == Type.None) {
                 type = Type.Dictionary;
@@ -359,7 +359,7 @@ namespace csnex
             }
             Debug.Assert(type == Type.Dictionary);
             if (m_Dictionary == null) {
-                m_Dictionary = new Dictionary<string, Cell>();
+                m_Dictionary = new SortedDictionary<string, Cell>();
             }
             if (m_Dictionary.ContainsKey(index)) {
                 return m_Dictionary[index];
@@ -375,7 +375,7 @@ namespace csnex
             }
             Debug.Assert(type == Type.Dictionary);
             if (m_Dictionary == null) {
-                m_Dictionary = new Dictionary<string, Cell>();
+                m_Dictionary = new SortedDictionary<string, Cell>();
                 m_Dictionary.Add(index, new Cell(Type.None));
             }
             return m_Dictionary[index];

@@ -254,14 +254,8 @@ namespace csnex
 #region Dictionary Functions
         public void dictionary__keys()
         {
-            Dictionary<string, Cell> d = Exec.stack.Pop().Dictionary;
-            List<string> keys = d.Keys.ToList();
-            List<Cell> r = new List<Cell>();
-            keys.Sort();
-            foreach (string k in keys) {
-                r.Add(new Cell(k));
-            }
-            Exec.stack.Push(new Cell(r));
+            List<Cell> keys = Exec.stack.Pop().Dictionary.Keys.ToList().ToCellArray();
+            Exec.stack.Push(new Cell(keys));
         }
 
         public void dictionary__remove()

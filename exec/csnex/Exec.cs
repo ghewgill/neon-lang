@@ -293,7 +293,7 @@ namespace csnex
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            Dictionary<string, Cell> dict = stack.Pop().Dictionary;
+            SortedDictionary<string, Cell> dict = stack.Pop().Dictionary;
             addr.Set(dict);
         }
 
@@ -660,7 +660,7 @@ namespace csnex
             ip++;
             string index = stack.Pop().String;
             Cell addr = stack.Pop().Address;
-            if (addr.Dictionary.ContainsKey(index) == false) {
+            if (!addr.Dictionary.ContainsKey(index)) {
                 Raise("DictionaryIndexException", index);
                 return;
             }
@@ -859,7 +859,7 @@ namespace csnex
         {
             ip++;
             int val = Bytecode.Get_VInt(bytecode.code, ref ip);
-            Dictionary<string, Cell> d = new Dictionary<string, Cell>();
+            SortedDictionary<string, Cell> d = new SortedDictionary<string, Cell>();
 
             while (val > 0) {
                 Cell value = stack.Pop();
