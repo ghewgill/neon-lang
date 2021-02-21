@@ -1,4 +1,6 @@
-﻿namespace csnex
+﻿using System.Collections.Generic;
+
+namespace csnex
 {
     internal static partial class CodeExtensions
     {
@@ -35,6 +37,15 @@
             }
             // Could this ever happen?
             return 0;
+        }
+
+        public static List<Cell> ToCellArray(this List<string> self)
+        {
+            List<Cell> r = new List<Cell>();
+            foreach (string value in self) {
+                r.Add(new Cell(value));
+            }
+            return r;
         }
     }
 }
