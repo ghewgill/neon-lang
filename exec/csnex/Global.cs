@@ -280,12 +280,124 @@ namespace csnex
         }
 #endregion
 #region String Functions
+        public void string__append()
+        {
+            Cell b = Exec.stack.Pop();
+            Cell addr = Exec.stack.Pop().Address;
+
+            addr.String += b.String;
+        }
+
         public void string__concat()
         {
             Cell b = Exec.stack.Pop();
             Cell a = Exec.stack.Pop();
 
             Exec.stack.Push(new Cell(a.String + b.String));
+        }
+
+        public void string__index()
+        {
+            Number index = Exec.stack.Pop().Number;
+            Cell a = Exec.stack.Pop();
+
+            if (!index.IsInteger()) {
+                Exec.Raise("StringIndexException", index.ToString());
+                return;
+            }
+            // String index in C# / .NET are limited to 32 bit values.
+            Int32 i = Number.number_to_int32(index);
+            if (i < 0) {
+                Exec.Raise("StringIndexException", i.ToString());
+                return;
+            }
+            if (i >= a.String.Length) {
+                Exec.Raise("StringIndexException", i.ToString());
+                return;
+            }
+
+            string r = a.String.Substring(i, 1);
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void string__length()
+        {
+            Number n = new Number(Exec.stack.Pop().String.Length);
+            Exec.stack.Push(new Cell(n));
+        }
+
+        public void string__splice()
+        {
+            bool last_from_end = Exec.stack.Pop().Boolean;
+            Number last = Exec.stack.Pop().Number;
+            bool first_from_end = Exec.stack.Pop().Boolean;
+            Number first  = Exec.stack.Pop().Number;
+            Cell s = Exec.stack.Pop();
+            Cell t = Exec.stack.Pop();
+
+            // C# only supports 32 bit string lengths.
+            Int32 f = Number.number_to_int32(first);
+            Int32 l = Number.number_to_int32(last);
+            if (first_from_end) {
+                f += s.String.Length - 1;
+            }
+            if (last_from_end) {
+                l += s.String.Length - 1;
+            }
+
+            string sub;
+            sub = s.String.Substring(0, f);
+            sub += t.String;
+            sub += s.String.Substring(l+1, s.String.Length - (l + 1));
+
+            Exec.stack.Push(new Cell(sub));
+        }
+
+        public void string__substring()
+        {
+            bool last_from_end = Exec.stack.Pop().Boolean;
+            Number last = Exec.stack.Pop().Number;
+            bool first_from_end = Exec.stack.Pop().Boolean;
+            Number first  = Exec.stack.Pop().Number;
+            Cell a = Exec.stack.Pop();
+
+            if (!first.IsInteger()) {
+                Exec.Raise("StringIndexException", first.ToString());
+                return;
+            }
+            if (!last.IsInteger()) {
+                Exec.Raise("StringIndexException", last.ToString());
+                return;
+            }
+
+            Int32 f = Number.number_to_int32(first);
+            Int32 l = Number.number_to_int32(last);
+            if (first_from_end) {
+                f += a.String.Length - 1;
+            }
+            if (last_from_end) {
+                l += a.String.Length - 1;
+            }
+            if (f < 0) {
+                f = 0;
+            }
+            if (f > a.String.Length) {
+                f = a.String.Length;
+            }
+            if (l >= a.String.Length) {
+                l = a.String.Length - 1;
+            }
+            if (l < 0) {
+                l = -1;
+            }
+
+            if ((((l + 1) - f) + 1) <= 0) {
+                Exec.stack.Push(new Cell(""));
+                return;
+            }
+
+            string sub = a.String.Substring(f, l+1-f);
+            Exec.stack.Push(new Cell(sub));
         }
 #endregion
     }

@@ -116,7 +116,6 @@ lexical-scope.neon
 literal-array.neon
 literal-empty.neon
 literal-method.neon
-literal-string.neon
 literal.neon
 local-clear.neon
 loop-label.neon
@@ -219,15 +218,12 @@ sql-execute.neon                                # SQLite / sql module
 sql-query.neon                                  # SQLite / sql module
 sql-whenever.neon                               # SQLite / sql module
 sqlite-test.neon                                # SQLite / sql module
-string-bytes.neon
-string-escape.neon
-string-format.neon
-string-in.neon
-string-index.neon
-string-multiline.neon
-string-slice.neon
+string-bytes.neon                               # string module
+string-escape.neon                              # string module
+string-format.neon                              # string module
+string-in.neon                                  # string module
+string-multiline.neon                           # string module
 string-test.neon                                # string module
-strings.neon                                    # string__index
 struct-test.neon                                # struct module
 structure.neon
 tail-call.neon
