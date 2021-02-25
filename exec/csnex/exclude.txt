@@ -1,7 +1,6 @@
 arithmetic2.neon
 array-find.neon                                 # imports / textio
 array-index.neon                                # Exceptions / textio
-array-last-method.neon                          # string__append()
 array-remove.neon                               # imports / textio
 array-resize.neon                               # Exceptions / imports /textio
 array-reversed.neon                             # imports / textio
@@ -21,7 +20,6 @@ bases.neon
 bigint.neon                                     # bigint
 binary-test.neon                                # binary module
 bytecode-stringtable.neon
-bytes-embed.neon                               # string__substring
 cformat-test.neon
 check-if.neon
 check-valid.neon
@@ -68,7 +66,6 @@ for-scope.neon
 foreach-eval.neon
 foreach-function.neon
 foreach-literal-empty.neon
-foreach-string.neon
 foreach-value.neon
 foreach.neon                                    # INDEXAV
 format.neon
@@ -217,19 +214,16 @@ sql-execute.neon                                # SQLite / sql module
 sql-query.neon                                  # SQLite / sql module
 sql-whenever.neon                               # SQLite / sql module
 sqlite-test.neon                                # SQLite / sql module
-string-bytes.neon                               # string module
-string-escape.neon                              # string module
-string-format.neon                              # string module
-string-in.neon                                  # string module
-string-multiline.neon                           # string module
-string-test.neon                                # string module
+string-bytes.neon                               # CALLMF
+string-format.neon                              # CALLMF
+string-test.neon                                # CALLMF
 struct-test.neon                                # struct module
 structure.neon
 tail-call.neon
 textio-random.neon                              # random module
 time-stopwatch.neon                             # time module
 time-test.neon                                  # time module
-tostring.neon
+tostring.neon                                   # PUSHPL
 try-expression.neon
 type-compat.neon
 type-nested.neon
