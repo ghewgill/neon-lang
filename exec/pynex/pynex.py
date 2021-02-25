@@ -2828,7 +2828,7 @@ def neon_string_splitLines(self):
 def neon_string_toCodePoint(self):
     s = self.stack.pop()
     if len(s) != 1:
-        self.raise_literal("ArrayIndexException", "toCodePoint() requires string of length 1")
+        self.raise_literal("StringIndexException", "toCodePoint() requires string of length 1")
         return
     self.stack.append(ord(s))
 

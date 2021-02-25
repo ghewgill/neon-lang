@@ -75,7 +75,7 @@ Number ord(const utf8string &ss)
 {
     std::string s = ss.str(); // TODO
     if (utf8::distance(s.begin(), s.end()) != 1) {
-        throw RtlException(Exception_ArrayIndexException, utf8string("toCodePoint() requires string of length 1"));
+        throw RtlException(Exception_StringIndexException, utf8string("toCodePoint() requires string of length 1"));
     }
     auto it = s.begin();
     return number_from_uint32(utf8::next(it, s.end()));

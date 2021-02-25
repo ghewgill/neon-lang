@@ -2809,7 +2809,7 @@ func (self *executor) op_callp() {
 	case "string$toCodePoint":
 		s := self.pop().str
 		if len(s) != 1 {
-			self.raise_literal("ArrayIndexException", objectString{"toCodePoint() requires string of length 1"})
+			self.raise_literal("StringIndexException", objectString{"toCodePoint() requires string of length 1"})
 		} else {
 			self.push(make_cell_num(float64(s[0])))
 		}

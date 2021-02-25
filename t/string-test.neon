@@ -51,7 +51,7 @@ TESTCASE string.splitLines("hello\nworld\r\neverybody\n") = ["hello", "world", "
 print(str(string.toCodePoint("B")))
 --= 66
 
-TESTCASE string.toCodePoint("AB") EXPECT ArrayIndexException
+TESTCASE string.toCodePoint("AB") EXPECT StringIndexException
 
 print(string.trimCharacters("  Hello World  ", " ", " "))
 --= Hello World
