@@ -58,6 +58,8 @@ namespace csnex
 
         static int Main(string[] args)
         {
+            System.Text.UTF8Encoding UTF8NoPreamble = new System.Text.UTF8Encoding();
+            Console.OutputEncoding = UTF8NoPreamble;
             int retval = 0;
             gOptions.ExecutableName = GetApplicationName();
 

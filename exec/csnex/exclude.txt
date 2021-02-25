@@ -228,9 +228,6 @@ try-expression.neon
 type-compat.neon
 type-nested.neon
 unary-plus.neon
-unicode-char.neon
-unicode-length.neon
-unicode-string.neon
 uninitialised-case.neon
 uninitialised-function.neon
 uninitialised-if-nested.neon
