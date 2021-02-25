@@ -399,6 +399,18 @@ namespace csnex
             string sub = a.String.Substring(f, l+1-f);
             Exec.stack.Push(new Cell(sub));
         }
+
+        public void string__toBytes()
+        {
+            string s = Exec.stack.Pop().String;
+            byte[] r = System.Text.Encoding.UTF8.GetBytes(s);
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void string__toString()
+        {
+            // String is already on the stack, so we don't have to modify it.
+        }
 #endregion
     }
 }
