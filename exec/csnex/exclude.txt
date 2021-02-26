@@ -188,7 +188,6 @@ predeclare2.neon
 predeclare3.neon
 predefined-generation.neon
 print-object.neon
-random-test.neon                                # random module
 record-empty.neon
 record-init.neon
 record-init2.neon

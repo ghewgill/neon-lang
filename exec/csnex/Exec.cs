@@ -16,6 +16,7 @@ namespace csnex
             bytecode = bc;
             param_recursion_limit = 1000;
             library = new List<KeyValuePair<string, object>>();
+            library.Add(new KeyValuePair<string, object>("random", new rtl.random(this)));
             library.Add(new KeyValuePair<string, object>("runtime", new rtl.runtime(this)));
             library.Add(new KeyValuePair<string, object>("sys", new rtl.sys(this)));
             library.Add(new KeyValuePair<string, object>("textio", new rtl.textio(this)));
