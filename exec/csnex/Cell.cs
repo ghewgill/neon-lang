@@ -121,7 +121,6 @@ namespace csnex
 
         public Type type { get; private set; }
 #endregion
-
 #region Constructors
         public Cell()
         {
@@ -182,7 +181,6 @@ namespace csnex
             m_String = s;
         }
 #endregion
-
         public void ResetCell()
         {
             m_Address = null;
@@ -343,8 +341,7 @@ namespace csnex
             Debug.Assert(type == Type.String);
             String = s;
         }
-        #endregion
-
+#endregion
 #region Index functions
         public Cell ArrayIndexForWrite(int i)
         {

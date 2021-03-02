@@ -145,6 +145,6 @@ namespace csnex {
         {
             return val.ToString();
         }
-    }
 #endregion
+    }
 }
