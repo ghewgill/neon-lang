@@ -246,7 +246,31 @@ namespace csnex
             return null;
         }
 
-        #region Set functions
+        public Boolean Equals(Cell x)
+        {
+            Debug.Assert(type == x.type);
+            if (type != x.type) {
+                return false;
+            }
+            switch (type) {
+                case Type.Address:
+                case Type.Array:
+                case Type.Boolean:
+                case Type.Bytes:
+                case Type.Dictionary:
+                    // Not implemenetd yet.
+                    return false;
+                case Type.Number:
+                    return Number.IsEqual(Number, x.Number);
+                case Type.Object:
+                    // Not Implemented yet.
+                    return false;
+                case Type.String:
+                    return String.Compare(String, x.String) == 0;
+            }
+            return false;
+        }
+#region Set functions
         public void Set(List<Cell> a)
         {
             if (type == Type.None) {

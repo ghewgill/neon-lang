@@ -87,7 +87,6 @@ import-optional-missing.neon
 import-optional.neon
 import-string.neon
 import.neon
-in.neon
 inc-reference.neon
 inc.neon                                        # number__toString
 index.neon                                      # copy semantics
