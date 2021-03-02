@@ -1,6 +1,9 @@
 using System;
 using System.Diagnostics;
+using System.Reflection;
 
+// Fixes MSBuild warning CA1016: Microsoft.Design : Add an AssemblyVersion attribute to 'csnex.exe'.
+[assembly: AssemblyVersion("1.0.0.0")]
 namespace csnex
 {
     public struct CommandLineOptions

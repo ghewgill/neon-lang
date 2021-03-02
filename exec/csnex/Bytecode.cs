@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace csnex
 {
     public class Bytecode
     {
-        private const int BYTECODE_VERSION = 3;
+        public const int BYTECODE_VERSION = 3;
         private byte[] obj;
         public string source_path;
         public List<string> strtable;
