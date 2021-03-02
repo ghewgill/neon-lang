@@ -687,12 +687,24 @@ namespace csnex
 #region INx Opcdes
         void INA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell array = stack.Pop();
+            Cell val = stack.Pop();
+
+            bool v = array.Array.Exists(x => x.Equals(val));
+
+            stack.Push(new Cell(v));
         }
 
         void IND()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            SortedDictionary<string, Cell> dictionary = stack.Pop().Dictionary;
+            string key = stack.Pop().String;
+
+            bool v = dictionary.ContainsKey(key);
+
+            stack.Push(new Cell(v));
         }
 #endregion
 #region CALLx Opcodes
