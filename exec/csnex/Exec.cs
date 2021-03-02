@@ -38,8 +38,7 @@ namespace csnex
             ip = bytecode.code.Length;
             Invoke(0);
 
-            for (int g = 0; g < bytecode.globals.Capacity; g++)
-            {
+            for (int g = 0; g < bytecode.globals.Capacity; g++) {
                 bytecode.globals.Add(new Cell(Cell.Type.None));
             }
 
