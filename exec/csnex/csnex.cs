@@ -44,7 +44,7 @@ namespace csnex
                     return true;
                 }
             }
-            if (gOptions.Filename.Length == 0) {
+            if (gOptions.Filename == null || gOptions.Filename.Length == 0) {
                 Console.Error.WriteLine("You must provide a Neon binary file to execute.\n");
                 Retval = false;
             }
