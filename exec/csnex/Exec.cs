@@ -7,6 +7,25 @@ namespace csnex
 {
     public class Executor
     {
+        sealed class ActivationFrame
+        {
+            public List<Cell> Locals;
+            public readonly int NestingDepth;
+            public readonly ActivationFrame Outer;
+            public readonly int OpstackDepth;
+
+            public ActivationFrame(int nest, ActivationFrame outer, int size, int stack_depth)
+            {
+                Locals = new List<Cell>();
+                for (int i = 0; i < size; i++) {
+                    Locals.Add(new Cell(Cell.Type.None));
+                }
+                NestingDepth = nest;
+                OpstackDepth = stack_depth;
+                Outer = outer;
+            }
+        }
+
         public Executor(Bytecode bc)
         {
             exit_code = 0;
@@ -33,9 +52,12 @@ namespace csnex
         private int ip;
         private Global global;
         public Int32 param_recursion_limit;
+        private Stack<ActivationFrame> frames;
+        public int max_frames;
 
         public int Run(bool EnableAssertions)
         {
+            frames = new Stack<ActivationFrame>();
             ip = bytecode.code.Length;
             Invoke(0);
 
@@ -66,7 +88,7 @@ namespace csnex
                         string handler = bytecode.strtable[bytecode.exceptions[i].exid];
                         if ((string.Compare(name, handler) == 0) || (name.Length > handler.Length && name.StartsWith(handler) && name[handler.Length] == '.')) {
                             ip = bytecode.exceptions[i].handler;
-                            while (stack.Count > bytecode.exceptions[i].stack_depth) {
+                            while (stack.Count > (((frames.Count == 0 ? 0 : frames.Peek().OpstackDepth) + bytecode.exceptions[i].stack_depth))) {
                                 stack.Pop();
                             }
                             stack.Push(new Cell(exceptionvar));
@@ -76,6 +98,9 @@ namespace csnex
                 }
                 if (sp == 0) {
                     break;
+                }
+                if (frames.Count != 0) {
+                    frames.Pop();
                 }
                 tip = callstack.Pop();
                 sp -= 1;
@@ -153,12 +178,23 @@ namespace csnex
 
         void PUSHPL()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int addr = Bytecode.Get_VInt(bytecode.code, ref ip);
+            stack.Push(new Cell(frames.Peek().Locals[addr]));
         }
 
         void PUSHPOL()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int back = Bytecode.Get_VInt(bytecode.code, ref ip);
+            int addr = Bytecode.Get_VInt(bytecode.code, ref ip);
+            dump_frames();
+            ActivationFrame frame = frames.Peek();
+            while (back > 0) {
+                frame = frame.Outer;
+                back--;
+            }
+            stack.Push(new Cell(frame.Locals[addr]));
         }
 
         void PUSHI()
@@ -819,6 +855,7 @@ namespace csnex
 
         void RET()
         {
+            frames.Pop();
             ip = callstack.Pop();
         }
 #endregion
@@ -908,10 +945,46 @@ namespace csnex
         }
 #endregion
 #endregion
+#region Debug / Diagnostic functions
+#pragma warning disable 0162
+        void dump_frames()
+        {
+            if (false) {
+                Console.Out.Write("Frames:\n");
+                for (int i = 0; i < frames.Count; i++) {
+                    ActivationFrame f = frames.ToArray()[i];
+                    Console.Out.Write("\t {0}\t{{ locals={1} }}\n", i, f.Locals.Count.ToString());
+                    for (int l = 0; 0 < f.Locals.Count; l++) {
+                        string x = f.Locals[l].ToString();
+                        Console.Out.Write("{0}: {1} {2}", l, f.Locals[l].type.ToString(), x);
+                    }
+                }
+            }
+        }
+#pragma warning restore 0162
+#endregion
 
         private void Invoke(int index)
         {
             callstack.Push(ip);
+            ActivationFrame outer = null;
+            int nest = bytecode.functions[index].nest;
+            int args = bytecode.functions[index].args;
+            int locals = bytecode.functions[index].locals;
+            if (frames.Count > 0) {
+                Debug.Assert(nest <= frames.Peek().NestingDepth+1);
+                outer = frames.Peek();
+                while (outer != null && nest <= outer.NestingDepth) {
+                    Debug.Assert(outer.Outer == null || outer.NestingDepth == outer.Outer.NestingDepth+1);
+                    outer = outer.Outer;
+                }
+            }
+            ActivationFrame frame = new ActivationFrame(nest, outer, locals, stack.Count - args);
+            frames.Push(frame);
+            dump_frames();
+            if (frames.Count > max_frames) {
+                max_frames = frames.Count;
+            }
             ip = bytecode.functions[index].entry;
         }
 
