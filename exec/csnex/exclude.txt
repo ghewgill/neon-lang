@@ -8,28 +8,23 @@ array-sparse.neon                               # imports / textio
 array-tostring.neon                             # array__toString__string
 array2d.neon                                    # copy semantics
 assert-multiline.neon                           # output
-assignment.neon                                 # PUSHPPG
+assignment.neon                                 # Classes
 base-test.neon                                  # CALLMF
 bigint.neon                                     # bigint
 binary-test.neon                                # binary module
 cformat-test.neon                               # object__makeNumber
-check-if.neon                                   # PUSHPL
-check-valid.neon
-check.neon                                      # PUSHPL
+check-valid.neon                                # Classes
 class-empty.neon                                # Classes
 comparison.neon                                 # NES
 comparison2.neon                                # DUPX1
 complex-test.neon                               # CALLMF
 concat-bytes.neon                               # bytes__concat
 datetime-test.neon                              # date module
-debug-example.neon                              # PUSHPL
+debug-example.neon                              # debugger$log
 decimal.neon                                    # Value was either too large or too small for a Decimal.
-encoding-base64.neon                            # PUSHPL
-enum.neon                                       # PUSHPL
-equality.neon
+encoding-base64.neon                            # modules
+equality.neon                                   # Classes
 exception-code.neon                             # object__makeNumber
-exception-opstack-depth.neon                    # PUSHPL
-exception-opstack.neon                          # PUSHPL
 exception-tostring.neon                         # exceptiontype__toString
 export-function-indent.neon
 export-inline.neon
@@ -45,13 +40,8 @@ file-test.neon                                  # file module
 file-writebytes.neon                            # file module
 file-writelines.neon                            # file module
 format.neon                                     # CALLMF
-forward.neon                                    # PUSHPL
-function-args.neon                              # PUSHPL
-function-defaultargs.neon                       # PUSHPL
-function-local.neon                             # PUSHPL
-function-namedargs.neon                         # PUSHPL
 function-pointer-nowhere.neon                   # PUSHFP
-function-pointer.neon                           # PUSHPL
+function-pointer.neon                           # PUSHFP
 gc-array.neon                                   # garbage collection
 gc-long-chain.neon                              # garbage collection
 gc-two-pointers.neon                            # garbage collection
@@ -73,10 +63,7 @@ io-test.neon                                    # io module
 json-test.neon                                  # object__makeNull
 literal-array.neon                              # array__range
 literal-method.neon                             # string__toBytes
-local-clear.neon                                # PUSHPL
 math-test.neon                                  # math module
-methods-declare.neon                            # PUSHPL
-methods.neon                                    # PUSHPL
 mkdir.neon                                      # file module
 mmap-test.neon                                  # mmap module
 module-alias.neon                               # PUSHPMG
@@ -93,8 +80,8 @@ multiarray-test.neon                            # CALLMF
 net-test-udp.neon                               # net module
 net-test.neon                                   # net module
 new-init-module.neon                            # PUSHNIL
-new-init.neon
-number-ceil.neon
+new-init.neon                                   # Classes
+number-ceil.neon                                # math module
 object-isa-case.neon                            # object__makeNumber
 object-isa.neon                                 # object__makeBoolean
 object-null.neon                                # object__makeNull
@@ -105,15 +92,8 @@ object-record.neon                              # object__makeNumber
 object-subscript.neon                           # object__makeNumber
 object.neon                                     # object__makeBoolean
 opcode-coverage.neon
-outer-issue192.neon                             # PUSHPL
-outer-parameter.neon                            # PUSHPL
-outer-tail.neon                                 # PUSHPL
-outer.neon                                      # PUSHPL
-outer2.neon                                     # PUSHPL
-parameter-out-array.neon                        # PUSHPL
-parameter-out-string.neon                       # PUSHPL
-parameters-ignore.neon                          # PUSHPL
-parameters.neon                                 # PUSHPL
+parameter-out-array.neon                        # array__splice
+parameters.neon                                 # STOREP
 pointer-method.neon
 pointer-nil.neon
 pointer-print.neon
@@ -126,14 +106,9 @@ pointer5.neon
 pointer7.neon
 pointer8.neon
 posix-fork.neon                                 # posix module
-print-object.neon                               # object_makeNUll
+print-object.neon                               # object_makeNull
 record-empty.neon                               # INDEXAN
-record-private.neon                             # PUSHPL
-recursion-limit.neon                            # PUSHPL
-recursion.neon                                  # PUSHPL
-return-case2.neon                               # PUSHPL
-return-if.neon                                  # PUSHPL
-return-loop.neon                                # PUSHPL
+record-private.neon                             # STOREP
 rtl.neon                                        # num
 sql-connect.neon                                # SQLite / sql module
 sql-cursor.neon                                 # SQLite / sql module
@@ -149,17 +124,12 @@ struct-test.neon                                # struct module
 textio-random.neon                              # random module
 time-stopwatch.neon                             # time module
 time-test.neon                                  # time module
-tostring.neon                                   # PUSHPL
-try-expression.neon                             # PUSHPL
-type-compat.neon                                # PUSHPL
-uninitialised-out.neon                          # PUSHPL
-unused-parameter.neon                           # PUSHPL
-valid-pointer.neon
-value-copy.neon                                 # TESTCASE failed (t/value-copy.neon line 29): TESTCASE a2[0] = 1
+tostring.neon                                   # array__toString__string
+valid-pointer.neon                              # Classes
+value-copy.neon                                 # copy semantics
 value-index.neon                                # INDEXDV
 varargs-functionpointer.neon                    # PUSHFP
-varargs.neon                                    # PUSHPL
-while-valid.neon
+while-valid.neon                                # Classes
 
 compress-test.neon           # module
 extsample-test.neon          # module
