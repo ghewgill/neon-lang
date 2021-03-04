@@ -10,6 +10,12 @@ packages:
 - perl-FindBin
 - perl-File-Copy
 - perl-Tie-RefHash
+# optional
+#- java-latest-openjdk (javac not working)
+- mono-core
+- nodejs
+- rust
+- go
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 triggers:

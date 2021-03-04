@@ -5,6 +5,12 @@ packages:
 - ncurses-dev
 - libgmp-dev
 - zlib1g-dev
+# optional
+- default-jdk
+- mono-mcs
+- nodejs
+- rustc
+- golang
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 triggers:
