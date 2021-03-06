@@ -69,9 +69,6 @@ namespace csnex
                             while (stack.Count > bytecode.exceptions[i].stack_depth) {
                                 stack.Pop();
                             }
-                            while (sp > callstack.Count) {
-                                callstack.Pop();
-                            }
                             stack.Push(new Cell(exceptionvar));
                             return;
                         }
@@ -80,7 +77,7 @@ namespace csnex
                 if (sp == 0) {
                     break;
                 }
-                tip = callstack.Peek();
+                tip = callstack.Pop();
                 sp -= 1;
             }
             Console.Error.WriteLine(string.Format("Unhandled exception {0} ({1})\n", name, info.ToString()));
