@@ -5,8 +5,10 @@ using System.Linq;
 
 namespace csnex
 {
+    [DebuggerDisplay("{DebugType,nq}:{ToString(),nq}")]
     public class Cell
     {
+        private string DebugType { get { return Enum.GetName(typeof(Type), type); } }
         public enum Type
         {
             None,
@@ -241,7 +243,7 @@ namespace csnex
                 case Type.String:
                     return String;
             }
-            return null;
+            return toString(this);
         }
 
         public Boolean Equals(Cell x)
