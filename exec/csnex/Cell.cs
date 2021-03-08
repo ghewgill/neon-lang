@@ -32,6 +32,9 @@ namespace csnex
 #region Cell Property Accessors
         public Cell Address {
             get {
+                if (type == Type.None) {
+                    type = Type.Address;
+                }
                 Debug.Assert(type == Type.Address);
                 return m_Address;
             }
@@ -43,6 +46,12 @@ namespace csnex
 
         public List<Cell> Array {
             get {
+                if (type == Type.None) {
+                    type = Type.Array;
+                    if (m_Array == null) {
+                        m_Array = new List<Cell>();
+                    }
+                }
                 Debug.Assert(type == Type.Array);
                 return m_Array;
             }
@@ -54,6 +63,9 @@ namespace csnex
 
         public Boolean Boolean {
             get {
+                if (type == Type.None) {
+                    type = Type.Boolean;
+                }
                 Debug.Assert(type == Type.Boolean);
                 return m_Boolean;
             }
@@ -65,6 +77,12 @@ namespace csnex
 
         public byte[] Bytes {
             get {
+                if (type == Type.None) {
+                    type = Type.Bytes;
+                    if (m_Bytes == null) {
+                        m_Bytes = new byte[0];
+                    }
+                }
                 Debug.Assert(type == Type.Bytes);
                 return m_Bytes;
             }
@@ -77,6 +95,12 @@ namespace csnex
 
         public SortedDictionary<string, Cell> Dictionary {
             get {
+                if (type == Type.None) {
+                    type = Type.Dictionary;
+                    if (m_Dictionary == null) {
+                        m_Dictionary = new SortedDictionary<string, Cell>();
+                    }
+                }
                 Debug.Assert(type == Type.Dictionary);
                 return m_Dictionary;
             }
@@ -88,6 +112,12 @@ namespace csnex
 
         public Number Number {
             get {
+                if (type == Type.None) {
+                    type = Type.Number;
+                    if (m_Number == null) {
+                        m_Number = new Number();
+                    }
+                }
                 Debug.Assert(type == Type.Number);
                 return m_Number;
             }
@@ -99,6 +129,9 @@ namespace csnex
 
         public Object Object {
             get {
+                if (type == Type.None) {
+                    type = Type.Object;
+                }
                 Debug.Assert(type == Type.Object);
                 return m_Object;
             }
@@ -110,6 +143,12 @@ namespace csnex
 
         public String String {
             get {
+                if (type == Type.None) {
+                    type = Type.String;
+                    if (m_String == null) {
+                        m_String = "";
+                    }
+                }
                 Debug.Assert(type == Type.String);
                 return m_String;
             }
