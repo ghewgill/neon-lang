@@ -68,11 +68,196 @@ namespace csnex
             }
         }
 
+        public void array__find()
+        {
+            Cell e = Exec.stack.Pop();
+            List<Cell> a = Exec.stack.Pop().Array;
+
+            Number r = new Number(-1);
+
+            for (int i = 0; i < a.Count; i++) {
+                if (a[i].Equals(e)) {
+                    r = new Number(i);
+                    break;
+                }
+            }
+
+            if (r.IsNegative()) {
+                Exec.Raise("ArrayIndexException", "value not found in array");
+                return;
+            }
+
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void array__range()
+        {
+            Number step = Exec.stack.Pop().Number;
+            Number last = Exec.stack.Pop().Number;
+            Number first = Exec.stack.Pop().Number;
+            List<Cell> r = new List<Cell>();
+
+            if (step.IsZero()) {
+                Exec.Raise("ValueRangeException", step.ToString());
+                return;
+            }
+
+            if (step.IsNegative()) {
+                for (Number i = first; Number.IsGreaterOrEqual(i, last); i = Number.Add(i, step)) {
+                    r.Add(new Cell(i));
+                }
+            } else {
+                for (Number i = first; Number.IsLessOrEqual(i, last); i = Number.Add(i, step)) {
+                    r.Add(new Cell(i));
+                }
+            }
+
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void array__remove()
+        {
+            Number index = Exec.stack.Pop().Number;
+            List<Cell> array = Exec.stack.Pop().Address.Array;
+
+            if (!index.IsInteger() || index.IsNegative()) {
+                Exec.Raise("ArrayIndexException", index.ToString());
+                return;
+            }
+            if (Number.number_to_int32(index) > array.Count) {
+                Exec.Raise("ArrayIndexException", index.ToString());
+                return;
+            }
+
+            int i = Number.number_to_int32(index);
+            array.Remove(array[i]);
+        }
+
+        public void array__resize()
+        {
+            Number new_size = Exec.stack.Pop().Number;
+            List<Cell> array = Exec.stack.Pop().Address.Array;
+
+            if (!new_size.IsInteger()) {
+                Exec.Raise("ArrayIndexException", new_size.ToString());
+                return;
+            }
+
+            if (Number.number_to_int32(new_size) < array.Count) {
+                array.RemoveRange(Number.number_to_int32(new_size), array.Count - Number.number_to_int32(new_size));
+            } else {
+                int array_size = array.Count;
+                for (int i = array_size; i < Number.number_to_int32(new_size); i++) {
+                    array.Add(new Cell(Cell.Type.None));
+                }
+            }
+        }
+
+        public void array__reversed()
+        {
+            List<Cell> a = Exec.stack.Peek().Array;
+
+            a.Reverse();
+        }
+
         public void array__size()
         {
             List<Cell> a = Exec.stack.Pop().Array;
 
             Exec.stack.Push(new Cell(new Number(a.Count)));
+        }
+
+        public void array__slice()
+        {
+            bool last_from_end = Exec.stack.Pop().Boolean;
+            Number last = Exec.stack.Pop().Number;
+            bool first_from_end = Exec.stack.Pop().Boolean;
+            Number first  = Exec.stack.Pop().Number;
+            Cell array = Exec.stack.Pop();
+
+            if (!first.IsInteger()) {
+                Exec.Raise("ArrayIndexException", first.ToString());
+                return;
+            }
+            if (!last.IsInteger()) {
+                Exec.Raise("ArrayIndexException", last.ToString());
+                return;
+            }
+
+            Int32 fst = Number.number_to_int32(first);
+            Int32 lst = Number.number_to_int32(last);
+            if (first_from_end) {
+                fst += array.Array.Count - 1;
+            }
+            if (fst < 0) {
+                fst = 0;
+            }
+            if (fst > array.Array.Count) {
+                fst = array.Array.Count;
+            }
+            if (last_from_end) {
+                lst += array.Array.Count - 1;
+            }
+            if (lst < -1) {
+                lst = -1;
+            }
+            if (lst >= array.Array.Count) {
+                lst = array.Array.Count - 1;
+            }
+            if (lst < fst) {
+                lst = fst - 1;
+            }
+            List<Cell> r = new List<Cell>(lst - fst + 1);
+
+            for (int i = fst; i < lst + 1; i++) {
+                r.Add(Cell.FromCell(array.Array[i]));
+            }
+
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void array__splice()
+        {
+            bool last_from_end = Exec.stack.Pop().Boolean;
+            Number last = Exec.stack.Pop().Number;
+            bool first_from_end = Exec.stack.Pop().Boolean;
+            Number first  = Exec.stack.Pop().Number;
+            Cell a = Exec.stack.Pop();
+            Cell b = Exec.stack.Pop();
+
+            Int32 fst = Number.number_to_int32(first);
+            Int32 lst = Number.number_to_int32(last);
+            if (first_from_end) {
+                fst += a.Array.Count - 1;
+            }
+            if (fst < 0) {
+                fst = 0;
+            }
+            if (fst > a.Array.Count) {
+                fst = a.Array.Count;
+            }
+            if (last_from_end) {
+                lst += a.Array.Count - 1;
+            }
+            if (lst < -1) {
+                lst = -1;
+            }
+            if (lst >= a.Array.Count) {
+                lst = a.Array.Count - 1;
+            }
+
+            List<Cell> r = new List<Cell>();
+            for (int i = 0; i < fst; i++) {
+                r.Add(Cell.FromCell(a.Array[i]));
+            }
+            for (int i = 0; i < b.Array.Count; i++) {
+                r.Add(Cell.FromCell(b.Array[i]));
+            }
+            for (int i = lst + 1; i < a.Array.Count; i++) {
+                r.Add(Cell.FromCell(a.Array[i]));
+            }
+
+            Exec.stack.Push(new Cell(r));
         }
 
         public void array__toBytes__number()
@@ -93,6 +278,12 @@ namespace csnex
         }
 
         public void array__toString__number()
+        {
+            string s = Cell.toString(Exec.stack.Pop());
+            Exec.stack.Push(new Cell(s));
+        }
+
+        public void array__toString__string()
         {
             string s = Cell.toString(Exec.stack.Pop());
             Exec.stack.Push(new Cell(s));

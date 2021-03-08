@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace csnex
 {
@@ -46,6 +47,52 @@ namespace csnex
                 r.Add(new Cell(value));
             }
             return r;
+        }
+
+        public static bool Compare(this List<Cell> self, List<Cell> rhs)
+        {
+            if (self.Count != rhs.Count) {
+                return false;
+            }
+            for (int i = 0; i < self.Count; i++) {
+                if (!self[i].Equals(rhs[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static string Quote(this string s)
+        {
+            StringBuilder r = new StringBuilder("\"");
+            for (int i = 0; i < s.Length; i++) {
+                char c = s[i];
+                int ch = char.ConvertToUtf32(s, i);
+
+                switch (c) {
+                    case '\b': r.Append("\\b"); break;
+                    case '\f': r.Append("\\f"); break;
+                    case '\n': r.Append("\\n"); break;
+                    case '\r': r.Append("\\r"); break;
+                    case '\t': r.Append("\\t"); break;
+                    case '"':
+                    case '\\':
+                        r.Append('\\');
+                        r.Append(c);
+                        break;
+                    default:
+                        if (c >= ' ' && c < 0x7f) {
+                            r.Append(c);
+                        } else if (ch < 0x10000) {
+                            r.AppendFormat("\\u{0}", ch.ToString("x4"));
+                        } else {
+                            r.AppendFormat("\\u{0}", ch.ToString("x8"));
+                        }
+                        break;
+                }
+            }
+            r.Append("\"");
+            return r.ToString();
         }
     }
 }
