@@ -252,7 +252,7 @@ namespace csnex
                             r += ", ";
                         }
                         if (c.Array[x].type == Type.String) {
-                            throw new NeonException("Array<String>.toString() not implemented.");
+                            r += c.Array[x].String.Quote();
                         } else {
                             r += toString(c.Array[x]);
                         }
@@ -291,7 +291,6 @@ namespace csnex
 
         public Boolean Equals(Cell x)
         {
-            Debug.Assert(type == x.type);
             if (type != x.type) {
                 return false;
             }

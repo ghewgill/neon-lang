@@ -558,7 +558,11 @@ namespace csnex
 
         void EQA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            Cell r = new Cell(a.Array.Compare(b.Array));
+            stack.Push(r);
         }
 
         void NEA()
