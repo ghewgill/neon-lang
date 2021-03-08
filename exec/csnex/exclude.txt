@@ -1,11 +1,3 @@
-array-find.neon                                 # array__find
-array-index.neon                                # array_slice
-array-remove.neon                               # array__remove
-array-resize.neon                               # array__resize
-array-reversed.neon                             # array__reversed
-array-slice.neon                                # array__splice(), array__slice(), number__toString()
-array-sparse.neon                               # imports / textio
-array-tostring.neon                             # array__toString__string
 assert-multiline.neon                           # output
 assignment.neon                                 # Classes
 base-test.neon                                  # CALLMF
@@ -59,7 +51,6 @@ interface-parameter-import2.neon
 interface.neon
 io-test.neon                                    # io module
 json-test.neon                                  # object__makeNull
-literal-array.neon                              # array__range
 literal-method.neon                             # string__toBytes
 math-test.neon                                  # math module
 mkdir.neon                                      # file module
@@ -90,7 +81,6 @@ object-record.neon                              # object__makeNumber
 object-subscript.neon                           # object__makeNumber
 object.neon                                     # object__makeBoolean
 opcode-coverage.neon
-parameter-out-array.neon                        # array__splice
 parameters.neon                                 # STOREP
 pointer-method.neon
 pointer-nil.neon

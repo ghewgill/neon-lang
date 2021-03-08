@@ -47,5 +47,51 @@ namespace csnex
             }
             return r;
         }
+
+        public static bool Compare(this List<Cell> self, List<Cell> rhs)
+        {
+            if (self.Count != rhs.Count) {
+                return false;
+            }
+            for (int i = 0; i < self.Count; i++) {
+                if (!self[i].Equals(rhs[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static string Quote(this string s)
+        {
+            string r = "\"";
+            for (int i = 0; i < s.Length; i++) {
+                char c = s[i];
+                int ch = char.ConvertToUtf32(s, i);
+
+                switch (c) {
+                    case '\b': r += "\\b"; break;
+                    case '\f': r += "\\f"; break;
+                    case '\n': r += "\\n"; break;
+                    case '\r': r += "\\r"; break;
+                    case '\t': r += "\\t"; break;
+                    case '"':
+                    case '\\':
+                        r += '\\';
+                        r += c;
+                        break;
+                    default:
+                        if (c >= ' ' && c < 0x7f) {
+                            r += c;
+                        } else if (ch < 0x10000) {
+                            r += string.Format("\\u{0}", ch.ToString("x4"));
+                        } else {
+                            r += string.Format("\\u{0}", ch.ToString("x8"));
+                        }
+                        break;
+                }
+            }
+            r += "\"";
+            return r;
+        }
     }
 }
