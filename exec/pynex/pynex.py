@@ -2898,7 +2898,15 @@ def neon_time_now(self):
 
 def neon_time_sleep(self):
     t = self.stack.pop()
-    time.sleep(float(t))
+    # Sleep in a lop in case time.sleep() does not sleep
+    # for quite as long as we ask for.
+    start = time.time()
+    while True:
+        now = time.time()
+        elapsed = now - start
+        if elapsed >= t:
+            break
+        time.sleep(float(t) - elapsed)
 
 def neon_time_tick(self):
     self.stack.append(decimal.Decimal(time.monotonic()))
