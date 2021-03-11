@@ -2900,9 +2900,9 @@ def neon_time_sleep(self):
     t = self.stack.pop()
     # Sleep in a lop in case time.sleep() does not sleep
     # for quite as long as we ask for.
-    start = time.time()
+    start = time.monotonic()
     while True:
-        now = time.time()
+        now = time.monotonic()
         elapsed = now - start
         if elapsed >= t:
             break
