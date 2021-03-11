@@ -90,6 +90,10 @@ namespace csnex
             }
             set {
                 type = Type.Bytes;
+                if (value == null) {
+                    m_Bytes = value;
+                    return;
+                }
                 m_Bytes = new byte[value.Length];
                 value.CopyTo(m_Bytes, 0);
             }
@@ -309,6 +313,60 @@ namespace csnex
             }
             return false;
         }
+
+        public static void CopyCell(Cell dest, Cell source)
+        {
+            Debug.Assert(source != null);
+            Debug.Assert(dest != null);
+
+            dest.type = source.type;
+            switch (source.type) {
+                case Type.Address:
+                    dest.m_Address = source.Address;
+                    break;
+                case Type.Array:
+                    dest.Array = new List<Cell>(source.Array.Count);
+                    for (int i = 0; i < source.Array.Count; i++) {
+                        dest.Array.Add(FromCell(source.Array[i]));
+                    }
+                    break;
+                case Type.Boolean:
+                    dest.m_Boolean = source.Boolean;
+                    break;
+                case Type.Bytes:
+                    dest.Bytes = new byte[source.Bytes.Length];
+                    System.Array.Copy(source.Bytes, 0, dest.Bytes, 0, source.Bytes.Length);
+                    break;
+                case Type.Dictionary:
+                    dest.m_Dictionary = new SortedDictionary<string, Cell>();
+                    List<string> keys = source.Dictionary.Keys.ToList();
+                    foreach (string k in keys) {
+                        dest.Dictionary.Add(k, FromCell(source.Dictionary[k]));
+                    }
+                    break;
+                case Type.Number:
+                    dest.Number = new Number(source.Number);
+                    break;
+                case Type.Object:
+                    dest.m_Object = source.Object;
+                    break;
+                case Type.String:
+                    dest.String = source.String;
+                    break;
+                case Type.None:
+                    dest.ResetCell();
+                    break;
+            }
+        }
+
+        public static Cell FromCell(Cell c)
+        {
+            Debug.Assert(c != null);
+            Cell x = new Cell(Type.None);
+            CopyCell(x, c);
+            return x;
+        }
+
 #region Set functions
         public void Set(List<Cell> a)
         {

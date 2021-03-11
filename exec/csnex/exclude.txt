@@ -6,7 +6,6 @@ array-reversed.neon                             # array__reversed
 array-slice.neon                                # array__splice(), array__slice(), number__toString()
 array-sparse.neon                               # imports / textio
 array-tostring.neon                             # array__toString__string
-array2d.neon                                    # copy semantics
 assert-multiline.neon                           # output
 assignment.neon                                 # Classes
 base-test.neon                                  # CALLMF
@@ -50,7 +49,6 @@ gc2.neon                                        # garbage collection
 gc3.neon                                        # garbage collection
 import-optional.neon                            # runtime$isModuleImported
 import.neon
-index.neon                                      # copy semantics
 input.neon                                      # console module
 intdiv.neon                                     # math$intdiv
 interface-multiple.neon
@@ -126,7 +124,6 @@ time-stopwatch.neon                             # time module
 time-test.neon                                  # time module
 tostring.neon                                   # array__toString__string
 valid-pointer.neon                              # Classes
-value-copy.neon                                 # copy semantics
 value-index.neon                                # INDEXDV
 varargs-functionpointer.neon                    # PUSHFP
 while-valid.neon                                # Classes

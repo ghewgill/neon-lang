@@ -287,48 +287,42 @@ namespace csnex
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            Boolean b = stack.Pop().Boolean;
-            addr.Set(b);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREN()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            Number num = stack.Pop().Number;
-            addr.Set(num);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STORES()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            string str = stack.Pop().String;
-            addr.Set(str);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREY()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            byte[] b = stack.Pop().Bytes;
-            addr.Set(b);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREA()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            List<Cell> arr = stack.Pop().Array;
-            addr.Set(arr);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STORED()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            SortedDictionary<string, Cell> dict = stack.Pop().Dictionary;
-            addr.Set(dict);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREP()
@@ -340,8 +334,7 @@ namespace csnex
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            Object obj = stack.Pop().Object;
-            addr.Set(obj);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREV()

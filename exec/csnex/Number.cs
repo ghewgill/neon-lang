@@ -26,6 +26,14 @@ namespace csnex {
         {
             val = n;
         }
+
+        public Number(Number n)
+        {
+            val = 0;
+            if (n != null) {
+                val = n.val;
+            }
+        }
 #endregion
 
         public static Number FromString(string str)
