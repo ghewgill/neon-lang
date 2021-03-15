@@ -49,7 +49,6 @@ interface-parameter-export2.neon
 interface-parameter-import.neon                 # PUSHNIL
 interface-parameter-import2.neon
 interface.neon
-io-test.neon                                    # io module
 json-test.neon                                  # object__makeNull
 literal-method.neon                             # string__toBytes
 math-test.neon                                  # math module
