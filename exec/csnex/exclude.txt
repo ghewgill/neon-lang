@@ -3,7 +3,7 @@ assignment.neon                                 # Classes
 base-test.neon                                  # CALLMF
 bigint.neon                                     # bigint
 binary-test.neon                                # binary module
-cformat-test.neon                               # object__makeNumber
+cformat-test.neon                               # CALLMF
 check-valid.neon                                # Classes
 class-empty.neon                                # Classes
 comparison.neon                                 # NES
@@ -15,7 +15,6 @@ debug-example.neon                              # debugger$log
 decimal.neon                                    # Value was either too large or too small for a Decimal.
 encoding-base64.neon                            # modules
 equality.neon                                   # Classes
-exception-code.neon                             # object__makeNumber
 exception-tostring.neon                         # exceptiontype__toString
 export-function-indent.neon
 export-inline.neon
@@ -70,15 +69,9 @@ net-test.neon                                   # net module
 new-init-module.neon                            # PUSHNIL
 new-init.neon                                   # Classes
 number-ceil.neon                                # math module
-object-isa-case.neon                            # object__makeNumber
-object-isa.neon                                 # object__makeBoolean
-object-null.neon                                # object__makeNull
-object-null2.neon                               # object__makeNull
-object-operator.neon                            # object__makeNumber
-object-record-default.neon                      # object__makeNull
-object-record.neon                              # object__makeNumber
-object-subscript.neon                           # object__makeNumber
-object.neon                                     # object__makeBoolean
+object-null2.neon                               # PUSHNIL
+object-operator.neon                            # EQB, NEB
+object-record.neon                              # EQA
 opcode-coverage.neon
 parameters.neon                                 # STOREP
 pointer-method.neon
@@ -93,7 +86,6 @@ pointer5.neon
 pointer7.neon
 pointer8.neon
 posix-fork.neon                                 # posix module
-print-object.neon                               # object_makeNull
 record-empty.neon                               # INDEXAN
 record-private.neon                             # STOREP
 sql-connect.neon                                # SQLite / sql module

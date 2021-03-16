@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace csnex
 {
@@ -308,6 +309,25 @@ namespace csnex
             string s = Cell.toString(Exec.stack.Pop());
             Exec.stack.Push(new Cell(s));
         }
+
+        public void array__toString__object()
+        {
+            Cell a = Exec.stack.Pop();
+
+            StringBuilder r = new StringBuilder("[");
+            bool first = true;
+            foreach (Cell x in a.Array) {
+                if (first) {
+                    first = false;
+                } else {
+                    r.Append(", ");
+                }
+                r.Append(x.Object.toString());
+            }
+            r.Append("]");
+
+            Exec.stack.Push(new Cell(r.ToString()));
+        }
 #endregion
 #region Boolean Functions
         public void boolean__toString()
@@ -484,10 +504,208 @@ namespace csnex
         }
 #endregion
 #region Object Functions
+        #region Object Getters
+        public void object__getArray()
+        {
+            Object obj = Exec.stack.Pop().Object;
+
+            List<Object> a = null;
+            if (obj == null || !obj.getArray(ref a)) {
+                Exec.Raise("DynamicConversionException", "to Array");
+                return;
+            }
+            if (a == null) {
+                Exec.Raise("DynamicConversionException", "to Array");
+                return;
+            }
+            List<Cell> r = new List<Cell>();
+            foreach (Object x in a) {
+                r.Add(new Cell(x));
+            }
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void object__getBoolean()
+        {
+            Cell obj = Exec.stack.Pop();
+
+            bool r = false;
+            if (obj.Object == null || !obj.Object.getBoolean(ref r)) {
+                Exec.Raise("DynamicConversionException", "to Boolean");
+                return;
+            }
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void object__getBytes()
+        {
+            Cell obj = Exec.stack.Pop();
+
+            if (obj.Object == null) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+            byte[] b = null;
+            if (!obj.Object.getBytes(ref b)) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+            if (b == null) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+            Exec.stack.Push(new Cell(b));
+        }
+
+        public void object__getDictionary()
+        {
+            Object o = Exec.stack.Pop().Object;
+            if (o == null) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+            SortedDictionary<string, Object> d = null;
+            if (!o.getDictionary(ref d)) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+            if (d == null) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+
+            SortedDictionary<string, Cell> r = new SortedDictionary<string, Cell>();
+            foreach (KeyValuePair<string, Object> e in d) {
+                r.Add(e.Key, new Cell(e.Value));
+            }
+
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void object__getNumber()
+        {
+            Cell obj = Exec.stack.Pop();
+
+            Number n = null;
+            if (obj.Object == null || !obj.Object.getNumber(ref n)) {
+                Exec.Raise("DynamicConversionException", "to Number");
+                return;
+            }
+            Exec.stack.Push(new Cell(n));
+        }
+
+        public void object__getString()
+        {
+            Cell obj = Exec.stack.Pop();
+
+            if (obj.Object == null) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+            String s = null;
+            if (!obj.Object.getString(ref s)) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+            if (s == null) {
+                Exec.Raise("DynamicConversionException", "");
+                return;
+            }
+            Exec.stack.Push(new Cell(s));
+        }
+        #endregion
+        #region Object Makers
+        public void object__makeArray()
+        {
+            List<Cell> a = Exec.stack.Pop().Array;
+
+            List<Object> oa = new List<Object>();
+            foreach (Cell c in a) {
+                oa.Add(c.Object);
+            }
+
+            Exec.stack.Push(new Cell(new ObjectArray(oa)));
+        }
+
+        public void object__makeBoolean()
+        {
+            Cell o = Exec.stack.Pop();
+            Exec.stack.Push(new Cell(new ObjectBoolean(o.Boolean)));
+        }
+
+        public void object__makeBytes()
+        {
+            Cell o = Exec.stack.Pop();
+            Exec.stack.Push(new Cell(new ObjectBytes(o.Bytes)));
+        }
+
+        public void object__makeDictionary()
+        {
+            SortedDictionary<string, Cell> d = Exec.stack.Pop().Dictionary;
+
+            SortedDictionary<string, Object> r = new SortedDictionary<string, Object>();
+            foreach (KeyValuePair<string, Cell> e in d) {
+                r.Add(e.Key, e.Value.Object);
+            }
+
+            Exec.stack.Push(new Cell(new ObjectDictionary(r)));
+        }
+
+        public void object__makeNull()
+        {
+            Exec.stack.Push(new Cell((Object)null));
+        }
+
+        public void object__makeNumber()
+        {
+            Cell o = Exec.stack.Pop();
+            Exec.stack.Push(new Cell(new ObjectNumber(o.Number)));
+        }
+
         public void object__makeString()
         {
             Cell o = Exec.stack.Pop();
             Exec.stack.Push(new Cell(new ObjectString(o.String)));
+        }
+        #endregion
+        public void object__isNull()
+        {
+            Object o = Exec.stack.Pop().Object;
+            Exec.stack.Push(new Cell(o == null));
+        }
+
+        public void object__subscript()
+        {
+            Object i = Exec.stack.Pop().Object;
+            Object o = Exec.stack.Pop().Object;
+
+            if (o == null) {
+                Exec.Raise("DynamicConversionException", "object is null");
+                return;
+            }
+            if (i == null) {
+                Exec.Raise("DynamicConversionException", "index is null");
+                return;
+            }
+
+            Object r = null;
+            if (!o.subscript(i, ref r)) {
+                Exec.Raise("ObjectSubscriptException", i.toString());
+                return;
+            }
+            if (r == null) {
+                Exec.Raise("ObjectSubscriptException", i.toString());
+                return;
+            }
+
+            Exec.stack.Push(new Cell(r));
+        }
+
+        public void object__toString()
+        {
+            Object o = Exec.stack.Pop().Object;
+
+            Exec.stack.Push(new Cell(o != null ? o.toString() : "null"));
         }
 #endregion
 #region String Functions

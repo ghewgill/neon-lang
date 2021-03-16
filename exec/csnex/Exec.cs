@@ -167,6 +167,8 @@ namespace csnex
                 object obj = library.Find(a => a.Key == var.Substring(0, var.IndexOf('$'))).Value;
                 PropertyInfo pi = obj.GetType().GetProperty(var.Substring(var.IndexOf('$')+1));
                 stack.Push(new Cell((Cell)pi.GetValue(obj)));
+            } catch (TargetInvocationException ti) {
+                throw ti.InnerException;
             } catch {
                 throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined variable.", var));
             }
@@ -712,7 +714,18 @@ namespace csnex
 
         void INDEXDV()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string index = stack.Pop().String;
+            Cell dictionary = stack.Pop();
+
+            Cell val = dictionary.Dictionary[index];
+            if (val == null) {
+                Raise("DictionaryIndexException", index);
+                return;
+            }
+
+            Cell addr = Cell.FromCell(val);
+            stack.Push(addr);
         }
 #endregion
 #region INx Opcdes
@@ -755,6 +768,8 @@ namespace csnex
                     MethodInfo mi = global.GetType().GetMethod(func);
                     mi.Invoke(global, null);
                 }
+            } catch (TargetInvocationException ti) {
+                throw ti.InnerException;
             } catch {
                 throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined function call.", func));
             }
@@ -989,109 +1004,115 @@ namespace csnex
         private int Loop(Int64 min_callstack_depth)
         {
             while (callstack.Count > min_callstack_depth && ip < bytecode.code.Length && exit_code == 0) {
-                switch ((Opcode)bytecode.code[ip]) {
-                    case Opcode.PUSHB: PUSHB(); break;                // push boolean immediate
-                    case Opcode.PUSHN: PUSHN(); break;                // push number immediate
-                    case Opcode.PUSHS: PUSHS(); break;                // push string immediate
-                    case Opcode.PUSHY: PUSHY(); break;                // push bytes immediate
-                    case Opcode.PUSHPG: PUSHPG(); break;              // push pointer to global
-                    case Opcode.PUSHPPG: PUSHPPG(); break;            // push pointer to predefined global
-                    case Opcode.PUSHPMG: PUSHPMG(); break;            // push pointer to module global
-                    case Opcode.PUSHPL: PUSHPL(); break;              // push pointer to local
-                    case Opcode.PUSHPOL: PUSHPOL(); break;            // push pointer to outer local
-                    case Opcode.PUSHI: PUSHI(); break;                // push 32-bit integer immediate
-                    case Opcode.LOADB: LOADB(); break;                // load boolean
-                    case Opcode.LOADN: LOADN(); break;                // load number
-                    case Opcode.LOADS: LOADS(); break;                // load string
-                    case Opcode.LOADY: LOADY(); break;                // load bytes
-                    case Opcode.LOADA: LOADA(); break;                // load array
-                    case Opcode.LOADD: LOADD(); break;                // load dictionary
-                    case Opcode.LOADP: LOADP(); break;                // load pointer
-                    case Opcode.LOADJ: LOADJ(); break;                // load object
-                    case Opcode.LOADV: LOADV(); break;                // load voidptr
-                    case Opcode.STOREB: STOREB(); break;              // store boolean
-                    case Opcode.STOREN: STOREN(); break;              // store number
-                    case Opcode.STORES: STORES(); break;              // store string
-                    case Opcode.STOREY: STOREY(); break;              // store bytes
-                    case Opcode.STOREA: STOREA(); break;              // store array
-                    case Opcode.STORED: STORED(); break;              // store dictionary
-                    case Opcode.STOREP: STOREP(); break;              // store pointer
-                    case Opcode.STOREJ: STOREJ(); break;              // store object
-                    case Opcode.STOREV: STOREV(); break;              // store voidptr
-                    case Opcode.NEGN: NEGN(); break;                  // negate number
-                    case Opcode.ADDN: ADDN(); break;                  // add number
-                    case Opcode.SUBN: SUBN(); break;                  // subtract number
-                    case Opcode.MULN: MULN(); break;                  // multiply number
-                    case Opcode.DIVN: DIVN(); break;                  // divide number
-                    case Opcode.MODN: MODN(); break;                  // modulo number
-                    case Opcode.EXPN: EXPN(); break;                  // exponentiate number
-                    case Opcode.EQB: EQB(); break;                    // compare equal boolean
-                    case Opcode.NEB: NEB(); break;                    // compare unequal boolean
-                    case Opcode.EQN: EQN(); break;                    // compare equal number
-                    case Opcode.NEN: NEN(); break;                    // compare unequal number
-                    case Opcode.LTN: LTN(); break;                    // compare less number
-                    case Opcode.GTN: GTN(); break;                    // compare greater number
-                    case Opcode.LEN: LEN(); break;                    // compare less equal number
-                    case Opcode.GEN: GEN(); break;                    // compare greater equal number
-                    case Opcode.EQS: EQS(); break;                    // compare equal string
-                    case Opcode.NES: NES(); break;                    // compare unequal string
-                    case Opcode.LTS: LTS(); break;                    // compare less string
-                    case Opcode.GTS: GTS(); break;                    // compare greater string
-                    case Opcode.LES: LES(); break;                    // compare less equal string
-                    case Opcode.GES: GES(); break;                    // compare greater equal string
-                    case Opcode.EQY: EQY(); break;                    // compare equal bytes
-                    case Opcode.NEY: NEY(); break;                    // compare unequal bytes
-                    case Opcode.LTY: LTY(); break;                    // compare less bytes
-                    case Opcode.GTY: GTY(); break;                    // compare greater bytes
-                    case Opcode.LEY: LEY(); break;                    // compare less equal bytes
-                    case Opcode.GEY: GEY(); break;                    // compare greater equal bytes
-                    case Opcode.EQA: EQA(); break;                    // compare equal array
-                    case Opcode.NEA: NEA(); break;                    // compare unequal array
-                    case Opcode.EQD: EQD(); break;                    // compare equal dictionary
-                    case Opcode.NED: NED(); break;                    // compare unequal dictionary
-                    case Opcode.EQP: EQP(); break;                    // compare equal pointer
-                    case Opcode.NEP: NEP(); break;                    // compare unequal pointer
-                    case Opcode.EQV: EQV(); break;                    // compare equal voidptr
-                    case Opcode.NEV: NEV(); break;                    // compare unequal voidptr
-                    case Opcode.ANDB: ANDB(); break;                  // and boolean
-                    case Opcode.ORB: ORB(); break;                    // or boolean
-                    case Opcode.NOTB: NOTB(); break;                  // not boolean
-                    case Opcode.INDEXAR: INDEXAR(); break;            // index array for read
-                    case Opcode.INDEXAW: INDEXAW(); break;            // index array for write
-                    case Opcode.INDEXAV: INDEXAV(); break;            // index array value
-                    case Opcode.INDEXAN: INDEXAN(); break;            // index array value, no exception
-                    case Opcode.INDEXDR: INDEXDR(); break;            // index dictionary for read
-                    case Opcode.INDEXDW: INDEXDW(); break;            // index dictionary for write
-                    case Opcode.INDEXDV: INDEXDV(); break;            // index dictionary value
-                    case Opcode.INA: INA(); break;                    // in array
-                    case Opcode.IND: IND(); break;                    // in dictionary
-                    case Opcode.CALLP: CALLP(); break;                // call predefined
-                    case Opcode.CALLF: CALLF(); break;                // call function
-                    case Opcode.CALLMF: CALLMF(); break;              // call module function
-                    case Opcode.CALLI: CALLI(); break;                // call indirect
-                    case Opcode.JUMP: JUMP(); break;                  // unconditional jump
-                    case Opcode.JF: JF(); break;                      // jump if false
-                    case Opcode.JT: JT(); break;                      // jump if true
-                    case Opcode.DUP: DUP(); break;                    // duplicate
-                    case Opcode.DUPX1: DUPX1(); break;                // duplicate under second value
-                    case Opcode.DROP: DROP(); break;                  // drop
-                    case Opcode.RET: RET(); break;                    // return
-                    case Opcode.CONSA: CONSA(); break;                // construct array
-                    case Opcode.CONSD: CONSD(); break;                // construct dictionary
-                    case Opcode.EXCEPT: EXCEPT(); break;              // throw exception
-                    case Opcode.ALLOC: ALLOC(); break;                // allocate record
-                    case Opcode.PUSHNIL: PUSHNIL(); break;            // push nil pointer
-                    case Opcode.RESETC: RESETC(); break;              // reset cell
-                    case Opcode.PUSHPEG: PUSHPEG(); break;            // push pointer to external global
-                    case Opcode.JUMPTBL: JUMPTBL(); break;            // jump table
-                    case Opcode.CALLX: CALLX(); break;                // call extension
-                    case Opcode.SWAP: SWAP(); break;                  // swap two top stack elements
-                    case Opcode.DROPN: DROPN(); break;                // drop element n
-                    case Opcode.PUSHFP: PUSHFP(); break;              // push function pointer
-                    case Opcode.CALLV: CALLV(); break;                // call virtual
-                    case Opcode.PUSHCI: PUSHCI(); break;              // push class info
-                    default:
-                        throw new InvalidOpcodeException(string.Format("Invalid opcode ({0}) in bytecode file.", bytecode.code[ip]));
+                try {
+                    switch ((Opcode)bytecode.code[ip]) {
+                            case Opcode.PUSHB: PUSHB(); break;                // push boolean immediate
+                            case Opcode.PUSHN: PUSHN(); break;                // push number immediate
+                            case Opcode.PUSHS: PUSHS(); break;                // push string immediate
+                            case Opcode.PUSHY: PUSHY(); break;                // push bytes immediate
+                            case Opcode.PUSHPG: PUSHPG(); break;              // push pointer to global
+                            case Opcode.PUSHPPG: PUSHPPG(); break;            // push pointer to predefined global
+                            case Opcode.PUSHPMG: PUSHPMG(); break;            // push pointer to module global
+                            case Opcode.PUSHPL: PUSHPL(); break;              // push pointer to local
+                            case Opcode.PUSHPOL: PUSHPOL(); break;            // push pointer to outer local
+                            case Opcode.PUSHI: PUSHI(); break;                // push 32-bit integer immediate
+                            case Opcode.LOADB: LOADB(); break;                // load boolean
+                            case Opcode.LOADN: LOADN(); break;                // load number
+                            case Opcode.LOADS: LOADS(); break;                // load string
+                            case Opcode.LOADY: LOADY(); break;                // load bytes
+                            case Opcode.LOADA: LOADA(); break;                // load array
+                            case Opcode.LOADD: LOADD(); break;                // load dictionary
+                            case Opcode.LOADP: LOADP(); break;                // load pointer
+                            case Opcode.LOADJ: LOADJ(); break;                // load object
+                            case Opcode.LOADV: LOADV(); break;                // load voidptr
+                            case Opcode.STOREB: STOREB(); break;              // store boolean
+                            case Opcode.STOREN: STOREN(); break;              // store number
+                            case Opcode.STORES: STORES(); break;              // store string
+                            case Opcode.STOREY: STOREY(); break;              // store bytes
+                            case Opcode.STOREA: STOREA(); break;              // store array
+                            case Opcode.STORED: STORED(); break;              // store dictionary
+                            case Opcode.STOREP: STOREP(); break;              // store pointer
+                            case Opcode.STOREJ: STOREJ(); break;              // store object
+                            case Opcode.STOREV: STOREV(); break;              // store voidptr
+                            case Opcode.NEGN: NEGN(); break;                  // negate number
+                            case Opcode.ADDN: ADDN(); break;                  // add number
+                            case Opcode.SUBN: SUBN(); break;                  // subtract number
+                            case Opcode.MULN: MULN(); break;                  // multiply number
+                            case Opcode.DIVN: DIVN(); break;                  // divide number
+                            case Opcode.MODN: MODN(); break;                  // modulo number
+                            case Opcode.EXPN: EXPN(); break;                  // exponentiate number
+                            case Opcode.EQB: EQB(); break;                    // compare equal boolean
+                            case Opcode.NEB: NEB(); break;                    // compare unequal boolean
+                            case Opcode.EQN: EQN(); break;                    // compare equal number
+                            case Opcode.NEN: NEN(); break;                    // compare unequal number
+                            case Opcode.LTN: LTN(); break;                    // compare less number
+                            case Opcode.GTN: GTN(); break;                    // compare greater number
+                            case Opcode.LEN: LEN(); break;                    // compare less equal number
+                            case Opcode.GEN: GEN(); break;                    // compare greater equal number
+                            case Opcode.EQS: EQS(); break;                    // compare equal string
+                            case Opcode.NES: NES(); break;                    // compare unequal string
+                            case Opcode.LTS: LTS(); break;                    // compare less string
+                            case Opcode.GTS: GTS(); break;                    // compare greater string
+                            case Opcode.LES: LES(); break;                    // compare less equal string
+                            case Opcode.GES: GES(); break;                    // compare greater equal string
+                            case Opcode.EQY: EQY(); break;                    // compare equal bytes
+                            case Opcode.NEY: NEY(); break;                    // compare unequal bytes
+                            case Opcode.LTY: LTY(); break;                    // compare less bytes
+                            case Opcode.GTY: GTY(); break;                    // compare greater bytes
+                            case Opcode.LEY: LEY(); break;                    // compare less equal bytes
+                            case Opcode.GEY: GEY(); break;                    // compare greater equal bytes
+                            case Opcode.EQA: EQA(); break;                    // compare equal array
+                            case Opcode.NEA: NEA(); break;                    // compare unequal array
+                            case Opcode.EQD: EQD(); break;                    // compare equal dictionary
+                            case Opcode.NED: NED(); break;                    // compare unequal dictionary
+                            case Opcode.EQP: EQP(); break;                    // compare equal pointer
+                            case Opcode.NEP: NEP(); break;                    // compare unequal pointer
+                            case Opcode.EQV: EQV(); break;                    // compare equal voidptr
+                            case Opcode.NEV: NEV(); break;                    // compare unequal voidptr
+                            case Opcode.ANDB: ANDB(); break;                  // and boolean
+                            case Opcode.ORB: ORB(); break;                    // or boolean
+                            case Opcode.NOTB: NOTB(); break;                  // not boolean
+                            case Opcode.INDEXAR: INDEXAR(); break;            // index array for read
+                            case Opcode.INDEXAW: INDEXAW(); break;            // index array for write
+                            case Opcode.INDEXAV: INDEXAV(); break;            // index array value
+                            case Opcode.INDEXAN: INDEXAN(); break;            // index array value, no exception
+                            case Opcode.INDEXDR: INDEXDR(); break;            // index dictionary for read
+                            case Opcode.INDEXDW: INDEXDW(); break;            // index dictionary for write
+                            case Opcode.INDEXDV: INDEXDV(); break;            // index dictionary value
+                            case Opcode.INA: INA(); break;                    // in array
+                            case Opcode.IND: IND(); break;                    // in dictionary
+                            case Opcode.CALLP: CALLP(); break;                // call predefined
+                            case Opcode.CALLF: CALLF(); break;                // call function
+                            case Opcode.CALLMF: CALLMF(); break;              // call module function
+                            case Opcode.CALLI: CALLI(); break;                // call indirect
+                            case Opcode.JUMP: JUMP(); break;                  // unconditional jump
+                            case Opcode.JF: JF(); break;                      // jump if false
+                            case Opcode.JT: JT(); break;                      // jump if true
+                            case Opcode.DUP: DUP(); break;                    // duplicate
+                            case Opcode.DUPX1: DUPX1(); break;                // duplicate under second value
+                            case Opcode.DROP: DROP(); break;                  // drop
+                            case Opcode.RET: RET(); break;                    // return
+                            case Opcode.CONSA: CONSA(); break;                // construct array
+                            case Opcode.CONSD: CONSD(); break;                // construct dictionary
+                            case Opcode.EXCEPT: EXCEPT(); break;              // throw exception
+                            case Opcode.ALLOC: ALLOC(); break;                // allocate record
+                            case Opcode.PUSHNIL: PUSHNIL(); break;            // push nil pointer
+                            case Opcode.RESETC: RESETC(); break;              // reset cell
+                            case Opcode.PUSHPEG: PUSHPEG(); break;            // push pointer to external global
+                            case Opcode.JUMPTBL: JUMPTBL(); break;            // jump table
+                            case Opcode.CALLX: CALLX(); break;                // call extension
+                            case Opcode.SWAP: SWAP(); break;                  // swap two top stack elements
+                            case Opcode.DROPN: DROPN(); break;                // drop element n
+                            case Opcode.PUSHFP: PUSHFP(); break;              // push function pointer
+                            case Opcode.CALLV: CALLV(); break;                // call virtual
+                            case Opcode.PUSHCI: PUSHCI(); break;              // push class info
+                            default:
+                                throw new InvalidOpcodeException(string.Format("Invalid opcode ({0}) in bytecode file.", bytecode.code[ip]));
+                        }
+                } catch (NeonRuntimeException ne) {
+                    Raise(ne.Name, ne.Info);
+                } catch {
+                    throw;
                 }
             }
             return exit_code;
