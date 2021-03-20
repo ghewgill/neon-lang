@@ -122,6 +122,11 @@ namespace csnex {
             return Decimal.Compare(val, i) == 0;
         }
 
+        public bool IsNaN()
+        {
+            return Double.IsNaN(Decimal.ToDouble(val));
+        }
+
         public bool IsNegative()
         {
             return Math.Sign(val) == -1;

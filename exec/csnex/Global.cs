@@ -14,6 +14,26 @@ namespace csnex
         }
 
 #region Global Functions
+        public void num()
+        {
+            string s = Exec.stack.Pop().String;
+
+            Number n = null;
+            try {
+                n = Number.FromString(s);
+            } catch {
+                Exec.Raise("ValueRangeException", "num() argument not a number");
+                return;
+            }
+
+            if (n == null || n.IsNaN()) {
+                Exec.Raise("ValueRangeException", "num() argument not a number");
+                return;
+            }
+
+            Exec.stack.Push(new Cell(n));
+        }
+
         public void print()
         {
             Object o = Exec.stack.Pop().Object;

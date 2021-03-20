@@ -96,7 +96,6 @@ posix-fork.neon                                 # posix module
 print-object.neon                               # object_makeNull
 record-empty.neon                               # INDEXAN
 record-private.neon                             # STOREP
-rtl.neon                                        # num
 sql-connect.neon                                # SQLite / sql module
 sql-cursor.neon                                 # SQLite / sql module
 sql-embed.neon                                  # SQLite / sql module
