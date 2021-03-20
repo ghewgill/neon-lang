@@ -10,6 +10,7 @@ set(CSNEX_SOURCES
     Number.cs
     Object.cs
     Opcode.cs
+    Support.cs
 )
 
 set(CSNEX_RUNTIME

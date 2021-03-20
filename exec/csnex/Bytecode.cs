@@ -16,7 +16,10 @@ namespace csnex
 
         public List<ModuleImport> imports;
         public List<FunctionInfo> functions;
+        public List<Function> exports;
+        public List<Type> types;
         public List<ExceptionInfo> exceptions;
+        public List<ExceptionExport> export_exceptions;
         public List<Cell> globals;
 
         public Bytecode()
@@ -94,7 +97,14 @@ namespace csnex
 
             /* Types */
             int typesize = Get_VInt(obj, ref i);
-            Debug.Assert(typesize == 0);
+            types = new List<Type>();
+            while (typesize > 0) {
+                Type t = new Type();
+                t.name = Get_VInt(obj, ref i);
+                t.descriptor = Get_VInt(obj, ref i);
+                types.Add(t);
+                typesize--;
+            }
 
             /* Constants */
             int constantsize = Get_VInt(obj, ref i);
@@ -106,11 +116,25 @@ namespace csnex
 
             /* Exported Functions */
             int functionsize = Get_VInt(obj, ref i);
-            Debug.Assert(functionsize == 0);
+            exports = new List<Function>();
+            while (functionsize > 0) {
+                Function ef = new Function();
+                ef.name = Get_VInt(obj, ref i);
+                ef.descriptor = Get_VInt(obj, ref i);
+                ef.index = Get_VInt(obj, ref i);
+                exports.Add(ef);
+                functionsize--;
+            }
 
             /* Exported Exceptions */
             int exceptionexportsize = Get_VInt(obj, ref i);
-            Debug.Assert(exceptionexportsize == 0);
+            export_exceptions = new List<ExceptionExport>();
+            while (exceptionexportsize > 0) {
+                ExceptionExport e = new ExceptionExport();
+                e.name = Get_VInt(obj, ref i);
+                export_exceptions.Add(e);
+                exceptionexportsize--;
+            }
 
             /* Exported Interfaces */
             int interfaceexportsize = Get_VInt(obj, ref i);
@@ -169,11 +193,24 @@ namespace csnex
             Array.Copy(obj, i, code, 0, obj.Length - i);
         }
 
+        public struct Type
+        {
+            public int name;
+            public int descriptor;
+        }
+
         public struct ModuleImport
         {
             public int name;
             public bool optional;
             public byte[] hash;
+        }
+
+        public struct Function
+        {
+            public int name;
+            public int descriptor;
+            public int index;
         }
 
         public struct FunctionInfo
@@ -193,5 +230,29 @@ namespace csnex
             public int handler;
             public int stack_depth;
         }
+
+        public struct ExceptionExport
+        {
+            public int name;
+            public int descriptor;
+            public int index;
+        }
+    }
+
+    public class Module
+    {
+        public Module()
+        {
+            Bytecode = new Bytecode();
+            Globals = new List<Cell>();
+            Name = null;
+            SourcePath = null;
+            Code = null;
+        }
+        public string      Name;
+        public string      SourcePath;
+        public byte[]      Code;
+        public Bytecode    Bytecode;
+        public List<Cell>  Globals;
     }
 }

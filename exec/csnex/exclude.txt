@@ -1,7 +1,7 @@
 arithmetic.neon                                 # exponentiation
 assert-multiline.neon                           # output
 assignment.neon                                 # Classes
-base-test.neon                                  # CALLMF
+base-test.neon                                  # Bytecode, Constants
 bigint.neon                                     # bigint
 binary-test.neon                                # binary module
 bytes.neon                                      # ByteOutOfRangeException
@@ -13,7 +13,7 @@ concat-bytes.neon                               # bytes__concat
 datetime-test.neon                              # date module
 debug-example.neon                              # debugger$log
 decimal.neon                                    # Value was either too large or too small for a Decimal.
-encoding-base64.neon                            # modules
+encoding-base64.neon                            # binary module
 equality.neon                                   # Classes
 exception-tostring.neon                         # exceptiontype__toString
 export-function-indent.neon                     # exports
@@ -29,7 +29,7 @@ file-symlink.neon                               # file module
 file-test.neon                                  # file module
 file-writebytes.neon                            # file module
 file-writelines.neon                            # file module
-format.neon                                     # CALLMF
+format.neon                                     # math$intdiv
 function-pointer-nowhere.neon                   # PUSHFP
 function-pointer.neon                           # PUSHFP
 gc-array.neon                                   # garbage collection
@@ -39,6 +39,7 @@ gc1.neon                                        # garbage collection
 gc2.neon                                        # garbage collection
 gc3.neon                                        # garbage collection
 import-optional.neon                            # runtime$isModuleImported
+import-string.neon                              # Bytecode, Constants
 import.neon                                     # Classes
 input.neon                                      # console module
 intdiv.neon                                     # math$intdiv
@@ -53,17 +54,16 @@ literal-method.neon                             # string__toBytes
 math-test.neon                                  # math module
 mkdir.neon                                      # file module
 mmap-test.neon                                  # mmap module
-module-alias.neon                               # PUSHPMG
-module-alias2.neon                              # PUSHPMG
-module-import-name-alias.neon                   # PUSHPMG
-module-import-name-alias2.neon                  # PUSHPMG
-module-import-name.neon                         # PUSHPMG
-module-import-name2.neon                        # PUSHPMG
-module-load-order.neon                          # CALLMF
-module.neon                                     # PUSHPMG
-module2.neon                                    # PUSHPMG
+module-alias.neon                               # math module
+module-alias2.neon                              # module module
+module-import-name-alias.neon                   # math module
+module-import-name-alias2.neon                  # module module
+module-import-name.neon                         # math module
+module-import-name2.neon                        # module module
+module.neon                                     # Classes
+module2.neon                                    # module module
 modulo.neon                                     # incorrect results
-multiarray-test.neon                            # CALLMF
+multiarray-test.neon                            # EQB
 net-test-udp.neon                               # net module
 net-test.neon                                   # net module
 new-init-module.neon                            # PUSHNIL
@@ -96,11 +96,10 @@ sql-execute.neon                                # SQLite / sql module
 sql-query.neon                                  # SQLite / sql module
 sql-whenever.neon                               # SQLite / sql module
 sqlite-test.neon                                # SQLite / sql module
-string-bytes.neon                               # CALLMF
-string-format.neon                              # CALLMF
-string-test.neon                                # CALLMF
-struct-test.neon                                # struct module
-textio-random.neon                              # random module
+string-bytes.neon                               # math$intdiv
+string-format.neon                              # math$intdiv
+string-test.neon                                # string$lower
+struct-test.neon                                # runtime$moduleIsMain
 time-stopwatch.neon                             # time module
 time-test.neon                                  # time module
 tostring.neon                                   # array__toString__string

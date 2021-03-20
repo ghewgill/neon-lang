@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 
 // Fixes MSBuild warning CA1016: Microsoft.Design : Add an AssemblyVersion attribute to 'csnex.exe'.
@@ -77,17 +78,19 @@ namespace csnex
                 Console.Error.Write("Could not open Neon executable: {0}\nError: {1} - {2}.\n", gOptions.Filename, ex.HResult & 0xffff, ex.Message);
                 return 2;
             }
+            Module mod = new Module();
+            mod.Bytecode =  new Bytecode();
+            mod.SourcePath = Path.GetDirectoryName(gOptions.Filename);
 
             long nSize = fs.Length;
-            byte[] code = new byte[nSize];
-            fs.Read(code, 0, (int)nSize);
+            mod.Code = new byte[nSize];
+            fs.Read(mod.Code, 0, (int)nSize);
             fs.Close();
 
             try {
-                Bytecode bc = new Bytecode();
-                bc.LoadBytecode(gOptions.Filename, code);
+                mod.Bytecode.LoadBytecode(gOptions.Filename, mod.Code);
 
-                Executor exec = new Executor(bc);
+                Executor exec = new Executor(mod);
                 retval = exec.Run(gOptions.EnableAssertions);
             } catch (Exception ex) {
                 Console.Error.WriteLine(ex.Message);
