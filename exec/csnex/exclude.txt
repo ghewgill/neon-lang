@@ -6,8 +6,6 @@ binary-test.neon                                # binary module
 cformat-test.neon                               # CALLMF
 check-valid.neon                                # Classes
 class-empty.neon                                # Classes
-comparison.neon                                 # NES
-comparison2.neon                                # DUPX1
 complex-test.neon                               # CALLMF
 concat-bytes.neon                               # bytes__concat
 datetime-test.neon                              # date module
@@ -16,9 +14,9 @@ decimal.neon                                    # Value was either too large or 
 encoding-base64.neon                            # modules
 equality.neon                                   # Classes
 exception-tostring.neon                         # exceptiontype__toString
-export-function-indent.neon
-export-inline.neon
-export.neon
+export-function-indent.neon                     # exports
+export-inline.neon                              # exports
+export.neon                                     # exports
 file-exists.neon                                # file module
 file-filecopied.neon                            # file module
 file-filecopied1.neon                           # file module
@@ -39,15 +37,15 @@ gc1.neon                                        # garbage collection
 gc2.neon                                        # garbage collection
 gc3.neon                                        # garbage collection
 import-optional.neon                            # runtime$isModuleImported
-import.neon
+import.neon                                     # Classes
 input.neon                                      # console module
 intdiv.neon                                     # math$intdiv
-interface-multiple.neon
-interface-parameter-export.neon
-interface-parameter-export2.neon
+interface-multiple.neon                         # PUSHPMG
+interface-parameter-export.neon                 # exports
+interface-parameter-export2.neon                # exports
 interface-parameter-import.neon                 # PUSHNIL
-interface-parameter-import2.neon
-interface.neon
+interface-parameter-import2.neon                # types
+interface.neon                                  # PUSHNIL
 json-test.neon                                  # object__makeNull
 literal-method.neon                             # string__toBytes
 math-test.neon                                  # math module
@@ -74,17 +72,17 @@ object-operator.neon                            # EQB, NEB
 object-record.neon                              # EQA
 opcode-coverage.neon
 parameters.neon                                 # STOREP
-pointer-method.neon
-pointer-nil.neon
-pointer-print.neon
-pointer-valid.neon
-pointer.neon
-pointer2.neon
-pointer3.neon
-pointer4.neon
-pointer5.neon
-pointer7.neon
-pointer8.neon
+pointer-method.neon                             # Classes
+pointer-nil.neon                                # Classes
+pointer-print.neon                              # Classes
+pointer-valid.neon                              # Classes
+pointer.neon                                    # PUSHCI
+pointer2.neon                                   # PUSHCI
+pointer3.neon                                   # PUSHCI
+pointer4.neon                                   # PUSHCI
+pointer5.neon                                   # PUSHCI
+pointer7.neon                                   # PUSHCI
+pointer8.neon                                   # PUSHCI
 posix-fork.neon                                 # posix module
 record-empty.neon                               # INDEXAN
 record-private.neon                             # STOREP

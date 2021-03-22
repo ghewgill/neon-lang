@@ -482,7 +482,10 @@ namespace csnex
 
         void NES()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(new Cell(string.Compare(a, b) != 0));
         }
 
         void LTS()
@@ -503,12 +506,18 @@ namespace csnex
 
         void LES()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(new Cell(string.Compare(a, b) <= 0));
         }
 
         void GES()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(new Cell(string.Compare(a, b) >= 0));
         }
 
         void EQY()
@@ -570,7 +579,11 @@ namespace csnex
 
         void NEA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            Cell r = new Cell(!a.Array.Compare(b.Array));
+            stack.Push(r);
         }
 
         void EQD()
@@ -881,7 +894,12 @@ namespace csnex
 
         void DUPX1()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell a = stack.Pop();
+            Cell b = stack.Pop();
+            stack.Push(a);
+            stack.Push(b);
+            stack.Push(Cell.FromCell(a));
         }
 
         void DROP()
