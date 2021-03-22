@@ -19,6 +19,7 @@ set(JNEX
     src/org/neon_lang/jnex/NeObjectNumber.java
     src/org/neon_lang/jnex/NeObjectString.java
     src/org/neon_lang/jnex/NeonException.java
+    src/org/neon_lang/jnex/Util.java
 )
 string(REPLACE ".java" ".class" JNEX_CLASSES "${JNEX}")
 foreach (java ${JNEX})

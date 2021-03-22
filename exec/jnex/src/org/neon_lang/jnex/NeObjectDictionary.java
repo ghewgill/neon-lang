@@ -34,9 +34,8 @@ class NeObjectDictionary implements NeObject {
             } else {
                 r.append(", ");
             }
-            r.append("\"");
-            r.append(x.getKey());
-            r.append("\": ");
+            r.append(Util.quoted(x.getKey()));
+            r.append(": ");
             r.append(x.getValue() != null ? x.getValue().toLiteralString() : "null");
         }
         r.append("}");

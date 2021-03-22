@@ -153,6 +153,7 @@ textio-test.neon           # module textio
 time-stopwatch.neon        # module time
 time-test.neon             # module time
 tostring.neon              # keyword enum
+tostring-quotes.neon
 try-expression.neon        # TryExpression
 unicode-char.neon          # StringReferenceIndexExpression
 unicode-length.neon        # StringReferenceIndexExpression

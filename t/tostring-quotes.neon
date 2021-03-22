@@ -1,0 +1,43 @@
+CONSTANT q := "foo\"bar"
+print(q)
+--= foo"bar
+
+VAR s: String := q
+print(s)
+--= foo"bar
+
+VAR os: Object := q
+print(os)
+--= foo"bar
+
+VAR a: Array<String> := [q]
+print(a.toString())
+--= ["foo\"bar"]
+print(a)
+--= ["foo\"bar"]
+
+VAR ao: Array<Object> := [q]
+print(ao.toString())
+--= ["foo\"bar"]
+print(ao)
+--= ["foo\"bar"]
+
+VAR oao: Object := [q]
+print(oao)
+--= ["foo\"bar"]
+
+VAR d: Dictionary<String> := {q: q}
+print(d.toString())
+--= {"foo\"bar": "foo\"bar"}
+print(d)
+--= {"foo\"bar": "foo\"bar"}
+
+VAR do: Dictionary<Object> := {q: q}
+print(do.toString())
+--= {"foo\"bar": "foo\"bar"}
+print(do)
+--= {"foo\"bar": "foo\"bar"}
+
+VAR odo: Object := {q: q}
+print(odo)
+--= {"foo\"bar": "foo\"bar"}

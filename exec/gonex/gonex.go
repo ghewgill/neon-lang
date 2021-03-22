@@ -282,7 +282,7 @@ func (obj objectString) subscript(index object) (object, error) {
 }
 
 func (obj objectString) toLiteralString() string {
-	return "\"" + obj.str + "\""
+	return quoted(obj.str)
 }
 
 func (obj objectString) toString() string {
@@ -455,7 +455,7 @@ func (obj objectDictionary) toString() string {
 		} else {
 			r += ", "
 		}
-		r += "\"" + k + "\": "
+		r += quoted(k) + ": "
 		if obj.dict[k] != nil {
 			r += obj.dict[k].toLiteralString()
 		} else {
@@ -2289,6 +2289,24 @@ func (self *executor) op_callp() {
 		r := self.pop().ref
 		d := r.load().dict
 		delete(d, key)
+	case "dictionary__toString__object":
+		d := self.pop().dict
+		r := "{"
+		keys := []string{}
+		for k := range d {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for i, k := range keys {
+			if i > 0 {
+				r += ", "
+			}
+			r += quoted(k)
+			r += ": "
+			r += d[k].obj.toLiteralString()
+		}
+		r += "}"
+		self.push(make_cell_str(r))
 	case "dictionary__toString__string":
 		d := self.pop().dict
 		r := "{"

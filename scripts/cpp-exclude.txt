@@ -343,6 +343,7 @@ textio-test.neon
 time-stopwatch.neon
 time-test.neon
 tostring.neon
+tostring-quotes.neon
 try-expression.neon
 type-compat.neon
 type_mismatch.neon

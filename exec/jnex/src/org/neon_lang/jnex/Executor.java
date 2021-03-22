@@ -61,6 +61,7 @@ class Executor {
         predefined.put("bytes__toString", this::bytes__toString);
         predefined.put("dictionary__keys", this::dictionary__keys);
         predefined.put("dictionary__remove", this::dictionary__remove);
+        predefined.put("dictionary__toString__object", this::dictionary__toString__object);
         predefined.put("dictionary__toString__string", this::dictionary__toString__string);
         predefined.put("exceptiontype__toString", this::exceptiontype__toString);
         predefined.put("num", this::num);
@@ -1422,7 +1423,7 @@ class Executor {
             } else {
                 r.append(", ");
             }
-            r.append('"' + x.getString() + '"');
+            r.append(Util.quoted(x.getString()));
         }
         r.append("]");
         stack.addFirst(new Cell(r.toString()));
@@ -1439,7 +1440,7 @@ class Executor {
             } else {
                 r.append(", ");
             }
-            r.append(x.getObject().toString());
+            r.append(x.getObject().toLiteralString());
         }
         r.append("]");
         stack.addFirst(new Cell(r.toString()));
@@ -1551,6 +1552,25 @@ class Executor {
         d.remove(key);
     }
 
+    private void dictionary__toString__object()
+    {
+        Map<String, Cell> d = stack.removeFirst().getDictionary();
+        StringBuilder r = new StringBuilder("{");
+        boolean first = true;
+        for (String k: d.keySet()) {
+            if (first) {
+                first = false;
+            } else {
+                r.append(", ");
+            }
+            r.append(Util.quoted(k));
+            r.append(": ");
+            r.append(d.get(k).getObject().toLiteralString());
+        }
+        r.append("}");
+        stack.addFirst(new Cell(r.toString()));
+    }
+
     private void dictionary__toString__string()
     {
         Map<String, Cell> d = stack.removeFirst().getDictionary();
@@ -1562,9 +1582,9 @@ class Executor {
             } else {
                 r.append(", ");
             }
-            r.append('"' + k + '"');
+            r.append(Util.quoted(k));
             r.append(": ");
-            r.append('"' + d.get(k).getString() + '"');
+            r.append(Util.quoted(d.get(k).getString()));
         }
         r.append("}");
         stack.addFirst(new Cell(r.toString()));

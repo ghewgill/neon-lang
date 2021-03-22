@@ -205,7 +205,7 @@ utf8string array__toString__object(std::vector<std::shared_ptr<Object>> a)
         if (r.length() > 1) {
             r.append(", ");
         }
-        r.append(x->toString());
+        r.append(x->toLiteralString());
     }
     r.append("]");
     return r;
@@ -275,7 +275,7 @@ utf8string dictionary__toString__object(std::map<utf8string, std::shared_ptr<Obj
         }
         r.append(rtl::ne_string::quoted(e.first));
         r.append(": ");
-        r.append(e.second->toString());
+        r.append(e.second->toLiteralString());
     }
     r.append("}");
     return r;

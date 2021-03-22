@@ -51,8 +51,7 @@ class ObjectString: public Object {
 public:
     explicit ObjectString(const utf8string &s): s(s) {}
     virtual bool getString(utf8string &r) const override { r = s; return true; }
-    // TODO: Use quoting function to quote the value properly.
-    virtual utf8string toLiteralString() const override { return "\"" + s + "\""; }
+    virtual utf8string toLiteralString() const override;
     virtual utf8string toString() const override { return s; }
 private:
     const utf8string s;

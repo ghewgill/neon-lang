@@ -1526,11 +1526,11 @@ def neon_array__toString__number(self):
 
 def neon_array__toString__object(self):
     a = self.stack.pop()
-    self.stack.append("[{}]".format(", ".join(str(x.value) for x in a)))
+    self.stack.append("[{}]".format(", ".join(literal(x.value) for x in a)))
 
 def neon_array__toString__string(self):
     a = self.stack.pop()
-    self.stack.append("[{}]".format(", ".join(quoted(x.value) for x in a)))
+    self.stack.append("[{}]".format(", ".join(literal(x.value) for x in a)))
 
 def neon_binary_and32(self):
     b = int(self.stack.pop())
@@ -1971,9 +1971,13 @@ def neon_dictionary__remove(self):
     if key in d:
         del d[key]
 
+def neon_dictionary__toString__object(self):
+    d = self.stack.pop()
+    self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(str(v.value))) for k, v in sorted(d.items()))))
+
 def neon_dictionary__toString__string(self):
     d = self.stack.pop()
-    self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), quoted(v.value)) for k, v in sorted(d.items()))))
+    self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(v.value)) for k, v in sorted(d.items()))))
 
 def neon_exceptiontype__toString(self):
     ei = self.stack.pop()

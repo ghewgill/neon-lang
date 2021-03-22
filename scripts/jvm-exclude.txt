@@ -92,6 +92,7 @@ textio-random.neon         # PredefinedVariable textio$stdout
 textio-seek.neon           # PredefinedVariable textio$stdout
 textio-test.neon           # PredefinedVariable textio$stdout
 tostring.neon              # enum tostring
+tostring-quotes.neon
 unicode-string.neon        # UTF-8
 value-copy.neon            # value copy
 win32-test.neon            # win32

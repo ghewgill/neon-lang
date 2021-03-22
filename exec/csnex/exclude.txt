@@ -101,6 +101,7 @@ textio-random.neon                              # random module
 time-stopwatch.neon                             # time module
 time-test.neon                                  # time module
 tostring.neon                                   # array__toString__string
+tostring-quotes.neon                            # object__makeArray
 valid-pointer.neon                              # Classes
 value-index.neon                                # INDEXDV
 varargs-functionpointer.neon                    # PUSHFP
