@@ -236,6 +236,51 @@ void dictionary__remove(Cell *self, const utf8string &key)
     d.erase(key);
 }
 
+utf8string dictionary__toString__number(const std::map<utf8string, Number> &d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(number_to_string(e.second));
+    }
+    r.append("}");
+    return r;
+}
+
+utf8string dictionary__toString__string(const std::map<utf8string, utf8string> &d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(rtl::ne_string::quoted(e.second));
+    }
+    r.append("}");
+    return r;
+}
+
+utf8string dictionary__toString__object(std::map<utf8string, std::shared_ptr<Object>> d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(e.second->toString());
+    }
+    r.append("}");
+    return r;
+}
+
 utf8string number__toString(Number self)
 {
     return utf8string(number_to_string(self));

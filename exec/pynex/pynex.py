@@ -1971,6 +1971,10 @@ def neon_dictionary__remove(self):
     if key in d:
         del d[key]
 
+def neon_dictionary__toString__string(self):
+    d = self.stack.pop()
+    self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), quoted(v.value)) for k, v in sorted(d.items()))))
+
 def neon_exceptiontype__toString(self):
     ei = self.stack.pop()
     self.stack.append("<ExceptionType:{},{},{}>".format(ei[0].value, ei[1].value, ei[2].value))

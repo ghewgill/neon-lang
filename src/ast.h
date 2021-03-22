@@ -594,6 +594,7 @@ public:
     virtual std::string text() const override { return "TypeDictionary(" + (elementtype != nullptr ? elementtype->text() : "any") + ")"; }
 };
 
+extern TypeDictionary *TYPE_DICTIONARY_NUMBER;
 extern TypeDictionary *TYPE_DICTIONARY_STRING;
 extern TypeDictionary *TYPE_DICTIONARY_OBJECT;
 

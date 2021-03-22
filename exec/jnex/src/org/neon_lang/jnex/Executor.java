@@ -61,6 +61,7 @@ class Executor {
         predefined.put("bytes__toString", this::bytes__toString);
         predefined.put("dictionary__keys", this::dictionary__keys);
         predefined.put("dictionary__remove", this::dictionary__remove);
+        predefined.put("dictionary__toString__string", this::dictionary__toString__string);
         predefined.put("exceptiontype__toString", this::exceptiontype__toString);
         predefined.put("num", this::num);
         predefined.put("number__toString", this::number__toString);
@@ -1548,6 +1549,25 @@ class Executor {
         String key = stack.removeFirst().getString();
         Map<String, Cell> d = stack.removeFirst().getAddress().getDictionary();
         d.remove(key);
+    }
+
+    private void dictionary__toString__string()
+    {
+        Map<String, Cell> d = stack.removeFirst().getDictionary();
+        StringBuilder r = new StringBuilder("{");
+        boolean first = true;
+        for (String k: d.keySet()) {
+            if (first) {
+                first = false;
+            } else {
+                r.append(", ");
+            }
+            r.append('"' + k + '"');
+            r.append(": ");
+            r.append('"' + d.get(k).getString() + '"');
+        }
+        r.append("}");
+        stack.addFirst(new Cell(r.toString()));
     }
 
     private void exceptiontype__toString()

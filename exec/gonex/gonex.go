@@ -2289,6 +2289,24 @@ func (self *executor) op_callp() {
 		r := self.pop().ref
 		d := r.load().dict
 		delete(d, key)
+	case "dictionary__toString__string":
+		d := self.pop().dict
+		r := "{"
+		keys := []string{}
+		for k := range d {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for i, k := range keys {
+			if i > 0 {
+				r += ", "
+			}
+			r += quoted(k)
+			r += ": "
+			r += quoted(d[k].str)
+		}
+		r += "}"
+		self.push(make_cell_str(r))
 	case "exceptiontype__toString":
 		et := self.pop().array
 		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v>", et[0].str, et[1].obj.toString(), et[2].num)))

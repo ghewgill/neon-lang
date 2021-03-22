@@ -346,6 +346,7 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("dictionary__keys",          dictionary__keys),
     PDFUNC("dictionary__remove",        dictionary__remove),
+    PDFUNC("dictionary__toString__string", dictionary__toString__string),
 
     PDFUNC("exceptiontype__toString",   exceptiontype__toString),
 
@@ -1052,6 +1053,13 @@ void dictionary__remove(TExecutor *exec)
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
     dictionary_removeDictionaryEntry(addr->dictionary, key);
     string_freeString(key);
+}
+
+void dictionary__toString__string(TExecutor *exec)
+{
+    TString *s = cell_toString(top(exec->stack)); pop(exec->stack);
+    push(exec->stack, cell_fromString(s));
+    string_freeString(s);
 }
 
 

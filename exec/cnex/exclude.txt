@@ -11,6 +11,7 @@ gc-two-pointers.neon       # class
 math-test.neon             # math.powmod()
 string-bytes.neon          # Cell Type assertion
 string-escape.neon         # utf8
+tostring.neon              # dictionary__toString__string
 unicode-char.neon          # unicode
 unicode-length.neon        # unicode
 win32-test.neon            # CALLE

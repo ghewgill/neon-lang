@@ -32,6 +32,7 @@ AstFromNeon = {
     "Array<Object>": ("TYPE_ARRAY_OBJECT", VALUE),
     "Dictionary": ("TYPE_DICTIONARY", VALUE),
     "INOUT Dictionary": ("TYPE_DICTIONARY", REF),
+    "Dictionary<Number>": ("TYPE_DICTIONARY_NUMBER", VALUE),
     "Dictionary<String>": ("TYPE_DICTIONARY_STRING", VALUE),
     "Dictionary<Object>": ("TYPE_DICTIONARY_OBJECT", VALUE),
 }
@@ -65,6 +66,7 @@ CppFromAstParam = {
     ("TYPE_ARRAY_OBJECT", VALUE): "std::vector<std::shared_ptr<Object>>",
     ("TYPE_DICTIONARY", VALUE): "Cell",
     ("TYPE_DICTIONARY", REF): "Cell *",
+    ("TYPE_DICTIONARY_NUMBER", VALUE): "std::map<utf8string, Number>",
     ("TYPE_DICTIONARY_STRING", VALUE): "std::map<utf8string, utf8string>",
     ("TYPE_DICTIONARY_OBJECT", VALUE): "std::map<utf8string, std::shared_ptr<Object>>",
 }
@@ -120,6 +122,7 @@ CppFromAstArg = {
     ("TYPE_ARRAY_OBJECT", VALUE): "std::vector<std::shared_ptr<Object>>",
     ("TYPE_DICTIONARY", VALUE): "Cell &",
     ("TYPE_DICTIONARY", REF): "Cell *",
+    ("TYPE_DICTIONARY_NUMBER", VALUE): "const std::map<utf8string, Number> &",
     ("TYPE_DICTIONARY_STRING", VALUE): "const std::map<utf8string, utf8string> &",
     ("TYPE_DICTIONARY_OBJECT", VALUE): "std::map<utf8string, std::shared_ptr<Object>>",
 }
@@ -149,6 +152,7 @@ JvmFromAst = {
     ("TYPE_ARRAY_OBJECT", VALUE): "Lneon/type/Array;",
     ("TYPE_DICTIONARY", VALUE): "Ljava/util/Map;",
     ("TYPE_DICTIONARY", REF): "Ljava/util/Map;",
+    ("TYPE_DICTIONARY_NUMBER", VALUE): "Ljava/util/Map;",
     ("TYPE_DICTIONARY_STRING", VALUE): "Ljava/util/Map;",
     ("TYPE_DICTIONARY_OBJECT", VALUE): "Ljava/util/Map;",
 }
@@ -179,6 +183,7 @@ ArrayElementField = {
     ("TYPE_ARRAY_STRING", VALUE): "string()",
     ("TYPE_ARRAY_STRING", REF): "string()",
     ("TYPE_ARRAY_OBJECT", VALUE): "object()",
+    ("TYPE_DICTIONARY_NUMBER", VALUE): "number()",
     ("TYPE_DICTIONARY_STRING", VALUE): "string()",
     ("TYPE_DICTIONARY_OBJECT", VALUE): "object()",
 }

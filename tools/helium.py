@@ -707,6 +707,7 @@ class DotExpression:
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
             if self.field == "remove": return lambda env, self, k: neon_dictionary_remove(obj, k)
+            if self.field == "toString": return lambda env, self: "{{{}}}".format(", ".join("{}: {}".format(neon_string_quoted(env, k), neon_string_quoted(env, v) if isinstance(v, str) else str(v)) for k, v in sorted(obj.items())))
             return obj[self.field] # Support a.b syntax where a is an object.
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
