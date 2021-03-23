@@ -33,6 +33,10 @@ IF p ∨ q THEN
 END IF
 --= 6
 
+LET x ≔ "5"
+print(x)
+--= 5
+
 print("\(a − b)")
 --= -3
 

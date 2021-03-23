@@ -258,6 +258,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSIF c = "\u2260" /*'≠'*/ THEN t.type := Type.notequal INC i
         ELSIF c = "\u2264" /*'≤'*/ THEN t.type := Type.lesseq INC i
         ELSIF c = "\u2265" /*'≥'*/ THEN t.type := Type.greatereq INC i
+        ELSIF c = "\u2254" /*'≔'*/ THEN t.type := Type.assign INC i
         ELSIF c = "\u00ac" /*'¬'*/ THEN t.type := Type.not INC i
         ELSIF c = "\u2227" /*'∧'*/ THEN t.type := Type.and INC i
         ELSIF c = "\u2228" /*'∨'*/ THEN t.type := Type.or INC i
