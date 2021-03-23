@@ -1,6 +1,6 @@
 -- Punctuation
 ( ) [ ] { } + * / ^ & = , . - < > :
--- TODO: unicode puncutation
+− × ∕ ÷ ≠ ≤ ≥ ≔ ¬ ∧ ∨ ∈
 
 -- Digraphs and trigraphs
 -> <> <= >= := ...

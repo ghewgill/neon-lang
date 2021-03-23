@@ -761,7 +761,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             }
             tokens.push_back(t);
         }
-        column += (i - startindex);
+        column += utf8::distance(startindex, i);
     }
     return tokens;
 }
