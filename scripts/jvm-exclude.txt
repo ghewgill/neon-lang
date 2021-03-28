@@ -53,6 +53,7 @@ net-test.neon              # net$Socket
 net-test-udp.neon          # net$Socket
 new-init-module.neon       # NoClassDefFoundError
 number-ceil.neon           # module math
+number-exception.neon
 object.neon                # object
 object-isa.neon            # object
 object-isa-case.neon       # object

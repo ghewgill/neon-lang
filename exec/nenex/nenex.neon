@@ -741,7 +741,7 @@ FUNCTION f_divn(INOUT self: Executor)
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
     CHECK b <> 0 ELSE
-        self.raise_literal("DivideByZeroException", "")
+        self.raise_literal("NumberException.DivideByZero", "")
         EXIT FUNCTION
     END CHECK
     self.stack.append(makeValueNumber(a / b))

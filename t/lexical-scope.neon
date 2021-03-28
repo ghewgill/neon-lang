@@ -39,7 +39,7 @@ UNTIL x = 0
 TRY
     VAR x: Number := a
     _ := x
-TRAP DivideByZeroException DO
+TRAP NumberException.DivideByZero DO
     VAR x: Number := a
     _ := x
 END TRY

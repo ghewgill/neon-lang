@@ -383,7 +383,7 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("DivideByZeroException", "");
+                Raise("NumberException.DivideByZero", "");
                 return;
             }
             stack.Push(new Cell(Number.Divide(a, b)));
@@ -395,7 +395,7 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("DivideByZeroException", "");
+                Raise("NumberException.DivideByZero", "");
                 return;
             }
             stack.Push(new Cell(Number.Modulo(a, b)));
@@ -407,7 +407,7 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("DivideByZeroException", "");
+                Raise("NumberException.DivideByZero", "");
                 return;
             }
             stack.Push(new Cell(Number.Pow(a, b)));

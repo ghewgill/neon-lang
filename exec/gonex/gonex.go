@@ -1515,7 +1515,7 @@ func (self *executor) op_divn() {
 	b := self.pop().num
 	a := self.pop().num
 	if b == 0 {
-		self.raise_literal("DivideByZeroException", objectString{""})
+		self.raise_literal("NumberException.DivideByZero", objectString{""})
 		return
 	}
 	self.push(make_cell_num(a / b))

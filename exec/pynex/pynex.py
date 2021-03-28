@@ -763,7 +763,7 @@ class Executor:
         b = self.stack.pop()
         a = self.stack.pop()
         if b == 0:
-            self.raise_literal("DivideByZeroException", "")
+            self.raise_literal("NumberException.DivideByZero", "")
             return
         if isinstance(a, int) and isinstance(b, int) and a % b == 0:
             self.stack.append(a // b)
@@ -775,7 +775,7 @@ class Executor:
         b = self.stack.pop()
         a = self.stack.pop()
         if b == 0:
-            self.raise_literal("DivideByZeroException", "")
+            self.raise_literal("NumberException.DivideByZero", "")
             return
         m = abs(b)
         if is_signed(a):

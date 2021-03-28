@@ -86,6 +86,7 @@ net-test.neon               # net$tcpSocket
 net-test-udp.neon           # net$udpSocket
 new-init-module.neon        # module
 number-ceil.neon            # math$ceil
+number-exception.neon
 object.neon                 # number formatting
 object-record.neon          # object__makeString
 opcode-coverage.neon        # runtime$moduleIsMain

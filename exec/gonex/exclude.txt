@@ -23,6 +23,7 @@ modulo.neon                # modulo
 net-test.neon              # net$tcpSocket
 net-test-udp.neon          # net$udpSocket
 number-ceil.neon           # number formatting
+number-exception.neon
 opcode-coverage.neon       # segfault
 os-test.neon               # precision
 posix-fork.neon            # posix$fork

@@ -519,7 +519,7 @@ class Executor {
         BigDecimal b = stack.removeFirst().getNumber();
         BigDecimal a = stack.removeFirst().getNumber();
         if (b.signum() == 0) {
-            raiseLiteral("DivideByZeroException");
+            raiseLiteral("NumberException.DivideByZero");
             return;
         }
         stack.addFirst(new Cell(a.divide(b)));

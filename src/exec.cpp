@@ -37,6 +37,8 @@
 
 std::set<std::string> g_ExtensionModules;
 
+void executor_raise_exception(size_t ip, const utf8string &name, const utf8string &info);
+
 namespace {
 
 std::vector<std::string> split(const std::string &s, char d)
@@ -65,6 +67,26 @@ std::string just_path(const std::string &name)
     }
     return name.substr(0, i+1);
 }
+
+// This class is specific to now the BID library notifies its exceptions.
+class BidExceptionHandler {
+    size_t start_ip;
+public:
+    BidExceptionHandler(size_t start_ip): start_ip(start_ip) {
+        _IDEC_glbflags = 0;
+    }
+    void check_and_raise(const char *what) {
+        if (_IDEC_glbflags & BID_OVERFLOW_EXCEPTION) {
+            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_Overflow.name), utf8string(what));
+        }
+        if (_IDEC_glbflags & BID_ZERO_DIVIDE_EXCEPTION) {
+            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_DivideByZero.name), utf8string(what));
+        }
+        if (_IDEC_glbflags & BID_INVALID_EXCEPTION) {
+            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_Invalid.name), utf8string(what));
+        }
+    }
+};
 
 } // namespace
 
@@ -833,65 +855,71 @@ void Executor::exec_STOREV()
 
 void Executor::exec_NEGN()
 {
+    BidExceptionHandler handler(ip);
     ip++;
     Number x = stack.top().number(); stack.pop();
     stack.push(Cell(number_negate(x)));
+    handler.check_and_raise("negate");
 }
 
 void Executor::exec_ADDN()
 {
+    BidExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_add(a, b)));
+    handler.check_and_raise("add");
 }
 
 void Executor::exec_SUBN()
 {
+    BidExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_subtract(a, b)));
+    handler.check_and_raise("subtract");
 }
 
 void Executor::exec_MULN()
 {
+    BidExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_multiply(a, b)));
+    handler.check_and_raise("multiply");
 }
 
 void Executor::exec_DIVN()
 {
+    BidExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
-    if (number_is_zero(b)) {
-        raise(rtl::ne_global::Exception_DivideByZeroException, std::make_shared<ObjectString>(utf8string("")));
-        return;
-    }
     stack.push(Cell(number_divide(a, b)));
+    handler.check_and_raise("divide");
 }
 
 void Executor::exec_MODN()
 {
+    BidExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
-    if (number_is_zero(b)) {
-        raise(rtl::ne_global::Exception_DivideByZeroException, std::make_shared<ObjectString>(utf8string("")));
-        return;
-    }
     stack.push(Cell(number_modulo(a, b)));
+    handler.check_and_raise("modulo");
 }
 
 void Executor::exec_EXPN()
 {
+    BidExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_pow(a, b)));
+    handler.check_and_raise("exponentiation");
 }
 
 void Executor::exec_EQB()
@@ -1303,7 +1331,9 @@ void Executor::exec_CALLP()
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     std::string func = module->object.strtable.at(val);
     try {
+        BidExceptionHandler handler(start_ip);
         rtl_call(stack, func, module->rtl_call_tokens[val]);
+        handler.check_and_raise(func.c_str());
     } catch (RtlException &x) {
         ip = start_ip;
         raise(x);
@@ -2293,6 +2323,12 @@ void executor_set_garbage_collection_interval(size_t count)
 void executor_set_recursion_limit(size_t depth)
 {
     g_executor->set_recursion_limit(depth);
+}
+
+void executor_raise_exception(size_t ip, const utf8string &name, const utf8string &info)
+{
+    g_executor->ip = ip;
+    g_executor->raise_literal(name, std::make_shared<ObjectString>(info));
 }
 
 int exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals)

@@ -207,9 +207,6 @@ Number sinh(Number x)
 
 Number sqrt(Number x)
 {
-    if (number_is_negative(x)) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
-    }
     return number_sqrt(x);
 }
 

@@ -752,7 +752,7 @@ void exec_DIVN(TExecutor *self)
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
    if (number_is_zero(b)) {
-        self->rtl_raise(self, "DivideByZeroException", "");
+        self->rtl_raise(self, "NumberException.DivideByZero", "");
         return;
     }
     push(self->stack, cell_fromNumber(number_divide(a, b)));
@@ -764,7 +764,7 @@ void exec_MODN(TExecutor *self)
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
    if (number_is_zero(b)) {
-        self->rtl_raise(self, "DivideByZeroException", "");
+        self->rtl_raise(self, "NumberException.DivideByZero", "");
         return;
     }
     push(self->stack, cell_fromNumber(number_modulo(a, b)));

@@ -516,14 +516,15 @@ with open("gen/enums.inc", "w") as inc:
 with open("gen/exceptions.inc", "w") as inc:
     print("struct ExceptionName {", file=inc)
     print("    const char *name;", file=inc)
+    print("    const char *sub[10];", file=inc)
     print("};", file=inc)
     print("namespace rtl {", file=inc)
     for prefix, name in exceptions:
-        print("namespace ne_{} {{ static const ExceptionName Exception_{} = {{\"{}\"}}; }}".format(prefix[:-1], name.replace(".", "_"), name), file=inc)
+        print("namespace ne_{} {{ static const ExceptionName Exception_{} = {{\"{}\", {{{}NULL}}}}; }}".format(prefix[:-1], name.replace(".", "_"), name, "".join("\"{}\", ".format(e[1].split(".")[-1]) for e in exceptions if e[1].startswith(name+"."))), file=inc)
     print("", file=inc)
     print("static const ExceptionName ExceptionNames[] = {", file=inc)
     for prefix, name in exceptions:
         if prefix == "global$":
-            print("    ne_global::Exception_{},".format(name), file=inc)
+            print("    ne_global::Exception_{},".format(name.replace(".", "_")), file=inc)
     print("};", file=inc)
     print("}", file=inc)

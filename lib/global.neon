@@ -78,11 +78,29 @@ EXCEPTION BytesIndexException
  */
 EXCEPTION DictionaryIndexException
 
-/*  Exception: DivideByZeroException
+/*  Exception: NumberException
  *
- *  Divide by zero.
+ *  Number exception.
  */
-EXCEPTION DivideByZeroException
+EXCEPTION NumberException
+
+/*  Exception: NumberException.DivideByZero
+ *
+ *  Divide by zero error.
+ */
+EXCEPTION NumberException.DivideByZero
+
+/*  Exception: NumberException.Invalid
+ *
+ *  Invalid range.
+ */
+EXCEPTION NumberException.Invalid
+
+/*  Exception: NumberException.Overflow
+ *
+ *  Floating point overflow.
+ */
+EXCEPTION NumberException.Overflow
 
 /*  Exception: DynamicConversionException
  *

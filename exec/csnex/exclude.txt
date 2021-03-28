@@ -67,6 +67,7 @@ net-test.neon                                   # net module
 new-init-module.neon                            # PUSHNIL
 new-init.neon                                   # Classes
 number-ceil.neon                                # math module
+number-exception.neon
 object-null2.neon                               # PUSHNIL
 object-operator.neon                            # EQB, NEB
 object-record.neon                              # EQA

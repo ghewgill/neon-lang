@@ -1321,8 +1321,12 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         TYPE_OBJECT->methods["toString"] = new PredefinedFunction("object__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 
-    for (auto e: rtl::ExceptionNames) {
-        scope->addName(Token(IDENTIFIER, e.name), e.name, new Exception(Token(), e.name));
+    for (auto x: rtl::ExceptionNames) {
+        Exception *e = new Exception(Token(), x.name);
+        for (int i = 0; x.sub[i] != nullptr; i++) {
+            e->subexceptions[x.sub[i]] = new Exception(Token(), std::string(x.name) + "." + x.sub[i]);
+        }
+        scope->addName(Token(IDENTIFIER, x.name), x.name, e);
     }
 
     {
