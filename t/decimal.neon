@@ -87,7 +87,3 @@ print(str(1.2345e-40))
 print(str(-1.2345e-40))
 --= 1.2345e-40
 --= -1.2345e-40
-
--- Removed because math.sqrt() no longer returns NaN, but raises an exception
---print(str(math.sqrt(-1)))
-----= +NaN
