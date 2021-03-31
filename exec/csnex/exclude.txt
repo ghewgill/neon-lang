@@ -1,3 +1,4 @@
+arithmetic.neon                                 # exponentiation
 assert-multiline.neon                           # output
 assignment.neon                                 # Classes
 base-test.neon                                  # CALLMF
