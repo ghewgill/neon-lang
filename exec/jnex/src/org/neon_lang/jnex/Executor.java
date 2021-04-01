@@ -674,7 +674,7 @@ class Executor {
         ip++;
         byte[] b = stack.removeFirst().getBytes();
         byte[] a = stack.removeFirst().getBytes();
-        stack.addFirst(new Cell(a.equals(b)));
+        stack.addFirst(new Cell(Arrays.equals(a, b)));
     }
 
     private void doNEY()
@@ -682,7 +682,7 @@ class Executor {
         ip++;
         byte[] b = stack.removeFirst().getBytes();
         byte[] a = stack.removeFirst().getBytes();
-        stack.addFirst(new Cell(!a.equals(b)));
+        stack.addFirst(new Cell(!Arrays.equals(a, b)));
     }
 
     private void doLTY()

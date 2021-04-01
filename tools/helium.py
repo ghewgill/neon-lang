@@ -156,6 +156,8 @@ EXPECT = Keyword("EXPECT")
 class bytes:
     def __init__(self, a):
         self.a = a
+    def __eq__(self, rhs):
+        return self.a == rhs.a
     def __getitem__(self, key):
         return bytes(self.a.__getitem__(key))
     def __str__(self):
