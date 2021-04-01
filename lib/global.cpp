@@ -163,9 +163,9 @@ std::vector<unsigned char> array__toBytes__number(const std::vector<Number> &a)
     std::vector<unsigned char> r;
     r.reserve(a.size());
     for (auto x: a) {
-        uint64_t b = number_to_uint64(x);
-        if (b >= 256) {
-            throw RtlException(Exception_ByteOutOfRangeException, utf8string(std::to_string(b)));
+        int64_t b = number_to_sint64(x);
+        if (b < 0 || b >= 256) {
+            throw RtlException(Exception_ByteOutOfRangeException, utf8string(number_to_string(x)));
         }
         r.push_back(static_cast<unsigned char>(b));
     }

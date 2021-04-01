@@ -2037,6 +2037,9 @@ func (self *executor) op_callp() {
 		a := self.pop().array
 		b := make([]byte, len(a))
 		for i, x := range a {
+			if x.num < 0 || x.num >= 256 {
+				self.raise_literal("ByteOutOfRangeException", objectString{fmt.Sprintf("%g", x.num)})
+			}
 			b[i] = byte(x.num)
 		}
 		self.push(make_cell_bytes(b))

@@ -8,3 +8,9 @@ print("\(a.size())")
 --= 5
 print("\(a[0]), \(a[4])")
 --= 1, 4
+
+LET n1: Array<Number> := [-1]
+TESTCASE n1.toBytes() EXPECT ByteOutOfRangeException
+
+LET n2: Array<Number> := [256]
+TESTCASE n2.toBytes() EXPECT ByteOutOfRangeException

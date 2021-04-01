@@ -702,7 +702,7 @@ class DotExpression:
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
             if self.field == "reversed": return lambda env, self: neon_array_reversed(obj)
             if self.field == "size": return lambda env, self: len(obj)
-            if self.field == "toBytes": return lambda env, self: bytes(obj)
+            if self.field == "toBytes": return lambda env, self: neon_array_toBytes(obj)
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
@@ -2767,6 +2767,12 @@ def neon_array_resize(a, n):
 
 def neon_array_reversed(a):
     return list(reversed(a))
+
+def neon_array_toBytes(a):
+    for x in a:
+        if not (0 <= x < 256):
+            raise NeonException("ByteOutOfRangeException")
+    return bytes(a)
 
 def neon_dictionary_remove(d, k):
     if k in d:

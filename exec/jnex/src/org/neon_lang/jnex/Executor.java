@@ -1389,6 +1389,11 @@ class Executor {
         byte[] r = new byte[a.size()];
         int i = 0;
         for (Cell c: a) {
+            int x = c.getNumber().intValue();
+            if (x < 0 || x >= 256) {
+                raiseLiteral("ByteOutOfRangeException");
+                return;
+            }
             r[i] = (byte) c.getNumber().intValue();
             i++;
         }

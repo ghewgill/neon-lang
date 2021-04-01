@@ -1518,6 +1518,10 @@ def neon_array__splice(self):
 
 def neon_array__toBytes__number(self):
     a = self.stack.pop()
+    for x in a:
+        if x.value is not None and not (0 <= x.value < 256):
+            self.raise_literal("ByteOutOfRangeException", x.value)
+            return
     self.stack.append(bytearray(int(x.value) if x.value is not None else 0 for x in a))
 
 def neon_array__toString__number(self):

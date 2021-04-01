@@ -4,6 +4,7 @@ assignment.neon                                 # Classes
 base-test.neon                                  # CALLMF
 bigint.neon                                     # bigint
 binary-test.neon                                # binary module
+bytes.neon                                      # ByteOutOfRangeException
 cformat-test.neon                               # CALLMF
 check-valid.neon                                # Classes
 class-empty.neon                                # Classes

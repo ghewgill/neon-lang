@@ -1082,6 +1082,10 @@ FUNCTION f_callp(INOUT self: Executor)
             VAR an: Array<Number> := []
             FOREACH p IN a DO
                 IF VALID p THEN
+                    IF NOT (0 <= p->n < 256) THEN
+                        self.raise_literal("ByteOutOfRangeException", str(p->n))
+                        EXIT FUNCTION
+                    END IF
                     an.append(p->n)
                 END IF
             END FOREACH
