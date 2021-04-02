@@ -72,7 +72,7 @@ namespace csnex.rtl
                     break;
                 case Mode.write:
                     fa = FileAccess.Write;
-                    fm = FileMode.Append;
+                    fm = FileMode.OpenOrCreate;
                     break;
             default:
                 exec.stack.Push(new Cell(new TextFileObject(null)));
