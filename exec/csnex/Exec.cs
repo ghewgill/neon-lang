@@ -466,12 +466,18 @@ namespace csnex
 #region Comparison Opcodes
         void EQB()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            bool b = stack.Pop().Boolean;
+            bool a = stack.Pop().Boolean;
+            stack.Push(new Cell(a == b));
         }
 
         void NEB()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            bool b = stack.Pop().Boolean;
+            bool a = stack.Pop().Boolean;
+            stack.Push(new Cell(a != b));
         }
 
         void EQN()
