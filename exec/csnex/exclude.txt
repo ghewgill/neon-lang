@@ -63,7 +63,6 @@ module-import-name2.neon                        # module module
 module.neon                                     # Classes
 module2.neon                                    # module module
 modulo.neon                                     # incorrect results
-multiarray-test.neon                            # EQB
 net-test-udp.neon                               # net module
 net-test.neon                                   # net module
 new-init-module.neon                            # PUSHNIL
@@ -71,7 +70,6 @@ new-init.neon                                   # Classes
 number-ceil.neon                                # math module
 number-exception.neon
 object-null2.neon                               # PUSHNIL
-object-operator.neon                            # EQB, NEB
 object-record.neon                              # EQA
 opcode-coverage.neon
 parameters.neon                                 # STOREP
