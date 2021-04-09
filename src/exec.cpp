@@ -68,7 +68,7 @@ std::string just_path(const std::string &name)
     return name.substr(0, i+1);
 }
 
-// This class is specific to now the BID library notifies its exceptions.
+// This class is specific to how the BID library notifies its exceptions.
 class BidExceptionHandler {
     size_t start_ip;
 public:
