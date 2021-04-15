@@ -2867,7 +2867,7 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
             }
         );
     } else if (arraytype != nullptr) {
-        // TODO: Allow more relaxed type checking.
+        // TODO: Allow more relaxed type checking (see t/in-array.neon).
         if (left->type != arraytype->elementtype) {
             error(3082, expr->left->token, "type mismatch");
         }
