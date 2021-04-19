@@ -3753,6 +3753,21 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
         if (f != type->methods.end()) {
             function = dynamic_cast<ast::Function *>(f->second);
         } else {
+            if (name == "toString") {
+                Token t;
+                if (returntype == nullptr || returntype != ast::TYPE_STRING) {
+                    if (declaration->returntype != nullptr) {
+                        t = declaration->returntype->token;
+                    } else {
+                        t = declaration->name;
+                    }
+                } else if (declaration->args.size() > 1) {
+                    t = declaration->args[1]->token;
+                }
+                if (t.type != NONE) {
+                    error(3298, t, "toString method must have only the 'self' parameter and return String");
+                }
+            }
             function = new ast::Function(declaration->name, type->name + "." + name, returntype, frame.top(), scope.top(), args, variadic, frame.top()->get_depth()+1);
             type->methods[name] = function;
         }
