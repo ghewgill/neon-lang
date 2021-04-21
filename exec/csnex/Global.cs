@@ -708,6 +708,15 @@ namespace csnex
             Exec.stack.Push(new Cell(o != null ? o.toString() : "null"));
         }
 #endregion
+#region Pointer Functions
+        public void pointer__toString()
+        {
+            Cell p = Exec.stack.Pop().Address;
+            Module m = (Module)p.Array[0].Array[0].Other;
+            Bytecode.ClassInfo ci = (Bytecode.ClassInfo)p.Array[0].Array[1].Other;
+            Exec.stack.Push(new Cell(string.Format("<p:{0}-{1}>", m.Bytecode.strtable[ci.name], p.AllocNum)));
+        }
+#endregion
 #region String Functions
         public void string__append()
         {

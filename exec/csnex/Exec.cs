@@ -51,6 +51,7 @@ namespace csnex
             module = mod;
             modules.Add("", mod);
             param_recursion_limit = 1000;
+            Allocations = 0;
             library = new List<KeyValuePair<string, object>>();
             library.Add(new KeyValuePair<string, object>("io", new rtl.io(this)));
             library.Add(new KeyValuePair<string, object>("random", new rtl.random(this)));
@@ -91,6 +92,7 @@ namespace csnex
         private Dictionary<string, Module> modules;
         private List<string> init_order;
         private Support support;
+        public UInt64 Allocations;
 
         public int Run(bool EnableAssertions)
         {
@@ -257,7 +259,8 @@ namespace csnex
 
         void PUSHNIL()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            stack.Push(new Cell((Cell)null));
         }
 
         void PUSHFP()
@@ -267,7 +270,39 @@ namespace csnex
 
         void PUSHCI()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+
+            int dot = module.Bytecode.strtable[val].IndexOf('.');
+            if (dot == -1) {
+                for (int c = 0; c < module.Bytecode.classes.Count; c++) {
+                    if (module.Bytecode.classes[c].name == val) {
+                        Cell ci = new Cell(Cell.Type.Array);
+                        ci.Array = new List<Cell>();
+                        ci.Array.Add(new Cell(module));
+                        ci.Array.Add(new Cell(module.Bytecode.classes[c]));
+                        stack.Push(ci);
+                        return;
+                    }
+                }
+            } else {
+                string modname = module.Bytecode.strtable[val].Substring(0, dot);
+                string methodname = module.Bytecode.strtable[val].Substring(dot+1, module.Bytecode.strtable[val].Length - dot - 1);
+                if (modules.ContainsKey(modname)) {
+                    Module mod = modules[modname];
+                    for (int c = 0; c < mod.Bytecode.classes.Count; c++) {
+                        if (string.Compare(mod.Bytecode.strtable[mod.Bytecode.classes[c].name], methodname) == 0) {
+                            Cell ci = new Cell(Cell.Type.Array);
+                            ci.Array = new List<Cell>();
+                            ci.Array.Add(new Cell(mod));
+                            ci.Array.Add(new Cell(mod.Bytecode.classes[c]));
+                            stack.Push(ci);
+                            return;
+                        }
+                    }
+                }
+            }
+            throw new NeonException(string.Format("csnex: unknown class name {0}\n", module.Bytecode.strtable[val]));
         }
 
         void PUSHPEG()
@@ -320,7 +355,9 @@ namespace csnex
 
         void LOADP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(new Cell(addr.Address));
         }
 
         void LOADJ()
@@ -380,7 +417,9 @@ namespace csnex
 
         void STOREP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREJ()
@@ -654,12 +693,18 @@ namespace csnex
 
         void EQP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop().Address;
+            Cell a = stack.Pop().Address;
+            stack.Push(new Cell(a == b));
         }
 
         void NEP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop().Address;
+            Cell a = stack.Pop().Address;
+            stack.Push(new Cell(a != b));
         }
 
         void EQV()
@@ -1043,7 +1088,16 @@ namespace csnex
 #region Memory Opcodes
         void ALLOC()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+
+            Allocations++;
+            Cell cell = new Cell(Cell.Type.Array, Allocations);
+            cell.Array = new List<Cell>();
+            for (int i = 0; i < val; i++) {
+                cell.Array.Add(new Cell());
+            }
+            stack.Push(new Cell(cell));
         }
 
         void RESETC()

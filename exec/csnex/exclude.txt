@@ -14,7 +14,7 @@ datetime-test.neon                              # date module
 debug-example.neon                              # debugger$log
 decimal.neon                                    # Value was either too large or too small for a Decimal.
 encoding-base64.neon                            # binary module
-equality.neon                                   # Classes
+equality.neon                                   # PUSHFP
 exception-tostring.neon                         # exceptiontype__toString
 export-function-indent.neon                     # exports
 export-inline.neon                              # exports
@@ -40,15 +40,15 @@ gc2.neon                                        # garbage collection
 gc3.neon                                        # garbage collection
 import-optional.neon                            # runtime$isModuleImported
 import-string.neon                              # Bytecode, Constants
-import.neon                                     # Classes
+import.neon                                     # Imports
 input.neon                                      # console module
 intdiv.neon                                     # math$intdiv
 interface-multiple.neon                         # PUSHPMG
 interface-parameter-export.neon                 # exports
 interface-parameter-export2.neon                # exports
-interface-parameter-import.neon                 # PUSHNIL
+interface-parameter-import.neon                 # Imports
 interface-parameter-import2.neon                # types
-interface.neon                                  # PUSHNIL
+interface.neon                                  # Constant Imports
 json-test.neon                                  # object__makeNull
 literal-method.neon                             # string__toBytes
 math-test.neon                                  # math module
@@ -60,33 +60,18 @@ module-import-name-alias.neon                   # math module
 module-import-name-alias2.neon                  # module module
 module-import-name.neon                         # math module
 module-import-name2.neon                        # module module
-module.neon                                     # Classes
+module.neon                                     # Imports/Exports
 module2.neon                                    # module module
 modulo.neon                                     # incorrect results
 net-test-udp.neon                               # net module
 net-test.neon                                   # net module
-new-init-module.neon                            # PUSHNIL
-new-init.neon                                   # Classes
+new-init-module.neon                            # module module
 number-ceil.neon                                # math module
 number-exception.neon
-object-null2.neon                               # PUSHNIL
 object-record.neon                              # EQA
 opcode-coverage.neon
-parameters.neon                                 # STOREP
-pointer-method.neon                             # Classes
-pointer-nil.neon                                # Classes
-pointer-print.neon                              # Classes
-pointer-valid.neon                              # Classes
-pointer.neon                                    # PUSHCI
-pointer2.neon                                   # PUSHCI
-pointer3.neon                                   # PUSHCI
-pointer4.neon                                   # PUSHCI
-pointer5.neon                                   # PUSHCI
-pointer7.neon                                   # PUSHCI
-pointer8.neon                                   # PUSHCI
 posix-fork.neon                                 # posix module
 record-empty.neon                               # INDEXAN
-record-private.neon                             # STOREP
 sql-connect.neon                                # SQLite / sql module
 sql-cursor.neon                                 # SQLite / sql module
 sql-embed.neon                                  # SQLite / sql module
@@ -102,10 +87,8 @@ time-stopwatch.neon                             # time module
 time-test.neon                                  # time module
 tostring.neon                                   # array__toString__string
 tostring-quotes.neon                            # object__makeArray
-valid-pointer.neon                              # Classes
 value-index.neon                                # INDEXDV
 varargs-functionpointer.neon                    # PUSHFP
-while-valid.neon                                # Classes
 
 compress-test.neon           # module
 extsample-test.neon          # module

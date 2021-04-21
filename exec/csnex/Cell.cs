@@ -19,6 +19,7 @@ namespace csnex
             Dictionary,
             Number,
             Object,
+            Other,
             String,
         }
 
@@ -30,6 +31,7 @@ namespace csnex
         private Number m_Number;
         private Object m_Object;
         private String m_String;
+        private object m_Other;
 
 #region Cell Property Accessors
         public Cell Address {
@@ -147,6 +149,20 @@ namespace csnex
             }
         }
 
+        public object Other {
+            get {
+                if (type == Type.Other) {
+                    type = Type.Other;
+                }
+                Debug.Assert(type == Type.Other);
+                return m_Other;
+            }
+            set {
+                type = Type.Other;
+                m_Other = value;
+            }
+        }
+
         public String String {
             get {
                 if (type == Type.None) {
@@ -165,16 +181,20 @@ namespace csnex
         }
 
         public Type type { get; private set; }
+
+        public UInt64 AllocNum { get; }
 #endregion
 #region Constructors
-        public Cell()
+        public Cell(UInt64 alloc = 0)
         {
             type = Type.None;
+            AllocNum = alloc;
         }
 
-        public Cell(Type t)
+        public Cell(Type t, UInt64 alloc = 0)
         {
             type = t;
+            AllocNum = alloc;
         }
 
         public Cell(List<Cell> a)
@@ -220,6 +240,12 @@ namespace csnex
             m_Object = o;
         }
 
+        public Cell(object o)
+        {
+            type = Type.Other;
+            m_Other = o;
+        }
+
         public Cell(String s)
         {
             type = Type.String;
@@ -235,6 +261,7 @@ namespace csnex
             m_Dictionary = null;
             m_Number = null;
             m_Object = null;
+            m_Other = null;
             m_String = null;
             type = Type.None;
         }
@@ -276,6 +303,11 @@ namespace csnex
         public override String ToString()
         {
             switch (type) {
+                case Type.Address:
+                    if (Address != null) {
+                        return Address.ToString();
+                    }
+                    return "NIL";
                 case Type.Boolean:
                     if (Boolean) {
                         return "TRUE";
@@ -283,6 +315,8 @@ namespace csnex
                     return "FALSE";
                 case Type.Object:
                     return Object.toString();
+                case Type.Other:
+                    return Other.ToString();
                 case Type.String:
                     return String;
             }
@@ -300,13 +334,15 @@ namespace csnex
                 case Type.Boolean:
                 case Type.Bytes:
                 case Type.Dictionary:
-                    // Not implemenetd yet.
+                    // Not implemented yet.
                     return false;
                 case Type.Number:
                     return Number.IsEqual(Number, x.Number);
                 case Type.Object:
-                    // Not Implemented yet.
+                    // Not implemented yet.
                     return false;
+                case Type.Other:
+                    return m_Other == x.m_Other;
                 case Type.String:
                     return String.Compare(String, x.String) == 0;
             }
@@ -348,6 +384,9 @@ namespace csnex
                     break;
                 case Type.Object:
                     dest.m_Object = source.Object;
+                    break;
+                case Type.Other:
+                    dest.m_Other = source.Other;
                     break;
                 case Type.String:
                     dest.String = source.String;
@@ -429,6 +468,15 @@ namespace csnex
             }
             Debug.Assert(type == Type.Object);
             Object = o;
+        }
+
+        public void Set(object o)
+        {
+            if (type == Type.None) {
+                type = Type.Other;
+            }
+            Debug.Assert(type == Type.Other);
+            Other = o;
         }
 
         public void Set(string s)

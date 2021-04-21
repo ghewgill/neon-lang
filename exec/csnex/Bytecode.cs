@@ -21,6 +21,7 @@ namespace csnex
         public List<ExceptionInfo> exceptions;
         public List<ExceptionExport> export_exceptions;
         public List<Cell> globals;
+        public List<ClassInfo> classes;
 
         public Bytecode()
         {
@@ -187,7 +188,25 @@ namespace csnex
 
             /* Classes */
             int classsize = Get_VInt(obj, ref i);
-            Debug.Assert(classsize == 0);
+            classes = new List<ClassInfo>();
+            while (classsize > 0) {
+                ClassInfo cls = new ClassInfo();
+                cls.name = Get_VInt(obj, ref i);
+                int interfacesize = Get_VInt(obj, ref i);
+                while (interfacesize > 0) {
+                    Interface inf = new Interface();
+                    int methodsize = Get_VInt(obj, ref i);
+                    inf.methods = new List<int>();
+                    while (methodsize > 0) {
+                        inf.methods.Add(Get_VInt(obj, ref i));
+                        methodsize--;
+                    }
+                    cls.interfaces.Add(inf);
+                    interfacesize--;
+                }
+                classes.Add(cls);
+                classsize--;
+            }
 
             code = new byte[obj.Length - i];
             Array.Copy(obj, i, code, 0, obj.Length - i);
@@ -236,6 +255,19 @@ namespace csnex
             public int name;
             public int descriptor;
             public int index;
+        }
+
+        public struct Interface
+        {
+            public int name;
+            public List<int> methods;
+        }
+
+        public struct ClassInfo
+        {
+            public int name;
+            public int interfacesize;
+            public List<Interface> interfaces;
         }
     }
 
