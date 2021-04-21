@@ -3,15 +3,16 @@
  * It is quick and dirty and is not a general solution.
  */
 
+IMPORT console
 IMPORT string
 
 LOOP
     VAR s: String
     TRY
-        s := input("")
+        s := console.input("")
 
         -- Skip over comment block at top.
-        IF s[1] = "*" THEN
+        IF s.length() >= 2 AND s[1] = "*" THEN
             NEXT LOOP
         END IF
 

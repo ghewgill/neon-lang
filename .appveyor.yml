@@ -41,4 +41,5 @@ build_script:
 
 - cmd: cmake .
 - cmd: cmake --build .
+- cmd: set PYTHONIOENCODING=utf8
 - cmd: if not "%EXCLUDE_TESTS%"=="1" ctest -C Debug --output-on-failure

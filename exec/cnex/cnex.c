@@ -387,9 +387,9 @@ void exec_raiseLiteral(TExecutor *self, TString *name, Cell *info)
             fseek(fp, 0, SEEK_SET);
             char *debug = malloc(nSize + 1);
             if (debug != NULL) {
-                fread(debug, 1, nSize, fp);
+                size_t nr = fread(debug, 1, nSize, fp);
                 fclose(fp);
-                debug[nSize] = '\0'; // Ensure data is null-terminated.
+                debug[nr] = '\0'; // Ensure data is null-terminated.
                 symbols = cJSON_Parse(debug);
                 // Remember the start of the symbols, so we can always go back to them.
                 pStart = symbols;
@@ -752,7 +752,7 @@ void exec_DIVN(TExecutor *self)
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
    if (number_is_zero(b)) {
-        self->rtl_raise(self, "DivideByZeroException", "");
+        self->rtl_raise(self, "NumberException.DivideByZero", "");
         return;
     }
     push(self->stack, cell_fromNumber(number_divide(a, b)));
@@ -764,7 +764,7 @@ void exec_MODN(TExecutor *self)
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
    if (number_is_zero(b)) {
-        self->rtl_raise(self, "DivideByZeroException", "");
+        self->rtl_raise(self, "NumberException.DivideByZero", "");
         return;
     }
     push(self->stack, cell_fromNumber(number_modulo(a, b)));

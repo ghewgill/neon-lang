@@ -83,6 +83,7 @@ net-test.neon              # import
 net-test-udp.neon          # import
 new-init-module.neon       # module
 number-ceil.neon           # math
+number-exception.neon
 object-record.neon         # EQA
 opcode-coverage.neon       # runtime$moduleIsMain
 os-test.neon               # os
@@ -113,10 +114,12 @@ strings.neon               # string__splice
 struct-test.neon           # CALLMF
 sudoku-test.neon           # import
 sys-exit.neon              # sys
+textio-seek.neon           # TextFile.seek
 time-stopwatch.neon        # CALLMF
 time-test.neon             # import
 unicode-char.neon          # UTF-8
 unicode-length.neon        # UTF-8
+unicode-string.neon        # UTF-8
 value-copy.neon            # copy
 varargs-functionpointer.neon # PUSHFP
 win32-test.neon            # CALLMF

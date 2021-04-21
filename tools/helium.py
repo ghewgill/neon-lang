@@ -156,6 +156,8 @@ EXPECT = Keyword("EXPECT")
 class bytes:
     def __init__(self, a):
         self.a = a
+    def __eq__(self, rhs):
+        return self.a == rhs.a
     def __getitem__(self, key):
         return bytes(self.a.__getitem__(key))
     def __str__(self):
@@ -592,10 +594,15 @@ class SubscriptExpression:
                     if isinstance(a, list):
                         raise NeonException("ArrayIndexException", i)
                     assert False
-            if isinstance(a, list):
+            if isinstance(a, (list, str)):
                 if self.from_end:
                     i += len(a) - 1
                 if i < 0:
+                    if self.from_end:
+                        if isinstance(a, list):
+                            return []
+                        if isinstance(a, str):
+                            return ""
                     raise IndexError
             return a[i]
         except TypeError:
@@ -615,7 +622,10 @@ class SubscriptExpression:
         if isinstance(a, list):
             if self.from_end:
                 i += len(a) - 1
-        a[i] = value
+        if isinstance(a, str):
+            self.expr.set(env, a[:i] + value + a[i+1:])
+        else:
+            a[i] = value
 
 class RangeSubscriptExpression:
     def __init__(self, expr, first, first_from_end, last, last_from_end):
@@ -694,11 +704,12 @@ class DotExpression:
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
             if self.field == "reversed": return lambda env, self: neon_array_reversed(obj)
             if self.field == "size": return lambda env, self: len(obj)
-            if self.field == "toBytes": return lambda env, self: bytes(obj)
+            if self.field == "toBytes": return lambda env, self: neon_array_toBytes(obj)
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
             if self.field == "remove": return lambda env, self, k: neon_dictionary_remove(obj, k)
+            if self.field == "toString": return lambda env, self: "{{{}}}".format(", ".join("{}: {}".format(neon_string_quoted(env, k), neon_string_quoted(env, v) if isinstance(v, str) else str(v)) for k, v in sorted(obj.items())))
             return obj[self.field] # Support a.b syntax where a is an object.
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
@@ -798,7 +809,7 @@ class DivisionExpression:
             else:
                 return x / y
         except ZeroDivisionError:
-            raise NeonException("DivideByZeroException")
+            raise NeonException(["NumberException", "DivideByZero"])
 
 class IntegerDivisionExpression:
     def __init__(self, left, right):
@@ -808,7 +819,7 @@ class IntegerDivisionExpression:
         try:
             return math.trunc(self.left.eval(env) / self.right.eval(env))
         except ZeroDivisionError:
-            raise NeonException("DivideByZeroException")
+            raise NeonException(["NumberException", "DivideByZero"])
 
 class ModuloExpression:
     def __init__(self, left, right):
@@ -1354,7 +1365,7 @@ class TryStatement:
         except NeonException as x:
             for exceptions, name, statements in self.catches:
                 # Match either unqualified or module qualified name.
-                if any(x.name[:len(h)] == h or x.name[:len(h)-1] == h[1:] for h in exceptions):
+                if any(x.name[:len(h)] == h or len(h) > 1 and x.name[:len(h)-1] == h[1:] for h in exceptions):
                     env.declare(name, None, x)
                     for s in statements:
                         s.declare(env)
@@ -2721,14 +2732,9 @@ def run(program):
     program.env.declare("String", Class(), ClassString())
     program.env.declare("Bytes", Class(), ClassBytes())
     program.env.declare("Object", Class(), ClassObject())
-    program.env.declare("concat", None, neon_concat)
-    program.env.declare("format", None, neon_format)
-    program.env.declare("input", None, neon_input)
-    program.env.declare("int", None, neon_int)
     program.env.declare("num", None, neon_num)
     program.env.declare("print", None, neon_print)
     program.env.declare("str", None, neon_str)
-    program.env.declare("substring", None, neon_substring)
     program.run(program.env)
 
 def eval_cond(left, cond, right):
@@ -2764,8 +2770,11 @@ def neon_array_resize(a, n):
 def neon_array_reversed(a):
     return list(reversed(a))
 
-def neon_concat(env, x, y):
-    return x + y
+def neon_array_toBytes(a):
+    for x in a:
+        if not (0 <= x < 256):
+            raise NeonException("ByteOutOfRangeException")
+    return bytes(a)
 
 def neon_dictionary_remove(d, k):
     if k in d:
@@ -2776,12 +2785,6 @@ def neon_format(env, s, fmt):
         return format(int(s), fmt)
     else:
         return format(s, fmt)
-
-def neon_input(env, x):
-    return input()
-
-def neon_int(env, x):
-    return int(x)
 
 def neon_num(env, x):
     if not any(c.isdigit() for c in x):
@@ -2804,9 +2807,6 @@ def neon_str(env, x):
         else:
             r = re.sub(r"\.0+$", "", r)
     return r
-
-def neon_substring(env, s, start, length):
-    return s[start:start+length]
 
 def neon_console_input(env, prompt):
     try:
@@ -3205,6 +3205,8 @@ def neon_textio_open(env, fn, mode):
 
 def neon_textio_readLine(env, f, r):
     r = f.readline()
+    if not r:
+        return False, ""
     return r is not None, r.rstrip("\r\n")
 
 def neon_textio_seekEnd(env, f):

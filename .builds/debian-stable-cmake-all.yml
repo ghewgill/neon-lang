@@ -6,6 +6,7 @@ packages:
 - libgmp-dev
 - zlib1g-dev
 - libssl-dev
+# optional
 - default-jdk
 - mono-mcs
 - nodejs

@@ -6,6 +6,17 @@ packages:
 - gmp-devel
 - zlib-devel
 - openssl-devel
+# These perl modules are just for NaturalDocs
+- perl-English
+- perl-FindBin
+- perl-File-Copy
+- perl-Tie-RefHash
+# optional
+#- java-latest-openjdk (javac not working)
+- mono-core
+- nodejs
+- rust
+- go
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 triggers:

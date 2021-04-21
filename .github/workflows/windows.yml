@@ -7,6 +7,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Setup csc.exe
+      uses: yoavain/Setup-CSC@v7
     - name: prep
       run: |
         where python
@@ -17,3 +19,5 @@ jobs:
       run: cmake --build .
     - name: test
       run: ctest -C Debug --output-on-failure
+      env:
+        PYTHONIOENCODING: utf8

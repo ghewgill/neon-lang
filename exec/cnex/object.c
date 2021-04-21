@@ -110,6 +110,9 @@ Object *object_createObject()
     o->refcount = 1;
     o->release = object_releaseObject;
     o->ptr = NULL;
+    o->invokeMethod = NULL;
+    o->setProperty = NULL;
+    o->subscript = NULL;
     return o;
 }
 

@@ -239,6 +239,7 @@ new-init.neon
 next-for.neon
 next-while.neon
 number-ceil.neon
+number-exception.neon
 number-underscore.neon
 object-isa-case.neon
 object-isa-inconvertible.neon
@@ -337,10 +338,13 @@ sudoku-test.neon
 sys-exit.neon
 tail-call.neon
 testcase.neon
+textio-random.neon
+textio-seek.neon
 textio-test.neon
 time-stopwatch.neon
 time-test.neon
 tostring.neon
+tostring-quotes.neon
 try-expression.neon
 type-compat.neon
 type_mismatch.neon

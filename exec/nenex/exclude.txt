@@ -86,6 +86,8 @@ net-test.neon               # net$tcpSocket
 net-test-udp.neon           # net$udpSocket
 new-init-module.neon        # module
 number-ceil.neon            # math$ceil
+number-exception.neon
+object.neon                 # number formatting
 object-record.neon          # object__makeString
 opcode-coverage.neon        # runtime$moduleIsMain
 os-test.neon                # os$system
@@ -124,6 +126,8 @@ string-test.neon            # string$find
 strings.neon                # string__splice
 struct-test.neon            # exception Utf8DecodingException
 sys-exit.neon               # sys$exit
+textio-random.neon          # random
+textio-seek.neon            # textio
 textio-test.neon            # pushppg
 time-stopwatch.neon         # callmf
 time-test.neon              # time$now

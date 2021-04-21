@@ -7,10 +7,20 @@ public class Time {
     }
 
     public static void sleep(neon.type.Number seconds) {
-        try {
-            Thread.sleep(seconds.multiply(new neon.type.Number(1000)).intValue());
-        } catch (InterruptedException x) {
-            // pass
+        // Sleep in a loop in case Thread.sleep does not sleep
+        // for quite as long as we ask for.
+        neon.type.Number start = tick();
+        while (true) {
+            neon.type.Number now = tick();
+            neon.type.Number elapsed = now.subtract(start);
+            if (elapsed.compareTo(seconds) >= 0) {
+                break;
+            }
+            try {
+                Thread.sleep(seconds.subtract(elapsed).multiply(new neon.type.Number(1000)).intValue());
+            } catch (InterruptedException x) {
+                // pass
+            }
         }
     }
 

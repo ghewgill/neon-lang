@@ -282,7 +282,7 @@ func (obj objectString) subscript(index object) (object, error) {
 }
 
 func (obj objectString) toLiteralString() string {
-	return "\"" + obj.str + "\""
+	return quoted(obj.str)
 }
 
 func (obj objectString) toString() string {
@@ -455,7 +455,7 @@ func (obj objectDictionary) toString() string {
 		} else {
 			r += ", "
 		}
-		r += "\"" + k + "\": "
+		r += quoted(k) + ": "
 		if obj.dict[k] != nil {
 			r += obj.dict[k].toLiteralString()
 		} else {
@@ -1515,7 +1515,7 @@ func (self *executor) op_divn() {
 	b := self.pop().num
 	a := self.pop().num
 	if b == 0 {
-		self.raise_literal("DivideByZeroException", objectString{""})
+		self.raise_literal("NumberException.DivideByZero", objectString{""})
 		return
 	}
 	self.push(make_cell_num(a / b))
@@ -2037,6 +2037,9 @@ func (self *executor) op_callp() {
 		a := self.pop().array
 		b := make([]byte, len(a))
 		for i, x := range a {
+			if x.num < 0 || x.num >= 256 {
+				self.raise_literal("ByteOutOfRangeException", objectString{fmt.Sprintf("%g", x.num)})
+			}
 			b[i] = byte(x.num)
 		}
 		self.push(make_cell_bytes(b))
@@ -2289,6 +2292,42 @@ func (self *executor) op_callp() {
 		r := self.pop().ref
 		d := r.load().dict
 		delete(d, key)
+	case "dictionary__toString__object":
+		d := self.pop().dict
+		r := "{"
+		keys := []string{}
+		for k := range d {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for i, k := range keys {
+			if i > 0 {
+				r += ", "
+			}
+			r += quoted(k)
+			r += ": "
+			r += d[k].obj.toLiteralString()
+		}
+		r += "}"
+		self.push(make_cell_str(r))
+	case "dictionary__toString__string":
+		d := self.pop().dict
+		r := "{"
+		keys := []string{}
+		for k := range d {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for i, k := range keys {
+			if i > 0 {
+				r += ", "
+			}
+			r += quoted(k)
+			r += ": "
+			r += quoted(d[k].str)
+		}
+		r += "}"
+		self.push(make_cell_str(r))
 	case "exceptiontype__toString":
 		et := self.pop().array
 		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v>", et[0].str, et[1].obj.toString(), et[2].num)))
@@ -2809,7 +2848,7 @@ func (self *executor) op_callp() {
 	case "string$toCodePoint":
 		s := self.pop().str
 		if len(s) != 1 {
-			self.raise_literal("ArrayIndexException", objectString{"toCodePoint() requires string of length 1"})
+			self.raise_literal("StringIndexException", objectString{"toCodePoint() requires string of length 1"})
 		} else {
 			self.push(make_cell_num(float64(s[0])))
 		}

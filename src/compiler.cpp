@@ -2514,7 +2514,9 @@ void ast::Module::predeclare(Emitter &) const
 
 static std::vector<std::pair<std::string, const ast::Type *>> topo_sort(std::vector<std::pair<std::string, const ast::Type *>> types, std::map<const ast::Type *, std::set<const ast::Type *>> references)
 {
+    #ifndef NDEBUG // Only need this if assertions are enabled (otherwise compiler complains about unused variable)
     const size_t orig_types_size = types.size();
+    #endif
     // First, scrub the dependency list of things we aren't actually exporting.
     // Also remove self-references.
     for (auto &ref: references) {

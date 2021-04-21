@@ -2,7 +2,7 @@ IMPORT os
 IMPORT runtime
 
 CASE runtime.executorName()
-    WHEN "neonx" DO
+    WHEN "neonx", "cnex" DO
         CASE os.platform()
             WHEN os.Platform.posix DO
                 -- pass

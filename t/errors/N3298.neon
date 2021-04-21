@@ -1,0 +1,10 @@
+TYPE rec IS RECORD
+END RECORD
+
+FUNCTION rec.toString(self: rec, extra: Number)
+             --<
+END FUNCTION
+
+LET val: rec := rec()
+
+print("\(val)")

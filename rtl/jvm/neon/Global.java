@@ -164,7 +164,11 @@ public class Global {
     public static byte[] array__toBytes__number(neon.type.Array self) {
         byte[] r = new byte[self.size()];
         for (int i = 0; i < self.size(); i++) {
-            r[i] = (byte)((neon.type.Number)self.get(i)).intValue();
+            int x = ((neon.type.Number)self.get(i)).intValue();
+            if (x < 0 || x >= 256) {
+                throw new neon.type.NeonException("ByteOutOfRangeException");
+            }
+            r[i] = (byte)x;
         }
         return r;
     }

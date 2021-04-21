@@ -3,6 +3,12 @@
 #include <iso646.h>
 
 #include "rtl_exec.h"
+#include "intrinsic.h"
+
+utf8string ObjectString::toLiteralString() const
+{
+    return rtl::ne_string::quoted(s);
+}
 
 bool ObjectArray::subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const
 {
@@ -58,9 +64,8 @@ utf8string ObjectDictionary::toString() const
         } else {
             first = false;
         }
-        r.append("\"");
-        r.append(x.first.c_str());
-        r.append("\": ");
+        r.append(rtl::ne_string::quoted(x.first));
+        r.append(": ");
         r.append(x.second != nullptr ? x.second->toLiteralString() : utf8string("null"));
     }
     r.append("}");

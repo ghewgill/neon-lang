@@ -5,6 +5,12 @@ packages:
 - zlib-dev
 - openssl-dev
 - perl
+# optional
+#- openjdk11 (javac not found)
+#- mono (not until mono supports musl?)
+- nodejs
+- rust
+- go
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 triggers:

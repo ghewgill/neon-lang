@@ -139,7 +139,7 @@ void string_toCodePoint(TExecutor *exec)
     Cell *s = top(exec->stack);
 
     if (s->string->length != 1) {
-        exec->rtl_raise(exec, "ArrayIndexException", "toCodePoint() requires string of length 1");
+        exec->rtl_raise(exec, "StringIndexException", "toCodePoint() requires string of length 1");
         return;
     }
     Number r = number_from_uint32((uint32_t)s->string->data[0]);

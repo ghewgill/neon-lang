@@ -10,7 +10,7 @@ class NeObjectString implements NeObject {
     }
 
     public String toLiteralString() {
-        return "\"" + s + "\"";
+        return Util.quoted(s);
     }
 
     public String toString() {

@@ -163,9 +163,9 @@ std::vector<unsigned char> array__toBytes__number(const std::vector<Number> &a)
     std::vector<unsigned char> r;
     r.reserve(a.size());
     for (auto x: a) {
-        uint64_t b = number_to_uint64(x);
-        if (b >= 256) {
-            throw RtlException(Exception_ByteOutOfRangeException, utf8string(std::to_string(b)));
+        int64_t b = number_to_sint64(x);
+        if (b < 0 || b >= 256) {
+            throw RtlException(Exception_ByteOutOfRangeException, utf8string(number_to_string(x)));
         }
         r.push_back(static_cast<unsigned char>(b));
     }
@@ -205,7 +205,7 @@ utf8string array__toString__object(std::vector<std::shared_ptr<Object>> a)
         if (r.length() > 1) {
             r.append(", ");
         }
-        r.append(x->toString());
+        r.append(x->toLiteralString());
     }
     r.append("]");
     return r;
@@ -234,6 +234,51 @@ void dictionary__remove(Cell *self, const utf8string &key)
 {
     auto &d = self->dictionary_for_write();
     d.erase(key);
+}
+
+utf8string dictionary__toString__number(const std::map<utf8string, Number> &d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(number_to_string(e.second));
+    }
+    r.append("}");
+    return r;
+}
+
+utf8string dictionary__toString__string(const std::map<utf8string, utf8string> &d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(rtl::ne_string::quoted(e.second));
+    }
+    r.append("}");
+    return r;
+}
+
+utf8string dictionary__toString__object(std::map<utf8string, std::shared_ptr<Object>> d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(e.second->toLiteralString());
+    }
+    r.append("}");
+    return r;
 }
 
 utf8string number__toString(Number self)

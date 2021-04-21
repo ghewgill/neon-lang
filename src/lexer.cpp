@@ -264,6 +264,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         else if (c == 0x2260 /*'≠'*/) { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2264 /*'≤'*/) { t.type = LESSEQ; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2265 /*'≥'*/) { t.type = GREATEREQ; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2254 /*'≔'*/) { t.type = ASSIGN; utf8::advance(i, 1, source.end()); }
         else if (c == 0x00ac /*'¬'*/) { t.type = NOT; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2227 /*'∧'*/) { t.type = AND; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2228 /*'∨'*/) { t.type = OR; utf8::advance(i, 1, source.end()); }
@@ -760,7 +761,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             }
             tokens.push_back(t);
         }
-        column += (i - startindex);
+        column += utf8::distance(startindex, i);
     }
     return tokens;
 }

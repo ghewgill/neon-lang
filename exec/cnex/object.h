@@ -9,6 +9,7 @@
 #include "util.h"
 
 struct MmapObject;
+struct tagTExecutor;
 
 typedef enum tagNObjectType {
     oNone,
@@ -18,6 +19,7 @@ typedef enum tagNObjectType {
     oDictionary,
     oNumber,
     oString,
+    oNative,
 } ObjectType;
 
 typedef struct tagTObject {
@@ -27,7 +29,12 @@ typedef struct tagTObject {
 
     void (*release)(struct tagTObject*);
     Cell *(*toString)(struct tagTObject*);
+    BOOL(*invokeMethod)(struct tagTObject*, struct tagTExecutor*, char *, struct tagTCell*, struct tagTCell**);
+    BOOL(*setProperty)(struct tagTObject*, struct tagTExecutor*, struct tagTObject*, struct tagTObject*);
+    BOOL(*subscript)(struct tagTObject*, struct tagTExecutor*, struct tagTObject*, struct tagTObject**);
 } Object;
+
+
 
 Object *object_createObject(void);
 

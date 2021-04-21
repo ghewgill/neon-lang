@@ -21,6 +21,7 @@ TypeObject *TYPE_OBJECT = new TypeObject();
 TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(Token(), TYPE_NUMBER);
 TypeArray *TYPE_ARRAY_STRING = new TypeArray(Token(), TYPE_STRING);
 TypeArray *TYPE_ARRAY_OBJECT = new TypeArray(Token(), TYPE_OBJECT);
+TypeDictionary *TYPE_DICTIONARY_NUMBER = new TypeDictionary(Token(), TYPE_NUMBER);
 TypeDictionary *TYPE_DICTIONARY_STRING = new TypeDictionary(Token(), TYPE_STRING);
 TypeDictionary *TYPE_DICTIONARY_OBJECT = new TypeDictionary(Token(), TYPE_OBJECT);
 TypeModule *TYPE_MODULE = new TypeModule();
@@ -332,6 +333,19 @@ TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
         methods["remove"] = new PredefinedFunction("dictionary__remove", new TypeFunction(TYPE_NOTHING, params, false));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
+        // TODO: This is just a hack to make this work for now.
+        // Need to do this properly in a general purpose way.
+        if (elementtype == TYPE_NUMBER) {
+            methods["toString"] = new PredefinedFunction("dictionary__toString__number", new TypeFunction(TYPE_STRING, params, false));
+        } else if (elementtype == TYPE_STRING) {
+            methods["toString"] = new PredefinedFunction("dictionary__toString__string", new TypeFunction(TYPE_STRING, params, false));
+        } else if (elementtype == TYPE_OBJECT) {
+            methods["toString"] = new PredefinedFunction("dictionary__toString__object", new TypeFunction(TYPE_STRING, params, false));
+        }
     }
 }
 
@@ -1307,8 +1321,12 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         TYPE_OBJECT->methods["toString"] = new PredefinedFunction("object__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 
-    for (auto e: rtl::ExceptionNames) {
-        scope->addName(Token(IDENTIFIER, e.name), e.name, new Exception(Token(), e.name));
+    for (auto x: rtl::ExceptionNames) {
+        Exception *e = new Exception(Token(), x.name);
+        for (int i = 0; x.sub[i] != nullptr; i++) {
+            e->subexceptions[x.sub[i]] = new Exception(Token(), std::string(x.name) + "." + x.sub[i]);
+        }
+        scope->addName(Token(IDENTIFIER, x.name), x.name, e);
     }
 
     {

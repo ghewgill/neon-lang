@@ -4,6 +4,12 @@ packages:
 - python3
 - ncurses
 - gmp
+# optional
+- jdk-openjdk
+- mono
+- nodejs
+- rust
+#- go (can't find main module)
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 triggers:

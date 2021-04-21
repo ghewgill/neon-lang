@@ -131,6 +131,7 @@ mismatch.neon
 module-assign-let.neon
 module-assign-var.neon
 module-scope.neon
+number-exception.neon
 opcode-coverage.neon
 pointer6.neon
 pointer-mismatch.neon
@@ -171,6 +172,7 @@ record-private.neon    # Feature not required yet
 strings.neon           # Feature not required yet
 string-slice.neon      # String slice assignment not supported here yet
 struct-test.neon       # Module not required yet
+tostring-quotes.neon   # Implementation needs more work
 unicode-length.neon    # Currently works here, but still TODO in cpp
 uninitialised-if-exit.neon # FIXME
 value-copy.neon        # Feature not required yet
