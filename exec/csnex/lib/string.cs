@@ -19,7 +19,7 @@ namespace csnex.rtl
             string t = Exec.stack.Pop().String;
             string s = Exec.stack.Pop().String;
 
-            Exec.stack.Push(new Cell(new Number(s.IndexOf(t, 0))));
+            Exec.stack.Push(Cell.CreateNumberCell(new Number(s.IndexOf(t, 0))));
         }
 
         public void fromCodePoint()
@@ -35,7 +35,7 @@ namespace csnex.rtl
                 return;
             }
 
-            Exec.stack.Push(new Cell(new string((char)Number.number_to_uint32(x), 1)));
+            Exec.stack.Push(Cell.CreateStringCell(new string((char)Number.number_to_uint32(x), 1)));
         }
 
         public void toCodePoint()
@@ -47,7 +47,7 @@ namespace csnex.rtl
                 return;
             }
 
-            Exec.stack.Push(new Cell(new Number(s[0])));
+            Exec.stack.Push(Cell.CreateNumberCell(new Number(s[0])));
         }
     }
 }

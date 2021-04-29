@@ -44,7 +44,7 @@ namespace csnex
         {
             List<Cell> r = new List<Cell>();
             foreach (string value in self) {
-                r.Add(new Cell(value));
+                r.Add(Cell.CreateStringCell(value));
             }
             return r;
         }
