@@ -196,60 +196,79 @@ namespace csnex
             type = t;
             AllocNum = alloc;
         }
-
-        public Cell(List<Cell> a)
+#endregion
+#region Static creation functions
+        public static Cell CreateAddressCell(Cell c)
         {
-            type = Type.Array;
-            m_Array = a;
+            Cell r = new Cell();
+            r.type = Type.Address;
+            r.m_Address = c;
+            return r;
         }
 
-        public Cell(Boolean b)
+        public static Cell CreateArrayCell(List<Cell> a)
         {
-            type = Type.Boolean;
-            m_Boolean = b;
+            Cell r = new Cell();
+            r.type = Type.Array;
+            r.m_Array = a;
+            return r;
         }
 
-        public Cell(byte[] b)
+        public static Cell CreateBooleanCell(Boolean b)
         {
-            type = Type.Bytes;
-            m_Bytes = new byte[b.Length];
-            b.CopyTo(m_Bytes, 0);
+            Cell r = new Cell();
+            r.type = Type.Boolean;
+            r.m_Boolean = b;
+            return r;
         }
 
-        public Cell(Cell c)
+        public static Cell CreateBytesCell(byte[] b)
         {
-            type = Type.Address;
-            m_Address = c;
+            Cell r = new Cell();
+            r.type = Type.Bytes;
+            r.m_Bytes = new byte[b.Length];
+            b.CopyTo(r.m_Bytes, 0);
+            return r;
         }
 
-        public Cell(SortedDictionary<string, Cell> d)
+        public static Cell CreateDictionaryCell(SortedDictionary<string, Cell> d)
         {
-            type = Type.Dictionary;
-            m_Dictionary = d;
+            Cell r = new Cell();
+            r.type = Type.Dictionary;
+            r.m_Dictionary = d;
+            return r;
         }
 
-        public Cell(Number d)
+        public static Cell CreateNumberCell(Number d)
         {
-            type = Type.Number;
-            m_Number = d;
+            Cell r = new Cell();
+            r.type = Type.Number;
+            r.m_Number = d;
+            return r;
         }
 
-        public Cell(Object o)
+        public static Cell CreateObjectCell(Object o)
         {
-            type = Type.Object;
-            m_Object = o;
+            Cell r = new Cell();
+            r.type = Type.Object;
+            r.m_Object = o;
+            return r;
         }
 
-        public Cell(object o)
+        public static Cell CreateOtherCell(object p)
         {
-            type = Type.Other;
-            m_Other = o;
+            Cell r = new Cell();
+            r.type = Type.Other;
+            r.m_Other = p;
+            return r;
         }
 
-        public Cell(String s)
+        public static Cell CreateStringCell(String s)
         {
-            type = Type.String;
-            m_String = s;
+            Cell r = new Cell();
+            r.type = Type.String;
+            r.m_String = s;
+            return r;
         }
 #endregion
         public void ResetCell()
@@ -404,90 +423,6 @@ namespace csnex
             CopyCell(x, c);
             return x;
         }
-
-#region Set functions
-        public void Set(List<Cell> a)
-        {
-            if (type == Type.None) {
-                type = Type.Array;
-            }
-            Debug.Assert(type == Type.Array);
-            Array = a;
-        }
-
-        public void Set(Boolean b)
-        {
-            if (type == Type.None) {
-                type = Type.Boolean;
-            }
-            Debug.Assert(type == Type.Boolean);
-            Boolean = b;
-        }
-
-        public void Set(byte[] b)
-        {
-            if (type == Type.None) {
-                type = Type.Bytes;
-            }
-            Debug.Assert(type == Type.Bytes);
-            m_Bytes = new byte[b.Length];
-            b.CopyTo(m_Bytes, 0);
-        }
-
-        public void Set(Cell c)
-        {
-            if (type == Type.None) {
-                type = Type.Address;
-            }
-            Debug.Assert(type == Type.Address);
-            Address = c;
-        }
-
-        public void Set(SortedDictionary<string, Cell> d)
-        {
-            if (type == Type.None) {
-                type = Type.Dictionary;
-            }
-            Debug.Assert(type == Type.Dictionary);
-            Dictionary = d;
-        }
-
-        public void Set(Number n)
-        {
-            if (type == Type.None) {
-                type = Type.Number;
-            }
-            Debug.Assert(type == Type.Number);
-            Number = n;
-        }
-
-        public void Set(Object o)
-        {
-            if (type == Type.None) {
-                type = Type.Object;
-            }
-            Debug.Assert(type == Type.Object);
-            Object = o;
-        }
-
-        public void Set(object o)
-        {
-            if (type == Type.None) {
-                type = Type.Other;
-            }
-            Debug.Assert(type == Type.Other);
-            Other = o;
-        }
-
-        public void Set(string s)
-        {
-            if (type == Type.None) {
-                type = Type.String;
-            }
-            Debug.Assert(type == Type.String);
-            String = s;
-        }
-#endregion
 #region Index functions
         public Cell ArrayIndexForWrite(int i)
         {

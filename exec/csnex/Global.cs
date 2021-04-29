@@ -32,7 +32,7 @@ namespace csnex
                 return;
             }
 
-            Exec.stack.Push(new Cell(n));
+            Exec.stack.Push(Cell.CreateNumberCell(n));
         }
 
         public void print()
@@ -56,7 +56,7 @@ namespace csnex
                     sbuf = sbuf.Substring(0, sbuf.Length-1);
                 }
             }
-            Exec.stack.Push(new Cell(sbuf));
+            Exec.stack.Push(Cell.CreateStringCell(sbuf));
         }
 #endregion
 #region Array Functions
@@ -76,7 +76,7 @@ namespace csnex
             left.CopyTo(a, 0);
             right.CopyTo(a, left.Count);
 
-            Exec.stack.Push(new Cell(new List<Cell>(a)));
+            Exec.stack.Push(Cell.CreateArrayCell(new List<Cell>(a)));
         }
 
         public void array__extend()
@@ -108,7 +108,7 @@ namespace csnex
                 return;
             }
 
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateNumberCell(r));
         }
 
         public void array__range()
@@ -125,15 +125,15 @@ namespace csnex
 
             if (step.IsNegative()) {
                 for (Number i = first; Number.IsGreaterOrEqual(i, last); i = Number.Add(i, step)) {
-                    r.Add(new Cell(i));
+                    r.Add(Cell.CreateNumberCell(i));
                 }
             } else {
                 for (Number i = first; Number.IsLessOrEqual(i, last); i = Number.Add(i, step)) {
-                    r.Add(new Cell(i));
+                    r.Add(Cell.CreateNumberCell(i));
                 }
             }
 
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateArrayCell(r));
         }
 
         public void array__remove()
@@ -185,7 +185,7 @@ namespace csnex
         {
             List<Cell> a = Exec.stack.Pop().Array;
 
-            Exec.stack.Push(new Cell(new Number(a.Count)));
+            Exec.stack.Push(Cell.CreateNumberCell(new Number(a.Count)));
         }
 
         public void array__slice()
@@ -234,7 +234,7 @@ namespace csnex
                 r.Add(Cell.FromCell(array.Array[i]));
             }
 
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateArrayCell(r));
         }
 
         public void array__splice()
@@ -278,7 +278,7 @@ namespace csnex
                 r.Add(Cell.FromCell(a.Array[i]));
             }
 
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateArrayCell(r));
         }
 
         public void array__toBytes__number()
@@ -301,13 +301,13 @@ namespace csnex
         public void array__toString__number()
         {
             string s = Cell.toString(Exec.stack.Pop());
-            Exec.stack.Push(new Cell(s));
+            Exec.stack.Push(Cell.CreateStringCell(s));
         }
 
         public void array__toString__string()
         {
             string s = Cell.toString(Exec.stack.Pop());
-            Exec.stack.Push(new Cell(s));
+            Exec.stack.Push(Cell.CreateStringCell(s));
         }
 
         public void array__toString__object()
@@ -326,14 +326,14 @@ namespace csnex
             }
             r.Append("]");
 
-            Exec.stack.Push(new Cell(r.ToString()));
+            Exec.stack.Push(Cell.CreateStringCell(r.ToString()));
         }
 #endregion
 #region Boolean Functions
         public void boolean__toString()
         {
             string s = Cell.toString(Exec.stack.Pop());
-            Exec.stack.Push(new Cell(s));
+            Exec.stack.Push(Cell.CreateStringCell(s));
         }
 #endregion
 #region Bytes Functions
@@ -341,7 +341,7 @@ namespace csnex
         {
             Cell s = Exec.stack.Pop();
 
-            Exec.stack.Push(new Cell(new string(System.Text.Encoding.UTF8.GetChars(s.Bytes, 0, s.Bytes.Length))));
+            Exec.stack.Push(Cell.CreateStringCell(new string(System.Text.Encoding.UTF8.GetChars(s.Bytes, 0, s.Bytes.Length))));
         }
 
         public void bytes__index()
@@ -361,7 +361,7 @@ namespace csnex
             }
 
             byte c = t.Bytes[i];
-            Exec.stack.Push(new Cell(new Number(c)));
+            Exec.stack.Push(Cell.CreateNumberCell(new Number(c)));
         }
 
         public void bytes__range()
@@ -417,7 +417,7 @@ namespace csnex
         {
             Cell b = Exec.stack.Pop();
 
-            Exec.stack.Push(new Cell(new Number(b.Bytes.Length)));
+            Exec.stack.Push(Cell.CreateNumberCell(new Number(b.Bytes.Length)));
         }
 
         public void bytes__splice()
@@ -453,14 +453,15 @@ namespace csnex
             List<Cell> a = new List<Cell>(s.Bytes.Length);
 
             for (int i = 0; i < s.Bytes.Length; i++) {
-                a.Add(new Cell(new Number(s.Bytes[i])));
+                a.Add(Cell.CreateNumberCell(new Number(s.Bytes[i])));
             }
 
-            Exec.stack.Push(new Cell(a));
+            Exec.stack.Push(Cell.CreateArrayCell(a));
         }
 
         public void bytes__toString()
         {
+            // ToDo: Convert this function to use the StringBuilder class!
             bool first;
             int i;
             Cell s = Exec.stack.Pop();
@@ -477,16 +478,15 @@ namespace csnex
                 r += string.Format("{0}{1}", hex.ToCharArray()[(s.Bytes[i] >> 4) & 0xf], hex.ToCharArray()[s.Bytes[i] & 0xf]);
             }
             r += "\"";
-            Cell ret = new Cell(r);
 
-            Exec.stack.Push(ret);
+            Exec.stack.Push(Cell.CreateStringCell(r));
         }
 #endregion
 #region Dictionary Functions
         public void dictionary__keys()
         {
             List<Cell> keys = Exec.stack.Pop().Dictionary.Keys.ToList().ToCellArray();
-            Exec.stack.Push(new Cell(keys));
+            Exec.stack.Push(Cell.CreateArrayCell(keys));
         }
 
         public void dictionary__remove()
@@ -500,7 +500,7 @@ namespace csnex
         public void number__toString()
         {
             Number n = Exec.stack.Pop().Number;
-            Exec.stack.Push(new Cell(n.ToString()));
+            Exec.stack.Push(Cell.CreateStringCell(n.ToString()));
         }
 #endregion
 #region Object Functions
@@ -520,9 +520,9 @@ namespace csnex
             }
             List<Cell> r = new List<Cell>();
             foreach (Object x in a) {
-                r.Add(new Cell(x));
+                r.Add(Cell.CreateObjectCell(x));
             }
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateArrayCell(r));
         }
 
         public void object__getBoolean()
@@ -534,7 +534,7 @@ namespace csnex
                 Exec.Raise("DynamicConversionException", "to Boolean");
                 return;
             }
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateBooleanCell(r));
         }
 
         public void object__getBytes()
@@ -554,7 +554,7 @@ namespace csnex
                 Exec.Raise("DynamicConversionException", "");
                 return;
             }
-            Exec.stack.Push(new Cell(b));
+            Exec.stack.Push(Cell.CreateBytesCell(b));
         }
 
         public void object__getDictionary()
@@ -576,10 +576,10 @@ namespace csnex
 
             SortedDictionary<string, Cell> r = new SortedDictionary<string, Cell>();
             foreach (KeyValuePair<string, Object> e in d) {
-                r.Add(e.Key, new Cell(e.Value));
+                r.Add(e.Key, Cell.CreateObjectCell(e.Value));
             }
 
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateDictionaryCell(r));
         }
 
         public void object__getNumber()
@@ -591,7 +591,7 @@ namespace csnex
                 Exec.Raise("DynamicConversionException", "to Number");
                 return;
             }
-            Exec.stack.Push(new Cell(n));
+            Exec.stack.Push(Cell.CreateNumberCell(n));
         }
 
         public void object__getString()
@@ -611,7 +611,7 @@ namespace csnex
                 Exec.Raise("DynamicConversionException", "");
                 return;
             }
-            Exec.stack.Push(new Cell(s));
+            Exec.stack.Push(Cell.CreateStringCell(s));
         }
         #endregion
         #region Object Makers
@@ -624,19 +624,19 @@ namespace csnex
                 oa.Add(c.Object);
             }
 
-            Exec.stack.Push(new Cell(new ObjectArray(oa)));
+            Exec.stack.Push(Cell.CreateObjectCell(new ObjectArray(oa)));
         }
 
         public void object__makeBoolean()
         {
             Cell o = Exec.stack.Pop();
-            Exec.stack.Push(new Cell(new ObjectBoolean(o.Boolean)));
+            Exec.stack.Push(Cell.CreateObjectCell(new ObjectBoolean(o.Boolean)));
         }
 
         public void object__makeBytes()
         {
             Cell o = Exec.stack.Pop();
-            Exec.stack.Push(new Cell(new ObjectBytes(o.Bytes)));
+            Exec.stack.Push(Cell.CreateObjectCell(new ObjectBytes(o.Bytes)));
         }
 
         public void object__makeDictionary()
@@ -648,30 +648,30 @@ namespace csnex
                 r.Add(e.Key, e.Value.Object);
             }
 
-            Exec.stack.Push(new Cell(new ObjectDictionary(r)));
+            Exec.stack.Push(Cell.CreateObjectCell(new ObjectDictionary(r)));
         }
 
         public void object__makeNull()
         {
-            Exec.stack.Push(new Cell((Object)null));
+            Exec.stack.Push(Cell.CreateObjectCell(null));
         }
 
         public void object__makeNumber()
         {
             Cell o = Exec.stack.Pop();
-            Exec.stack.Push(new Cell(new ObjectNumber(o.Number)));
+            Exec.stack.Push(Cell.CreateObjectCell(new ObjectNumber(o.Number)));
         }
 
         public void object__makeString()
         {
             Cell o = Exec.stack.Pop();
-            Exec.stack.Push(new Cell(new ObjectString(o.String)));
+            Exec.stack.Push(Cell.CreateObjectCell(new ObjectString(o.String)));
         }
         #endregion
         public void object__isNull()
         {
             Object o = Exec.stack.Pop().Object;
-            Exec.stack.Push(new Cell(o == null));
+            Exec.stack.Push(Cell.CreateBooleanCell(o == null));
         }
 
         public void object__subscript()
@@ -698,14 +698,14 @@ namespace csnex
                 return;
             }
 
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateObjectCell(r));
         }
 
         public void object__toString()
         {
             Object o = Exec.stack.Pop().Object;
 
-            Exec.stack.Push(new Cell(o != null ? o.toString() : "null"));
+            Exec.stack.Push(Cell.CreateStringCell(o != null ? o.toString() : "null"));
         }
 #endregion
 #region Pointer Functions
@@ -714,7 +714,7 @@ namespace csnex
             Cell p = Exec.stack.Pop().Address;
             Module m = (Module)p.Array[0].Array[0].Other;
             Bytecode.ClassInfo ci = (Bytecode.ClassInfo)p.Array[0].Array[1].Other;
-            Exec.stack.Push(new Cell(string.Format("<p:{0}-{1}>", m.Bytecode.strtable[ci.name], p.AllocNum)));
+            Exec.stack.Push(Cell.CreateStringCell(string.Format("<p:{0}-{1}>", m.Bytecode.strtable[ci.name], p.AllocNum)));
         }
 #endregion
 #region String Functions
@@ -731,7 +731,7 @@ namespace csnex
             Cell b = Exec.stack.Pop();
             Cell a = Exec.stack.Pop();
 
-            Exec.stack.Push(new Cell(a.String + b.String));
+            Exec.stack.Push(Cell.CreateStringCell(a.String + b.String));
         }
 
         public void string__index()
@@ -754,14 +754,13 @@ namespace csnex
                 return;
             }
 
-            string r = a.String.Substring(i, 1);
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateStringCell(a.String.Substring(i, 1)));
         }
 
         public void string__length()
         {
             Number n = new Number(Exec.stack.Pop().String.Length);
-            Exec.stack.Push(new Cell(n));
+            Exec.stack.Push(Cell.CreateNumberCell(n));
         }
 
         public void string__splice()
@@ -788,7 +787,7 @@ namespace csnex
             sub += t.String;
             sub += s.String.Substring(l+1, s.String.Length - (l + 1));
 
-            Exec.stack.Push(new Cell(sub));
+            Exec.stack.Push(Cell.CreateStringCell(sub));
         }
 
         public void string__substring()
@@ -830,19 +829,19 @@ namespace csnex
             }
 
             if ((((l + 1) - f) + 1) <= 0) {
-                Exec.stack.Push(new Cell(""));
+                Exec.stack.Push(Cell.CreateStringCell(""));
                 return;
             }
 
             string sub = a.String.Substring(f, l+1-f);
-            Exec.stack.Push(new Cell(sub));
+            Exec.stack.Push(Cell.CreateStringCell(sub));
         }
 
         public void string__toBytes()
         {
             string s = Exec.stack.Pop().String;
             byte[] r = System.Text.Encoding.UTF8.GetBytes(s);
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateBytesCell(r));
         }
 
         public void string__toString()

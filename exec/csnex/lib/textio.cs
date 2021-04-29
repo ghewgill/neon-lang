@@ -28,9 +28,9 @@ namespace csnex.rtl
         public textio(Executor exe)
         {
             exec = exe;
-            stdin = new Cell(new TextFileObject(Console.OpenStandardInput()));
-            stdout = new Cell(new TextFileObject(Console.OpenStandardOutput()));
-            stderr = new Cell(new TextFileObject(Console.OpenStandardError()));
+            stdin = Cell.CreateObjectCell(new TextFileObject(Console.OpenStandardInput()));
+            stdout = Cell.CreateObjectCell(new TextFileObject(Console.OpenStandardOutput()));
+            stderr = Cell.CreateObjectCell(new TextFileObject(Console.OpenStandardError()));
         }
 
         private Stream check_file(object pf)
@@ -75,13 +75,13 @@ namespace csnex.rtl
                     fm = FileMode.OpenOrCreate;
                     break;
             default:
-                exec.stack.Push(new Cell(new TextFileObject(null)));
+                exec.stack.Push(Cell.CreateObjectCell(new TextFileObject(null)));
                 return;
             }
 
             try {
                 FileStream f = new FileStream(name, fm, fa);
-                exec.stack.Push(new Cell(new TextFileObject(f)));
+                exec.stack.Push(Cell.CreateObjectCell(new TextFileObject(f)));
             } catch (IOException iox) {
                 exec.Raise("TextioException.Open", iox.HResult.ToString());
             }
@@ -98,10 +98,10 @@ namespace csnex.rtl
 
             try {
                 StreamReader sr = new StreamReader(f);
-                Cell r = new Cell(sr.ReadLine());
+                Cell r = Cell.CreateStringCell(sr.ReadLine());
                 Boolean ret = r.String != null;
 
-                exec.stack.Push(new Cell(ret));
+                exec.stack.Push(Cell.CreateBooleanCell(ret));
                 exec.stack.Push(r);
             } catch (IOException iox) {
                 exec.Raise("TextioException.Read", iox.HResult.ToString());
