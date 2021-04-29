@@ -39,7 +39,7 @@ namespace csnex
             }
         }
 
-        public Executor(Module mod)
+        public Executor(Module mod, bool trace)
         {
             support = new Support(mod.SourcePath);
             exit_code = 0;
@@ -52,6 +52,7 @@ namespace csnex
             modules.Add("", mod);
             param_recursion_limit = 1000;
             Allocations = 0;
+            EnableTrace = trace;
             library = new List<KeyValuePair<string, object>>();
             library.Add(new KeyValuePair<string, object>("io", new rtl.io(this)));
             library.Add(new KeyValuePair<string, object>("random", new rtl.random(this)));
@@ -78,7 +79,6 @@ namespace csnex
         }
 
         private List<KeyValuePair<string, object>> library;
-
         private int exit_code;
         public Stack<Cell> stack;
         private Stack<CallStack> callstack;
@@ -93,6 +93,7 @@ namespace csnex
         private List<string> init_order;
         private Support support;
         public UInt64 Allocations;
+        private readonly bool EnableTrace;
 
         public int Run(bool EnableAssertions)
         {
@@ -1165,6 +1166,9 @@ namespace csnex
         private int Loop(Int64 min_callstack_depth)
         {
             while (callstack.Count > min_callstack_depth && ip < module.Bytecode.code.Length && exit_code == 0) {
+                if (EnableTrace) {
+                    Console.Error.WriteLine("mod {0} ip {1} ({2}) {3}", module.Name, ip, stack.Count, InstructionDisassembler.DisassembleInstruction(module.Bytecode, ip));
+                }
                 try {
                     switch ((Opcode)module.Bytecode.code[ip]) {
                         case Opcode.PUSHB: PUSHB(); break;                // push boolean immediate

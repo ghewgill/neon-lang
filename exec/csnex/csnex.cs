@@ -10,6 +10,7 @@ namespace csnex
     public struct CommandLineOptions
     {
         public Boolean EnableAssertions;
+        public Boolean EnableTracing;
         public int ArgStart;
         public string Filename;
         public string ExecutableName;
@@ -26,6 +27,7 @@ namespace csnex
             Console.Error.Write("\n Where [options] is one or more of the following:\n");
             Console.Error.Write("     -h       Display this help screen.\n");
             Console.Error.Write("     -n       No Assertions\n");
+            Console.Error.Write("     -t       Enable Tracing.\n");
         }
 
         private static Boolean ParseOptions(string[] args)
@@ -38,6 +40,8 @@ namespace csnex
                         Environment.Exit(1);
                     } else if (args[nIndex][1] == 'n') {
                         gOptions.EnableAssertions = false;
+                    }  else if (args[nIndex][1] == 't') {
+                        gOptions.EnableTracing = true;
                     } else {
                         Console.Error.WriteLine(string.Format("Unknown option {0}\n", args[nIndex]));
                         return false;
@@ -90,7 +94,7 @@ namespace csnex
             try {
                 mod.Bytecode.LoadBytecode(gOptions.Filename, mod.Code);
 
-                Executor exec = new Executor(mod);
+                Executor exec = new Executor(mod, gOptions.EnableTracing);
                 retval = exec.Run(gOptions.EnableAssertions);
             } catch (Exception ex) {
                 Console.Error.WriteLine(ex.Message);

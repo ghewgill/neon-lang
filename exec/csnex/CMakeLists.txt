@@ -2,6 +2,7 @@ set(CSNEX_SOURCES
     csnex.cs
     Bytecode.cs
     Cell.cs
+    Disassembly.cs
     Enums.cs
     Exceptions.cs
     Exec.cs
