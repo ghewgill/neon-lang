@@ -266,7 +266,12 @@ namespace csnex
 
         void PUSHFP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            List<Cell> a = new List<Cell>();
+            a.Add(Cell.CreateOtherCell(module));
+            a.Add(Cell.CreateNumberCell(new Number(addr)));
+            stack.Push(Cell.CreateArrayCell(a));
         }
 
         void PUSHCI()
@@ -926,7 +931,21 @@ namespace csnex
 
         void CALLI()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            if (callstack.Count >= param_recursion_limit) {
+                Raise("StackOverflowException", "");
+                return;
+            }
+
+            Cell a = stack.Pop();
+            Module mod = (Module)a.Array[0].Other;
+            Number nindex = a.Array[1].Number;
+            if (nindex.IsZero() || !nindex.IsInteger()) {
+                Raise("InvalidFunctionException", "");
+                return;
+            }
+            int index = Number.number_to_int32(nindex);
+            Invoke(mod, index);
         }
 
         void CALLE()
