@@ -14,7 +14,6 @@ datetime-test.neon                              # date module
 debug-example.neon                              # debugger$log
 decimal.neon                                    # Value was either too large or too small for a Decimal.
 encoding-base64.neon                            # binary module
-equality.neon                                   # EQD
 exception-tostring.neon                         # exceptiontype__toString
 export-function-indent.neon                     # exports
 export-inline.neon                              # exports
