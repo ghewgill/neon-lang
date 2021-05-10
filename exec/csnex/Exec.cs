@@ -687,12 +687,18 @@ namespace csnex
 
         void EQD()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Dictionary.Compare(b.Dictionary)));
         }
 
         void NED()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(!a.Dictionary.Compare(b.Dictionary)));
         }
 
         void EQP()

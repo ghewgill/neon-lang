@@ -62,6 +62,22 @@ namespace csnex
             return true;
         }
 
+        public static bool Compare(this SortedDictionary<string, Cell> self, SortedDictionary<string, Cell> rhs)
+        {
+            if (self.Keys.Count != rhs.Keys.Count) {
+                return false;
+            }
+            foreach (string k in self.Keys) {
+                if (!rhs.ContainsKey(k)) {
+                    return false;
+                }
+                if (!self[k].Equals(rhs[k])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static string Quote(this string s)
         {
             StringBuilder r = new StringBuilder("\"");
