@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace csnex
 {
@@ -287,30 +288,45 @@ namespace csnex
 
         public static string toString(Cell c)
         {
-            string r;
+            StringBuilder r = new StringBuilder();
             switch (c.type) {
                 case Type.Array:
                 {
+                    r.Append("[");
                     int x;
-                    r = "[";
                     for (x = 0; x < c.Array.Count; x++) {
                         if (r.Length > 1) {
-                            r += ", ";
+                            r.Append(", ");
                         }
                         if (c.Array[x].type == Type.String) {
-                            r += c.Array[x].String.Quote();
+                            r.Append(c.Array[x].String.Quote());
                         } else {
-                            r += toString(c.Array[x]);
+                            r.Append(toString(c.Array[x]));
                         }
                     }
-                    r += "]";
-                    return r;
+                    r.Append("]");
+                    return r.ToString();
                 }
                 case Type.Boolean:
                     if (c.Boolean) {
                         return "TRUE";
                     }
                     return "FALSE";
+                case Type.Dictionary:
+                    r.Append("{");
+                    bool first = true;
+                    foreach (KeyValuePair<string, Cell> e in c.Dictionary) {
+                        if (first) {
+                            first = false;
+                        } else {
+                            r.Append(", ");
+                        }
+                        r.Append(e.Key.Quote());
+                        r.Append(": ");
+                        r.Append(e.Value != null ? e.Value.ToString().Quote() : "null");
+                    }
+                    r.Append("}");
+                    return r.ToString();
                 case Type.Number:
                     return c.Number.ToString();
                 case Type.String:
