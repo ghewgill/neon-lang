@@ -1,5 +1,6 @@
 #include "neon.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +21,36 @@ void Ne_String_init_literal(Ne_String *str, const char *s)
     str->ptr = malloc(len);
     memcpy(str->ptr, s, len);
     str->len = len;
+}
+
+void Ne_Number_add(Ne_Number *result, Ne_Number *a, Ne_Number *b)
+{
+    result->dval = a->dval + b->dval;
+}
+
+void Ne_Number_subtract(Ne_Number *result, Ne_Number *a, Ne_Number *b)
+{
+    result->dval = a->dval - b->dval;
+}
+
+void Ne_Number_multiply(Ne_Number *result, Ne_Number *a, Ne_Number *b)
+{
+    result->dval = a->dval * b->dval;
+}
+
+void Ne_Number_divide(Ne_Number *result, Ne_Number *a, Ne_Number *b)
+{
+    result->dval = a->dval / b->dval;
+}
+
+void Ne_Number_pow(Ne_Number *result, Ne_Number *a, Ne_Number *b)
+{
+    result->dval = pow(a->dval, b->dval);
+}
+
+void Ne_Number_mod(Ne_Number *result, Ne_Number *a, Ne_Number *b)
+{
+    result->dval = (int)a->dval % (int)b->dval;
 }
 
 Ne_String *string_copy(const Ne_String *src)

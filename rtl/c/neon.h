@@ -13,6 +13,12 @@ typedef struct {
 
 void Ne_Number_assign(Ne_Number *dest, const Ne_Number *src);
 void Ne_Number_init_literal(Ne_Number *num, double n);
+void Ne_Number_add(Ne_Number *result, Ne_Number *a, Ne_Number *b);
+void Ne_Number_subtract(Ne_Number *result, Ne_Number *a, Ne_Number *b);
+void Ne_Number_multiply(Ne_Number *result, Ne_Number *a, Ne_Number *b);
+void Ne_Number_divide(Ne_Number *result, Ne_Number *a, Ne_Number *b);
+void Ne_Number_pow(Ne_Number *result, Ne_Number *a, Ne_Number *b);
+void Ne_Number_mod(Ne_Number *result, Ne_Number *a, Ne_Number *b);
 void Ne_String_init_literal(Ne_String *str, const char *s);
 void Ne_object__makeString(Ne_Object *obj, const Ne_String *s);
 void Ne_print(const Ne_Object *obj);

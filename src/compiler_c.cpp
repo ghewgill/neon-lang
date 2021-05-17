@@ -926,7 +926,7 @@ public:
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "Ne_Number_add(&" << result << ",&" << leftname << ",&" << rightname << ")";
+        context.out << "Ne_Number_add(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
         return result;
     }
 };
@@ -944,7 +944,7 @@ public:
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "Ne_Number_subtract(&" << result << ",&" << leftname << ",&" << rightname << ")";
+        context.out << "Ne_Number_subtract(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
         return result;
     }
 };
@@ -962,7 +962,7 @@ public:
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "Ne_Number_multiply(&" << result << ",&" << leftname << ",&" << rightname << ")";
+        context.out << "Ne_Number_multiply(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
         return result;
     }
 };
@@ -980,7 +980,7 @@ public:
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "Ne_Number_divide(&" << result << ",&" << leftname << ",&" << rightname << ")";
+        context.out << "Ne_Number_divide(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
         return result;
     }
 };
@@ -998,7 +998,7 @@ public:
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "Ne_Number_mod(&" << result << ",&" << leftname << ",&" << rightname << ")";
+        context.out << "Ne_Number_mod(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
         return result;
     }
 };
@@ -1016,7 +1016,7 @@ public:
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "Ne_Number_pow(&" << result << ",&" << leftname << ",&" << rightname << ")";
+        context.out << "Ne_Number_pow(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
         return result;
     }
 };
