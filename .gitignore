@@ -16,6 +16,7 @@ config.log
 *.neond
 *.class
 lib/*.js
+t/*.c
 t/*.cpp
 t/*.js
 gen/

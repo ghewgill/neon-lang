@@ -13,6 +13,7 @@
 #include "support.h"
 
 extern void compile_cli(CompilerSupport *support, const ast::Program *);
+extern void compile_c(CompilerSupport *support, const ast::Program *);
 extern void compile_cpp(CompilerSupport *support, const ast::Program *);
 extern void compile_js(CompilerSupport *support, const ast::Program *);
 extern void compile_jvm(CompilerSupport *support, const ast::Program *);
@@ -22,6 +23,7 @@ struct {
     CompileProc proc;
 } Targets[] = {
     {"cli", compile_cli},
+    {"c", compile_c},
     {"cpp", compile_cpp},
     {"js", compile_js},
     {"jvm", compile_jvm},
