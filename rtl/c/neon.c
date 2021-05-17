@@ -4,52 +4,53 @@
 #include <stdlib.h>
 #include <string.h>
 
-void Ne_Number_assign(struct Ne_Number *dest, const struct Ne_Number *src)
+void Ne_Number_assign(Ne_Number *dest, const Ne_Number *src)
 {
     dest->dval = src->dval;
 }
 
-struct Ne_Number *Ne_number_literal(double n)
+void Ne_Number_init_literal(Ne_Number *num, double n)
 {
-    struct Ne_Number *r = malloc(sizeof(struct Ne_Number));
-    r->dval = n;
-    return r;
+    num->dval = n;
 }
 
-struct Ne_String *Ne_string_literal(const char *s)
+void Ne_String_init_literal(Ne_String *str, const char *s)
 {
-    struct Ne_String *r = malloc(sizeof(struct Ne_String));
     size_t len = strlen(s);
-    r->ptr = malloc(len);
-    memcpy(r->ptr, s, len);
-    r->len = len;
-    return r;
+    str->ptr = malloc(len);
+    memcpy(str->ptr, s, len);
+    str->len = len;
 }
 
-struct Ne_String *string_copy(const struct Ne_String *src)
+Ne_String *string_copy(const Ne_String *src)
 {
-    struct Ne_String *r = malloc(sizeof(struct Ne_String));
+    Ne_String *r = malloc(sizeof(Ne_String));
     r->ptr = malloc(src->len);
     memcpy(r->ptr, src->ptr, src->len);
     r->len = src->len;
     return r;
 }
 
-struct Ne_Object *make_object()
+Ne_Object *make_object()
 {
-    struct Ne_Object *r = malloc(sizeof(struct Ne_Object));
+    Ne_Object *r = malloc(sizeof(Ne_Object));
     r->str = NULL;
     return r;
 }
 
-struct Ne_Object *Ne_object__makeString(const struct Ne_String *s)
+void Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
 {
-    struct Ne_Object *r = make_object();
-    r->str = string_copy(s);
-    return r;
+    obj->str = string_copy(s);
 }
 
-void Ne_print(struct Ne_Object *obj)
+void Ne_print(const Ne_Object *obj)
 {
     printf("%.*s\n", obj->str->len, obj->str->ptr);
+}
+
+void Ne_str(Ne_String *result, const Ne_Number *n)
+{
+    char buf[20];
+    snprintf(buf, sizeof(buf), "%g", n->dval);
+    Ne_String_init_literal(result, buf);
 }

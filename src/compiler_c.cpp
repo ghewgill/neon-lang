@@ -332,7 +332,7 @@ public:
     const ast::GlobalVariable *gv;
 
     virtual void generate_decl(Context &context) const override {
-        context.out << "struct " << type->name << " " << v->name << ";\n";
+        context.out << type->name << " " << v->name << ";\n";
     }
     virtual std::string generate(Context &) const override {
         return gv->name;
@@ -405,7 +405,7 @@ public:
 
     virtual std::string generate(Context &context) const override {
         std::string result = context.get_temp_name(type);
-        context.out << "Ne_string_init_literal(&" << result << "," << quoted(cse->value.str()) << ");\n";
+        context.out << "Ne_String_init_literal(&" << result << "," << quoted(cse->value.str()) << ");\n";
         return result;
     }
 };
@@ -1408,9 +1408,8 @@ public:
         std::string exprname = expr->generate(context);
         for (auto v: variables) {
             if (dynamic_cast<const DummyExpression *>(v) == nullptr) {
-                context.out << v->type->name << "_assign(&";
-                v->generate(context);
-                context.out << ", " << exprname << ");\n";
+                std::string vname = v->generate(context);
+                context.out << v->type->name << "_assign(&" << vname << ",&" << exprname << ");\n";
             }
         }
     }
