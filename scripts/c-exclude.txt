@@ -141,7 +141,6 @@ function-args.neon
 function-defaultargs.neon
 function-local.neon
 function-namedargs.neon
-function.neon
 function-pointer.neon
 function-pointer-nowhere.neon
 gc1.neon
@@ -151,7 +150,6 @@ gc-array.neon
 gc-long-chain.neon
 gc-two-pointers.neon
 global-shadow.neon
-if.neon
 import-dup.neon
 import.neon
 import-optional.neon
@@ -385,7 +383,6 @@ var.neon
 var-reset.neon
 varargs.neon
 varargs-functionpointer.neon
-while.neon
 while-valid.neon
 win32-test.neon
 xml-test.neon

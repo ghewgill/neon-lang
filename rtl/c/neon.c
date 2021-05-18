@@ -53,6 +53,36 @@ void Ne_Number_mod(Ne_Number *result, Ne_Number *a, Ne_Number *b)
     result->dval = (int)a->dval % (int)b->dval;
 }
 
+void Ne_Number_equal(int *result, Ne_Number *a, Ne_Number *b)
+{
+    *result = a->dval == b->dval;
+}
+
+void Ne_Number_notequal(int *result, Ne_Number *a, Ne_Number *b)
+{
+    *result = a->dval != b->dval;
+}
+
+void Ne_Number_less(int *result, Ne_Number *a, Ne_Number *b)
+{
+    *result = a->dval < b->dval;
+}
+
+void Ne_Number_greater(int *result, Ne_Number *a, Ne_Number *b)
+{
+    *result = a->dval > b->dval;
+}
+
+void Ne_Number_lessequal(int *result, Ne_Number *a, Ne_Number *b)
+{
+    *result = a->dval <= b->dval;
+}
+
+void Ne_Number_greaterequal(int *result, Ne_Number *a, Ne_Number *b)
+{
+    *result = a->dval >= b->dval;
+}
+
 Ne_String *string_copy(const Ne_String *src)
 {
     Ne_String *r = malloc(sizeof(Ne_String));

@@ -717,8 +717,33 @@ public:
     const Expression *left;
     const Expression *right;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ComparisonExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string leftname = left->generate(context);
+        std::string rightname = right->generate(context);
+        std::string result = context.get_temp_name(g_type_cache[ast::TYPE_BOOLEAN]);
+        switch (ce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ:
+                context.out << "Ne_Number_equal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                break;
+            case ast::ComparisonExpression::Comparison::NE:
+                context.out << "Ne_Number_notequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                break;
+            case ast::ComparisonExpression::Comparison::LT:
+                context.out << "Ne_Number_less(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                break;
+            case ast::ComparisonExpression::Comparison::GT:
+                context.out << "Ne_Number_greater(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                break;
+            case ast::ComparisonExpression::Comparison::LE:
+                context.out << "Ne_Number_lessequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                break;
+            case ast::ComparisonExpression::Comparison::GE:
+                context.out << "Ne_Number_greaterequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                break;
+            default:
+                internal_error("unhandled comparison");
+        }
+        return result;
     }
     virtual void generate_comparison(Context &context) const = 0;
 };
@@ -1465,8 +1490,18 @@ public:
     std::vector<const Statement *> prologue;
     std::vector<const Statement *> tail;
 
-    virtual void generate(Context &) const override {
-        internal_error("BaseLoopStatement");
+    virtual void generate(Context &context) const override {
+        for (auto s: prologue) {
+            s->generate(context);
+        }
+        context.out << "for (;;) {\n";
+        for (auto s: statements) {
+            s->generate(context);
+        }
+        for (auto s: tail) {
+            s->generate(context);
+        }
+        context.out << "}\n";
     }
 };
 
@@ -1659,12 +1694,9 @@ public:
     const Expression *expr;
 
     virtual void generate(Context &context) const override {
-        context.out << "return";
-        if (expr != nullptr) {
-            context.out << " ";
-            expr->generate(context);
-        }
-        context.out << ";\n";
+        std::string retname = expr != nullptr ? expr->generate(context) : "";
+        context.out << "*result = " << retname << ";\n";
+        context.out << "return;\n";
     }
 };
 
@@ -1703,27 +1735,19 @@ public:
     std::vector<const Statement *> else_statements;
 
     void generate(Context &context) const override {
-        bool first = true;
         for (auto c: condition_statements) {
-            if (first) {
-                first = false;
-            } else {
-                context.out << "else ";
-            }
-            context.out << "if (";
-            c.first->generate(context);
-            context.out << ") {";
+            std::string condname = c.first->generate(context);
+            context.out << "if (" << condname << ") {\n";
             for (auto s: c.second) {
                 s->generate(context);
             }
-            context.out << "}";
+            context.out << "} else {\n";
         }
-        if (else_statements.size() > 0) {
-            context.out << " else {";
-            for (auto s: else_statements) {
-                s->generate(context);
-            }
-            context.out << "}";
+        for (auto s: else_statements) {
+            s->generate(context);
+        }
+        for (auto c: condition_statements) {
+            context.out << "}\n";
         }
     }
 };
@@ -1780,21 +1804,16 @@ public:
     int out_count;
 
     virtual void generate_decl(Context &context) const override {
-        context.out << "void " << f->name << "(";
-        bool first = true;
+        context.out << "void " << f->name << "(Ne_Number *result";
         for (auto p: params) {
-            if (first) {
-                first = false;
-            } else {
-                context.out << ", ";
-            }
+            context.out << ", ";
             context.out << p->fp->name;
         }
-        context.out << ") {";
+        context.out << ") {\n";
         for (auto s: statements) {
             s->generate(context);
         }
-        context.out << "}";
+        context.out << "}\n";
     }
     virtual std::string generate(Context &) const override {
         return f->name;
