@@ -12,7 +12,6 @@ array.neon
 array-remove.neon
 array-resize.neon
 array-reversed.neon
-arraysize.neon
 array-slice.neon
 array-sparse.neon
 array-subscript.neon
@@ -47,7 +46,6 @@ comparison2.neon
 comparison.neon
 complex-test.neon
 concat-bytes.neon
-concat.neon
 const-boolean.neon
 const-expression.neon
 const-string.neon

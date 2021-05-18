@@ -54,6 +54,7 @@ public:
     explicit Context(std::ostream &out): out(out), tmp_counter(0) {}
     Context(const Context &) = delete;
     Context &operator=(const Context &) = delete;
+    std::string get_temp_name(std::string type);
     std::string get_temp_name(const Type *type);
 };
 
@@ -485,8 +486,10 @@ public:
     const ast::ArrayLiteralExpression *ale;
     std::vector<const Expression *> elements;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ArrayLiteralExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("Ne_Array");
+        context.out << "Ne_Array_init(&" << result << "," << elements.size() << ",(void (*)(void **))Ne_Number_constructor);\n";
+        return result;
     }
 };
 
@@ -721,7 +724,7 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name(g_type_cache[ast::TYPE_BOOLEAN]);
+        std::string result = context.get_temp_name("int");
         switch (ce->comp) {
             case ast::ComparisonExpression::Comparison::EQ:
                 context.out << "Ne_Number_equal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
@@ -1067,8 +1070,11 @@ public:
     const Expression *index;
 
     virtual std::string generate(Context &context) const override {
+        std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
-        return array->generate(context) + "[" + indexname + "]";
+        std::string elementptr = context.get_temp_name(type->name + "*");
+        context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ");\n";
+        return "*" + elementptr;
     }
 };
 
@@ -2492,11 +2498,17 @@ Statement *transform(const ast::Statement *s)
     return st.retval();
 }
 
-std::string Context::get_temp_name(const Type *type) {
+std::string Context::get_temp_name(std::string type)
+{
     ++tmp_counter;
     std::string name = "tmp" + std::to_string(tmp_counter);
-    out << type->name << " " << name << ";\n";
+    out << type << " " << name << ";\n";
     return name;
+}
+
+std::string Context::get_temp_name(const Type *type)
+{
+    return get_temp_name(type->name);
 }
 
 } // namespace c
