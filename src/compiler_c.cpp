@@ -108,6 +108,7 @@ public:
     }
     virtual ~Statement() {}
     virtual void generate(Context &context) const = 0;
+    virtual void generate_decl(Context &) const {}
 };
 
 Statement *transform(const ast::Statement *s);
@@ -1387,7 +1388,8 @@ public:
     const ast::DeclarationStatement *ds;
     const Variable *decl;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate(Context &) const override {}
+    virtual void generate_decl(Context &context) const override {
         decl->generate_decl(context);
     }
 };
@@ -1898,6 +1900,9 @@ public:
             if (global != nullptr) {
                 global->generate_decl(context);
             }
+        }
+        for (auto s: statements) {
+            s->generate_decl(context);
         }
         context.out << "int main(int argc, const char *argv[]) {\n";
         for (auto s: statements) {
