@@ -337,6 +337,16 @@ namespace csnex
         }
 #endregion
 #region Bytes Functions
+        public void bytes__concat()
+        {
+            Cell b = Exec.stack.Pop();
+            Cell a = Exec.stack.Pop();
+            byte[] r = new byte[b.Bytes.Length + a.Bytes.Length];
+            Array.Copy(a.Bytes, r, a.Bytes.Length);
+            Array.Copy(b.Bytes, 0, r, a.Bytes.Length, b.Bytes.Length);
+            Exec.stack.Push(Cell.CreateBytesCell(r));
+        }
+
         public void bytes__decodeToString()
         {
             Cell s = Exec.stack.Pop();
