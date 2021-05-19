@@ -20,6 +20,7 @@ typedef struct {
 } Ne_Array;
 
 void Ne_Boolean_assign(Ne_Boolean *dest, const Ne_Boolean *src);
+void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a);
 void Ne_Number_assign(Ne_Number *dest, const Ne_Number *src);
 void Ne_Number_init_literal(Ne_Number *num, double n);
 void Ne_Number_constructor(Ne_Number **num);
@@ -29,6 +30,8 @@ void Ne_Number_multiply(Ne_Number *result, const Ne_Number *a, const Ne_Number *
 void Ne_Number_divide(Ne_Number *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_pow(Ne_Number *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_mod(Ne_Number *result, const Ne_Number *a, const Ne_Number *b);
+void Ne_Number_negate(Ne_Number *result, const Ne_Number *a);
+void Ne_Number_increment(Ne_Number *a, int delta);
 void Ne_Number_equal(int *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_notequal(int *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_less(int *result, const Ne_Number *a, const Ne_Number *b);
@@ -46,3 +49,4 @@ void Ne_object__makeString(Ne_Object *obj, const Ne_String *s);
 void Ne_print(const Ne_Object *obj);
 void Ne_str(Ne_String *result, const Ne_Number *n);
 void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b);
+void Ne_string__length(Ne_Number *result, const Ne_String *str);

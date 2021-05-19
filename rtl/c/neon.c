@@ -10,6 +10,11 @@ void Ne_Boolean_assign(Ne_Boolean *dest, const Ne_Boolean *src)
     *dest = *src;
 }
 
+void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
+{
+    Ne_String_init_literal(result, *a ? "TRUE" : "FALSE");
+}
+
 void Ne_Number_assign(Ne_Number *dest, const Ne_Number *src)
 {
     dest->dval = src->dval;
@@ -67,6 +72,16 @@ void Ne_Number_pow(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 void Ne_Number_mod(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 {
     result->dval = (int)a->dval % (int)b->dval;
+}
+
+void Ne_Number_negate(Ne_Number *result, const Ne_Number *a)
+{
+    result->dval = -a->dval;
+}
+
+void Ne_Number_increment(Ne_Number *a, int delta)
+{
+    a->dval += delta;
 }
 
 void Ne_Number_equal(int *result, const Ne_Number *a, const Ne_Number *b)
@@ -178,4 +193,9 @@ void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b)
     dest->ptr = malloc(dest->len);
     memcpy(dest->ptr, a->ptr, a->len);
     memcpy(dest->ptr+a->len, b->ptr, b->len);
+}
+
+void Ne_string__length(Ne_Number *result, const Ne_String *str)
+{
+    result->dval = str->len;
 }

@@ -68,7 +68,6 @@ exception-tostring.neon
 exception-trace.neon
 export-inline.neon
 export.neon
-expr.neon
 file-exists.neon
 file-filecopied1.neon
 file-filecopied2.neon
@@ -79,13 +78,11 @@ file-symlink.neon
 file-test.neon
 file-writebytes.neon
 file-writelines.neon
-for-bounds.neon
 foreach-eval.neon
 foreach-function.neon
 foreach.neon
 foreach-string.neon
 foreach-value.neon
-for.neon
 for-nested2.neon
 for-scope.neon
 format.neon
@@ -105,7 +102,6 @@ gc-two-pointers.neon
 import-dup.neon
 import.neon
 import-optional.neon
-inc.neon
 inc-reference.neon
 index.neon
 inline-construct-record.neon
@@ -120,8 +116,6 @@ interface-parameter-import2.neon
 interface-parameter-import.neon
 io-test.neon
 json-test.neon
-let.neon
-lexer-raw.neon
 lexer-unicode.neon
 lexical-scope.neon
 literal-array.neon
@@ -129,8 +123,6 @@ literal-empty.neon
 literal.neon
 literal-method.neon
 local-clear.neon
-logical2.neon
-logical.neon
 loop-label.neon
 math-test.neon
 methods-declare.neon
@@ -193,7 +185,6 @@ posix-fork.neon
 predeclare1.neon
 predeclare2.neon
 predeclare3.neon
-predefined-generation.neon
 print-object.neon
 random-test.neon
 record-empty.neon
@@ -202,7 +193,6 @@ record-init.neon
 record-private.neon
 recursion-limit.neon
 recursion.neon
-repeat-next.neon
 repl_enum_tostring.neon
 repl_function.neon
 repl_import.neon
@@ -245,7 +235,6 @@ tostring-quotes.neon
 try-expression.neon
 type-compat.neon
 type-nested.neon
-unary-plus.neon
 unicode-char.neon
 unicode-length.neon
 unicode-string.neon

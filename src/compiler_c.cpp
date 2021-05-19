@@ -111,7 +111,22 @@ public:
     const ast::Statement *s;
 
     void generate(Context &context) const {
-        context.out << "/* " << s->line << " */\n";
+        std::string source = s->token.source_line();
+        for (;;) {
+            auto i = source.find("/*");
+            if (i == std::string::npos) {
+                break;
+            }
+            source.replace(i, 2, "?*");
+        }
+        for (;;) {
+            auto i = source.find("*/");
+            if (i == std::string::npos) {
+                break;
+            }
+            source.replace(i, 2, "*?");
+        }
+        context.out << "/* " << source << " */\n";
         generate_statement(context);
     }
     virtual void generate_decl(Context &) const {}
@@ -570,7 +585,7 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string valuename = value->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << result << "=Ne_Number_negate(" << valuename << ");\n";
+        context.out << "Ne_Number_negate(&" << result << ",&" << valuename << ");\n";
         return result;
     }
 };
@@ -663,7 +678,7 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string leftname = left->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "int " << result << "=" << leftname << ";\n";
+        context.out << result << "=" << leftname << ";\n";
         context.out << "if (!" << result << ") {\n";
         std::string rightname = right->generate(context);
         context.out << result << "=" << rightname << ";\n";
@@ -684,7 +699,7 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string leftname = left->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "int " << result << "=" << leftname << ";\n";
+        context.out << result << "=" << leftname << ";\n";
         context.out << "if (" << result << ") {\n";
         std::string rightname = right->generate(context);
         context.out << result << "=" << rightname << ";\n";
@@ -1728,8 +1743,8 @@ public:
     const Expression *ref;
 
     virtual void generate_statement(Context &context) const override {
-        ref->generate(context);
-        context.out << "+=" << is->delta << ";\n";
+        std::string name = ref->generate(context);
+        context.out << "Ne_Number_increment(&" << name << "," << is->delta << ");\n";
     }
 };
 
@@ -1825,8 +1840,9 @@ public:
     virtual void generate_decl(Context &context) const override {
         context.out << "void " << f->name << "(";
         bool first = true;
-        if (dynamic_cast<const ast::TypeFunction *>(f->type)->returntype != ast::TYPE_NOTHING) {
-            context.out << type->name << " *result";
+        auto returntype = dynamic_cast<const ast::TypeFunction *>(f->type)->returntype;
+        if (returntype != ast::TYPE_NOTHING) {
+            context.out << g_type_cache[returntype]->name << " *result";
             first = false;
         }
         for (auto p: params) {
