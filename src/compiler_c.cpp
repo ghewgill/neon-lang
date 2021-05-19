@@ -104,12 +104,18 @@ Expression *transform(const ast::Expression *e);
 
 class Statement {
 public:
-    explicit Statement(const ast::Statement *s) {
+    explicit Statement(const ast::Statement *s): s(s) {
         g_statement_cache[s] = this;
     }
     virtual ~Statement() {}
-    virtual void generate(Context &context) const = 0;
+    const ast::Statement *s;
+
+    void generate(Context &context) const {
+        context.out << "/* " << s->line << " */\n";
+        generate_statement(context);
+    }
     virtual void generate_decl(Context &) const {}
+    virtual void generate_statement(Context &context) const = 0;
 };
 
 Statement *transform(const ast::Statement *s);
@@ -134,7 +140,7 @@ public:
 
 class TypeBoolean: public Type {
 public:
-    explicit TypeBoolean(const ast::TypeBoolean *tb): Type(tb, "int"), tb(tb) {}
+    explicit TypeBoolean(const ast::TypeBoolean *tb): Type(tb, "Ne_Boolean"), tb(tb) {}
     TypeBoolean(const TypeBoolean &) = delete;
     TypeBoolean &operator=(const TypeBoolean &) = delete;
     const ast::TypeBoolean *tb;
@@ -290,7 +296,7 @@ public:
 
 class TypeEnum: public Type {
 public:
-    explicit TypeEnum(const ast::TypeEnum *te): Type(te, "Ne_Enum"), te(te) {}
+    explicit TypeEnum(const ast::TypeEnum *te): Type(te, "Ne_Number"), te(te) {}
     TypeEnum(const TypeEnum &) = delete;
     TypeEnum &operator=(const TypeEnum &) = delete;
     const ast::TypeEnum *te;
@@ -363,10 +369,11 @@ public:
     FunctionParameter &operator=(const FunctionParameter &) = delete;
     const ast::FunctionParameter *fp;
     const int index;
+    std::string localname;
 
     virtual void generate_decl(Context &) const override { internal_error("FunctionParameter"); }
     virtual std::string generate(Context &) const override {
-        return fp->name;
+        return localname;
     }
 };
 
@@ -432,8 +439,10 @@ public:
     const ast::ConstantEnumExpression *cee;
     const TypeEnum *type;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ConstantEnumExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string name = context.get_temp_name("Ne_Number");
+        context.out << "Ne_Number_init_literal(&" << name << "," << cee->value << ");\n";
+        return name;
     }
 };
 
@@ -724,7 +733,7 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name("int");
+        std::string result = context.get_temp_name("Ne_Boolean");
         switch (ce->comp) {
             case ast::ComparisonExpression::Comparison::EQ:
                 context.out << "Ne_Number_equal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
@@ -1373,7 +1382,7 @@ public:
     NullStatement &operator=(const NullStatement &) = delete;
     const ast::NullStatement *ns;
 
-    virtual void generate(Context &) const override {}
+    virtual void generate_statement(Context &) const override {}
 };
 
 class TypeDeclarationStatement: public Statement {
@@ -1383,7 +1392,7 @@ public:
     TypeDeclarationStatement &operator=(const TypeDeclarationStatement &) = delete;
     const ast::TypeDeclarationStatement *tds;
 
-    virtual void generate(Context &) const override {}
+    virtual void generate_statement(Context &) const override {}
 };
 
 class DeclarationStatement: public Statement {
@@ -1394,7 +1403,7 @@ public:
     const ast::DeclarationStatement *ds;
     const Variable *decl;
 
-    virtual void generate(Context &) const override {}
+    virtual void generate_statement(Context &) const override {}
     virtual void generate_decl(Context &context) const override {
         decl->generate_decl(context);
     }
@@ -1413,7 +1422,7 @@ public:
     std::vector<const Statement *> statements;
     const Expression *expr;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         context.out << "if (!(";
         expr->generate(context);
         context.out << ")) {";
@@ -1437,7 +1446,7 @@ public:
     std::vector<const Expression *> variables;
     const Expression *expr;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         std::string exprname = expr->generate(context);
         for (auto v: variables) {
             if (dynamic_cast<const DummyExpression *>(v) == nullptr) {
@@ -1456,7 +1465,7 @@ public:
     const ast::ExpressionStatement *es;
     const Expression *expr;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         expr->generate(context);
         context.out << ";\n";
     }
@@ -1474,7 +1483,7 @@ public:
     const ast::CompoundStatement *cs;
     std::vector<const Statement *> statements;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         printf("here\n");
         for (auto s: statements) {
             s->generate(context);
@@ -1498,7 +1507,7 @@ public:
     std::vector<const Statement *> prologue;
     std::vector<const Statement *> tail;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         for (auto s: prologue) {
             s->generate(context);
         }
@@ -1587,7 +1596,7 @@ public:
     const Expression *expr;
     std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         bool first_clause = true;
         for (auto c: clauses) {
             if (first_clause) {
@@ -1624,7 +1633,7 @@ public:
     ExitStatement &operator=(const ExitStatement &) = delete;
     const ast::ExitStatement *es;
 
-    void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         context.out << "break;\n"; // TODO: use label to get correct loop
     }
 };
@@ -1636,7 +1645,7 @@ public:
     NextStatement &operator=(const NextStatement &) = delete;
     const ast::NextStatement *ns;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         context.out << "continue;\n"; // TODO: use label to get correct loop
     }
 };
@@ -1671,7 +1680,7 @@ public:
     std::vector<const Statement *> statements;
     std::vector<const TryStatementTrap *> catches;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         context.out << "try {";
         for (auto s: statements) {
             s->generate(context);
@@ -1701,9 +1710,11 @@ public:
     const ast::ReturnStatement *rs;
     const Expression *expr;
 
-    virtual void generate(Context &context) const override {
-        std::string retname = expr != nullptr ? expr->generate(context) : "";
-        context.out << "*result = " << retname << ";\n";
+    virtual void generate_statement(Context &context) const override {
+        if (expr != nullptr) {
+            std::string retname = expr->generate(context);
+            context.out << "*result = " << retname << ";\n";
+        }
         context.out << "return;\n";
     }
 };
@@ -1716,7 +1727,7 @@ public:
     const ast::IncrementStatement *is;
     const Expression *ref;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         ref->generate(context);
         context.out << "+=" << is->delta << ";\n";
     }
@@ -1742,7 +1753,7 @@ public:
     std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     std::vector<const Statement *> else_statements;
 
-    void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         for (auto c: condition_statements) {
             std::string condname = c.first->generate(context);
             context.out << "if (" << condname << ") {\n";
@@ -1768,7 +1779,7 @@ public:
     const ast::RaiseStatement *rs;
     const Expression *info;
 
-    virtual void generate(Context &context) const override {
+    virtual void generate_statement(Context &context) const override {
         context.out << "throw neon::NeonException(" << quoted(rs->exception->name) << ", ";
         info->generate(context);
         context.out << ");\n";
@@ -1782,7 +1793,7 @@ public:
     ResetStatement &operator=(const ResetStatement &) = delete;
     const ast::ResetStatement *rs;
 
-    virtual void generate(Context &) const override {}
+    virtual void generate_statement(Context &) const override {}
 };
 
 class Function: public Variable {
@@ -1812,12 +1823,26 @@ public:
     int out_count;
 
     virtual void generate_decl(Context &context) const override {
-        context.out << "void " << f->name << "(Ne_Number *result";
+        context.out << "void " << f->name << "(";
+        bool first = true;
+        if (dynamic_cast<const ast::TypeFunction *>(f->type)->returntype != ast::TYPE_NOTHING) {
+            context.out << type->name << " *result";
+            first = false;
+        }
         for (auto p: params) {
-            context.out << ", ";
-            context.out << p->fp->name;
+            if (first) {
+                first = false;
+            } else {
+                context.out << ",";
+            }
+            context.out << p->type->name << " *" << p->fp->name;
         }
         context.out << ") {\n";
+        for (auto p: params) {
+            assert(p->localname == "");
+            p->localname = context.get_temp_name(p->type);
+            context.out << p->type->name << "_assign(&" << p->localname << "," << p->fp->name << ");\n";
+        }
         for (auto s: statements) {
             s->generate(context);
         }

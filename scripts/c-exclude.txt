@@ -23,8 +23,6 @@ assignment.neon
 base-test.neon
 bigint.neon
 binary-test.neon
-boolean.neon
-bytecode-stringtable.neon
 bytes-embed.neon
 bytes-index.neon
 bytes-literal.neon
@@ -37,7 +35,6 @@ case-jumptbl.neon
 case.neon
 case-overlap.neon
 cformat-test.neon
-check-if.neon
 check-valid.neon
 check.neon
 class-empty.neon

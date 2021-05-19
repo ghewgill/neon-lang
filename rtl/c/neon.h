@@ -1,3 +1,5 @@
+typedef int Ne_Boolean;
+
 typedef struct {
     double dval;
 } Ne_Number;
@@ -17,6 +19,7 @@ typedef struct {
     void (*constructor)(void **);
 } Ne_Array;
 
+void Ne_Boolean_assign(Ne_Boolean *dest, const Ne_Boolean *src);
 void Ne_Number_assign(Ne_Number *dest, const Ne_Number *src);
 void Ne_Number_init_literal(Ne_Number *num, double n);
 void Ne_Number_constructor(Ne_Number **num);
