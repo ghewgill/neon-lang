@@ -592,19 +592,19 @@ static const ast::Expression *make_array_conversion(Analyzer *analyzer, const as
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(from));
     return new ast::StatementExpression(
         new ast::BaseLoopStatement(
-            0,
+            Token(),
             loop_id,
             // prologue
             {
-                new ast::AssignmentStatement(0, { new ast::VariableExpression(result) }, new ast::ArrayLiteralExpression(nullptr, {}, {})),
-                new ast::AssignmentStatement(0, { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
-                new ast::AssignmentStatement(0, { new ast::VariableExpression(array_copy) }, from),
-                new ast::AssignmentStatement(0, { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(ast::TYPE_ARRAY_STRING->methods.at("size")), { new ast::VariableExpression(array_copy) })),
+                new ast::AssignmentStatement(Token(), { new ast::VariableExpression(result) }, new ast::ArrayLiteralExpression(nullptr, {}, {})),
+                new ast::AssignmentStatement(Token(), { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
+                new ast::AssignmentStatement(Token(), { new ast::VariableExpression(array_copy) }, from),
+                new ast::AssignmentStatement(Token(), { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(ast::TYPE_ARRAY_STRING->methods.at("size")), { new ast::VariableExpression(array_copy) })),
             },
             // statements
             {
                 new ast::IfStatement(
-                    0,
+                    Token(),
                     {
                         std::make_pair(
                             new ast::NumericComparisonExpression(
@@ -612,13 +612,13 @@ static const ast::Expression *make_array_conversion(Analyzer *analyzer, const as
                                 new ast::VariableExpression(bound),
                                 ast::ComparisonExpression::Comparison::GE
                             ),
-                            std::vector<const ast::Statement *> { new ast::ExitStatement(0, loop_id) }
+                            std::vector<const ast::Statement *> { new ast::ExitStatement(Token(), loop_id) }
                         )
                     },
                     {}
                 ),
                 new ast::ExpressionStatement(
-                    0,
+                    Token(),
                     new ast::FunctionCall(
                         new ast::VariableExpression(result->type->methods.at("append")),
                         {
@@ -638,7 +638,7 @@ static const ast::Expression *make_array_conversion(Analyzer *analyzer, const as
             },
             // tail
             {
-                new ast::IncrementStatement(0, new ast::VariableExpression(index), 1)
+                new ast::IncrementStatement(Token(), new ast::VariableExpression(index), 1)
             },
             false
         ),
@@ -669,19 +669,19 @@ static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, con
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(from));
     return new ast::StatementExpression(
         new ast::BaseLoopStatement(
-            0,
+            Token(),
             loop_id,
             // prologue
             {
-                new ast::AssignmentStatement(0, { new ast::VariableExpression(result) }, new ast::DictionaryLiteralExpression(nullptr, {}, {})),
-                new ast::AssignmentStatement(0, { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
-                new ast::AssignmentStatement(0, { new ast::VariableExpression(keys) }, new ast::FunctionCall(new ast::VariableExpression(from->type->methods.at("keys")), { from })),
-                new ast::AssignmentStatement(0, { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(ast::TYPE_ARRAY_STRING->methods.at("size")), { new ast::VariableExpression(keys) })),
+                new ast::AssignmentStatement(Token(), { new ast::VariableExpression(result) }, new ast::DictionaryLiteralExpression(nullptr, {}, {})),
+                new ast::AssignmentStatement(Token(), { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
+                new ast::AssignmentStatement(Token(), { new ast::VariableExpression(keys) }, new ast::FunctionCall(new ast::VariableExpression(from->type->methods.at("keys")), { from })),
+                new ast::AssignmentStatement(Token(), { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(ast::TYPE_ARRAY_STRING->methods.at("size")), { new ast::VariableExpression(keys) })),
             },
             // statements
             {
                 new ast::IfStatement(
-                    0,
+                    Token(),
                     {
                         std::make_pair(
                             new ast::NumericComparisonExpression(
@@ -689,13 +689,13 @@ static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, con
                                 new ast::VariableExpression(bound),
                                 ast::ComparisonExpression::Comparison::GE
                             ),
-                            std::vector<const ast::Statement *> { new ast::ExitStatement(0, loop_id) }
+                            std::vector<const ast::Statement *> { new ast::ExitStatement(Token(), loop_id) }
                         )
                     },
                     {}
                 ),
                 new ast::AssignmentStatement(
-                    0,
+                    Token(),
                     {new ast::DictionaryReferenceIndexExpression(
                         to_type->elementtype,
                         new ast::VariableExpression(result),
@@ -723,7 +723,7 @@ static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, con
             },
             // tail
             {
-                new ast::IncrementStatement(0, new ast::VariableExpression(index), 1)
+                new ast::IncrementStatement(Token(), new ast::VariableExpression(index), 1)
             },
             false
         ),
@@ -739,7 +739,7 @@ static const ast::Expression *make_object_conversion_from_record(Analyzer *analy
         auto converter = ast::TYPE_OBJECT->make_converter(f.type);
         field_statements.push_back(
             new ast::AssignmentStatement(
-                0,
+                Token(),
                 {new ast::DictionaryReferenceIndexExpression(
                     ast::TYPE_OBJECT,
                     new ast::VariableExpression(result),
@@ -758,7 +758,7 @@ static const ast::Expression *make_object_conversion_from_record(Analyzer *analy
         );
     }
     return new ast::StatementExpression(
-        new ast::CompoundStatement(0, field_statements),
+        new ast::CompoundStatement(Token(), field_statements),
         new ast::FunctionCall(
             new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
             {new ast::VariableExpression(result)}
@@ -774,9 +774,9 @@ static const ast::Expression *make_record_conversion_from_object(Analyzer *analy
         auto converter = f.type->make_converter(ast::TYPE_OBJECT);
         field_statements.push_back(
             new ast::TryStatement(
-                0,
+                Token(),
                 {new ast::AssignmentStatement(
-                    0,
+                    Token(),
                     {new ast::RecordReferenceFieldExpression(
                         f.type,
                         new ast::VariableExpression(result),
@@ -795,14 +795,14 @@ static const ast::Expression *make_record_conversion_from_object(Analyzer *analy
                     ast::TryTrap(
                         {dynamic_cast<const ast::Exception *>(analyzer->global_scope->lookupName("ObjectSubscriptException"))},
                         nullptr,
-                        new ast::ExceptionHandlerStatement(0, {new ast::NullStatement(0)})
+                        new ast::ExceptionHandlerStatement(Token(), {new ast::NullStatement(Token())})
                     )
                 }
             )
         );
     }
     return new ast::StatementExpression(
-        new ast::CompoundStatement(0, field_statements),
+        new ast::CompoundStatement(Token(), field_statements),
         new ast::VariableExpression(result)
     );
 }
@@ -1151,7 +1151,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             }
             values[n.second] = new ConstantStringExpression(utf8string(n.first));
         }
-        f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp), false)));
+        f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp), false)));
         methods["toString"] = f;
     }
 }
@@ -3344,7 +3344,7 @@ const ast::Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration
 {
     if (declaration->alias.type == NONE && declaration->name.type == NONE) {
         if (scope.top()->lookupName(declaration->module.text) != nullptr && modules.find(declaration->module.text) != modules.end()) {
-            return new ast::NullStatement(declaration->token.line);
+            return new ast::NullStatement(declaration->token);
         }
     }
     const Token &localname = declaration->alias.type != NONE ? declaration->alias : declaration->name.type != NONE ? declaration->name : declaration->module;
@@ -3362,7 +3362,7 @@ const ast::Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration
             error(3176, declaration->name, "name not found in module");
         }
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
@@ -3407,7 +3407,7 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     if (classtype != nullptr) {
         scope.top()->resolveForward(name, classtype);
     }
-    return new ast::TypeDeclarationStatement(declaration->token.line, name, type);
+    return new ast::TypeDeclarationStatement(declaration->token, name, type);
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *declaration)
@@ -3416,7 +3416,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *decl
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3014, declaration->token, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declaration)
@@ -3450,10 +3450,10 @@ const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *decl
     } else {
         ast::Variable *v = new ast::GlobalVariable(declaration->name, declaration->name.text, type, true);
         scope.top()->addName(v->declaration, v->name, v, true);
-        return new ast::AssignmentStatement(declaration->token.line, {new ast::VariableExpression(v)}, value);
+        return new ast::AssignmentStatement(declaration->token, {new ast::VariableExpression(v)}, value);
     }
     scope.top()->addName(declaration->name, name, new ast::Constant(declaration->name, name, value));
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::NativeConstantDeclaration *declaration)
@@ -3462,7 +3462,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::NativeConstantDeclaration
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3206, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration *declaration)
@@ -3472,7 +3472,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration
     ast::Variable *v = frame.top()->createVariable(declaration->name, name, type, true);
     scope.top()->addName(v->declaration, v->name, v, true);
     return new ast::AssignmentStatement(
-        declaration->token.line,
+        declaration->token,
         {
             new ast::VariableExpression(v)
         },
@@ -3494,7 +3494,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ExtensionConstantDeclarat
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3245, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::ExtensionConstantDeclaration *declaration)
@@ -3503,7 +3503,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::ExtensionConstantDeclarat
     ast::Variable *v = frame.top()->createVariable(declaration->name, declaration->name.text, type, true);
     scope.top()->addName(v->declaration, v->name, v, true);
     return new ast::AssignmentStatement(
-        declaration->token.line,
+        declaration->token,
         {
             new ast::VariableExpression(v)
         },
@@ -3528,7 +3528,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *decl
             error2(3038, name, "duplicate identifier", scope.top()->getDeclaration(name.text), "first declaration here");
         }
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
@@ -3567,14 +3567,14 @@ const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *decl
     }
     std::vector<const ast::Statement *> r;
     for (auto v: variables) {
-        r.push_back(new ast::DeclarationStatement(declaration->token.line, v));
+        r.push_back(new ast::DeclarationStatement(declaration->token, v));
     }
     if (declaration->value != nullptr) {
-        r.push_back(new ast::AssignmentStatement(declaration->token.line, refs, expr));
+        r.push_back(new ast::AssignmentStatement(declaration->token, refs, expr));
     } else {
-        r.push_back(new ast::ResetStatement(declaration->token.line, refs));
+        r.push_back(new ast::ResetStatement(declaration->token, refs));
     }
-    return new ast::CompoundStatement(declaration->token.line, r);
+    return new ast::CompoundStatement(declaration->token, r);
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::NativeVariableDeclaration *declaration)
@@ -3583,14 +3583,14 @@ const ast::Statement *Analyzer::analyze_decl(const pt::NativeVariableDeclaration
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3225, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::NativeVariableDeclaration *declaration)
 {
     //std::string name = declaration->name.text;
     //scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, get_native_constant_value(module_name + "$" + name)));
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declaration)
@@ -3598,7 +3598,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declarati
     if (not scope.top()->allocateName(declaration->name, declaration->name.text)) {
         error2(3139, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
@@ -3627,7 +3627,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declarati
     scope.top()->addName(v->declaration, v->name, v, true);
     std::vector<const ast::ReferenceExpression *> refs;
     refs.push_back(new ast::VariableExpression(v));
-    return new ast::AssignmentStatement(declaration->token.line, refs, expr);
+    return new ast::AssignmentStatement(declaration->token, refs, expr);
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declaration)
@@ -3779,7 +3779,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
             scope.top()->addName(declaration->name, name, function);
         }
     }
-    return new ast::DeclarationStatement(declaration->token.line, function);
+    return new ast::DeclarationStatement(declaration->token, function);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declaration)
@@ -3827,7 +3827,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *decl
     scope.top()->checkForward();
     scope.pop();
     frame.pop();
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *declaration)
@@ -3839,7 +3839,7 @@ const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *dec
     const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
     ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, ftype);
     scope.top()->addName(declaration->name, name, function);
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *declaration)
@@ -3851,7 +3851,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *
     const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
     ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, ftype);
     scope.top()->addName(declaration->name, name, function);
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
@@ -3893,7 +3893,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declarat
         ast::Exception *se = new ast::Exception(declaration->token, fullname);
         s->subexceptions[lastname] = se;
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declaration)
@@ -3928,7 +3928,7 @@ const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declarat
     }
     scope.pop();
     scope.top()->addName(declaration->token, name, new ast::Interface(declaration->token, name, methods));
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::ExportDeclaration *declaration)
@@ -3941,7 +3941,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ExportDeclaration *declar
             return statements[0];
         }
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::ExportDeclaration *declaration)
@@ -3960,7 +3960,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::ExportDeclaration *declar
             return statements[0];
         }
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token);
 }
 
 std::vector<const ast::Statement *> Analyzer::analyze(const std::vector<std::unique_ptr<pt::Statement>> &statement)
@@ -4075,7 +4075,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     }
     statements.push_back(
         new ast::ExpressionStatement(
-            statement->token.line,
+            statement->token,
             new ast::FunctionCall(
                 new ast::VariableExpression(writeLine),
                 {
@@ -4088,7 +4088,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     for (int line = e->get_start_token().line; line <= e->get_end_token().line; line++) {
         statements.push_back(
             new ast::ExpressionStatement(
-                statement->token.line,
+                statement->token,
                 new ast::FunctionCall(
                     new ast::VariableExpression(writeLine),
                     {
@@ -4101,7 +4101,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     }
     statements.push_back(
         new ast::ExpressionStatement(
-            statement->token.line,
+            statement->token,
             new ast::FunctionCall(
                 new ast::VariableExpression(writeLine),
                 {
@@ -4140,7 +4140,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         try {
             statements.push_back(
                 new ast::ExpressionStatement(
-                    statement->token.line,
+                    statement->token,
                     new ast::FunctionCall(
                         new ast::VariableExpression(writeLine),
                         {
@@ -4165,7 +4165,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             // errors in the expression.
         }
     }
-    return new ast::AssertStatement(statement->token.line, statements, expr, statement->source);
+    return new ast::AssertStatement(statement->token, statements, expr, statement->source);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement)
@@ -4188,7 +4188,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
     }
     std::vector<const ast::ReferenceExpression *> vars;
     vars.push_back(ref);
-    return new ast::AssignmentStatement(statement->token.line, vars, rhs);
+    return new ast::AssignmentStatement(statement->token, vars, rhs);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
@@ -4358,7 +4358,7 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
             error(3283, statement->expr->token, "cases do not cover all enum values");
         }
     }
-    return new ast::CaseStatement(statement->token.line, expr, clauses);
+    return new ast::CaseStatement(statement->token, expr, clauses);
 }
 
 namespace overlap {
@@ -4562,7 +4562,7 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
         error(3201, statement->body.back()->token, "CHECK body must end in EXIT, NEXT, RAISE, or RETURN");
     }
     scope.pop();
-    return new ast::IfStatement(statement->token.line, condition_statements, else_statements);
+    return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
 
 static unsigned int get_loop_id(const Token &token, const std::stack<std::list<std::pair<std::string, unsigned int>>> &loops, const std::string &type)
@@ -4613,7 +4613,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     args.push_back(new ast::VariableExpression(result));
     statements.push_back(
         new ast::AssignmentStatement(
-            statement->token.line,
+            statement->token,
             {new ast::VariableExpression(found)},
             new ast::FunctionCall(
                 new ast::VariableExpression(function),
@@ -4627,7 +4627,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     for (auto b: out_bindings) {
         then_statements.push_back(
             new ast::AssignmentStatement(
-                statement->token.line,
+                statement->token,
                 {b},
                 new ast::ArrayReferenceIndexExpression(
                     ast::TYPE_STRING,
@@ -4645,7 +4645,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::SqlPrint:
             else_statements.push_back(
                 new ast::ExpressionStatement(
-                    statement->token.line,
+                    statement->token,
                     new ast::FunctionCall(
                         new ast::VariableExpression(print),
                         {new ast::ConstantStringExpression(utf8string(sql))}
@@ -4656,7 +4656,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::Stop:
             else_statements.push_back(
                 new ast::ExpressionStatement(
-                    statement->token.line,
+                    statement->token,
                     new ast::FunctionCall(
                         new ast::VariableExpression(fexit),
                         {new ast::ConstantNumberExpression(number_from_uint32(1))}
@@ -4667,7 +4667,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoExitLoop:
             else_statements.push_back(
                 new ast::ExitStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "LOOP")
                 )
             );
@@ -4675,7 +4675,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoExitFor:
             else_statements.push_back(
                 new ast::ExitStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "FOR")
                 )
             );
@@ -4683,7 +4683,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoExitForeach:
             else_statements.push_back(
                 new ast::ExitStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "FOREACH")
                 )
             );
@@ -4691,7 +4691,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoExitRepeat:
             else_statements.push_back(
                 new ast::ExitStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "REPEAT")
                 )
             );
@@ -4699,7 +4699,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoExitWhile:
             else_statements.push_back(
                 new ast::ExitStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "WHILE")
                 )
             );
@@ -4707,7 +4707,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoNextLoop:
             else_statements.push_back(
                 new ast::NextStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "LOOP")
                 )
             );
@@ -4715,7 +4715,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoNextFor:
             else_statements.push_back(
                 new ast::NextStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "FOR")
                 )
             );
@@ -4723,7 +4723,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoNextForeach:
             else_statements.push_back(
                 new ast::NextStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "FOREACH")
                 )
             );
@@ -4731,7 +4731,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoNextRepeat:
             else_statements.push_back(
                 new ast::NextStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "REPEAT")
                 )
             );
@@ -4739,7 +4739,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         case SqlWheneverActionType::DoNextWhile:
             else_statements.push_back(
                 new ast::NextStatement(
-                    statement->token.line,
+                    statement->token,
                     get_loop_id(statement->token, loops, "WHILE")
                 )
             );
@@ -4764,7 +4764,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             }
             else_statements.push_back(
                 new ast::RaiseStatement(
-                    statement->token.line,
+                    statement->token,
                     exception,
                     convert(ast::TYPE_OBJECT, new ast::ConstantStringExpression(utf8string("No records found")))
                 )
@@ -4776,7 +4776,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     }
     statements.push_back(
         new ast::IfStatement(
-            statement->token.line,
+            statement->token,
             {std::make_pair(new ast::VariableExpression(found), then_statements)},
             else_statements
         )
@@ -4814,7 +4814,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     if (close != nullptr) {
         const ast::PredefinedFunction *cursorClose = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("cursorClose"));
         statements.push_back(new ast::ExpressionStatement(
-            statement->token.line,
+            statement->token,
             new ast::FunctionCall(
                 new ast::VariableExpression(cursorClose),
                 {
@@ -4852,7 +4852,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
                 error(4304, name_variable->variable, "variable not found");
             }
             statements.push_back(new ast::AssignmentStatement(
-                statement->token.line,
+                statement->token,
                 {new ast::VariableExpression(name)},
                 new ast::FunctionCall(
                     new ast::VariableExpression(openfunc),
@@ -4863,7 +4863,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             // TODO: handle default connection
             const ast::Variable *name = dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"));
             statements.push_back(new ast::AssignmentStatement(
-                statement->token.line,
+                statement->token,
                 {new ast::VariableExpression(name)},
                 new ast::FunctionCall(
                     new ast::VariableExpression(openfunc),
@@ -4876,7 +4876,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
         if (declare_query != nullptr) {
             const ast::PredefinedFunction *cursorDeclare = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("cursorDeclare"));
             statements.push_back(new ast::AssignmentStatement(
-                statement->token.line,
+                statement->token,
                 {new ast::DummyExpression()},
                 new ast::FunctionCall(
                     new ast::VariableExpression(cursorDeclare),
@@ -4899,7 +4899,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
         } else if (name_variable != nullptr) {
             const ast::Variable *name = dynamic_cast<const ast::Variable *>(scope.top()->lookupName(name_variable->variable.text));
             statements.push_back(new ast::ExpressionStatement(
-                statement->token.line,
+                statement->token,
                 new ast::FunctionCall(
                     new ast::VariableExpression(closefunc),
                     {new ast::VariableExpression(name)}
@@ -4913,7 +4913,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             // TODO: handle default connection
             const ast::Variable *db = dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"));
             statements.push_back(new ast::ExpressionStatement(
-                statement->token.line,
+                statement->token,
                 new ast::FunctionCall(
                     new ast::VariableExpression(closefunc),
                     {new ast::VariableExpression(db)}
@@ -4937,7 +4937,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             internal_error("unexpected execute type");
         }
         statements.push_back(new ast::AssignmentStatement(
-            statement->token.line,
+            statement->token,
             {new ast::DummyExpression()},
             new ast::FunctionCall(
                 new ast::VariableExpression(execRaw),
@@ -4961,7 +4961,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     } else if (open != nullptr) {
         const ast::PredefinedFunction *cursorOpen = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("cursorOpen"));
         statements.push_back(new ast::ExpressionStatement(
-            statement->token.line,
+            statement->token,
             new ast::FunctionCall(
                 new ast::VariableExpression(cursorOpen),
                 {
@@ -4998,7 +4998,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     } else {
         internal_error("unexpected statement type");
     }
-    return new ast::CompoundStatement(statement->token.line, statements);
+    return new ast::CompoundStatement(statement->token, statements);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::ExitStatement *statement)
@@ -5009,13 +5009,13 @@ const ast::Statement *Analyzer::analyze(const pt::ExitStatement *statement)
         } else if (functiontypes.top().second->returntype != ast::TYPE_NOTHING) {
             error(3108, statement->token, "function must return a value");
         }
-        return new ast::ReturnStatement(statement->token.line, nullptr);
+        return new ast::ReturnStatement(statement->token, nullptr);
     }
     std::string type = statement->type.text;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
-                return new ast::ExitStatement(statement->token.line, j->second);
+                return new ast::ExitStatement(statement->token, j->second);
             }
         }
     }
@@ -5026,7 +5026,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExpressionStatement *statement
 {
     const ast::Expression *expr = analyze(statement->expr.get());
     if (expr->type == ast::TYPE_NOTHING || (dynamic_cast<const ast::FunctionCall *>(expr) != nullptr && dynamic_cast<const ast::FunctionCall *>(expr)->allow_ignore_result)) {
-        return new ast::ExpressionStatement(statement->token.line, analyze(statement->expr.get()));
+        return new ast::ExpressionStatement(statement->token, analyze(statement->expr.get()));
     }
     if (dynamic_cast<const ast::ComparisonExpression *>(expr) != nullptr) {
         error(3060, statement->expr->token, "':=' expected");
@@ -5085,12 +5085,12 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const ast::ReferenceExpression *> vars { new ast::VariableExpression(var) };
     std::vector<const ast::Statement *> init_statements {
-        new ast::AssignmentStatement(statement->token.line, vars, start),
-        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(bound) }, end),
+        new ast::AssignmentStatement(statement->token, vars, start),
+        new ast::AssignmentStatement(statement->token, { new ast::VariableExpression(bound) }, end),
     };
     std::vector<const ast::Statement *> statements {
         new ast::IfStatement(
-            statement->token.line,
+            statement->token,
             std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
                     new ast::NumericComparisonExpression(
@@ -5098,7 +5098,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
                         new ast::VariableExpression(bound),
                         number_is_negative(step->eval_number(statement->step ? statement->step->token : Token())) ? ast::ComparisonExpression::Comparison::LT : ast::ComparisonExpression::Comparison::GT
                     ),
-                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
+                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token, loop_id) }
                 )
             },
             std::vector<const ast::Statement *>()
@@ -5107,12 +5107,12 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
     std::vector<const ast::Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     std::vector<const ast::Statement *> tail_statements {
-        new ast::AssignmentStatement(statement->token.line, vars, new ast::AdditionExpression(new ast::VariableExpression(var), step)),
+        new ast::AssignmentStatement(statement->token, vars, new ast::AdditionExpression(new ast::VariableExpression(var), step)),
     };
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new ast::BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements, false);
+    return new ast::BaseLoopStatement(statement->token, loop_id, init_statements, statements, tail_statements, false);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
@@ -5141,7 +5141,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
             // of the loop declaration as well as the entire loop body.
             // Not sure it's a good idea to allow semantically invalid code
             // through.
-            return new ast::NullStatement(statement->token.line);
+            return new ast::NullStatement(statement->token);
         }
     } else if (strtype != nullptr) {
         atype = strtype;
@@ -5181,13 +5181,13 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     }
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const ast::Statement *> init_statements {
-        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
-        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(array_copy) }, array),
-        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(atype->methods.at(len_method)), { new ast::VariableExpression(array_copy) })),
+        new ast::AssignmentStatement(statement->token, { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
+        new ast::AssignmentStatement(statement->token, { new ast::VariableExpression(array_copy) }, array),
+        new ast::AssignmentStatement(statement->token, { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(atype->methods.at(len_method)), { new ast::VariableExpression(array_copy) })),
     };
     std::vector<const ast::Statement *> statements {
         new ast::IfStatement(
-            statement->token.line,
+            statement->token,
             std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
                     new ast::NumericComparisonExpression(
@@ -5195,12 +5195,12 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
                         new ast::VariableExpression(bound),
                         ast::ComparisonExpression::Comparison::GE
                     ),
-                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
+                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token, loop_id) }
                 ),
             },
             std::vector<const ast::Statement *>()
         ),
-        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(var) },
+        new ast::AssignmentStatement(statement->token, { new ast::VariableExpression(var) },
             arrtype ? static_cast<ast::Expression *>(new ast::ArrayValueIndexExpression(var->type, new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false)) :
             strtype ? static_cast<ast::Expression *>(new ast::StringValueRangeIndexExpression(new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false, new ast::VariableExpression(index), false, this)) :
             nullptr
@@ -5209,12 +5209,12 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     std::vector<const ast::Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     std::vector<const ast::Statement *> tail_statements {
-        new ast::IncrementStatement(statement->token.line, new ast::VariableExpression(index), 1),
+        new ast::IncrementStatement(statement->token, new ast::VariableExpression(index), 1),
     };
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new ast::BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements, false);
+    return new ast::BaseLoopStatement(statement->token, loop_id, init_statements, statements, tail_statements, false);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
@@ -5301,7 +5301,7 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
     }
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
     scope.pop();
-    return new ast::IfStatement(statement->token.line, condition_statements, else_statements);
+    return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::IncrementStatement *statement)
@@ -5317,7 +5317,7 @@ const ast::Statement *Analyzer::analyze(const pt::IncrementStatement *statement)
     if (ref->is_readonly) {
         error(3189, statement->expr->token, "readonly parameter to INC or DEC");
     }
-    return new ast::IncrementStatement(statement->token.line, ref, statement->delta);
+    return new ast::IncrementStatement(statement->token, ref, statement->delta);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::LoopStatement *statement)
@@ -5335,7 +5335,7 @@ const ast::Statement *Analyzer::analyze(const pt::LoopStatement *statement)
     std::vector<const ast::Statement *> statements = analyze(statement->body);
     scope.pop();
     loops.top().pop_back();
-    return new ast::BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, true);
+    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, true);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::NextStatement *statement)
@@ -5344,7 +5344,7 @@ const ast::Statement *Analyzer::analyze(const pt::NextStatement *statement)
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
-                return new ast::NextStatement(statement->token.line, j->second);
+                return new ast::NextStatement(statement->token, j->second);
             }
         }
     }
@@ -5385,7 +5385,7 @@ const ast::Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
     } else {
         info = new ast::ConstantStringExpression(utf8string(""));
     }
-    return new ast::RaiseStatement(statement->token.line, sn, convert(ast::TYPE_OBJECT, info));
+    return new ast::RaiseStatement(statement->token, sn, convert(ast::TYPE_OBJECT, info));
 }
 
 const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
@@ -5408,11 +5408,11 @@ const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     }
     statements.push_back(
         new ast::IfStatement(
-            statement->cond->token.line,
+            statement->cond->token,
             std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
                     cond,
-                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->cond->token.line, loop_id) }
+                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->cond->token, loop_id) }
                 )
             },
             std::vector<const ast::Statement *>()
@@ -5420,7 +5420,7 @@ const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     );
     scope.pop();
     loops.top().pop_back();
-    return new ast::BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == false);
+    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == false);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
@@ -5438,9 +5438,9 @@ const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
         error(3095, statement->expr->token, "type mismatch in RETURN");
     }
     if (returntype != expr->type) {
-        return new ast::ReturnStatement(statement->token.line, new ast::TypeConversionExpression(functiontypes.top().second->returntype, expr));
+        return new ast::ReturnStatement(statement->token, new ast::TypeConversionExpression(functiontypes.top().second->returntype, expr));
     }
-    return new ast::ReturnStatement(statement->token.line, expr);
+    return new ast::ReturnStatement(statement->token, expr);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
@@ -5468,7 +5468,7 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
     }
     std::vector<const ast::Statement *> fail_statements {
         new ast::ExpressionStatement(
-            statement->token.line,
+            statement->token,
             new ast::FunctionCall(
                 new ast::VariableExpression(writeLine),
                 {
@@ -5478,7 +5478,7 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
             )
         ),
         new ast::ExpressionStatement(
-            statement->token.line,
+            statement->token,
             new ast::FunctionCall(
                 new ast::VariableExpression(sys_exit),
                 {
@@ -5493,7 +5493,7 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
             error(3285, statement->expr->token, "boolean value expected");
         }
         return new ast::IfStatement(
-            statement->token.line,
+            statement->token,
             std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
                     new ast::LogicalNotExpression(expr),
@@ -5508,14 +5508,14 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
         if (expr->type == ast::TYPE_NOTHING) {
             statements.push_back(
                 new ast::ExpressionStatement(
-                    statement->token.line,
+                    statement->token,
                     expr
                 )
             );
         } else {
             statements.push_back(
                 new ast::AssignmentStatement(
-                    statement->token.line,
+                    statement->token,
                     {new ast::DummyExpression()},
                     expr
                 )
@@ -5523,9 +5523,9 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
         }
         std::copy(fail_statements.begin(), fail_statements.end(), std::back_inserter(statements));
         return new ast::TryStatement(
-            statement->token.line,
+            statement->token,
             statements,
-            {ast::TryTrap({exception}, nullptr, new ast::ExceptionHandlerStatement(statement->token.line, {}))}
+            {ast::TryTrap({exception}, nullptr, new ast::ExceptionHandlerStatement(statement->token, {}))}
         );
     }
 }
@@ -5590,7 +5590,7 @@ std::vector<ast::TryTrap> Analyzer::analyze_catches(const std::vector<std::uniqu
         const pt::Expression *e = dynamic_cast<const pt::Expression *>(x->handler.get());
         if (ths != nullptr) {
             std::vector<const ast::Statement *> statements = analyze(ths->body);
-            r.push_back(ast::TryTrap(exceptions, var, new ast::ExceptionHandlerStatement(0 /*TODO*/, statements)));
+            r.push_back(ast::TryTrap(exceptions, var, new ast::ExceptionHandlerStatement(Token() /*TODO*/, statements)));
         } else if (e != nullptr) {
             const ast::Expression *g = analyze(e);
             if (g->type != expression_match_type) {
@@ -5611,7 +5611,7 @@ const ast::Statement *Analyzer::analyze(const pt::TryStatement *statement)
     std::vector<const ast::Statement *> statements = analyze(statement->body);
     scope.pop();
     auto catches = analyze_catches(statement->catches, nullptr);
-    return new ast::TryStatement(statement->token.line, statements, catches);
+    return new ast::TryStatement(statement->token, statements, catches);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::TryHandlerStatement *statement)
@@ -5619,12 +5619,12 @@ const ast::Statement *Analyzer::analyze(const pt::TryHandlerStatement *statement
     scope.push(new ast::Scope(scope.top(), frame.top()));
     std::vector<const ast::Statement *> statements = analyze(statement->body);
     scope.pop();
-    return new ast::ExceptionHandlerStatement(statement->token.line, statements);
+    return new ast::ExceptionHandlerStatement(statement->token, statements);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::UnusedStatement *statement)
 {
-    return new ast::NullStatement(statement->token.line);
+    return new ast::NullStatement(statement->token);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
@@ -5677,11 +5677,11 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const ast::Statement *> statements {
         new ast::IfStatement(
-            statement->token.line,
+            statement->token,
             std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
                     new ast::LogicalNotExpression(cond),
-                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
+                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token, loop_id) }
                 )
             },
             std::vector<const ast::Statement *>()
@@ -5691,7 +5691,7 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     scope.pop();
     loops.top().pop_back();
-    return new ast::BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == true);
+    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == true);
 }
 
 // This code attempts to check for every type that is used in an exported

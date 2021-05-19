@@ -2083,7 +2083,7 @@ void ast::StatementExpression::generate_expr(Emitter &emitter) const
 
 void ast::Statement::generate(Emitter &emitter) const
 {
-    emitter.debug_line(line);
+    emitter.debug_line(token.line);
     generate_code(emitter);
 }
 

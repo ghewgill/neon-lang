@@ -322,7 +322,7 @@ namespace csnex
                 } else {
                     r.Append(", ");
                 }
-                r.Append(x.Object.toString());
+                r.Append(x.Object.toLiteralString());
             }
             r.Append("]");
 
@@ -482,6 +482,17 @@ namespace csnex
             Exec.stack.Push(Cell.CreateStringCell(r));
         }
 #endregion
+#region Exception Functions
+        public void exceptiontype__toString()
+        {
+            Cell ex = Exec.stack.Pop();
+            System.Diagnostics.Debug.Assert(ex.Array.Count == 3);
+
+            StringBuilder sb = new StringBuilder("<ExceptionType:");
+            sb.AppendFormat("{0},{1},{2}>", ex.Array[0].String, ex.Array[1].Object.toString(), ex.Array[2].Number.ToString());
+            Exec.stack.Push(Cell.CreateStringCell(sb.ToString()));
+        }
+#endregion
 #region Dictionary Functions
         public void dictionary__keys()
         {
@@ -494,6 +505,29 @@ namespace csnex
             string key = Exec.stack.Pop().String;
             Cell addr = Exec.stack.Pop().Address;
             addr.Dictionary.Remove(key);
+        }
+
+        public void dictionary__toString__object()
+        {
+            Cell d = Exec.stack.Pop();
+
+            StringBuilder r = new StringBuilder("{");
+            foreach (KeyValuePair<string, Cell> e in d.Dictionary) {
+                if (r.Length > 1) {
+                    r.Append(", ");
+                }
+                r.Append(e.Key.Quote());
+                r.Append(": ");
+                r.Append(e.Value.Object.toLiteralString());
+            }
+            r.Append("}");
+            Exec.stack.Push(Cell.CreateStringCell(r.ToString()));
+        }
+
+        public void dictionary__toString__string()
+        {
+            Cell s = Exec.stack.Pop();
+            Exec.stack.Push(Cell.CreateStringCell(Cell.toString(s)));
         }
 #endregion
 #region Number Functions
@@ -690,10 +724,6 @@ namespace csnex
 
             Object r = null;
             if (!o.subscript(i, ref r)) {
-                Exec.Raise("ObjectSubscriptException", i.toString());
-                return;
-            }
-            if (r == null) {
                 Exec.Raise("ObjectSubscriptException", i.toString());
                 return;
             }

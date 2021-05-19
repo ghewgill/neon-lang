@@ -174,16 +174,14 @@ namespace csnex
                 throw new NeonRuntimeException("DynamicConversionException", "to String");
             }
             if (s == null) {
-                throw new NeonRuntimeException("DynamicConversionException", "toS tring");
+                throw new NeonRuntimeException("DynamicConversionException", "to String");
             }
 
             if (Value.ContainsKey(s)) {
                 r = Value[s];
+                return true;
             }
-            if (r == null) {
-                throw new NeonRuntimeException("ObjectSubscriptException", s);
-            }
-            return true;
+            return false;
         }
 
         public override string toString()
@@ -241,10 +239,9 @@ namespace csnex
             return true;
         }
 
-        // TODO: Use quoting function to quote the value properly.
         public override string toLiteralString()
         {
-            return "\"" + Value + "\"";
+            return Value.Quote();
         }
 
         public override string toString()
