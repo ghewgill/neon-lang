@@ -2471,8 +2471,8 @@ public:
 
 class Statement: public AstNode {
 public:
-    explicit Statement(int line): line(line) {}
-    const int line;
+    explicit Statement(const Token &token): token(token) {}
+    const Token token;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const = 0;
     virtual bool always_returns() const { return false; }
@@ -2484,7 +2484,7 @@ public:
 
 class CompoundStatement: public Statement {
 public:
-    CompoundStatement(int line, const std::vector<const Statement *> &statements): Statement(line), statements(statements) {}
+    CompoundStatement(const Token &token, const std::vector<const Statement *> &statements): Statement(token), statements(statements) {}
     virtual void accept(IAstVisitor *visitor) const override { for (auto s: statements) s->accept(visitor); }
 
     const std::vector<const Statement *> statements;
@@ -2499,7 +2499,7 @@ public:
 
 class NullStatement: public Statement {
 public:
-    explicit NullStatement(int line): Statement(line) {}
+    explicit NullStatement(const Token &token): Statement(token) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool is_pure(std::set<const ast::Function *> &) const override { return true; }
@@ -2511,7 +2511,7 @@ public:
 
 class TypeDeclarationStatement: public Statement {
 public:
-    TypeDeclarationStatement(int line, const std::string &name, const ast::Type *type): Statement(line), name(name), type(type) {}
+    TypeDeclarationStatement(const Token &token, const std::string &name, const ast::Type *type): Statement(token), name(name), type(type) {}
     TypeDeclarationStatement(const TypeDeclarationStatement &) = delete;
     TypeDeclarationStatement &operator=(const TypeDeclarationStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2527,7 +2527,7 @@ public:
 
 class DeclarationStatement: public Statement {
 public:
-    DeclarationStatement(int line, Variable *decl): Statement(line), decl(decl) {}
+    DeclarationStatement(const Token &token, Variable *decl): Statement(token), decl(decl) {}
     DeclarationStatement(const DeclarationStatement &) = delete;
     DeclarationStatement &operator=(const DeclarationStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2542,7 +2542,7 @@ public:
 
 class ExceptionHandlerStatement: public CompoundStatement {
 public:
-    ExceptionHandlerStatement(int line, const std::vector<const Statement *> &statements): CompoundStatement(line, statements) {}
+    ExceptionHandlerStatement(const Token &token, const std::vector<const Statement *> &statements): CompoundStatement(token, statements) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void generate_code(Emitter &) const override;
@@ -2552,7 +2552,7 @@ public:
 
 class AssertStatement: public CompoundStatement {
 public:
-    AssertStatement(int line, const std::vector<const Statement *> &statements, const Expression *expr, const std::string &source): CompoundStatement(line, statements), expr(expr), source(source) {}
+    AssertStatement(const Token &token, const std::vector<const Statement *> &statements, const Expression *expr, const std::string &source): CompoundStatement(token, statements), expr(expr), source(source) {}
     AssertStatement(const AssertStatement &) = delete;
     AssertStatement &operator=(const AssertStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2567,7 +2567,7 @@ public:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(int line, const std::vector<const ReferenceExpression *> &vars, const Expression *expr): Statement(line), variables(vars), expr(expr) {
+    AssignmentStatement(const Token &token, const std::vector<const ReferenceExpression *> &vars, const Expression *expr): Statement(token), variables(vars), expr(expr) {
         for (auto v: variables) {
             if (v->type->make_converter(expr->type) == nullptr) {
                 internal_error("AssignmentStatement: found " + expr->type->text() + ", cannot convert to " + v->type->text());
@@ -2606,7 +2606,7 @@ public:
 
 class ExpressionStatement: public Statement {
 public:
-    ExpressionStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
+    ExpressionStatement(const Token &token, const Expression *expr): Statement(token), expr(expr) {}
     ExpressionStatement(const ExpressionStatement &) = delete;
     ExpressionStatement &operator=(const ExpressionStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2624,7 +2624,7 @@ public:
 
 class ReturnStatement: public Statement {
 public:
-    ReturnStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
+    ReturnStatement(const Token &token, const Expression *expr): Statement(token), expr(expr) {}
     ReturnStatement(const ReturnStatement &) = delete;
     ReturnStatement &operator=(const ReturnStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2642,7 +2642,7 @@ public:
 
 class IncrementStatement: public Statement {
 public:
-    IncrementStatement(int line, const ReferenceExpression *ref, int delta): Statement(line), ref(ref), delta(delta) {}
+    IncrementStatement(const Token &token, const ReferenceExpression *ref, int delta): Statement(token), ref(ref), delta(delta) {}
     IncrementStatement(const IncrementStatement &) = delete;
     IncrementStatement &operator=(const IncrementStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2661,7 +2661,7 @@ public:
 
 class IfStatement: public Statement {
 public:
-    IfStatement(int line, const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(line), condition_statements(condition_statements), else_statements(else_statements) {}
+    IfStatement(const Token &token, const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(token), condition_statements(condition_statements), else_statements(else_statements) {}
     IfStatement(const IfStatement &) = delete;
     IfStatement &operator=(const IfStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2700,7 +2700,7 @@ public:
 
 class BaseLoopStatement: public CompoundStatement {
 public:
-    BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop): CompoundStatement(line, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), loop_id(loop_id) {}
+    BaseLoopStatement(const Token &token, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop): CompoundStatement(token, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), loop_id(loop_id) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> prologue;
@@ -2760,7 +2760,7 @@ public:
         virtual bool overlaps(const WhenCondition *cond) const override;
         virtual void generate(Emitter &emitter) const override;
     };
-    CaseStatement(int line, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(line), expr(expr), clauses(clauses) {}
+    CaseStatement(const Token &token, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(token), expr(expr), clauses(clauses) {}
     CaseStatement(const CaseStatement &) = delete;
     CaseStatement &operator=(const CaseStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2794,7 +2794,7 @@ public:
 
 class ExitStatement: public Statement {
 public:
-    ExitStatement(int line, unsigned int loop_id): Statement(line), loop_id(loop_id) {}
+    ExitStatement(const Token &token, unsigned int loop_id): Statement(token), loop_id(loop_id) {}
     ExitStatement(const ExitStatement &) = delete;
     ExitStatement &operator=(const ExitStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2811,7 +2811,7 @@ public:
 
 class NextStatement: public Statement {
 public:
-    NextStatement(int line, unsigned int loop_id): Statement(line), loop_id(loop_id) {}
+    NextStatement(const Token &token, unsigned int loop_id): Statement(token), loop_id(loop_id) {}
     NextStatement(const NextStatement &) = delete;
     NextStatement &operator=(const NextStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2828,7 +2828,7 @@ public:
 
 class TryStatement: public Statement {
 public:
-    TryStatement(int line, const std::vector<const Statement *> &statements, const std::vector<TryTrap> &catches): Statement(line), statements(statements), catches(catches) {}
+    TryStatement(const Token &token, const std::vector<const Statement *> &statements, const std::vector<TryTrap> &catches): Statement(token), statements(statements), catches(catches) {}
     TryStatement(const TryStatement &) = delete;
     TryStatement &operator=(const TryStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2846,7 +2846,7 @@ public:
 
 class RaiseStatement: public Statement {
 public:
-    RaiseStatement(int line, const Exception *exception, const Expression *info): Statement(line), exception(exception), info(info) {}
+    RaiseStatement(const Token &token, const Exception *exception, const Expression *info): Statement(token), exception(exception), info(info) {}
     RaiseStatement(const RaiseStatement &) = delete;
     RaiseStatement &operator=(const RaiseStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2865,7 +2865,7 @@ public:
 
 class ResetStatement: public Statement {
 public:
-    ResetStatement(int line, const std::vector<const ReferenceExpression *> &vars): Statement(line), variables(vars) {}
+    ResetStatement(const Token &token, const std::vector<const ReferenceExpression *> &vars): Statement(token), variables(vars) {}
     ResetStatement(const ResetStatement &) = delete;
     ResetStatement &operator=(const ResetStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
