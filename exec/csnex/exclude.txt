@@ -65,7 +65,6 @@ number-exception.neon
 object-record.neon                              # EQA
 opcode-coverage.neon
 posix-fork.neon                                 # posix module
-record-empty.neon                               # INDEXAN
 sql-connect.neon                                # SQLite / sql module
 sql-cursor.neon                                 # SQLite / sql module
 sql-embed.neon                                  # SQLite / sql module
