@@ -9,8 +9,16 @@ typedef struct {
     int len;
 } Ne_String;
 
+enum Ne_ObjectType {
+    neNothing,
+    neNumber,
+    neString
+};
+
 typedef struct {
-    Ne_String *str;
+    enum Ne_ObjectType type;
+    Ne_Number num;
+    Ne_String str;
 } Ne_Object;
 
 typedef struct {
@@ -43,8 +51,10 @@ void Ne_String_assign(Ne_String *dest, const Ne_String *src);
 void Ne_Array_init(Ne_Array *a, int size, void (*constructor)(void **));
 void Ne_Array_assign(Ne_Array *dest, const Ne_Array *src);
 void Ne_Array_index(void **result, Ne_Array *aconst , const Ne_Number *index);
+void Ne_array__append(Ne_Array *a, void *element);
 void Ne_array__size(Ne_Number *result, const Ne_Array *a);
 void Ne_number__toString(Ne_String *result, const Ne_Number *n);
+void Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n);
 void Ne_object__makeString(Ne_Object *obj, const Ne_String *s);
 void Ne_print(const Ne_Object *obj);
 void Ne_str(Ne_String *result, const Ne_Number *n);

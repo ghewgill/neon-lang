@@ -253,7 +253,6 @@ value-index.neon
 value-method2.neon
 value-method.neon
 var-declaration.neon
-var.neon
 varargs.neon
 varargs-functionpointer.neon
 while-valid.neon

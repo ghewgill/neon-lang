@@ -136,13 +136,22 @@ void Ne_Array_init(Ne_Array *a, int size, void (*constructor)(void **))
 Ne_Object *make_object()
 {
     Ne_Object *r = malloc(sizeof(Ne_Object));
-    r->str = NULL;
+    r->type = neNothing;
+    Ne_Number_init_literal(&r->num, 0);
+    Ne_String_init_literal(&r->str, "");
     return r;
+}
+
+void Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
+{
+    obj->type = neNumber;
+    obj->num = *n;
 }
 
 void Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
 {
-    obj->str = string_copy(s);
+    obj->type = neString;
+    Ne_String_assign(&obj->str, s);
 }
 
 void Ne_Array_assign(Ne_Array *dest, const Ne_Array *src)
@@ -163,6 +172,13 @@ void Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index)
     *result = a->a[i];
 }
 
+void Ne_array__append(Ne_Array *a, void *element)
+{
+    a->a = realloc(a->a, (a->size+1) * sizeof(void *));
+    a->a[a->size] = element; // TODO: make a copy
+    a->size++;
+}
+
 void Ne_array__size(Ne_Number *result, const Ne_Array *a)
 {
     result->dval = a->size;
@@ -177,7 +193,20 @@ void Ne_number__toString(Ne_String *result, const Ne_Number *n)
 
 void Ne_print(const Ne_Object *obj)
 {
-    printf("%.*s\n", obj->str->len, obj->str->ptr);
+    switch (obj->type) {
+        case neNothing:
+            printf("NIL\n");
+            break;
+        case neNumber:
+            printf("%g\n", obj->num.dval);
+            break;
+        case neString:
+            printf("%.*s\n", obj->str.len, obj->str.ptr);
+            break;
+        default:
+            printf("[unknown object type %d]\n", obj->type);
+            break;
+    }
 }
 
 void Ne_str(Ne_String *result, const Ne_Number *n)
