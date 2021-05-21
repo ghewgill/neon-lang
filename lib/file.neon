@@ -169,12 +169,12 @@ DECLARE NATIVE FUNCTION files(path: String): Array<String>
  */
 FUNCTION filesByWildcard(path: String, pattern: String, recursive: Boolean DEFAULT FALSE): Array<String>
     VAR r: Array<String> := []
-    LET names := files(path)
+    LET names: Array<String> := files(path)
     FOREACH name IN names DO
         IF name IN [".", ".."] THEN
             NEXT FOREACH
         END IF
-        LET fullname := pathJoin(path, name)
+        LET fullname: String := pathJoin(path, name)
         IF recursive AND isDirectory(fullname) THEN
             r.extend(filesByWildcard(fullname, pattern, recursive))
         ELSIF wildcardMatch(pattern, name) THEN
@@ -316,8 +316,8 @@ DECLARE NATIVE FUNCTION symlink(target: String, newlink: String, targetIsDirecto
  */
 FUNCTION wildcardMatch(pattern: String, name: String): Boolean
     FUNCTION matchTail(pindex, nindex: Number): Boolean
-        VAR pi := pindex
-        VAR ni := nindex
+        VAR pi: Number := pindex
+        VAR ni: Number := nindex
         WHILE pi < pattern.length() DO
             IF pattern[pi] = "*" THEN
                 INC pi
