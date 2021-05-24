@@ -2,7 +2,9 @@
 
 #include <assert.h>
 #include <fstream>
+#include <list>
 #include <sstream>
+#include <stack>
 
 #include "support.h"
 
@@ -50,12 +52,15 @@ public:
     std::ostream &out;
 private:
     int tmp_counter;
+    std::stack<std::list<std::pair<std::string, std::string>>> temp_names;
 public:
-    explicit Context(std::ostream &out): out(out), tmp_counter(0) {}
+    explicit Context(std::ostream &out): out(out), tmp_counter(0), temp_names() {}
     Context(const Context &) = delete;
     Context &operator=(const Context &) = delete;
     std::string get_temp_name(std::string type);
     std::string get_temp_name(const Type *type);
+    void push_scope();
+    void pop_scope();
 };
 
 class Type {
@@ -986,10 +991,12 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name(type);
         context.out << "Ne_Number_add(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -1375,14 +1382,16 @@ public:
         std::string result;
         std::string call = func->generate(context) + "(";
         if (dynamic_cast<const ast::TypeFunction *>(fc->func->type)->returntype != ast::TYPE_NOTHING) {
+            result = context.get_temp_name(type);
+            context.push_scope();
             std::string arglist;
             for (auto a: args) {
                 arglist.append(",&");
                 arglist.append(a->generate(context));
             }
-            result = context.get_temp_name(type);
             call.append("&" + result + arglist + ")");
         } else {
+            context.push_scope();
             bool first = true;
             for (auto a: args) {
                 if (first) {
@@ -1396,6 +1405,7 @@ public:
             call.append(")");
         }
         context.out << call << ";\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -1472,6 +1482,7 @@ public:
     const Expression *expr;
 
     virtual void generate_statement(Context &context) const override {
+        context.push_scope();
         std::string exprname = expr->generate(context);
         for (auto v: variables) {
             if (dynamic_cast<const DummyExpression *>(v) == nullptr) {
@@ -1479,6 +1490,7 @@ public:
                 context.out << v->type->name << "_assign(&" << vname << ",&" << exprname << ");\n";
             }
         }
+        context.pop_scope();
     }
 };
 
@@ -2554,12 +2566,28 @@ std::string Context::get_temp_name(std::string type)
     ++tmp_counter;
     std::string name = "tmp" + std::to_string(tmp_counter);
     out << type << " " << name << ";\n";
+    temp_names.top().emplace_back(type, name);
     return name;
 }
 
 std::string Context::get_temp_name(const Type *type)
 {
     return get_temp_name(type->name);
+}
+
+void Context::push_scope()
+{
+    out << "{\n";
+    temp_names.push({});
+}
+
+void Context::pop_scope()
+{
+    for (auto temp: temp_names.top()) {
+        out << temp.first << "_destroy(&" << temp.second << ");\n";
+    }
+    temp_names.pop();
+    out << "}\n";
 }
 
 } // namespace c

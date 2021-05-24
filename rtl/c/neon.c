@@ -31,6 +31,10 @@ void Ne_Number_constructor(Ne_Number **num)
     Ne_Number_init_literal(*num, 0);
 }
 
+void Ne_Number_destroy(Ne_Number *num)
+{
+}
+
 void Ne_String_init_literal(Ne_String *str, const char *s)
 {
     size_t len = strlen(s);
@@ -41,7 +45,14 @@ void Ne_String_init_literal(Ne_String *str, const char *s)
 
 void Ne_String_assign(Ne_String *dest, const Ne_String *src)
 {
-    *dest = *src;
+    dest->ptr = malloc(src->len);
+    memcpy(dest->ptr, src->ptr, src->len);
+    dest->len = src->len;
+}
+
+void Ne_String_destroy(Ne_String *str)
+{
+    free(str->ptr);
 }
 
 void Ne_Number_add(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
@@ -140,6 +151,20 @@ Ne_Object *make_object()
     Ne_Number_init_literal(&r->num, 0);
     Ne_String_init_literal(&r->str, "");
     return r;
+}
+
+void Ne_Object_destroy(Ne_Object *obj)
+{
+    switch (obj->type) {
+        case neNothing:
+            break;
+        case neNumber:
+            Ne_Number_destroy(&obj->num);
+            break;
+        case neString:
+            Ne_String_destroy(&obj->str);
+            break;
+    }
 }
 
 void Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
