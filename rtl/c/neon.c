@@ -159,17 +159,21 @@ void Ne_Array_assign(Ne_Array *dest, const Ne_Array *src)
     *dest = *src;
 }
 
-void Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index)
+void Ne_Array_index_int(void **result, Ne_Array *a, int index)
 {
-    int i = (int)index->dval;
-    if (i >= a->size) {
-        a->a = realloc(a->a, (i+1) * sizeof(void *));
-        for (int j = a->size; j < i+1; j++) {
+    if (index >= a->size) {
+        a->a = realloc(a->a, (index+1) * sizeof(void *));
+        for (int j = a->size; j < index+1; j++) {
             a->constructor(&a->a[j]);
         }
-        a->size = i+1;
+        a->size = index+1;
     }
-    *result = a->a[i];
+    *result = a->a[index];
+}
+
+void Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index)
+{
+    Ne_Array_index_int(result, a, (int)index->dval);
 }
 
 void Ne_array__append(Ne_Array *a, void *element)
@@ -179,9 +183,47 @@ void Ne_array__append(Ne_Array *a, void *element)
     a->size++;
 }
 
+void Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b)
+{
+    dest->size = a->size + b->size;
+    dest->a = malloc(dest->size * sizeof(void *));
+    dest->constructor = a->constructor;
+    for (int i = 0; i < a->size; i++) {
+        dest->a[i] = a->a[i]; // TODO: make a copy
+    }
+    for (int i = 0; i < b->size; i++) {
+        dest->a[a->size+i] = b->a[i]; // TODO: make a copy
+    }
+}
+
+void Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
+{
+    int newsize = dest->size + src->size;
+    dest->a = realloc(dest->a, newsize * sizeof(void *));
+    for (int i = 0; i < src->size; i++) {
+        dest->a[dest->size+i] = src->a[i]; // TODO: make a copy
+    }
+    dest->size = newsize;
+}
+
 void Ne_array__size(Ne_Number *result, const Ne_Array *a)
 {
     result->dval = a->size;
+}
+
+void Ne_array__toString__number(Ne_String *r, const Ne_Array *a)
+{
+    char buf[100];
+    strcpy(buf, "[");
+    for (int i = 0; i < a->size; i++) {
+        if (i > 0) {
+            strcat(buf, ", ");
+        }
+        Ne_Number *n = a->a[i];
+        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), "%g", n->dval);
+    }
+    strcat(buf, "]");
+    Ne_String_init_literal(r, buf);
 }
 
 void Ne_number__toString(Ne_String *result, const Ne_Number *n)

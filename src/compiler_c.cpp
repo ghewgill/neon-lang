@@ -513,6 +513,16 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string result = context.get_temp_name("Ne_Array");
         context.out << "Ne_Array_init(&" << result << "," << elements.size() << ",(void (*)(void **))Ne_Number_constructor);\n";
+        int i = 0;
+        for (auto &e: elements) {
+            // TODO: make this call to generate take a pointer expression for where to put the result
+            // so it can be constructed right in the array without copying.
+            std::string ename = e->generate(context);
+            std::string pname = context.get_temp_name("void *");
+            context.out << "Ne_Array_index_int(&" << pname << ",&" << result << "," << i << ");\n";
+            context.out << "Ne_Number_assign(" << pname << ",&" << ename << ");\n";
+            i++;
+        }
         return result;
     }
 };
