@@ -191,6 +191,7 @@ namespace csnex
             classes = new List<ClassInfo>();
             while (classsize > 0) {
                 ClassInfo cls = new ClassInfo();
+                cls.interfaces = new List<Interface>();
                 cls.name = Get_VInt(obj, ref i);
                 int interfacesize = Get_VInt(obj, ref i);
                 while (interfacesize > 0) {
