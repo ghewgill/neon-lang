@@ -5,9 +5,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+const MethodTable Ne_Number_mtable = {
+    .constructor = (void (*)(void **))Ne_Number_constructor,
+    .destructor = (void (*)(void *))Ne_Number_destructor,
+    .copy = (void (*)(void *, const void *))Ne_Number_assign
+};
+
 void Ne_Boolean_assign(Ne_Boolean *dest, const Ne_Boolean *src)
 {
     *dest = *src;
+}
+
+void Ne_Boolean_deinit(Ne_Boolean *bool)
+{
 }
 
 void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
@@ -31,7 +41,12 @@ void Ne_Number_constructor(Ne_Number **num)
     Ne_Number_init_literal(*num, 0);
 }
 
-void Ne_Number_destroy(Ne_Number *num)
+void Ne_Number_destructor(Ne_Number *num)
+{
+    free(num);
+}
+
+void Ne_Number_deinit(Ne_Number *num)
 {
 }
 
@@ -50,7 +65,7 @@ void Ne_String_assign(Ne_String *dest, const Ne_String *src)
     dest->len = src->len;
 }
 
-void Ne_String_destroy(Ne_String *str)
+void Ne_String_deinit(Ne_String *str)
 {
     free(str->ptr);
 }
@@ -134,13 +149,13 @@ Ne_String *string_copy(const Ne_String *src)
     return r;
 }
 
-void Ne_Array_init(Ne_Array *a, int size, void (*constructor)(void **))
+void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable)
 {
     a->size = size;
     a->a = malloc(size * sizeof(void *));
-    a->constructor = constructor;
+    a->mtable = mtable;
     for (int i = 0; i < size; i++) {
-        constructor(&a->a[i]);
+        mtable->constructor(&a->a[i]);
     }
 }
 
@@ -153,16 +168,16 @@ Ne_Object *make_object()
     return r;
 }
 
-void Ne_Object_destroy(Ne_Object *obj)
+void Ne_Object_deinit(Ne_Object *obj)
 {
     switch (obj->type) {
         case neNothing:
             break;
         case neNumber:
-            Ne_Number_destroy(&obj->num);
+            Ne_Number_deinit(&obj->num);
             break;
         case neString:
-            Ne_String_destroy(&obj->str);
+            Ne_String_deinit(&obj->str);
             break;
     }
 }
@@ -181,7 +196,22 @@ void Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
 
 void Ne_Array_assign(Ne_Array *dest, const Ne_Array *src)
 {
-    *dest = *src;
+    Ne_Array_deinit(dest);
+    dest->a = malloc(src->size * sizeof(void *));
+    dest->mtable = src->mtable;
+    for (int i = 0; i < src->size; i++) {
+        dest->mtable->constructor(&dest->a[i]);
+        dest->mtable->copy(dest->a[i], src->a[i]);
+    }
+    dest->size = src->size;
+}
+
+void Ne_Array_deinit(Ne_Array *a)
+{
+    for (int i = 0; i < a->size; i++) {
+        a->mtable->destructor(a->a[i]);
+    }
+    free(a->a);
 }
 
 void Ne_Array_index_int(void **result, Ne_Array *a, int index)
@@ -189,7 +219,7 @@ void Ne_Array_index_int(void **result, Ne_Array *a, int index)
     if (index >= a->size) {
         a->a = realloc(a->a, (index+1) * sizeof(void *));
         for (int j = a->size; j < index+1; j++) {
-            a->constructor(&a->a[j]);
+            a->mtable->constructor(&a->a[j]);
         }
         a->size = index+1;
     }
@@ -201,10 +231,11 @@ void Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index)
     Ne_Array_index_int(result, a, (int)index->dval);
 }
 
-void Ne_array__append(Ne_Array *a, void *element)
+void Ne_array__append(Ne_Array *a, const void *element)
 {
     a->a = realloc(a->a, (a->size+1) * sizeof(void *));
-    a->a[a->size] = element; // TODO: make a copy
+    a->mtable->constructor(&a->a[a->size]);
+    a->mtable->copy(a->a[a->size], element);
     a->size++;
 }
 
@@ -212,12 +243,14 @@ void Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b)
 {
     dest->size = a->size + b->size;
     dest->a = malloc(dest->size * sizeof(void *));
-    dest->constructor = a->constructor;
+    dest->mtable = a->mtable;
     for (int i = 0; i < a->size; i++) {
-        dest->a[i] = a->a[i]; // TODO: make a copy
+        dest->mtable->constructor(&dest->a[i]);
+        dest->mtable->copy(dest->a[i], a->a[i]);
     }
     for (int i = 0; i < b->size; i++) {
-        dest->a[a->size+i] = b->a[i]; // TODO: make a copy
+        dest->mtable->constructor(&dest->a[a->size+i]);
+        dest->mtable->copy(dest->a[a->size+i], b->a[i]);
     }
 }
 
@@ -226,14 +259,15 @@ void Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
     int newsize = dest->size + src->size;
     dest->a = realloc(dest->a, newsize * sizeof(void *));
     for (int i = 0; i < src->size; i++) {
-        dest->a[dest->size+i] = src->a[i]; // TODO: make a copy
+        dest->mtable->constructor(&dest->a[dest->size+i]);
+        dest->mtable->copy(dest->a[dest->size+i], src->a[i]);
     }
     dest->size = newsize;
 }
 
 void Ne_array__size(Ne_Number *result, const Ne_Array *a)
 {
-    result->dval = a->size;
+    Ne_Number_init_literal(result, a->size);
 }
 
 void Ne_array__toString__number(Ne_String *r, const Ne_Array *a)

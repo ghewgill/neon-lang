@@ -54,10 +54,12 @@ private:
     int tmp_counter;
     std::stack<std::list<std::pair<std::string, std::string>>> temp_names;
 public:
-    explicit Context(std::ostream &out): out(out), tmp_counter(0), temp_names() {}
+    explicit Context(std::ostream &out): out(out), tmp_counter(0), temp_names() {
+        temp_names.push({});
+    }
     Context(const Context &) = delete;
     Context &operator=(const Context &) = delete;
-    std::string get_temp_name(std::string type);
+    std::string get_temp_name(std::string type, bool destroy = true);
     std::string get_temp_name(const Type *type);
     void push_scope();
     void pop_scope();
@@ -517,15 +519,17 @@ public:
 
     virtual std::string generate(Context &context) const override {
         std::string result = context.get_temp_name("Ne_Array");
-        context.out << "Ne_Array_init(&" << result << "," << elements.size() << ",(void (*)(void **))Ne_Number_constructor);\n";
+        context.out << "Ne_Array_init(&" << result << "," << elements.size() << ",&Ne_Number_mtable);\n";
         int i = 0;
         for (auto &e: elements) {
             // TODO: make this call to generate take a pointer expression for where to put the result
             // so it can be constructed right in the array without copying.
+            context.push_scope();
             std::string ename = e->generate(context);
-            std::string pname = context.get_temp_name("void *");
+            std::string pname = context.get_temp_name("void *", false);
             context.out << "Ne_Array_index_int(&" << pname << ",&" << result << "," << i << ");\n";
             context.out << "Ne_Number_assign(" << pname << ",&" << ename << ");\n";
+            context.pop_scope();
             i++;
         }
         return result;
@@ -598,9 +602,11 @@ public:
     const Expression *value;
 
     virtual std::string generate(Context &context) const override {
-        std::string valuename = value->generate(context);
         std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string valuename = value->generate(context);
         context.out << "Ne_Number_negate(&" << result << ",&" << valuename << ");\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -614,9 +620,11 @@ public:
     const Expression *value;
 
     virtual std::string generate(Context &context) const override {
-        std::string valuename = value->generate(context);
         std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string valuename = value->generate(context);
         context.out << result << "=!" << valuename << ";\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -632,15 +640,20 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
-        std::string condname = condition->generate(context);
         std::string result = context.get_temp_name(type);
-        context.out << "if (" << condname << ") {\n";
+        context.push_scope();
+        std::string condname = condition->generate(context);
+        context.out << "if (" << condname << ")\n";
+        context.push_scope();
         std::string leftname = left->generate(context);
         context.out << result << "=" << leftname << ";\n";
-        context.out << "} else {\n";
+        context.pop_scope();
+        context.out << "else\n";
+        context.push_scope();
         std::string rightname = right->generate(context);
         context.out << result << "=" << rightname << ";\n";
-        context.out << "}\n";
+        context.pop_scope();
+        context.pop_scope();
         return result;
     }
 };
@@ -691,13 +704,16 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
-        std::string leftname = left->generate(context);
         std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string leftname = left->generate(context);
         context.out << result << "=" << leftname << ";\n";
-        context.out << "if (!" << result << ") {\n";
+        context.out << "if (!" << result << ")\n";
+        context.push_scope();
         std::string rightname = right->generate(context);
         context.out << result << "=" << rightname << ";\n";
-        context.out << "}\n";
+        context.pop_scope();
+        context.pop_scope();
         return result;
     }
 };
@@ -712,13 +728,16 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
-        std::string leftname = left->generate(context);
         std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string leftname = left->generate(context);
         context.out << result << "=" << leftname << ";\n";
-        context.out << "if (" << result << ") {\n";
+        context.out << "if (" << result << ")\n";
+        context.push_scope();
         std::string rightname = right->generate(context);
         context.out << result << "=" << rightname << ";\n";
-        context.out << "}\n";
+        context.pop_scope();
+        context.pop_scope();
         return result;
     }
 };
@@ -761,9 +780,10 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("Ne_Boolean");
+        context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name("Ne_Boolean");
         switch (ce->comp) {
             case ast::ComparisonExpression::Comparison::EQ:
                 context.out << "Ne_Number_equal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
@@ -786,6 +806,7 @@ public:
             default:
                 internal_error("unhandled comparison");
         }
+        context.pop_scope();
         return result;
     }
     virtual void generate_comparison(Context &context) const = 0;
@@ -1011,10 +1032,12 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name(type);
         context.out << "Ne_Number_subtract(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -1029,10 +1052,12 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name(type);
         context.out << "Ne_Number_multiply(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -1047,10 +1072,12 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name(type);
         context.out << "Ne_Number_divide(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -1065,10 +1092,12 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name(type);
         context.out << "Ne_Number_mod(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -1083,10 +1112,12 @@ public:
     const Expression *right;
 
     virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        std::string result = context.get_temp_name(type);
         context.out << "Ne_Number_pow(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.pop_scope();
         return result;
     }
 };
@@ -1113,7 +1144,7 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
-        std::string elementptr = context.get_temp_name(type->name + "*");
+        std::string elementptr = context.get_temp_name(type->name + "*", false);
         context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ");\n";
         return "*" + elementptr;
     }
@@ -2561,12 +2592,14 @@ Statement *transform(const ast::Statement *s)
     return st.retval();
 }
 
-std::string Context::get_temp_name(std::string type)
+std::string Context::get_temp_name(std::string type, bool destroy)
 {
     ++tmp_counter;
     std::string name = "tmp" + std::to_string(tmp_counter);
     out << type << " " << name << ";\n";
-    temp_names.top().emplace_back(type, name);
+    if (destroy) {
+        temp_names.top().emplace_back(type, name);
+    }
     return name;
 }
 
@@ -2584,7 +2617,7 @@ void Context::push_scope()
 void Context::pop_scope()
 {
     for (auto temp: temp_names.top()) {
-        out << temp.first << "_destroy(&" << temp.second << ");\n";
+        out << temp.first << "_deinit(&" << temp.second << ");\n";
     }
     temp_names.pop();
     out << "}\n";
