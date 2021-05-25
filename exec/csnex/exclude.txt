@@ -13,9 +13,6 @@ datetime-test.neon                              # date module
 debug-example.neon                              # debugger$log
 decimal.neon                                    # Value was either too large or too small for a Decimal.
 encoding-base64.neon                            # binary module
-export-function-indent.neon                     # exports
-export-inline.neon                              # exports
-export.neon                                     # exports
 file-exists.neon                                # file module
 file-filecopied.neon                            # file module
 file-filecopied1.neon                           # file module
@@ -39,8 +36,6 @@ import.neon                                     # Imports
 input.neon                                      # console module
 intdiv.neon                                     # math$intdiv
 interface-multiple.neon                         # PUSHPMG
-interface-parameter-export.neon                 # exports
-interface-parameter-export2.neon                # exports
 interface-parameter-import.neon                 # Imports
 interface-parameter-import2.neon                # types
 interface.neon                                  # Constant Imports
