@@ -2,6 +2,7 @@ typedef struct {
     void (*constructor)(void **);
     void (*destructor)(void *);
     void (*copy)(void *, const void *);
+    int (*equals)(const void *, const void *);
 } MethodTable;
 
 extern const MethodTable Ne_Number_mtable;
@@ -43,6 +44,7 @@ void Ne_Number_init_literal(Ne_Number *num, double n);
 void Ne_Number_constructor(Ne_Number **num);
 void Ne_Number_destructor(Ne_Number *num);
 void Ne_Number_deinit(Ne_Number *num);
+int Ne_Number_equals(const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_add(Ne_Number *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_subtract(Ne_Number *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_multiply(Ne_Number *result, const Ne_Number *a, const Ne_Number *b);
@@ -63,6 +65,7 @@ void Ne_String_deinit(Ne_String *str);
 void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable);
 void Ne_Array_assign(Ne_Array *dest, const Ne_Array *src);
 void Ne_Array_deinit(Ne_Array *a);
+void Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element);
 void Ne_Array_index_int(void **result, Ne_Array *a, int index);
 void Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index);
 void Ne_array__append(Ne_Array *a, const void *element);

@@ -8,7 +8,8 @@
 const MethodTable Ne_Number_mtable = {
     .constructor = (void (*)(void **))Ne_Number_constructor,
     .destructor = (void (*)(void *))Ne_Number_destructor,
-    .copy = (void (*)(void *, const void *))Ne_Number_assign
+    .copy = (void (*)(void *, const void *))Ne_Number_assign,
+    .equals = (int (*)(const void *, const void *))Ne_Number_equals,
 };
 
 void Ne_Boolean_assign(Ne_Boolean *dest, const Ne_Boolean *src)
@@ -48,6 +49,11 @@ void Ne_Number_destructor(Ne_Number *num)
 
 void Ne_Number_deinit(Ne_Number *num)
 {
+}
+
+int Ne_Number_equals(const Ne_Number *a, const Ne_Number *b)
+{
+    return a->dval == b->dval;
 }
 
 void Ne_String_init_literal(Ne_String *str, const char *s)
@@ -212,6 +218,17 @@ void Ne_Array_deinit(Ne_Array *a)
         a->mtable->destructor(a->a[i]);
     }
     free(a->a);
+}
+
+void Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element)
+{
+    *result = 0;
+    for (int i = 0; i < a->size; i++) {
+        if (a->mtable->equals(a->a[i], element)) {
+            *result = 1;
+            return;
+        }
+    }
 }
 
 void Ne_Array_index_int(void **result, Ne_Array *a, int index)

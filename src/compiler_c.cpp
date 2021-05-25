@@ -751,8 +751,14 @@ public:
     const Expression *left;
     const Expression *right;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ArrayInExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("Ne_Boolean");
+        context.push_scope();
+        std::string elname = left->generate(context);
+        std::string aname = right->generate(context);
+        context.out << "Ne_Array_in(&" << result << ",&" << aname << ",&" << elname << ");\n";
+        context.pop_scope();
+        return result;
     }
 };
 
