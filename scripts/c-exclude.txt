@@ -75,15 +75,11 @@ file-symlink.neon
 file-test.neon
 file-writebytes.neon
 file-writelines.neon
-foreach-eval.neon
 foreach-function.neon
 foreach.neon
 foreach-string.neon
 foreach-value.neon
-for-nested2.neon
-for-scope.neon
 format.neon
-forward.neon
 function-args.neon
 function-defaultargs.neon
 function-local.neon

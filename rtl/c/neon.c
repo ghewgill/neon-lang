@@ -346,3 +346,15 @@ void Ne_string__length(Ne_Number *result, const Ne_String *str)
 {
     result->dval = str->len;
 }
+
+void Ne_sys_exit(const Ne_Number *n)
+{
+    exit(n->dval);
+}
+
+void *textio$stderr;
+
+void Ne_textio_writeLine(void *f, const Ne_String *s)
+{
+    fprintf(stderr, "%.*s\n", s->len, s->ptr);
+}

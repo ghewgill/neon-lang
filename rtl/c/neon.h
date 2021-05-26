@@ -81,3 +81,8 @@ void Ne_print(const Ne_Object *obj);
 void Ne_str(Ne_String *result, const Ne_Number *n);
 void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b);
 void Ne_string__length(Ne_Number *result, const Ne_String *str);
+
+void Ne_sys_exit(const Ne_Number *n);
+
+extern void *textio$stderr;
+void Ne_textio_writeLine(void *f, const Ne_String *s);

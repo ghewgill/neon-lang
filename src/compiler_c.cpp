@@ -90,6 +90,7 @@ public:
     const ast::Variable *v;
     const Type *type;
     virtual void generate_decl(Context &context) const = 0;
+    virtual void generate_def(Context &context) const = 0;
     virtual std::string generate(Context &context) const = 0;
 };
 
@@ -137,6 +138,7 @@ public:
         generate_statement(context);
     }
     virtual void generate_decl(Context &) const {}
+    virtual void generate_def(Context &) const {}
     virtual void generate_statement(Context &context) const = 0;
 };
 
@@ -336,6 +338,7 @@ public:
     const ast::PredefinedVariable *pv;
 
     virtual void generate_decl(Context &) const override { internal_error("PredefinedVariable"); }
+    virtual void generate_def(Context &) const override { internal_error("PredefinedVariable"); }
     virtual std::string generate(Context &) const override {
         return pv->name;
     }
@@ -349,6 +352,7 @@ public:
     const ast::ModuleVariable *mv;
 
     virtual void generate_decl(Context &) const override { internal_error("ModuleVariable"); }
+    virtual void generate_def(Context &) const override { internal_error("ModuleVariable"); }
     virtual std::string generate(Context &) const override {
         return mv->name;
     }
@@ -361,7 +365,8 @@ public:
     GlobalVariable &operator=(const GlobalVariable &) = delete;
     const ast::GlobalVariable *gv;
 
-    virtual void generate_decl(Context &context) const override {
+    virtual void generate_decl(Context &) const override {}
+    virtual void generate_def(Context &context) const override {
         context.out << type->name << " " << v->name << ";\n";
     }
     virtual std::string generate(Context &) const override {
@@ -376,7 +381,8 @@ public:
     LocalVariable &operator=(const LocalVariable &) = delete;
     const ast::LocalVariable *lv;
 
-    virtual void generate_decl(Context &) const override {
+    virtual void generate_decl(Context &) const override {}
+    virtual void generate_def(Context &) const override {
         internal_error("LocalVariable");
     }
     virtual std::string generate(Context &) const override {
@@ -394,6 +400,7 @@ public:
     std::string localname;
 
     virtual void generate_decl(Context &) const override { internal_error("FunctionParameter"); }
+    virtual void generate_def(Context &) const override { internal_error("FunctionParameter"); }
     virtual std::string generate(Context &) const override {
         return localname;
     }
@@ -1166,8 +1173,13 @@ public:
     const Expression *index;
 
     virtual std::string generate(Context &context) const override {
+        std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
-        return array->generate(context) + "[" + indexname + "]";
+        std::string elementptr = context.get_temp_name(type->name + "*", false);
+        context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ");\n";
+        std::string element = context.get_temp_name(type);
+        context.out << type->name << "_assign(&" << element << "," << elementptr << ");\n";
+        return element;
     }
 };
 
@@ -1478,6 +1490,9 @@ public:
     virtual void generate_statement(Context &) const override {}
     virtual void generate_decl(Context &context) const override {
         decl->generate_decl(context);
+    }
+    virtual void generate_def(Context &context) const override {
+        decl->generate_def(context);
     }
 };
 
@@ -1896,23 +1911,31 @@ public:
     std::vector<FunctionParameter *> params;
     int out_count;
 
-    virtual void generate_decl(Context &context) const override {
-        context.out << "void " << f->name << "(";
+    std::string generate_header() const {
+        std::stringstream out;
+        out << "void " << f->name << "(";
         bool first = true;
         auto returntype = dynamic_cast<const ast::TypeFunction *>(f->type)->returntype;
         if (returntype != ast::TYPE_NOTHING) {
-            context.out << g_type_cache[returntype]->name << " *result";
+            out << g_type_cache[returntype]->name << " *result";
             first = false;
         }
         for (auto p: params) {
             if (first) {
                 first = false;
             } else {
-                context.out << ",";
+                out << ",";
             }
-            context.out << p->type->name << " *" << p->fp->name;
+            out << p->type->name << " *" << p->fp->name;
         }
-        context.out << ") {\n";
+        out << ")";
+        return out.str();
+    }
+    virtual void generate_decl(Context &context) const override {
+        context.out << generate_header() << ";\n";
+    }
+    virtual void generate_def(Context &context) const override {
+        context.out << generate_header() << " {\n";
         for (auto p: params) {
             assert(p->localname == "");
             p->localname = context.get_temp_name(p->type);
@@ -1944,10 +1967,11 @@ public:
     int out_count;
 
     virtual void generate_decl(Context &) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_def(Context &) const override { internal_error("PredefinedFunction"); }
     virtual std::string generate(Context &) const override {
         auto dollar = pf->name.find('$');
         if (dollar != std::string::npos) {
-            return "neon::" + pf->name.substr(0, dollar) + "." + pf->name.substr(dollar+1);
+            return "Ne_" + pf->name.substr(0, dollar) + "_" + pf->name.substr(dollar+1);
         } else {
             return "Ne_" + pf->name;
         }
@@ -1972,6 +1996,7 @@ public:
     int out_count;
 
     virtual void generate_decl(Context &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_def(Context &) const override { internal_error("ModuleFunction"); }
     virtual std::string generate(Context &) const override {
         return mf->name;
     }
@@ -2005,10 +2030,14 @@ public:
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
             if (global != nullptr) {
                 global->generate_decl(context);
+                global->generate_def(context);
             }
         }
         for (auto s: statements) {
             s->generate_decl(context);
+        }
+        for (auto s: statements) {
+            s->generate_def(context);
         }
         context.out << "int main(int argc, const char *argv[]) {\n";
         for (auto s: statements) {
