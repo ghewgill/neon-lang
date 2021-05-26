@@ -174,6 +174,22 @@ Ne_Object *make_object()
     return r;
 }
 
+void Ne_Object_assign(Ne_Object *dest, const Ne_Object *src)
+{
+    Ne_Object_deinit(dest);
+    dest->type = src->type;
+    switch (dest->type) {
+        case neNothing:
+            break;
+        case neNumber:
+            Ne_Number_assign(&dest->num, &src->num);
+            break;
+        case neString:
+            Ne_String_assign(&dest->str, &src->str);
+            break;
+    }
+}
+
 void Ne_Object_deinit(Ne_Object *obj)
 {
     switch (obj->type) {
@@ -186,6 +202,16 @@ void Ne_Object_deinit(Ne_Object *obj)
             Ne_String_deinit(&obj->str);
             break;
     }
+}
+
+void Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj)
+{
+    *r = obj->type == neNothing;
+}
+
+void Ne_object__makeNull(Ne_Object *obj)
+{
+    obj->type = neNothing;
 }
 
 void Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
