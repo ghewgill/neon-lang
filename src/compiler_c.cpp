@@ -75,6 +75,7 @@ public:
     virtual ~Type() {}
     std::string name;
     virtual void generate_default(Context &context) const = 0;
+    virtual void generate_init(Context &, std::string ) const {} // TODO (context, name) = 0;
 };
 
 Type *transform(const ast::Type *t);
@@ -91,6 +92,8 @@ public:
     const Type *type;
     virtual void generate_decl(Context &context) const = 0;
     virtual void generate_def(Context &context) const = 0;
+    virtual void generate_init(Context &context) const = 0;
+    virtual void generate_deinit(Context &context) const = 0;
     virtual std::string generate(Context &context) const = 0;
 };
 
@@ -242,6 +245,9 @@ public:
     virtual void generate_default(Context &context) const override {
         context.out << "neon::Array()";
     }
+    virtual void generate_init(Context &context, std::string name) const override {
+        context.out << this->name << "_init(&" << name << ",0,&" << elementtype->name << "_mtable);\n";
+    }
 };
 
 class TypeDictionary: public Type {
@@ -253,6 +259,9 @@ public:
     const Type *elementtype;
     virtual void generate_default(Context &context) const override {
         context.out << "neon::Dictionary()";
+    }
+    virtual void generate_init(Context &context, std::string name) const override {
+        context.out << this->name << "_init(&" << name << ",&" << elementtype->name << "_mtable);\n";
     }
 };
 
@@ -339,6 +348,8 @@ public:
 
     virtual void generate_decl(Context &) const override { internal_error("PredefinedVariable"); }
     virtual void generate_def(Context &) const override { internal_error("PredefinedVariable"); }
+    virtual void generate_init(Context &) const override { internal_error("PredefinedVariable"); }
+    virtual void generate_deinit(Context &) const override { internal_error("PredefinedVariable"); }
     virtual std::string generate(Context &) const override {
         return pv->name;
     }
@@ -353,6 +364,8 @@ public:
 
     virtual void generate_decl(Context &) const override { internal_error("ModuleVariable"); }
     virtual void generate_def(Context &) const override { internal_error("ModuleVariable"); }
+    virtual void generate_init(Context &) const override { internal_error("ModuleVariable"); }
+    virtual void generate_deinit(Context &) const override { internal_error("ModuleVariable"); }
     virtual std::string generate(Context &) const override {
         return mv->name;
     }
@@ -368,6 +381,12 @@ public:
     virtual void generate_decl(Context &) const override {}
     virtual void generate_def(Context &context) const override {
         context.out << type->name << " " << v->name << ";\n";
+    }
+    virtual void generate_init(Context &context) const override {
+        type->generate_init(context, v->name);
+    }
+    virtual void generate_deinit(Context &context) const override {
+        context.out << type->name << "_deinit(&" << v->name << ");\n";
     }
     virtual std::string generate(Context &) const override {
         return gv->name;
@@ -385,6 +404,8 @@ public:
     virtual void generate_def(Context &) const override {
         internal_error("LocalVariable");
     }
+    virtual void generate_init(Context &) const override { internal_error("LocalVariable"); }
+    virtual void generate_deinit(Context &) const override { internal_error("LocalVariable"); }
     virtual std::string generate(Context &) const override {
         return lv->name;
     }
@@ -401,6 +422,8 @@ public:
 
     virtual void generate_decl(Context &) const override { internal_error("FunctionParameter"); }
     virtual void generate_def(Context &) const override { internal_error("FunctionParameter"); }
+    virtual void generate_init(Context &) const override { internal_error("FunctionParameter"); }
+    virtual void generate_deinit(Context &) const override { internal_error("FunctionParameter"); }
     virtual std::string generate(Context &) const override {
         return localname;
     }
@@ -514,7 +537,7 @@ public:
 
 class ArrayLiteralExpression: public Expression {
 public:
-    explicit ArrayLiteralExpression(const ast::ArrayLiteralExpression *ale): Expression(ale), ale(ale), elements() {
+    explicit ArrayLiteralExpression(const ast::ArrayLiteralExpression *ale): Expression(ale), ale(ale), elementtype(transform(ale->elementtype)), elements() {
         for (auto e: ale->elements) {
             elements.push_back(transform(e));
         }
@@ -522,11 +545,16 @@ public:
     ArrayLiteralExpression(const ArrayLiteralExpression &) = delete;
     ArrayLiteralExpression &operator=(const ArrayLiteralExpression &) = delete;
     const ast::ArrayLiteralExpression *ale;
+    const Type *elementtype;
     std::vector<const Expression *> elements;
 
     virtual std::string generate(Context &context) const override {
         std::string result = context.get_temp_name("Ne_Array");
-        context.out << "Ne_Array_init(&" << result << "," << elements.size() << ",&Ne_Number_mtable);\n";
+        if (elementtype != nullptr) {
+            context.out << "Ne_Array_init(&" << result << "," << elements.size() << ",&" << elementtype->name << "_mtable);\n";
+        } else {
+            context.out << "Ne_Array_init(&" << result << "," << elements.size() << ",(const MethodTable *)0);\n";
+        }
         int i = 0;
         for (auto &e: elements) {
             // TODO: make this call to generate take a pointer expression for where to put the result
@@ -535,7 +563,7 @@ public:
             std::string ename = e->generate(context);
             std::string pname = context.get_temp_name("void *", false);
             context.out << "Ne_Array_index_int(&" << pname << ",&" << result << "," << i << ");\n";
-            context.out << "Ne_Number_assign(" << pname << ",&" << ename << ");\n";
+            context.out << elementtype->name << "_copy(" << pname << ",&" << ename << ");\n";
             context.pop_scope();
             i++;
         }
@@ -545,7 +573,7 @@ public:
 
 class DictionaryLiteralExpression: public Expression {
 public:
-    explicit DictionaryLiteralExpression(const ast::DictionaryLiteralExpression *dle): Expression(dle), dle(dle), dict() {
+    explicit DictionaryLiteralExpression(const ast::DictionaryLiteralExpression *dle): Expression(dle), dle(dle), elementtype(transform(dle->elementtype)), dict() {
         for (auto d: dle->dict) {
             dict[d.first.str()] = transform(d.second); // TODO: utf8
         }
@@ -553,10 +581,29 @@ public:
     DictionaryLiteralExpression(const DictionaryLiteralExpression &) = delete;
     DictionaryLiteralExpression &operator=(const DictionaryLiteralExpression &) = delete;
     const ast::DictionaryLiteralExpression *dle;
+    const Type *elementtype;
     std::map<std::string, const Expression *> dict;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("DictionaryLiteralExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("Ne_Dictionary");
+        if (elementtype != nullptr) {
+            context.out << "Ne_Dictionary_init(&" << result << ",&" << elementtype->name << "_mtable);\n";
+        } else {
+            context.out << "Ne_Dictionary_init(&" << result << ",(const MethodTable *)0);\n";
+        }
+        for (auto &x: dict) {
+            context.push_scope();
+            std::string keyname = context.get_temp_name("Ne_String");
+            context.out << "Ne_String_init_literal(" << keyname << "," << quoted(x.first) << ");\n";
+            // TODO: make this call to generate take a pointer expression for where to put the result
+            // so it can be constructed right in the dictionary without copying.
+            std::string valname = x.second->generate(context);
+            std::string pname = context.get_temp_name("void *", false);
+            context.out << "Ne_Dictionary_index(&" << pname << ",&" << result << "," << keyname << ");\n";
+            context.out << "Ne_Number_copy(" << pname << ",&" << valname << ");\n";
+            context.pop_scope();
+        }
+        return result;
     }
 };
 
@@ -799,22 +846,22 @@ public:
         std::string rightname = right->generate(context);
         switch (ce->comp) {
             case ast::ComparisonExpression::Comparison::EQ:
-                context.out << "Ne_Number_equal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << left->type->name << "_equal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
                 break;
             case ast::ComparisonExpression::Comparison::NE:
-                context.out << "Ne_Number_notequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << left->type->name << "_notequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
                 break;
             case ast::ComparisonExpression::Comparison::LT:
-                context.out << "Ne_Number_less(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << left->type->name << "_less(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
                 break;
             case ast::ComparisonExpression::Comparison::GT:
-                context.out << "Ne_Number_greater(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << left->type->name << "_greater(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
                 break;
             case ast::ComparisonExpression::Comparison::LE:
-                context.out << "Ne_Number_lessequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << left->type->name << "_lessequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
                 break;
             case ast::ComparisonExpression::Comparison::GE:
-                context.out << "Ne_Number_greaterequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << left->type->name << "_greaterequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
                 break;
             default:
                 internal_error("unhandled comparison");
@@ -1178,7 +1225,7 @@ public:
         std::string elementptr = context.get_temp_name(type->name + "*", false);
         context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ");\n";
         std::string element = context.get_temp_name(type);
-        context.out << type->name << "_assign(&" << element << "," << elementptr << ");\n";
+        context.out << type->name << "_init_copy(&" << element << "," << elementptr << ");\n";
         return element;
     }
 };
@@ -1193,8 +1240,13 @@ public:
     const Expression *index;
 
     virtual std::string generate(Context &context) const override {
+        std::string elementptr = context.get_temp_name(type->name + "*", false);
+        context.push_scope();
+        std::string dictionaryname = dictionary->generate(context);
         std::string indexname = index->generate(context);
-        return dictionary->generate(context) + "[" + indexname + "]";
+        context.out << "Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ");\n";
+        context.pop_scope();
+        return "*" + elementptr;
     }
 };
 
@@ -1539,7 +1591,7 @@ public:
         for (auto v: variables) {
             if (dynamic_cast<const DummyExpression *>(v) == nullptr) {
                 std::string vname = v->generate(context);
-                context.out << v->type->name << "_assign(&" << vname << ",&" << exprname << ");\n";
+                context.out << v->type->name << "_copy(&" << vname << ",&" << exprname << ");\n";
             }
         }
         context.pop_scope();
@@ -1939,13 +1991,15 @@ public:
         for (auto p: params) {
             assert(p->localname == "");
             p->localname = context.get_temp_name(p->type);
-            context.out << p->type->name << "_assign(&" << p->localname << "," << p->fp->name << ");\n";
+            context.out << p->type->name << "_init_copy(&" << p->localname << "," << p->fp->name << ");\n";
         }
         for (auto s: statements) {
             s->generate(context);
         }
         context.out << "}\n";
     }
+    virtual void generate_init(Context &) const override { internal_error("Function"); }
+    virtual void generate_deinit(Context &) const override { internal_error("Function"); }
     virtual std::string generate(Context &) const override {
         return f->name;
     }
@@ -1968,6 +2022,8 @@ public:
 
     virtual void generate_decl(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_def(Context &) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_init(Context &) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_deinit(Context &) const override { internal_error("PredefinedFunction"); }
     virtual std::string generate(Context &) const override {
         auto dollar = pf->name.find('$');
         if (dollar != std::string::npos) {
@@ -1997,6 +2053,8 @@ public:
 
     virtual void generate_decl(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_def(Context &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_init(Context &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_deinit(Context &) const override { internal_error("ModuleFunction"); }
     virtual std::string generate(Context &) const override {
         return mf->name;
     }
@@ -2040,8 +2098,22 @@ public:
             s->generate_def(context);
         }
         context.out << "int main(int argc, const char *argv[]) {\n";
+        for (size_t s = 0; s < program->frame->getCount(); s++) {
+            auto slot = program->frame->getSlot(s);
+            const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
+            if (global != nullptr) {
+                global->generate_init(context);
+            }
+        }
         for (auto s: statements) {
             s->generate(context);
+        }
+        for (size_t s = 0; s < program->frame->getCount(); s++) {
+            auto slot = program->frame->getSlot(s);
+            const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
+            if (global != nullptr) {
+                global->generate_deinit(context);
+            }
         }
         context.out << "return 0;\n}\n";
         std::vector<unsigned char> src;

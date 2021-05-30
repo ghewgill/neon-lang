@@ -48,7 +48,6 @@ debug-example.neon
 decimal.neon
 dictionary-keys.neon
 dictionary.neon
-dictionary-sorted.neon
 divide-by-zero.neon
 encoding-base64.neon
 enum.neon

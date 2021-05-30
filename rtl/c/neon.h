@@ -6,6 +6,7 @@ typedef struct {
 } MethodTable;
 
 extern const MethodTable Ne_Number_mtable;
+extern const MethodTable Ne_String_mtable;
 
 typedef int Ne_Boolean;
 
@@ -36,12 +37,22 @@ typedef struct {
     const MethodTable *mtable;
 } Ne_Array;
 
-void Ne_Boolean_assign(Ne_Boolean *dest, const Ne_Boolean *src);
+typedef struct {
+    int size;
+    struct KV {
+        Ne_String key;
+        void *value;
+    } *d;
+    const MethodTable *mtable;
+} Ne_Dictionary;
+
+void Ne_Boolean_copy(Ne_Boolean *dest, const Ne_Boolean *src);
 void Ne_Boolean_deinit(Ne_Boolean *bool);
 void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a);
-void Ne_Number_assign(Ne_Number *dest, const Ne_Number *src);
 void Ne_Number_init_literal(Ne_Number *num, double n);
+void Ne_Number_init_copy(Ne_Number *dest, const Ne_Number *src);
 void Ne_Number_constructor(Ne_Number **num);
+void Ne_Number_copy(Ne_Number *dest, const Ne_Number *src);
 void Ne_Number_destructor(Ne_Number *num);
 void Ne_Number_deinit(Ne_Number *num);
 int Ne_Number_equals(const Ne_Number *a, const Ne_Number *b);
@@ -60,10 +71,16 @@ void Ne_Number_greater(int *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_lessequal(int *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_Number_greaterequal(int *result, const Ne_Number *a, const Ne_Number *b);
 void Ne_String_init_literal(Ne_String *str, const char *s);
-void Ne_String_assign(Ne_String *dest, const Ne_String *src);
+void Ne_String_init_copy(Ne_String *dest, const Ne_String *src);
+void Ne_String_constructor(Ne_String **str);
+void Ne_String_destructor(Ne_String *str);
+void Ne_String_copy(Ne_String *dest, const Ne_String *src);
 void Ne_String_deinit(Ne_String *str);
+int Ne_String_equals(const Ne_String *a, const Ne_String *b);
+void Ne_String_less(int *result, const Ne_String *a, const Ne_String *b);
 void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable);
-void Ne_Array_assign(Ne_Array *dest, const Ne_Array *src);
+void Ne_Array_init_copy(Ne_Array *dest, const Ne_Array *src);
+void Ne_Array_copy(Ne_Array *dest, const Ne_Array *src);
 void Ne_Array_deinit(Ne_Array *a);
 void Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element);
 void Ne_Array_index_int(void **result, Ne_Array *a, int index);
@@ -73,8 +90,16 @@ void Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b);
 void Ne_array__extend(Ne_Array *dest, const Ne_Array *src);
 void Ne_array__size(Ne_Number *result, const Ne_Array *a);
 void Ne_array__toString__number(Ne_String *r, const Ne_Array *a);
+void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable);
+void Ne_Dictionary_init_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
+void Ne_Dictionary_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
+void Ne_Dictionary_deinit(Ne_Dictionary *d);
+void Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index);
+void Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d);
 void Ne_number__toString(Ne_String *result, const Ne_Number *n);
-void Ne_Object_assign(Ne_Object *dest, const Ne_Object *src);
+void Ne_Object_init(Ne_Object *obj);
+void Ne_Object_init_copy(Ne_Object *dest, const Ne_Object *src);
+void Ne_Object_copy(Ne_Object *dest, const Ne_Object *src);
 void Ne_Object_deinit(Ne_Object *obj);
 void Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj);
 void Ne_object__makeNull(Ne_Object *obj);

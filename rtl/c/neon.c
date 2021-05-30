@@ -1,5 +1,6 @@
 #include "neon.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,11 +9,18 @@
 const MethodTable Ne_Number_mtable = {
     .constructor = (void (*)(void **))Ne_Number_constructor,
     .destructor = (void (*)(void *))Ne_Number_destructor,
-    .copy = (void (*)(void *, const void *))Ne_Number_assign,
+    .copy = (void (*)(void *, const void *))Ne_Number_copy,
     .equals = (int (*)(const void *, const void *))Ne_Number_equals,
 };
 
-void Ne_Boolean_assign(Ne_Boolean *dest, const Ne_Boolean *src)
+const MethodTable Ne_String_mtable = {
+    .constructor = (void (*)(void **))Ne_String_constructor,
+    .destructor = (void (*)(void *))Ne_String_destructor,
+    .copy = (void (*)(void *, const void *))Ne_String_copy,
+    .equals = (int (*)(const void *, const void *))Ne_String_equals,
+};
+
+void Ne_Boolean_copy(Ne_Boolean *dest, const Ne_Boolean *src)
 {
     *dest = *src;
 }
@@ -26,7 +34,12 @@ void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
     Ne_String_init_literal(result, *a ? "TRUE" : "FALSE");
 }
 
-void Ne_Number_assign(Ne_Number *dest, const Ne_Number *src)
+void Ne_Number_init_copy(Ne_Number *dest, const Ne_Number *src)
+{
+    dest->dval = src->dval;
+}
+
+void Ne_Number_copy(Ne_Number *dest, const Ne_Number *src)
 {
     dest->dval = src->dval;
 }
@@ -64,16 +77,59 @@ void Ne_String_init_literal(Ne_String *str, const char *s)
     str->len = len;
 }
 
-void Ne_String_assign(Ne_String *dest, const Ne_String *src)
+void Ne_String_constructor(Ne_String **str)
+{
+    *str = malloc(sizeof(Ne_String));
+    Ne_String_init_literal(*str, "");
+}
+
+void Ne_String_destructor(Ne_String *str)
+{
+    Ne_String_deinit(str);
+    free(str);
+}
+
+void Ne_String_init_copy(Ne_String *dest, const Ne_String *src)
 {
     dest->ptr = malloc(src->len);
     memcpy(dest->ptr, src->ptr, src->len);
     dest->len = src->len;
 }
 
+void Ne_String_copy(Ne_String *dest, const Ne_String *src)
+{
+    Ne_String_deinit(dest);
+    Ne_String_init_copy(dest, src);
+}
+
 void Ne_String_deinit(Ne_String *str)
 {
     free(str->ptr);
+}
+
+int Ne_String_equals(const Ne_String *a, const Ne_String *b)
+{
+    return a->len == b->len && memcmp(a->ptr, b->ptr, a->len) == 0;
+}
+
+void Ne_String_less(int *result, const Ne_String *a, const Ne_String *b)
+{
+    int i = 0;
+    for (;;) {
+        if (i >= a->len) {
+            *result = 1;
+            return;
+        }
+        if (i >= b->len) {
+            *result = 0;
+            return;
+        }
+        if (a->ptr[i] < b->ptr[i]) {
+            *result = 1;
+            return;
+        }
+        i++;
+    }
 }
 
 void Ne_Number_add(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
@@ -165,16 +221,14 @@ void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable)
     }
 }
 
-Ne_Object *make_object()
+void Ne_Object_init(Ne_Object *obj)
 {
-    Ne_Object *r = malloc(sizeof(Ne_Object));
-    r->type = neNothing;
-    Ne_Number_init_literal(&r->num, 0);
-    Ne_String_init_literal(&r->str, "");
-    return r;
+    obj->type = neNothing;
+    Ne_Number_init_literal(&obj->num, 0);
+    Ne_String_init_literal(&obj->str, "");
 }
 
-void Ne_Object_assign(Ne_Object *dest, const Ne_Object *src)
+void Ne_Object_copy(Ne_Object *dest, const Ne_Object *src)
 {
     Ne_Object_deinit(dest);
     dest->type = src->type;
@@ -182,10 +236,10 @@ void Ne_Object_assign(Ne_Object *dest, const Ne_Object *src)
         case neNothing:
             break;
         case neNumber:
-            Ne_Number_assign(&dest->num, &src->num);
+            Ne_Number_init_copy(&dest->num, &src->num);
             break;
         case neString:
-            Ne_String_assign(&dest->str, &src->str);
+            Ne_String_init_copy(&dest->str, &src->str);
             break;
     }
 }
@@ -211,26 +265,29 @@ void Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj)
 
 void Ne_object__makeNull(Ne_Object *obj)
 {
+    Ne_Object_init(obj);
     obj->type = neNothing;
 }
 
 void Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
 {
+    Ne_Object_init(obj);
     obj->type = neNumber;
-    obj->num = *n;
+    Ne_Number_copy(&obj->num, n);
 }
 
 void Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
 {
+    Ne_Object_init(obj);
     obj->type = neString;
-    Ne_String_assign(&obj->str, s);
+    Ne_String_copy(&obj->str, s);
 }
 
-void Ne_Array_assign(Ne_Array *dest, const Ne_Array *src)
+void Ne_Array_copy(Ne_Array *dest, const Ne_Array *src)
 {
     Ne_Array_deinit(dest);
     dest->a = malloc(src->size * sizeof(void *));
-    dest->mtable = src->mtable;
+    assert(src->mtable == NULL || src->mtable == dest->mtable);
     for (int i = 0; i < src->size; i++) {
         dest->mtable->constructor(&dest->a[i]);
         dest->mtable->copy(dest->a[i], src->a[i]);
@@ -326,6 +383,63 @@ void Ne_array__toString__number(Ne_String *r, const Ne_Array *a)
     }
     strcat(buf, "]");
     Ne_String_init_literal(r, buf);
+}
+
+void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable)
+{
+    d->size = 0;
+    d->d = NULL;
+    d->mtable = mtable;
+}
+
+void Ne_Dictionary_copy(Ne_Dictionary *dest, const Ne_Dictionary *src)
+{
+    Ne_Dictionary_deinit(dest);
+    dest->d = malloc(src->size * sizeof(struct KV));
+    assert(src->mtable == NULL || src->mtable == dest->mtable);
+    for (int i = 0; i < src->size; i++) {
+        Ne_String_init_copy(&src->d[i].key, &dest->d[i].key);
+        dest->mtable->constructor(&dest->d[i].value);
+        dest->mtable->copy(dest->d[i].value, src->d[i].value);
+    }
+    dest->size = src->size;
+}
+
+void Ne_Dictionary_deinit(Ne_Dictionary *d)
+{
+    for (int i = 0; i < d->size; i++) {
+        Ne_String_deinit(&d->d[i].key);
+        d->mtable->destructor(d->d[i].value);
+    }
+    free(d->d);
+}
+
+void Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index)
+{
+    d->size++;
+    d->d = realloc(d->d, d->size * sizeof(struct KV));
+    int i = d->size - 1;
+    while (i > 0) {
+        int less;
+        Ne_String_less(&less, index, &d->d[i-1].key);
+        if (!less) {
+            break;
+        }
+        memcpy(&d->d[i], &d->d[i-1], sizeof(struct KV));
+        i--;
+    }
+    Ne_String_init_copy(&d->d[i].key, index);
+    *result = &d->d[i].value;
+}
+
+void Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
+{
+    Ne_Array_init(result, d->size, &Ne_String_mtable);
+    for (int i = 0; i < d->size; i++) {
+        Ne_String *s;
+        Ne_Array_index_int((void **)&s, result, i);
+        Ne_String_copy(s, &d->d[i].key);
+    }
 }
 
 void Ne_number__toString(Ne_String *result, const Ne_Number *n)
