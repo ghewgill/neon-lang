@@ -218,6 +218,9 @@ public:
     virtual void generate_default(Context &context) const override {
         context.out << "nullptr";
     }
+    virtual void generate_init(Context &context, std::string name) const override {
+        context.out << this->name << "_init(&" << name << ");\n";
+    }
 };
 
 class TypeFunction: public Type {
@@ -594,13 +597,13 @@ public:
         for (auto &x: dict) {
             context.push_scope();
             std::string keyname = context.get_temp_name("Ne_String");
-            context.out << "Ne_String_init_literal(" << keyname << "," << quoted(x.first) << ");\n";
+            context.out << "Ne_String_init_literal(&" << keyname << "," << quoted(x.first) << ");\n";
             // TODO: make this call to generate take a pointer expression for where to put the result
             // so it can be constructed right in the dictionary without copying.
             std::string valname = x.second->generate(context);
             std::string pname = context.get_temp_name("void *", false);
-            context.out << "Ne_Dictionary_index(&" << pname << ",&" << result << "," << keyname << ");\n";
-            context.out << "Ne_Number_copy(" << pname << ",&" << valname << ");\n";
+            context.out << "Ne_Dictionary_index(&" << pname << ",&" << result << ",&" << keyname << ");\n";
+            context.out << elementtype->name << "_copy(" << pname << ",&" << valname << ");\n";
             context.pop_scope();
         }
         return result;
@@ -1562,13 +1565,13 @@ public:
     const Expression *expr;
 
     virtual void generate_statement(Context &context) const override {
-        context.out << "if (!(";
-        expr->generate(context);
-        context.out << ")) {";
+        std::string condition = expr->generate(context);
+        context.out << "if (!" << condition << ")";
+        context.push_scope();
         for (auto s: statements) {
             s->generate(context);
         }
-        context.out << "}";
+        context.pop_scope();
     }
 };
 
@@ -1652,14 +1655,15 @@ public:
         for (auto s: prologue) {
             s->generate(context);
         }
-        context.out << "for (;;) {\n";
+        context.out << "for (;;)\n";
+        context.push_scope();
         for (auto s: statements) {
             s->generate(context);
         }
         for (auto s: tail) {
             s->generate(context);
         }
-        context.out << "}\n";
+        context.pop_scope();
     }
 };
 
@@ -1897,17 +1901,20 @@ public:
     virtual void generate_statement(Context &context) const override {
         for (auto c: condition_statements) {
             std::string condname = c.first->generate(context);
-            context.out << "if (" << condname << ") {\n";
+            context.out << "if (" << condname << ")\n";
+            context.push_scope();
             for (auto s: c.second) {
                 s->generate(context);
             }
-            context.out << "} else {\n";
+            context.pop_scope();
+            context.out << "else\n";
+            context.push_scope();
         }
         for (auto s: else_statements) {
             s->generate(context);
         }
         for (auto c: condition_statements) {
-            context.out << "}\n";
+            context.pop_scope();
         }
     }
 };
@@ -1987,7 +1994,8 @@ public:
         context.out << generate_header() << ";\n";
     }
     virtual void generate_def(Context &context) const override {
-        context.out << generate_header() << " {\n";
+        context.out << generate_header() << "\n";
+        context.push_scope();
         for (auto p: params) {
             assert(p->localname == "");
             p->localname = context.get_temp_name(p->type);
@@ -1996,7 +2004,7 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
-        context.out << "}\n";
+        context.pop_scope();
     }
     virtual void generate_init(Context &) const override { internal_error("Function"); }
     virtual void generate_deinit(Context &) const override { internal_error("Function"); }
@@ -2098,6 +2106,7 @@ public:
             s->generate_def(context);
         }
         context.out << "int main(int argc, const char *argv[]) {\n";
+        context.out << "Ne_sys__init(argc, argv);\n";
         for (size_t s = 0; s < program->frame->getCount(); s++) {
             auto slot = program->frame->getSlot(s);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);

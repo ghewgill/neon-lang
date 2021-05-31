@@ -20,6 +20,11 @@ const MethodTable Ne_String_mtable = {
     .equals = (int (*)(const void *, const void *))Ne_String_equals,
 };
 
+void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src)
+{
+    *dest = *src;
+}
+
 void Ne_Boolean_copy(Ne_Boolean *dest, const Ne_Boolean *src)
 {
     *dest = *src;
@@ -303,6 +308,21 @@ void Ne_Array_deinit(Ne_Array *a)
     free(a->a);
 }
 
+void Ne_Array_equal(int *result, const Ne_Array *a, const Ne_Array *b)
+{
+    if (a->size != b->size) {
+        *result = 0;
+        return;
+    }
+    for (int i = 0; i < a->size; i++) {
+        if (!a->mtable->equals(a->a[i], b->a[i])) {
+            *result = 0;
+            return;
+        }
+    }
+    *result = 1;
+}
+
 void Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element)
 {
     *result = 0;
@@ -365,6 +385,54 @@ void Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
     dest->size = newsize;
 }
 
+void Ne_array__find(Ne_Number *result, const Ne_Array *a, void *e)
+{
+    for (int i = 0; i < a->size; i++) {
+        if (a->mtable->equals(a->a[i], e)) {
+            Ne_Number_init_literal(result, i);
+            return;
+        }
+    }
+    // TODO: exception
+}
+
+void Ne_array__remove(Ne_Array *a, const Ne_Number *index)
+{
+    int i = (int)index->dval;
+    if (i < 0 || i >= a->size) {
+        // TODO: exception
+        exit(1);
+    }
+    a->mtable->destructor(a->a[i]);
+    memmove(&a->a[i], &a->a[i+1], (a->size-i-1) * sizeof(void *));
+    a->size--;
+}
+
+void Ne_array__resize(Ne_Array *a, const Ne_Number *size)
+{
+    int newsize = (int)size->dval;
+    if (newsize < a->size) {
+        for (int i = newsize; i < a->size; i++) {
+            a->mtable->destructor(a->a[i]);
+        }
+        a->a = realloc(a->a, newsize * sizeof(void *));
+    } else {
+        a->a = realloc(a->a, newsize * sizeof(void *));
+        for (int i = a->size; i < newsize; i++) {
+            a->mtable->constructor(&a->a[i]);
+        }
+    }
+    a->size = newsize;
+}
+
+void Ne_array__reversed(Ne_Array *dest, const Ne_Array *src)
+{
+    Ne_Array_init(dest, src->size, src->mtable);
+    for (int i = 0; i < src->size; i++) {
+        dest->mtable->copy(dest->a[i], src->a[src->size-1-i]);
+    }
+}
+
 void Ne_array__size(Ne_Number *result, const Ne_Array *a)
 {
     Ne_Number_init_literal(result, a->size);
@@ -398,7 +466,7 @@ void Ne_Dictionary_copy(Ne_Dictionary *dest, const Ne_Dictionary *src)
     dest->d = malloc(src->size * sizeof(struct KV));
     assert(src->mtable == NULL || src->mtable == dest->mtable);
     for (int i = 0; i < src->size; i++) {
-        Ne_String_init_copy(&src->d[i].key, &dest->d[i].key);
+        Ne_String_init_copy(&dest->d[i].key, &src->d[i].key);
         dest->mtable->constructor(&dest->d[i].value);
         dest->mtable->copy(dest->d[i].value, src->d[i].value);
     }
@@ -416,20 +484,25 @@ void Ne_Dictionary_deinit(Ne_Dictionary *d)
 
 void Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index)
 {
-    d->size++;
-    d->d = realloc(d->d, d->size * sizeof(struct KV));
-    int i = d->size - 1;
-    while (i > 0) {
+    int i = 0;
+    while (i < d->size) {
+        if (Ne_String_equals(&d->d[i].key, index)) {
+            *result = d->d[i].value;
+            return;
+        }
         int less;
-        Ne_String_less(&less, index, &d->d[i-1].key);
-        if (!less) {
+        Ne_String_less(&less, index, &d->d[i].key);
+        if (less) {
             break;
         }
-        memcpy(&d->d[i], &d->d[i-1], sizeof(struct KV));
-        i--;
+        i++;
     }
+    d->d = realloc(d->d, (d->size+1) * sizeof(struct KV));
+    memmove(&d->d[i+1], &d->d[i], (d->size-i) * sizeof(struct KV));
+    d->size++;
     Ne_String_init_copy(&d->d[i].key, index);
-    *result = &d->d[i].value;
+    d->mtable->constructor(&d->d[i].value);
+    *result = d->d[i].value;
 }
 
 void Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
@@ -474,6 +547,13 @@ void Ne_str(Ne_String *result, const Ne_Number *n)
     Ne_String_init_literal(result, buf);
 }
 
+void Ne_string__append(Ne_String *dest, const Ne_String *s)
+{
+    dest->ptr = realloc(dest->ptr, dest->len + s->len);
+    memcpy(dest->ptr + dest->len, s->ptr, s->len);
+    dest->len += s->len;
+}
+
 void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b)
 {
     dest->len = a->len + b->len;
@@ -485,6 +565,21 @@ void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b)
 void Ne_string__length(Ne_Number *result, const Ne_String *str)
 {
     result->dval = str->len;
+}
+
+Ne_Array sys$args;
+
+void Ne_sys__init(int argc, const char *argv[])
+{
+    Ne_Array_init(&sys$args, argc, &Ne_String_mtable);
+    for (int i = 0; i < argc; i++) {
+        Ne_String s;
+        Ne_String_init_literal(&s, argv[i]);
+        Ne_String *x;
+        Ne_Array_index_int((void **)&x, &sys$args, i);
+        Ne_String_copy(x, &s);
+        Ne_String_deinit(&s);
+    }
 }
 
 void Ne_sys_exit(const Ne_Number *n)

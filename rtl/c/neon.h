@@ -46,6 +46,7 @@ typedef struct {
     const MethodTable *mtable;
 } Ne_Dictionary;
 
+void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src);
 void Ne_Boolean_copy(Ne_Boolean *dest, const Ne_Boolean *src);
 void Ne_Boolean_deinit(Ne_Boolean *bool);
 void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a);
@@ -82,12 +83,17 @@ void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable);
 void Ne_Array_init_copy(Ne_Array *dest, const Ne_Array *src);
 void Ne_Array_copy(Ne_Array *dest, const Ne_Array *src);
 void Ne_Array_deinit(Ne_Array *a);
+void Ne_Array_equal(int *result, const Ne_Array *a, const Ne_Array *b);
 void Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element);
 void Ne_Array_index_int(void **result, Ne_Array *a, int index);
 void Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index);
 void Ne_array__append(Ne_Array *a, const void *element);
 void Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b);
 void Ne_array__extend(Ne_Array *dest, const Ne_Array *src);
+void Ne_array__find(Ne_Number *result, const Ne_Array *a, void *e);
+void Ne_array__remove(Ne_Array *a, const Ne_Number *index);
+void Ne_array__resize(Ne_Array *a, const Ne_Number *size);
+void Ne_array__reversed(Ne_Array *dest, const Ne_Array *src);
 void Ne_array__size(Ne_Number *result, const Ne_Array *a);
 void Ne_array__toString__number(Ne_String *r, const Ne_Array *a);
 void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable);
@@ -107,9 +113,12 @@ void Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n);
 void Ne_object__makeString(Ne_Object *obj, const Ne_String *s);
 void Ne_print(const Ne_Object *obj);
 void Ne_str(Ne_String *result, const Ne_Number *n);
+void Ne_string__append(Ne_String *dest, const Ne_String *s);
 void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b);
 void Ne_string__length(Ne_Number *result, const Ne_String *str);
 
+extern Ne_Array sys$args;
+void Ne_sys__init(int argc, const char *argv[]);
 void Ne_sys_exit(const Ne_Number *n);
 
 extern void *textio$stderr;
