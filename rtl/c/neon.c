@@ -556,6 +556,13 @@ void Ne_number__toString(Ne_String *result, const Ne_Number *n)
     Ne_String_init_literal(result, buf);
 }
 
+void Ne_pointer__toString(Ne_String *r, const void *p)
+{
+    char buf[20];
+    snprintf(buf, sizeof(buf), "%p", p);
+    Ne_String_init_literal(r, buf);
+}
+
 void Ne_print(const Ne_Object *obj)
 {
     switch (obj->type) {

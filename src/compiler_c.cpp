@@ -361,9 +361,26 @@ public:
     }
 };
 
+class TypeClass: public TypeRecord {
+public:
+    explicit TypeClass(const ast::TypeClass *tc): TypeRecord(tc), tc(tc) {}
+    TypeClass(const TypeClass &) = delete;
+    TypeClass &operator=(const TypeClass &) = delete;
+    const ast::TypeClass *tc;
+
+    virtual void generate_decl(Context &context) const override {
+        TypeRecord::generate_decl(context);
+        context.out << "typedef " << name << " *" << name << "_Ptr;\n";
+        context.out << "void " << name << "_Ptr_init(" << name << "_Ptr *p) {}\n";
+        context.out << "void " << name << "_Ptr_init_copy(" << name << "_Ptr *p, const " << name << "_Ptr *s) { *p = *s; }\n";
+        context.out << "void " << name << "_Ptr_deinit(" << name << "_Ptr *p) {}\n";
+        context.out << "void " << name << "_Ptr_copy(" << name << "_Ptr *d, const " << name << "_Ptr *s) { *d = *s; }\n";
+    }
+};
+
 class TypePointer: public Type {
 public:
-    explicit TypePointer(const ast::TypePointer *tp): Type(tp, "Ne_Pointer"), tp(tp) {}
+    explicit TypePointer(const ast::TypePointer *tp): Type(tp, tp->reftype != NULL ? tp->reftype->name + "_Ptr" : "void_Ptr"), tp(tp) {}
     TypePointer(const TypePointer &) = delete;
     TypePointer &operator=(const TypePointer &) = delete;
     const ast::TypePointer *tp;
@@ -573,8 +590,10 @@ public:
     ConstantNilExpression &operator=(const ConstantNilExpression &) = delete;
     const ast::ConstantNilExpression *cne;
 
-    virtual std::string generate(Context &) const override {
-        return "NULL";
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("void *", false);
+        context.out << result << " = NULL;\n";
+        return result;
     }
 };
 
@@ -720,8 +739,14 @@ public:
     const Expression *value;
     const TypeRecord *type;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("NewClassExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type->name + "*", false);
+        context.push_scope();
+        std::string init = value->generate(context);
+        context.out << type->name << "_constructor(&" << result << ");\n";
+        context.out << type->name << "_copy(" << result << ",&" << init << ");\n";
+        context.pop_scope();
+        return result;
     }
 };
 
@@ -1118,8 +1143,18 @@ public:
     const ast::ValidPointerExpression *vpe;
     const Variable *var;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ValidPointerExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("int", false);
+        context.push_scope();
+        std::string ptrname = left->generate(context);
+        std::string varname = var->generate(context);
+        if (varname != ptrname) {
+            context.out << result << " = (" << varname << " = " << ptrname << ") != NULL;\n";
+        } else {
+            context.out << result << " = " << ptrname << " != NULL;\n";
+        }
+        context.pop_scope();
+        return result;
     }
 };
 
@@ -1477,7 +1512,11 @@ public:
     const Type *fieldtype;
 
     virtual std::string generate(Context &context) const override {
-        return ref->generate(context) + "." + rrfe->field;
+        if (dynamic_cast<const TypeClass *>(rectype) != nullptr) {
+            return ref->generate(context) + "->" + rrfe->field;
+        } else {
+            return ref->generate(context) + "." + rrfe->field;
+        }
     }
 };
 
@@ -2179,6 +2218,11 @@ public:
         out << "#include <stdlib.h>\n";
         out << "#include \"neon.h\"\n";
         Context context(out);
+        out << "typedef void *void_Ptr;\n";
+        out << "void void_Ptr_init(void_Ptr *p) {}\n";
+        out << "void void_Ptr_deinit(void_Ptr *p) {}\n";
+        out << "void void_Ptr_copy(void_Ptr *d, const void_Ptr *s) { *d = *s; }\n";
+        out << "int void_Ptr_equals(const void_Ptr *d, const void_Ptr *s) { return *d == *s; }\n";
         for (auto s: statements) {
             const TypeDeclarationStatement *tds = dynamic_cast<const TypeDeclarationStatement *>(s);
             if (tds != nullptr) {
@@ -2246,7 +2290,7 @@ public:
     virtual void visit(const ast::TypeArray *node) { r = new TypeArray(node); }
     virtual void visit(const ast::TypeDictionary *node) { r = new TypeDictionary(node); }
     virtual void visit(const ast::TypeRecord *node) { r = new TypeRecord(node); }
-    virtual void visit(const ast::TypeClass *node) { r = new TypeRecord(node); }
+    virtual void visit(const ast::TypeClass *node) { r = new TypeClass(node); }
     virtual void visit(const ast::TypePointer *node) { r = new TypePointer(node); }
     virtual void visit(const ast::TypeInterfacePointer *node) { r = new TypeInterfacePointer(node); }
     virtual void visit(const ast::TypeFunctionPointer *node) { r = new TypeFunctionPointer(node); }

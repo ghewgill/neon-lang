@@ -26,9 +26,8 @@ case-jumptbl.neon               # CASE statement
 case.neon                       # CASE statement
 case-overlap.neon               # CASE statement
 cformat-test.neon               # Ne_Object_mtable
-check-valid.neon                # NewClassExpression
+check-valid.neon                # local variable
 check.neon                      # FOR index
-class-empty.neon                # NewClassExpression
 comparison2.neon                # ChainedComparisonExpression
 comparison.neon                 # ConstantBytesExpression
 complex-test.neon               # module
@@ -69,12 +68,12 @@ format.neon                     # module
 function-local.neon             # local variable
 function-pointer.neon           # segfault
 function-pointer-nowhere.neon   # Ne_FunctionPointer
-gc1.neon                        # NewClassExpression
-gc2.neon                        # NewClassExpression
-gc3.neon                        # NewClassExpression
-gc-array.neon                   # NewClassExpression
-gc-long-chain.neon              # NewClassExpression
-gc-two-pointers.neon            # NewClassExpression
+gc1.neon                        # gc
+gc2.neon                        # gc
+gc3.neon                        # gc
+gc-array.neon                   # gc
+gc-long-chain.neon              # gc
+gc-two-pointers.neon            # gc
 import.neon                     # InterfacePointerConstructor
 import-optional.neon            # module
 in.neon                         # DictionaryInExpression
@@ -111,8 +110,8 @@ multiarray-test.neon            # module
 nested-substitution.neon        # dictionary
 net-test.neon                   # module
 net-test-udp.neon               # module
-new-init-module.neon            # NewClassExpression
-new-init.neon                   # NewClassExpression
+new-init-module.neon            # module
+new-init.neon                   # local variable
 next-for.neon                   # FOR statement
 number-ceil.neon                # module
 number-exception.neon           # exception
@@ -136,17 +135,12 @@ parameter-out-array.neon        # ArrayReferenceRangeExpression
 parameter-out-string.neon       # StringReferenceRangeIndexExpression
 parameters-ignore.neon          # DummyExpression
 parameters.neon                 # OUT
-pointer2.neon                   # NewClassExpression
-pointer3.neon                   # NewClassExpression
-pointer4.neon                   # NewClassExpression
-pointer5.neon                   # NewClassExpression
-pointer7.neon                   # NewClassExpression
-pointer8.neon                   # NewClassExpression
-pointer-method.neon             # NewClassExpression
-pointer.neon                    # NewClassExpression
-pointer-nil.neon                # NewClassExpression
-pointer-print.neon              # NewClassExpression
-pointer-valid.neon              # NewClassExpression
+pointer2.neon                   # pointers
+pointer3.neon                   # pointers
+pointer5.neon                   # pointers
+pointer7.neon                   # pointers
+pointer-method.neon             # methods
+pointer-nil.neon                # pointers
 posix-fork.neon                 # module posix
 predeclare1.neon                # ExpressionTransformer
 print-object.neon               # ExpressionTransformer
@@ -193,12 +187,12 @@ unicode-length.neon             # StringReferenceIndexExpression
 uninitialised-case.neon         # CASE statement
 uninitialised-out.neon          # OUT
 uninitialised-try.neon          # exception
-valid-pointer.neon              # NewClassExpression
+valid-pointer.neon              # refcount
 value-copy.neon                 # ConstantBytesExpression
 value-index.neon                # local variable
 varargs.neon                    # local variable
 varargs-functionpointer.neon    # segfault
-while-valid.neon                # NewClassExpression
+while-valid.neon                # pointers
 
 compress-test.neon
 extsample-test.neon

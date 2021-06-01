@@ -116,6 +116,7 @@ void Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj);
 void Ne_object__makeNull(Ne_Object *obj);
 void Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n);
 void Ne_object__makeString(Ne_Object *obj, const Ne_String *s);
+void Ne_pointer__toString(Ne_String *r, const void *p);
 void Ne_print(const Ne_Object *obj);
 void Ne_str(Ne_String *result, const Ne_Number *n);
 void Ne_string__append(Ne_String *dest, const Ne_String *s);
