@@ -20,6 +20,11 @@ const MethodTable Ne_String_mtable = {
     .equals = (int (*)(const void *, const void *))Ne_String_equals,
 };
 
+void Ne_Boolean_init(Ne_Boolean *bool)
+{
+    *bool = 0;
+}
+
 void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src)
 {
     *dest = *src;
@@ -34,9 +39,19 @@ void Ne_Boolean_deinit(Ne_Boolean *bool)
 {
 }
 
+int Ne_Boolean_equals(const Ne_Boolean *a, const Ne_Boolean *b)
+{
+    return *a == *b;
+}
+
 void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
 {
     Ne_String_init_literal(result, *a ? "TRUE" : "FALSE");
+}
+
+void Ne_Number_init(Ne_Number *num)
+{
+    num->dval = 0;
 }
 
 void Ne_Number_init_copy(Ne_Number *dest, const Ne_Number *src)
@@ -74,6 +89,12 @@ int Ne_Number_equals(const Ne_Number *a, const Ne_Number *b)
     return a->dval == b->dval;
 }
 
+void Ne_String_init(Ne_String *str)
+{
+    str->ptr = NULL;
+    str->len = 0;
+}
+
 void Ne_String_init_literal(Ne_String *str, const char *s)
 {
     size_t len = strlen(s);
@@ -85,7 +106,7 @@ void Ne_String_init_literal(Ne_String *str, const char *s)
 void Ne_String_constructor(Ne_String **str)
 {
     *str = malloc(sizeof(Ne_String));
-    Ne_String_init_literal(*str, "");
+    Ne_String_init(*str);
 }
 
 void Ne_String_destructor(Ne_String *str)
@@ -230,7 +251,7 @@ void Ne_Object_init(Ne_Object *obj)
 {
     obj->type = neNothing;
     Ne_Number_init_literal(&obj->num, 0);
-    Ne_String_init_literal(&obj->str, "");
+    Ne_String_init(&obj->str);
 }
 
 void Ne_Object_copy(Ne_Object *dest, const Ne_Object *src)
@@ -306,6 +327,19 @@ void Ne_Array_deinit(Ne_Array *a)
         a->mtable->destructor(a->a[i]);
     }
     free(a->a);
+}
+
+int Ne_Array_equals(const Ne_Array *a, const Ne_Array *b)
+{
+    if (a->size != b->size) {
+        return 0;
+    }
+    for (int i = 0; i < a->size; i++) {
+        if (!a->mtable->equals(a->a[i], b->a[i])) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 void Ne_Array_equal(int *result, const Ne_Array *a, const Ne_Array *b)

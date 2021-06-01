@@ -74,8 +74,14 @@ public:
     Type &operator=(const Type &) = delete;
     virtual ~Type() {}
     std::string name;
+    virtual void generate_decl(Context &) const {}
     virtual void generate_default(Context &context) const = 0;
-    virtual void generate_init(Context &, std::string ) const {} // TODO (context, name) = 0;
+    virtual void generate_init(Context &context, std::string name) const {
+        context.out << this->name << "_init(&" << name << ");\n";
+    }
+    virtual void generate_deinit(Context &context, std::string name) const {
+        context.out << this->name << "_deinit(&" << name << ");\n";
+    }
 };
 
 Type *transform(const ast::Type *t);
@@ -218,9 +224,6 @@ public:
     virtual void generate_default(Context &context) const override {
         context.out << "nullptr";
     }
-    virtual void generate_init(Context &context, std::string name) const override {
-        context.out << this->name << "_init(&" << name << ");\n";
-    }
 };
 
 class TypeFunction: public Type {
@@ -270,7 +273,7 @@ public:
 
 class TypeRecord: public Type {
 public:
-    explicit TypeRecord(const ast::TypeRecord *tr): Type(tr, "TODO"), tr(tr), field_types() {
+    explicit TypeRecord(const ast::TypeRecord *tr): Type(tr, tr->name), tr(tr), field_types() {
         for (auto f: tr->fields) {
             field_types.push_back(transform(f.type));
         }
@@ -280,6 +283,68 @@ public:
     const ast::TypeRecord *tr;
     std::vector<const Type *> field_types;
 
+    virtual void generate_decl(Context &context) const override {
+        if (not field_types.empty()) {
+            context.out << "typedef struct {\n";
+            int i = 0;
+            for (auto f: field_types) {
+                context.out << f->name << " " << tr->fields[i].name.text << ";\n";
+                i++;
+            }
+            context.out << "} " << name << ";\n";
+        } else {
+            // Empty record (C does not allow empty struct).
+            context.out << "typedef void *" << name << ";\n";
+        }
+        context.out << "void " << name << "_constructor(" << name << " **r);\n";
+        context.out << "void " << name << "_destructor(" << name << " *r);\n";
+        context.out << "void " << name << "_copy(" << name << " *dest, const " << name << " *src);\n";
+        context.out << "int " << name << "_equals(const " << name << " *a, const " << name << " *b);\n";
+        context.out << "const MethodTable " << name << "_mtable = {\n";
+        context.out << ".constructor = (void (*)(void **))" << name << "_constructor,\n";
+        context.out << ".destructor = (void (*)(void *))" << name << "_destructor,\n";
+        context.out << ".copy = (void (*)(void *, const void *))" << name << "_copy,\n";
+        context.out << ".equals = (int (*)(const void *, const void *))" << name << "_equals,\n";
+        context.out << "};\n";
+        context.out << "void " << name << "_init(" << name << " *r) {\n";
+        int i = 0;
+        for (auto f: field_types) {
+            f->generate_init(context, "r->" + tr->fields[i].name.text);
+            i++;
+        }
+        context.out << "}\n";
+        context.out << "void " << name << "_deinit(" << name << " *r) {\n";
+        i = 0;
+        for (auto f: field_types) {
+            f->generate_deinit(context, "r->" + tr->fields[i].name.text);
+            i++;
+        }
+        context.out << "}\n";
+        context.out << "void " << name << "_constructor(" << name << " **r) {\n";
+        context.out << "*r = malloc(sizeof(" << name <<"));\n";
+        context.out << name << "_init(*r);\n";
+        context.out << "}\n";
+        context.out << "void " << name << "_destructor(" << name << " *r) {\n";
+        context.out << name << "_deinit(r);\n";
+        context.out << "free(r);\n";
+        context.out << "}\n";
+        context.out << "void " << name << "_copy(" << name << " *dest, const " << name << " *src) {\n";
+        i = 0;
+        for (auto f: field_types) {
+            context.out << f->name << "_copy(&dest->" << tr->fields[i].name.text << ", &src->" << tr->fields[i].name.text << ");\n";
+            i++;
+        }
+        context.out << "}\n";
+        context.out << "int " << name << "_equals(const " << name << " *a, const " << name << " *b) {\n";
+        context.out << "return 1\n";
+        i = 0;
+        for (auto f: field_types) {
+            context.out << "&& " << f->name << "_equals(&a->" << tr->fields[i].name.text << ", &b->" << tr->fields[i].name.text << ")\n";
+            i++;
+        }
+        context.out << ";\n";
+        context.out << "}\n";
+    }
     virtual void generate_default(Context &context) const override {
         context.out << "{";
         bool first = true;
@@ -623,8 +688,18 @@ public:
     const TypeRecord *type;
     std::vector<const Expression *> values;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("RecordLiteralExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string name = context.get_temp_name(type);
+        type->generate_init(context, name);
+        int i = 0;
+        for (auto f: type->field_types) {
+            context.push_scope();
+            std::string value = values[i]->generate(context);
+            context.out << f->name << "_copy(&" << name << "." << type->tr->fields[i].name.text << ",&" << value << ");\n";
+            context.pop_scope();
+            i++;
+        }
+        return name;
     }
 };
 
@@ -1209,7 +1284,7 @@ public:
         std::string indexname = index->generate(context);
         std::string elementptr = context.get_temp_name(type->name + "*", false);
         context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ");\n";
-        return "*" + elementptr;
+        return "(*" + elementptr + ")";
     }
 };
 
@@ -1249,7 +1324,7 @@ public:
         std::string indexname = index->generate(context);
         context.out << "Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ");\n";
         context.pop_scope();
-        return "*" + elementptr;
+        return "(*" + elementptr + ")";
     }
 };
 
@@ -1262,8 +1337,16 @@ public:
     const Expression *dictionary;
     const Expression *index;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("DictionaryValueIndexExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string elementptr = context.get_temp_name(type->name + "*", false);
+        std::string dictionaryname = dictionary->generate(context);
+        std::string indexname = index->generate(context);
+        context.out << "Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ");\n";
+        context.out << type->name << "_copy(&" << result << ",&" << elementptr << ");\n";
+        context.pop_scope();
+        return result;
     }
 };
 
@@ -1526,11 +1609,15 @@ public:
 
 class TypeDeclarationStatement: public Statement {
 public:
-    explicit TypeDeclarationStatement(const ast::TypeDeclarationStatement *tds): Statement(tds), tds(tds) {}
+    explicit TypeDeclarationStatement(const ast::TypeDeclarationStatement *tds): Statement(tds), tds(tds), type(transform(tds->type)) {}
     TypeDeclarationStatement(const TypeDeclarationStatement &) = delete;
     TypeDeclarationStatement &operator=(const TypeDeclarationStatement &) = delete;
     const ast::TypeDeclarationStatement *tds;
+    const Type *type;
 
+    virtual void generate_decl(Context &context) const override {
+        type->generate_decl(context);
+    }
     virtual void generate_statement(Context &) const override {}
 };
 
@@ -2089,8 +2176,15 @@ public:
             path = program->source_path.substr(0, i + 1);
         }
         std::stringstream out;
+        out << "#include <stdlib.h>\n";
         out << "#include \"neon.h\"\n";
         Context context(out);
+        for (auto s: statements) {
+            const TypeDeclarationStatement *tds = dynamic_cast<const TypeDeclarationStatement *>(s);
+            if (tds != nullptr) {
+                s->generate_decl(context);
+            }
+        }
         for (size_t s = 0; s < program->frame->getCount(); s++) {
             auto slot = program->frame->getSlot(s);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
@@ -2100,7 +2194,10 @@ public:
             }
         }
         for (auto s: statements) {
-            s->generate_decl(context);
+            const TypeDeclarationStatement *tds = dynamic_cast<const TypeDeclarationStatement *>(s);
+            if (tds == nullptr) {
+                s->generate_decl(context);
+            }
         }
         for (auto s: statements) {
             s->generate_def(context);

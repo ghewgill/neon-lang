@@ -10,7 +10,7 @@ array-subscript.neon            # Ne_Array_mtable
 array-tostring.neon             # Ne_array__toString_string
 assert-enum.neon                # enum.toString
 assert-multiline.neon           # exception
-assignment.neon                 # RecordLiteralExpression
+assignment.neon                 # pointer
 base-test.neon                  # module
 bigint.neon                     # bigint
 binary-test.neon                # ConstantBytesExpression
@@ -52,7 +52,7 @@ exception-opstack-depth.neon    # exception
 exception-subexception.neon     # exception
 exception-tostring.neon         # exception
 exception-trace.neon            # exception
-export.neon                     # RecordLiteralExpression
+export.neon                     # segfault
 file-exists.neon                # Ne_file_exists
 file-filecopied1.neon           # Ne_file_delete
 file-filecopied2.neon           # Ne_file_delete
@@ -77,9 +77,6 @@ gc-long-chain.neon              # NewClassExpression
 gc-two-pointers.neon            # NewClassExpression
 import.neon                     # InterfacePointerConstructor
 import-optional.neon            # module
-index.neon                      # RecordLiteralExpression
-inline-construct-record.neon    # RecordLiteralExpression
-inline-init-record.neon         # RecordLiteralExpression
 in.neon                         # DictionaryInExpression
 intdiv.neon                     # Ne_math_intdiv
 interface.neon                  # InterfaceMethodExpression
@@ -96,8 +93,8 @@ literal-method.neon             # Ne_Bytes
 local-clear.neon                # local variable
 loop-label.neon                 # EXIT statement
 math-test.neon                  # module
-methods-declare.neon            # RecordLiteralExpression
-methods.neon                    # RecordLiteralExpression
+methods-declare.neon            # methods
+methods.neon                    # methods
 mkdir.neon                      # exception
 mmap-test.neon                  # module
 module2.neon                    # module
@@ -154,10 +151,7 @@ posix-fork.neon                 # module posix
 predeclare1.neon                # ExpressionTransformer
 print-object.neon               # ExpressionTransformer
 random-test.neon                # Ne_Bytes
-record-empty.neon               # RecordLiteralExpression
-record-init2.neon               # RecordLiteralExpression
-record-init.neon                # RecordLiteralExpression
-record-private.neon             # RecordLiteralExpression
+record-private.neon             # methods
 recursion-limit.neon            # module runtime
 repl_import.neon                # module random
 return-case2.neon               # CASE statement
@@ -184,18 +178,16 @@ string-slice.neon               # StringReferenceIndexExpression
 strings.neon                    # StringReferenceIndexExpression
 string-test.neon                # module string
 struct-test.neon                # ExpressionTransformer
-structure.neon                  # RecordLiteralExpression
 sys-exit.neon                   # exception
 textio-random.neon              # module random
 textio-seek.neon                # DummyExpression
 textio-test.neon                # module textio
-time-stopwatch.neon             # RecordLiteralExpression
+time-stopwatch.neon             # module time
 time-test.neon                  # module time
 tostring.neon                   # ConstantBytesExpression
 tostring-quotes.neon            # ExpressionTransformer
 try-expression.neon             # TryExpression
 type-compat.neon                # Ne_Array_init_copy
-type-nested.neon                # RecordLiteralExpression
 unicode-char.neon               # StringReferenceIndexExpression
 unicode-length.neon             # StringReferenceIndexExpression
 uninitialised-case.neon         # CASE statement
@@ -203,7 +195,7 @@ uninitialised-out.neon          # OUT
 uninitialised-try.neon          # exception
 valid-pointer.neon              # NewClassExpression
 value-copy.neon                 # ConstantBytesExpression
-value-index.neon                # RecordLiteralExpression
+value-index.neon                # local variable
 varargs.neon                    # local variable
 varargs-functionpointer.neon    # segfault
 while-valid.neon                # NewClassExpression
