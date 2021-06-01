@@ -27,7 +27,6 @@ cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # local variable
 check.neon                      # FOR index
 comparison2.neon                # ChainedComparisonExpression
-comparison.neon                 # comparison
 complex-test.neon               # module
 const-string.neon               # CASE statement
 datetime-test.neon              # module
@@ -37,7 +36,7 @@ dictionary.neon                 # DictionaryInExpression
 divide-by-zero.neon             # exception
 encoding-base64.neon            # module
 enum.neon                       # enum.toString
-equality.neon                   # comparison
+equality.neon                   # function pointer
 exception-as.neon               # exception
 exception-code.neon             # exception
 exception-function.neon         # exception
@@ -185,7 +184,6 @@ uninitialised-case.neon         # CASE statement
 uninitialised-out.neon          # OUT
 uninitialised-try.neon          # exception
 valid-pointer.neon              # refcount
-value-copy.neon                 # comparison
 value-index.neon                # local variable
 varargs.neon                    # local variable
 varargs-functionpointer.neon    # segfault

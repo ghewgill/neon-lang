@@ -299,12 +299,12 @@ public:
         context.out << "void " << name << "_constructor(" << name << " **r);\n";
         context.out << "void " << name << "_destructor(" << name << " *r);\n";
         context.out << "void " << name << "_copy(" << name << " *dest, const " << name << " *src);\n";
-        context.out << "int " << name << "_equals(const " << name << " *a, const " << name << " *b);\n";
+        context.out << "int " << name << "_compare(const " << name << " *a, const " << name << " *b);\n";
         context.out << "const MethodTable " << name << "_mtable = {\n";
         context.out << ".constructor = (void (*)(void **))" << name << "_constructor,\n";
         context.out << ".destructor = (void (*)(void *))" << name << "_destructor,\n";
         context.out << ".copy = (void (*)(void *, const void *))" << name << "_copy,\n";
-        context.out << ".equals = (int (*)(const void *, const void *))" << name << "_equals,\n";
+        context.out << ".compare = (int (*)(const void *, const void *))" << name << "_compare,\n";
         context.out << "};\n";
         context.out << "void " << name << "_init(" << name << " *r) {\n";
         int i = 0;
@@ -335,14 +335,16 @@ public:
             i++;
         }
         context.out << "}\n";
-        context.out << "int " << name << "_equals(const " << name << " *a, const " << name << " *b) {\n";
-        context.out << "return 1\n";
-        i = 0;
-        for (auto f: field_types) {
-            context.out << "&& " << f->name << "_equals(&a->" << tr->fields[i].name.text << ", &b->" << tr->fields[i].name.text << ")\n";
-            i++;
+        context.out << "int " << name << "_compare(const " << name << " *a, const " << name << " *b) {\n";
+        if (not field_types.empty()) {
+            context.out << "int r;";
+            i = 0;
+            for (auto f: field_types) {
+                context.out << "r = " << f->name << "_compare(&a->" << tr->fields[i].name.text << ", &b->" << tr->fields[i].name.text << "); if (r != 0) return r;\n";
+                i++;
+            }
         }
-        context.out << ";\n";
+        context.out << "return 0;\n";
         context.out << "}\n";
     }
     virtual void generate_default(Context &context) const override {
@@ -951,22 +953,22 @@ public:
         std::string rightname = right->generate(context);
         switch (ce->comp) {
             case ast::ComparisonExpression::Comparison::EQ:
-                context.out << left->type->name << "_equal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << result << " = " << left->type->name << "_compare(&" << leftname << ",&" << rightname << ") == 0;\n";
                 break;
             case ast::ComparisonExpression::Comparison::NE:
-                context.out << left->type->name << "_notequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << result << " = " << left->type->name << "_compare(&" << leftname << ",&" << rightname << ") != 0;\n";
                 break;
             case ast::ComparisonExpression::Comparison::LT:
-                context.out << left->type->name << "_less(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << result << " = " << left->type->name << "_compare(&" << leftname << ",&" << rightname << ") < 0;\n";
                 break;
             case ast::ComparisonExpression::Comparison::GT:
-                context.out << left->type->name << "_greater(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << result << " = " << left->type->name << "_compare(&" << leftname << ",&" << rightname << ") > 0;\n";
                 break;
             case ast::ComparisonExpression::Comparison::LE:
-                context.out << left->type->name << "_lessequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << result << " = " << left->type->name << "_compare(&" << leftname << ",&" << rightname << ") <= 0;\n";
                 break;
             case ast::ComparisonExpression::Comparison::GE:
-                context.out << left->type->name << "_greaterequal(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+                context.out << result << " = " << left->type->name << "_compare(&" << leftname << ",&" << rightname << ") >= 0;\n";
                 break;
             default:
                 internal_error("unhandled comparison");
@@ -2224,7 +2226,7 @@ public:
         out << "void void_Ptr_init(void_Ptr *p) {}\n";
         out << "void void_Ptr_deinit(void_Ptr *p) {}\n";
         out << "void void_Ptr_copy(void_Ptr *d, const void_Ptr *s) { *d = *s; }\n";
-        out << "int void_Ptr_equals(const void_Ptr *d, const void_Ptr *s) { return *d == *s; }\n";
+        out << "int void_Ptr_compare(const void_Ptr *d, const void_Ptr *s) { return *d == *s ? 0 : *d > *s ? 1 : -1; }\n";
         for (auto s: statements) {
             const TypeDeclarationStatement *tds = dynamic_cast<const TypeDeclarationStatement *>(s);
             if (tds != nullptr) {

@@ -10,14 +10,14 @@ const MethodTable Ne_Number_mtable = {
     .constructor = (void (*)(void **))Ne_Number_constructor,
     .destructor = (void (*)(void *))Ne_Number_destructor,
     .copy = (void (*)(void *, const void *))Ne_Number_copy,
-    .equals = (int (*)(const void *, const void *))Ne_Number_equals,
+    .compare = (int (*)(const void *, const void *))Ne_Number_compare,
 };
 
 const MethodTable Ne_String_mtable = {
     .constructor = (void (*)(void **))Ne_String_constructor,
     .destructor = (void (*)(void *))Ne_String_destructor,
     .copy = (void (*)(void *, const void *))Ne_String_copy,
-    .equals = (int (*)(const void *, const void *))Ne_String_equals,
+    .compare = (int (*)(const void *, const void *))Ne_String_compare,
 };
 
 void Ne_Boolean_init(Ne_Boolean *bool)
@@ -39,9 +39,9 @@ void Ne_Boolean_deinit(Ne_Boolean *bool)
 {
 }
 
-int Ne_Boolean_equals(const Ne_Boolean *a, const Ne_Boolean *b)
+int Ne_Boolean_compare(const Ne_Boolean *a, const Ne_Boolean *b)
 {
-    return *a == *b;
+    return *a == *b ? 0 : *a;
 }
 
 void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
@@ -84,9 +84,9 @@ void Ne_Number_deinit(Ne_Number *num)
 {
 }
 
-int Ne_Number_equals(const Ne_Number *a, const Ne_Number *b)
+int Ne_Number_compare(const Ne_Number *a, const Ne_Number *b)
 {
-    return a->dval == b->dval;
+    return a->dval == b->dval ? 0 : a->dval > b->dval ? 1 : -1;
 }
 
 void Ne_String_init(Ne_String *str)
@@ -133,29 +133,23 @@ void Ne_String_deinit(Ne_String *str)
     free(str->ptr);
 }
 
-int Ne_String_equals(const Ne_String *a, const Ne_String *b)
-{
-    return a->len == b->len && memcmp(a->ptr, b->ptr, a->len) == 0;
-}
-
-void Ne_String_less(int *result, const Ne_String *a, const Ne_String *b)
+int Ne_String_compare(const Ne_String *a, const Ne_String *b)
 {
     int i = 0;
-    for (;;) {
-        if (i >= a->len) {
-            *result = 1;
-            return;
-        }
-        if (i >= b->len) {
-            *result = 0;
-            return;
-        }
+    while (i < a->len && i < b->len) {
         if (a->ptr[i] < b->ptr[i]) {
-            *result = 1;
-            return;
+            return -1;
+        } else if (a->ptr[i] > b->ptr[i]) {
+            return 1;
         }
         i++;
     }
+    if (i < a->len && i >= b->len) {
+        return 1;
+    } else if (i >= a->len && i < b->len) {
+        return -1;
+    }
+    return 0;
 }
 
 void Ne_Number_add(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
@@ -198,36 +192,6 @@ void Ne_Number_increment(Ne_Number *a, int delta)
     a->dval += delta;
 }
 
-void Ne_Number_equal(int *result, const Ne_Number *a, const Ne_Number *b)
-{
-    *result = a->dval == b->dval;
-}
-
-void Ne_Number_notequal(int *result, const Ne_Number *a, const Ne_Number *b)
-{
-    *result = a->dval != b->dval;
-}
-
-void Ne_Number_less(int *result, const Ne_Number *a, const Ne_Number *b)
-{
-    *result = a->dval < b->dval;
-}
-
-void Ne_Number_greater(int *result, const Ne_Number *a, const Ne_Number *b)
-{
-    *result = a->dval > b->dval;
-}
-
-void Ne_Number_lessequal(int *result, const Ne_Number *a, const Ne_Number *b)
-{
-    *result = a->dval <= b->dval;
-}
-
-void Ne_Number_greaterequal(int *result, const Ne_Number *a, const Ne_Number *b)
-{
-    *result = a->dval >= b->dval;
-}
-
 Ne_String *string_copy(const Ne_String *src)
 {
     Ne_String *r = malloc(sizeof(Ne_String));
@@ -263,9 +227,23 @@ void Ne_Bytes_copy(Ne_Bytes *dest, const Ne_Bytes *src)
     dest->len = src->len;
 }
 
-void Ne_Bytes_equal(int *result, const Ne_Bytes *a, const Ne_Bytes *b)
+int Ne_Bytes_compare(const Ne_Bytes *a, const Ne_Bytes *b)
 {
-    *result = (a->len == b->len) && memcmp(a->data, b->data, a->len) == 0;
+    int i = 0;
+    while (i < a->len && i <= b->len) {
+        if (a->data[i] < b->data[i]) {
+            return -1;
+        } else if (a->data[i] > b->data[i]) {
+            return 1;
+        }
+        i++;
+    }
+    if (i < a->len && i >= b->len) {
+        return 1;
+    } else if (i >= a->len && i < b->len) {
+        return -1;
+    }
+    return 0;
 }
 
 void Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b)
@@ -404,39 +382,29 @@ void Ne_Array_deinit(Ne_Array *a)
     free(a->a);
 }
 
-int Ne_Array_equals(const Ne_Array *a, const Ne_Array *b)
+int Ne_Array_compare(const Ne_Array *a, const Ne_Array *b)
 {
-    if (a->size != b->size) {
-        return 0;
-    }
-    for (int i = 0; i < a->size; i++) {
-        if (!a->mtable->equals(a->a[i], b->a[i])) {
-            return 0;
+    int i = 0;
+    while (i < a->size && i <= b->size) {
+        int r = a->mtable->compare(a->a[i], b->a[i]);
+        if (r != 0) {
+            return r;
         }
+        i++;
     }
-    return 1;
-}
-
-void Ne_Array_equal(int *result, const Ne_Array *a, const Ne_Array *b)
-{
-    if (a->size != b->size) {
-        *result = 0;
-        return;
+    if (i < a->size && i >= b->size) {
+        return 1;
+    } else if (i >= a->size && i < b->size) {
+        return -1;
     }
-    for (int i = 0; i < a->size; i++) {
-        if (!a->mtable->equals(a->a[i], b->a[i])) {
-            *result = 0;
-            return;
-        }
-    }
-    *result = 1;
+    return 0;
 }
 
 void Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element)
 {
     *result = 0;
     for (int i = 0; i < a->size; i++) {
-        if (a->mtable->equals(a->a[i], element)) {
+        if (a->mtable->compare(a->a[i], element) == 0) {
             *result = 1;
             return;
         }
@@ -497,7 +465,7 @@ void Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
 void Ne_array__find(Ne_Number *result, const Ne_Array *a, void *e)
 {
     for (int i = 0; i < a->size; i++) {
-        if (a->mtable->equals(a->a[i], e)) {
+        if (a->mtable->compare(a->a[i], e) == 0) {
             Ne_Number_init_literal(result, i);
             return;
         }
@@ -604,13 +572,12 @@ void Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index
 {
     int i = 0;
     while (i < d->size) {
-        if (Ne_String_equals(&d->d[i].key, index)) {
+        if (Ne_String_compare(&d->d[i].key, index) == 0) {
             *result = d->d[i].value;
             return;
         }
-        int less;
-        Ne_String_less(&less, index, &d->d[i].key);
-        if (less) {
+        int r = Ne_String_compare(index, &d->d[i].key);
+        if (r < 0) {
             break;
         }
         i++;
