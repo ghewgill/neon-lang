@@ -13,14 +13,12 @@ assert-multiline.neon           # exception
 assignment.neon                 # pointer
 base-test.neon                  # module
 bigint.neon                     # bigint
-binary-test.neon                # ConstantBytesExpression
-bytes-embed.neon                # ConstantBytesExpression
-bytes-index.neon                # ConstantBytesExpression
-bytes-literal.neon              # ConstantBytesExpression
-bytes.neon                      # ConstantBytesExpression
-bytes-slice.neon                # ConstantBytesExpression
-bytes-tostring.neon             # ConstantBytesExpression
-bytes-value-index.neon          # ConstantBytesExpression
+binary-test.neon                # module binary
+bytes-embed.neon                # StringValueRangeIndexExpression
+bytes-index.neon                # BytesReferenceIndexExpression
+bytes.neon                      # exception
+bytes-slice.neon                # BytesReferenceRangeIndexExpression
+bytes-value-index.neon          # BytesValueRangeIndexExpression
 case3.neon                      # CASE statement
 case-jumptbl.neon               # CASE statement
 case.neon                       # CASE statement
@@ -29,18 +27,17 @@ cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # local variable
 check.neon                      # FOR index
 comparison2.neon                # ChainedComparisonExpression
-comparison.neon                 # ConstantBytesExpression
+comparison.neon                 # comparison
 complex-test.neon               # module
-concat-bytes.neon               # ConstantBytesExpression
 const-string.neon               # CASE statement
 datetime-test.neon              # module
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 dictionary.neon                 # DictionaryInExpression
 divide-by-zero.neon             # exception
-encoding-base64.neon            # ConstantBytesExpression
+encoding-base64.neon            # module
 enum.neon                       # enum.toString
-equality.neon                   # ConstantBytesExpression
+equality.neon                   # comparison
 exception-as.neon               # exception
 exception-code.neon             # exception
 exception-function.neon         # exception
@@ -178,7 +175,7 @@ textio-seek.neon                # DummyExpression
 textio-test.neon                # module textio
 time-stopwatch.neon             # module time
 time-test.neon                  # module time
-tostring.neon                   # ConstantBytesExpression
+tostring.neon                   # enum
 tostring-quotes.neon            # ExpressionTransformer
 try-expression.neon             # TryExpression
 type-compat.neon                # Ne_Array_init_copy
@@ -188,7 +185,7 @@ uninitialised-case.neon         # CASE statement
 uninitialised-out.neon          # OUT
 uninitialised-try.neon          # exception
 valid-pointer.neon              # refcount
-value-copy.neon                 # ConstantBytesExpression
+value-copy.neon                 # comparison
 value-index.neon                # local variable
 varargs.neon                    # local variable
 varargs-functionpointer.neon    # segfault

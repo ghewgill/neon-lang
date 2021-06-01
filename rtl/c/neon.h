@@ -19,6 +19,11 @@ typedef struct {
     int len;
 } Ne_String;
 
+typedef struct {
+    unsigned char *data;
+    int len;
+} Ne_Bytes;
+
 enum Ne_ObjectType {
     neNothing,
     neNumber,
@@ -83,6 +88,15 @@ void Ne_String_copy(Ne_String *dest, const Ne_String *src);
 void Ne_String_deinit(Ne_String *str);
 int Ne_String_equals(const Ne_String *a, const Ne_String *b);
 void Ne_String_less(int *result, const Ne_String *a, const Ne_String *b);
+void Ne_Bytes_init(Ne_Bytes *bytes);
+void Ne_Bytes_init_literal(Ne_Bytes *bytes, const unsigned char *data, int len);
+void Ne_Bytes_deinit(Ne_Bytes *bytes);
+void Ne_Bytes_copy(Ne_Bytes *dest, const Ne_Bytes *src);
+void Ne_Bytes_equal(int *result, const Ne_Bytes *a, const Ne_Bytes *b);
+void Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b);
+void Ne_bytes__size(Ne_Number *r, const Ne_Bytes *bytes);
+void Ne_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes);
+void Ne_bytes__toString(Ne_String *result, const Ne_Bytes *bytes);
 void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable);
 void Ne_Array_init_copy(Ne_Array *dest, const Ne_Array *src);
 void Ne_Array_copy(Ne_Array *dest, const Ne_Array *src);
@@ -100,6 +114,7 @@ void Ne_array__remove(Ne_Array *a, const Ne_Number *index);
 void Ne_array__resize(Ne_Array *a, const Ne_Number *size);
 void Ne_array__reversed(Ne_Array *dest, const Ne_Array *src);
 void Ne_array__size(Ne_Number *result, const Ne_Array *a);
+void Ne_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a);
 void Ne_array__toString__number(Ne_String *r, const Ne_Array *a);
 void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable);
 void Ne_Dictionary_init_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);

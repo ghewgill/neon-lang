@@ -237,6 +237,81 @@ Ne_String *string_copy(const Ne_String *src)
     return r;
 }
 
+void Ne_Bytes_init(Ne_Bytes *bytes)
+{
+    bytes->data = NULL;
+    bytes->len = 0;
+}
+
+void Ne_Bytes_init_literal(Ne_Bytes *bytes, const unsigned char *data, int len)
+{
+    bytes->data = malloc(len);
+    memcpy(bytes->data, data, len);
+    bytes->len = len;
+}
+
+void Ne_Bytes_deinit(Ne_Bytes *bytes)
+{
+    free(bytes->data);
+}
+
+void Ne_Bytes_copy(Ne_Bytes *dest, const Ne_Bytes *src)
+{
+    free(dest->data);
+    dest->data = malloc(src->len);
+    memcpy(dest->data, src->data, src->len);
+    dest->len = src->len;
+}
+
+void Ne_Bytes_equal(int *result, const Ne_Bytes *a, const Ne_Bytes *b)
+{
+    *result = (a->len == b->len) && memcmp(a->data, b->data, a->len) == 0;
+}
+
+void Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b)
+{
+    r->data = malloc(a->len + b->len);
+    memcpy(r->data, a->data, a->len);
+    memcpy(r->data + a->len, b->data, b->len);
+    r->len = a->len + b->len;
+}
+
+void Ne_bytes__size(Ne_Number *r, const Ne_Bytes *bytes)
+{
+    r->dval = bytes->len;
+}
+
+void Ne_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes)
+{
+    Ne_Array_init(result, bytes->len, &Ne_Number_mtable);
+    for (int i = 0; i < bytes->len; i++) {
+        Ne_Number *p;
+        Ne_Array_index_int((void **)&p, result, i);
+        // TODO: Copy the number right into the array instead of using a temporary.
+        Ne_Number n;
+        Ne_Number_init_literal(&n, bytes->data[i]);
+        Ne_Number_copy(p, &n);
+        Ne_Number_deinit(&n);
+    }
+}
+
+void Ne_bytes__toString(Ne_String *result, const Ne_Bytes *bytes)
+{
+    char *buf = malloc(8 + 1 + 1 + 3*bytes->len + 1 + 1);
+    strcpy(buf, "HEXBYTES \"");
+    char *p = buf + strlen(buf);
+    for (int i = 0; i < bytes->len; i++) {
+        if (i > 0) {
+            *p++ = ' ';
+        }
+        p += sprintf(p, "%02x", bytes->data[i]);
+    }
+    *p++ = '"';
+    *p = 0;
+    Ne_String_init_literal(result, buf);
+    free(buf);
+}
+
 void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable)
 {
     a->size = size;
@@ -470,6 +545,15 @@ void Ne_array__reversed(Ne_Array *dest, const Ne_Array *src)
 void Ne_array__size(Ne_Number *result, const Ne_Array *a)
 {
     Ne_Number_init_literal(result, a->size);
+}
+
+void Ne_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a)
+{
+    r->data = malloc(a->size);
+    for (int i = 0; i < a->size; i++) {
+        r->data[i] = (int)((Ne_Number *)a->a[i])->dval;
+    }
+    r->len = a->size;
 }
 
 void Ne_array__toString__number(Ne_String *r, const Ne_Array *a)

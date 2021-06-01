@@ -563,8 +563,10 @@ public:
     ConstantBytesExpression &operator=(const ConstantBytesExpression &) = delete;
     const ast::ConstantBytesExpression *cbe;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ConstantBytesExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.out << "Ne_Bytes_init_literal(&" << result << ",(const unsigned char *)" << quoted(cbe->contents) << "," << cbe->contents.length() << ");\n";
+        return result;
     }
 };
 
