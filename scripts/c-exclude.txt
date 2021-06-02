@@ -40,7 +40,7 @@ equality.neon                   # function pointer
 exception-as.neon               # exception
 exception-code.neon             # exception
 exception-function.neon         # exception
-exception.neon                  # exception
+#exception.neon                  # exception
 exception-nested.neon           # exception
 exception-opstack.neon          # exception
 exception-opstack-depth.neon    # exception

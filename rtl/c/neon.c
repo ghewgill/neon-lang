@@ -20,6 +20,8 @@ const MethodTable Ne_String_mtable = {
     .compare = (int (*)(const void *, const void *))Ne_String_compare,
 };
 
+static Ne_Exception Ne_Exception_current;
+
 void Ne_Boolean_init(Ne_Boolean *bool)
 {
     *bool = 0;
@@ -657,6 +659,24 @@ void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b)
 void Ne_string__length(Ne_Number *result, const Ne_String *str)
 {
     result->dval = str->len;
+}
+
+Ne_Exception *Ne_Exception_raise(const char *name)
+{
+    Ne_Exception_current.name = name;
+    Ne_Object_init(&Ne_Exception_current.info);
+    return &Ne_Exception_current;
+}
+
+int Ne_Exception_trap(const char *name)
+{
+    return strcmp(Ne_Exception_current.name, name) == 0;
+}
+
+void Ne_Exception_unhandled()
+{
+    fprintf(stderr, "Unhandled exception: %s\n", Ne_Exception_current.name);
+    exit(1);
 }
 
 Ne_Array sys$args;

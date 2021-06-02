@@ -51,6 +51,11 @@ typedef struct {
     const MethodTable *mtable;
 } Ne_Dictionary;
 
+typedef struct {
+    const char *name;
+    Ne_Object info;
+} Ne_Exception;
+
 void Ne_Boolean_init(Ne_Boolean *bool);
 void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src);
 void Ne_Boolean_copy(Ne_Boolean *dest, const Ne_Boolean *src);
@@ -129,6 +134,9 @@ void Ne_str(Ne_String *result, const Ne_Number *n);
 void Ne_string__append(Ne_String *dest, const Ne_String *s);
 void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b);
 void Ne_string__length(Ne_Number *result, const Ne_String *str);
+Ne_Exception *Ne_Exception_raise(const char *name);
+int Ne_Exception_trap(const char *name);
+void Ne_Exception_unhandled();
 
 extern Ne_Array sys$args;
 void Ne_sys__init(int argc, const char *argv[]);

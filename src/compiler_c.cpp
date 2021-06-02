@@ -53,8 +53,10 @@ public:
 private:
     int tmp_counter;
     std::stack<std::list<std::pair<std::string, std::string>>> temp_names;
+    int next_handler;
+    std::stack<std::string> handlers;
 public:
-    explicit Context(std::ostream &out): out(out), tmp_counter(0), temp_names() {
+    explicit Context(std::ostream &out): out(out), tmp_counter(0), temp_names(), next_handler(0), handlers() {
         temp_names.push({});
     }
     Context(const Context &) = delete;
@@ -63,6 +65,9 @@ public:
     std::string get_temp_name(const Type *type);
     void push_scope();
     void pop_scope();
+    std::string push_handler();
+    void pop_handler();
+    std::string handler_label();
 };
 
 class Type {
@@ -1956,24 +1961,35 @@ public:
     std::vector<const TryStatementTrap *> catches;
 
     virtual void generate_statement(Context &context) const override {
-        context.out << "try {";
+        std::string handler = context.push_handler();
         for (auto s: statements) {
             s->generate(context);
         }
-        context.out << "}";
+        context.out << "goto skip_" << handler << ";\n";
+        context.out << "goto " << handler << ";\n"; // Only to appease compiler to avoid unused label warning.
+        context.out << handler << ":\n";
+        context.pop_handler();
         for (auto c: catches) {
+            context.out << "if (";
+            bool first = true;
+            for (auto e: c->tt->exceptions) {
+                if (not first) {
+                    context.out << " || ";
+                } else {
+                    first = false;
+                }
+                context.out << "Ne_Exception_trap(" << quoted(e->name) << ")";
+            }
+            context.out << ") {\n";
             if (c->name != nullptr) {
-                context.out << " catch (";
-                c->name->generate(context);
-                context.out << ") {";
-            } else {
-                context.out << " catch (__x) {";
+                // TODO: capture exception in variable
             }
             for (auto s: c->handler) {
                 s->generate(context);
             }
-            context.out << "}";
+            context.out << "}\n";
         }
+        context.out << "skip_" << handler << ":\n";
     }
 };
 
@@ -2058,9 +2074,8 @@ public:
     const Expression *info;
 
     virtual void generate_statement(Context &context) const override {
-        context.out << "throw neon::NeonException(" << quoted(rs->exception->name) << ", ";
-        info->generate(context);
-        context.out << ");\n";
+        context.out << "Ne_Exception_raise(" << quoted(rs->exception->name) << ");\n";
+        context.out << "goto " << context.handler_label() << ";\n";
     }
 };
 
@@ -2252,6 +2267,7 @@ public:
         }
         context.out << "int main(int argc, const char *argv[]) {\n";
         context.out << "Ne_sys__init(argc, argv);\n";
+        std::string handler_label = context.push_handler();
         for (size_t s = 0; s < program->frame->getCount(); s++) {
             auto slot = program->frame->getSlot(s);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
@@ -2262,6 +2278,12 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
+        context.pop_handler();
+        context.out << "goto skip_" << handler_label << ";\n";
+        context.out << "goto " << handler_label << ";\n"; // Only to appease compiler to avoid unused label warning.
+        context.out << handler_label << ":\n";
+        context.out << "Ne_Exception_unhandled();\n";
+        context.out << "skip_" << handler_label << ":\n";
         for (size_t s = 0; s < program->frame->getCount(); s++) {
             auto slot = program->frame->getSlot(s);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
@@ -2882,6 +2904,24 @@ void Context::pop_scope()
     }
     temp_names.pop();
     out << "}\n";
+}
+
+std::string Context::push_handler()
+{
+    ++next_handler;
+    std::string label = "handler" + std::to_string(next_handler);
+    handlers.push(label);
+    return label;
+}
+
+void Context::pop_handler()
+{
+    handlers.pop();
+}
+
+std::string Context::handler_label()
+{
+    return handlers.top();
 }
 
 } // namespace c
