@@ -658,7 +658,7 @@ public:
             context.push_scope();
             std::string ename = e->generate(context);
             std::string pname = context.get_temp_name("void *", false);
-            context.out << "Ne_Array_index_int(&" << pname << ",&" << result << "," << i << ");\n";
+            context.out << "Ne_Array_index_int(&" << pname << ",&" << result << "," << i << ",0);\n";
             context.out << elementtype->name << "_copy(" << pname << ",&" << ename << ");\n";
             context.pop_scope();
             i++;
@@ -1327,7 +1327,7 @@ public:
         std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
         std::string elementptr = context.get_temp_name(type->name + "*", false);
-        context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ");\n";
+        context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << "," << arie->always_create << ")) goto " << context.handler_label() << ";\n";
         return "(*" + elementptr + ")";
     }
 };
@@ -1345,7 +1345,7 @@ public:
         std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
         std::string elementptr = context.get_temp_name(type->name + "*", false);
-        context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ");\n";
+        context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ",0);\n";
         std::string element = context.get_temp_name(type);
         context.out << type->name << "_init_copy(&" << element << "," << elementptr << ");\n";
         return element;

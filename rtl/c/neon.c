@@ -266,7 +266,7 @@ void Ne_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes)
     Ne_Array_init(result, bytes->len, &Ne_Number_mtable);
     for (int i = 0; i < bytes->len; i++) {
         Ne_Number *p;
-        Ne_Array_index_int((void **)&p, result, i);
+        Ne_Array_index_int((void **)&p, result, i, 0);
         // TODO: Copy the number right into the array instead of using a temporary.
         Ne_Number n;
         Ne_Number_init_literal(&n, bytes->data[i]);
@@ -413,21 +413,26 @@ void Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element)
     }
 }
 
-void Ne_Array_index_int(void **result, Ne_Array *a, int index)
+Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, int always_create)
 {
     if (index >= a->size) {
-        a->a = realloc(a->a, (index+1) * sizeof(void *));
-        for (int j = a->size; j < index+1; j++) {
-            a->mtable->constructor(&a->a[j]);
+        if (always_create) {
+            a->a = realloc(a->a, (index+1) * sizeof(void *));
+            for (int j = a->size; j < index+1; j++) {
+                a->mtable->constructor(&a->a[j]);
+            }
+            a->size = index+1;
+        } else {
+            return Ne_Exception_raise("ArrayIndexException");
         }
-        a->size = index+1;
     }
     *result = a->a[index];
+    return NULL;
 }
 
-void Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index)
+Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, int always_create)
 {
-    Ne_Array_index_int(result, a, (int)index->dval);
+    return Ne_Array_index_int(result, a, (int)index->dval, always_create);
 }
 
 void Ne_array__append(Ne_Array *a, const void *element)
@@ -597,7 +602,7 @@ void Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
     Ne_Array_init(result, d->size, &Ne_String_mtable);
     for (int i = 0; i < d->size; i++) {
         Ne_String *s;
-        Ne_Array_index_int((void **)&s, result, i);
+        Ne_Array_index_int((void **)&s, result, i, 0);
         Ne_String_copy(s, &d->d[i].key);
     }
 }
@@ -688,7 +693,7 @@ void Ne_sys__init(int argc, const char *argv[])
         Ne_String s;
         Ne_String_init_literal(&s, argv[i]);
         Ne_String *x;
-        Ne_Array_index_int((void **)&x, &sys$args, i);
+        Ne_Array_index_int((void **)&x, &sys$args, i, 0);
         Ne_String_copy(x, &s);
         Ne_String_deinit(&s);
     }
