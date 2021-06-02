@@ -1,22 +1,20 @@
 array2d.neon                    # Ne_Array_mtable
-array-find.neon                 # exception
-array-fraction.neon             # exception
+array-fraction.neon             # exception info
 array-index.neon                # ArrayReferenceRangeExpression
-array-negative.neon             # exception
-array.neon                      # exception
-array-resize.neon               # exception
+array-negative.neon             # exception info
+array.neon                      # array indexing
+array-resize.neon               # array indexing
 array-slice.neon                # ArrayReferenceRangeExpression
 array-subscript.neon            # Ne_Array_mtable
 array-tostring.neon             # Ne_array__toString_string
 assert-enum.neon                # enum.toString
-assert-multiline.neon           # exception
+assert-multiline.neon           # exception info
 assignment.neon                 # pointer
 base-test.neon                  # module
 bigint.neon                     # bigint
 binary-test.neon                # module binary
 bytes-embed.neon                # StringValueRangeIndexExpression
 bytes-index.neon                # BytesReferenceIndexExpression
-bytes.neon                      # exception
 bytes-slice.neon                # BytesReferenceRangeIndexExpression
 bytes-value-index.neon          # BytesValueRangeIndexExpression
 case3.neon                      # CASE statement
@@ -33,20 +31,13 @@ datetime-test.neon              # module
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 dictionary.neon                 # DictionaryInExpression
-divide-by-zero.neon             # exception
 encoding-base64.neon            # module
 enum.neon                       # enum.toString
 equality.neon                   # function pointer
-exception-as.neon               # exception
-exception-code.neon             # exception
-exception-function.neon         # exception
-#exception.neon                  # exception
-exception-nested.neon           # exception
-exception-opstack.neon          # exception
-exception-opstack-depth.neon    # exception
-exception-subexception.neon     # exception
-exception-tostring.neon         # exception
-exception-trace.neon            # exception
+exception-as.neon               # ExceptionType
+exception-code.neon             # ExceptionTransformer
+exception-opstack.neon          # local variable
+exception-tostring.neon         # ExceptionType
 export.neon                     # segfault
 file-exists.neon                # Ne_file_exists
 file-filecopied1.neon           # Ne_file_delete
@@ -90,7 +81,7 @@ loop-label.neon                 # EXIT statement
 math-test.neon                  # module
 methods-declare.neon            # methods
 methods.neon                    # methods
-mkdir.neon                      # exception
+mkdir.neon                      # ExceptionType
 mmap-test.neon                  # module
 module2.neon                    # module
 module-alias2.neon              # module
@@ -110,7 +101,7 @@ new-init-module.neon            # module
 new-init.neon                   # local variable
 next-for.neon                   # FOR statement
 number-ceil.neon                # module
-number-exception.neon           # exception
+number-exception.neon           # number
 object-isa-case.neon            # CASE statement
 object-isa-inconvertible.neon   # ExpressionTransformer
 object-isa.neon                 # ExpressionTransformer
@@ -168,7 +159,7 @@ string-slice.neon               # StringReferenceIndexExpression
 strings.neon                    # StringReferenceIndexExpression
 string-test.neon                # module string
 struct-test.neon                # ExpressionTransformer
-sys-exit.neon                   # exception
+sys-exit.neon                   # ExceptionType
 textio-random.neon              # module random
 textio-seek.neon                # DummyExpression
 textio-test.neon                # module textio
@@ -182,7 +173,6 @@ unicode-char.neon               # StringReferenceIndexExpression
 unicode-length.neon             # StringReferenceIndexExpression
 uninitialised-case.neon         # CASE statement
 uninitialised-out.neon          # OUT
-uninitialised-try.neon          # exception
 valid-pointer.neon              # refcount
 value-index.neon                # local variable
 varargs.neon                    # local variable

@@ -64,7 +64,7 @@ public:
     std::string get_temp_name(std::string type, bool destroy = true);
     std::string get_temp_name(const Type *type);
     void push_scope();
-    void pop_scope();
+    void pop_scope(std::string tail = std::string());
     std::string push_handler();
     void pop_handler();
     std::string handler_label();
@@ -771,7 +771,7 @@ public:
         std::string result = context.get_temp_name(type);
         context.push_scope();
         std::string valuename = value->generate(context);
-        context.out << "Ne_Number_negate(&" << result << ",&" << valuename << ");\n";
+        context.out << "if (Ne_Number_negate(&" << result << ",&" << valuename << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -922,7 +922,7 @@ public:
         context.push_scope();
         std::string elname = left->generate(context);
         std::string aname = right->generate(context);
-        context.out << "Ne_Array_in(&" << result << ",&" << aname << ",&" << elname << ");\n";
+        context.out << "if (Ne_Array_in(&" << result << ",&" << aname << ",&" << elname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1198,7 +1198,7 @@ public:
         context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        context.out << "Ne_Number_add(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.out << "if (Ne_Number_add(&" << result << ",&" << leftname << ",&" << rightname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1218,7 +1218,7 @@ public:
         context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        context.out << "Ne_Number_subtract(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.out << "if (Ne_Number_subtract(&" << result << ",&" << leftname << ",&" << rightname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1238,7 +1238,7 @@ public:
         context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        context.out << "Ne_Number_multiply(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.out << "if (Ne_Number_multiply(&" << result << ",&" << leftname << ",&" << rightname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1258,7 +1258,7 @@ public:
         context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        context.out << "Ne_Number_divide(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.out << "if (Ne_Number_divide(&" << result << ",&" << leftname << ",&" << rightname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1278,7 +1278,7 @@ public:
         context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        context.out << "Ne_Number_mod(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.out << "if (Ne_Number_mod(&" << result << ",&" << leftname << ",&" << rightname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1298,7 +1298,7 @@ public:
         context.push_scope();
         std::string leftname = left->generate(context);
         std::string rightname = right->generate(context);
-        context.out << "Ne_Number_pow(&" << result << ",&" << leftname << ",&" << rightname << ");\n";
+        context.out << "if (Ne_Number_pow(&" << result << ",&" << leftname << ",&" << rightname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1327,7 +1327,7 @@ public:
         std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
         std::string elementptr = context.get_temp_name(type->name + "*", false);
-        context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << "," << arie->always_create << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << "," << 1 /* TODO arie->always_create */ << ")) goto " << context.handler_label() << ";\n";
         return "(*" + elementptr + ")";
     }
 };
@@ -1345,7 +1345,7 @@ public:
         std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
         std::string elementptr = context.get_temp_name(type->name + "*", false);
-        context.out << "Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ",0);\n";
+        context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << ",0)) goto " << context.handler_label() << ";\n";
         std::string element = context.get_temp_name(type);
         context.out << type->name << "_init_copy(&" << element << "," << elementptr << ");\n";
         return element;
@@ -1366,7 +1366,7 @@ public:
         context.push_scope();
         std::string dictionaryname = dictionary->generate(context);
         std::string indexname = index->generate(context);
-        context.out << "Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ");\n";
+        context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return "(*" + elementptr + ")";
     }
@@ -1387,7 +1387,7 @@ public:
         std::string elementptr = context.get_temp_name(type->name + "*", false);
         std::string dictionaryname = dictionary->generate(context);
         std::string indexname = index->generate(context);
-        context.out << "Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ");\n";
+        context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ")) goto " << context.handler_label() << ";\n";
         context.out << type->name << "_copy(&" << result << ",&" << elementptr << ");\n";
         context.pop_scope();
         return result;
@@ -1639,7 +1639,7 @@ public:
             }
             call.append(")");
         }
-        context.out << call << ";\n";
+        context.out << "if (" << call << ") goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1706,6 +1706,7 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
+        context.out << "if (Ne_Exception_raise(" << quoted("AssertFailedException") << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
     }
 };
@@ -1987,8 +1988,9 @@ public:
             for (auto s: c->handler) {
                 s->generate(context);
             }
-            context.out << "}\n";
+            context.out << "} else\n";
         }
+        context.out << ";\n";
         context.out << "skip_" << handler << ":\n";
     }
 };
@@ -2006,7 +2008,7 @@ public:
             std::string retname = expr->generate(context);
             context.out << "*result = " << retname << ";\n";
         }
-        context.out << "return;\n";
+        context.out << "return NULL;\n";
     }
 };
 
@@ -2020,7 +2022,7 @@ public:
 
     virtual void generate_statement(Context &context) const override {
         std::string name = ref->generate(context);
-        context.out << "Ne_Number_increment(&" << name << "," << is->delta << ");\n";
+        context.out << "if (Ne_Number_increment(&" << name << "," << is->delta << ")) goto " << context.handler_label() << ";\n";
     }
 };
 
@@ -2074,8 +2076,7 @@ public:
     const Expression *info;
 
     virtual void generate_statement(Context &context) const override {
-        context.out << "Ne_Exception_raise(" << quoted(rs->exception->name) << ");\n";
-        context.out << "goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Exception_raise(" << quoted(rs->exception->name) << ")) goto " << context.handler_label() << ";\n";
     }
 };
 
@@ -2117,7 +2118,7 @@ public:
 
     std::string generate_header() const {
         std::stringstream out;
-        out << "void " << f->name << "(";
+        out << "Ne_Exception *" << f->name << "(";
         bool first = true;
         auto returntype = dynamic_cast<const ast::TypeFunction *>(f->type)->returntype;
         if (returntype != ast::TYPE_NOTHING) {
@@ -2141,6 +2142,7 @@ public:
     virtual void generate_def(Context &context) const override {
         context.out << generate_header() << "\n";
         context.push_scope();
+        std::string handler_label = context.push_handler();
         for (auto p: params) {
             assert(p->localname == "");
             p->localname = context.get_temp_name(p->type);
@@ -2149,7 +2151,13 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
-        context.pop_scope();
+        context.pop_handler();
+        context.out << "goto skip_" << handler_label << ";\n";
+        context.out << "goto " << handler_label << ";\n"; // Only to appease compiler to avoid unused label warning.
+        context.out << handler_label << ":\n";
+        context.out << "return Ne_Exception_propagate();\n";
+        context.out << "skip_" << handler_label << ":\n";
+        context.pop_scope("return NULL;\n");
     }
     virtual void generate_init(Context &) const override { internal_error("Function"); }
     virtual void generate_deinit(Context &) const override { internal_error("Function"); }
@@ -2897,12 +2905,13 @@ void Context::push_scope()
     temp_names.push({});
 }
 
-void Context::pop_scope()
+void Context::pop_scope(std::string tail)
 {
     for (auto temp: temp_names.top()) {
         out << temp.first << "_deinit(&" << temp.second << ");\n";
     }
     temp_names.pop();
+    out << tail;
     out << "}\n";
 }
 
@@ -2921,6 +2930,7 @@ void Context::pop_handler()
 
 std::string Context::handler_label()
 {
+    assert(not handlers.empty());
     return handlers.top();
 }
 

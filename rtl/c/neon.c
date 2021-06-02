@@ -46,9 +46,10 @@ int Ne_Boolean_compare(const Ne_Boolean *a, const Ne_Boolean *b)
     return *a == *b ? 0 : *a;
 }
 
-void Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
+Ne_Exception *Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
 {
     Ne_String_init_literal(result, *a ? "TRUE" : "FALSE");
+    return NULL;
 }
 
 void Ne_Number_init(Ne_Number *num)
@@ -154,44 +155,55 @@ int Ne_String_compare(const Ne_String *a, const Ne_String *b)
     return 0;
 }
 
-void Ne_Number_add(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
+Ne_Exception *Ne_Number_add(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 {
     result->dval = a->dval + b->dval;
+    return NULL;
 }
 
-void Ne_Number_subtract(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
+Ne_Exception *Ne_Number_subtract(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 {
     result->dval = a->dval - b->dval;
+    return NULL;
 }
 
-void Ne_Number_multiply(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
+Ne_Exception *Ne_Number_multiply(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 {
     result->dval = a->dval * b->dval;
+    return NULL;
 }
 
-void Ne_Number_divide(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
+Ne_Exception *Ne_Number_divide(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 {
+    if (b->dval == 0) {
+        return Ne_Exception_raise("NumberException.DivideByZero");
+    }
     result->dval = a->dval / b->dval;
+    return NULL;
 }
 
-void Ne_Number_pow(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
+Ne_Exception *Ne_Number_pow(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 {
     result->dval = pow(a->dval, b->dval);
+    return NULL;
 }
 
-void Ne_Number_mod(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
+Ne_Exception *Ne_Number_mod(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 {
     result->dval = (int)a->dval % (int)b->dval;
+    return NULL;
 }
 
-void Ne_Number_negate(Ne_Number *result, const Ne_Number *a)
+Ne_Exception *Ne_Number_negate(Ne_Number *result, const Ne_Number *a)
 {
     result->dval = -a->dval;
+    return NULL;
 }
 
-void Ne_Number_increment(Ne_Number *a, int delta)
+Ne_Exception *Ne_Number_increment(Ne_Number *a, int delta)
 {
     a->dval += delta;
+    return NULL;
 }
 
 Ne_String *string_copy(const Ne_String *src)
@@ -248,20 +260,22 @@ int Ne_Bytes_compare(const Ne_Bytes *a, const Ne_Bytes *b)
     return 0;
 }
 
-void Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b)
+Ne_Exception *Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b)
 {
     r->data = malloc(a->len + b->len);
     memcpy(r->data, a->data, a->len);
     memcpy(r->data + a->len, b->data, b->len);
     r->len = a->len + b->len;
+    return NULL;
 }
 
-void Ne_bytes__size(Ne_Number *r, const Ne_Bytes *bytes)
+Ne_Exception *Ne_bytes__size(Ne_Number *r, const Ne_Bytes *bytes)
 {
     r->dval = bytes->len;
+    return NULL;
 }
 
-void Ne_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes)
+Ne_Exception *Ne_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes)
 {
     Ne_Array_init(result, bytes->len, &Ne_Number_mtable);
     for (int i = 0; i < bytes->len; i++) {
@@ -273,9 +287,10 @@ void Ne_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes)
         Ne_Number_copy(p, &n);
         Ne_Number_deinit(&n);
     }
+    return NULL;
 }
 
-void Ne_bytes__toString(Ne_String *result, const Ne_Bytes *bytes)
+Ne_Exception *Ne_bytes__toString(Ne_String *result, const Ne_Bytes *bytes)
 {
     char *buf = malloc(8 + 1 + 1 + 3*bytes->len + 1 + 1);
     strcpy(buf, "HEXBYTES \"");
@@ -290,6 +305,7 @@ void Ne_bytes__toString(Ne_String *result, const Ne_Bytes *bytes)
     *p = 0;
     Ne_String_init_literal(result, buf);
     free(buf);
+    return NULL;
 }
 
 void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable)
@@ -339,29 +355,33 @@ void Ne_Object_deinit(Ne_Object *obj)
     }
 }
 
-void Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj)
+Ne_Exception *Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj)
 {
     *r = obj->type == neNothing;
+    return NULL;
 }
 
-void Ne_object__makeNull(Ne_Object *obj)
+Ne_Exception *Ne_object__makeNull(Ne_Object *obj)
 {
     Ne_Object_init(obj);
     obj->type = neNothing;
+    return NULL;
 }
 
-void Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
+Ne_Exception *Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
 {
     Ne_Object_init(obj);
     obj->type = neNumber;
     Ne_Number_copy(&obj->num, n);
+    return NULL;
 }
 
-void Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
+Ne_Exception *Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
 {
     Ne_Object_init(obj);
     obj->type = neString;
     Ne_String_copy(&obj->str, s);
+    return NULL;
 }
 
 void Ne_Array_copy(Ne_Array *dest, const Ne_Array *src)
@@ -402,15 +422,16 @@ int Ne_Array_compare(const Ne_Array *a, const Ne_Array *b)
     return 0;
 }
 
-void Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element)
+Ne_Exception *Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element)
 {
     *result = 0;
     for (int i = 0; i < a->size; i++) {
         if (a->mtable->compare(a->a[i], element) == 0) {
             *result = 1;
-            return;
+            return NULL;
         }
     }
+    return NULL;
 }
 
 Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, int always_create)
@@ -432,18 +453,22 @@ Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, int alwa
 
 Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, int always_create)
 {
+    if (index->dval != trunc(index->dval)) {
+        return Ne_Exception_raise("ArrayIndexException");
+    }
     return Ne_Array_index_int(result, a, (int)index->dval, always_create);
 }
 
-void Ne_array__append(Ne_Array *a, const void *element)
+Ne_Exception *Ne_array__append(Ne_Array *a, const void *element)
 {
     a->a = realloc(a->a, (a->size+1) * sizeof(void *));
     a->mtable->constructor(&a->a[a->size]);
     a->mtable->copy(a->a[a->size], element);
     a->size++;
+    return NULL;
 }
 
-void Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b)
+Ne_Exception *Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b)
 {
     dest->size = a->size + b->size;
     dest->a = malloc(dest->size * sizeof(void *));
@@ -456,9 +481,10 @@ void Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b)
         dest->mtable->constructor(&dest->a[a->size+i]);
         dest->mtable->copy(dest->a[a->size+i], b->a[i]);
     }
+    return NULL;
 }
 
-void Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
+Ne_Exception *Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
 {
     int newsize = dest->size + src->size;
     dest->a = realloc(dest->a, newsize * sizeof(void *));
@@ -467,32 +493,33 @@ void Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
         dest->mtable->copy(dest->a[dest->size+i], src->a[i]);
     }
     dest->size = newsize;
+    return NULL;
 }
 
-void Ne_array__find(Ne_Number *result, const Ne_Array *a, void *e)
+Ne_Exception *Ne_array__find(Ne_Number *result, const Ne_Array *a, void *e)
 {
     for (int i = 0; i < a->size; i++) {
         if (a->mtable->compare(a->a[i], e) == 0) {
             Ne_Number_init_literal(result, i);
-            return;
+            return NULL;
         }
     }
-    // TODO: exception
+    return Ne_Exception_raise("ArrayIndexException");
 }
 
-void Ne_array__remove(Ne_Array *a, const Ne_Number *index)
+Ne_Exception *Ne_array__remove(Ne_Array *a, const Ne_Number *index)
 {
     int i = (int)index->dval;
     if (i < 0 || i >= a->size) {
-        // TODO: exception
-        exit(1);
+        return Ne_Exception_raise("ArrayIndexException");
     }
     a->mtable->destructor(a->a[i]);
     memmove(&a->a[i], &a->a[i+1], (a->size-i-1) * sizeof(void *));
     a->size--;
+    return NULL;
 }
 
-void Ne_array__resize(Ne_Array *a, const Ne_Number *size)
+Ne_Exception *Ne_array__resize(Ne_Array *a, const Ne_Number *size)
 {
     int newsize = (int)size->dval;
     if (newsize < a->size) {
@@ -507,31 +534,41 @@ void Ne_array__resize(Ne_Array *a, const Ne_Number *size)
         }
     }
     a->size = newsize;
+    return NULL;
 }
 
-void Ne_array__reversed(Ne_Array *dest, const Ne_Array *src)
+Ne_Exception *Ne_array__reversed(Ne_Array *dest, const Ne_Array *src)
 {
     Ne_Array_init(dest, src->size, src->mtable);
     for (int i = 0; i < src->size; i++) {
         dest->mtable->copy(dest->a[i], src->a[src->size-1-i]);
     }
+    return NULL;
 }
 
-void Ne_array__size(Ne_Number *result, const Ne_Array *a)
+Ne_Exception *Ne_array__size(Ne_Number *result, const Ne_Array *a)
 {
     Ne_Number_init_literal(result, a->size);
+    return NULL;
 }
 
-void Ne_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a)
+Ne_Exception *Ne_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a)
 {
     r->data = malloc(a->size);
     for (int i = 0; i < a->size; i++) {
-        r->data[i] = (int)((Ne_Number *)a->a[i])->dval;
+        double val = ((Ne_Number *)a->a[i])->dval;
+        if (val >= 0 && val <= 255 && val == trunc(val)) {
+            r->data[i] = (int)val;
+        } else {
+            free(r->data);
+            return Ne_Exception_raise("ByteOutOfRangeException");
+        }
     }
     r->len = a->size;
+    return NULL;
 }
 
-void Ne_array__toString__number(Ne_String *r, const Ne_Array *a)
+Ne_Exception *Ne_array__toString__number(Ne_String *r, const Ne_Array *a)
 {
     char buf[100];
     strcpy(buf, "[");
@@ -544,6 +581,7 @@ void Ne_array__toString__number(Ne_String *r, const Ne_Array *a)
     }
     strcat(buf, "]");
     Ne_String_init_literal(r, buf);
+    return NULL;
 }
 
 void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable)
@@ -575,13 +613,13 @@ void Ne_Dictionary_deinit(Ne_Dictionary *d)
     free(d->d);
 }
 
-void Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index)
+Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index)
 {
     int i = 0;
     while (i < d->size) {
         if (Ne_String_compare(&d->d[i].key, index) == 0) {
             *result = d->d[i].value;
-            return;
+            return NULL;
         }
         int r = Ne_String_compare(index, &d->d[i].key);
         if (r < 0) {
@@ -595,9 +633,10 @@ void Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index
     Ne_String_init_copy(&d->d[i].key, index);
     d->mtable->constructor(&d->d[i].value);
     *result = d->d[i].value;
+    return NULL;
 }
 
-void Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
+Ne_Exception *Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
 {
     Ne_Array_init(result, d->size, &Ne_String_mtable);
     for (int i = 0; i < d->size; i++) {
@@ -605,23 +644,26 @@ void Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
         Ne_Array_index_int((void **)&s, result, i, 0);
         Ne_String_copy(s, &d->d[i].key);
     }
+    return NULL;
 }
 
-void Ne_number__toString(Ne_String *result, const Ne_Number *n)
+Ne_Exception *Ne_number__toString(Ne_String *result, const Ne_Number *n)
 {
     char buf[20];
     snprintf(buf, sizeof(buf), "%g", n->dval);
     Ne_String_init_literal(result, buf);
+    return NULL;
 }
 
-void Ne_pointer__toString(Ne_String *r, const void *p)
+Ne_Exception *Ne_pointer__toString(Ne_String *r, const void *p)
 {
     char buf[20];
     snprintf(buf, sizeof(buf), "%p", p);
     Ne_String_init_literal(r, buf);
+    return NULL;
 }
 
-void Ne_print(const Ne_Object *obj)
+Ne_Exception *Ne_print(const Ne_Object *obj)
 {
     switch (obj->type) {
         case neNothing:
@@ -637,33 +679,38 @@ void Ne_print(const Ne_Object *obj)
             printf("[unknown object type %d]\n", obj->type);
             break;
     }
+    return NULL;
 }
 
-void Ne_str(Ne_String *result, const Ne_Number *n)
+Ne_Exception *Ne_str(Ne_String *result, const Ne_Number *n)
 {
     char buf[20];
     snprintf(buf, sizeof(buf), "%g", n->dval);
     Ne_String_init_literal(result, buf);
+    return NULL;
 }
 
-void Ne_string__append(Ne_String *dest, const Ne_String *s)
+Ne_Exception *Ne_string__append(Ne_String *dest, const Ne_String *s)
 {
     dest->ptr = realloc(dest->ptr, dest->len + s->len);
     memcpy(dest->ptr + dest->len, s->ptr, s->len);
     dest->len += s->len;
+    return NULL;
 }
 
-void Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b)
+Ne_Exception *Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b)
 {
     dest->len = a->len + b->len;
     dest->ptr = malloc(dest->len);
     memcpy(dest->ptr, a->ptr, a->len);
     memcpy(dest->ptr+a->len, b->ptr, b->len);
+    return NULL;
 }
 
-void Ne_string__length(Ne_Number *result, const Ne_String *str)
+Ne_Exception *Ne_string__length(Ne_Number *result, const Ne_String *str)
 {
     result->dval = str->len;
+    return NULL;
 }
 
 Ne_Exception *Ne_Exception_raise(const char *name)
@@ -675,12 +722,18 @@ Ne_Exception *Ne_Exception_raise(const char *name)
 
 int Ne_Exception_trap(const char *name)
 {
-    return strcmp(Ne_Exception_current.name, name) == 0;
+    int len = strlen(name);
+    return strncmp(Ne_Exception_current.name, name, len) == 0 && (Ne_Exception_current.name[len] == 0 || Ne_Exception_current.name[len] == '.');
+}
+
+Ne_Exception *Ne_Exception_propagate()
+{
+    return &Ne_Exception_current;
 }
 
 void Ne_Exception_unhandled()
 {
-    fprintf(stderr, "Unhandled exception: %s\n", Ne_Exception_current.name);
+    fprintf(stderr, "Unhandled exception %s\n", Ne_Exception_current.name);
     exit(1);
 }
 
@@ -699,14 +752,15 @@ void Ne_sys__init(int argc, const char *argv[])
     }
 }
 
-void Ne_sys_exit(const Ne_Number *n)
+Ne_Exception *Ne_sys_exit(const Ne_Number *n)
 {
     exit(n->dval);
 }
 
 void *textio$stderr;
 
-void Ne_textio_writeLine(void *f, const Ne_String *s)
+Ne_Exception *Ne_textio_writeLine(void *f, const Ne_String *s)
 {
     fprintf(stderr, "%.*s\n", s->len, s->ptr);
+    return NULL;
 }
