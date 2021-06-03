@@ -98,6 +98,16 @@ std::shared_ptr<Object> spawn(const utf8string &command)
     return p;
 }
 
+Number system(const utf8string &command)
+{
+    std::string cmd = command.str();
+    int r = ::system(cmd.c_str());
+    if (WIFEXITED(r)) {
+        return number_from_uint8(WEXITSTATUS(r));
+    }
+    return number_from_sint8(-1);
+}
+
 Number wait(const std::shared_ptr<Object> &process)
 {
     int r;
