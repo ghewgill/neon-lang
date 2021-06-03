@@ -1,0 +1,56 @@
+IMPORT os
+IMPORT textio
+IMPORT string
+IMPORT sys
+
+VAR cc := ""
+VAR cflags := ""
+VAR ccinclude := ""
+VAR ccoutput := ""
+VAR ldflags := ""
+VAR libs := ""
+
+BEGIN MAIN
+    IF sys.args.size() < 2 THEN
+        textio.writeLine(textio.stderr, "Usage: neonbuild [options] filename")
+        sys.exit(1)
+    END IF
+
+    CASE os.platform()
+        WHEN os.Platform.posix DO
+            cc := "cc"
+            cflags := "-std=c99 -pedantic -Wall -Werror"
+            ccinclude := "-I"
+            ccoutput := "-o "
+            libs := "-lm"
+        WHEN os.Platform.win32 DO
+            cc := "cl"
+            ccinclude := "/I"
+            ccoutput := "/Fe"
+        WHEN OTHERS DO
+            textio.writeLine(textio.stderr, "Unsupported platform: \(os.platform())")
+            sys.exit(1)
+    END CASE
+
+    cc := replaceIfExists(cc, os.getenv("CC"))
+    cflags := replaceIfExists(cflags, os.getenv("CFLAGS"))
+    ldflags := replaceIfExists(ldflags, os.getenv("LDFLAGS"))
+    libs := replaceIfExists(libs, os.getenv("LIBS"))
+
+    LET main := sys.args[1]
+    VAR r := os.system("bin/neonc -q -t c \(main)")
+    IF r <> 0 THEN
+        sys.exit(r)
+    END IF
+    r := os.system("\(cc) \(cflags) \(ccinclude)rtl/c \(ccoutput)\(string.replaceOne(main, ".neon", "")) \(string.replaceOne(main, ".neon", ".c")) rtl/c/neon.c \(ldflags) \(libs)")
+    IF r <> 0 THEN
+        sys.exit(r)
+    END IF
+END MAIN
+
+FUNCTION replaceIfExists(value, newvalue: String): String
+    IF newvalue <> "" THEN
+        RETURN newvalue
+    END IF
+    RETURN value
+END FUNCTION
