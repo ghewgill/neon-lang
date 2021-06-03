@@ -318,6 +318,17 @@ void Ne_Array_init(Ne_Array *a, int size, const MethodTable *mtable)
     }
 }
 
+void Ne_Array_init_copy(Ne_Array *dest, const Ne_Array *src)
+{
+    dest->size = src->size;
+    dest->a = malloc(dest->size * sizeof(void *));
+    dest->mtable = src->mtable;
+    for (int i = 0; i < dest->size; i++) {
+        dest->mtable->constructor(&dest->a[i]);
+        dest->mtable->copy(dest->a[i], src->a[i]);
+    }
+}
+
 void Ne_Object_init(Ne_Object *obj)
 {
     obj->type = neNothing;

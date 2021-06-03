@@ -510,14 +510,13 @@ public:
     FunctionParameter &operator=(const FunctionParameter &) = delete;
     const ast::FunctionParameter *fp;
     const int index;
-    std::string localname;
 
     virtual void generate_decl(Context &) const override { internal_error("FunctionParameter"); }
     virtual void generate_def(Context &) const override { internal_error("FunctionParameter"); }
     virtual void generate_init(Context &) const override { internal_error("FunctionParameter"); }
     virtual void generate_deinit(Context &) const override { internal_error("FunctionParameter"); }
     virtual std::string generate(Context &) const override {
-        return localname;
+        return fp->name;
     }
 };
 
@@ -1388,7 +1387,7 @@ public:
         std::string dictionaryname = dictionary->generate(context);
         std::string indexname = index->generate(context);
         context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ")) goto " << context.handler_label() << ";\n";
-        context.out << type->name << "_copy(&" << result << ",&" << elementptr << ");\n";
+        context.out << type->name << "_init_copy(&" << result << "," << elementptr << ");\n";
         context.pop_scope();
         return result;
     }
@@ -1991,7 +1990,10 @@ public:
             context.out << "} else\n";
         }
         context.out << ";\n";
-        context.out << "skip_" << handler << ":\n";
+        // This colon is followed by a semicolon, and syntactically in C
+        // a label must be followed by an expression, and a variable declaration
+        // is not an expression. So we use the empty expression ";".
+        context.out << "skip_" << handler << ":;\n";
     }
 };
 
@@ -2105,6 +2107,13 @@ public:
             }
             i++;
         }
+        for (size_t j = 0; j < f->frame->getCount(); j++) {
+            ast::Frame::Slot s = f->frame->getSlot(j);
+            const ast::LocalVariable *r = dynamic_cast<const ast::LocalVariable *>(s.ref);
+            LocalVariable *lv = new LocalVariable(r);
+            locals.push_back(lv);
+            g_variable_cache[r] = lv;
+        }
         for (auto s: f->statements) {
             statements.push_back(transform(s));
         }
@@ -2114,6 +2123,7 @@ public:
     const ast::Function *f;
     std::vector<const Statement *> statements;
     std::vector<FunctionParameter *> params;
+    std::vector<LocalVariable *> locals;
     int out_count;
 
     std::string generate_header() const {
@@ -2131,7 +2141,7 @@ public:
             } else {
                 out << ",";
             }
-            out << p->type->name << " *" << p->fp->name;
+            out << p->type->name << " *a_" << p->fp->name;
         }
         out << ")";
         return out.str();
@@ -2143,10 +2153,12 @@ public:
         context.out << generate_header() << "\n";
         context.push_scope();
         std::string handler_label = context.push_handler();
+        for (auto l: locals) {
+            context.out << l->type->name << " " << l->lv->name << ";\n";
+            l->type->generate_init(context, l->lv->name);
+        }
         for (auto p: params) {
-            assert(p->localname == "");
-            p->localname = context.get_temp_name(p->type);
-            context.out << p->type->name << "_init_copy(&" << p->localname << "," << p->fp->name << ");\n";
+            context.out << p->type->name << "_copy(&" << p->fp->name << ",a_" << p->fp->name << ");\n";
         }
         for (auto s: statements) {
             s->generate(context);
@@ -2157,6 +2169,9 @@ public:
         context.out << handler_label << ":\n";
         context.out << "return Ne_Exception_propagate();\n";
         context.out << "skip_" << handler_label << ":\n";
+        for (auto l: locals) {
+            context.out << l->type->name << "_deinit(&" << l->lv->name << ");\n";
+        }
         context.pop_scope("return NULL;\n");
     }
     virtual void generate_init(Context &) const override { internal_error("Function"); }
