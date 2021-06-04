@@ -3,6 +3,7 @@ IMPORT textio
 IMPORT string
 IMPORT sys
 
+VAR neonc := "bin/neonc"
 VAR cc := ""
 VAR cflags := ""
 VAR ccinclude := ""
@@ -24,6 +25,7 @@ BEGIN MAIN
             ccoutput := "-o "
             libs := "-lm"
         WHEN os.Platform.win32 DO
+            neonc := "bin/Debug/neonc"
             cc := "cl"
             ccinclude := "/I"
             ccoutput := "/Fe"
@@ -38,7 +40,7 @@ BEGIN MAIN
     libs := replaceIfExists(libs, os.getenv("LIBS"))
 
     LET main := sys.args[1]
-    VAR r := os.system("bin/neonc -q -t c \(main)")
+    VAR r := os.system("\(neonc) -q -t c \(main)")
     IF r <> 0 THEN
         sys.exit(r)
     END IF
