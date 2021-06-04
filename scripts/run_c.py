@@ -17,5 +17,7 @@ while i < len(sys.argv):
 
 fullname = sys.argv[i]
 
+if sys.platform == "win32":
+    os.putenv("CFLAGS", "/nologo")
 subprocess.check_call([neon, "tools/neonbuild.neon", fullname])
 subprocess.check_call([fullname.replace(".neon", "")] + sys.argv[i+1:])
