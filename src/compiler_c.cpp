@@ -2110,9 +2110,11 @@ public:
         for (size_t j = 0; j < f->frame->getCount(); j++) {
             ast::Frame::Slot s = f->frame->getSlot(j);
             const ast::LocalVariable *r = dynamic_cast<const ast::LocalVariable *>(s.ref);
-            LocalVariable *lv = new LocalVariable(r);
-            locals.push_back(lv);
-            g_variable_cache[r] = lv;
+            if (r != nullptr) {
+                LocalVariable *lv = new LocalVariable(r);
+                locals.push_back(lv);
+                g_variable_cache[r] = lv;
+            }
         }
         for (auto s: f->statements) {
             statements.push_back(transform(s));
