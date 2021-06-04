@@ -1,7 +1,9 @@
+IMPORT io
 IMPORT os
-IMPORT textio
+IMPORT process
 IMPORT string
 IMPORT sys
+IMPORT textio
 
 VAR neonc := "bin/neonc"
 VAR cc := ""
@@ -40,12 +42,18 @@ BEGIN MAIN
     libs := replaceIfExists(libs, os.getenv("LIBS"))
 
     LET main := sys.args[1]
-    VAR r := os.system("\(neonc) -q -t c \(main)")
+    VAR stdout: Bytes
+    VAR stderr: Bytes
+    VAR r := process.call("\(neonc) -q -t c \(main)", OUT stdout, OUT stderr)
     IF r <> 0 THEN
+        io.writeBytes(io.stdout, stdout)
+        io.writeBytes(io.stderr, stderr)
         sys.exit(r)
     END IF
-    r := os.system("\(cc) \(cflags) \(ccinclude)rtl/c \(ccoutput)\(string.replaceOne(main, ".neon", "")) \(string.replaceOne(main, ".neon", ".c")) rtl/c/neon.c \(ldflags) \(libs)")
+    r := process.call("\(cc) \(cflags) \(ccinclude)rtl/c \(ccoutput)\(string.replaceOne(main, ".neon", "")) \(string.replaceOne(main, ".neon", ".c")) rtl/c/neon.c \(ldflags) \(libs)", OUT stdout, OUT stderr)
     IF r <> 0 THEN
+        io.writeBytes(io.stdout, stdout)
+        io.writeBytes(io.stderr, stderr)
         sys.exit(r)
     END IF
 END MAIN
