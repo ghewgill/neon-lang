@@ -107,9 +107,12 @@ FUNCTION loadDependencyTree(source: String, OUT objects: Array<String>): VALID P
     VAR seen: Array<String> := []
     UNUSED seen -- TODO: Unused variable detector does not look inside nested functions.
     FUNCTION scanTree(src: String, main: Boolean): VALID POINTER TO Node
+        VAR srcdir: String
+        VAR srcname: String
+        file.pathSplit(src, OUT srcdir, OUT srcname)
         LET neonnode := NEW Node(
             source WITH src,
-            target WITH file.pathJoin(tempdir, string.replaceOne(src, ".neon", ".c")),
+            target WITH file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", ".c")),
             command WITH "\(neonc) -q -t c -o $TARGET \((IF main THEN "-T main" ELSE "")) $SOURCE"
         )
         FOREACH m IN getDependencies(src) DO
@@ -118,10 +121,10 @@ FUNCTION loadDependencyTree(source: String, OUT objects: Array<String>): VALID P
                 neonnode->dependencies.append(scanTree(findSource(m), FALSE))
             END IF
         END FOREACH
-        LET obj := file.pathJoin(tempdir, string.replaceOne(src, ".neon", ".o"))
+        LET obj := file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", ".o"))
         objects.append(obj)
         LET n := NEW Node(
-            source WITH file.pathJoin(tempdir, string.replaceOne(src, ".neon", ".c")),
+            source WITH file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", ".c")),
             target WITH obj,
             command WITH "\(cc) -c \(cflags) \(ccinclude)rtl/c \(ccoutput)$TARGET $SOURCE",
             dependencies WITH [neonnode])
