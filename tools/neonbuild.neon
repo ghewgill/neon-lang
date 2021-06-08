@@ -15,6 +15,8 @@ VAR ldflags := ""
 VAR libs := ""
 VAR verbose := FALSE
 
+VAR tempdir: String
+
 TYPE Node IS CLASS
     source: String
     target: String
@@ -69,6 +71,11 @@ BEGIN MAIN
     END WHILE
 
     LET main := sys.args[i]
+    tempdir := string.replaceOne(main, ".neon", "__neonbuild")
+    IF NOT file.isDirectory(tempdir) THEN
+        file.mkdir(tempdir)
+    END IF
+
     VAR objects: Array<String> := []
     LET deps := loadDependencyTree(main, OUT objects)
     LET exe := string.replaceOne(main, ".neon", "")
@@ -102,8 +109,8 @@ FUNCTION loadDependencyTree(source: String, OUT objects: Array<String>): VALID P
     FUNCTION scanTree(src: String, main: Boolean): VALID POINTER TO Node
         LET neonnode := NEW Node(
             source WITH src,
-            target WITH string.replaceOne(src, ".neon", ".c"),
-            command WITH "\(neonc) -q -t c \((IF main THEN "-T main" ELSE "")) $SOURCE"
+            target WITH file.pathJoin(tempdir, string.replaceOne(src, ".neon", ".c")),
+            command WITH "\(neonc) -q -t c -o $TARGET \((IF main THEN "-T main" ELSE "")) $SOURCE"
         )
         FOREACH m IN getDependencies(src) DO
             IF m NOT IN seen THEN
@@ -111,10 +118,10 @@ FUNCTION loadDependencyTree(source: String, OUT objects: Array<String>): VALID P
                 neonnode->dependencies.append(scanTree(findSource(m), FALSE))
             END IF
         END FOREACH
-        LET obj := string.replaceOne(src, ".neon", ".o")
+        LET obj := file.pathJoin(tempdir, string.replaceOne(src, ".neon", ".o"))
         objects.append(obj)
         LET n := NEW Node(
-            source WITH string.replaceOne(src, ".neon", ".c"),
+            source WITH file.pathJoin(tempdir, string.replaceOne(src, ".neon", ".c")),
             target WITH obj,
             command WITH "\(cc) -c \(cflags) \(ccinclude)rtl/c \(ccoutput)$TARGET $SOURCE",
             dependencies WITH [neonnode])

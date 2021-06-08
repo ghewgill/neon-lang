@@ -2368,7 +2368,11 @@ public:
         std::vector<unsigned char> src;
         std::string t = out.str();
         std::copy(t.begin(), t.end(), std::back_inserter(src));
-        support->writeOutput(path + program->module_name + ".c", src);
+        std::string outname = output;
+        if (outname.empty()) {
+            outname = path + program->module_name + ".c";
+        }
+        support->writeOutput(outname, src);
     }
 };
 
