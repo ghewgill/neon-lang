@@ -3829,7 +3829,7 @@ Statement *transform(const ast::Statement *s)
 
 } // namespace jvm
 
-void compile_jvm(CompilerSupport *support, const ast::Program *p, std::map<std::string, std::string> /*options*/)
+void compile_jvm(CompilerSupport *support, const ast::Program *p, std::string /*output*/, std::map<std::string, std::string> /*options*/)
 {
     jvm::g_type_cache.clear();
     jvm::g_variable_cache.clear();

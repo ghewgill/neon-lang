@@ -9,7 +9,7 @@ class Bytecode;
 class CompilerSupport;
 namespace ast { class Program; }
 
-typedef void (*CompileProc)(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
+typedef void (*CompileProc)(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
 
 class ICompilerSupport {
 public:
