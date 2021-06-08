@@ -12,11 +12,11 @@
 #include "pt_dump.h"
 #include "support.h"
 
-extern void compile_cli(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
-extern void compile_c(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
-extern void compile_cpp(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
-extern void compile_js(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
-extern void compile_jvm(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
+extern void compile_cli(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
+extern void compile_c(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
+extern void compile_cpp(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
+extern void compile_js(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
+extern void compile_jvm(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
 
 struct {
     std::string name;
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
                     outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
                 }
             } else {
-                target_proc(&compiler_support, ast, options);
+                target_proc(&compiler_support, ast, output, options);
             }
 
         } catch (CompilerError *error) {

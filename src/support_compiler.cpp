@@ -77,7 +77,7 @@ void CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
             auto bytecode = compile(ast, nullptr);
             writeOutput(objname, bytecode);
             if (cproc != nullptr) {
-                cproc(this, ast, {});
+                cproc(this, ast, "", {});
             }
         }
         obj_file.open(objname, std::ios::binary);
