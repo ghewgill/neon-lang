@@ -13,6 +13,7 @@ VAR ccinclude := ""
 VAR ccoutput := ""
 VAR ldflags := ""
 VAR libs := ""
+VAR verbose := FALSE
 
 TYPE Node IS CLASS
     source: String
@@ -51,7 +52,23 @@ BEGIN MAIN
     ldflags := replaceIfExists(ldflags, os.getenv("LDFLAGS"))
     libs := replaceIfExists(libs, os.getenv("LIBS"))
 
-    LET main := sys.args[1]
+    VAR i := 1
+    WHILE i < sys.args.size() DO
+        IF sys.args[i][0] = "-" THEN
+            CASE sys.args[i]
+                WHEN "-v" DO
+                    verbose := TRUE
+                WHEN OTHERS DO
+                    textio.writeLine(textio.stderr, "Unknown option: \(sys.args[i])")
+                    sys.exit(1)
+            END CASE
+        ELSE
+            EXIT WHILE
+        END IF
+        INC i
+    END WHILE
+
+    LET main := sys.args[i]
     VAR objects: Array<String> := []
     LET deps := loadDependencyTree(main, OUT objects)
     LET exe := string.replaceOne(main, ".neon", "")
@@ -181,7 +198,9 @@ FUNCTION exec(node: VALID POINTER TO Node)
     VAR cmd := node->command
     cmd := string.replaceAll(cmd, "$SOURCE", node->source)
     cmd := string.replaceAll(cmd, "$TARGET", node->target)
-    --print(cmd)
+    IF verbose THEN
+        print(cmd)
+    END IF
     VAR r := process.call(cmd, OUT stdout, OUT stderr)
     IF r <> 0 THEN
         io.writeBytes(io.stdout, stdout)
