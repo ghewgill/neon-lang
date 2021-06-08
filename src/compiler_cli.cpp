@@ -4178,7 +4178,7 @@ Statement *transform(const ast::Statement *s)
 
 } // namespace cli
 
-void compile_cli(CompilerSupport *support, const ast::Program *p)
+void compile_cli(CompilerSupport *support, const ast::Program *p, std::map<std::string, std::string> /*options*/)
 {
     cli::g_type_cache.clear();
     cli::g_variable_cache.clear();
