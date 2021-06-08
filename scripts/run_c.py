@@ -18,4 +18,4 @@ while i < len(sys.argv):
 fullname = sys.argv[i]
 
 subprocess.check_call([neon, "tools/neonbuild.neon", fullname])
-subprocess.check_call([fullname.replace(".neon", "")] + sys.argv[i+1:])
+subprocess.check_call([os.path.abspath(fullname.replace(".neon", ""))] + sys.argv[i+1:])

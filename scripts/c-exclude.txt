@@ -61,6 +61,7 @@ gc-long-chain.neon              # gc
 gc-two-pointers.neon            # gc
 import.neon                     # InterfacePointerConstructor
 import-optional.neon            # module
+import-string.neon              # segfault
 in.neon                         # DictionaryInExpression
 intdiv.neon                     # Ne_math_intdiv
 interface.neon                  # InterfaceMethodExpression
@@ -69,6 +70,7 @@ interface-parameter-export2.neon # InterfaceMethodExpression
 interface-parameter-export.neon # InterfaceMethodExpression
 interface-parameter-import2.neon # InterfacePointerConstructor
 interface-parameter-import.neon # InterfacePointerConstructor
+intrinsic.neon                  # StringReferenceIndexExpression
 io-test.neon                    # io$stdout
 json-test.neon                  # ExpressionTransformer
 lexical-scope.neon              # CASE statement

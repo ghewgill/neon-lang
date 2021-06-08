@@ -37,6 +37,24 @@ std::string quoted(const std::string &s)
     return r;
 }
 
+std::string cident(const std::string &s)
+{
+    std::string r;
+    for (char c: s) {
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_') {
+            r.push_back(c);
+        } else if (c >= '0' && c <= '9' && not r.empty()) {
+            r.push_back(c);
+        } else {
+            r.append("_x");
+            char buf[4];
+            snprintf(buf, sizeof(buf), "%02x", c);
+            r.append(buf);
+        }
+    }
+    return r;
+}
+
 class Type;
 class Variable;
 class Expression;
@@ -49,6 +67,7 @@ static std::map<const ast::Statement *, Statement *> g_statement_cache;
 
 class Context {
 public:
+    const std::string module_name;
     std::ostream &out;
 private:
     int tmp_counter;
@@ -56,7 +75,7 @@ private:
     int next_handler;
     std::stack<std::string> handlers;
 public:
-    explicit Context(std::ostream &out): out(out), tmp_counter(0), temp_names(), next_handler(0), handlers() {
+    explicit Context(std::string module_name, std::ostream &out): module_name(module_name), out(out), tmp_counter(0), temp_names(), next_handler(0), handlers() {
         temp_names.push({});
     }
     Context(const Context &) = delete;
@@ -2128,9 +2147,9 @@ public:
     std::vector<LocalVariable *> locals;
     int out_count;
 
-    std::string generate_header() const {
+    std::string generate_header(Context &context) const {
         std::stringstream out;
-        out << "Ne_Exception *" << f->name << "(";
+        out << "Ne_Exception *" << cident(context.module_name) << "__" << f->name << "(";
         bool first = true;
         auto returntype = dynamic_cast<const ast::TypeFunction *>(f->type)->returntype;
         if (returntype != ast::TYPE_NOTHING) {
@@ -2149,10 +2168,10 @@ public:
         return out.str();
     }
     virtual void generate_decl(Context &context) const override {
-        context.out << generate_header() << ";\n";
+        context.out << generate_header(context) << ";\n";
     }
     virtual void generate_def(Context &context) const override {
-        context.out << generate_header() << "\n";
+        context.out << generate_header(context) << "\n";
         context.push_scope();
         std::string handler_label = context.push_handler();
         for (auto l: locals) {
@@ -2178,8 +2197,8 @@ public:
     }
     virtual void generate_init(Context &) const override { internal_error("Function"); }
     virtual void generate_deinit(Context &) const override { internal_error("Function"); }
-    virtual std::string generate(Context &) const override {
-        return f->name;
+    virtual std::string generate(Context &context) const override {
+        return cident(context.module_name) + "__" + f->name;
     }
 };
 
@@ -2233,8 +2252,30 @@ public:
     virtual void generate_def(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_init(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_deinit(Context &) const override { internal_error("ModuleFunction"); }
-    virtual std::string generate(Context &) const override {
-        return mf->name;
+    std::string generate_header() const {
+        std::stringstream out;
+        out << "Ne_Exception *" << mf->module->name << "__" << mf->name << "(";
+        /*bool first = true;
+        auto returntype = dynamic_cast<const ast::TypeFunction *>(mf->type)->returntype;
+        if (returntype != ast::TYPE_NOTHING) {
+            out << g_type_cache[returntype]->name << " *result";
+            first = false;
+        }
+        for (auto p: params) {
+            if (first) {
+                first = false;
+            } else {
+                out << ",";
+            }
+            out << p->type->name << " *a_" << p->fp->name;
+        }*/
+        out << ")";
+        return out.str();
+    }
+    virtual std::string generate(Context &context) const override {
+        std::string name = mf->module->name + "__" + mf->name;
+        context.out << "extern Ne_Exception *" << name << "();\n";
+        return name;
     }
 };
 
@@ -2262,12 +2303,12 @@ public:
         std::stringstream out;
         out << "#include <stdlib.h>\n";
         out << "#include \"neon.h\"\n";
-        Context context(out);
+        Context context(program->module_name, out);
         out << "typedef void *void_Ptr;\n";
-        out << "void void_Ptr_init(void_Ptr *p) {}\n";
-        out << "void void_Ptr_deinit(void_Ptr *p) {}\n";
-        out << "void void_Ptr_copy(void_Ptr *d, const void_Ptr *s) { *d = *s; }\n";
-        out << "int void_Ptr_compare(const void_Ptr *d, const void_Ptr *s) { return *d == *s ? 0 : *d > *s ? 1 : -1; }\n";
+        out << "static void void_Ptr_init(void_Ptr *p) {}\n";
+        out << "static void void_Ptr_deinit(void_Ptr *p) {}\n";
+        out << "static void void_Ptr_copy(void_Ptr *d, const void_Ptr *s) { *d = *s; }\n";
+        out << "static int void_Ptr_compare(const void_Ptr *d, const void_Ptr *s) { return *d == *s ? 0 : *d > *s ? 1 : -1; }\n";
         for (auto s: statements) {
             const TypeDeclarationStatement *tds = dynamic_cast<const TypeDeclarationStatement *>(s);
             if (tds != nullptr) {
@@ -2291,7 +2332,7 @@ public:
         for (auto s: statements) {
             s->generate_def(context);
         }
-        context.out << "int main(int argc, const char *argv[]) {\n";
+        context.out << "int " << cident(program->module_name) << "__main(int argc, const char *argv[]) {\n";
         context.out << "Ne_sys__init(argc, argv);\n";
         std::string handler_label = context.push_handler();
         for (size_t s = 0; s < program->frame->getCount(); s++) {
@@ -2318,6 +2359,11 @@ public:
             }
         }
         context.out << "return 0;\n}\n";
+        if (options.find("main") != options.end()) {
+            context.out << "int main(int argc, const char *argv[]) {\n";
+            context.out << "return " << cident(program->module_name) << "__main(argc, argv);\n";
+            context.out << "}\n";
+        }
         std::vector<unsigned char> src;
         std::string t = out.str();
         std::copy(t.begin(), t.end(), std::back_inserter(src));
