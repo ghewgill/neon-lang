@@ -97,5 +97,9 @@ void CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
 void CompilerSupport::writeOutput(const std::string &name, const std::vector<unsigned char> &content)
 {
     std::ofstream f(name, std::ios::binary);
+    if (not f) {
+        printf("Could not create output file: %s\n", name.c_str());
+        exit(1);
+    }
     f.write(reinterpret_cast<const char *>(content.data()), content.size());
 }
