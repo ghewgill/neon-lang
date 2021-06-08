@@ -12,11 +12,11 @@
 #include "pt_dump.h"
 #include "support.h"
 
-extern void compile_cli(CompilerSupport *support, const ast::Program *);
-extern void compile_c(CompilerSupport *support, const ast::Program *);
-extern void compile_cpp(CompilerSupport *support, const ast::Program *);
-extern void compile_js(CompilerSupport *support, const ast::Program *);
-extern void compile_jvm(CompilerSupport *support, const ast::Program *);
+extern void compile_cli(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
+extern void compile_c(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
+extern void compile_cpp(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
+extern void compile_js(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
+extern void compile_jvm(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
 
 struct {
     std::string name;
@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     bool error_json = false;
     std::string target;
     CompileProc target_proc = nullptr;
+    std::map<std::string, std::string> options;
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
@@ -84,6 +85,18 @@ int main(int argc, char *argv[])
                     std::cerr << "Unknown target: " << target << "\n";
                     exit(1);
                 }
+            }
+        } else if (arg == "-T") {
+            a++;
+            if (a >= argc) {
+                std::cerr << "Missing target option\n";
+                exit(1);
+            }
+            const char *eq = strchr(argv[a], '=');
+            if (eq != nullptr) {
+                options[std::string(argv[a], eq-argv[a])] = std::string(eq+1);
+            } else {
+                options[argv[a]] = "";
             }
         } else {
             fprintf(stderr, "Unknown option: %s\n", arg.c_str());
@@ -149,7 +162,7 @@ int main(int argc, char *argv[])
                     outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
                 }
             } else {
-                target_proc(&compiler_support, ast);
+                target_proc(&compiler_support, ast, options);
             }
 
         } catch (CompilerError *error) {

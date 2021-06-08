@@ -2488,7 +2488,7 @@ Statement *transform(const ast::Statement *s)
 
 } // namespace cpp
 
-void compile_cpp(CompilerSupport *support, const ast::Program *p)
+void compile_cpp(CompilerSupport *support, const ast::Program *p, std::map<std::string, std::string> /*options*/)
 {
     cpp::g_type_cache.clear();
     cpp::g_variable_cache.clear();

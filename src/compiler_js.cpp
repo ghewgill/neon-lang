@@ -2531,7 +2531,7 @@ Statement *transform(const ast::Statement *s)
 
 } // namespace js
 
-void compile_js(CompilerSupport *support, const ast::Program *p)
+void compile_js(CompilerSupport *support, const ast::Program *p, std::map<std::string, std::string> /*options*/)
 {
     js::g_type_cache.clear();
     js::g_variable_cache.clear();

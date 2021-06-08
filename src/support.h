@@ -2,13 +2,14 @@
 #define SUPPORT_H
 
 #include <string>
+#include <map>
 #include <vector>
 
 class Bytecode;
 class CompilerSupport;
 namespace ast { class Program; }
 
-typedef void (*CompileProc)(CompilerSupport *support, const ast::Program *);
+typedef void (*CompileProc)(CompilerSupport *support, const ast::Program *, std::map<std::string, std::string> options);
 
 class ICompilerSupport {
 public:

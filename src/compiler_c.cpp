@@ -2240,7 +2240,7 @@ public:
 
 class Program {
 public:
-    Program(CompilerSupport *support, const ast::Program *program): support(support), program(program), statements() {
+    Program(CompilerSupport *support, const ast::Program *program, std::map<std::string, std::string> options): support(support), program(program), options(options), statements() {
         for (auto s: program->statements) {
             statements.push_back(transform(s));
         }
@@ -2250,6 +2250,7 @@ public:
     virtual ~Program() {}
     CompilerSupport *support;
     const ast::Program *program;
+    std::map<std::string, std::string> options;
     std::vector<const Statement *> statements;
 
     virtual void generate() const {
@@ -2953,13 +2954,13 @@ std::string Context::handler_label()
 
 } // namespace c
 
-void compile_c(CompilerSupport *support, const ast::Program *p)
+void compile_c(CompilerSupport *support, const ast::Program *p, std::map<std::string, std::string> options)
 {
     c::g_type_cache.clear();
     c::g_variable_cache.clear();
     c::g_expression_cache.clear();
     c::g_statement_cache.clear();
 
-    c::Program *ct = new c::Program(support, p);
+    c::Program *ct = new c::Program(support, p, options);
     ct->generate();
 }
