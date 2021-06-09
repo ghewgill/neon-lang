@@ -289,12 +289,57 @@ int Ne_Bytes_compare(const Ne_Bytes *a, const Ne_Bytes *b)
     return 0;
 }
 
+Ne_Exception *Ne_Bytes_index(Ne_Number *dest, const Ne_Bytes *b, const Ne_Number *index)
+{
+    if (index->dval != trunc(index->dval)) {
+        return Ne_Exception_raise("BytesIndexException");
+    }
+    int i = (int)index->dval;
+    if (i < 0 || i >= b->len) {
+        return Ne_Exception_raise("BytesIndexException");
+    }
+    dest->dval = b->data[i];
+    return NULL;
+}
+
+Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number *first, const Ne_Number *last)
+{
+    dest->len = 0;
+    dest->data = NULL;
+    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
+        return Ne_Exception_raise("BytesIndexException");
+    }
+    int f = (int)first->dval;
+    int l = (int)last->dval;
+    if (l < 0 || f >= b->len || f > l) {
+        return NULL;
+    }
+    if (f < 0) {
+        f = 0;
+    }
+    if (l >= b->len) {
+        l = b->len - 1;
+    }
+    dest->len = l - f + 1;
+    dest->data = malloc(dest->len);
+    memcpy(dest->data, b->data + f, dest->len);
+    return NULL;
+}
+
 Ne_Exception *Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b)
 {
     r->data = malloc(a->len + b->len);
     memcpy(r->data, a->data, a->len);
     memcpy(r->data + a->len, b->data, b->len);
     r->len = a->len + b->len;
+    return NULL;
+}
+
+Ne_Exception *Ne_bytes__decodeToString(Ne_String *r, const Ne_Bytes *bytes)
+{
+    r->ptr = malloc(bytes->len);
+    memcpy(r->ptr, bytes->data, bytes->len);
+    r->len = bytes->len;
     return NULL;
 }
 

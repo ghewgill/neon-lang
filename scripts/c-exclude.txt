@@ -12,10 +12,7 @@ assert-multiline.neon           # exception info
 assignment.neon                 # pointer
 bigint.neon                     # bigint
 binary-test.neon                # module binary
-bytes-embed.neon                # bytes__decodeToString
-bytes-index.neon                # BytesReferenceIndexExpression
-bytes-slice.neon                # BytesReferenceRangeIndexExpression
-bytes-value-index.neon          # BytesValueRangeIndexExpression
+bytes-slice.neon                # bytes slice assignment
 cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # valid pointer
 check.neon                      # FOR index
@@ -38,9 +35,9 @@ file-filecopied2.neon           # Ne_file_delete
 file-filecopied3.neon           # Ne_file_delete
 file-filecopied.neon            # Ne_file_delete
 file-linelength.neon            # Ne_file_writeLines
-file-symlink.neon               # Ne_Bytes
+file-symlink.neon               # module file
 file-test.neon                  # ChainedComparisonExpression
-file-writebytes.neon            # Ne_Bytes
+file-writebytes.neon            # module file
 file-writelines.neon            # Ne_file_writeLines
 foreach.neon                    # double free
 format.neon                     # format
@@ -129,7 +126,7 @@ sqlite-test.neon                # module sql
 sql-query.neon                  # module sql
 sql-whenever.neon               # module sql
 stack-overflow.neon             # clang infinite recursion warning
-string-bytes.neon               # bytes__decodeToString
+string-bytes.neon               # utf8
 string-escape.neon              # hex escape sequence out of range
 string-format.neon              # module string
 string-in.neon                  # TryExpression
