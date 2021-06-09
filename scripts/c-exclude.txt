@@ -17,16 +17,11 @@ bytes-embed.neon                # StringValueRangeIndexExpression
 bytes-index.neon                # BytesReferenceIndexExpression
 bytes-slice.neon                # BytesReferenceRangeIndexExpression
 bytes-value-index.neon          # BytesValueRangeIndexExpression
-case3.neon                      # CASE statement
-case-jumptbl.neon               # CASE statement
-case.neon                       # CASE statement
-case-overlap.neon               # CASE statement
 cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # valid pointer
 check.neon                      # FOR index
 comparison2.neon                # ChainedComparisonExpression
 complex-test.neon               # module
-const-string.neon               # CASE statement
 datetime-test.neon              # module
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
@@ -73,7 +68,6 @@ interface-parameter-import.neon # InterfacePointerConstructor
 intrinsic.neon                  # StringReferenceIndexExpression
 io-test.neon                    # io$stdout
 json-test.neon                  # ExpressionTransformer
-lexical-scope.neon              # CASE statement
 literal-array.neon              # Ne_Array_range
 literal-method.neon             # Ne_Bytes
 loop-label.neon                 # EXIT statement
@@ -101,7 +95,7 @@ new-init.neon                   # pointers
 next-for.neon                   # FOR statement
 number-ceil.neon                # module
 number-exception.neon           # number
-object-isa-case.neon            # CASE statement
+object-isa-case.neon            # ISA
 object-isa-inconvertible.neon   # ExpressionTransformer
 object-isa.neon                 # ExpressionTransformer
 object.neon                     # ExpressionTransformer
@@ -134,7 +128,6 @@ random-test.neon                # Ne_Bytes
 record-private.neon             # methods
 recursion-limit.neon            # module runtime
 repl_import.neon                # module random
-return-case2.neon               # CASE statement
 return-try.neon                 # exception
 retval-index.neon               # StringValueIndexExpression
 rtl.neon                        # Ne_num
@@ -169,7 +162,6 @@ try-expression.neon             # TryExpression
 type-compat.neon                # Ne_Array_init_copy
 unicode-char.neon               # StringReferenceIndexExpression
 unicode-length.neon             # StringReferenceIndexExpression
-uninitialised-case.neon         # CASE statement
 uninitialised-out.neon          # OUT
 valid-pointer.neon              # refcount
 varargs.neon                    # return

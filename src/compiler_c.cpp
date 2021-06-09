@@ -1829,7 +1829,8 @@ public:
         WhenCondition(const WhenCondition &) = delete;
         WhenCondition &operator=(const WhenCondition &) = delete;
         virtual ~WhenCondition() {}
-        virtual void generate(Context &context, const Expression *value) const = 0;
+        virtual std::vector<std::string> generate_constant(Context &context) const = 0;
+        virtual void generate(Context &context, std::string exprname, std::vector<std::string> constnames) const = 0;
     };
     class ComparisonWhenCondition: public WhenCondition {
     public:
@@ -1838,8 +1839,11 @@ public:
         ComparisonWhenCondition &operator=(const ComparisonWhenCondition &) = delete;
         ast::ComparisonExpression::Comparison comp;
         const Expression *expr;
-        virtual void generate(Context &context, const Expression *value) const override {
-            value->generate(context);
+        virtual std::vector<std::string> generate_constant(Context &context) const override {
+            return {expr->generate(context)};
+        }
+        virtual void generate(Context &context, std::string exprname, std::vector<std::string> constnames) const override {
+            context.out << expr->type->name << "_compare(&" << exprname << ",&" << constnames[0] << ")";
             switch (comp) {
                 case ast::ComparisonExpression::Comparison::EQ: context.out << " == "; break;
                 case ast::ComparisonExpression::Comparison::NE: context.out << " != "; break;
@@ -1848,7 +1852,7 @@ public:
                 case ast::ComparisonExpression::Comparison::LE: context.out << " <= "; break;
                 case ast::ComparisonExpression::Comparison::GE: context.out << " >= "; break;
             }
-            expr->generate(context);
+            context.out << "0";
         }
     };
     class RangeWhenCondition: public WhenCondition {
@@ -1858,14 +1862,11 @@ public:
         RangeWhenCondition &operator=(const RangeWhenCondition &) = delete;
         const Expression *low_expr;
         const Expression *high_expr;
-        virtual void generate(Context &context, const Expression *value) const override {
-            value->generate(context);
-            context.out << " >= ";
-            low_expr->generate(context);
-            context.out << " && ";
-            value->generate(context);
-            context.out << " <= ";
-            high_expr->generate(context);
+        virtual std::vector<std::string> generate_constant(Context &context) const override {
+            return {low_expr->generate(context), high_expr->generate(context)};
+        }
+        virtual void generate(Context &context, std::string exprname, std::vector<std::string> constnames) const override {
+            context.out << "(" << low_expr->type->name << "_compare(&" << exprname << ",&" << constnames[0] << ") >= 0 && " << high_expr->type->name << "_compare(&" << exprname << ",&" << constnames[1] << ") <= 0)";
         }
     };
     explicit CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
@@ -1896,31 +1897,42 @@ public:
     std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
 
     virtual void generate_statement(Context &context) const override {
-        bool first_clause = true;
-        for (auto c: clauses) {
-            if (first_clause) {
-                first_clause = false;
+        context.push_scope();
+        std::string exprname = expr->generate(context);
+        int nest = 1;
+        bool firstclause = true;
+        for (auto &c: clauses) {
+            if (firstclause) {
+                firstclause = false;
             } else {
-                context.out << " else ";
+                context.out << "else\n";
+                context.push_scope();
+                nest++;
             }
             if (not c.first.empty()) {
+                std::vector<std::vector<std::string>> names;
+                for (auto cond: c.first) {
+                    names.push_back(cond->generate_constant(context));
+                }
                 context.out << "if (";
-                bool first_condition = true;
-                for (auto w: c.first) {
-                    if (first_condition) {
-                        first_condition = false;
-                    } else {
+                int i = 0;
+                for (auto cond: c.first) {
+                    if (i > 0) {
                         context.out << " || ";
                     }
-                    w->generate(context, expr);
+                    cond->generate(context, exprname, names[i]);
+                    i++;
                 }
-                context.out << ")";
+                context.out << ")\n";
             }
-            context.out << "{";
+            context.push_scope();
             for (auto s: c.second) {
                 s->generate(context);
             }
-            context.out << "}";
+            context.pop_scope();
+        }
+        while (nest-- > 0) {
+            context.pop_scope();
         }
     }
 };
