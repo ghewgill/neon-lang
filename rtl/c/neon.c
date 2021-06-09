@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -759,6 +760,14 @@ Ne_Exception *Ne_string__length(Ne_Number *result, const Ne_String *str)
     return NULL;
 }
 
+Ne_Exception *Ne_string__toBytes(Ne_Bytes *result, const Ne_String *str)
+{
+    result->data = malloc(str->len);
+    memcpy(result->data, str->ptr, str->len);
+    result->len = str->len;
+    return NULL;
+}
+
 Ne_Exception *Ne_Exception_raise(const char *name)
 {
     Ne_Exception_current.name = name;
@@ -798,6 +807,22 @@ Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Num
 Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x)
 {
     result->dval = trunc(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_random_bytes(Ne_Bytes *result, const Ne_Number *n)
+{
+    result->len = (int)n->dval;
+    result->data = malloc(result->len);
+    for (int i = 0; i < result->len; i++) {
+        result->data[i] = (unsigned char)rand();
+    }
+    return NULL;
+}
+
+Ne_Exception *Ne_random_uint32(Ne_Number *result)
+{
+    result->dval = (uint32_t)rand();
     return NULL;
 }
 

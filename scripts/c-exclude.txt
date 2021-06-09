@@ -66,7 +66,6 @@ interface-parameter-import.neon # InterfacePointerConstructor
 io-test.neon                    # io$stdout
 json-test.neon                  # ExpressionTransformer
 literal-array.neon              # Ne_Array_range
-literal-method.neon             # Ne_Bytes
 loop-label.neon                 # EXIT statement
 math-test.neon                  # module math
 mkdir.neon                      # ExceptionType
@@ -118,9 +117,7 @@ pointer-nil.neon                # pointers
 posix-fork.neon                 # module posix
 predeclare1.neon                # ExpressionTransformer
 print-object.neon               # ExpressionTransformer
-random-test.neon                # Ne_Bytes
 recursion-limit.neon            # module runtime
-repl_import.neon                # module random
 return-try.neon                 # exception
 rtl.neon                        # Ne_num
 runtime-test.neon               # module runtime
@@ -143,7 +140,7 @@ strings.neon                    # segfault
 string-test.neon                # module string
 struct-test.neon                # ExpressionTransformer
 sys-exit.neon                   # ExceptionType
-textio-random.neon              # module random
+textio-random.neon              # module textio
 textio-seek.neon                # DummyExpression
 textio-test.neon                # module textio
 time-stopwatch.neon             # module time

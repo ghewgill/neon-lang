@@ -137,6 +137,7 @@ Ne_Exception *Ne_str(Ne_String *result, const Ne_Number *n);
 Ne_Exception *Ne_string__append(Ne_String *dest, const Ne_String *s);
 Ne_Exception *Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b);
 Ne_Exception *Ne_string__length(Ne_Number *result, const Ne_String *str);
+Ne_Exception *Ne_string__toBytes(Ne_Bytes *result, const Ne_String *str);
 Ne_Exception *Ne_Exception_raise(const char *name);
 int Ne_Exception_trap(const char *name);
 Ne_Exception *Ne_Exception_propagate();
@@ -145,6 +146,9 @@ void Ne_Exception_unhandled();
 Ne_Exception *Ne_math_floor(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Number *y);
 Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x);
+
+Ne_Exception *Ne_random_bytes(Ne_Bytes *result, const Ne_Number *n);
+Ne_Exception *Ne_random_uint32(Ne_Number *result);
 
 Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t);
 Ne_Exception *Ne_string_fromCodePoint(Ne_String *result, const Ne_Number *n);
