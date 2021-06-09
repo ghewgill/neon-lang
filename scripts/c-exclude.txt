@@ -13,7 +13,7 @@ assignment.neon                 # pointer
 base-test.neon                  # module
 bigint.neon                     # bigint
 binary-test.neon                # module binary
-bytes-embed.neon                # StringValueRangeIndexExpression
+bytes-embed.neon                # bytes__decodeToString
 bytes-index.neon                # BytesReferenceIndexExpression
 bytes-slice.neon                # BytesReferenceRangeIndexExpression
 bytes-value-index.neon          # BytesValueRangeIndexExpression
@@ -44,7 +44,6 @@ file-test.neon                  # ChainedComparisonExpression
 file-writebytes.neon            # Ne_Bytes
 file-writelines.neon            # Ne_file_writeLines
 foreach.neon                    # double free
-foreach-string.neon             # StringValueRangeIndexExpression
 format.neon                     # module
 function-pointer.neon           # segfault
 function-pointer-nowhere.neon   # Ne_FunctionPointer
@@ -65,7 +64,6 @@ interface-parameter-export2.neon # InterfaceMethodExpression
 interface-parameter-export.neon # InterfaceMethodExpression
 interface-parameter-import2.neon # InterfacePointerConstructor
 interface-parameter-import.neon # InterfacePointerConstructor
-intrinsic.neon                  # StringReferenceIndexExpression
 io-test.neon                    # io$stdout
 json-test.neon                  # ExpressionTransformer
 literal-array.neon              # Ne_Array_range
@@ -112,7 +110,7 @@ outer.neon                      # outer
 outer-parameter.neon            # outer
 outer-tail.neon                 # outer
 parameter-out-array.neon        # ArrayReferenceRangeExpression
-parameter-out-string.neon       # StringReferenceRangeIndexExpression
+parameter-out-string.neon       # OUT
 parameters-ignore.neon          # DummyExpression
 parameters.neon                 # OUT
 pointer2.neon                   # pointers
@@ -129,7 +127,6 @@ record-private.neon             # methods
 recursion-limit.neon            # module runtime
 repl_import.neon                # module random
 return-try.neon                 # exception
-retval-index.neon               # StringValueIndexExpression
 rtl.neon                        # Ne_num
 runtime-test.neon               # module runtime
 sql-connect.neon                # module sql
@@ -140,14 +137,14 @@ sqlite-test.neon                # module sql
 sql-query.neon                  # module sql
 sql-whenever.neon               # module sql
 stack-overflow.neon             # clang infinite recursion warning
-string-bytes.neon               # StringReferenceIndexExpression
-string-escape.neon              # StringReferenceIndexExpression
+string-bytes.neon               # bytes__decodeToString
+string-escape.neon              # hex escape sequence out of range
 string-format.neon              # module string
 string-in.neon                  # TryExpression
-string-index.neon               # StringValueIndexExpression
-string-multiline.neon           # StringReferenceIndexExpression
-string-slice.neon               # StringReferenceIndexExpression
-strings.neon                    # StringReferenceIndexExpression
+string-index.neon               # exception
+string-multiline.neon           # hex escape sequence out of range
+string-slice.neon               # segfault
+strings.neon                    # segfault
 string-test.neon                # module string
 struct-test.neon                # ExpressionTransformer
 sys-exit.neon                   # ExceptionType
@@ -160,8 +157,8 @@ tostring.neon                   # enum
 tostring-quotes.neon            # ExpressionTransformer
 try-expression.neon             # TryExpression
 type-compat.neon                # Ne_Array_init_copy
-unicode-char.neon               # StringReferenceIndexExpression
-unicode-length.neon             # StringReferenceIndexExpression
+unicode-char.neon               # utf8
+unicode-length.neon             # utf8
 uninitialised-out.neon          # OUT
 valid-pointer.neon              # refcount
 varargs.neon                    # return

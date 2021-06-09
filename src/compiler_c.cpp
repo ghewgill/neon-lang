@@ -1018,8 +1018,23 @@ public:
     const ast::ChainedComparisonExpression *cce;
     std::vector<const ComparisonExpression *> comps;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ChainedComparisonExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
+        // TODO: only generate intermediate operands once
+        //std::string leftname = comps[0]->left->generate(context);
+        for (auto c: comps) {
+            //std::string rightname = c->right->generate(context);
+            std::string r = c->generate(context);
+            context.out << result << " = " << r << ";\n";
+            context.out << "if (" << r << ")\n";
+            context.push_scope();
+        }
+        for (size_t i = 0; i < comps.size(); i++) {
+            context.pop_scope();
+        }
+        context.pop_scope();
+        return result;
     }
 };
 
@@ -1421,8 +1436,14 @@ public:
     const Expression *ref;
     const Expression *index;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("StringReferenceIndexExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string refname = ref->generate(context);
+        std::string indexname = index->generate(context);
+        context.out << "if (Ne_String_index(&" << result << ",&" << refname << ",&" << indexname << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+        return result;
     }
 };
 
@@ -1435,8 +1456,14 @@ public:
     const Expression *str;
     const Expression *index;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("StringValueIndexExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string strname = str->generate(context);
+        std::string indexname = index->generate(context);
+        context.out << "if (Ne_String_index(&" << result << ",&" << strname << ",&" << indexname << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+        return result;
     }
 };
 
@@ -1450,8 +1477,15 @@ public:
     const Expression *first;
     const Expression *last;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("StringReferenceRangeIndexExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string refname = ref->generate(context);
+        std::string firstname = first->generate(context);
+        std::string lastname = last->generate(context);
+        context.out << "if (Ne_String_range(&" << result << ",&" << refname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+        return result;
     }
 };
 
@@ -1465,8 +1499,15 @@ public:
     const Expression *first;
     const Expression *last;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("StringValueRangeIndexExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string strname = str->generate(context);
+        std::string firstname = first->generate(context);
+        std::string lastname = last->generate(context);
+        context.out << "if (Ne_String_range(&" << result << ",&" << strname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+        return result;
     }
 };
 

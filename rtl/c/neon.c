@@ -22,6 +22,16 @@ const MethodTable Ne_String_mtable = {
 
 static Ne_Exception Ne_Exception_current;
 
+static const char *Ne_String_null_terminate(const Ne_String *s)
+{
+    // Remove 'const' qualifier.
+    Ne_String *t = (Ne_String *)s;
+    t->ptr = realloc(t->ptr, t->len + 1);
+    t->ptr[t->len] = 0;
+    // Return normal 'char *' instead of 'unsigned char *'.
+    return (const char *)t->ptr;
+}
+
 void Ne_Boolean_init(Ne_Boolean *bool)
 {
     *bool = 0;
@@ -153,6 +163,22 @@ int Ne_String_compare(const Ne_String *a, const Ne_String *b)
         return -1;
     }
     return 0;
+}
+
+Ne_Exception *Ne_String_index(Ne_String *dest, const Ne_String *s, const Ne_Number *index)
+{
+    dest->ptr = malloc(1);
+    *dest->ptr = s->ptr[(int)index->dval];
+    dest->len = 1;
+    return NULL;
+}
+
+Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Number *first, const Ne_Number *last)
+{
+    dest->len = (int)last->dval - (int)first->dval + 1;
+    dest->ptr = malloc(dest->len);
+    memcpy(dest->ptr, s->ptr + (int)first->dval, dest->len);
+    return NULL;
 }
 
 Ne_Exception *Ne_Number_add(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
@@ -658,6 +684,13 @@ Ne_Exception *Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
     return NULL;
 }
 
+Ne_Exception *Ne_num(Ne_Number *result, const Ne_String *s)
+{
+    const char *t = Ne_String_null_terminate(s);
+    result->dval = atof(t);
+    return NULL;
+}
+
 Ne_Exception *Ne_number__toString(Ne_String *result, const Ne_Number *n)
 {
     char buf[20];
@@ -747,6 +780,55 @@ void Ne_Exception_unhandled()
     fprintf(stderr, "Unhandled exception %s\n", Ne_Exception_current.name);
     exit(1);
 }
+
+Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Number *y)
+{
+    result->dval = trunc(x->dval / y->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t)
+{
+    if (s->len < t->len) {
+        result->dval = -1;
+        return NULL;
+    }
+    int i = 0;
+    while (i <= s->len - t->len) {
+        int j = 0;
+        while (j < t->len && s->ptr[i] == t->ptr[j]) {
+            j++;
+        }
+        if (j >= t->len) {
+            result->dval = i;
+            return NULL;
+        }
+        i++;
+    }
+    result->dval = -1;
+    return NULL;
+}
+
+Ne_Exception *Ne_string_fromCodePoint(Ne_String *result, const Ne_Number *n)
+{
+    result->ptr = malloc(1);
+    *result->ptr = (unsigned char)n->dval;
+    result->len = 1;
+    return NULL;
+}
+
+Ne_Exception *Ne_string_toCodePoint(Ne_Number *result, const Ne_String *s)
+{
+    result->dval = s->ptr[0];
+    return NULL;
+}
+
+Ne_Exception *Ne_string_trimCharacters(Ne_String *result, const Ne_String *s, const Ne_String *trimLeadingChars, const Ne_String *trimTrailingChars)
+{
+    Ne_String_init_copy(result, s);
+    return NULL;
+}
+
 
 Ne_Array sys$args;
 

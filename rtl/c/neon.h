@@ -86,6 +86,8 @@ void Ne_String_destructor(Ne_String *str);
 void Ne_String_copy(Ne_String *dest, const Ne_String *src);
 void Ne_String_deinit(Ne_String *str);
 int Ne_String_compare(const Ne_String *a, const Ne_String *b);
+Ne_Exception *Ne_String_index(Ne_String *dest, const Ne_String *s, const Ne_Number *index);
+Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Number *first, const Ne_Number *last);
 void Ne_Bytes_init(Ne_Bytes *bytes);
 void Ne_Bytes_init_literal(Ne_Bytes *bytes, const unsigned char *data, int len);
 void Ne_Bytes_deinit(Ne_Bytes *bytes);
@@ -119,6 +121,7 @@ void Ne_Dictionary_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
 void Ne_Dictionary_deinit(Ne_Dictionary *d);
 Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index);
 Ne_Exception *Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d);
+Ne_Exception *Ne_num(Ne_Number *result, const Ne_String *s);
 Ne_Exception *Ne_number__toString(Ne_String *result, const Ne_Number *n);
 void Ne_Object_init(Ne_Object *obj);
 void Ne_Object_init_copy(Ne_Object *dest, const Ne_Object *src);
@@ -138,6 +141,13 @@ Ne_Exception *Ne_Exception_raise(const char *name);
 int Ne_Exception_trap(const char *name);
 Ne_Exception *Ne_Exception_propagate();
 void Ne_Exception_unhandled();
+
+Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Number *y);
+
+Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t);
+Ne_Exception *Ne_string_fromCodePoint(Ne_String *result, const Ne_Number *n);
+Ne_Exception *Ne_string_toCodePoint(Ne_Number *result, const Ne_String *s);
+Ne_Exception *Ne_string_trimCharacters(Ne_String *result, const Ne_String *s, const Ne_String *trimLeadingChars, const Ne_String *trimTrailingChars);
 
 extern Ne_Array sys$args;
 void Ne_sys__init(int argc, const char *argv[]);
