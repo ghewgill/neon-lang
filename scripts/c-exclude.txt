@@ -10,7 +10,6 @@ array-tostring.neon             # Ne_array__toString_string
 assert-enum.neon                # enum.toString
 assert-multiline.neon           # exception info
 assignment.neon                 # pointer
-base-test.neon                  # module
 bigint.neon                     # bigint
 binary-test.neon                # module binary
 bytes-embed.neon                # bytes__decodeToString
@@ -21,12 +20,12 @@ cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # valid pointer
 check.neon                      # FOR index
 comparison2.neon                # ChainedComparisonExpression
-complex-test.neon               # module
-datetime-test.neon              # module
+complex-test.neon               # methods
+datetime-test.neon              # methods
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 dictionary.neon                 # DictionaryInExpression
-encoding-base64.neon            # module
+encoding-base64.neon            # keywords
 enum.neon                       # enum.toString
 equality.neon                   # function pointer
 exception-as.neon               # ExceptionType
@@ -44,7 +43,7 @@ file-test.neon                  # ChainedComparisonExpression
 file-writebytes.neon            # Ne_Bytes
 file-writelines.neon            # Ne_file_writeLines
 foreach.neon                    # double free
-format.neon                     # module
+format.neon                     # format
 function-pointer.neon           # segfault
 function-pointer-nowhere.neon   # Ne_FunctionPointer
 gc1.neon                        # gc
@@ -54,7 +53,7 @@ gc-array.neon                   # gc
 gc-long-chain.neon              # gc
 gc-two-pointers.neon            # gc
 import.neon                     # InterfacePointerConstructor
-import-optional.neon            # module
+import-optional.neon            # module runtime
 import-string.neon              # segfault
 in.neon                         # DictionaryInExpression
 intdiv.neon                     # Ne_math_intdiv
@@ -69,29 +68,29 @@ json-test.neon                  # ExpressionTransformer
 literal-array.neon              # Ne_Array_range
 literal-method.neon             # Ne_Bytes
 loop-label.neon                 # EXIT statement
-math-test.neon                  # module
+math-test.neon                  # module math
 methods-declare.neon            # methods
 methods.neon                    # methods
 mkdir.neon                      # ExceptionType
-mmap-test.neon                  # module
-module2.neon                    # module
-module-alias2.neon              # module
-module-alias.neon               # module
-module-import-name2.neon        # module
-module-import-name-alias2.neon  # module
-module-import-name-alias.neon   # module
-module-import-name.neon         # module
-module-load-order.neon          # module
-module.neon                     # module
+mmap-test.neon                  # module mmap
+module2.neon                    # module search path
+module-alias2.neon              # module search path
+module-alias.neon               # module math
+module-import-name2.neon        # import
+module-import-name-alias2.neon  # import
+module-import-name-alias.neon   # module math
+module-import-name.neon         # module math
+module-load-order.neon          # import
+module.neon                     # function pointer
 modulo.neon                     # modulo
-multiarray-test.neon            # module
+multiarray-test.neon            # Ne_Array_mtable
 nested-substitution.neon        # dictionary
-net-test.neon                   # module
-net-test-udp.neon               # module
-new-init-module.neon            # module
+net-test.neon                   # module net
+net-test-udp.neon               # module net
+new-init-module.neon            # module search path
 new-init.neon                   # pointers
 next-for.neon                   # FOR statement
-number-ceil.neon                # module
+number-ceil.neon                # module math
 number-exception.neon           # number
 object-isa-case.neon            # ISA
 object-isa-inconvertible.neon   # ExpressionTransformer

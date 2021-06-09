@@ -143,9 +143,11 @@ Ne_Exception *Ne_Exception_propagate();
 void Ne_Exception_unhandled();
 
 Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Number *y);
+Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x);
 
 Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t);
 Ne_Exception *Ne_string_fromCodePoint(Ne_String *result, const Ne_Number *n);
+Ne_Exception *Ne_string_lower(Ne_String *result, const Ne_String *s);
 Ne_Exception *Ne_string_toCodePoint(Ne_Number *result, const Ne_String *s);
 Ne_Exception *Ne_string_trimCharacters(Ne_String *result, const Ne_String *s, const Ne_String *trimLeadingChars, const Ne_String *trimTrailingChars);
 

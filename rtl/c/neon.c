@@ -1,6 +1,7 @@
 #include "neon.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -787,6 +788,12 @@ Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Num
     return NULL;
 }
 
+Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = trunc(x->dval);
+    return NULL;
+}
+
 Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t)
 {
     if (s->len < t->len) {
@@ -814,6 +821,16 @@ Ne_Exception *Ne_string_fromCodePoint(Ne_String *result, const Ne_Number *n)
     result->ptr = malloc(1);
     *result->ptr = (unsigned char)n->dval;
     result->len = 1;
+    return NULL;
+}
+
+Ne_Exception *Ne_string_lower(Ne_String *result, const Ne_String *s)
+{
+    result->ptr = malloc(s->len);
+    for (int i = 0; i < s->len; i++) {
+        result->ptr[i] = tolower(s->ptr[i]);
+    }
+    result->len = s->len;
     return NULL;
 }
 
