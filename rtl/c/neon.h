@@ -142,6 +142,7 @@ int Ne_Exception_trap(const char *name);
 Ne_Exception *Ne_Exception_propagate();
 void Ne_Exception_unhandled();
 
+Ne_Exception *Ne_math_floor(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Number *y);
 Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x);
 
@@ -157,3 +158,6 @@ Ne_Exception *Ne_sys_exit(const Ne_Number *n);
 
 extern void *textio$stderr;
 Ne_Exception *Ne_textio_writeLine(void *f, const Ne_String *s);
+
+Ne_Exception *Ne_time_now(Ne_Number *result);
+Ne_Exception *Ne_time_tick(Ne_Number *result);

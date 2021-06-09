@@ -164,6 +164,9 @@ FUNCTION findSource(module: String): String
     IF file.exists("lib/\(module).neon") THEN
         RETURN "lib/\(module).neon"
     END IF
+    IF file.exists("lib/\(module)/\(module).neon") THEN
+        RETURN "lib/\(module)/\(module).neon"
+    END IF
     textio.writeLine(textio.stderr, "Could not find module: \(module)")
     sys.exit(1)
     RETURN ""

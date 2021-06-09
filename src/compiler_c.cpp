@@ -2202,7 +2202,7 @@ public:
 
     std::string generate_header(Context &context) const {
         std::stringstream out;
-        out << "Ne_Exception *" << cident(context.module_name) << "__" << f->name << "(";
+        out << "Ne_Exception *" << cident(context.module_name) << "__" << cident(f->name) << "(";
         bool first = true;
         auto returntype = dynamic_cast<const ast::TypeFunction *>(f->type)->returntype;
         if (returntype != ast::TYPE_NOTHING) {
@@ -2251,7 +2251,7 @@ public:
     virtual void generate_init(Context &) const override { internal_error("Function"); }
     virtual void generate_deinit(Context &) const override { internal_error("Function"); }
     virtual std::string generate(Context &context) const override {
-        return cident(context.module_name) + "__" + f->name;
+        return cident(context.module_name) + "__" + cident(f->name);
     }
 };
 
@@ -2307,7 +2307,7 @@ public:
     virtual void generate_deinit(Context &) const override { internal_error("ModuleFunction"); }
     std::string generate_header() const {
         std::stringstream out;
-        out << "Ne_Exception *" << mf->module->name << "__" << mf->name << "(";
+        out << "Ne_Exception *" << cident(mf->module->name) << "__" << cident(mf->name) << "(";
         /*bool first = true;
         auto returntype = dynamic_cast<const ast::TypeFunction *>(mf->type)->returntype;
         if (returntype != ast::TYPE_NOTHING) {
@@ -2326,7 +2326,7 @@ public:
         return out.str();
     }
     virtual std::string generate(Context &context) const override {
-        std::string name = mf->module->name + "__" + mf->name;
+        std::string name = cident(mf->module->name) + "__" + cident(mf->name);
         context.out << "extern Ne_Exception *" << name << "();\n";
         return name;
     }

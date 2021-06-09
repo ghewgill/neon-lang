@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 const MethodTable Ne_Number_mtable = {
     .constructor = (void (*)(void **))Ne_Number_constructor,
@@ -782,6 +783,12 @@ void Ne_Exception_unhandled()
     exit(1);
 }
 
+Ne_Exception *Ne_math_floor(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = floor(x->dval);
+    return NULL;
+}
+
 Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Number *y)
 {
     result->dval = trunc(x->dval / y->dval);
@@ -872,5 +879,17 @@ void *textio$stderr;
 Ne_Exception *Ne_textio_writeLine(void *f, const Ne_String *s)
 {
     fprintf(stderr, "%.*s\n", s->len, s->ptr);
+    return NULL;
+}
+
+Ne_Exception *Ne_time_now(Ne_Number *result)
+{
+    result->dval = time(NULL);
+    return NULL;
+}
+
+Ne_Exception *Ne_time_tick(Ne_Number *result)
+{
+    result->dval = time(NULL);
     return NULL;
 }
