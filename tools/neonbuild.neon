@@ -6,11 +6,12 @@ IMPORT string
 IMPORT sys
 IMPORT textio
 
-VAR neonc := "neonc"
+VAR neonc := "bin/neonc"
 VAR cc := ""
 VAR cflags := ""
 VAR ccinclude := ""
 VAR ccoutput := ""
+VAR objsuffix := ""
 VAR link := ""
 VAR ldflags := ""
 VAR libs := ""
@@ -39,12 +40,14 @@ BEGIN MAIN
             cflags := "-std=c99 -pedantic -Wall -Werror"
             ccinclude := "-I"
             ccoutput := "-o "
+            objsuffix := ".o"
             libs := "-lm"
             cflags.append(" -Wno-unused-function")
         WHEN os.Platform.win32 DO
             cc := "cl"
             ccinclude := "/I"
             ccoutput := "/Fo"
+            objsuffix := ".obj"
             link := "link"
             ldoutput := "/out:"
             exesuffix := ".exe"
@@ -94,11 +97,11 @@ BEGIN MAIN
     LET exe := string.replaceOne(main, ".neon", "") & exesuffix
     LET tree := NEW Node(
         target WITH exe,
-        command WITH "\(link) \(ldoutput)\(exe) \(string.join(objects, " ")) rtl/c/neon.o \(ldflags) \(libs)",
+        command WITH "\(link) \(ldoutput)\(exe) \(string.join(objects, " ")) rtl/c/neon\(objsuffix) \(ldflags) \(libs)",
         dependencies WITH [
             NEW Node(
                 source WITH "rtl/c/neon.c",
-                target WITH "rtl/c/neon.o",
+                target WITH "rtl/c/neon\(objsuffix)",
                 command WITH "\(cc) -c \(cflags) \(ccinclude)rtl/c \(ccoutput)$TARGET $SOURCE"
             ),
             deps,
@@ -134,7 +137,7 @@ FUNCTION loadDependencyTree(source: String, OUT objects: Array<String>): VALID P
                 neonnode->dependencies.append(scanTree(findSource(m), FALSE))
             END IF
         END FOREACH
-        LET obj := file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", ".o"))
+        LET obj := file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", objsuffix))
         objects.append(obj)
         LET n := NEW Node(
             source WITH file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", ".c")),
