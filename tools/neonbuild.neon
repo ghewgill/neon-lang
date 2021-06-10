@@ -6,7 +6,7 @@ IMPORT string
 IMPORT sys
 IMPORT textio
 
-VAR neonc := "bin/neonc"
+VAR neonc := "neonc"
 VAR cc := ""
 VAR cflags := ""
 VAR ccinclude := ""
@@ -42,7 +42,6 @@ BEGIN MAIN
             libs := "-lm"
             cflags.append(" -Wno-unused-function")
         WHEN os.Platform.win32 DO
-            neonc := "neonc"
             cc := "cl"
             ccinclude := "/I"
             ccoutput := "/Fo"
