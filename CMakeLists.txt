@@ -699,7 +699,7 @@ add_tests("${TESTS}" "" $<TARGET_FILE:neon> "")
 add_tests("${TESTS}" "helium" "python3 tools/helium.py" "tools/helium-exclude.txt")
 if (NOT (WIN32 AND DEFINED ENV{GITHUB_ACTIONS}))
     # TODO: Github Actions does not seem to be able to run the C++ compiler on Windows sensibly.
-    add_tests("${TESTS}" "c" "python3 scripts/run_c.py --neon $<TARGET_FILE:neon>" "scripts/c-exclude.txt")
+    add_tests("${TESTS}" "c" "python3 scripts/run_c.py --neon $<TARGET_FILE:neon> --neonc $<TARGET_FILE:neonc>" "scripts/c-exclude.txt")
     add_tests("${TESTS}" "cpp" "python3 scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "scripts/cpp-exclude.txt")
 endif ()
 if (NODEJS)

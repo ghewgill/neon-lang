@@ -42,7 +42,7 @@ BEGIN MAIN
             libs := "-lm"
             cflags.append(" -Wno-unused-function")
         WHEN os.Platform.win32 DO
-            neonc := "bin/neonc"
+            neonc := "neonc"
             cc := "cl"
             ccinclude := "/I"
             ccoutput := "/Fo"
@@ -61,6 +61,7 @@ BEGIN MAIN
         ldoutput := ccoutput
     END IF
 
+    neonc := replaceIfExists(neonc, os.getenv("NEONC"))
     cc := replaceIfExists(cc, os.getenv("CC"))
     cflags := replaceIfExists(cflags, os.getenv("CFLAGS"))
     link := replaceIfExists(link, os.getenv("LINK"))
