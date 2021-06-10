@@ -229,6 +229,6 @@ FUNCTION exec(node: VALID POINTER TO Node)
     IF r <> 0 THEN
         io.writeBytes(io.stdout, stdout)
         io.writeBytes(io.stderr, stderr)
-        sys.exit(r)
+        sys.exit(1)
     END IF
 END FUNCTION
