@@ -1724,6 +1724,21 @@ public:
     }
 };
 
+class StatementExpression: public Expression {
+public:
+    explicit StatementExpression(const ast::StatementExpression *se): Expression(se), se(se), stmt(transform(se->stmt)), expr(transform(se->expr)) {}
+    StatementExpression(const StatementExpression &) = delete;
+    StatementExpression &operator=(const StatementExpression &) = delete;
+    const ast::StatementExpression *se;
+    const Statement *stmt;
+    const Expression *expr;
+
+    virtual std::string generate(Context &context) const override {
+        stmt->generate(context);
+        return expr->generate(context);
+    }
+};
+
 class NullStatement: public Statement {
 public:
     explicit NullStatement(const ast::NullStatement *ns): Statement(ns), ns(ns) {}
@@ -2762,7 +2777,7 @@ public:
     virtual void visit(const ast::TryExpression *node) { r = new TryExpression(node); }
     virtual void visit(const ast::DisjunctionExpression *node) { r = new DisjunctionExpression(node); }
     virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
-    virtual void visit(const ast::TypeTestExpression *) {}
+    virtual void visit(const ast::TypeTestExpression *) { internal_error("TypeTestExpression"); }
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
     virtual void visit(const ast::DictionaryInExpression *node) { r =  new DictionaryInExpression(node); }
     virtual void visit(const ast::ChainedComparisonExpression *node) { r = new ChainedComparisonExpression(node); }
@@ -2796,7 +2811,7 @@ public:
     virtual void visit(const ast::BytesValueIndexExpression *node) { r = new BytesValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceRangeIndexExpression *node) { r = new BytesReferenceRangeIndexExpression(node); }
     virtual void visit(const ast::BytesValueRangeIndexExpression *node) { r = new BytesValueRangeIndexExpression(node); }
-    virtual void visit(const ast::ObjectSubscriptExpression *) { /* TODO */ }
+    virtual void visit(const ast::ObjectSubscriptExpression *) { internal_error("ObjectSubscriptExpression"); }
     virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
@@ -2808,7 +2823,7 @@ public:
     virtual void visit(const ast::InterfacePointerConstructor *) { internal_error("InterfacePointerConstructor"); }
     virtual void visit(const ast::InterfacePointerDeconstructor *) { internal_error("InterfacePointerDeconstructor"); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
-    virtual void visit(const ast::StatementExpression *) {}
+    virtual void visit(const ast::StatementExpression *node) { r = new StatementExpression(node); }
     virtual void visit(const ast::NullStatement *) {}
     virtual void visit(const ast::TypeDeclarationStatement *) {}
     virtual void visit(const ast::DeclarationStatement *) {}

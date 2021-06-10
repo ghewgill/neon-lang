@@ -61,7 +61,7 @@ interface-parameter-export.neon # InterfaceMethodExpression
 interface-parameter-import2.neon # InterfacePointerConstructor
 interface-parameter-import.neon # InterfacePointerConstructor
 io-test.neon                    # io$stdout
-json-test.neon                  # ExpressionTransformer
+json-test.neon                  # TypeTestExpression
 literal-array.neon              # Ne_Array_range
 loop-label.neon                 # EXIT statement
 math-test.neon                  # module math
@@ -87,15 +87,15 @@ next-for.neon                   # FOR statement
 number-ceil.neon                # module math
 number-exception.neon           # number
 object-isa-case.neon            # ISA
-object-isa-inconvertible.neon   # ExpressionTransformer
-object-isa.neon                 # ExpressionTransformer
-object.neon                     # ExpressionTransformer
-object-native.neon              # ExpressionTransformer
-object-null2.neon               # ExpressionTransformer
+object-isa-inconvertible.neon   # TypeTestExpression
+object-isa.neon                 # TypeTestExpression
+object.neon                     # ObjectSubscriptExpression
+object-native.neon              # ObjectSubscriptExpression
+object-null2.neon               # Ne_Object_mtable
 object-operator.neon            # Ne_object__getNumber
-object-record.neon              # ExpressionTransformer
+object-record.neon              # ObjectSubscriptExpression
 object-record-default.neon      # ConstantNilObject
-object-subscript.neon           # ExpressionTransformer
+object-subscript.neon           # ObjectSubscriptExpression
 opcode-coverage.neon            # InterfacePointerConstructor
 outer2.neon                     # outer
 outer-issue192.neon             # outer
@@ -112,8 +112,8 @@ pointer5.neon                   # pointers
 pointer7.neon                   # pointers
 pointer-nil.neon                # pointers
 posix-fork.neon                 # module posix
-predeclare1.neon                # ExpressionTransformer
-print-object.neon               # ExpressionTransformer
+predeclare1.neon                # Ne_Array_mtable
+print-object.neon               # Ne_Object_mtable
 recursion-limit.neon            # module runtime
 return-try.neon                 # exception
 rtl.neon                        # Ne_num
@@ -135,7 +135,7 @@ string-multiline.neon           # hex escape sequence out of range
 string-slice.neon               # segfault
 strings.neon                    # segfault
 string-test.neon                # module string
-struct-test.neon                # ExpressionTransformer
+struct-test.neon                # DictionaryInExpression
 sys-exit.neon                   # ExceptionType
 textio-random.neon              # module textio
 textio-seek.neon                # DummyExpression
@@ -143,7 +143,7 @@ textio-test.neon                # module textio
 time-stopwatch.neon             # module time
 time-test.neon                  # module time
 tostring.neon                   # enum
-tostring-quotes.neon            # ExpressionTransformer
+tostring-quotes.neon            # keywords
 try-expression.neon             # TryExpression
 type-compat.neon                # Ne_Array_init_copy
 unicode-char.neon               # utf8
