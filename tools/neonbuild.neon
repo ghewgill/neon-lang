@@ -11,8 +11,10 @@ VAR cc := ""
 VAR cflags := ""
 VAR ccinclude := ""
 VAR ccoutput := ""
+VAR link := ""
 VAR ldflags := ""
 VAR libs := ""
+VAR ldoutput := ""
 VAR verbose := FALSE
 
 VAR tempdir: String
@@ -43,13 +45,23 @@ BEGIN MAIN
             cc := "cl"
             ccinclude := "/I"
             ccoutput := "/Fe"
+            link := "link"
+            ldoutput := "/out:"
         WHEN OTHERS DO
             textio.writeLine(textio.stderr, "Unsupported platform: \(os.platform())")
             sys.exit(1)
     END CASE
 
+    IF link = "" THEN
+        link := cc
+    END IF
+    IF ldoutput = "" THEN
+        ldoutput := ccoutput
+    END IF
+
     cc := replaceIfExists(cc, os.getenv("CC"))
     cflags := replaceIfExists(cflags, os.getenv("CFLAGS"))
+    link := replaceIfExists(link, os.getenv("LINK"))
     ldflags := replaceIfExists(ldflags, os.getenv("LDFLAGS"))
     libs := replaceIfExists(libs, os.getenv("LIBS"))
 
@@ -80,7 +92,7 @@ BEGIN MAIN
     LET exe := string.replaceOne(main, ".neon", "")
     LET tree := NEW Node(
         target WITH exe,
-        command WITH "\(cc) \(ccoutput)\(exe) \(string.join(objects, " ")) rtl/c/neon.o \(ldflags) \(libs)",
+        command WITH "\(link) \(ldoutput)\(exe) \(string.join(objects, " ")) rtl/c/neon.o \(ldflags) \(libs)",
         dependencies WITH [
             NEW Node(
                 source WITH "rtl/c/neon.c",
