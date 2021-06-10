@@ -924,16 +924,16 @@ Ne_Exception *Ne_string_trimCharacters(Ne_String *result, const Ne_String *s, co
 }
 
 
-Ne_Array sys$args;
+Ne_Array sys_x24args;
 
 void Ne_sys__init(int argc, const char *argv[])
 {
-    Ne_Array_init(&sys$args, argc, &Ne_String_mtable);
+    Ne_Array_init(&sys_x24args, argc, &Ne_String_mtable);
     for (int i = 0; i < argc; i++) {
         Ne_String s;
         Ne_String_init_literal(&s, argv[i]);
         Ne_String *x;
-        Ne_Array_index_int((void **)&x, &sys$args, i, 0);
+        Ne_Array_index_int((void **)&x, &sys_x24args, i, 0);
         Ne_String_copy(x, &s);
         Ne_String_deinit(&s);
     }
@@ -944,7 +944,7 @@ Ne_Exception *Ne_sys_exit(const Ne_Number *n)
     exit(n->dval);
 }
 
-void *textio$stderr;
+void *textio_x24stderr;
 
 Ne_Exception *Ne_textio_writeLine(void *f, const Ne_String *s)
 {

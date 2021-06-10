@@ -462,7 +462,7 @@ public:
     virtual void generate_init(Context &) const override { internal_error("PredefinedVariable"); }
     virtual void generate_deinit(Context &) const override { internal_error("PredefinedVariable"); }
     virtual std::string generate(Context &) const override {
-        return pv->name;
+        return cident(pv->name);
     }
 };
 
@@ -478,7 +478,7 @@ public:
     virtual void generate_init(Context &) const override { internal_error("ModuleVariable"); }
     virtual void generate_deinit(Context &) const override { internal_error("ModuleVariable"); }
     virtual std::string generate(Context &) const override {
-        return mv->name;
+        return cident(mv->name);
     }
 };
 
@@ -491,16 +491,16 @@ public:
 
     virtual void generate_decl(Context &) const override {}
     virtual void generate_def(Context &context) const override {
-        context.out << type->name << " " << v->name << ";\n";
+        context.out << type->name << " " << cident(v->name) << ";\n";
     }
     virtual void generate_init(Context &context) const override {
-        type->generate_init(context, v->name);
+        type->generate_init(context, cident(v->name));
     }
     virtual void generate_deinit(Context &context) const override {
-        context.out << type->name << "_deinit(&" << v->name << ");\n";
+        context.out << type->name << "_deinit(&" << cident(v->name) << ");\n";
     }
     virtual std::string generate(Context &) const override {
-        return gv->name;
+        return cident(gv->name);
     }
 };
 

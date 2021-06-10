@@ -159,11 +159,11 @@ Ne_Exception *Ne_string_lower(Ne_String *result, const Ne_String *s);
 Ne_Exception *Ne_string_toCodePoint(Ne_Number *result, const Ne_String *s);
 Ne_Exception *Ne_string_trimCharacters(Ne_String *result, const Ne_String *s, const Ne_String *trimLeadingChars, const Ne_String *trimTrailingChars);
 
-extern Ne_Array sys$args;
+extern Ne_Array sys_x24args;
 void Ne_sys__init(int argc, const char *argv[]);
 Ne_Exception *Ne_sys_exit(const Ne_Number *n);
 
-extern void *textio$stderr;
+extern void *textio_x24stderr;
 Ne_Exception *Ne_textio_writeLine(void *f, const Ne_String *s);
 
 Ne_Exception *Ne_time_now(Ne_Number *result);
