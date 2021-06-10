@@ -37,6 +37,7 @@ BEGIN MAIN
             ccinclude := "-I"
             ccoutput := "-o "
             libs := "-lm"
+            cflags.append(" -Wno-unused-function")
         WHEN os.Platform.win32 DO
             neonc := "bin/Debug/neonc"
             cc := "cl"
@@ -46,8 +47,6 @@ BEGIN MAIN
             textio.writeLine(textio.stderr, "Unsupported platform: \(os.platform())")
             sys.exit(1)
     END CASE
-
-    cflags.append(" -Wno-unused-function")
 
     cc := replaceIfExists(cc, os.getenv("CC"))
     cflags := replaceIfExists(cflags, os.getenv("CFLAGS"))
