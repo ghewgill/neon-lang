@@ -15,6 +15,7 @@ VAR link := ""
 VAR ldflags := ""
 VAR libs := ""
 VAR ldoutput := ""
+VAR exesuffix := ""
 VAR verbose := FALSE
 
 VAR tempdir: String
@@ -41,12 +42,13 @@ BEGIN MAIN
             libs := "-lm"
             cflags.append(" -Wno-unused-function")
         WHEN os.Platform.win32 DO
-            neonc := "bin/Debug/neonc"
+            neonc := "bin/neonc"
             cc := "cl"
             ccinclude := "/I"
-            ccoutput := "/Fe"
+            ccoutput := "/Fo"
             link := "link"
             ldoutput := "/out:"
+            exesuffix := ".exe"
         WHEN OTHERS DO
             textio.writeLine(textio.stderr, "Unsupported platform: \(os.platform())")
             sys.exit(1)
@@ -89,7 +91,7 @@ BEGIN MAIN
 
     VAR objects: Array<String> := []
     LET deps := loadDependencyTree(main, OUT objects)
-    LET exe := string.replaceOne(main, ".neon", "")
+    LET exe := string.replaceOne(main, ".neon", "") & exesuffix
     LET tree := NEW Node(
         target WITH exe,
         command WITH "\(link) \(ldoutput)\(exe) \(string.join(objects, " ")) rtl/c/neon.o \(ldflags) \(libs)",
