@@ -147,7 +147,7 @@ private:
     const ast::Exception *resolve_exception(const std::vector<Token> &names);
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches, const ast::Type *expression_match_type);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
-    std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
+    std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, std::string tname, bool for_class);
     const ast::Expression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
 };
 
@@ -1549,7 +1549,7 @@ const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::str
     return new ast::TypeEnum(type->token, module_name, name, names, this);
 }
 
-std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type, bool for_class)
+std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type, std::string tname, bool for_class)
 {
     std::vector<ast::TypeRecord::Field> fields;
     if (for_class) {
@@ -1570,6 +1570,9 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
             t = analyze_record(tr, "", ast::RequireName::no);
         } else {
             t = analyze(x->type.get(), AllowClass::no);
+            if (t->name == tname) {
+                error(3299, x->type->token, "Recursive record declaration not allowed");
+            }
         }
         if (dynamic_cast<const ast::TypeValidPointer *>(t) != nullptr) {
             error(3223, x->type->token, "valid pointer type not permitted as record member");
@@ -1582,13 +1585,13 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
 
 const ast::Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name, ast::RequireName require_name)
 {
-    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type, false);
+    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type, name, false);
     return new ast::TypeRecord(type->token, module_name, name, fields, require_name);
 }
 
 const ast::Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::string &name)
 {
-    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type, true);
+    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type, name, true);
     std::vector<const ast::Interface *> interfaces;
     for (auto i: type->interfaces) {
         ast::Scope *s = scope.top();
@@ -3381,6 +3384,8 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         scope.top()->addName(declaration->token, name, actual_class);
     } else if (recdecl != nullptr) {
         // Support recursive record type declarations.
+        // (But not directly recursive, just through pointers or arrays or dictionaries,
+        // see analyze_fields.)
         actual_record = new ast::TypeRecord(recdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_record);
     }
