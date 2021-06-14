@@ -538,10 +538,44 @@ Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, int alwa
 
 Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, int always_create)
 {
-    if (index->dval != trunc(index->dval)) {
+    if (index->dval != trunc(index->dval) || index->dval < 0) {
         return Ne_Exception_raise("ArrayIndexException");
     }
     return Ne_Array_index_int(result, a, (int)index->dval, always_create);
+}
+
+Ne_Exception *Ne_Array_range(Ne_Array *result, const Ne_Array *a, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
+{
+    result->size = 0;
+    result->a = NULL;
+    result->mtable = a->mtable;
+    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
+        return Ne_Exception_raise("ArrayIndexException");
+    }
+    int f = (int)first->dval;
+    int l = (int)last->dval;
+    if (first_from_end) {
+        f += a->size - 1;
+    }
+    if (last_from_end) {
+        l += a->size - 1;
+    }
+    if (l < 0 || f >= a->size || f > l) {
+        return NULL;
+    }
+    if (f < 0) {
+        f = 0;
+    }
+    if (l >= a->size) {
+        l = a->size - 1;
+    }
+    result->size = l - f + 1;
+    result->a = malloc(result->size * sizeof(struct KV));
+    for (int i = 0; i < result->size; i++) {
+        result->mtable->constructor(&result->a[i]);
+        result->mtable->copy(result->a[i], a->a[f+i]);
+    }
+    return NULL;
 }
 
 Ne_Exception *Ne_array__append(Ne_Array *a, const void *element)

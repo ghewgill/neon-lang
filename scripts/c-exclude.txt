@@ -1,10 +1,10 @@
 array2d.neon                    # Ne_Array_mtable
 array-fraction.neon             # exception info
-array-index.neon                # ArrayReferenceRangeExpression
+array-index.neon                # array indexing
 array-negative.neon             # exception info
 array.neon                      # array indexing
 array-resize.neon               # array indexing
-array-slice.neon                # ArrayReferenceRangeExpression
+array-slice.neon                # array slice
 array-subscript.neon            # Ne_Array_mtable
 array-tostring.neon             # Ne_array__toString_string
 assert-enum.neon                # enum.toString
@@ -100,7 +100,7 @@ outer-issue192.neon             # outer
 outer.neon                      # outer
 outer-parameter.neon            # outer
 outer-tail.neon                 # outer
-parameter-out-array.neon        # ArrayReferenceRangeExpression
+parameter-out-array.neon        # OUT
 parameter-out-string.neon       # OUT
 parameters-ignore.neon          # OUT
 parameters.neon                 # OUT
@@ -132,7 +132,7 @@ string-multiline.neon           # hex escape sequence out of range
 string-slice.neon               # segfault
 strings.neon                    # segfault
 string-test.neon                # module string
-struct-test.neon                # ArrayReferenceRangeExpression
+struct-test.neon                # bignum
 sys-exit.neon                   # ExceptionType
 textio-random.neon              # module textio
 textio-seek.neon                # module textio

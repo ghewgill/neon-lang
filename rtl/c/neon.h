@@ -108,6 +108,7 @@ int Ne_Array_compare(const Ne_Array *a, const Ne_Array *b);
 Ne_Exception *Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element);
 Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, int always_create);
 Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, int always_create);
+Ne_Exception *Ne_Array_range(Ne_Array *result, const Ne_Array *a, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end);
 Ne_Exception *Ne_array__append(Ne_Array *a, const void *element);
 Ne_Exception *Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b);
 Ne_Exception *Ne_array__extend(Ne_Array *dest, const Ne_Array *src);

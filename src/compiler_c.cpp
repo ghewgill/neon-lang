@@ -1641,8 +1641,15 @@ public:
     const Expression *first;
     const Expression *last;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ArrayReferenceRangeExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string refname = ref->generate(context);
+        std::string firstname = first->generate(context);
+        std::string lastname = last->generate(context);
+        context.out << "if (Ne_Array_range(&" << result << ",&" << refname << ",&" << firstname << "," << arre->first_from_end << ",&" << lastname << "," << arre->last_from_end << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+        return result;
     }
 };
 
@@ -1656,8 +1663,15 @@ public:
     const Expression *first;
     const Expression *last;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("ArrayValueRangeExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name(type);
+        context.push_scope();
+        std::string arrayname = array->generate(context);
+        std::string firstname = first->generate(context);
+        std::string lastname = last->generate(context);
+        context.out << "if (Ne_Array_range(&" << result << ",&" << arrayname << ",&" << firstname << "," << avre->first_from_end << ",&" << lastname << "," << avre->last_from_end << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+        return result;
     }
 };
 
