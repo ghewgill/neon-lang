@@ -628,8 +628,7 @@ static const ast::Expression *make_array_conversion(Analyzer *analyzer, const as
                                 new ast::ArrayValueIndexExpression(
                                     from_type->elementtype,
                                     new ast::VariableExpression(array_copy),
-                                    new ast::VariableExpression(index),
-                                    false
+                                    new ast::VariableExpression(index)
                                 )
                             )
                         }
@@ -702,8 +701,7 @@ static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, con
                         new ast::ArrayValueIndexExpression(
                             ast::TYPE_STRING,
                             new ast::VariableExpression(keys),
-                            new ast::VariableExpression(index),
-                            false
+                            new ast::VariableExpression(index)
                         )
                     )},
                     element_converter(
@@ -714,8 +712,7 @@ static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, con
                             new ast::ArrayValueIndexExpression(
                                 ast::TYPE_STRING,
                                 new ast::VariableExpression(keys),
-                                new ast::VariableExpression(index),
-                                false
+                                new ast::VariableExpression(index)
                             )
                         )
                     )
@@ -1151,7 +1148,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             }
             values[n.second] = new ConstantStringExpression(utf8string(n.first));
         }
-        f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp), false)));
+        f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp))));
         methods["toString"] = f;
     }
 }
@@ -2080,11 +2077,10 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
                             new ast::ConstantNumberExpression(number_from_sint32(1))
                         ),
                         index
-                    ),
-                    false
+                    )
                 );
             } else {
-                return new ast::ArrayReferenceIndexExpression(type, ref, index, false);
+                return new ast::ArrayReferenceIndexExpression(type, ref, index);
             }
         } else {
             if (expr->from_last) {
@@ -2102,11 +2098,10 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
                             new ast::ConstantNumberExpression(number_from_sint32(1))
                         ),
                         index
-                    ),
-                    false
+                    )
                 );
             } else {
-                return new ast::ArrayValueIndexExpression(type, base, index, false);
+                return new ast::ArrayValueIndexExpression(type, base, index);
             }
         }
     } else if (dicttype != nullptr) {
@@ -4632,8 +4627,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 new ast::ArrayReferenceIndexExpression(
                     ast::TYPE_STRING,
                     new ast::VariableExpression(result),
-                    new ast::ConstantNumberExpression(number_from_uint32(column)),
-                    false
+                    new ast::ConstantNumberExpression(number_from_uint32(column))
                 )
             )
         );
@@ -5201,7 +5195,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
             std::vector<const ast::Statement *>()
         ),
         new ast::AssignmentStatement(statement->token, { new ast::VariableExpression(var) },
-            arrtype ? static_cast<ast::Expression *>(new ast::ArrayValueIndexExpression(var->type, new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false)) :
+            arrtype ? static_cast<ast::Expression *>(new ast::ArrayValueIndexExpression(var->type, new ast::VariableExpression(array_copy), new ast::VariableExpression(index))) :
             strtype ? static_cast<ast::Expression *>(new ast::StringValueRangeIndexExpression(new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false, new ast::VariableExpression(index), false, this)) :
             nullptr
         ),

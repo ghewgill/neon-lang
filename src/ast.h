@@ -1894,14 +1894,13 @@ public:
 
 class ArrayReferenceIndexExpression: public ReferenceExpression {
 public:
-    ArrayReferenceIndexExpression(const Type *type, const ReferenceExpression *array, const Expression *index, bool always_create): ReferenceExpression(type, array->is_readonly), array(array), index(index), always_create(always_create) {}
+    ArrayReferenceIndexExpression(const Type *type, const ReferenceExpression *array, const Expression *index): ReferenceExpression(type, array->is_readonly), array(array), index(index) {}
     ArrayReferenceIndexExpression(const ArrayReferenceIndexExpression &) = delete;
     ArrayReferenceIndexExpression &operator=(const ArrayReferenceIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *array;
     const Expression *index;
-    const bool always_create;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return array->is_pure(context) && index->is_pure(context); }
     virtual bool eval_boolean() const override { internal_error("ArrayReferenceIndexExpression"); }
@@ -1915,14 +1914,13 @@ public:
 
 class ArrayValueIndexExpression: public Expression {
 public:
-    ArrayValueIndexExpression(const Type *type, const Expression *array, const Expression *index, bool always_create): Expression(type, false), array(array), index(index), always_create(always_create) {}
+    ArrayValueIndexExpression(const Type *type, const Expression *array, const Expression *index): Expression(type, false), array(array), index(index) {}
     ArrayValueIndexExpression(const ArrayValueIndexExpression &) = delete;
     ArrayValueIndexExpression &operator=(const ArrayValueIndexExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *array;
     const Expression *index;
-    const bool always_create;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return array->is_pure(context) && index->is_pure(context); }
     virtual bool eval_boolean() const override { internal_error("ArrayValueIndexExpression"); }

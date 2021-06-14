@@ -1738,11 +1738,7 @@ void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter)
 {
     array->generate_address_read(emitter);
     index->generate(emitter);
-    if (always_create) {
-        emitter.emit(Opcode::INDEXAW);
-    } else {
-        emitter.emit(Opcode::INDEXAR);
-    }
+    emitter.emit(Opcode::INDEXAR);
 }
 
 void ast::ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) const
@@ -1756,11 +1752,7 @@ void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 {
     array->generate(emitter);
     index->generate(emitter);
-    if (always_create) {
-        emitter.emit(Opcode::INDEXAN);
-    } else {
-        emitter.emit(Opcode::INDEXAV);
-    }
+    emitter.emit(Opcode::INDEXAV);
 }
 
 void ast::DictionaryReferenceIndexExpression::generate_address_read(Emitter &emitter) const
