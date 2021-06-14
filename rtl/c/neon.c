@@ -170,17 +170,40 @@ int Ne_String_compare(const Ne_String *a, const Ne_String *b)
 
 Ne_Exception *Ne_String_index(Ne_String *dest, const Ne_String *s, const Ne_Number *index)
 {
+    if (index->dval != trunc(index->dval)) {
+        return Ne_Exception_raise("StringIndexException");
+    }
+    int i = (int)index->dval;
+    if (i < 0 || i >= s->len) {
+        return Ne_Exception_raise("StringIndexException");
+    }
     dest->ptr = malloc(1);
-    *dest->ptr = s->ptr[(int)index->dval];
+    *dest->ptr = s->ptr[i];
     dest->len = 1;
     return NULL;
 }
 
 Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Number *first, const Ne_Number *last)
 {
-    dest->len = (int)last->dval - (int)first->dval + 1;
+    dest->len = 0;
+    dest->ptr = NULL;
+    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
+        return Ne_Exception_raise("StringIndexException");
+    }
+    int f = (int)first->dval;
+    int l = (int)last->dval;
+    if (l < 0 || f >= s->len || f > l) {
+        return NULL;
+    }
+    if (f < 0) {
+        f = 0;
+    }
+    if (l >= s->len) {
+        l = s->len - 1;
+    }
+    dest->len = l - f + 1;
     dest->ptr = malloc(dest->len);
-    memcpy(dest->ptr, s->ptr + (int)first->dval, dest->len);
+    memcpy(dest->ptr, s->ptr + f, dest->len);
     return NULL;
 }
 
