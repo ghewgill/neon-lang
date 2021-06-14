@@ -519,7 +519,7 @@ Ne_Exception *Ne_Array_in(Ne_Boolean *result, const Ne_Array *a, void *element)
     return NULL;
 }
 
-Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, int always_create)
+Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, Ne_Boolean always_create)
 {
     if (index >= a->size) {
         if (always_create) {
@@ -536,7 +536,7 @@ Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, int alwa
     return NULL;
 }
 
-Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, int always_create)
+Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, Ne_Boolean always_create)
 {
     if (index->dval != trunc(index->dval) || index->dval < 0) {
         return Ne_Exception_raise("ArrayIndexException");
@@ -641,6 +641,9 @@ Ne_Exception *Ne_array__remove(Ne_Array *a, const Ne_Number *index)
 Ne_Exception *Ne_array__resize(Ne_Array *a, const Ne_Number *size)
 {
     int newsize = (int)size->dval;
+    if (newsize != size->dval) {
+        return Ne_Exception_raise("ArrayIndexException");
+    }
     if (newsize < a->size) {
         for (int i = newsize; i < a->size; i++) {
             a->mtable->destructor(a->a[i]);
@@ -750,7 +753,7 @@ Ne_Exception *Ne_Dictionary_in(Ne_Boolean *result, const Ne_Dictionary *d, const
     return NULL;
 }
 
-Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index)
+Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index, Ne_Boolean always_create)
 {
     int i = 0;
     while (i < d->size) {
@@ -763,6 +766,9 @@ Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_Stri
             break;
         }
         i++;
+    }
+    if (!always_create) {
+        return Ne_Exception_raise("DictionaryIndexException");
     }
     d->d = realloc(d->d, (d->size+1) * sizeof(struct KV));
     memmove(&d->d[i+1], &d->d[i], (d->size-i) * sizeof(struct KV));

@@ -1,9 +1,6 @@
 array2d.neon                    # Ne_Array_mtable
 array-fraction.neon             # exception info
-array-index.neon                # array indexing
 array-negative.neon             # exception info
-array.neon                      # array indexing
-array-resize.neon               # array indexing
 array-slice.neon                # array slice
 array-subscript.neon            # Ne_Array_mtable
 array-tostring.neon             # Ne_array__toString_string
@@ -20,7 +17,6 @@ complex-test.neon               # module math
 datetime-test.neon              # module datetime
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
-dictionary.neon                 # dictionary index
 encoding-base64.neon            # keywords
 enum.neon                       # enum.toString
 equality.neon                   # function pointer

@@ -139,6 +139,7 @@ public:
     virtual ~Expression() {}
     const Type *type;
     virtual std::string generate(Context &context) const = 0;
+    virtual std::string generate_store(Context &context) const { return generate(context); }
 };
 
 Expression *transform(const ast::Expression *e);
@@ -713,7 +714,7 @@ public:
             // so it can be constructed right in the dictionary without copying.
             std::string valname = x.second->generate(context);
             std::string pname = context.get_temp_name("void *", false);
-            context.out << "Ne_Dictionary_index(&" << pname << ",&" << result << ",&" << keyname << ");\n";
+            context.out << "Ne_Dictionary_index(&" << pname << ",&" << result << ",&" << keyname << ",1);\n";
             context.out << elementtype->name << "_copy(" << pname << ",&" << valname << ");\n";
             context.pop_scope();
         }
@@ -1368,7 +1369,14 @@ public:
         std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
         std::string elementptr = context.get_temp_name(type->name + "*", false);
-        context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << "," << 1 /* TODO arie->always_create */ << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << "," << 0 << ")) goto " << context.handler_label() << ";\n";
+        return "(*" + elementptr + ")";
+    }
+    virtual std::string generate_store(Context &context) const override {
+        std::string arrayname = array->generate(context);
+        std::string indexname = index->generate(context);
+        std::string elementptr = context.get_temp_name(type->name + "*", false);
+        context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << "," << 1 << ")) goto " << context.handler_label() << ";\n";
         return "(*" + elementptr + ")";
     }
 };
@@ -1407,7 +1415,16 @@ public:
         context.push_scope();
         std::string dictionaryname = dictionary->generate(context);
         std::string indexname = index->generate(context);
-        context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ",0)) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+        return "(*" + elementptr + ")";
+    }
+    virtual std::string generate_store(Context &context) const override {
+        std::string elementptr = context.get_temp_name(type->name + "*", false);
+        context.push_scope();
+        std::string dictionaryname = dictionary->generate(context);
+        std::string indexname = index->generate(context);
+        context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ",1)) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return "(*" + elementptr + ")";
     }
@@ -1428,7 +1445,7 @@ public:
         std::string elementptr = context.get_temp_name(type->name + "*", false);
         std::string dictionaryname = dictionary->generate(context);
         std::string indexname = index->generate(context);
-        context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ",0)) goto " << context.handler_label() << ";\n";
         context.out << type->name << "_init_copy(&" << result << "," << elementptr << ");\n";
         context.pop_scope();
         return result;
@@ -1845,7 +1862,7 @@ public:
         std::string exprname = expr->generate(context);
         for (auto v: variables) {
             if (dynamic_cast<const DummyExpression *>(v) == nullptr) {
-                std::string vname = v->generate(context);
+                std::string vname = v->generate_store(context);
                 context.out << v->type->name << "_copy(&" << vname << ",&" << exprname << ");\n";
             }
         }
