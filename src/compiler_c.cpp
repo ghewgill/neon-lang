@@ -1350,7 +1350,9 @@ public:
     DummyExpression &operator=(const DummyExpression &) = delete;
     const ast::DummyExpression *de;
 
-    virtual std::string generate(Context &) const override { internal_error("DummyExpression"); }
+    virtual std::string generate(Context &) const override {
+        return "";
+    }
 };
 
 class ArrayReferenceIndexExpression: public Expression {
@@ -2093,14 +2095,16 @@ public:
                 }
                 context.out << "Ne_Exception_trap(" << quoted(e->name) << ")";
             }
-            context.out << ") {\n";
+            context.out << ")\n";
+            context.push_scope();
             if (c->name != nullptr) {
                 // TODO: capture exception in variable
             }
             for (auto s: c->handler) {
                 s->generate(context);
             }
-            context.out << "} else\n";
+            context.pop_scope();
+            context.out << "else\n";
         }
         context.out << ";\n";
         // This colon is followed by a semicolon, and syntactically in C
