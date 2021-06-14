@@ -698,16 +698,34 @@ void Ne_Dictionary_deinit(Ne_Dictionary *d)
     free(d->d);
 }
 
+Ne_Exception *Ne_Dictionary_in(Ne_Boolean *result, const Ne_Dictionary *d, const Ne_String *key)
+{
+    *result = 0;
+    int i = 0;
+    while (i < d->size) {
+        int c = Ne_String_compare(&d->d[i].key, key);
+        if (c == 0) {
+            *result = 1;
+            return NULL;
+        }
+        if (c > 0) {
+            break;
+        }
+        i++;
+    }
+    return NULL;
+}
+
 Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index)
 {
     int i = 0;
     while (i < d->size) {
-        if (Ne_String_compare(&d->d[i].key, index) == 0) {
+        int c = Ne_String_compare(&d->d[i].key, index);
+        if (c == 0) {
             *result = d->d[i].value;
             return NULL;
         }
-        int r = Ne_String_compare(index, &d->d[i].key);
-        if (r < 0) {
+        if (c > 0) {
             break;
         }
         i++;
@@ -729,6 +747,44 @@ Ne_Exception *Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
         Ne_Array_index_int((void **)&s, result, i, 0);
         Ne_String_copy(s, &d->d[i].key);
     }
+    return NULL;
+}
+
+Ne_Exception *Ne_dictionary__remove(Ne_Dictionary *d, const Ne_String *key)
+{
+    int i = 0;
+    while (i < d->size) {
+        int c = Ne_String_compare(&d->d[i].key, key);
+        if (c == 0) {
+            Ne_String_deinit(&d->d[i].key);
+            d->mtable->destructor(d->d[i].value);
+            memmove(&d->d[i], &d->d[i+1], (d->size-i-1) * sizeof(struct KV));
+            d->size--;
+            return NULL;
+        }
+        if (c > 0) {
+            break;
+        }
+        i++;
+    }
+    return NULL;
+}
+
+Ne_Exception *Ne_dictionary__toString__string(Ne_String *r, const Ne_Dictionary *d)
+{
+    char buf[1000];
+    strcpy(buf, "{");
+    for (int i = 0; i < d->size; i++) {
+        if (i > 0) {
+            strcat(buf, ", ");
+        }
+        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), "%.*s", d->d[i].key.len, d->d[i].key.ptr);
+        strcat(buf, ": ");
+        Ne_String *s = d->d[i].value;
+        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), "%.*s", s->len, s->ptr);
+    }
+    strcat(buf, "}");
+    Ne_String_init_literal(r, buf);
     return NULL;
 }
 

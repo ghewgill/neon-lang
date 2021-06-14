@@ -16,12 +16,11 @@ bytes-slice.neon                # bytes slice assignment
 cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # valid pointer
 check.neon                      # FOR index
-comparison2.neon                # ChainedComparisonExpression
 complex-test.neon               # module math
 datetime-test.neon              # module datetime
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
-dictionary.neon                 # DictionaryInExpression
+dictionary.neon                 # dictionary index
 encoding-base64.neon            # keywords
 enum.neon                       # enum.toString
 equality.neon                   # function pointer
@@ -36,7 +35,7 @@ file-filecopied3.neon           # Ne_file_delete
 file-filecopied.neon            # Ne_file_delete
 file-linelength.neon            # Ne_file_writeLines
 file-symlink.neon               # module file
-file-test.neon                  # ChainedComparisonExpression
+file-test.neon                  # module file
 file-writebytes.neon            # module file
 file-writelines.neon            # Ne_file_writeLines
 foreach.neon                    # double free
@@ -52,7 +51,6 @@ gc-two-pointers.neon            # gc
 import.neon                     # InterfacePointerConstructor
 import-optional.neon            # module runtime
 import-string.neon              # segfault
-in.neon                         # DictionaryInExpression
 intdiv.neon                     # Ne_math_intdiv
 interface.neon                  # InterfaceMethodExpression
 interface-multiple.neon         # InterfacePointerConstructor
@@ -135,7 +133,7 @@ string-multiline.neon           # hex escape sequence out of range
 string-slice.neon               # segfault
 strings.neon                    # segfault
 string-test.neon                # module string
-struct-test.neon                # DictionaryInExpression
+struct-test.neon                # ArrayReferenceRangeExpression
 sys-exit.neon                   # ExceptionType
 textio-random.neon              # module textio
 textio-seek.neon                # DummyExpression

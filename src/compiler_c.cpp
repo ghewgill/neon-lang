@@ -955,8 +955,14 @@ public:
     const Expression *left;
     const Expression *right;
 
-    virtual std::string generate(Context &) const override {
-        internal_error("DictionaryInExpression");
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("Ne_Boolean");
+        context.push_scope();
+        std::string keyname = left->generate(context);
+        std::string dname = right->generate(context);
+        context.out << "if (Ne_Dictionary_in(&" << result << ",&" << dname << ",&" << keyname << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+        return result;
     }
 };
 
