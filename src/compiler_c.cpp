@@ -2452,19 +2452,8 @@ public:
             path = program->source_path.substr(0, i + 1);
         }
         std::stringstream out;
-        out << "#include <stdlib.h>\n";
         out << "#include \"neon.h\"\n";
         Context context(program->module_name, out);
-        out << "typedef void *void_Ptr;\n";
-        out << "static void void_Ptr_init(void_Ptr *p) {}\n";
-        out << "static void void_Ptr_deinit(void_Ptr *p) {}\n";
-        out << "static void void_Ptr_copy(void_Ptr *d, const void_Ptr *s) { *d = *s; }\n";
-        out << "static int void_Ptr_compare(const void_Ptr *p, const void_Ptr *q) { return *p == *q ? 0 : *p > *q ? 1 : -1; }\n";
-        out << "typedef Ne_Exception *(*Ne_FunctionPointer)();\n";
-        out << "static void Ne_FunctionPointer_init(Ne_FunctionPointer *p) { p = NULL; }\n";
-        out << "static void Ne_FunctionPointer_deinit(Ne_FunctionPointer *p) {}\n";
-        out << "static void Ne_FunctionPointer_copy(Ne_FunctionPointer *d, const Ne_FunctionPointer *s) { *d = *s; }\n";
-        out << "static int Ne_FunctionPointer_compare(const Ne_FunctionPointer *p, const Ne_FunctionPointer *q) { return *p == *q ? 0 : (void *)*p > (void *)*q ? 1 : -1; }\n";
         context.out << "/* Type Declarations */\n";
         std::set<const Type *> declared;
         for (auto s: statements) {

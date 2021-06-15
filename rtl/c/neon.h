@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 typedef struct {
     void (*constructor)(void **);
     void (*destructor)(void *);
@@ -55,6 +57,18 @@ typedef struct {
     const char *name;
     Ne_Object info;
 } Ne_Exception;
+
+typedef void *void_Ptr;
+static void void_Ptr_init(void_Ptr *p) {}
+static void void_Ptr_deinit(void_Ptr *p) {}
+static void void_Ptr_copy(void_Ptr *d, const void_Ptr *s) { *d = *s; }
+static int void_Ptr_compare(const void_Ptr *p, const void_Ptr *q) { return *p == *q ? 0 : *p > *q ? 1 : -1; }
+
+typedef Ne_Exception *(*Ne_FunctionPointer)();
+static void Ne_FunctionPointer_init(Ne_FunctionPointer *p) { p = NULL; }
+static void Ne_FunctionPointer_deinit(Ne_FunctionPointer *p) {}
+static void Ne_FunctionPointer_copy(Ne_FunctionPointer *d, const Ne_FunctionPointer *s) { *d = *s; }
+static int Ne_FunctionPointer_compare(const Ne_FunctionPointer *p, const Ne_FunctionPointer *q) { return *p == *q ? 0 : 1; }
 
 void Ne_Boolean_init(Ne_Boolean *bool);
 void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src);
