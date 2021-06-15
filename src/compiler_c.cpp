@@ -69,6 +69,7 @@ class Context {
 public:
     const std::string module_name;
     std::ostream &out;
+    std::set<std::string> imports;
 private:
     int tmp_counter;
     std::stack<std::list<std::pair<std::string, std::string>>> temp_names;
@@ -478,7 +479,8 @@ public:
     virtual void generate_def(Context &) const override { internal_error("ModuleVariable"); }
     virtual void generate_init(Context &) const override { internal_error("ModuleVariable"); }
     virtual void generate_deinit(Context &) const override { internal_error("ModuleVariable"); }
-    virtual std::string generate(Context &) const override {
+    virtual std::string generate(Context &context) const override {
+        context.imports.insert(mv->module->name);
         return cident(mv->name);
     }
 };
@@ -632,8 +634,10 @@ public:
     ConstantNowhereExpression &operator=(const ConstantNowhereExpression &) = delete;
     const ast::ConstantNowhereExpression *cne;
 
-    virtual std::string generate(Context &) const override {
-        return "NULL";
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("Ne_FunctionPointer");
+        context.out << result << " = NULL;\n";
+        return result;
     }
 };
 
@@ -1734,7 +1738,21 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string result;
         std::string call = func->generate(context) + "(";
-        if (dynamic_cast<const ast::TypeFunction *>(fc->func->type)->returntype != ast::TYPE_NOTHING) {
+        const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(fc->func->type);
+        if (ftype == nullptr) {
+            const ast::TypeFunctionPointer *pf = dynamic_cast<const ast::TypeFunctionPointer *>(fc->func->type);
+            if (pf == nullptr) {
+                const ast::InterfaceMethodExpression *ime = dynamic_cast<const ast::InterfaceMethodExpression *>(fc->func);
+                if (ime == nullptr) {
+                    internal_error("FunctionCall::generate");
+                } else {
+                    ftype = ime->functype;
+                }
+            } else {
+                ftype = pf->functype;
+            }
+        }
+        if (ftype->returntype != ast::TYPE_NOTHING) {
             result = context.get_temp_name(type);
             context.push_scope();
             std::string arglist;
@@ -2327,7 +2345,9 @@ public:
     virtual void generate_init(Context &) const override { internal_error("Function"); }
     virtual void generate_deinit(Context &) const override { internal_error("Function"); }
     virtual std::string generate(Context &context) const override {
-        return cident(context.module_name) + "__" + cident(f->name);
+        std::string result = context.get_temp_name("Ne_FunctionPointer");
+        context.out << result << " = " << cident(context.module_name) << "__" << cident(f->name) << ";\n";
+        return result;
     }
 };
 
@@ -2402,6 +2422,7 @@ public:
         return out.str();
     }
     virtual std::string generate(Context &context) const override {
+        context.imports.insert(mf->module->name);
         std::string name = cident(mf->module->name) + "__" + cident(mf->name);
         context.out << "extern Ne_Exception *" << name << "();\n";
         return name;
@@ -2438,33 +2459,63 @@ public:
         out << "static void void_Ptr_init(void_Ptr *p) {}\n";
         out << "static void void_Ptr_deinit(void_Ptr *p) {}\n";
         out << "static void void_Ptr_copy(void_Ptr *d, const void_Ptr *s) { *d = *s; }\n";
-        out << "static int void_Ptr_compare(const void_Ptr *d, const void_Ptr *s) { return *d == *s ? 0 : *d > *s ? 1 : -1; }\n";
+        out << "static int void_Ptr_compare(const void_Ptr *p, const void_Ptr *q) { return *p == *q ? 0 : *p > *q ? 1 : -1; }\n";
+        out << "typedef Ne_Exception *(*Ne_FunctionPointer)();\n";
+        out << "static void Ne_FunctionPointer_init(Ne_FunctionPointer *p) { p = NULL; }\n";
+        out << "static void Ne_FunctionPointer_deinit(Ne_FunctionPointer *p) {}\n";
+        out << "static void Ne_FunctionPointer_copy(Ne_FunctionPointer *d, const Ne_FunctionPointer *s) { *d = *s; }\n";
+        out << "static int Ne_FunctionPointer_compare(const Ne_FunctionPointer *p, const Ne_FunctionPointer *q) { return *p == *q ? 0 : (void *)*p > (void *)*q ? 1 : -1; }\n";
+        context.out << "/* Type Declarations */\n";
+        std::set<const Type *> declared;
         for (auto s: statements) {
             const TypeDeclarationStatement *tds = dynamic_cast<const TypeDeclarationStatement *>(s);
             if (tds != nullptr) {
-                s->generate_decl(context);
+                if (declared.find(tds->type) == declared.end()) {
+                    tds->generate_decl(context);
+                    declared.insert(tds->type);
+                }
             }
         }
+        context.out << "/* Global Variables */\n";
         for (size_t s = 0; s < program->frame->getCount(); s++) {
             auto slot = program->frame->getSlot(s);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
             if (global != nullptr) {
+                if (declared.find(global->type) == declared.end()) {
+                    global->type->generate_decl(context);
+                    declared.insert(global->type);
+                }
                 global->generate_decl(context);
                 global->generate_def(context);
             }
         }
+        context.out << "/* Declarations (not types) */\n";
         for (auto s: statements) {
             const TypeDeclarationStatement *tds = dynamic_cast<const TypeDeclarationStatement *>(s);
             if (tds == nullptr) {
                 s->generate_decl(context);
             }
         }
+        context.out << "/* Definitions */\n";
+        bool has_MAIN = false;
         for (auto s: statements) {
+            const DeclarationStatement *ds = dynamic_cast<const DeclarationStatement *>(s);
+            if (ds != nullptr) {
+                const Function *f = dynamic_cast<const Function *>(ds->decl);
+                if (f != nullptr) {
+                    if (f->f->name == "MAIN") {
+                        has_MAIN = true;
+                    }
+                }
+            }
             s->generate_def(context);
         }
-        context.out << "int " << cident(program->module_name) << "__main(int argc, const char *argv[]) {\n";
-        context.out << "Ne_sys__init(argc, argv);\n";
+        context.out << "void " << cident(program->module_name) << "__init() {\n";
         std::string handler_label = context.push_handler();
+        // TODO: Should be able to statically determine initialisation order and call them all in main().
+        context.out << "static Ne_Boolean " << cident(program->module_name) << "__initialised = 0;\n";
+        context.out << "if (" << cident(program->module_name) << "__initialised) return;\n";
+        context.out << cident(program->module_name) << "__initialised = 1;\n";
         for (size_t s = 0; s < program->frame->getCount(); s++) {
             auto slot = program->frame->getSlot(s);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
@@ -2488,10 +2539,19 @@ public:
                 global->generate_deinit(context);
             }
         }
-        context.out << "return 0;\n}\n";
+        context.out << ";}\n";
         if (options.find("main") != options.end()) {
             context.out << "int main(int argc, const char *argv[]) {\n";
-            context.out << "return " << cident(program->module_name) << "__main(argc, argv);\n";
+            context.out << "Ne_sys__init(argc, argv);\n";
+            for (auto imp: context.imports) {
+                context.out << "extern void " << imp << "__init();\n";
+                context.out << imp << "__init();\n";
+            }
+            context.out << cident(program->module_name) << "__init();\n";
+            if (has_MAIN) {
+                context.out << cident(program->module_name) << "__MAIN();\n";
+            }
+            context.out << "return 0;\n";
             context.out << "}\n";
         }
         std::vector<unsigned char> src;

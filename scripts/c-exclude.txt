@@ -19,7 +19,7 @@ debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 encoding-base64.neon            # keywords
 enum.neon                       # enum.toString
-equality.neon                   # function pointer
+equality.neon                   # pointers
 exception-as.neon               # ExceptionType
 exception-code.neon             # ExceptionTransformer
 exception-tostring.neon         # ExceptionType
@@ -36,8 +36,6 @@ file-writebytes.neon            # module file
 file-writelines.neon            # Ne_file_writeLines
 foreach.neon                    # double free
 format.neon                     # format
-function-pointer.neon           # segfault
-function-pointer-nowhere.neon   # Ne_FunctionPointer
 gc1.neon                        # gc
 gc2.neon                        # gc
 gc3.neon                        # gc
@@ -69,7 +67,6 @@ module-import-name-alias2.neon  # import
 module-import-name-alias.neon   # module math
 module-import-name.neon         # module math
 module-load-order.neon          # import
-module.neon                     # function pointer
 modulo.neon                     # modulo
 multiarray-test.neon            # Ne_Array_mtable
 nested-substitution.neon        # dictionary
@@ -143,7 +140,6 @@ unicode-length.neon             # utf8
 uninitialised-out.neon          # OUT
 valid-pointer.neon              # refcount
 varargs.neon                    # return
-varargs-functionpointer.neon    # segfault
 while-valid.neon                # pointers
 
 compress-test.neon
