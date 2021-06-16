@@ -1781,7 +1781,7 @@ void Executor::raise_literal(const utf8string &exception, std::shared_ptr<Object
                 fprintf(stderr, "  Stack frame #%lu: file %s address %lu (line number not found)\n", static_cast<unsigned long>(callstack.size()), module->debug->source_path.c_str(), static_cast<unsigned long>(ip));
             }
         } else {
-            fprintf(stderr, "  Stack frame #%lu: file %s address %lu (no debug info available)\n", static_cast<unsigned long>(callstack.size()), source_path.c_str(), static_cast<unsigned long>(ip));
+            fprintf(stderr, "  Stack frame #%lu: module %s address %lu (no debug info available)\n", static_cast<unsigned long>(callstack.size()), module->name.c_str(), static_cast<unsigned long>(ip));
         }
         if (callstack.empty()) {
             break;
