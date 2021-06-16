@@ -7,16 +7,18 @@ array-tostring.neon             # Ne_array__toString_string
 assert-enum.neon                # enum.toString
 assert-multiline.neon           # exception info
 assignment.neon                 # pointer
+base-test.neon                  # memory leak
 bigint.neon                     # bigint
 binary-test.neon                # module binary
 bytes-slice.neon                # bytes slice assignment
 cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # valid pointer
-check.neon                      # FOR index
+check.neon                      # NEXT FOR
 complex-test.neon               # module math
 datetime-test.neon              # module datetime
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
+dictionary.neon                 # memory leak
 encoding-base64.neon            # keywords
 enum.neon                       # enum.toString
 equality.neon                   # pointers
@@ -36,6 +38,7 @@ file-writebytes.neon            # module file
 file-writelines.neon            # Ne_file_writeLines
 foreach.neon                    # double free
 format.neon                     # format
+function-pointer.neon           # memory leak
 gc1.neon                        # gc
 gc2.neon                        # gc
 gc3.neon                        # gc
@@ -45,7 +48,6 @@ gc-two-pointers.neon            # gc
 import.neon                     # InterfacePointerConstructor
 import-optional.neon            # module runtime
 import-string.neon              # segfault
-intdiv.neon                     # Ne_math_intdiv
 interface.neon                  # InterfaceMethodExpression
 interface-multiple.neon         # InterfacePointerConstructor
 interface-parameter-export2.neon # InterfaceMethodExpression
@@ -57,6 +59,8 @@ json-test.neon                  # TypeTestExpression
 literal-array.neon              # Ne_Array_range
 loop-label.neon                 # EXIT statement
 math-test.neon                  # module math
+methods.neon                    # memory leak
+methods-declare.neon            # memory leak
 mkdir.neon                      # ExceptionType
 mmap-test.neon                  # module mmap
 module2.neon                    # module search path
@@ -69,11 +73,10 @@ module-import-name.neon         # module math
 module-load-order.neon          # import
 modulo.neon                     # modulo
 multiarray-test.neon            # Ne_Array_mtable
-nested-substitution.neon        # dictionary
 net-test.neon                   # module net
 net-test-udp.neon               # module net
 new-init-module.neon            # module search path
-new-init.neon                   # pointers
+new-init.neon                   # memory leak
 next-for.neon                   # FOR statement
 number-ceil.neon                # module math
 number-exception.neon           # number
@@ -120,6 +123,7 @@ string-bytes.neon               # utf8
 string-escape.neon              # hex escape sequence out of range
 string-format.neon              # module string
 string-in.neon                  # TryExpression
+string-index.neon               # memory leak
 string-multiline.neon           # hex escape sequence out of range
 string-slice.neon               # segfault
 strings.neon                    # segfault
@@ -134,12 +138,12 @@ time-test.neon                  # module time
 tostring.neon                   # enum
 tostring-quotes.neon            # keywords
 try-expression.neon             # TryExpression
-type-compat.neon                # Ne_Array_init_copy
 unicode-char.neon               # utf8
 unicode-length.neon             # utf8
 uninitialised-out.neon          # OUT
-valid-pointer.neon              # refcount
-varargs.neon                    # return
+valid-pointer.neon              # memory leak
+varargs.neon                    # memory leak
+varargs-functionpointer.neon    # memory leak
 while-valid.neon                # pointers
 
 compress-test.neon
