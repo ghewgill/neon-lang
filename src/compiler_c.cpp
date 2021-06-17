@@ -140,7 +140,10 @@ public:
     virtual ~Expression() {}
     const Type *type;
     virtual std::string generate(Context &context) const = 0;
-    virtual std::string generate_store(Context &context) const { return generate(context); }
+    virtual void generate_store(Context &context, std::string src) const {
+        std::string dest = generate(context);
+        context.out << type->name << "_copy(&" << dest << ",&" << src << ");\n";
+    }
 };
 
 Expression *transform(const ast::Expression *e);
@@ -1378,12 +1381,12 @@ public:
         context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << "," << 0 << ")) goto " << context.handler_label() << ";\n";
         return "(*" + elementptr + ")";
     }
-    virtual std::string generate_store(Context &context) const override {
+    virtual void generate_store(Context &context, std::string src) const override {
         std::string arrayname = array->generate(context);
         std::string indexname = index->generate(context);
         std::string elementptr = context.get_temp_name(type->name + "*", false);
         context.out << "if (Ne_Array_index((void **)&" << elementptr << ",&" << arrayname << ",&" << indexname << "," << 1 << ")) goto " << context.handler_label() << ";\n";
-        return "(*" + elementptr + ")";
+        context.out << type->name << "_copy(" << elementptr << ",&" << src << ");\n";
     }
 };
 
@@ -1425,14 +1428,14 @@ public:
         context.pop_scope();
         return "(*" + elementptr + ")";
     }
-    virtual std::string generate_store(Context &context) const override {
-        std::string elementptr = context.get_temp_name(type->name + "*", false);
+    virtual void generate_store(Context &context, std::string src) const override {
         context.push_scope();
+        std::string elementptr = context.get_temp_name(type->name + "*", false);
         std::string dictionaryname = dictionary->generate(context);
         std::string indexname = index->generate(context);
         context.out << "if (Ne_Dictionary_index((void **)&" << elementptr << ",&" << dictionaryname << ",&" << indexname << ",1)) goto " << context.handler_label() << ";\n";
+        context.out << type->name << "_copy(" << elementptr << ",&" << src << ");\n";
         context.pop_scope();
-        return "(*" + elementptr + ")";
     }
 };
 
@@ -1882,8 +1885,7 @@ public:
         std::string exprname = expr->generate(context);
         for (auto v: variables) {
             if (dynamic_cast<const DummyExpression *>(v) == nullptr) {
-                std::string vname = v->generate_store(context);
-                context.out << v->type->name << "_copy(&" << vname << ",&" << exprname << ");\n";
+                v->generate_store(context, exprname);
             }
         }
         context.pop_scope();
