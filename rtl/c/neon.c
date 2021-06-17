@@ -461,6 +461,7 @@ void Ne_Object_deinit(Ne_Object *obj)
             Ne_String_deinit(&obj->str);
             break;
     }
+    obj->type = neNothing;
 }
 
 Ne_Exception *Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj)
@@ -489,6 +490,31 @@ Ne_Exception *Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
     Ne_Object_init(obj);
     obj->type = neString;
     Ne_String_copy(&obj->str, s);
+    return NULL;
+}
+
+Ne_Exception *Ne_object__toString(Ne_String *result, const Ne_Object *obj)
+{
+    switch (obj->type) {
+        case neNothing:
+            Ne_String_init_literal(result, "NIL");
+            break;
+        case neNumber: {
+            char buf[40];
+            snprintf(buf, sizeof(buf), "%g", obj->num.dval);
+            Ne_String_init_literal(result, buf);
+            break;
+        }
+        case neString:
+            Ne_String_init_copy(result, &obj->str);
+            break;
+        default: {
+            char buf[40];
+            snprintf(buf, sizeof(buf), "[unknown object type %d]", obj->type);
+            Ne_String_init_literal(result, buf);
+            break;
+        }
+    }
     return NULL;
 }
 
@@ -562,7 +588,10 @@ Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, Ne_Boole
 Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, Ne_Boolean always_create)
 {
     if (index->dval != trunc(index->dval) || index->dval < 0) {
-        return Ne_Exception_raise("ArrayIndexException");
+        Ne_Object info;
+        Ne_Object_init(&info);
+        Ne_object__makeNumber(&info, index);
+        return Ne_Exception_raise_info("ArrayIndexException", &info);
     }
     return Ne_Array_index_int(result, a, (int)index->dval, always_create);
 }
@@ -876,20 +905,12 @@ Ne_Exception *Ne_pointer__toString(Ne_String *r, const void *p)
 
 Ne_Exception *Ne_print(const Ne_Object *obj)
 {
-    switch (obj->type) {
-        case neNothing:
-            printf("NIL\n");
-            break;
-        case neNumber:
-            printf("%g\n", obj->num.dval);
-            break;
-        case neString:
-            printf("%.*s\n", obj->str.len, obj->str.ptr);
-            break;
-        default:
-            printf("[unknown object type %d]\n", obj->type);
-            break;
+    Ne_String s;
+    if (Ne_object__toString(&s, obj)) {
+        return Ne_Exception_propagate();
     }
+    printf("%.*s\n", s.len, s.ptr);
+    Ne_String_deinit(&s);
     return NULL;
 }
 
@@ -939,6 +960,29 @@ Ne_Exception *Ne_Exception_raise(const char *name)
     return &Ne_Exception_current;
 }
 
+Ne_Exception *Ne_Exception_raise_info(const char *name, const Ne_Object *info)
+{
+    Ne_Exception_current.name = name;
+    Ne_Object_copy(&Ne_Exception_current.info, info);
+    return &Ne_Exception_current;
+}
+
+Ne_Exception *Ne_Exception_raise_info_literal(const char *name, const char *info)
+{
+    Ne_Exception_current.name = name;
+    Ne_String s;
+    Ne_String_init_literal(&s, info);
+    Ne_object__makeString(&Ne_Exception_current.info, &s);
+    Ne_String_deinit(&s);
+    return &Ne_Exception_current;
+}
+
+void Ne_Exception_clear()
+{
+    Ne_Exception_current.name = NULL;
+    Ne_Object_deinit(&Ne_Exception_current.info);
+}
+
 int Ne_Exception_trap(const char *name)
 {
     int len = strlen(name);
@@ -952,7 +996,10 @@ Ne_Exception *Ne_Exception_propagate()
 
 void Ne_Exception_unhandled()
 {
-    fprintf(stderr, "Unhandled exception %s\n", Ne_Exception_current.name);
+    Ne_String detail;
+    Ne_object__toString(&detail, &Ne_Exception_current.info);
+    fprintf(stderr, "Unhandled exception %s (%.*s)\n", Ne_Exception_current.name, detail.len, detail.ptr);
+    Ne_Exception_clear();
     exit(1);
 }
 

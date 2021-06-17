@@ -1,11 +1,8 @@
 array2d.neon                    # Ne_Array_mtable
-array-fraction.neon             # exception info
-array-negative.neon             # exception info
 array-slice.neon                # array slice
 array-subscript.neon            # Ne_Array_mtable
 array-tostring.neon             # Ne_array__toString_string
 assert-enum.neon                # enum.toString
-assert-multiline.neon           # exception info
 assignment.neon                 # pointer
 base-test.neon                  # memory leak
 bigint.neon                     # bigint

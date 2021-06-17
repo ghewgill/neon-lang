@@ -1857,7 +1857,7 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
-        context.out << "if (Ne_Exception_raise(" << quoted("AssertFailedException") << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Exception_raise_info_literal(" << quoted("AssertFailedException") << "," << quoted(as->source) << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
     }
 };
@@ -2152,6 +2152,7 @@ public:
             for (auto s: c->handler) {
                 s->generate(context);
             }
+            context.out << "Ne_Exception_clear();\n";
             context.pop_scope();
             context.out << "else\n";
         }

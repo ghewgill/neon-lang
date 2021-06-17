@@ -152,6 +152,7 @@ Ne_Exception *Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj);
 Ne_Exception *Ne_object__makeNull(Ne_Object *obj);
 Ne_Exception *Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n);
 Ne_Exception *Ne_object__makeString(Ne_Object *obj, const Ne_String *s);
+Ne_Exception *Ne_object__toString(Ne_String *result, const Ne_Object *obj);
 Ne_Exception *Ne_pointer__toString(Ne_String *r, const void *p);
 Ne_Exception *Ne_print(const Ne_Object *obj);
 Ne_Exception *Ne_str(Ne_String *result, const Ne_Number *n);
@@ -160,6 +161,9 @@ Ne_Exception *Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_St
 Ne_Exception *Ne_string__length(Ne_Number *result, const Ne_String *str);
 Ne_Exception *Ne_string__toBytes(Ne_Bytes *result, const Ne_String *str);
 Ne_Exception *Ne_Exception_raise(const char *name);
+Ne_Exception *Ne_Exception_raise_info(const char *name, const Ne_Object *info);
+Ne_Exception *Ne_Exception_raise_info_literal(const char *name, const char *info);
+void Ne_Exception_clear();
 int Ne_Exception_trap(const char *name);
 Ne_Exception *Ne_Exception_propagate();
 void Ne_Exception_unhandled();
