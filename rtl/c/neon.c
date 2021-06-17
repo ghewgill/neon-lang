@@ -1015,6 +1015,12 @@ Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Num
     return NULL;
 }
 
+Ne_Exception *Ne_math_sqrt(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = sqrt(x->dval);
+    return NULL;
+}
+
 Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x)
 {
     result->dval = trunc(x->dval);

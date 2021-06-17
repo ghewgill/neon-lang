@@ -62,11 +62,8 @@ mkdir.neon                      # ExceptionType
 mmap-test.neon                  # module mmap
 module2.neon                    # module search path
 module-alias2.neon              # module search path
-module-alias.neon               # module math
 module-import-name2.neon        # import
 module-import-name-alias2.neon  # import
-module-import-name-alias.neon   # module math
-module-import-name.neon         # module math
 module-load-order.neon          # init order
 modulo.neon                     # modulo
 multiarray-test.neon            # Ne_Array_mtable
@@ -75,7 +72,7 @@ net-test-udp.neon               # module net
 new-init-module.neon            # module search path
 new-init.neon                   # memory leak
 next-for.neon                   # FOR statement
-number-ceil.neon                # module math
+number-ceil.neon                # number
 number-exception.neon           # number
 object-isa-case.neon            # ISA
 object-isa-inconvertible.neon   # TypeTestExpression

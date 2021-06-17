@@ -170,6 +170,7 @@ void Ne_Exception_unhandled();
 
 Ne_Exception *Ne_math_floor(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Number *y);
+Ne_Exception *Ne_math_sqrt(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x);
 
 Ne_Exception *Ne_random_bytes(Ne_Bytes *result, const Ne_Number *n);
