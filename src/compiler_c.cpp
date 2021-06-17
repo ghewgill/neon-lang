@@ -481,7 +481,9 @@ public:
     virtual void generate_deinit(Context &) const override { internal_error("ModuleVariable"); }
     virtual std::string generate(Context &context) const override {
         context.imports.insert(mv->module->name);
-        return cident(mv->name);
+        const std::string qualified_name = cident(mv->module->name) + "__" + cident(mv->name);
+        context.out << "extern " << type->name << " " << qualified_name << ";\n";
+        return qualified_name;
     }
 };
 
@@ -2534,8 +2536,8 @@ public:
             context.out << "int main(int argc, const char *argv[]) {\n";
             context.out << "Ne_sys__init(argc, argv);\n";
             for (auto imp: context.imports) {
-                context.out << "extern void " << imp << "__init();\n";
-                context.out << imp << "__init();\n";
+                context.out << "extern void " << cident(imp) << "__init();\n";
+                context.out << cident(imp) << "__init();\n";
             }
             context.out << cident(program->module_name) << "__init();\n";
             if (has_MAIN) {

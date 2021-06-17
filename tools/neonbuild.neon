@@ -134,7 +134,7 @@ FUNCTION loadDependencyTree(source: String, OUT objects: Array<String>): VALID P
         FOREACH m IN getDependencies(src) DO
             IF m NOT IN seen THEN
                 seen.append(m)
-                neonnode->dependencies.append(scanTree(findSource(m), FALSE))
+                neonnode->dependencies.append(scanTree(findSource(srcdir, m), FALSE))
             END IF
         END FOREACH
         LET obj := file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", objsuffix))
@@ -166,14 +166,17 @@ FUNCTION getDependencies(source: String): Array<String>
             IF a[i][FIRST] = "\"" AND a[i][LAST] = "\"" THEN
                 r.append(a[i][FIRST+1 TO LAST-1])
             ELSE
-                r.append(a[i])
+                r.append(string.split(a[i], ".")[0])
             END IF
         END IF
     END FOREACH
     RETURN r
 END FUNCTION
 
-FUNCTION findSource(module: String): String
+FUNCTION findSource(srcdir: String, module: String): String
+    IF file.exists("\(srcdir)/\(module).neon") THEN
+        RETURN "\(srcdir)/\(module).neon"
+    END IF
     IF file.exists("\(module).neon") THEN
         RETURN "\(module).neon"
     END IF
