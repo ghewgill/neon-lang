@@ -1479,6 +1479,13 @@ public:
         context.pop_scope();
         return result;
     }
+    virtual void generate_store(Context &context, std::string src) const override {
+        context.push_scope();
+        std::string refname = ref->generate(context);
+        std::string indexname = index->generate(context);
+        context.out << "if (Ne_String_splice(&" << refname << ",&" << src << ",&" << indexname << ",0,&" << indexname << ",0)) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+    }
 };
 
 class StringValueIndexExpression: public Expression {
@@ -1517,9 +1524,17 @@ public:
         std::string refname = ref->generate(context);
         std::string firstname = first->generate(context);
         std::string lastname = last->generate(context);
-        context.out << "if (Ne_String_range(&" << result << ",&" << refname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_String_range(&" << result << ",&" << refname << ",&" << firstname << "," << srie->first_from_end << ",&" << lastname << "," << srie->last_from_end << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
+    }
+    virtual void generate_store(Context &context, std::string src) const override {
+        context.push_scope();
+        std::string refname = ref->generate(context);
+        std::string firstname = first->generate(context);
+        std::string lastname = last->generate(context);
+        context.out << "if (Ne_String_splice(&" << refname << ",&" << src << ",&" << firstname << "," << srie->first_from_end << ",&" << lastname << "," << srie->last_from_end << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
     }
 };
 
@@ -1539,7 +1554,7 @@ public:
         std::string strname = str->generate(context);
         std::string firstname = first->generate(context);
         std::string lastname = last->generate(context);
-        context.out << "if (Ne_String_range(&" << result << ",&" << strname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_String_range(&" << result << ",&" << strname << ",&" << firstname << "," << svie->first_from_end << ",&" << lastname << "," << svie->last_from_end << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1598,6 +1613,14 @@ public:
         context.out << "if (Ne_Bytes_range(&" << result << ",&" << refname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
+    }
+    virtual void generate_store(Context &context, std::string src) const override {
+        context.push_scope();
+        std::string refname = ref->generate(context);
+        std::string firstname = first->generate(context);
+        std::string lastname = last->generate(context);
+        context.out << "if (Ne_Bytes_splice(&" << src << ",&" << refname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
     }
 };
 
@@ -1676,6 +1699,14 @@ public:
         context.out << "if (Ne_Array_range(&" << result << ",&" << refname << ",&" << firstname << "," << arre->first_from_end << ",&" << lastname << "," << arre->last_from_end << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
+    }
+    virtual void generate_store(Context &context, std::string src) const override {
+        context.push_scope();
+        std::string refname = ref->generate(context);
+        std::string firstname = first->generate(context);
+        std::string lastname = last->generate(context);
+        context.out << "if (Ne_Array_splice(&" << src << ",&" << refname << ",&" << firstname << "," << arre->first_from_end << ",&" << lastname << "," << arre->last_from_end << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
     }
 };
 

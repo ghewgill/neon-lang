@@ -1,5 +1,4 @@
 array2d.neon                    # Ne_Array_mtable
-array-slice.neon                # array slice
 array-subscript.neon            # Ne_Array_mtable
 array-tostring.neon             # Ne_array__toString_string
 assert-enum.neon                # enum.toString
@@ -7,7 +6,6 @@ assignment.neon                 # pointer
 base-test.neon                  # memory leak
 bigint.neon                     # bigint
 binary-test.neon                # module binary
-bytes-slice.neon                # bytes slice assignment
 cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # valid pointer
 check.neon                      # NEXT FOR
@@ -119,8 +117,6 @@ string-format.neon              # module string
 string-in.neon                  # TryExpression
 string-index.neon               # memory leak
 string-multiline.neon           # hex escape sequence out of range
-string-slice.neon               # segfault
-strings.neon                    # segfault
 string-test.neon                # module string
 struct-test.neon                # bignum
 sys-exit.neon                   # ExceptionType

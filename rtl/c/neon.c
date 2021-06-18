@@ -183,7 +183,7 @@ Ne_Exception *Ne_String_index(Ne_String *dest, const Ne_String *s, const Ne_Numb
     return NULL;
 }
 
-Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Number *first, const Ne_Number *last)
+Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
     dest->len = 0;
     dest->ptr = NULL;
@@ -192,6 +192,12 @@ Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Numb
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
+    if (first_from_end) {
+        f += s->len - 1;
+    }
+    if (last_from_end) {
+        l += s->len - 1;
+    }
     if (l < 0 || f >= s->len || f > l) {
         return NULL;
     }
@@ -204,6 +210,36 @@ Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Numb
     dest->len = l - f + 1;
     dest->ptr = malloc(dest->len);
     memcpy(dest->ptr, s->ptr + f, dest->len);
+    return NULL;
+}
+
+Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
+{
+    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
+        return Ne_Exception_raise("StringIndexException");
+    }
+    int f = (int)first->dval;
+    int l = (int)last->dval;
+    if (first_from_end) {
+        f += d->len - 1;
+    }
+    if (last_from_end) {
+        l += d->len - 1;
+    }
+    if (l < -1 || f >= d->len || f > l+1) {
+        return NULL;
+    }
+    if (f < 0) {
+        f = 0;
+    }
+    if (l >= d->len) {
+        l = d->len - 1;
+    }
+    int new_len = d->len - (l - f + 1) + t->len;
+    d->ptr = realloc(d->ptr, new_len);
+    memmove(&d->ptr[f + t->len], &d->ptr[l + 1], (d->len - l - 1));
+    memcpy(&d->ptr[f], t->ptr, t->len);
+    d->len = new_len;
     return NULL;
 }
 
@@ -346,6 +382,30 @@ Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number 
     dest->len = l - f + 1;
     dest->data = malloc(dest->len);
     memcpy(dest->data, b->data + f, dest->len);
+    return NULL;
+}
+
+Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number *first, const Ne_Number *last)
+{
+    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
+        return Ne_Exception_raise("BytesIndexException");
+    }
+    int f = (int)first->dval;
+    int l = (int)last->dval;
+    if (l < 0 || f >= b->len || f > l) {
+        return NULL;
+    }
+    if (f < 0) {
+        f = 0;
+    }
+    if (l >= b->len) {
+        l = b->len - 1;
+    }
+    int new_len = b->len - (l - f + 1) + src->len;
+    b->data = realloc(b->data, new_len);
+    memmove(&b->data[f + src->len], &b->data[l + 1], (b->len - l - 1));
+    memcpy(&b->data[f], src->data, src->len);
+    b->len = new_len;
     return NULL;
 }
 
@@ -627,6 +687,42 @@ Ne_Exception *Ne_Array_range(Ne_Array *result, const Ne_Array *a, const Ne_Numbe
         result->mtable->constructor(&result->a[i]);
         result->mtable->copy(result->a[i], a->a[f+i]);
     }
+    return NULL;
+}
+
+Ne_Exception *Ne_Array_splice(const Ne_Array *b, Ne_Array *a, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
+{
+    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
+        return Ne_Exception_raise("ArrayIndexException");
+    }
+    int f = (int)first->dval;
+    int l = (int)last->dval;
+    if (first_from_end) {
+        f += a->size - 1;
+    }
+    if (last_from_end) {
+        l += a->size - 1;
+    }
+    if (l < -1 || f >= a->size || f > l+1) {
+        return NULL;
+    }
+    if (f < 0) {
+        f = 0;
+    }
+    if (l >= a->size) {
+        l = a->size - 1;
+    }
+    int new_size = a->size - (l - f + 1) + b->size;
+    for (int i = f; i <= l; i++) {
+        a->mtable->destructor(a->a[i]);
+    }
+    a->a = realloc(a->a, new_size * sizeof(void *));
+    memmove(&a->a[f + b->size], &a->a[l + 1], (a->size - l - 1) * sizeof(void *));
+    for (int i = 0; i < b->size; i++) {
+        a->mtable->constructor(&a->a[f + i]);
+        a->mtable->copy(a->a[f + i], b->a[i]);
+    }
+    a->size = new_size;
     return NULL;
 }
 
