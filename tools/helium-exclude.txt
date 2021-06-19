@@ -74,6 +74,7 @@ sql-query.neon         # Feature not required
 sql-whenever.neon      # Feature not required
 sqlite-test.neon       # Module not required
 string-multiline.neon  # Feature not required
+string-splice.neon
 sudoku-test.neon       # Sample not required
 tail-call.neon         # Feature not required
 time-stopwatch.neon    # Module not required

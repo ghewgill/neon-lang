@@ -141,6 +141,7 @@ string-in.neon             # string.find
 string-index.neon          # index
 string-multiline.neon      # StringReferenceIndexExpression
 string-slice.neon          # StringReferenceIndexExpression
+string-splice.neon         # string splice
 string-test.neon           # module string
 strings.neon               # StringReferenceIndexExpression
 struct-test.neon           # DictionaryInExpression

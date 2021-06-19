@@ -330,6 +330,7 @@ string-in.neon
 string-index.neon
 string-multiline.neon
 string-slice.neon
+string-splice.neon
 strings.neon
 string-test.neon
 struct-test.neon

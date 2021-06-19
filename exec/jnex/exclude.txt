@@ -109,6 +109,7 @@ string-format.neon         # format
 string-in.neon             # string.find
 string-index.neon          # index
 string-slice.neon          # string__splice
+string-splice.neon         # string__splice
 string-test.neon           # string
 strings.neon               # string__splice
 struct-test.neon           # CALLMF
