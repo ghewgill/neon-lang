@@ -38,8 +38,6 @@ sql-query.neon             # sqlite
 sql-whenever.neon          # sqlite
 string-bytes.neon          # utf8
 string-escape.neon         # utf8
-string-splice.neon         # string splice
-strings.neon               # string index
 struct-test.neon           # bigint
 textio-random.neon         # textio.TextFile
 textio-seek.neon           # textio.TextFile

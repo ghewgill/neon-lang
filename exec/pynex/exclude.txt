@@ -12,8 +12,6 @@ number-ceil.neon           # precision
 number-exception.neon
 opcode-coverage.neon       # GTY opcode
 print-object.neon          # object print format
-string-splice.neon         # string splice
-strings.neon               # string index
 tostring-quotes.neon       # object print format
 win32-test.neon            # win32
 
