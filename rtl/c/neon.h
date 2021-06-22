@@ -171,6 +171,23 @@ int Ne_Exception_trap(const char *name);
 Ne_Exception *Ne_Exception_propagate();
 void Ne_Exception_unhandled();
 
+Ne_Exception *Ne_file__CONSTANT_Separator(Ne_String *result);
+Ne_Exception *Ne_file_copy(const Ne_String *filename, const Ne_String *destination);
+Ne_Exception *Ne_file_copyOverwriteIfExists(const Ne_String *filename, const Ne_String *destination);
+Ne_Exception *Ne_file_delete(const Ne_String *filename);
+Ne_Exception *Ne_file_exists(Ne_Boolean *result, const Ne_String *filename);
+Ne_Exception *Ne_file_files(Ne_Array *result, const Ne_String *path);
+Ne_Exception *Ne_file_getInfo(void/*TODO*/ *result, const Ne_String *name);
+Ne_Exception *Ne_file_isDirectory(Ne_Boolean *result, const Ne_String *path);
+Ne_Exception *Ne_file_mkdir(const Ne_String *path);
+Ne_Exception *Ne_file_readBytes(Ne_Bytes *result, const Ne_String *filename);
+Ne_Exception *Ne_file_readLines(Ne_Array *result, const Ne_String *filename);
+Ne_Exception *Ne_file_removeEmptyDirectory(const Ne_String *path);
+Ne_Exception *Ne_file_rename(const Ne_String *oldname, const Ne_String *newname);
+Ne_Exception *Ne_file_symlink(const Ne_String *target, const Ne_String *newlink, const Ne_Boolean *targetIsDirectory);
+Ne_Exception *Ne_file_writeBytes(const Ne_String *filename, const Ne_Bytes *data);
+Ne_Exception *Ne_file_writeLines(const Ne_String *filename, const Ne_Array *data);
+
 Ne_Exception *Ne_math_floor(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Number *y);
 Ne_Exception *Ne_math_sqrt(Ne_Number *result, const Ne_Number *x);

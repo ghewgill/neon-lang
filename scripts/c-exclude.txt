@@ -21,16 +21,16 @@ exception-as.neon               # ExceptionType
 exception-code.neon             # ExceptionTransformer
 exception-tostring.neon         # ExceptionType
 export.neon                     # segfault
-file-exists.neon                # Ne_file_exists
-file-filecopied1.neon           # Ne_file_delete
-file-filecopied2.neon           # Ne_file_delete
-file-filecopied3.neon           # Ne_file_delete
-file-filecopied.neon            # Ne_file_delete
-file-linelength.neon            # Ne_file_writeLines
+file-exists.neon                # module file
+file-filecopied1.neon           # module file
+file-filecopied2.neon           # module file
+file-filecopied3.neon           # module file
+file-filecopied.neon            # module file
+file-linelength.neon            # module file
 file-symlink.neon               # module file
 file-test.neon                  # module file
 file-writebytes.neon            # module file
-file-writelines.neon            # Ne_file_writeLines
+file-writelines.neon            # module file
 foreach.neon                    # double free
 format.neon                     # format
 function-pointer.neon           # memory leak
