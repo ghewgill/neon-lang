@@ -54,9 +54,7 @@ sql-whenever.neon                               # SQLite / sql module
 sqlite-test.neon                                # SQLite / sql module
 string-bytes.neon                               # math$intdiv
 string-format.neon                              # math$intdiv
-string-splice.neon                              # string splice
 string-test.neon                                # string$lower
-strings.neon                                    # string index
 struct-test.neon                                # binary$shiftRight32
 time-stopwatch.neon                             # time module
 time-test.neon                                  # time module
