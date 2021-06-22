@@ -2207,7 +2207,16 @@ def neon_string__splice(self):
         first += len(a) - 1
     if last_from_end:
         last += len(a) - 1
-    r = a[:first] + b + a[last+1:]
+    if first < 0:
+        self.raise_literal("StringIndexException", (str(first), 0))
+        return
+    if last < first-1:
+        self.raise_literal("StringIndexException", (str(last), 0))
+        return
+    padding = ""
+    if first > len(a):
+        padding = " " * (first - len(a))
+    r = a[:first] + padding + b + a[last+1:]
     self.stack.append(r)
 
 def neon_string__substring(self):

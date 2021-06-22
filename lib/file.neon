@@ -15,6 +15,7 @@ EXPORT copyOverwriteIfExists
 EXPORT delete
 EXPORT exists
 EXPORT files
+EXPORT filesByWildcard
 EXPORT getInfo
 EXPORT isDirectory
 EXPORT mkdir
@@ -26,6 +27,7 @@ EXPORT removeDirectoryTree
 EXPORT removeEmptyDirectory
 EXPORT rename
 EXPORT symlink
+EXPORT wildcardMatch
 EXPORT writeBytes
 EXPORT writeLines
 
@@ -159,6 +161,29 @@ DECLARE NATIVE FUNCTION exists(filename: String): Boolean
  */
 DECLARE NATIVE FUNCTION files(path: String): Array<String>
 
+/*  Function: filesByWildcard
+ *
+ *  Given a path name and a wildcard pattern, return an array containing the names
+ *  of the files in the path which match the wildcard. If <recursive> is true, then
+ *  search through all subdirectories of <path> for names matching the pattern.
+ */
+FUNCTION filesByWildcard(path: String, pattern: String, recursive: Boolean DEFAULT FALSE): Array<String>
+    VAR r: Array<String> := []
+    LET names: Array<String> := files(path)
+    FOREACH name IN names DO
+        IF name IN [".", ".."] THEN
+            NEXT FOREACH
+        END IF
+        LET fullname: String := pathJoin(path, name)
+        IF recursive AND isDirectory(fullname) THEN
+            r.extend(filesByWildcard(fullname, pattern, recursive))
+        ELSIF wildcardMatch(pattern, name) THEN
+            r.append(fullname)
+        END IF
+    END FOREACH
+    RETURN r
+END FUNCTION
+
 /*  Functions: getInfo
  *
  *  Given a file name, return the file information.
@@ -282,6 +307,44 @@ DECLARE NATIVE FUNCTION rename(oldname: String, newname: String)
  */
 DECLARE NATIVE FUNCTION symlink(target: String, newlink: String, targetIsDirectory: Boolean DEFAULT FALSE)
 
+/*  Function: wildcardMatch
+ *
+ *  Return TRUE if the given name matches the wildcard pattern. The wildcard characters are:
+ *
+ *      ? match any single character
+ *      * match zero or more characters
+ */
+FUNCTION wildcardMatch(pattern: String, name: String): Boolean
+    FUNCTION matchTail(pindex, nindex: Number): Boolean
+        VAR pi: Number := pindex
+        VAR ni: Number := nindex
+        WHILE pi < pattern.length() DO
+            IF pattern[pi] = "*" THEN
+                INC pi
+                IF pi >= pattern.length() THEN
+                    RETURN TRUE
+                END IF
+                WHILE ni < name.length() DO
+                    IF matchTail(pi, ni) THEN
+                        RETURN TRUE
+                    END IF
+                    INC ni
+                END WHILE
+                RETURN FALSE
+            ELSIF ni >= name.length() THEN
+                RETURN FALSE
+            ELSIF pattern[pi] = "?" OR pattern[pi] = name[ni] THEN
+                INC pi
+                INC ni
+            ELSE
+                RETURN FALSE
+            END IF
+        END WHILE
+        RETURN ni >= name.length()
+    END FUNCTION
+    RETURN matchTail(0, 0)
+END FUNCTION
+
 /*  Function: writeBytes
  *
  *  Write a complete file from data in <Bytes>.
@@ -301,3 +364,33 @@ DECLARE NATIVE FUNCTION writeBytes(filename: String, data: Bytes)
  *      - <FileWriteError> - if an error occurs during writing
  */
 DECLARE NATIVE FUNCTION writeLines(filename: String, data: Array<String>)
+
+BEGIN MAIN
+    TESTCASE wildcardMatch("", "")
+    TESTCASE wildcardMatch("?", "a")
+    TESTCASE wildcardMatch("a", "a")
+    TESTCASE wildcardMatch("abc", "abc")
+    TESTCASE wildcardMatch("ab?", "abx")
+    TESTCASE wildcardMatch("*bc", "abc")
+    TESTCASE wildcardMatch("*bc", "abcabc")
+    TESTCASE wildcardMatch("a*c", "abc")
+    TESTCASE wildcardMatch("a*c", "ac")
+    TESTCASE wildcardMatch("a*c", "abcabc")
+    TESTCASE wildcardMatch("ab*", "abc")
+    TESTCASE wildcardMatch("*b*", "abc")
+    TESTCASE wildcardMatch("*b*", "abcabc")
+    TESTCASE wildcardMatch("*b*", "axcabc")
+    TESTCASE wildcardMatch("*b*", "abcaxc")
+    TESTCASE wildcardMatch("*", "")
+    TESTCASE wildcardMatch("*", "abc")
+    TESTCASE NOT wildcardMatch("?", "")
+    TESTCASE NOT wildcardMatch("a", "b")
+    TESTCASE NOT wildcardMatch("a", "ab")
+    TESTCASE NOT wildcardMatch("ab", "a")
+    TESTCASE NOT wildcardMatch("ab?", "ab")
+    TESTCASE NOT wildcardMatch("ab?", "axc")
+    TESTCASE NOT wildcardMatch("ab?", "abcd")
+    TESTCASE NOT wildcardMatch("*bc", "ab")
+    TESTCASE NOT wildcardMatch("a*c", "ab")
+    TESTCASE NOT wildcardMatch("ab*", "ac")
+END MAIN

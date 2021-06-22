@@ -2901,7 +2901,21 @@ func (self *executor) op_callp() {
 		if last_from_end {
 			last += len(s) - 1
 		}
-		self.push(make_cell_str(s[:first] + t + s[last+1:]))
+		if first < 0 {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", first)})
+		} else if last < first-1 {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", last)})
+		} else {
+			padding := ""
+			if first > len(s) {
+				padding = strings.Repeat(" ", first-len(s))
+				first = len(s)
+			}
+			if last >= len(s) {
+				last = len(s) - 1
+			}
+			self.push(make_cell_str(s[:first] + padding + t + s[last+1:]))
+		}
 	case "string__substring":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num

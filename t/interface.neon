@@ -30,19 +30,12 @@ FUNCTION Circle.perimeter(self: VALID POINTER TO Circle): Number
     RETURN 2 * Pi * self->radius
 END FUNCTION
 
-FUNCTION printShapeInfo(s: VALID POINTER TO Shape)
-    print("area \(s->area())")
-    print("perimeter \(s->perimeter())")
-END FUNCTION
-
 VAR q: POINTER TO Shape := NIL
 
 LET r: POINTER TO Rectangle := NEW Rectangle(width WITH 3, height WITH 4)
-printShapeInfo(r)
---= area 12
---= perimeter 14
+TESTCASE r->area() = 12
+TESTCASE r->perimeter() = 14
 
 LET c: POINTER TO Circle := NEW Circle(radius WITH 5)
-printShapeInfo(c)
---= area 78.53981625
---= perimeter 31.4159265
+TESTCASE c->area() = 78.53981625
+TESTCASE c->perimeter() = 31.4159265

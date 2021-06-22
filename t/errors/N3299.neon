@@ -1,0 +1,4 @@
+TYPE Rec IS RECORD
+    r: Rec
+       --<
+END RECORD

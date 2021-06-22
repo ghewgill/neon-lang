@@ -398,7 +398,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, Cell *info)
         }
         free(dbgpath);
 
-        if (!cJSON_IsInvalid(symbols)) {
+        if (symbols != NULL && !cJSON_IsInvalid(symbols)) {
             uint64_t p = self->ip;
             cJSON *source = cJSON_GetObjectItem(symbols, "source");
             char hash_string[65];

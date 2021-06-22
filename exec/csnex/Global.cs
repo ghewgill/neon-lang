@@ -337,6 +337,16 @@ namespace csnex
         }
 #endregion
 #region Bytes Functions
+        public void bytes__concat()
+        {
+            Cell b = Exec.stack.Pop();
+            Cell a = Exec.stack.Pop();
+            byte[] r = new byte[b.Bytes.Length + a.Bytes.Length];
+            Array.Copy(a.Bytes, r, a.Bytes.Length);
+            Array.Copy(b.Bytes, 0, r, a.Bytes.Length, b.Bytes.Length);
+            Exec.stack.Push(Cell.CreateBytesCell(r));
+        }
+
         public void bytes__decodeToString()
         {
             Cell s = Exec.stack.Pop();
@@ -811,11 +821,24 @@ namespace csnex
             if (last_from_end) {
                 l += s.String.Length - 1;
             }
+            if (f < 0) {
+                Exec.Raise("StringIndexException", f.ToString());
+                return;
+            }
+            if (l < f-1) {
+                Exec.Raise("StringIndexException", l.ToString());
+                return;
+            }
 
             string sub;
-            sub = s.String.Substring(0, f);
+            sub = s.String.Substring(0, Math.Min(f, s.String.Length));
+            if (f > s.String.Length) {
+                sub += new string(' ', f - s.String.Length);
+            }
             sub += t.String;
-            sub += s.String.Substring(l+1, s.String.Length - (l + 1));
+            if (l < s.String.Length) {
+                sub += s.String.Substring(l+1, s.String.Length - (l + 1));
+            }
 
             Exec.stack.Push(Cell.CreateStringCell(sub));
         }

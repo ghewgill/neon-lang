@@ -26,3 +26,7 @@ print(a)
 a.append(" world")
 print(a)
 --= hello world
+
+a[12] := "!"
+print(a)
+--= hello world !

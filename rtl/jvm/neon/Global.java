@@ -402,7 +402,20 @@ public class Global {
         if (last_from_end) {
             l += s.length() - 1;
         }
-        return s.substring(0, f) + t + s.substring(l + 1);
+        if (f < 0) {
+            throw new neon.type.NeonException("StringIndexException", s);
+        }
+        if (l < f-1) {
+            throw new neon.type.NeonException("StringIndexException", s);
+        }
+        java.lang.String padding = "";
+        if (f > s.length()) {
+            // In the absence of String.repeat (Java 11), this trick is from
+            // https://stackoverflow.com/a/4903603
+            padding = new java.lang.String(new char[f - s.length()]).replace("\0", " ");
+            f = s.length();
+        }
+        return s.substring(0, f) + padding + t + (l < s.length() ? s.substring(l + 1) : "");
     }
 
     public static byte[] string__toBytes(java.lang.String self) {

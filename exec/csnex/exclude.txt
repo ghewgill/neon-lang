@@ -1,22 +1,14 @@
 arithmetic.neon                                 # exponentiation
 assert-multiline.neon                           # output
-assignment.neon                                 # Classes
-base-test.neon                                  # Bytecode, Constants
+base-test.neon                                  # math$trunc
 bigint.neon                                     # bigint
 binary-test.neon                                # binary module
 bytes.neon                                      # ByteOutOfRangeException
-cformat-test.neon                               # CALLMF
-check-valid.neon                                # Classes
-class-empty.neon                                # Classes
-complex-test.neon                               # CALLMF
-concat-bytes.neon                               # bytes__concat
+complex-test.neon                               # math$log
 datetime-test.neon                              # date module
 debug-example.neon                              # debugger$log
 decimal.neon                                    # Value was either too large or too small for a Decimal.
 encoding-base64.neon                            # binary module
-export-function-indent.neon                     # exports
-export-inline.neon                              # exports
-export.neon                                     # exports
 file-exists.neon                                # file module
 file-filecopied.neon                            # file module
 file-filecopied1.neon                           # file module
@@ -35,38 +27,24 @@ gc1.neon                                        # garbage collection
 gc2.neon                                        # garbage collection
 gc3.neon                                        # garbage collection
 import-optional.neon                            # runtime$isModuleImported
-import-string.neon                              # Bytecode, Constants
-import.neon                                     # Imports
 input.neon                                      # console module
 intdiv.neon                                     # math$intdiv
-interface-multiple.neon                         # PUSHPMG
-interface-parameter-export.neon                 # exports
-interface-parameter-export2.neon                # exports
-interface-parameter-import.neon                 # Imports
-interface-parameter-import2.neon                # types
-interface.neon                                  # Constant Imports
+interface.neon                                  # Invalid output
 json-test.neon                                  # object__makeNull
 math-test.neon                                  # math module
 mkdir.neon                                      # file module
 mmap-test.neon                                  # mmap module
 module-alias.neon                               # math module
-module-alias2.neon                              # module module
-module-import-name-alias.neon                   # math module
-module-import-name-alias2.neon                  # module module
+module-import-name-alias.neon                   # math$sqrt
 module-import-name.neon                         # math module
-module-import-name2.neon                        # module module
-module.neon                                     # Imports/Exports
-module2.neon                                    # module module
 modulo.neon                                     # incorrect results
 net-test-udp.neon                               # net module
 net-test.neon                                   # net module
-new-init-module.neon                            # module module
 number-ceil.neon                                # math module
 number-exception.neon
 object-record.neon                              # EQA
-opcode-coverage.neon
+opcode-coverage.neon                            # Missing Opcodes
 posix-fork.neon                                 # posix module
-record-empty.neon                               # INDEXAN
 sql-connect.neon                                # SQLite / sql module
 sql-cursor.neon                                 # SQLite / sql module
 sql-embed.neon                                  # SQLite / sql module
@@ -77,7 +55,7 @@ sqlite-test.neon                                # SQLite / sql module
 string-bytes.neon                               # math$intdiv
 string-format.neon                              # math$intdiv
 string-test.neon                                # string$lower
-struct-test.neon                                # runtime$moduleIsMain
+struct-test.neon                                # binary$shiftRight32
 time-stopwatch.neon                             # time module
 time-test.neon                                  # time module
 value-index.neon                                # INDEXDV
