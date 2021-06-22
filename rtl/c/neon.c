@@ -226,18 +226,21 @@ Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number
     if (last_from_end) {
         l += d->len - 1;
     }
-    if (l < -1 || f >= d->len || f > l+1) {
-        return NULL;
-    }
     if (f < 0) {
-        f = 0;
+        return Ne_Exception_raise("StringIndexException");
     }
-    if (l >= d->len) {
-        l = d->len - 1;
+    if (l < f-1) {
+        return Ne_Exception_raise("StringIndexException");
     }
-    int new_len = d->len - (l - f + 1) + t->len;
+    int new_len = d->len - (f < d->len ? (l < d->len ? l - f + 1 : d->len - f) : 0) + t->len;
+    int padding = 0;
+    if (f > d->len) {
+        padding = f - d->len;
+        new_len += padding;
+    }
     d->ptr = realloc(d->ptr, new_len);
-    memmove(&d->ptr[f + t->len], &d->ptr[l + 1], (d->len - l - 1));
+    memmove(&d->ptr[f + padding + t->len], &d->ptr[l + 1], (l < d->len ? d->len - l - 1 : 0));
+    memset(&d->ptr[d->len], ' ', padding);
     memcpy(&d->ptr[f], t->ptr, t->len);
     d->len = new_len;
     return NULL;
