@@ -527,6 +527,11 @@ void Ne_Object_deinit(Ne_Object *obj)
     obj->type = neNothing;
 }
 
+int Ne_Object_compare(const Ne_Object *a, const Ne_Object *b)
+{
+    return a == b ? 0 : 1;
+}
+
 Ne_Exception *Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj)
 {
     *r = obj->type == neNothing;
@@ -1102,9 +1107,125 @@ void Ne_Exception_unhandled()
     exit(1);
 }
 
+Ne_Exception *Ne_math_abs(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = abs(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_acos(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = acos(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_acosh(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = acosh(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_asin(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = asin(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_asinh(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = asinh(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_atan(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = atan(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_atanh(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = atanh(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_atan2(Ne_Number *result, const Ne_Number *y, const Ne_Number *x)
+{
+    result->dval = atan2(y->dval, x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_cbrt(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = cbrt(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_ceil(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = ceil(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_cos(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = cos(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_cosh(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = cosh(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_erf(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = erf(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_erfc(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = erfc(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_exp(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = exp(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_exp2(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = exp2(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_expm1(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = expm1(x->dval);
+    return NULL;
+}
+
 Ne_Exception *Ne_math_floor(Ne_Number *result, const Ne_Number *x)
 {
     result->dval = floor(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_frexp(Ne_Number *result, const Ne_Number *x, Ne_Number *exp)
+{
+    int iexp;
+    result->dval = frexp(x->dval, &iexp);
+    exp->dval = iexp;
+    return NULL;
+}
+
+Ne_Exception *Ne_math_hypot(Ne_Number *result, const Ne_Number *x, const Ne_Number *y)
+{
+    result->dval = hypot(x->dval, y->dval);
     return NULL;
 }
 
@@ -1114,9 +1235,122 @@ Ne_Exception *Ne_math_intdiv(Ne_Number *result, const Ne_Number *x, const Ne_Num
     return NULL;
 }
 
+Ne_Exception *Ne_math_ldexp(Ne_Number *result, const Ne_Number *x, const Ne_Number *exp)
+{
+    result->dval = ldexp(x->dval, exp->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_lgamma(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = lgamma(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_log(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = log(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_log10(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = log10(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_log1p(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = log1p(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_log2(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = log2(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_max(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
+{
+    result->dval = a->dval > b->dval ? a->dval : b->dval;
+    return NULL;
+}
+
+Ne_Exception *Ne_math_min(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
+{
+    result->dval = a->dval < b->dval ? a->dval : b->dval;
+    return NULL;
+}
+
+Ne_Exception *Ne_math_nearbyint(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = nearbyint(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_odd(Ne_Boolean *result, const Ne_Number *x)
+{
+    int i = (int)trunc(x->dval);
+    if (i != x->dval) {
+        return Ne_Exception_raise_info_literal("ValueRangeException", "odd() requires integer");
+    }
+    *result = (int)trunc(x->dval) & 1;
+    return NULL;
+}
+
+Ne_Exception *Ne_math_powmod(Ne_Number *result, const Ne_Number *b, const Ne_Number *e, const Ne_Number *m)
+{
+    result->dval = (int)pow(b->dval, e->dval) % (int)m->dval;
+    return NULL;
+}
+
+Ne_Exception *Ne_math_round(Ne_Number *result, const Ne_Number *places, const Ne_Number *value)
+{
+    double f = pow(10, places->dval);
+    result->dval = round(value->dval * f) / f;
+    return NULL;
+}
+
+Ne_Exception *Ne_math_sign(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = x->dval > 0 ? 1 : x->dval < 0 ? -1 : 0;
+    return NULL;
+}
+
+Ne_Exception *Ne_math_sin(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = sin(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_sinh(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = sinh(x->dval);
+    return NULL;
+}
+
 Ne_Exception *Ne_math_sqrt(Ne_Number *result, const Ne_Number *x)
 {
     result->dval = sqrt(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_tan(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = tan(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_tanh(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = tanh(x->dval);
+    return NULL;
+}
+
+Ne_Exception *Ne_math_tgamma(Ne_Number *result, const Ne_Number *x)
+{
+    result->dval = tgamma(x->dval);
     return NULL;
 }
 

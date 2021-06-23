@@ -52,6 +52,48 @@ std::string cident(const std::string &s)
             r.append(buf);
         }
     }
+    static const std::set<std::string> reserved = {
+        // Language keywords
+        "auto",
+        "break",
+        "case",
+        "char",
+        "const",
+        "continue",
+        "default",
+        "do",
+        "double",
+        "else",
+        "enum",
+        "extern",
+        "float",
+        "for",
+        "goto",
+        "if",
+        "inline",
+        "int",
+        "long",
+        "register",
+        "restrict",
+        "return",
+        "short",
+        "signed",
+        "sizeof",
+        "static",
+        "struct",
+        "switch",
+        "typedef",
+        "union",
+        "unsigned",
+        "void",
+        "volatile",
+        "while",
+        // Standard library functions
+        "exp",
+    };
+    if (reserved.find(r) != reserved.end()) {
+        r.push_back('_');
+    }
     return r;
 }
 
@@ -526,7 +568,7 @@ public:
     virtual void generate_init(Context &) const override { internal_error("LocalVariable"); }
     virtual void generate_deinit(Context &) const override { internal_error("LocalVariable"); }
     virtual std::string generate(Context &) const override {
-        return lv->name;
+        return cident(lv->name);
     }
 };
 
@@ -2182,7 +2224,12 @@ public:
             context.out << ")\n";
             context.push_scope();
             if (c->name != nullptr) {
-                // TODO: capture exception in variable
+                context.push_scope();
+                std::string exname = context.get_temp_name("Ne_String");
+                context.out << "Ne_String_init_literal(&" << exname << ",Ne_Exception_propagate()->name);\n";
+                context.out << "Ne_String_copy(&" << c->name->v->name << ".name,&" << exname << ");\n";
+                context.out << "Ne_Object_copy(&" << c->name->v->name << ".info,&Ne_Exception_propagate()->info);\n";
+                context.pop_scope();
             }
             for (auto s: c->handler) {
                 s->generate(context);
