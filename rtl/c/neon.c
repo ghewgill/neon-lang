@@ -238,10 +238,15 @@ Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number
         padding = f - d->len;
         new_len += padding;
     }
-    d->ptr = realloc(d->ptr, new_len);
+    if (new_len > d->len) {
+        d->ptr = realloc(d->ptr, new_len);
+    }
     memmove(&d->ptr[f + padding + t->len], &d->ptr[l + 1], (l < d->len ? d->len - l - 1 : 0));
     memset(&d->ptr[d->len], ' ', padding);
     memcpy(&d->ptr[f], t->ptr, t->len);
+    if (new_len < d->len) {
+        d->ptr = realloc(d->ptr, new_len);
+    }
     d->len = new_len;
     return NULL;
 }
