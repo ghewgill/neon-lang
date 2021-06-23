@@ -1109,7 +1109,7 @@ void Ne_Exception_unhandled()
 
 Ne_Exception *Ne_math_abs(Ne_Number *result, const Ne_Number *x)
 {
-    result->dval = abs(x->dval);
+    result->dval = fabs(x->dval);
     return NULL;
 }
 
