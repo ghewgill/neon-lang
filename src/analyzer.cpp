@@ -1567,7 +1567,7 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
             t = analyze_record(tr, "", ast::RequireName::no);
         } else {
             t = analyze(x->type.get(), AllowClass::no);
-            if (t->name == tname) {
+            if (t->name != "" && t->name == tname) {
                 error(3299, x->type->token, "Recursive record declaration not allowed");
             }
         }
