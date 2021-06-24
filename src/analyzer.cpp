@@ -2801,6 +2801,14 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
         if (c == nullptr) {
             error(3297, expr->token, "cannot use this kind of comparison in a chained manner");
         }
+        switch (c->comp) {
+            case ast::ComparisonExpression::Comparison::LT:
+            case ast::ComparisonExpression::Comparison::LE:
+            case ast::ComparisonExpression::Comparison::EQ:
+                break;
+            default:
+                error(3300, x->tok_comp, "comparison must be '<' or '<=' or '=' for chains");
+        }
         comps.push_back(c);
         token = x->right->token;
     }

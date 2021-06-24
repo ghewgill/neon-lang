@@ -840,7 +840,7 @@ std::unique_ptr<Expression> Parser::parseComparison()
         ComparisonExpression::Comparison comp = comparisonFromToken(tok_comp);
         ++i;
         std::unique_ptr<Expression> right = parseAddition();
-        comps.emplace_back(new ChainedComparisonExpression::Part(comp, std::move(right)));
+        comps.emplace_back(new ChainedComparisonExpression::Part(tok_comp, comp, std::move(right)));
     }
     if (comps.empty()) {
         return left;

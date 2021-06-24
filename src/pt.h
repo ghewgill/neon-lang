@@ -540,7 +540,8 @@ class ChainedComparisonExpression: public Expression {
 public:
     class Part {
     public:
-        explicit Part(ComparisonExpression::Comparison comp, std::unique_ptr<Expression> &&right): comp(comp), right(std::move(right)) {}
+        explicit Part(const Token &tok_comp, ComparisonExpression::Comparison comp, std::unique_ptr<Expression> &&right): tok_comp(tok_comp), comp(comp), right(std::move(right)) {}
+        const Token tok_comp;
         ComparisonExpression::Comparison comp;
         std::unique_ptr<Expression> right;
     };
