@@ -46,6 +46,7 @@ public:
     virtual void visit(const class TypeInterfacePointer *node) = 0;
     virtual void visit(const class TypeFunctionPointer *node) = 0;
     virtual void visit(const class TypeEnum *node) = 0;
+    virtual void visit(const class TypeChoice *node) = 0;
     virtual void visit(const class TypeModule *node) = 0;
     virtual void visit(const class TypeException *node) = 0;
     virtual void visit(const class TypeInterface *node) = 0;
@@ -786,6 +787,18 @@ public:
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeEnum(...)"; }
+};
+
+class TypeChoice: public Type {
+public:
+    TypeChoice(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, std::pair<int, const Type *>> &choices, Analyzer *analyzer);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    const std::string module;
+    const std::map<std::string, std::pair<int, const Type *>> &choices;
+
+    // TODO: stuff goes here
+
+    virtual std::string text() const override { return "TypeChoice(...)"; }
 };
 
 class TypeModule: public Type {

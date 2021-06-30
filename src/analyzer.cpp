@@ -41,6 +41,7 @@ public:
     const ast::Type *analyze(const pt::Type *type, AllowClass allow_class, const std::string &name = std::string());
     const ast::Type *analyze(const pt::TypeSimple *type, const std::string &name);
     const ast::Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
+    const ast::Type *analyze_choice(const pt::TypeChoice *type, const std::string &name);
     const ast::Type *analyze_record(const pt::TypeRecord *type, const std::string &name, ast::RequireName require_name);
     const ast::Type *analyze_class(const pt::TypeClass *type, const std::string &name);
     const ast::Type *analyze(const pt::TypePointer *type, const std::string &name);
@@ -158,6 +159,7 @@ public:
     TypeAnalyzer &operator=(const TypeAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeEnum *t) override { type = a->analyze_enum(t, name); }
+    virtual void visit(const pt::TypeChoice *t) override { type = a->analyze_choice(t, name); }
     virtual void visit(const pt::TypeRecord *t) override { type = a->analyze_record(t, name, ast::RequireName::yes); }
     virtual void visit(const pt::TypeClass *t) override { type = a->analyze_class(t, name); }
     virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t, name); }
@@ -255,6 +257,7 @@ public:
     ExpressionAnalyzer &operator=(const ExpressionAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeChoice *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
@@ -351,6 +354,7 @@ public:
     DeclarationAnalyzer &operator=(const DeclarationAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeChoice *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
@@ -447,6 +451,7 @@ public:
     StatementAnalyzer &operator=(const StatementAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeChoice *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
@@ -1544,6 +1549,23 @@ const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::str
         index++;
     }
     return new ast::TypeEnum(type->token, module_name, name, names, this);
+}
+
+const ast::Type *Analyzer::analyze_choice(const pt::TypeChoice *type, const std::string &name)
+{
+    std::map<std::string, std::pair<int, const ast::Type *>> choices;
+    int index = 0;
+    for (auto &x: type->choices) {
+        std::string choicename = x->name.text;
+        auto t = choices.find(choicename);
+        if (t != choices.end()) {
+            error2(3301, x->name, "duplicate choice: " + choicename, type->choices[t->second.first]->name, "first declaration here");
+        }
+        const ast::Type *atype = analyze(x->type.get(), AllowClass::no);
+        choices[choicename] = std::make_pair(index, atype);
+        index++;
+    }
+    return new ast::TypeChoice(type->token, module_name, name, choices, this);
 }
 
 std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type, std::string tname, bool for_class)
@@ -5852,6 +5874,7 @@ public:
     VariableChecker &operator=(const VariableChecker &) = delete;
     virtual void visit(const pt::TypeSimple *) {}
     virtual void visit(const pt::TypeEnum *) {}
+    virtual void visit(const pt::TypeChoice *) {}
     virtual void visit(const pt::TypeRecord *) {}
     virtual void visit(const pt::TypeClass *) {}
     virtual void visit(const pt::TypePointer *) {}
