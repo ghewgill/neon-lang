@@ -1473,6 +1473,15 @@ void string__splice(TExecutor *exec)
     Cell *s = cell_fromCell(top(exec->stack));        pop(exec->stack);
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
+    if (!number_is_integer(first)) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
+        goto cleanup;
+    }
+    if (!number_is_integer(last)) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
+        goto cleanup;
+    }
+
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
     if (first_from_end) {
@@ -1481,22 +1490,39 @@ void string__splice(TExecutor *exec)
     if (last_from_end) {
         l += s->string->length - 1;
     }
+    if (f < 0) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(number_from_sint64(f)));
+        goto cleanup;
+    }
+    if (l < f-1) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(number_from_sint64(l)));
+        goto cleanup;
+    }
+    int64_t new_len = (int64_t)s->string->length - (f < (int64_t)s->string->length ? (l < (int64_t)s->string->length ? l - f + 1 : (int64_t)s->string->length - f) : 0) + (int64_t)t->string->length;
+    int64_t padding = 0;
+    if (f > (int64_t)s->string->length) {
+        padding = f - s->string->length;
+        new_len += padding;
+    }
+    if (new_len > (int64_t)s->string->length) {
+        s->string->data = realloc(s->string->data, new_len);
+    }
+    memmove(&s->string->data[f + padding + t->string->length], &s->string->data[l + 1], (l < (int64_t)s->string->length ? (int64_t)s->string->length - l - 1 : 0));
+    memset(&s->string->data[s->string->length], ' ', padding);
+    memcpy(&s->string->data[f], t->string->data, t->string->length);
+    if (new_len < (int64_t)s->string->length) {
+        s->string->data = realloc(s->string->data, new_len);
+    }
+    s->string->length = new_len;
 
     Cell *sub = cell_newCellType(cString);
-    sub->string = string_newString();
-    sub->string->length = t->string->length + (((f - 1) + s->string->length) - l);
-    sub->string->data = malloc(sub->string->length);
-    if (sub->string->data == NULL) {
-        fatal_error("Could not allocate %d bytes to splice string", sub->string->length);
-    }
-    memcpy(sub->string->data, s->string->data, f);
-    memcpy(&sub->string->data[f], t->string->data, t->string->length);
-    memcpy(&sub->string->data[f + t->string->length], &s->string->data[l + 1], s->string->length - (l + 1));
+    sub->string = string_copyString(s->string);
 
+    push(exec->stack, sub);
+cleanup:
     cell_freeCell(s);
     cell_freeCell(t);
 
-    push(exec->stack, sub);
 }
 
 void string__substring(TExecutor *exec)
