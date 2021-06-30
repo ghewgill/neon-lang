@@ -1,0 +1,21 @@
+TYPE FindResult IS CHOICE
+    notfound
+    index: Number
+END CHOICE
+
+FUNCTION find(s: String, target: String): FindResult
+    FOR i := 0 TO s.length()-1 DO
+        IF s[i TO i+target.length()-1] = target THEN
+            RETURN FindResult.index(i)
+        END IF
+    END FOR
+    RETURN FindResult.notfound
+END FUNCTION
+
+LET r := find("foobar", "bar")
+IF r ISA FindResult.index THEN
+    print(r.index)
+ELSE
+    print("not found")
+END IF
+--= 3
