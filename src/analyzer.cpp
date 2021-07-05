@@ -1158,6 +1158,37 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
     }
 }
 
+ast::TypeChoice::TypeChoice(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, std::pair<int, const Type *>> &choices, Analyzer *analyzer)
+  : Type(declaration, name),
+    module(module),
+    choices(choices)
+{
+    if (name.empty()) {
+        error(9999, declaration, "choice type must have name");
+    }
+    {
+        std::vector<FunctionParameter *> params;
+        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
+        params.push_back(fp);
+        Function *f = new Function(Token(), "choice.toString", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, false, 1);
+        std::vector<const Expression *> values;
+        for (auto c: choices) {
+            if (c.second.first < 0) {
+                internal_error("TypeChoice");
+            }
+            if (values.size() < static_cast<size_t>(c.second.first)+1) {
+                values.resize(c.second.first+1);
+            }
+            if (values[c.second.first] != nullptr) {
+                internal_error("TypeChoice");
+            }
+            values[c.second.first] = new ConstantStringExpression(utf8string(c.first));
+        }
+        f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp))));
+        methods["toString"] = f;
+    }
+}
+
 ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index, Analyzer *analyzer)
   : ReferenceExpression(TYPE_STRING, ref->is_readonly),
     ref(ref),
@@ -1561,7 +1592,7 @@ const ast::Type *Analyzer::analyze_choice(const pt::TypeChoice *type, const std:
         if (t != choices.end()) {
             error2(3301, x->name, "duplicate choice: " + choicename, type->choices[t->second.first]->name, "first declaration here");
         }
-        const ast::Type *atype = analyze(x->type.get(), AllowClass::no);
+        const ast::Type *atype = x->type != nullptr ? analyze(x->type.get(), AllowClass::no) : nullptr;
         choices[choicename] = std::make_pair(index, atype);
         index++;
     }

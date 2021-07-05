@@ -1026,6 +1026,7 @@ protected:
     friend class TypeString;
     friend class TypeBytes;
     friend class TypeEnum;
+    friend class TypeChoice;
     friend class UnaryMinusExpression;
     friend class LogicalNotExpression;
     friend class DisjunctionExpression;

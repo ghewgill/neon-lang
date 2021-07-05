@@ -980,6 +980,41 @@ std::string ast::TypeEnum::get_type_descriptor(Emitter &) const
     return r;
 }
 
+void ast::TypeChoice::generate_load(Emitter &emitter) const
+{
+    emitter.emit(Opcode::LOADA);
+}
+
+void ast::TypeChoice::generate_store(Emitter &emitter) const
+{
+    emitter.emit(Opcode::STOREA);
+}
+
+void ast::TypeChoice::generate_call(Emitter &) const
+{
+    internal_error("TypeChoice");
+}
+
+std::string ast::TypeChoice::get_type_descriptor(Emitter &) const
+{
+    std::string r = "E[";
+    std::vector<std::string> namevector(choices.size());
+    for (auto c: choices) {
+        if (not namevector[c.second.first].empty()) {
+            internal_error("duplicate choice value");
+        }
+        namevector[c.second.first] = c.first;
+    }
+    for (auto n: namevector) {
+        if (r.length() > 2) {
+            r += ",";
+        }
+        r += n;
+    }
+    r += "]";
+    return r;
+}
+
 void ast::Variable::generate_load(Emitter &emitter) const
 {
     type->generate_load(emitter);
@@ -2718,6 +2753,14 @@ void ast::TypeEnum::debuginfo(Emitter &, minijson::object_writer &out) const
     auto node = out.nested_object("type");
     node.write("display", "Enum");
     node.write("representation", "number");
+    node.close();
+}
+
+void ast::TypeChoice::debuginfo(Emitter &, minijson::object_writer &out) const
+{
+    auto node = out.nested_object("type");
+    node.write("display", "Choice");
+    node.write("representation", "array");
     node.close();
 }
 
