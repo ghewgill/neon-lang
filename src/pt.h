@@ -21,7 +21,7 @@ class TypePointer;
 class TypeValidPointer;
 class TypeFunctionPointer;
 class TypeParameterised;
-class TypeImport;
+class TypeQualified;
 
 class DummyExpression;
 class IdentityExpression;
@@ -118,7 +118,7 @@ public:
     virtual void visit(const TypeValidPointer *) = 0;
     virtual void visit(const TypeFunctionPointer *) = 0;
     virtual void visit(const TypeParameterised *) = 0;
-    virtual void visit(const TypeImport *) = 0;
+    virtual void visit(const TypeQualified *) = 0;
 
     virtual void visit(const DummyExpression *) = 0;
     virtual void visit(const IdentityExpression *) = 0;
@@ -294,12 +294,11 @@ public:
     std::unique_ptr<Type> elementtype;
 };
 
-class TypeImport: public Type {
+class TypeQualified: public Type {
 public:
-    TypeImport(const Token &token, const Token &modname, const Token &subname): Type(token), modname(modname), subname(subname) {}
+    TypeQualified(const Token &token, const std::vector<Token> &names): Type(token), names(names) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const Token modname;
-    const Token subname;
+    const std::vector<Token> names;
 };
 
 class Expression: public ParseTreeNode {

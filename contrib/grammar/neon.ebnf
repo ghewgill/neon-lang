@@ -59,7 +59,7 @@ ImportDeclaration = 'IMPORT', ['OPTIONAL'], (Identifier, ['.', Identifier], ['AL
 
 TypeDeclaration = 'TYPE', Identifier, 'IS', Type;
 
-Type = ParameterisedType | RecordType | ClassType | EnumType | PointerType | FunctionPointerType | (Identifier, ['.', Identifier]);
+Type = ParameterisedType | RecordType | ClassType | EnumType | PointerType | FunctionPointerType | (Identifier, {'.', Identifier});
 
 ParameterisedType = ('Array' | 'Dictionary'), '<', Type, '>';
 

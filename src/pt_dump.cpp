@@ -44,8 +44,8 @@ public:
         write("TypeParameterised(" + node->name.text + ")");
         child(node->elementtype.get());
     }
-    virtual void visit(const TypeImport *node) override {
-        write("TypeImport(" + node->modname.text + "." + node->subname.text + ")");
+    virtual void visit(const TypeQualified *node) override {
+        write("TypeQualified(" + join(node->names) + ")");
     }
 
     virtual void visit(const DummyExpression *) override {

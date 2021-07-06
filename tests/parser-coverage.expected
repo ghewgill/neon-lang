@@ -45,6 +45,10 @@ Program
   TypeDeclaration
     TypeFunctionPointer
       nullptr
+  TypeDeclaration
+    TypeQualified(one,two)
+  TypeDeclaration
+    TypeQualified(one,two,three)
   ConstantDeclaration(name)
     TypeSimple(type)
     IdentifierExpression(expr)
