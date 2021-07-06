@@ -1144,7 +1144,7 @@ public:
 
 class ConstantChoiceExpression: public Expression {
 public:
-    ConstantChoiceExpression(const TypeChoice *type, int value, const Expression *expr): Expression(type, expr->is_constant), value(value), expr(expr) {}
+    ConstantChoiceExpression(const TypeChoice *type, int value, const Expression *expr): Expression(type, expr != nullptr ? expr->is_constant : true), value(value), expr(expr) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const int value;

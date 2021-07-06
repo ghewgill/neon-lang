@@ -2024,6 +2024,18 @@ const ast::Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
 
 const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
 {
+    const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(expr->base.get());
+    if (ident != nullptr) {
+        const ast::Name *name = scope.top()->lookupName(ident->name);
+        const ast::TypeChoice *choice_type = dynamic_cast<const ast::TypeChoice *>(name);
+        if (choice_type != nullptr) {
+            auto choice = choice_type->choices.find(expr->name.text);
+            if (choice == choice_type->choices.end()) {
+                error(9999, expr->name, "choice not found");
+            }
+            return new ast::ConstantChoiceExpression(choice_type, choice->second.first, nullptr);
+        }
+    }
     const ast::Name *name = analyze_qualified_name(expr);
     if (name != nullptr) {
         const ast::Constant *constant = dynamic_cast<const ast::Constant *>(name);
