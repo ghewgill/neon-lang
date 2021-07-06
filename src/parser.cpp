@@ -330,13 +330,16 @@ std::unique_ptr<Type> Parser::parseType()
     const Token &name = tokens[i];
     i++;
     if (tokens[i].type == DOT) {
-        i++;
-        if (tokens[i].type != IDENTIFIER) {
-            error(2075, tokens[i], "identifier expected");
+        std::vector<Token> names { name };
+        while (tokens[i].type == DOT) {
+            i++;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2075, tokens[i], "identifier expected");
+            }
+            names.push_back(tokens[i]);
+            i++;
         }
-        const Token &subname = tokens[i];
-        i++;
-        return std::unique_ptr<Type> { new TypeImport(name, name, subname) };
+        return std::unique_ptr<Type> { new TypeQualified(name, names) };
     } else {
         return std::unique_ptr<Type> { new TypeSimple(name, name.text) };
     }

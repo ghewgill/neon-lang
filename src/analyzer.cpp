@@ -47,7 +47,7 @@ public:
     const ast::Type *analyze(const pt::TypeValidPointer *type, const std::string &name);
     const ast::Type *analyze(const pt::TypeFunctionPointer *type, const std::string &name);
     const ast::Type *analyze(const pt::TypeParameterised *type, const std::string &name);
-    const ast::Type *analyze(const pt::TypeImport *type, const std::string &name);
+    const ast::Type *analyze(const pt::TypeQualified *type, const std::string &name);
     const ast::Expression *analyze(const pt::Expression *expr);
     const ast::Expression *analyze(const pt::DummyExpression *expr);
     const ast::Expression *analyze(const pt::IdentityExpression *expr);
@@ -164,7 +164,7 @@ public:
     virtual void visit(const pt::TypeValidPointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeFunctionPointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t, name); }
-    virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::TypeQualified *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -261,7 +261,7 @@ public:
     virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeQualified *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::DummyExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::IdentityExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::BooleanLiteralExpression *p) override { expr = a->analyze(p); }
@@ -357,7 +357,7 @@ public:
     virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeQualified *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -453,7 +453,7 @@ public:
     virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeQualified *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -1630,11 +1630,11 @@ const ast::Type *Analyzer::analyze(const pt::TypePointer *type, const std::strin
                     return new ast::TypeInterfacePointer(type->token, interface);
                 }
             }
-            const pt::TypeImport *import = dynamic_cast<const pt::TypeImport *>(type->reftype.get());
+            const pt::TypeQualified *import = dynamic_cast<const pt::TypeQualified *>(type->reftype.get());
             if (import != nullptr) {
-                ast::Module *module = dynamic_cast<ast::Module *>(scope.top()->lookupName(import->modname.text));
+                ast::Module *module = dynamic_cast<ast::Module *>(scope.top()->lookupName(import->names[0].text));
                 if (module != nullptr) {
-                    ast::Interface *interface = dynamic_cast<ast::Interface *>(module->scope->lookupName(import->subname.text));
+                    ast::Interface *interface = dynamic_cast<ast::Interface *>(module->scope->lookupName(import->names[1].text));
                     if (interface != nullptr) {
                         return new ast::TypeInterfacePointer(type->token, interface);
                     }
@@ -1742,23 +1742,23 @@ const ast::Type *Analyzer::analyze(const pt::TypeParameterised *type, const std:
     internal_error("Invalid parameterized type");
 }
 
-const ast::Type *Analyzer::analyze(const pt::TypeImport *type, const std::string &)
+const ast::Type *Analyzer::analyze(const pt::TypeQualified *type, const std::string &)
 {
-    ast::Name *modname = scope.top()->lookupName(type->modname.text);
+    ast::Name *modname = scope.top()->lookupName(type->names[0].text);
     if (modname == nullptr) {
-        error(3153, type->modname, "name not found");
+        error(3153, type->names[0], "name not found");
     }
     ast::Module *module = dynamic_cast<ast::Module *>(modname);
     if (module == nullptr) {
-        error(3154, type->modname, "module name expected");
+        error(3154, type->names[0], "module name expected");
     }
-    ast::Name *name = module->scope->lookupName(type->subname.text);
+    ast::Name *name = module->scope->lookupName(type->names[1].text);
     if (name == nullptr) {
-        error(3155, type->subname, "name not found in module");
+        error(3155, type->names[1], "name not found in module");
     }
     ast::Type *rtype = dynamic_cast<ast::Type *>(name);
     if (rtype == nullptr) {
-        error(3156, type->subname, "name not a type");
+        error(3156, type->names[1], "name not a type");
     }
     return rtype;
 }
@@ -5858,7 +5858,7 @@ public:
     virtual void visit(const pt::TypeValidPointer *) {}
     virtual void visit(const pt::TypeFunctionPointer *) {}
     virtual void visit(const pt::TypeParameterised *) {}
-    virtual void visit(const pt::TypeImport *) {}
+    virtual void visit(const pt::TypeQualified *) {}
 
     virtual void visit(const pt::DummyExpression *) {}
     virtual void visit(const pt::IdentityExpression *node) { node->expr->accept(this); }

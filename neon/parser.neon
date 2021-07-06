@@ -109,7 +109,7 @@ TYPE Type IS ENUM
     TypePointer
     TypeFunctionPointer
     TypeParameterised
-    TypeImport
+    TypeQualified
     DummyExpression
     IdentityExpression
     BooleanLiteralExpression
@@ -224,9 +224,8 @@ TYPE TypeParameterised IS RECORD
     elementtype: POINTER TO ParseTreeNode
 END RECORD
 
-TYPE TypeImport IS RECORD
-    modname: lexer.Token
-    subname: lexer.Token
+TYPE TypeQualified IS RECORD
+    names: Array<lexer.Token>
 END RECORD
 
 TYPE BaseExpression IS RECORD
@@ -588,7 +587,7 @@ TYPE ParseTreeNode IS CLASS
     typepointer: TypePointer
     typefunctionpointer: TypeFunctionPointer
     typeparameterised: TypeParameterised
-    typeimport: TypeImport
+    typequalified: TypeQualified
     baseexpression: BaseExpression
     unaryexpression: UnaryExpression
     binaryexpression: BinaryExpression
@@ -2239,18 +2238,20 @@ FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
     LET name: lexer.Token := self.token
     self.nextToken()
     IF self.token.type = TokenType.dot THEN
-        self.nextToken()
-        IF self.token.type <> TokenType.identifier THEN
-            error(2075, self.token, "identifier expected")
-        END IF
-        LET subname: lexer.Token := self.token
-        self.nextToken()
+        VAR names: Array<lexer.Token> := [name]
+        WHILE self.token.type = TokenType.dot DO
+            self.nextToken()
+            IF self.token.type <> TokenType.identifier THEN
+                error(2075, self.token, "identifier expected")
+            END IF
+            names.append(self.token)
+            self.nextToken()
+        END WHILE
         RETURN NEW ParseTreeNode(
-            type WITH Type.TypeImport,
+            type WITH Type.TypeQualified,
             token WITH name,
-            typeimport WITH TypeImport(
-                modname WITH name,
-                subname WITH subname
+            typequalified WITH TypeQualified(
+                names WITH names
             )
         )
     ELSE
@@ -3695,7 +3696,15 @@ FUNCTION dumpTypeParameterised(node: VALID POINTER TO ParseTreeNode, depth: Numb
     dumpParseTree(node->typeparameterised.elementtype, depth+1)
 END FUNCTION
 
-FUNCTION dumpTypeImport(node: VALID POINTER TO ParseTreeNode, depth: Number)
+FUNCTION dumpTypeQualified(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH n IN node->typequalified.names DO
+        IF names <> "" THEN
+            names.append(",")
+        END IF
+        names.append(n.text)
+    END FOREACH
+    dumpNode(depth, "TypeQualified(\(names))")
 END FUNCTION
 
 FUNCTION dumpDummyExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
@@ -4212,7 +4221,7 @@ LET Dumper: IParseTreeVisitor := {
     "TypePointer":                          dumpTypePointer,
     "TypeFunctionPointer":                  dumpTypeFunctionPointer,
     "TypeParameterised":                    dumpTypeParameterised,
-    "TypeImport":                           dumpTypeImport,
+    "TypeQualified":                        dumpTypeQualified,
     "DummyExpression":                      dumpDummyExpression,
     "IdentityExpression":                   dumpIdentityExpression,
     "BooleanLiteralExpression":             dumpBooleanLiteralExpression,

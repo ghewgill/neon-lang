@@ -38,6 +38,10 @@ TYPE name IS POINTER TO type
 -- Type, FunctionPointerType
 TYPE name IS FUNCTION()
 
+-- Type, TypeQualified
+TYPE name IS one.two
+TYPE name IS one.two.three
+
 -- ConstantDeclaration
 CONSTANT name: type := expr
 CONSTANT name := expr
