@@ -795,7 +795,7 @@ public:
     TypeChoice(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, std::pair<int, const Type *>> &choices, Analyzer *analyzer);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
-    const std::map<std::string, std::pair<int, const Type *>> &choices;
+    const std::map<std::string, std::pair<int, const Type *>> choices;
 
     virtual const Expression *make_default_value() const override;
     virtual void generate_load(Emitter &emitter) const override;
