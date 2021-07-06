@@ -65,6 +65,7 @@ public:
     virtual void visit(const class ConstantStringExpression *node) = 0;
     virtual void visit(const class ConstantBytesExpression *node) = 0;
     virtual void visit(const class ConstantEnumExpression *node) = 0;
+    virtual void visit(const class ConstantChoiceExpression *node) = 0;
     virtual void visit(const class ConstantNilExpression *node) = 0;
     virtual void visit(const class ConstantNowhereExpression *node) = 0;
     virtual void visit(const class ConstantNilObject *node) = 0;
@@ -805,7 +806,7 @@ public:
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
-    virtual std::string text() const override { return "TypeChoice(...)"; }
+    virtual std::string text() const override { return "TypeChoice(" + std::to_string(choices.size()) + ")"; }
 };
 
 class TypeModule: public Type {
@@ -1136,6 +1137,23 @@ public:
     virtual bool eval_boolean() const override { internal_error("ConstantEnumExpression"); }
     virtual Number eval_number() const override { return number_from_uint32(value); }
     virtual utf8string eval_string() const override { internal_error("ConstantEnumExpression"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override;
+};
+
+class ConstantChoiceExpression: public Expression {
+public:
+    ConstantChoiceExpression(const TypeChoice *type, int value, const Expression *expr): Expression(type, expr->is_constant), value(value), expr(expr) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const int value;
+    const Expression *expr;
+
+    virtual bool is_pure(std::set<const ast::Function *> &) const override { return true; }
+    virtual bool eval_boolean() const override { internal_error("ConstantChoiceExpression"); }
+    virtual Number eval_number() const override { internal_error("ConstantChoiceExpression"); }
+    virtual utf8string eval_string() const override { internal_error("ConstantChoiceExpression"); }
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override;

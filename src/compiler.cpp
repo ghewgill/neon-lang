@@ -1351,6 +1351,13 @@ void ast::ConstantEnumExpression::generate_expr(Emitter &emitter) const
     emitter.emit(Opcode::PUSHN, number_from_uint32(value));
 }
 
+void ast::ConstantChoiceExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate_expr(emitter);
+    emitter.emit(Opcode::PUSHI, value);
+    emitter.emit(Opcode::CONSA, 2);
+}
+
 void ast::ConstantNilExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(Opcode::PUSHNIL);

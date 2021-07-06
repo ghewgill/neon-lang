@@ -775,6 +775,13 @@ std::string ConstantEnumExpression::text() const
     return s.str();
 }
 
+std::string ConstantChoiceExpression::text() const
+{
+    std::stringstream s;
+    s << "ConstantChoiceExpression(" << value << ", " << expr->text() << ")";
+    return s.str();
+}
+
 bool ArrayLiteralExpression::all_constant(const std::vector<const Expression *> &elements)
 {
     for (auto e: elements) {

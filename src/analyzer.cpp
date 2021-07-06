@@ -2287,33 +2287,51 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         // This check avoids trying to evaluate foo.bar as an
         // expression in foo.bar() where foo is actually a module.
         bool is_module_call = false;
+        const ast::TypeChoice *choice_type = nullptr;
         const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(dotmethod->base.get());
         if (ident != nullptr) {
             const ast::Name *name = scope.top()->lookupName(ident->name);
             is_module_call = dynamic_cast<const ast::Module *>(name) != nullptr;
+            choice_type = dynamic_cast<const ast::TypeChoice *>(name);
         }
         if (not is_module_call) {
-            const ast::Expression *base = analyze(dotmethod->base.get());
-            if (base->type == ast::TYPE_OBJECT) {
-                auto invoke = dynamic_cast<ast::Variable *>(scope.top()->lookupName("object__invokeMethod"));
-                if (invoke == nullptr) {
-                    internal_error("could not find object__invokeMethod");
+            if (choice_type != nullptr) {
+                auto choice = choice_type->choices.find(dotmethod->name.text);
+                if (choice == choice_type->choices.end()) {
+                    error(9999, dotmethod->name, "choice not found");
                 }
-                self = base;
-                initial_args.push_back(new ast::ConstantStringExpression(utf8string(dotmethod->name.text)));
-                func = new ast::VariableExpression(invoke);
-                allow_ignore_result = true;
+                if (expr->args.size() != 1) {
+                    error(9999, expr->rparen, "expected 1 argument");
+                }
+                const ast::Expression *arg = analyze(expr->args[0]->expr.get());
+                arg = convert(choice->second.second, arg);
+                if (arg == nullptr) {
+                    error(9999, expr->args[0]->expr->token, "type mismatch");
+                }
+                return new ast::ConstantChoiceExpression(choice_type, choice->second.first, arg);
             } else {
-                auto m = base->type->methods.find(dotmethod->name.text);
-                if (m == base->type->methods.end()) {
-                    error(3137, dotmethod->name, "method not found");
-                } else {
-                    if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
-                        internal_error("class not expected here");
+                const ast::Expression *base = analyze(dotmethod->base.get());
+                if (base->type == ast::TYPE_OBJECT) {
+                    auto invoke = dynamic_cast<ast::Variable *>(scope.top()->lookupName("object__invokeMethod"));
+                    if (invoke == nullptr) {
+                        internal_error("could not find object__invokeMethod");
                     }
                     self = base;
+                    initial_args.push_back(new ast::ConstantStringExpression(utf8string(dotmethod->name.text)));
+                    func = new ast::VariableExpression(invoke);
+                    allow_ignore_result = true;
+                } else {
+                    auto m = base->type->methods.find(dotmethod->name.text);
+                    if (m == base->type->methods.end()) {
+                        error(3137, dotmethod->name, "method not found");
+                    } else {
+                        if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
+                            internal_error("class not expected here");
+                        }
+                        self = base;
+                    }
+                    func = new ast::VariableExpression(m->second);
                 }
-                func = new ast::VariableExpression(m->second);
             }
         } else {
             recordtype = dynamic_cast<const ast::TypeRecord *>(analyze_qualified_name(expr->base.get()));
