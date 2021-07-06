@@ -2901,6 +2901,18 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
 const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
+    const pt::TypeQualified *qtype = dynamic_cast<const pt::TypeQualified *>(expr->target.get());
+    if (qtype != nullptr) {
+        const ast::Name *name = scope.top()->lookupName(qtype->names[0].text);
+        const ast::TypeChoice *choice_type = dynamic_cast<const ast::TypeChoice *>(name);
+        if (choice_type != nullptr) {
+            auto choice = choice_type->choices.find(qtype->names[1].text);
+            if (choice == choice_type->choices.end()) {
+                error(9999, qtype->names[1], "choice not found");
+            }
+            return new ast::ChoiceTestExpression(left, choice_type, choice->second.first);
+        }
+    }
     const ast::Type *target = analyze(expr->target.get(), AllowClass::no);
     auto conv = target->make_converter(left->type);
     if (conv == nullptr) {
