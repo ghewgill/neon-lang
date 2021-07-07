@@ -1353,9 +1353,14 @@ void ast::ConstantEnumExpression::generate_expr(Emitter &emitter) const
 
 void ast::ConstantChoiceExpression::generate_expr(Emitter &emitter) const
 {
-    expr->generate_expr(emitter);
-    emitter.emit(Opcode::PUSHI, value);
-    emitter.emit(Opcode::CONSA, 2);
+    if (expr != nullptr) {
+        expr->generate(emitter);
+        emitter.emit(Opcode::PUSHI, value);
+        emitter.emit(Opcode::CONSA, 2);
+    } else {
+        emitter.emit(Opcode::PUSHI, value);
+        emitter.emit(Opcode::CONSA, 1);
+    }
 }
 
 void ast::ConstantNilExpression::generate_expr(Emitter &emitter) const
@@ -1539,6 +1544,15 @@ void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
     emitter.emit(Opcode::DROP);
     emitter.emit(Opcode::PUSHB, 0);
     emitter.jump_target(skip);
+}
+
+void ast::ChoiceTestExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAV);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::EQN);
 }
 
 void ast::ArrayInExpression::generate_expr(Emitter &emitter) const
@@ -1965,6 +1979,44 @@ void ast::ArrayReferenceRangeExpression::generate_store(Emitter &emitter) const
 void ast::ArrayValueRangeExpression::generate_expr(Emitter &emitter) const
 {
     load->generate(emitter);
+}
+
+void ast::ChoiceReferenceExpression::generate_address_read(Emitter &emitter) const
+{
+    expr->generate_address_read(emitter);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAR);
+    emitter.emit(Opcode::LOADN);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::EQN);
+    auto skip_label = emitter.create_label();
+    emitter.emit_jump(Opcode::JT, skip_label);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
+    emitter.jump_target(skip_label);
+    expr->generate_address_read(emitter);
+    emitter.emit(Opcode::PUSHI, 1);
+    emitter.emit(Opcode::INDEXAR);
+}
+
+void ast::ChoiceReferenceExpression::generate_address_write(Emitter &emitter) const
+{
+    expr->generate_address_read(emitter);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAR);
+    emitter.emit(Opcode::LOADN);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::EQN);
+    auto skip_label = emitter.create_label();
+    emitter.emit_jump(Opcode::JT, skip_label);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
+    emitter.jump_target(skip_label);
+    expr->generate_address_write(emitter);
+    emitter.emit(Opcode::PUSHI, 1);
+    emitter.emit(Opcode::INDEXAW);
 }
 
 void ast::PointerDereferenceExpression::generate_address_read(Emitter &emitter) const

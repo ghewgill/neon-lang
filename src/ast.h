@@ -82,6 +82,7 @@ public:
     virtual void visit(const class DisjunctionExpression *node) = 0;
     virtual void visit(const class ConjunctionExpression *node) = 0;
     virtual void visit(const class TypeTestExpression *node) = 0;
+    virtual void visit(const class ChoiceTestExpression *node) = 0;
     virtual void visit(const class ArrayInExpression *node) = 0;
     virtual void visit(const class DictionaryInExpression *node) = 0;
     virtual void visit(const class ChainedComparisonExpression *node) = 0;
@@ -120,6 +121,7 @@ public:
     virtual void visit(const class RecordValueFieldExpression *node) = 0;
     virtual void visit(const class ArrayReferenceRangeExpression *node) = 0;
     virtual void visit(const class ArrayValueRangeExpression *node) = 0;
+    virtual void visit(const class ChoiceReferenceExpression *node) = 0;
     virtual void visit(const class PointerDereferenceExpression *node) = 0;
     virtual void visit(const class ConstantExpression *node) = 0;
     virtual void visit(const class VariableExpression *node) = 0;
@@ -1497,6 +1499,26 @@ public:
     virtual std::string text() const override { return "TypeTestExpression(" + expr_before_conversion->text() + ", " + expr_after_conversion->text() + ")"; }
 };
 
+class ChoiceTestExpression: public Expression {
+public:
+    ChoiceTestExpression(const Expression *expr, const TypeChoice *choice_type, int choice): Expression(TYPE_BOOLEAN, false), expr(expr), choice_type(choice_type), choice(choice) {}
+    ChoiceTestExpression(const ChoiceTestExpression &) = delete;
+    ChoiceTestExpression &operator=(const ChoiceTestExpression &) = delete;
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *expr;
+    const TypeChoice *choice_type;
+    const int choice;
+
+    virtual bool is_pure(std::set<const ast::Function *> &context) const override { return expr->is_pure(context); }
+    virtual bool eval_boolean() const override { internal_error("ChoiceTestExpression"); }
+    virtual Number eval_number() const override { internal_error("ChoiceTestExpression"); }
+    virtual utf8string eval_string() const override { internal_error("ChoiceTestExpression"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "ChoiceTestExpression(" + expr->text() + ", " + choice_type->text() + ", " + std::to_string(choice) + ")"; }
+};
+
 class ArrayInExpression: public Expression {
 public:
     ArrayInExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, false), left(left), right(right) {}
@@ -2325,6 +2347,27 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ArrayValueRangeExpression(" + array->text() + ", " + first->text() + ", " + last->text() + ")"; }
+};
+
+class ChoiceReferenceExpression: public ReferenceExpression {
+public:
+    ChoiceReferenceExpression(const Type *type, const ReferenceExpression *expr, const TypeChoice *choice_type, int choice): ReferenceExpression(type, false), expr(expr), choice_type(choice_type), choice(choice) {}
+    ChoiceReferenceExpression(const ChoiceReferenceExpression &) = delete;
+    ChoiceReferenceExpression &operator=(const ChoiceReferenceExpression &) = delete;
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const ReferenceExpression *expr;
+    const TypeChoice *choice_type;
+    const int choice;
+
+    virtual bool is_pure(std::set<const ast::Function *> &context) const override { return expr->is_pure(context); }
+    virtual bool eval_boolean() const override { internal_error("ChoiceReferenceExpression"); }
+    virtual Number eval_number() const override { internal_error("ChoiceReferenceExpression"); }
+    virtual utf8string eval_string() const override { internal_error("ChoiceReferenceExpression"); }
+    virtual void generate_address_read(Emitter &emitter) const override;
+    virtual void generate_address_write(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "ChoiceReferenceExpression (" + expr->text() + ", " + choice_type->text() + ", " + std::to_string(choice) + ")"; }
 };
 
 class PointerDereferenceExpression: public ReferenceExpression {

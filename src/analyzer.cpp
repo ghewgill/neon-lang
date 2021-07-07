@@ -2033,6 +2033,9 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
             if (choice == choice_type->choices.end()) {
                 error(9999, expr->name, "choice not found");
             }
+            if (choice->second.second != nullptr) {
+                error(9999, expr->name, "need a value for this choice");
+            }
             return new ast::ConstantChoiceExpression(choice_type, choice->second.first, nullptr);
         }
     }
@@ -2062,6 +2065,18 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
     const ast::Expression *base = analyze(expr->base.get());
     if (base->type == ast::TYPE_OBJECT) {
         return new ast::ObjectSubscriptExpression(base, convert(ast::TYPE_OBJECT, new ast::ConstantStringExpression(utf8string(expr->name.text))));
+    }
+    const ast::TypeChoice *choicetype = dynamic_cast<const ast::TypeChoice *>(base->type);
+    if (choicetype != nullptr) {
+        auto choice = choicetype->choices.find(expr->name.text);
+        if (choice == choicetype->choices.end()) {
+            error(9999, expr->name, "choice not found");
+        }
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
+        if (ref == nullptr) {
+            error(9999, expr->token, "must be reference");
+        }
+        return new ast::ChoiceReferenceExpression(choice->second.second, ref, choicetype, choice->second.first);
     }
     const ast::TypeRecord *recordtype = dynamic_cast<const ast::TypeRecord *>(base->type);
     if (recordtype == nullptr) {
