@@ -19,3 +19,28 @@ ELSE
     print("not found")
 END IF
 --= 3
+
+TYPE Fruit IS CHOICE
+    apple: Number
+    banana: Number
+    cherry: Number
+END CHOICE
+
+VAR f: Fruit := Fruit.cherry(1)
+IF f ISA Fruit.apple THEN
+    print(f.apple)
+ELSIF f ISA Fruit.banana THEN
+    print(f.banana)
+ELSE
+    print(f.cherry)
+END IF
+--= 1
+
+-- Determination of OR conditions not yet handled.
+--f := Fruit.cherry(2)
+--IF f ISA Fruit.apple OR f ISA Fruit.banana THEN
+--    print("apple or banana")
+--ELSE
+--    print(f.cherry)
+--END IF
+----= 2

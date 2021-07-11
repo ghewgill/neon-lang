@@ -575,6 +575,49 @@ static std::string path_stripext(const std::string &name)
     return name.substr(0, i);
 }
 
+void checks_dump(std::string msg, const std::map<const ast::Variable *, std::set<int>> &a)
+{
+    printf("%s:\n", msg.c_str());
+    for (auto &x: a) {
+        auto *choice_type = dynamic_cast<const ast::TypeChoice *>(x.first->type);
+        printf("  %s (%p): ", x.first->name.c_str(), x.first);
+        bool first = true;
+        for (auto &c: choice_type->choices) {
+            if (x.second.find(c.second.first) != x.second.end()) {
+                if (first) {
+                    first = false;
+                } else {
+                    printf(", ");
+                }
+                printf("%s", c.first.c_str());
+            }
+        }
+        puts("");
+    }
+    puts("");
+}
+
+std::map<const ast::Variable *, std::set<int>> checks_complement(const std::map<const ast::Variable *, std::set<int>> &a)
+{
+    std::map<const ast::Variable *, std::set<int>> r;
+    for (auto &x: a) {
+        auto *var = x.first;
+        auto &checks = x.second;
+        auto *choice_type = dynamic_cast<const ast::TypeChoice *>(var->type);
+        if (choice_type == nullptr) {
+            internal_error("choice type expected");
+        }
+        std::set<int> cr;
+        for (auto &c: choice_type->choices) {
+            if (checks.find(c.second.first) == checks.end()) {
+                cr.insert(c.second.first);
+            }
+        }
+        r[var] = cr;
+    }
+    return r;
+}
+
 std::map<const ast::Variable *, std::set<int>> checks_conjunction(const std::map<const ast::Variable *, std::set<int>> &a, const std::map<const ast::Variable *, std::set<int>> &b)
 {
     std::map<const ast::Variable *, std::set<int>> r;
@@ -5369,6 +5412,7 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
 {
     scope.push(new ast::Scope(scope.top(), frame.top()));
     std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
+    std::map<const ast::Variable *, std::set<int>> else_checks;
     for (auto &c: statement->condition_statements) {
         const ast::Expression *cond = nullptr;
         bool skip_statements = false;
@@ -5450,8 +5494,11 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         if (imported_checked) {
             imported_checked_stack.pop();
         }
+        else_checks = checks_conjunction(else_checks, checks_complement(checks));
     }
+    checked_choice_variables.push(else_checks);
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
+    checked_choice_variables.pop();
     scope.pop();
     return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
