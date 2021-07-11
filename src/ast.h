@@ -1010,6 +1010,7 @@ public:
     Expression &operator=(const Expression &) = delete;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const = 0;
+    virtual std::map<const ast::Variable *, std::set<int>> find_choice_checks() const { return {}; }
     bool eval_boolean(const Token &token) const;
     Number eval_number(const Token &token) const;
     utf8string eval_string(const Token &token) const;
@@ -1511,6 +1512,7 @@ public:
     const int choice;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return expr->is_pure(context); }
+    virtual std::map<const ast::Variable *, std::set<int>> find_choice_checks() const override;
     virtual bool eval_boolean() const override { internal_error("ChoiceTestExpression"); }
     virtual Number eval_number() const override { internal_error("ChoiceTestExpression"); }
     virtual utf8string eval_string() const override { internal_error("ChoiceTestExpression"); }

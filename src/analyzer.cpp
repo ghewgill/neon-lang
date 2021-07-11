@@ -37,6 +37,7 @@ public:
     std::stack<std::pair<const ast::Type *, const ast::TypeFunction *>> functiontypes;
     std::stack<std::list<std::pair<std::string, unsigned int>>> loops;
     std::stack<std::set<std::string>> imported_checked_stack;
+    std::stack<std::map<const ast::Variable *, std::set<int>>> checked_choice_variables;
 
     const ast::Type *analyze(const pt::Type *type, AllowClass allow_class, const std::string &name = std::string());
     const ast::Type *analyze(const pt::TypeSimple *type, const std::string &name);
@@ -572,6 +573,28 @@ static std::string path_stripext(const std::string &name)
         return name;
     }
     return name.substr(0, i);
+}
+
+std::map<const ast::Variable *, std::set<int>> checks_conjunction(const std::map<const ast::Variable *, std::set<int>> &a, const std::map<const ast::Variable *, std::set<int>> &b)
+{
+    std::map<const ast::Variable *, std::set<int>> r;
+    auto f = [&r](const ast::Variable *var, const std::set<int> &choices, const std::map<const ast::Variable *, std::set<int>> &other) {
+        auto i = other.find(var);
+        if (i != other.end()) {
+            std::set<int> intersection;
+            std::set_intersection(choices.begin(), choices.end(), i->second.begin(), i->second.end(), std::inserter(intersection, intersection.end()));
+            r[var] = intersection;
+        } else {
+            r[var] = choices;
+        }
+    };
+    for (auto &x: a) {
+        f(x.first, x.second, b);
+    }
+    for (auto &x: b) {
+        f(x.first, x.second, a);
+    }
+    return r;
 }
 
 static const ast::Expression *make_array_conversion(Analyzer *analyzer, const ast::TypeArray *from_type, const ast::Expression *from, const ast::TypeArray *to_type)
@@ -2075,6 +2098,14 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
         auto choice = choicetype->choices.find(expr->name.text);
         if (choice == choicetype->choices.end()) {
             error(9999, expr->name, "choice not found");
+        }
+        const ast::VariableExpression *vref = dynamic_cast<const ast::VariableExpression *>(ref);
+        if (vref == nullptr) {
+            error(9999, expr->name, "not a variable reference");
+        }
+        auto ci = checked_choice_variables.top().find(vref->var);
+        if (ci == checked_choice_variables.top().end() || ci->second.size() != 1 || *ci->second.begin() != choice->second.first) {
+            error(9999, expr->name, "choice not definitely checked");
         }
         return new ast::ChoiceReferenceExpression(choice->second.second, ref, choicetype, choice->second.first);
     }
@@ -5342,6 +5373,7 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         const ast::Expression *cond = nullptr;
         bool skip_statements = false;
         bool imported_checked = false;
+        std::map<const ast::Variable *, std::set<int>> checks;
         const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(c.first.get());
         const pt::ImportedModuleExpression *imported = dynamic_cast<const pt::ImportedModuleExpression *>(c.first.get());
         if (valid != nullptr) {
@@ -5402,15 +5434,18 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
             }
         } else {
             cond = analyze(c.first.get());
+            checks = cond->find_choice_checks();
             cond = convert(ast::TYPE_BOOLEAN, cond);
             if (cond == nullptr) {
                 error(3048, c.first->token, "boolean value expected");
             }
         }
         scope.push(new ast::Scope(scope.top(), frame.top()));
+        checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks));
         if (not skip_statements) {
             condition_statements.push_back(std::make_pair(cond, analyze(c.second)));
         }
+        checked_choice_variables.pop();
         scope.pop();
         if (imported_checked) {
             imported_checked_stack.pop();
@@ -5885,6 +5920,7 @@ const ast::Program *Analyzer::analyze()
         scope.push(new ast::Scope(scope.top(), frame.top()));
         r->scope = scope.top();
     }
+    checked_choice_variables.push({});
 
     //init_builtin_constants(global_scope);
 

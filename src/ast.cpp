@@ -829,6 +829,15 @@ bool TypeTestExpression::eval_boolean() const
     return expr_after_conversion->type->make_converter(expr_before_conversion->type) != nullptr;
 }
 
+std::map<const ast::Variable *, std::set<int>> ChoiceTestExpression::find_choice_checks() const
+{
+    const ast::VariableExpression *ve = dynamic_cast<const ast::VariableExpression *>(expr);
+    if (ve == nullptr) {
+        return {};
+    }
+    return {{ve->var, {choice}}};
+}
+
 bool BooleanComparisonExpression::eval_boolean() const
 {
     switch (comp) {
