@@ -1230,7 +1230,7 @@ ast::TypeChoice::TypeChoice(const Token &declaration, const std::string &module,
     choices(choices)
 {
     if (name.empty()) {
-        error(9999, declaration, "choice type must have name");
+        error(3302, declaration, "choice type must have name");
     }
     {
         std::vector<FunctionParameter *> params;
@@ -2097,10 +2097,10 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
         if (choice_type != nullptr) {
             auto choice = choice_type->choices.find(expr->name.text);
             if (choice == choice_type->choices.end()) {
-                error(9999, expr->name, "choice not found");
+                error(3303, expr->name, "choice not found");
             }
             if (choice->second.second != nullptr) {
-                error(9999, expr->name, "need a value for this choice");
+                error(3304, expr->name, "need a value for this choice");
             }
             return new ast::ConstantChoiceExpression(choice_type, choice->second.first, nullptr);
         }
@@ -2136,19 +2136,19 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
     if (choicetype != nullptr) {
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref == nullptr) {
-            error(9999, expr->token, "must be reference");
+            error(3305, expr->token, "must be reference");
         }
         auto choice = choicetype->choices.find(expr->name.text);
         if (choice == choicetype->choices.end()) {
-            error(9999, expr->name, "choice not found");
+            error(3306, expr->name, "choice not found");
         }
         const ast::VariableExpression *vref = dynamic_cast<const ast::VariableExpression *>(ref);
         if (vref == nullptr) {
-            error(9999, expr->name, "not a variable reference");
+            error(3307, expr->name, "not a variable reference");
         }
         auto ci = checked_choice_variables.top().find(vref->var);
         if (ci == checked_choice_variables.top().end() || ci->second.size() != 1 || *ci->second.begin() != choice->second.first) {
-            error(9999, expr->name, "choice not definitely checked");
+            error(3308, expr->name, "choice not definitely checked");
         }
         return new ast::ChoiceReferenceExpression(choice->second.second, ref, choicetype, choice->second.first);
     }
@@ -2399,15 +2399,15 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (choice_type != nullptr) {
                 auto choice = choice_type->choices.find(dotmethod->name.text);
                 if (choice == choice_type->choices.end()) {
-                    error(9999, dotmethod->name, "choice not found");
+                    error(3309, dotmethod->name, "choice not found");
                 }
                 if (expr->args.size() != 1) {
-                    error(9999, expr->rparen, "expected 1 argument");
+                    error(3310, expr->rparen, "expected 1 argument");
                 }
                 const ast::Expression *arg = analyze(expr->args[0]->expr.get());
                 arg = convert(choice->second.second, arg);
                 if (arg == nullptr) {
-                    error(9999, expr->args[0]->expr->token, "type mismatch");
+                    error(3311, expr->args[0]->expr->token, "type mismatch");
                 }
                 return new ast::ConstantChoiceExpression(choice_type, choice->second.first, arg);
             } else {
@@ -2997,7 +2997,7 @@ const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
         if (choice_type != nullptr) {
             auto choice = choice_type->choices.find(qtype->names[1].text);
             if (choice == choice_type->choices.end()) {
-                error(9999, qtype->names[1], "choice not found");
+                error(3312, qtype->names[1], "choice not found");
             }
             return new ast::ChoiceTestExpression(left, choice_type, choice->second.first);
         }

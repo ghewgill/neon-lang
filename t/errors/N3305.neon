@@ -1,0 +1,11 @@
+TYPE Fruit IS CHOICE
+    apple: Number
+    banana: Number
+END CHOICE
+
+FUNCTION f(): Fruit
+    RETURN Fruit.apple(1)
+END FUNCTION
+
+print(f().apple)
+         --<

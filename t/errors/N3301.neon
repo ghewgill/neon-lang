@@ -1,0 +1,6 @@
+TYPE Fruit IS CHOICE
+    apple
+    --<2
+    apple
+    --<1
+END CHOICE
