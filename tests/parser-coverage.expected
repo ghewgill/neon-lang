@@ -40,6 +40,14 @@ Program
   TypeDeclaration
     TypeEnum(one,two)
   TypeDeclaration
+    TypeChoice(one)
+  TypeDeclaration
+    TypeChoice(one,two)
+  TypeDeclaration
+    TypeChoice(one)
+  TypeDeclaration
+    TypeChoice(one,two)
+  TypeDeclaration
     TypePointer
       TypeSimple(type)
   TypeDeclaration

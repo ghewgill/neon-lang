@@ -121,6 +121,7 @@ TYPE Type IS ENUM
     imported
     testcase
     expect
+    choice
     unknown
     max_token
 END ENUM
@@ -424,6 +425,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "IMPORTED" THEN t.type := Type.imported
             ELSIF t.text = "TESTCASE" THEN t.type := Type.testcase
             ELSIF t.text = "EXPECT" THEN t.type := Type.expect
+            ELSIF t.text = "CHOICE" THEN t.type := Type.choice
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN

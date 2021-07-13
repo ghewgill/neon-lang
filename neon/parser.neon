@@ -104,6 +104,7 @@ END RECORD
 TYPE Type IS ENUM
     TypeSimple
     TypeEnum
+    TypeChoice
     TypeRecord
     TypeClass
     TypePointer
@@ -193,6 +194,15 @@ END RECORD
 
 TYPE TypeEnum IS RECORD
     names: Array<lexer.Token>
+END RECORD
+
+TYPE Choice IS RECORD
+    name: lexer.Token
+    type: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE TypeChoice IS RECORD
+    choices: Array<Choice>
 END RECORD
 
 TYPE Field IS RECORD
@@ -582,6 +592,7 @@ TYPE ParseTreeNode IS CLASS
     token: lexer.Token
     typesimple: TypeSimple
     typeenum: TypeEnum
+    typechoice: TypeChoice
     typerecord: TypeRecord
     typeclass: TypeClass
     typepointer: TypePointer
@@ -2045,6 +2056,38 @@ FUNCTION Parser.parseEnumType(INOUT self: Parser): POINTER TO ParseTreeNode
     )
 END FUNCTION
 
+FUNCTION Parser.parseChoiceType(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.choice
+    LET tokChoice: lexer.Token := self.token
+    self.nextToken()
+    VAR choices: Array<Choice> := []
+    WHILE self.token.type <> TokenType.end DO
+        IF self.token.type <> TokenType.identifier THEN
+            error(2140, self.token, "identifier expected")
+        END IF
+        LET name: lexer.Token := self.token
+        self.nextToken()
+        VAR choice: Choice := Choice(name WITH name)
+        IF self.token.type = TokenType.colon THEN
+            self.nextToken()
+            choice.type := self.parseType()
+        END IF
+        choices.append(choice)
+    END WHILE
+    self.nextToken()
+    IF self.token.type <> TokenType.choice THEN
+        error_a(2141, self.tokens[self.index-1], self.token, "'CHOICE' expected")
+    END IF
+    self.nextToken()
+    RETURN NEW ParseTreeNode(
+        type WITH Type.TypeChoice,
+        token WITH tokChoice,
+        typechoice WITH TypeChoice(
+            choices WITH choices
+        )
+    )
+END FUNCTION
+
 FUNCTION Parser.parseRecordType(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.record
     LET tokRecord: lexer.Token := self.token
@@ -2222,6 +2265,8 @@ FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseParameterisedType()
         WHEN TokenType.enum DO
             RETURN self.parseEnumType()
+        WHEN TokenType.choice DO
+            RETURN self.parseChoiceType()
         WHEN TokenType.record DO
             RETURN self.parseRecordType()
         WHEN TokenType.class DO
@@ -3659,6 +3704,17 @@ FUNCTION dumpTypeEnum(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TypeEnum(\(names))")
 END FUNCTION
 
+FUNCTION dumpTypeChoice(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH c IN node->typechoice.choices DO
+        IF names <> "" THEN
+            names.append(",")
+        END IF
+        names.append(c.name.text)
+    END FOREACH
+    dumpNode(depth, "TypeChoice(\(names))")
+END FUNCTION
+
 FUNCTION dumpTypeRecord(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH f IN node->typerecord.fields DO
@@ -4216,6 +4272,7 @@ LET Dumper: IParseTreeVisitor := {
     -- TODO: use values like Type.Program.toString() instead of literals
     "TypeSimple":                           dumpTypeSimple,
     "TypeEnum":                             dumpTypeEnum,
+    "TypeChoice":                           dumpTypeChoice,
     "TypeRecord":                           dumpTypeRecord,
     "TypeClass":                            dumpTypeClass,
     "TypePointer":                          dumpTypePointer,
