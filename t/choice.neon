@@ -12,7 +12,7 @@ FUNCTION find(s: String, target: String): FindResult
     RETURN FindResult.notfound
 END FUNCTION
 
-LET r := find("foobar", "bar")
+LET r: FindResult := find("foobar", "bar")
 IF r ISA FindResult.index THEN
     print(r.index)
 ELSE

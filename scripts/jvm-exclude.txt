@@ -5,6 +5,7 @@ assert-multiline.neon      # exception
 binary-test.neon           # verifier
 bytes-index.neon           # index
 cformat-test.neon          # object
+choice.neon                # choice
 cmdline.neon               # PredefinedVariable sys$args
 complex-test.neon          # Math.atan2
 datetime-test.neon         # verifier
