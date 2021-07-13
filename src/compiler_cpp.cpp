@@ -846,6 +846,23 @@ public:
     }
 };
 
+class ChoiceComparisonExpression: public ComparisonExpression {
+public:
+    explicit ChoiceComparisonExpression(const ast::ChoiceComparisonExpression *cce): ComparisonExpression(cce), cce(cce) {}
+    ChoiceComparisonExpression(const ChoiceComparisonExpression &) = delete;
+    ChoiceComparisonExpression &operator=(const ChoiceComparisonExpression &) = delete;
+    const ast::ChoiceComparisonExpression *cce;
+
+    virtual void generate_comparison(Context &context) const override {
+        switch (cce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.out << " == "; break;
+            case ast::ComparisonExpression::Comparison::NE: context.out << " != "; break;
+            default:
+                internal_error("unexpected comparison type");
+        }
+    }
+};
+
 class StringComparisonExpression: public ComparisonExpression {
 public:
     explicit StringComparisonExpression(const ast::StringComparisonExpression *sce): ComparisonExpression(sce), sce(sce) {}
@@ -2000,6 +2017,7 @@ public:
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
+    virtual void visit(const ast::ChoiceComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
@@ -2133,6 +2151,7 @@ public:
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
+    virtual void visit(const ast::ChoiceComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
@@ -2266,6 +2285,7 @@ public:
     virtual void visit(const ast::BooleanComparisonExpression *node) { r = new BooleanComparisonExpression(node); }
     virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
     virtual void visit(const ast::EnumComparisonExpression *node) { r = new EnumComparisonExpression(node); }
+    virtual void visit(const ast::ChoiceComparisonExpression *node) { r = new ChoiceComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
     virtual void visit(const ast::BytesComparisonExpression *node) { r = new BytesComparisonExpression(node); }
     virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
@@ -2399,6 +2419,7 @@ public:
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
+    virtual void visit(const ast::ChoiceComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}

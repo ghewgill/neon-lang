@@ -1636,6 +1636,16 @@ void ast::EnumComparisonExpression::generate_comparison_opcode(Emitter &emitter)
     }
 }
 
+void ast::ChoiceComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
+{
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(Opcode::EQA); break;
+        case Comparison::NE: emitter.emit(Opcode::NEA); break;
+        default:
+            internal_error("unexpected comparison type");
+    }
+}
+
 void ast::StringComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {

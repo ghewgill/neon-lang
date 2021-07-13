@@ -718,6 +718,8 @@ class DotExpression:
             if self.field == "remove": return lambda env, self, k: neon_dictionary_remove(obj, k)
             if self.field == "toString": return lambda env, self: "{{{}}}".format(", ".join("{}: {}".format(neon_string_quoted(env, k), neon_string_quoted(env, v) if isinstance(v, str) else str(v)) for k, v in sorted(obj.items())))
             return obj[self.field] # Support a.b syntax where a is an object.
+        elif isinstance(obj, ClassChoice):
+            return ClassChoice.Instance(self.field, None)
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
         elif hasattr(obj, self.field):
@@ -2612,6 +2614,8 @@ class ClassChoice(Class):
         def __init__(self, name, value):
             self._choice = name
             setattr(self, name, value)
+        def __eq__(self, rhs):
+            return self._choice == rhs._choice and getattr(self, self._choice) == getattr(rhs, rhs._choice)
     def __init__(self, choices):
         self.choices = choices
     def default(self, env):

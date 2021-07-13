@@ -879,6 +879,20 @@ bool EnumComparisonExpression::eval_boolean() const
     internal_error("EnumComparisonExpression");
 }
 
+bool ChoiceComparisonExpression::eval_boolean() const
+{
+    switch (comp) {
+        case Comparison::EQ: return number_is_equal        (left->eval_number(), right->eval_number());
+        case Comparison::NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
+        case Comparison::LT:
+        case Comparison::GT:
+        case Comparison::LE:
+        case Comparison::GE:
+            break;
+    }
+    internal_error("ChoiceComparisonExpression");
+}
+
 bool StringComparisonExpression::eval_boolean() const
 {
     switch (comp) {

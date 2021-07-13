@@ -2891,6 +2891,18 @@ const ast::Expression *Analyzer::analyze_comparison(const Token &token, const as
         }
     }
     {
+        const ast::TypeChoice *tc1 = dynamic_cast<const ast::TypeChoice *>(left->type);
+        const ast::TypeChoice *tc2 = dynamic_cast<const ast::TypeChoice *>(right->type);
+        if (tc1 != nullptr && tc2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3313, token, "comparison not available for CHOICE");
+            }
+            if (tc1->is_structure_compatible(tc2)) {
+                return new ast::ChoiceComparisonExpression(left, right, comp);
+            }
+        }
+    }
+    {
         const ast::TypePointer *tp1 = dynamic_cast<const ast::TypePointer *>(left->type);
         const ast::TypePointer *tp2 = dynamic_cast<const ast::TypePointer *>(right->type);
         if (tp1 != nullptr && tp2 != nullptr) {

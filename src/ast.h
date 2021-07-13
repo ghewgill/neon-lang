@@ -89,6 +89,7 @@ public:
     virtual void visit(const class BooleanComparisonExpression *node) = 0;
     virtual void visit(const class NumericComparisonExpression *node) = 0;
     virtual void visit(const class EnumComparisonExpression *node) = 0;
+    virtual void visit(const class ChoiceComparisonExpression *node) = 0;
     virtual void visit(const class StringComparisonExpression *node) = 0;
     virtual void visit(const class BytesComparisonExpression *node) = 0;
     virtual void visit(const class ArrayComparisonExpression *node) = 0;
@@ -1044,6 +1045,7 @@ protected:
     friend class BooleanComparisonExpression;
     friend class NumericComparisonExpression;
     friend class EnumComparisonExpression;
+    friend class ChoiceComparisonExpression;
     friend class StringComparisonExpression;
     friend class BytesComparisonExpression;
     friend class ConstantExpression;
@@ -1649,6 +1651,21 @@ public:
 
     virtual std::string text() const override {
         return "EnumComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
+    }
+};
+
+class ChoiceComparisonExpression: public ComparisonExpression {
+public:
+    ChoiceComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual bool eval_boolean() const override;
+    virtual Number eval_number() const override { internal_error("ChoiceComparisonExpression"); }
+    virtual utf8string eval_string() const override { internal_error("ChoiceComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
+
+    virtual std::string text() const override {
+        return "ChoiceComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
