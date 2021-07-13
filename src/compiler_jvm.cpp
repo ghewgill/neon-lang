@@ -3584,7 +3584,7 @@ public:
     virtual void visit(const ast::ConstantStringExpression *node) { r = new ConstantStringExpression(node); }
     virtual void visit(const ast::ConstantBytesExpression *node) { r = new ConstantBytesExpression(node); }
     virtual void visit(const ast::ConstantEnumExpression *node) { r = new ConstantEnumExpression(node); }
-    virtual void visit(const ast::ConstantChoiceExpression *) {}
+    virtual void visit(const ast::ConstantChoiceExpression *) { internal_error("ConstantChoiceExpression"); }
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
     virtual void visit(const ast::ConstantNowhereExpression *node) { r = new ConstantNowhereExpression(node); }
     virtual void visit(const ast::ConstantNilObject *) { internal_error("ConstantNilObject"); }
