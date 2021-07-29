@@ -51,6 +51,8 @@ TDispatch gfuncDispatch[] = {
     // Binary - Bitwise operations
     PDFUNC("binary$and32",              binary_and32),
     PDFUNC("binary$and64",              binary_and64),
+    PDFUNC("binary$bitCount32",         binary_bitCount32),
+    PDFUNC("binary$bitCount64",         binary_bitCount64),
     PDFUNC("binary$extract32",          binary_extract32),
     PDFUNC("binary$extract64",          binary_extract64),
     PDFUNC("binary$get32",              binary_get32),
@@ -72,6 +74,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("binary$xor32",              binary_xor32),
     PDFUNC("binary$xor64",              binary_xor64),
     PDFUNC("binary$andBytes",           binary_andBytes),
+    PDFUNC("binary$bitCountBytes",      binary_bitCountBytes),
     PDFUNC("binary$notBytes",           binary_notBytes),
     PDFUNC("binary$orBytes",            binary_orBytes),
     PDFUNC("binary$xorBytes",           binary_xorBytes),

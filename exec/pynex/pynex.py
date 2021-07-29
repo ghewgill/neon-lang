@@ -1563,6 +1563,24 @@ def neon_binary_andBytes(self):
     a = self.stack.pop()
     self.stack.append(bytearray([x & y for x, y in zip(a, b)]))
 
+def neon_binary_bitCount32(self):
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", a)
+        return
+    self.stack.append(bin(a).count("1"))
+
+def neon_binary_bitCount64(self):
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", a)
+        return
+    self.stack.append(bin(a).count("1"))
+
+def neon_binary_bitCountBytes(self):
+    a = self.stack.pop()
+    self.stack.append(sum(bin(x).count("1") for x in a))
+
 def neon_binary_extract32(self):
     w = int(self.stack.pop())
     n = int(self.stack.pop())

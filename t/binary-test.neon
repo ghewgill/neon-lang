@@ -3,6 +3,9 @@ IMPORT binary
 print(str(binary.and32(10, 12)))
 --= 8
 
+print(str(binary.bitCount32(10)))
+--= 2
+
 print(str(binary.extract32(10, 1, 3)))
 --= 5
 
@@ -42,6 +45,9 @@ print(str(binary.not64(5)))
 print(binary.andBytes(HEXBYTES "aa 55 aa 55", HEXBYTES "01 02 03 04").toString())
 --= HEXBYTES "00 00 02 04"
 
+print(binary.bitCountBytes(HEXBYTES "aa 55 aa 55"))
+--= 16
+
 print(binary.notBytes(HEXBYTES "aa 55 aa 55").toString())
 --= HEXBYTES "55 aa 55 aa"
 
@@ -64,6 +70,16 @@ TESTCASE binary.and64(-1, 0) EXPECT ValueRangeException
 TESTCASE binary.and64(0, -1) EXPECT ValueRangeException
 TESTCASE binary.and64(0x10000000000000000, 0xffffffffffffffff) EXPECT ValueRangeException
 TESTCASE binary.and64(0xffffffffffffffff, 0x10000000000000000) EXPECT ValueRangeException
+
+TESTCASE binary.bitCount32(0) = 0
+TESTCASE binary.bitCount32(0xffffffff) = 32
+TESTCASE binary.bitCount32(-1) EXPECT ValueRangeException
+TESTCASE binary.bitCount32(0x100000000) EXPECT ValueRangeException
+
+TESTCASE binary.bitCount64(0) = 0
+TESTCASE binary.bitCount64(0xffffffffffffffff) = 64
+TESTCASE binary.bitCount64(-1) EXPECT ValueRangeException
+TESTCASE binary.bitCount64(0x10000000000000000) EXPECT ValueRangeException
 
 TESTCASE binary.extract32(0, 0, 0) = 0
 TESTCASE binary.extract32(0xffffffff, 32, 32) = 0
