@@ -3005,11 +3005,17 @@ const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
     const pt::TypeQualified *qtype = dynamic_cast<const pt::TypeQualified *>(expr->target.get());
     if (qtype != nullptr) {
         const ast::Name *name = scope.top()->lookupName(qtype->names[0].text);
+        const ast::Module *mod = dynamic_cast<const ast::Module *>(name);
+        int i = 1;
+        if (mod != nullptr) {
+            name = mod->scope->lookupName(qtype->names[1].text);
+            i++;
+        }
         const ast::TypeChoice *choice_type = dynamic_cast<const ast::TypeChoice *>(name);
         if (choice_type != nullptr) {
-            auto choice = choice_type->choices.find(qtype->names[1].text);
+            auto choice = choice_type->choices.find(qtype->names[i].text);
             if (choice == choice_type->choices.end()) {
-                error(3312, qtype->names[1], "choice not found");
+                error(3312, qtype->names[i], "choice not found");
             }
             return new ast::ChoiceTestExpression(left, choice_type, choice->second.first);
         }
@@ -3400,6 +3406,35 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
             }
             i++;
             return new ast::TypeEnum(Token(), "module", "enum", names, this);
+        }
+        case 'U': {
+            i++;
+            std::map<std::string, std::pair<int, const ast::Type *>> choices;
+            if (descriptor.at(i) != '[') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            int value = 0;
+            for (;;) {
+                std::string name;
+                while (descriptor.at(i) != ':' && descriptor.at(i) != ',' && descriptor.at(i) != ']') {
+                    name.push_back(descriptor.at(i));
+                    i++;
+                }
+                const ast::Type *type = nullptr;
+                if (descriptor.at(i) == ':') {
+                    i++;
+                    type = deserialize_type(s, descriptor, i);
+                }
+                choices[name] = std::make_pair(value, type);
+                value++;
+                if (descriptor.at(i) == ']') {
+                    break;
+                }
+                i++;
+            }
+            i++;
+            return new ast::TypeChoice(Token(), "module", "choice", choices, this);
         }
         case 'F': {
             i++;

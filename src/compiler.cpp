@@ -995,9 +995,9 @@ void ast::TypeChoice::generate_call(Emitter &) const
     internal_error("TypeChoice");
 }
 
-std::string ast::TypeChoice::get_type_descriptor(Emitter &) const
+std::string ast::TypeChoice::get_type_descriptor(Emitter &emitter) const
 {
-    std::string r = "E[";
+    std::string r = "U[";
     std::vector<std::string> namevector(choices.size());
     for (auto c: choices) {
         if (not namevector[c.second.first].empty()) {
@@ -1010,6 +1010,13 @@ std::string ast::TypeChoice::get_type_descriptor(Emitter &) const
             r += ",";
         }
         r += n;
+        auto i = choices.find(n);
+        if (i != choices.end()) {
+            const ast::Type *type = i->second.second;
+            if (type != nullptr) {
+                r += ":" + type->get_type_descriptor(emitter);
+            }
+        }
     }
     r += "]";
     return r;
