@@ -1,5 +1,6 @@
 TYPE Rec IS RECORD x: Number END RECORD
 TYPE Enum IS ENUM one two END ENUM
+TYPE Choice IS CHOICE apple banana END CHOICE
 TYPE Cls IS CLASS x: Number END CLASS
 
 VAR b1, b2: Boolean := FALSE
@@ -9,6 +10,7 @@ VAR a1, a2: Array<String> := []
 VAR d1, d2: Dictionary<String> := {}
 VAR r1, r2: Rec := Rec()
 VAR e1, e2: Enum := Enum.one
+VAR c1, c2: Choice := Choice.apple
 VAR p1, p2: POINTER TO Cls := NIL
 
 b2 := b1
@@ -18,4 +20,5 @@ a2 := a1
 d2 := d1
 r2 := r1
 e2 := e1
+c2 := c1
 p2 := p1
