@@ -148,6 +148,7 @@ INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
 ISA = Keyword("ISA")
+ELLIPSIS = Keyword("ELLIPSIS")
 OPTIONAL = Keyword("OPTIONAL")
 IMPORTED = Keyword("IMPORTED")
 TESTCASE = Keyword("TESTCASE")
@@ -194,7 +195,13 @@ def tokenize_fragment(source):
         elif source[i] == "&": r.append(CONCAT); i += 1
         elif source[i] == "=": r.append(EQUAL); i += 1
         elif source[i] == ",": r.append(COMMA); i += 1
-        elif source[i] == ".": r.append(DOT); i += 1
+        elif source[i] == ".":
+            if source[i+1:i+3] == "..":
+                r.append(ELLIPSIS)
+                i += 3
+            else:
+                r.append(DOT)
+                i += 1
         elif source[i] == "-":
             if source[i+1] == "-":
                 while i < len(source) and source[i] != "\n":
@@ -370,11 +377,12 @@ class TypePointer:
         return ClassPointer(self.type)
 
 class TypeFunction:
-    def __init__(self, returntype, args):
+    def __init__(self, returntype, args, varargs):
         self.returntype = returntype
         self.args = args
+        self.varargs = varargs
     def resolve(self, env):
-        return ClassFunctionPointer(self.returntype, self.args)
+        return ClassFunctionPointer(self.returntype, self.args, self.varargs)
 
 def infer_type(value):
     if isinstance(value, BooleanLiteralExpression):
@@ -937,10 +945,11 @@ class ValidPointerExpression:
         return all(x[0].eval(env) for x in self.tests)
 
 class NativeFunction:
-    def __init__(self, name, returntype, args):
+    def __init__(self, name, returntype, args, varargs):
         self.name = name
         self.returntype = returntype
         self.args = args
+        self.varargs = varargs
     def declare(self, env):
         f = globals()["neon_{}_{}".format(env.module(), self.name)]
         outs = [x.mode is not IN for x in self.args]
@@ -991,11 +1000,12 @@ class FunctionParameter:
         self.default = default
 
 class FunctionDeclaration:
-    def __init__(self, type, name, returntype, args, statements):
+    def __init__(self, type, name, returntype, args, varargs, statements):
         self.type = type
         self.name = name
         self.returntype = returntype
         self.args = args
+        self.varargs = varargs
         self.statements = statements
     def declare(self, env):
         type = ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args)
@@ -1018,6 +1028,7 @@ class FunctionDeclaration:
         outs = [x.mode is not IN for x in self.args]
         if any(outs):
             func._outs = outs
+        func._varargs = self.varargs
         if self.type is not None:
             env.get_value(self.type).methods[self.name] = func
         else:
@@ -1031,6 +1042,8 @@ class FunctionCallExpression:
         self.args = args
     def eval(self, env):
         args = [a[1].eval(env) for a in self.args]
+        if self.args and self.args[-1][2]: # spread
+            args = args[:-1] + args[-1]
         obj = None
         if isinstance(self.func, (DotExpression, ArrowExpression)):
             # Evaluate and save obj once so we don't evaluate it twice for one call.
@@ -1047,6 +1060,8 @@ class FunctionCallExpression:
                 args = [obj] + args
             elif isinstance(self.func, ArrowExpression):
                 args = [obj] + args
+            if hasattr(f, "_varargs") and f._varargs is not None:
+                args = args[:f._varargs] + [args[f._varargs:]]
             r = f(funcenv, *args)
             if hasattr(f, "_outs"):
                 j = 1
@@ -1505,8 +1520,8 @@ class Parser:
 
     def parse_function_type(self):
         self.expect(FUNCTION)
-        returntype, args = self.parse_function_parameters()
-        return TypeFunction(returntype, args)
+        returntype, args, varargs = self.parse_function_parameters()
+        return TypeFunction(returntype, args, varargs)
 
     def parse_type(self):
         if self.tokens[self.i] is ARRAY or self.tokens[self.i] is DICTIONARY:
@@ -1567,6 +1582,7 @@ class Parser:
     def parse_function_parameters(self):
         self.expect(LPAREN)
         args = []
+        varargs = None
         if self.tokens[self.i] is not RPAREN:
             while True:
                 mode = IN
@@ -1578,6 +1594,9 @@ class Parser:
                 if self.tokens[self.i] is DEFAULT:
                     self.i += 1
                     default = self.parse_expression()
+                if self.tokens[self.i] is ELLIPSIS:
+                    self.i += 1
+                    varargs = len(args)
                 args.extend([FunctionParameter(x, vars[1], mode, default) for x in vars[0]])
                 if self.tokens[self.i] is not COMMA:
                     break
@@ -1587,7 +1606,7 @@ class Parser:
         if self.tokens[self.i] is COLON:
             self.i += 1
             returntype = self.parse_type()
-        return returntype, args
+        return returntype, args, varargs
 
     def parse_function_header(self):
         self.expect(FUNCTION)
@@ -1600,7 +1619,7 @@ class Parser:
         return tuple([type, name] + list(self.parse_function_parameters()))
 
     def parse_function_definition(self):
-        type, name, returntype, args = self.parse_function_header()
+        type, name, returntype, args, varargs = self.parse_function_header()
         statements = []
         while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
             s = self.parse_statement()
@@ -1608,7 +1627,7 @@ class Parser:
                 statements.append(s)
         self.expect(END)
         self.expect(FUNCTION)
-        return FunctionDeclaration(type, name, returntype, args, statements)
+        return FunctionDeclaration(type, name, returntype, args, varargs, statements)
 
     def parse_variable_declaration(self, require_type):
         names = []
@@ -1635,7 +1654,11 @@ class Parser:
                     name = self.tokens[self.i].name
                     self.i += 2
                 e = self.parse_expression()
-                args.append((name, e))
+                spread = False
+                if self.tokens[self.i] is ELLIPSIS:
+                    self.i += 1
+                    spread = True
+                args.append((name, e, spread))
                 if self.tokens[self.i] is not COMMA:
                     break
                 self.i += 1
@@ -2092,8 +2115,8 @@ class Parser:
                 if name == "Separator":
                     return ConstantDeclaration(name, type, StringLiteralExpression(os.sep))
             elif self.tokens[self.i] == FUNCTION:
-                type, name, returntype, args = self.parse_function_header()
-                return NativeFunction(name, returntype, args)
+                type, name, returntype, args, varargs = self.parse_function_header()
+                return NativeFunction(name, returntype, args, varargs)
             elif self.tokens[self.i] == VAR:
                 self.i += 1
                 name = self.identifier()
@@ -2159,7 +2182,7 @@ class Parser:
             elif self.tokens[self.i] is IMPORTED:
                 self.i += 1
                 name = self.identifier()
-                cond = FunctionCallExpression(StringLiteralExpression(neon_runtime_isModuleImported), [("name", StringLiteralExpression(name))])
+                cond = FunctionCallExpression(StringLiteralExpression(neon_runtime_isModuleImported), [("name", StringLiteralExpression(name), False)])
             else:
                 cond = self.parse_expression()
             self.expect(THEN)
@@ -2282,7 +2305,7 @@ class Parser:
                 statements.append(s)
         self.expect(END)
         self.expect(MAIN)
-        return FunctionDeclaration(None, "MAIN", None, [], statements)
+        return FunctionDeclaration(None, "MAIN", None, [], False, statements)
 
     def parse_next_statement(self):
         self.expect(NEXT)
@@ -2586,9 +2609,10 @@ class ClassPointer(Class):
         return None
 
 class ClassFunctionPointer(Class):
-    def __init__(self, returntype, args):
+    def __init__(self, returntype, args, varargs):
         self.returntype = returntype
         self.args = args
+        self.varargs = varargs
     def default(self, env):
         return None
 
