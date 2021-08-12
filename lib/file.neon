@@ -211,21 +211,23 @@ DECLARE NATIVE FUNCTION mkdir(path: String)
  *
  *  Join components of a path using the <Separator> characters appropriate for the OS.
  */
-FUNCTION pathJoin(first, second: String): String
-    IF first = "" THEN
-        RETURN second
-    END IF
-    IF second = "" THEN
-        RETURN first
-    END IF
-    IF second[FIRST] IN ["/", Separator] THEN
-        RETURN second
-    END IF
-    IF first[LAST] IN ["/", Separator] THEN
-        RETURN first & second
-    ELSE
-        RETURN first & Separator & second
-    END IF
+FUNCTION pathJoin(paths: String...): String
+    VAR r: String := ""
+    FOREACH p IN paths DO
+        CHECK p <> "" ELSE
+            NEXT FOREACH
+        END CHECK
+        IF r <> "" THEN
+            IF r[LAST] NOT IN ["/", Separator] THEN
+                r.append(Separator)
+            END IF
+        END IF
+        IF p[FIRST] IN ["/", Separator] THEN
+            r := ""
+        END IF
+        r.append(p)
+    END FOREACH
+    RETURN r
 END FUNCTION
 
 /*  Function: pathSplit
