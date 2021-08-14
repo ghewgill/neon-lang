@@ -1,0 +1,6 @@
+TYPE Node IS CHOICE
+    next: Node
+    end
+END CHOICE
+
+LET head := Node.next(Node.next(Node.end))

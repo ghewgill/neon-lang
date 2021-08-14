@@ -3610,8 +3610,10 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     }
     ast::TypeClass *actual_class = nullptr;
     ast::TypeRecord *actual_record = nullptr;
+    ast::TypeChoice *actual_choice = nullptr;
     const pt::TypeRecord *classdecl = dynamic_cast<const pt::TypeClass *>(declaration->type.get());
     const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type.get());
+    const pt::TypeChoice *choicedecl = dynamic_cast<const pt::TypeChoice *>(declaration->type.get());
     if (classdecl != nullptr) {
         // Support recursive class type declarations.
         actual_class = new ast::TypeClass(classdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>(), std::vector<const ast::Interface *>());
@@ -3622,6 +3624,10 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         // see analyze_fields.)
         actual_record = new ast::TypeRecord(recdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_record);
+    } else if (choicedecl != nullptr) {
+        // Support recursive choice type declarations.
+        actual_choice = new ast::TypeChoice(choicedecl->token, module_name, name, {}, this);
+        scope.top()->addName(declaration->token, name, actual_choice);
     }
     const ast::Type *type = analyze(declaration->type.get(), AllowClass::yes, name);
     if (actual_class != nullptr) {
@@ -3635,6 +3641,10 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         const_cast<std::vector<ast::TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         type = actual_record;
+    } else if (actual_choice != nullptr) {
+        const ast::TypeChoice *choicetype = dynamic_cast<const ast::TypeChoice *>(type);
+        const_cast<std::map<std::string, std::pair<int, const ast::Type *>> &>(actual_choice->choices) = choicetype->choices;
+        type = actual_choice;
     } else {
         ast::Type *t = const_cast<ast::Type *>(type);
         if (type != ast::TYPE_BOOLEAN && type != ast::TYPE_NUMBER && type != ast::TYPE_STRING && type != ast::TYPE_BYTES) {
