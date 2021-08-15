@@ -36,6 +36,16 @@ ELSE
 END IF
 --= 1
 
+CASE f
+    WHEN ISA Fruit.apple DO
+        print(f.apple)
+    WHEN ISA Fruit.banana DO
+        print(f.banana)
+    WHEN ISA Fruit.cherry DO
+        print(f.cherry)
+END CASE
+--= 1
+
 -- Determination of OR conditions not yet handled.
 --f := Fruit.cherry(2)
 --IF f ISA Fruit.apple OR f ISA Fruit.banana THEN

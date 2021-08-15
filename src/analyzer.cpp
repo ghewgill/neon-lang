@@ -4443,11 +4443,12 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
 const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
 {
     const ast::Expression *expr = analyze(statement->expr.get());
-    if (expr->type != ast::TYPE_NUMBER && expr->type != ast::TYPE_STRING && dynamic_cast<const ast::TypeEnum *>(expr->type) == nullptr && expr->type != ast::TYPE_OBJECT) {
-        error(3050, statement->expr->token, "CASE expression must be Number, String, or ENUM");
+    if (expr->type != ast::TYPE_NUMBER && expr->type != ast::TYPE_STRING && dynamic_cast<const ast::TypeEnum *>(expr->type) == nullptr && dynamic_cast<const ast::TypeChoice *>(expr->type) == nullptr && expr->type != ast::TYPE_OBJECT) {
+        error(3050, statement->expr->token, "CASE expression must be Number, String, ENUM, or CHOICE");
     }
     std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> clauses;
     for (auto &x: statement->clauses) {
+        std::map<const ast::Variable *, std::set<int>> checks;
         std::vector<const ast::CaseStatement::WhenCondition *> conditions;
         for (auto &c: x.first) {
             const pt::CaseStatement::ComparisonWhenCondition *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(c.get());
@@ -4517,18 +4518,51 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 }
                 conditions.push_back(cond);
             } else if (twc != nullptr) {
-                if (expr->type != ast::TYPE_OBJECT) {
-                    error2(3263, statement->expr->token, "WHEN ISA requires Object type", twc->token, "used here");
+                if (expr->type == ast::TYPE_OBJECT) {
+                    const ast::Type *target = analyze(twc->target.get(), AllowClass::no);
+                    const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::TypeTestWhenCondition(twc->target->token, convert(target, expr), target);
+                    conditions.push_back(cond);
+                } else if (dynamic_cast<const ast::TypeChoice *>(expr->type) != nullptr) {
+                    const pt::TypeQualified *qtype = dynamic_cast<const pt::TypeQualified *>(twc->target.get());
+                    if (qtype == nullptr) {
+                        error(3314, twc->target->token, "must be qualified name");
+                    }
+                    const ast::Name *name = scope.top()->lookupName(qtype->names[0].text);
+                    const ast::Module *mod = dynamic_cast<const ast::Module *>(name);
+                    int i = 1;
+                    if (mod != nullptr) {
+                        name = mod->scope->lookupName(qtype->names[1].text);
+                        i++;
+                    }
+                    const ast::TypeChoice *choice_type = dynamic_cast<const ast::TypeChoice *>(name);
+                    if (choice_type == nullptr) {
+                        error(3315, qtype->names[i-1], "not a choice type");
+                    }
+                    if (choice_type != expr->type) {
+                        error(3316, qtype->names[i-1], "not matching type");
+                    }
+                    auto choice = choice_type->choices.find(qtype->names[i].text);
+                    if (choice == choice_type->choices.end()) {
+                        error(3317, qtype->names[i], "choice not found");
+                    }
+                    int index = choice->second.first;
+                    const ast::CaseStatement::ChoiceTestWhenCondition *cond = new ast::CaseStatement::ChoiceTestWhenCondition(twc->target->token, expr, index);
+                    conditions.push_back(cond);
+                    const ast::VariableExpression *ve = dynamic_cast<const ast::VariableExpression *>(expr);
+                    if (ve != nullptr) {
+                        checks = {{ve->var, {index}}};
+                    }
+                } else {
+                    error2(3263, statement->expr->token, "WHEN ISA requires Object or CHOICE type", twc->token, "used here");
                 }
-                const ast::Type *target = analyze(twc->target.get(), AllowClass::no);
-                const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::TypeTestWhenCondition(twc->target->token, convert(target, expr), target);
-                conditions.push_back(cond);
             } else {
                 internal_error("unknown case when condition");
             }
         }
         scope.push(new ast::Scope(scope.top(), frame.top()));
+        checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks));
         std::vector<const ast::Statement *> statements = analyze(x.second);
+        checked_choice_variables.pop();
         scope.pop();
         clauses.emplace_back(std::make_pair(conditions, statements));
     }
@@ -4759,6 +4793,16 @@ bool ast::CaseStatement::TypeTestWhenCondition::overlaps(const WhenCondition *co
         return target == twhen->target;
     } else {
         internal_error("TypeTestWhenCondition");
+    }
+}
+
+bool ast::CaseStatement::ChoiceTestWhenCondition::overlaps(const WhenCondition *cond) const
+{
+    const ChoiceTestWhenCondition *cwhen = dynamic_cast<const ChoiceTestWhenCondition *>(cond);
+    if (cwhen != nullptr) {
+        return index == cwhen->index;
+    } else {
+        internal_error("ChoiceTestWhenCondition");
     }
 }
 

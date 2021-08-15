@@ -2485,6 +2485,15 @@ void ast::CaseStatement::TypeTestWhenCondition::generate(Emitter &emitter) const
     emitter.jump_target(skip);
 }
 
+void ast::CaseStatement::ChoiceTestWhenCondition::generate(Emitter &emitter) const
+{
+    emitter.emit(Opcode::DUP);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAV);
+    emitter.emit(Opcode::PUSHI, index);
+    emitter.emit(Opcode::EQN);
+}
+
 void ast::BaseLoopStatement::generate_code(Emitter &emitter) const
 {
     for (auto stmt: prologue) {

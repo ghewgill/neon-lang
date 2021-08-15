@@ -2859,6 +2859,16 @@ public:
         virtual bool overlaps(const WhenCondition *cond) const override;
         virtual void generate(Emitter &emitter) const override;
     };
+    class ChoiceTestWhenCondition: public WhenCondition {
+    public:
+        ChoiceTestWhenCondition(const Token &token, const Expression *expr, int index): WhenCondition(token), expr(expr), index(index) {}
+        ChoiceTestWhenCondition(const ChoiceTestWhenCondition &) = delete;
+        ChoiceTestWhenCondition &operator=(const ChoiceTestWhenCondition &) = delete;
+        const Expression *expr;
+        const int index;
+        virtual bool overlaps(const WhenCondition *cond) const override;
+        virtual void generate(Emitter &emitter) const override;
+    };
     CaseStatement(const Token &token, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(token), expr(expr), clauses(clauses) {}
     CaseStatement(const CaseStatement &) = delete;
     CaseStatement &operator=(const CaseStatement &) = delete;
