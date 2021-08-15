@@ -1139,6 +1139,8 @@ class CaseStatement:
                     return all(isinstance(t, int) for t in x)
                 if self.target.elementtype.name == "Object":
                     return True
+            if isinstance(self.target, TypeCompound):
+                return x._choice == self.target.name[1]
     def __init__(self, expr, clauses):
         self.expr = expr
         self.clauses = clauses
