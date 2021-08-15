@@ -26,6 +26,7 @@ bytes.neon                 # bytes
 cal-test.neon              # os.system
 cformat-test.neon          # module
 choice.neon                # choice
+choice-recursive.neon      # choice
 cmdline.neon               # command line format
 complex-test.neon          # module
 concat-bytes.neon          # bytes
