@@ -2161,6 +2161,9 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
         if (vref == nullptr) {
             error(3307, expr->name, "not a variable reference");
         }
+        if (choice->second.second == nullptr) {
+            error(3318, expr->name, "no data associated with this choice");
+        }
         auto ci = checked_choice_variables.top().find(vref->var);
         if (ci == checked_choice_variables.top().end() || ci->second.size() != 1 || *ci->second.begin() != choice->second.first) {
             error(3308, expr->name, "choice not definitely checked");
@@ -2415,6 +2418,9 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 auto choice = choice_type->choices.find(dotmethod->name.text);
                 if (choice == choice_type->choices.end()) {
                     error(3309, dotmethod->name, "choice not found");
+                }
+                if (choice->second.second == nullptr) {
+                    error(3319, dotmethod->name, "choice does not take data");
                 }
                 if (expr->args.size() != 1) {
                     error(3310, expr->rparen, "expected 1 argument");

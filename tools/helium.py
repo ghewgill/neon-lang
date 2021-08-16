@@ -2620,6 +2620,8 @@ class ClassChoice(Class):
             return self._choice == rhs._choice and getattr(self, self._choice) == getattr(rhs, rhs._choice)
         def toString(self, env, x):
             value = getattr(x, x._choice)
+            # This should really check the choices to see whether there is data available,
+            # but checking for 'not None' is probably sufficient.
             if value is not None:
                 return "<{}:{}>".format(x._choice, value)
             else:
