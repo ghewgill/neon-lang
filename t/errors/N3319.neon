@@ -4,3 +4,4 @@ TYPE Fruit IS CHOICE
 END CHOICE
 
 VAR f: Fruit := Fruit.apple(1)
+                      --<
