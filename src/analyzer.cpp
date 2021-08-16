@@ -1227,30 +1227,45 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
 ast::TypeChoice::TypeChoice(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, std::pair<int, const Type *>> &choices, Analyzer *analyzer)
   : Type(declaration, name),
     module(module),
-    choices(choices)
+    choices(choices),
+    analyzer(analyzer)
 {
     if (name.empty()) {
         error(3302, declaration, "choice type must have name");
     }
+    replace_choices(choices);
+}
+
+void ast::TypeChoice::replace_choices(const std::map<std::string, std::pair<int, const Type *>> &choices)
+{
+    const_cast<std::map<std::string, std::pair<int, const ast::Type *>> &>(this->choices) = choices;
     {
         std::vector<FunctionParameter *> params;
         FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
         params.push_back(fp);
         Function *f = new Function(Token(), "choice.toString", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, false, 1);
-        std::vector<const Expression *> values;
+        std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
         for (auto c: choices) {
-            if (c.second.first < 0) {
-                internal_error("TypeChoice");
+            Expression *r;
+            if (c.second.second != nullptr) {
+                auto tostring = c.second.second->methods.find("toString");
+                r = new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
+                    new ConstantStringExpression(utf8string("<" + c.first + ":")),
+                    new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
+                        new ast::FunctionCall(new VariableExpression(tostring->second), {new ChoiceReferenceExpression(c.second.second, new VariableExpression(fp), this, c.second.first)}),
+                        new ConstantStringExpression(utf8string(">"))
+                    })
+                });
+            } else {
+                r = new ConstantStringExpression(utf8string("<" + c.first + ">"));
             }
-            if (values.size() < static_cast<size_t>(c.second.first)+1) {
-                values.resize(c.second.first+1);
-            }
-            if (values[c.second.first] != nullptr) {
-                internal_error("TypeChoice");
-            }
-            values[c.second.first] = new ConstantStringExpression(utf8string(c.first));
+            clauses.push_back({
+                {new CaseStatement::ChoiceTestWhenCondition(Token(), new VariableExpression(fp), c.second.first)},
+                {new ReturnStatement(Token(), r)}
+            });
         }
-        f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp))));
+        f->statements.push_back(new CaseStatement(Token(), new VariableExpression(fp), clauses));
+        f->statements.push_back(new ReturnStatement(Token(), new ConstantStringExpression(utf8string("<UNKNOWN>"))));
         methods["toString"] = f;
     }
 }
@@ -3643,7 +3658,7 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         type = actual_record;
     } else if (actual_choice != nullptr) {
         const ast::TypeChoice *choicetype = dynamic_cast<const ast::TypeChoice *>(type);
-        const_cast<std::map<std::string, std::pair<int, const ast::Type *>> &>(actual_choice->choices) = choicetype->choices;
+        actual_choice->replace_choices(choicetype->choices);
         type = actual_choice;
     } else {
         ast::Type *t = const_cast<ast::Type *>(type);

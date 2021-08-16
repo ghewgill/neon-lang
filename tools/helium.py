@@ -2618,6 +2618,12 @@ class ClassChoice(Class):
             setattr(self, name, value)
         def __eq__(self, rhs):
             return self._choice == rhs._choice and getattr(self, self._choice) == getattr(rhs, rhs._choice)
+        def toString(self, env, x):
+            value = getattr(x, x._choice)
+            if value is not None:
+                return "<{}:{}>".format(x._choice, value)
+            else:
+                return "<{}>".format(x._choice)
     def __init__(self, choices):
         self.choices = choices
     def default(self, env):

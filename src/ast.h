@@ -800,6 +800,8 @@ public:
     const std::string module;
     const std::map<std::string, std::pair<int, const Type *>> choices;
 
+    void replace_choices(const std::map<std::string, std::pair<int, const Type *>> &choices);
+
     virtual const Expression *make_default_value() const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
@@ -810,6 +812,8 @@ public:
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeChoice(" + std::to_string(choices.size()) + ")"; }
+private:
+    Analyzer *analyzer;
 };
 
 class TypeModule: public Type {

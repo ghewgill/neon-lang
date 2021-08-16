@@ -46,6 +46,14 @@ CASE f
 END CASE
 --= 1
 
+print("\(f)")
+--= <cherry:1>
+
+-- What to do here? There is no conversion from a choice directly
+-- to an Object, so we must have to call choice.toString instead.
+--print(f)
+----= <cherry:1>
+
 -- Determination of OR conditions not yet handled.
 --f := Fruit.cherry(2)
 --IF f ISA Fruit.apple OR f ISA Fruit.banana THEN
