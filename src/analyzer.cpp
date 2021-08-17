@@ -4832,6 +4832,7 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
     scope.push(new ast::Scope(scope.top(), frame.top()));
     std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
     const ast::Expression *cond { nullptr };
+    std::map<const ast::Variable *, std::set<int>> checks;
     const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(statement->cond.get());
     if (valid != nullptr) {
         for (auto &v: valid->tests) {
@@ -4862,6 +4863,7 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
         }
     } else {
         cond = analyze(statement->cond.get());
+        checks = cond->find_choice_checks();
         cond = convert(ast::TYPE_BOOLEAN, cond);
         if (cond == nullptr) {
             error(3199, statement->cond->token, "boolean value expected");
@@ -4876,6 +4878,9 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
         error(3201, statement->body.back()->token, "CHECK body must end in EXIT, NEXT, RAISE, or RETURN");
     }
     scope.pop();
+    auto before_checks = checked_choice_variables.top();
+    checked_choice_variables.pop();
+    checked_choice_variables.push(checks_conjunction(before_checks, checks));
     return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
 

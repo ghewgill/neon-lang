@@ -917,7 +917,7 @@ class TypeTestExpression:
                 if self.target.elementtype.name == "Object":
                     return True
         if isinstance(v, ClassChoice.Instance):
-            return v._choice == self.target.name[1]
+            return v._choice == self.target.name[-1]
         assert False, "add type ISA support for target {}".format(self.target)
 
 class MembershipExpression:
@@ -1558,10 +1558,12 @@ class Parser:
         name = self.identifier()
         if self.tokens[self.i] is not DOT:
             return TypeSimple(name)
-        self.i += 1
-        module = name
-        name = self.identifier()
-        return TypeCompound((module, name))
+        name = (name,)
+        while self.tokens[self.i] is DOT:
+            self.i += 1
+            t = self.identifier()
+            name = name + (t,)
+        return TypeCompound(name)
 
     def parse_import(self):
         self.expect(IMPORT)
