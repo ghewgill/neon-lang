@@ -3213,7 +3213,7 @@ def neon_runtime_setGarbageCollectionInterval(env, count):
 def neon_runtime_setRecursionLimit(env, depth):
     pass
 
-def neon_string_find(env, s, t):
+def neon_string_find_internal(env, s, t):
     return s.find(t)
 
 def neon_string_fromCodePoint(env, x):

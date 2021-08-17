@@ -256,8 +256,11 @@ FUNCTION Editor.refresh(self: Editor)
         LET code: String := self.buffer.getLine(i)
         LET h: String := highlight(code)
         FOR j := 0 TO math.min(code.length(), maxx)-1 DO
-            curses.wattrset(self.window, curses.COLOR_PAIR(string.find(attrs, h[j])))
-            curses.mvwaddstr(self.window, i - self.top, j, code[j])
+            LET r := string.find(attrs, h[j])
+            IF r ISA string.FindResult.index THEN
+                curses.wattrset(self.window, curses.COLOR_PAIR(r.index))
+                curses.mvwaddstr(self.window, i - self.top, j, code[j])
+            END IF
         END FOR
     END FOR
     curses.wmove(self.window, self.line - self.top, self.column)

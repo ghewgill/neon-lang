@@ -34,10 +34,12 @@ FUNCTION yamlLoad(fn: String): Object
     VAR r: Dictionary<Object> := {}
     LET lines: Array<String> := file.readLines(fn)
     FOREACH line IN lines DO
-        LET colon: Number := string.find(line, ":")
-        LET key: String := string.trim(line[FIRST TO colon-1])
-        LET value: String := string.trim(line[colon+1 TO LAST])
-        r[key] := value
+        LET colon: string.FindResult := string.find(line, ":")
+        IF colon ISA string.FindResult.index THEN
+            LET key: String := string.trim(line[FIRST TO colon.index-1])
+            LET value: String := string.trim(line[colon.index+1 TO LAST])
+            r[key] := value
+        END IF
     END FOREACH
     RETURN r
 END FUNCTION

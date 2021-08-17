@@ -11,7 +11,7 @@ namespace rtl {
 
 namespace ne_string {
 
-Number find(const utf8string &s, const utf8string &t)
+Number find_internal(const utf8string &s, const utf8string &t)
 {
     std::string::size_type i = s.str().find(t.str());
     if (i == std::string::npos) {

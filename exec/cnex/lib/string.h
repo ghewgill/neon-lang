@@ -3,7 +3,7 @@
 
 struct tagTExecutor;
 
-void string_find(struct tagTExecutor *exec);
+void string_find_internal(struct tagTExecutor *exec);
 void string_fromCodePoint(struct tagTExecutor *exec);
 void string_lower(struct tagTExecutor *exec);
 void string_quoted(struct tagTExecutor *exec);

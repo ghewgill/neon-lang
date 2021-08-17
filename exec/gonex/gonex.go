@@ -2851,7 +2851,7 @@ func (self *executor) op_callp() {
 		} else {
 			self.push(make_cell_str("FALSE"))
 		}
-	case "string$find":
+	case "string$find_internal":
 		t := self.pop().str
 		s := self.pop().str
 		self.push(make_cell_num(float64(strings.Index(s, t))))

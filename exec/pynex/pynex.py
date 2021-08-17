@@ -2826,7 +2826,7 @@ def neon_sqlite_open(self):
     r = sqlite3.connect(fn)
     self.stack.append(r)
 
-def neon_string_find(self):
+def neon_string_find_internal(self):
     t = self.stack.pop()
     s = self.stack.pop()
     self.stack.append(s.find(t))

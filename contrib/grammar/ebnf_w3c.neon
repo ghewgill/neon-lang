@@ -22,42 +22,46 @@ LOOP
         END IF
 
         -- Convert = to ::=.
-        LET equals: Number := string.find(s, " =")
-        IF equals >= 0 THEN
-            s[equals+1] := "::="
+        LET equals: string.FindResult := string.find(s, " =")
+        IF equals ISA string.FindResult.index THEN
+            s[equals.index+1] := "::="
         END IF
 
         -- Remove commas separating items.
         LOOP
-            LET comma: Number := string.find(s, ", ")
-            IF comma < 0 THEN
+            LET comma: string.FindResult := string.find(s, ", ")
+            CHECK comma ISA string.FindResult.index ELSE
                 EXIT LOOP
-            END IF
-            s[comma] := ""
+            END CHECK
+            s[comma.index] := ""
         END LOOP
 
         -- Convert [...] to (...)?.
         LOOP
-            LET bracket: Number := string.find(s, " [")
-            IF bracket < 0 THEN
+            LET bracket: string.FindResult := string.find(s, " [")
+            CHECK bracket ISA string.FindResult.index ELSE
                 EXIT LOOP
-            END IF
-            LET rbracket: Number := string.find(s, "]")
-            ASSERT rbracket > bracket
-            s[bracket+1] := "("
-            s[rbracket] := ")?"
+            END CHECK
+            LET rbracket: string.FindResult := string.find(s, "]")
+            CHECK rbracket ISA string.FindResult.index ELSE
+                ASSERT FALSE
+            END CHECK
+            s[bracket.index+1] := "("
+            s[rbracket.index] := ")?"
         END LOOP
 
         -- Convert {...} to (...)*.
         LOOP
-            LET brace: Number := string.find(s, " {")
-            IF brace < 0 THEN
+            LET brace: string.FindResult := string.find(s, " {")
+            CHECK brace ISA string.FindResult.index ELSE
                 EXIT LOOP
-            END IF
-            LET rbrace: Number := string.find(s, "}")
-            ASSERT rbrace > brace
-            s[brace+1] := "("
-            s[rbrace] := ")*"
+            END CHECK
+            LET rbrace: string.FindResult := string.find(s, "}")
+            CHECK rbrace ISA string.FindResult.index ELSE
+                ASSERT FALSE
+            END CHECK
+            s[brace.index+1] := "("
+            s[rbrace.index] := ")*"
         END LOOP
 
     TRAP EndOfFileException DO

@@ -14,7 +14,7 @@
 // ToDo: UTF8 string operations on all functions.
 
 
-void string_find(TExecutor *exec)
+void string_find_internal(TExecutor *exec)
 {
     TString *t = peek(exec->stack, 0)->string;
     TString *s = peek(exec->stack, 1)->string;

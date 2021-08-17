@@ -2,7 +2,7 @@ package neon;
 
 public class String {
 
-    public static neon.type.Number find(java.lang.String s, java.lang.String t) {
+    public static neon.type.Number find_internal(java.lang.String s, java.lang.String t) {
         return new neon.type.Number(s.indexOf(t));
     }
 

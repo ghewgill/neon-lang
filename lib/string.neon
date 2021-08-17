@@ -3,6 +3,8 @@
  *  Functions for common string operations.
  */
 
+EXPORT FindResult
+
 EXPORT find
 EXPORT format
 EXPORT fromCodePoint
@@ -22,11 +24,24 @@ EXPORT trim
 EXPORT trimCharacters
 EXPORT upper
 
+TYPE FindResult IS CHOICE
+    notfound
+    index: Number
+END CHOICE
+
 /*  Function: find
  *
  *  Find the index of a string within another.
  */
-DECLARE NATIVE FUNCTION find(s: String, t: String): Number
+FUNCTION find(s: String, t: String): FindResult
+    LET r: Number := find_internal(s, t)
+    CHECK r >= 0 ELSE
+        RETURN FindResult.notfound
+    END CHECK
+    RETURN FindResult.index(r)
+END FUNCTION
+
+DECLARE NATIVE FUNCTION find_internal(s: String, t: String): Number
 
 /*  Function: format
  *
@@ -248,11 +263,11 @@ END FUNCTION
  *  Return a string the first instance of a given string replaced by another string.
  */
 FUNCTION replaceOne(s: String, target: String, replacement: String): String
-    LET i: Number := find(s, target)
-    CHECK i >= 0 ELSE
+    LET r: FindResult := find(s, target)
+    CHECK r ISA FindResult.index ELSE
         RETURN s
     END CHECK
-    RETURN s[FIRST TO i-1] & replacement & s[i+target.length() TO LAST]
+    RETURN s[FIRST TO r.index-1] & replacement & s[r.index+target.length() TO LAST]
 END FUNCTION
 
 /*  Function: split

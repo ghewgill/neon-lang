@@ -14,7 +14,7 @@ namespace csnex.rtl
             Exec = exe;
         }
 
-        public void find()
+        public void find_internal()
         {
             string t = Exec.stack.Pop().String;
             string s = Exec.stack.Pop().String;

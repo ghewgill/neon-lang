@@ -3096,7 +3096,7 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
             internal_error("need module string");
         }
         return new ast::TryExpression(
-            new ast::NumericComparisonExpression(
+            new ast::ChoiceTestExpression(
                 new ast::FunctionCall(
                     new ast::VariableExpression(
                         dynamic_cast<const ast::Variable *>(string->scope->lookupName("find"))
@@ -3106,8 +3106,8 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
                         left
                     }
                 ),
-                new ast::ConstantNumberExpression(number_from_uint32(0)),
-                ast::ComparisonExpression::Comparison::GE
+                dynamic_cast<const ast::TypeChoice *>(string->scope->lookupName("FindResult")),
+                1 // FindResult.index
             ),
             {
                 ast::TryTrap(
