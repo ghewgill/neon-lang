@@ -17,4 +17,18 @@
 #define ENUM_FileType_directory     1
 #define ENUM_FileType_special       2
 
+#define CHOICE_FindResult_notfound  0
+#define CHOICE_FindResult_index     1
+
+#define CHOICE_OpenResult_file      0
+#define CHOICE_OpenResult_error     1
+
+#define CHOICE_ReadLineResult_line  0
+#define CHOICE_ReadLineResult_eof   1
+#define CHOICE_ReadLineResult_error 2
+
+#define CHOICE_RecvResult_data  0
+#define CHOICE_RecvResult_eof   1
+#define CHOICE_RecvResult_error 2
+
 #endif

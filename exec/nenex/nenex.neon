@@ -1566,8 +1566,7 @@ END FUNCTION
 FUNCTION f_pushci(INOUT self: Executor)
     INC self.ip
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
-    LET dot: Number := string.find(self.bytecode.strtable[val], ".")
-    IF dot < 0 THEN
+    IF "." NOT IN self.bytecode.strtable[val] THEN
         FOREACH c IN self.bytecode.classes DO
             IF c.name = val THEN
                 LET a: Array<POINTER TO Value> := [

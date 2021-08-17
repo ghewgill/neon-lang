@@ -19,7 +19,17 @@ namespace csnex.rtl
             string t = Exec.stack.Pop().String;
             string s = Exec.stack.Pop().String;
 
-            Exec.stack.Push(Cell.CreateNumberCell(new Number(s.IndexOf(t, 0))));
+            int r = s.IndexOf(t, 0);
+            if (r < 0) {
+                Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number(0))
+                }));
+                return;
+            }
+            Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                Cell.CreateNumberCell(new Number(1)),
+                Cell.CreateNumberCell(new Number(r))
+            }));
         }
 
         public void fromCodePoint()

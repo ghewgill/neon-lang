@@ -2846,7 +2846,12 @@ func (self *executor) op_callp() {
 	case "string$find":
 		t := self.pop().str
 		s := self.pop().str
-		self.push(make_cell_num(float64(strings.Index(s, t))))
+		r := strings.Index(s, t)
+		if r < 0 {
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // notfound
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_num(float64(r))})) // index
+		}
 	case "string$fromCodePoint":
 		c := self.pop().num
 		if c != math.Trunc(c) {

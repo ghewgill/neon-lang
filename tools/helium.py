@@ -3209,7 +3209,10 @@ def neon_runtime_setRecursionLimit(env, depth):
     pass
 
 def neon_string_find(env, s, t):
-    return s.find(t)
+    r = s.find(t)
+    if r < 0:
+        return ClassChoice.Instance("notfound")
+    return ClassChoice.Instance("index", r)
 
 def neon_string_fromCodePoint(env, x):
     if x != int(x):

@@ -2,8 +2,16 @@ package neon;
 
 public class String {
 
-    public static neon.type.Number find(java.lang.String s, java.lang.String t) {
-        return new neon.type.Number(s.indexOf(t));
+    public static neon.lib.string$FindResult find(java.lang.String s, java.lang.String t) {
+        int i = s.indexOf(t);
+        neon.lib.string$FindResult r = new neon.lib.string$FindResult();
+        if (i < 0) {
+            r._choice = 0;
+        } else {
+            r._choice = 1;
+            r.index = new neon.type.Number(i);
+        }
+        return r;
     }
 
     public static java.lang.String fromCodePoint(neon.type.Number x) {

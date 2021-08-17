@@ -30,7 +30,7 @@ FUNCTION extractOpcodes(): Array<String>
     VAR r: Array<String> := []
     FOREACH o IN header[start TO end] DO
         -- We want to strip off any extra C++ stuff when creating the Opcode list
-        r.append(string.trim(o[FIRST TO string.find(o, ",") - 1]))
+        r.append(string.trim(string.split(o, ",")[0]))
     END FOREACH
     RETURN r
 END FUNCTION
@@ -125,7 +125,7 @@ BEGIN MAIN
     -- Parse all of the test functions disassembly code for easy parsing, skipping
     -- the first function in the list, which is always the module entry code call.
     FOREACH t IN tests[1 TO LAST] DO
-        functions[string.trim(t)[FIRST TO string.find(string.trim(t), " ")-1]] := parseFunction(code, t)
+        functions[string.split(string.trim(t), " ")[0]] := parseFunction(code, t)
     END FOREACH
 
     -- Ignore the opcodes on this list.

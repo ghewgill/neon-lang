@@ -100,26 +100,35 @@ FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Di
 END FUNCTION
 
 FUNCTION decomposeUrl(url: String, OUT scheme: String, OUT server: String, OUT port: Number, OUT path: String)
-    LET schemecolon: Number := string.find(url, ":")
-    CHECK schemecolon >= 0 ELSE
+    LET schemecolon: string.FindResult := string.find(url, ":")
+    CHECK schemecolon ISA string.FindResult.index ELSE
         RAISE HttpException("url format error")
     END CHECK
-    scheme := url[FIRST TO schemecolon-1]
+    scheme: String := url[FIRST TO schemecolon.index-1]
     CHECK scheme IN ["http", "https"] ELSE
         RAISE HttpException("url scheme not supported")
     END CHECK
-    CHECK url[schemecolon TO schemecolon+2] = "://" ELSE
+    CHECK url[schemecolon.index TO schemecolon.index+2] = "://" ELSE
         RAISE HttpException("url format error")
     END CHECK
-    LET tail: String := url[schemecolon+3 TO LAST]
-    LET slash: Number := string.find(tail, "/")
-    CHECK slash >= 0 ELSE
+    LET tail: String := url[schemecolon.index+3 TO LAST]
+    LET slash: string.FindResult := string.find(tail, "/")
+    CHECK slash ISA string.FindResult.index ELSE
         RAISE HttpException("url format error")
     END CHECK
-    LET portcolon: Number := string.find(tail, ":")
-    server := tail[FIRST TO (IF portcolon >= 0 THEN portcolon-1 ELSE slash-1)]
-    port := (IF 0 <= portcolon < slash THEN num(tail[portcolon+1 TO slash-1]) ELSE (IF scheme = "https" THEN 443 ELSE 80))
-    path := tail[slash TO LAST]
+    server := ""
+    port := (IF scheme = "https" THEN 443 ELSE 80)
+    LET portcolon: string.FindResult := string.find(tail, ":")
+    CASE portcolon
+        WHEN ISA string.FindResult.notfound DO
+            server := tail[FIRST TO slash.index-1]
+        WHEN ISA string.FindResult.index DO
+            server := tail[FIRST TO portcolon.index-1]
+            IF portcolon.index < slash.index THEN
+                port := num(tail[portcolon.index+1 TO slash.index-1])
+            END IF
+    END CASE
+    path := tail[slash.index TO LAST]
 END FUNCTION
 
 FUNCTION nextLine(buf: Bytes, INOUT i: Number): String

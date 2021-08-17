@@ -5,6 +5,7 @@
 
 #include "array.h"
 #include "cell.h"
+#include "enums.h"
 #include "exec.h"
 #include "global.h"
 #include "nstring.h"
@@ -23,7 +24,22 @@ void string_find(TExecutor *exec)
 
     pop(exec->stack);
     pop(exec->stack);
-    push(exec->stack, cell_fromNumber(number_from_sint64(ret)));
+    if (ret < 0) {
+        Cell *r = cell_createArrayCell(2);
+        Cell *e = cell_arrayIndexForWrite(r, 0);
+        e->type = cNumber;
+        e->number = number_from_uint32(CHOICE_FindResult_notfound);
+        push(exec->stack, r);
+        return;
+    }
+    Cell *r = cell_createArrayCell(2);
+    Cell *e = cell_arrayIndexForWrite(r, 0);
+    e->type = cNumber;
+    e->number = number_from_uint32(CHOICE_FindResult_index);
+    e = cell_arrayIndexForWrite(r, 1);
+    e->type = cNumber;
+    e->number = number_from_sint64(ret);
+    push(exec->stack, r);
 }
 
 void string_fromCodePoint(TExecutor *exec)

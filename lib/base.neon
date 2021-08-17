@@ -14,11 +14,11 @@ EXPORT FUNCTION from(base: Number, digits: String): Number
     END CHECK
     VAR r: Number := 0
     FOREACH c IN digits INDEX i DO
-        LET d: Number := string.find(Digits, string.lower(c))
-        CHECK d >= 0 ELSE
+        LET d: string.FindResult := string.find(Digits, string.lower(c))
+        CHECK d ISA string.FindResult.index ELSE
             RAISE ValueRangeException("invalid digit: \(c) at index \(i)")
         END CHECK
-        r := r * base + d
+        r := r * base + d.index
     END FOREACH
     RETURN r
 END FUNCTION
