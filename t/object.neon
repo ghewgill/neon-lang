@@ -25,6 +25,9 @@ print("\(x)")
 print(str(x[0]))
 --= 1
 
+x := {}
+print("\(x)")
+--= {}
 x := {"one": one, "two": two, "three": three}
 print("\(x)")
 --= {"one": 1, "three": 3, "two": 2}
@@ -33,6 +36,9 @@ print(str(x["two"]))
 print(str(x.three))
 --= 3
 
+x := []
+print("\(x)")
+--= []
 x := [1, 2, "three"]
 print("\(x)")
 --= [1, 2, "three"]
