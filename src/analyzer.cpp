@@ -4662,6 +4662,28 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
             error(3283, statement->expr->token, "cases do not cover all enum values");
         }
     }
+    const ast::TypeChoice *tc = dynamic_cast<const ast::TypeChoice *>(expr->type);
+    if (tc != nullptr) {
+        std::set<int> covered;
+        for (auto &clause: clauses) {
+            for (auto &cond: clause.first) {
+                const ast::CaseStatement::ChoiceTestWhenCondition *cwc = dynamic_cast<const ast::CaseStatement::ChoiceTestWhenCondition *>(cond);
+                if (cwc != nullptr) {
+                    covered.insert(cwc->index);
+                } else {
+                    internal_error("unknown choice case when condition");
+                }
+            }
+            if (clause.first.empty()) {
+                for (auto &c: tc->choices) {
+                    covered.insert(c.second.first);
+                }
+            }
+        }
+        if (covered.size() < tc->choices.size()) {
+            error(3320, statement->expr->token, "cases do not cover all choices");
+        }
+    }
     return new ast::CaseStatement(statement->token, expr, clauses);
 }
 
