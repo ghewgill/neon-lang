@@ -10,6 +10,7 @@ gc3.neon                   # Object Count
 gc-two-pointers.neon       # class
 math-test.neon             # math.powmod()
 number-exception.neon
+object.neon
 string-bytes.neon          # Cell Type assertion
 string-escape.neon         # utf8
 tostring.neon              # dictionary__toString__string

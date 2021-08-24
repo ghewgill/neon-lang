@@ -717,6 +717,7 @@ class DotExpression:
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
             if self.field == "remove": return lambda env, self, k: neon_dictionary_remove(obj, k)
+            if self.field == "size": return lambda env, self: len(obj)
             if self.field == "toString": return lambda env, self: "{{{}}}".format(", ".join("{}: {}".format(neon_string_quoted(env, k), neon_string_quoted(env, v) if isinstance(v, str) else str(v)) for k, v in sorted(obj.items())))
             return obj[self.field] # Support a.b syntax where a is an object.
         elif isinstance(obj, Program):
@@ -2819,6 +2820,8 @@ def neon_num(env, x):
         raise NeonException("ValueRangeException", x)
 
 def neon_print(env, x):
+    if isinstance(x, list):
+        x = "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in x))
     print(x)
 
 def neon_str(env, x):

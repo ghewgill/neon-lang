@@ -42,6 +42,7 @@ net-test-udp.neon                               # net module
 net-test.neon                                   # net module
 number-ceil.neon                                # math module
 number-exception.neon
+object.neon
 object-record.neon                              # EQA
 opcode-coverage.neon                            # Missing Opcodes
 posix-fork.neon                                 # posix module

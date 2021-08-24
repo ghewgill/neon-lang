@@ -2064,7 +2064,17 @@ def neon_object__invokeMethod(self):
     args = self.stack.pop()
     name = self.stack.pop()
     obj = self.stack.pop()
-    r = getattr(obj, name)(*[x.value for x in args])
+    r = None
+    if isinstance(obj, list):
+        if name == "size":
+            r = len(obj)
+    elif isinstance(obj, dict):
+        if name == "keys":
+            r = [Value(x) for x in sorted(obj.keys())]
+        if name == "size":
+            r = len(obj)
+    if r is None:
+        r = getattr(obj, name)(*[x.value for x in args])
     self.stack.append(r)
 
 def neon_object__isNull(self):
@@ -2173,6 +2183,8 @@ def neon_pointer__toString(self):
 
 def neon_print(self):
     s = self.stack.pop()
+    if isinstance(s, list):
+        s = "[{}]".format(", ".join(literal(x.value) for x in s))
     print(s)
 
 def neon_str(self):
