@@ -2865,10 +2865,9 @@ public:
     };
     class ChoiceTestWhenCondition: public WhenCondition {
     public:
-        ChoiceTestWhenCondition(const Token &token, const Expression *expr, int index): WhenCondition(token), expr(expr), index(index) {}
+        ChoiceTestWhenCondition(const Token &token, int index): WhenCondition(token), index(index) {}
         ChoiceTestWhenCondition(const ChoiceTestWhenCondition &) = delete;
         ChoiceTestWhenCondition &operator=(const ChoiceTestWhenCondition &) = delete;
-        const Expression *expr;
         const int index;
         virtual bool overlaps(const WhenCondition *cond) const override;
         virtual void generate(Emitter &emitter) const override;

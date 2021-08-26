@@ -1260,7 +1260,7 @@ void ast::TypeChoice::replace_choices(const std::map<std::string, std::pair<int,
                 r = new ConstantStringExpression(utf8string("<" + c.first + ">"));
             }
             clauses.push_back({
-                {new CaseStatement::ChoiceTestWhenCondition(Token(), new VariableExpression(fp), c.second.first)},
+                {new CaseStatement::ChoiceTestWhenCondition(Token(), c.second.first)},
                 {new ReturnStatement(Token(), r)}
             });
         }
@@ -4567,7 +4567,7 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                         error(3317, qtype->names[i], "choice not found");
                     }
                     int index = choice->second.first;
-                    const ast::CaseStatement::ChoiceTestWhenCondition *cond = new ast::CaseStatement::ChoiceTestWhenCondition(twc->target->token, expr, index);
+                    const ast::CaseStatement::ChoiceTestWhenCondition *cond = new ast::CaseStatement::ChoiceTestWhenCondition(twc->target->token, index);
                     conditions.push_back(cond);
                     const ast::VariableExpression *ve = dynamic_cast<const ast::VariableExpression *>(expr);
                     if (ve != nullptr) {
