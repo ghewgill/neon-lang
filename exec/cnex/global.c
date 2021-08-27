@@ -1218,6 +1218,50 @@ void object__invokeMethod(TExecutor *exec)
         goto cleanup;
     }
 
+    if (obj->object->type == oArray) {
+        if (strcmp(name, "size") == 0) {
+            if (args->array != NULL && args->array->size != 0) {
+                exec->rtl_raise(exec, "DynamicConversionException", "invalid number of arguments to size() (expected 0)");
+                goto cleanup;
+            }
+            push(exec->stack, cell_fromObject(object_createNumberObject(number_from_uint64(((Cell*)obj->object->ptr)->array->size))));
+            goto cleanup;
+        }
+        exec->rtl_raise(exec, "DynamicConversionException", "array object does not support this method");
+        goto cleanup;
+    }
+
+    if (obj->object->type == oDictionary) {
+        if (strcmp(name, "size") == 0) {
+            if (args->array != NULL && args->array->size != 0) {
+                exec->rtl_raise(exec, "DynamicConversionException", "invalid number of arguments to size() (expected 0)");
+                goto cleanup;
+            }
+            push(exec->stack, cell_fromObject(object_createNumberObject(number_from_sint64(((Cell*)obj->object->ptr)->dictionary->len))));
+            goto cleanup;
+        } else if (strcmp(name, "keys") == 0) {
+            if (args->array != NULL && args->array->size != 0) {
+                exec->rtl_raise(exec, "DynamicConversionException", "invalid number of arguments to keys() (expected 0)");
+                goto cleanup;
+            }
+
+            Cell *keys = dictionary_getKeys(((Cell*)obj->object->ptr)->dictionary);
+            Array *okeys = array_createArray();
+            for (size_t i = 0; i < keys->array->size; i++) {
+                Cell *key = cell_fromObject(object_createStringObject(keys->array->data[i].string));
+                array_appendElement(okeys, key);
+                cell_freeCell(key);
+            }
+            Cell *oArray = cell_fromObject(object_createArrayObject(okeys));
+            push(exec->stack, oArray);
+            cell_freeCell(keys);
+            array_freeArray(okeys);
+            goto cleanup;
+        }
+        exec->rtl_raise(exec, "DynamicConversionException", "dictionary object does not support this method");
+        goto cleanup;
+    }
+
     Cell *result = cell_newCell();
     if (!obj->object->invokeMethod(obj->object, exec, name, args, &result)) {
         exec->rtl_raise(exec, "DynamicConversionException", "object does not support calling methods");
