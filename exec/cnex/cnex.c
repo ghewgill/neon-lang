@@ -337,6 +337,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, Cell *info)
     cell_setString(&exceptionvar->array->data[0], string_fromString(name));
     cell_copyCell(&exceptionvar->array->data[1], info);
     cell_setNumber(&exceptionvar->array->data[2], number_from_uint64(self->ip));
+    _IDEC_glbflags = 0;
     uint64_t tip = self->ip;
     TModule *tmodule = self->module;
     uint32_t sp = self->callstacktop;
@@ -478,6 +479,25 @@ void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info
     exec_raiseLiteral(self, n, ex);
     string_freeString(n);
     string_freeString(i);
+}
+
+void exec_numberCheckAndRaise(TExecutor *self, unsigned int start_ip, const char *what)
+{
+    if (_IDEC_glbflags & BID_OVERFLOW_EXCEPTION) {
+        self->ip = start_ip;
+        exec_rtl_raiseException(self, "NumberException.Overflow", what);
+        return;
+    }
+    if (_IDEC_glbflags & BID_ZERO_DIVIDE_EXCEPTION) {
+        self->ip = start_ip;
+        exec_rtl_raiseException(self, "NumberException.DivideByZero", what);
+        return;
+    }
+    if (_IDEC_glbflags & BID_INVALID_EXCEPTION) {
+        self->ip = start_ip;
+        exec_rtl_raiseException(self, "NumberException.Invalid", what);
+        return;
+    }
 }
 
 static unsigned int exec_getOperand(TExecutor *self)
@@ -717,65 +737,78 @@ void exec_STOREV(TExecutor *self)
 
 void exec_NEGN(TExecutor *self)
 {
+    _IDEC_glbflags = 0;
+    unsigned int start_ip = self->ip;
     self->ip++;
     Number x = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(number_negate(x)));
+    exec_numberCheckAndRaise(self, start_ip, "negate");
 }
 
 void exec_ADDN(TExecutor *self)
 {
+    _IDEC_glbflags = 0;
+    unsigned int start_ip = self->ip;
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(number_add(a, b)));
+    exec_numberCheckAndRaise(self, start_ip, "add");
 }
 
 void exec_SUBN(TExecutor *self)
 {
+    _IDEC_glbflags = 0;
+    unsigned int start_ip = self->ip;
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(number_subtract(a, b)));
+    exec_numberCheckAndRaise(self, start_ip, "subtract");
 }
 
 void exec_MULN(TExecutor *self)
 {
+    _IDEC_glbflags = 0;
+    unsigned int start_ip = self->ip;
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(number_multiply(a, b)));
+    exec_numberCheckAndRaise(self, start_ip, "multiply");
 }
 
 void exec_DIVN(TExecutor *self)
 {
+    _IDEC_glbflags = 0;
+    unsigned int start_ip = self->ip;
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-   if (number_is_zero(b)) {
-        self->rtl_raise(self, "NumberException.DivideByZero", "");
-        return;
-    }
     push(self->stack, cell_fromNumber(number_divide(a, b)));
+    exec_numberCheckAndRaise(self, start_ip, "divide");
 }
 
 void exec_MODN(TExecutor *self)
 {
+    _IDEC_glbflags = 0;
+    unsigned int start_ip = self->ip;
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-   if (number_is_zero(b)) {
-        self->rtl_raise(self, "NumberException.DivideByZero", "");
-        return;
-    }
     push(self->stack, cell_fromNumber(number_modulo(a, b)));
+    exec_numberCheckAndRaise(self, start_ip, "modulo");
 }
 
 void exec_EXPN(TExecutor *self)
 {
+    _IDEC_glbflags = 0;
+    unsigned int start_ip = self->ip;
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(number_pow(a, b)));
+    exec_numberCheckAndRaise(self, start_ip, "exponentiation");
 }
 
 void exec_EQB(TExecutor *self)
@@ -1244,11 +1277,14 @@ void exec_IND(TExecutor *self)
 
 void exec_CALLP(TExecutor *self)
 {
+    _IDEC_glbflags = 0;
+    unsigned int start_ip = self->ip;
     self->ip++;
     unsigned int val = exec_getOperand(self);
     const char *func = self->module->bytecode->strings[val]->data;
 
     global_callFunction(func, self);
+    exec_numberCheckAndRaise(self, start_ip, func);
 }
 
 void exec_CALLF(TExecutor *self)
