@@ -342,6 +342,10 @@ public class Global {
         return x.toString();
     }
 
+    public static java.lang.Object object__makeNumber(neon.type.Number x) {
+        return x;
+    }
+
     public static java.lang.Object object__makeString(java.lang.String s) {
         return s;
     }
