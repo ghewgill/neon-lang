@@ -1249,13 +1249,17 @@ void ast::TypeChoice::replace_choices(const std::map<std::string, std::pair<int,
             Expression *r;
             if (c.second.second != nullptr) {
                 auto tostring = c.second.second->methods.find("toString");
-                r = new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
-                    new ConstantStringExpression(utf8string("<" + c.first + ":")),
-                    new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
-                        new ast::FunctionCall(new VariableExpression(tostring->second), {new ChoiceReferenceExpression(c.second.second, new VariableExpression(fp), this, c.second.first)}),
-                        new ConstantStringExpression(utf8string(">"))
-                    })
-                });
+                if (tostring != c.second.second->methods.end()) {
+                    r = new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
+                        new ConstantStringExpression(utf8string("<" + c.first + ":")),
+                        new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
+                            new ast::FunctionCall(new VariableExpression(tostring->second), {new ChoiceReferenceExpression(c.second.second, new VariableExpression(fp), this, c.second.first)}),
+                            new ConstantStringExpression(utf8string(">"))
+                        })
+                    });
+                } else {
+                    r = new ConstantStringExpression(utf8string("<" + c.first + ":?>"));
+                }
             } else {
                 r = new ConstantStringExpression(utf8string("<" + c.first + ">"));
             }
