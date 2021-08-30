@@ -926,6 +926,21 @@ bool CaseStatement::always_returns() const
     return true;
 }
 
+bool CaseStatement::is_scope_exit_statement() const
+{
+    bool seen_others = false;
+    for (auto clause: clauses) {
+        seen_others |= clause.first.empty();
+        if (clause.second.empty() || not clause.second.back()->is_scope_exit_statement()) {
+            return false;
+        }
+    }
+    if (not seen_others) {
+        return false;
+    }
+    return true;
+}
+
 bool TryStatement::always_returns() const
 {
     if (statements.empty() || not statements.back()->always_returns()) {

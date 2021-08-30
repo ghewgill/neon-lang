@@ -1,0 +1,12 @@
+FUNCTION test(x: Number)
+    CHECK x > 0 ELSE
+        CASE x
+            WHEN 0 DO
+                EXIT FUNCTION
+            WHEN OTHERS DO
+                EXIT FUNCTION
+        END CASE
+    END CHECK
+END FUNCTION
+
+test(0)
