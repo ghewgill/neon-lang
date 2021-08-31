@@ -4462,6 +4462,14 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
     if (expr->is_readonly) {
         error(3105, statement->variables[0]->token, "assignment to readonly expression");
     }
+    const ast::VariableExpression *varexp = dynamic_cast<const ast::VariableExpression *>(ref);
+    if (varexp != nullptr) {
+        auto &checks = checked_choice_variables.top();
+        // When assigning to a variable, remove it from any of the checked
+        // choices so the compiler no longer assumes that it has any values.
+        // TODO: Needs to be done for OUT parameters too (elsewhere).
+        checks.erase(varexp->var);
+    }
     const ast::Expression *rhs = analyze(statement->expr.get());
     rhs = convert(expr->type, rhs);
     if (rhs == nullptr) {
