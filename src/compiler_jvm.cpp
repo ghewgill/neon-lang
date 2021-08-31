@@ -968,7 +968,7 @@ public:
 
 class TypeChoice: public Type {
 public:
-    explicit TypeChoice(const ast::TypeChoice *tc): Type(tc, tc->module + "$" + tc->name), tc(tc), choices(make_choices(tc)) {}
+    explicit TypeChoice(const ast::TypeChoice *tc): Type(tc, tc->module + "$" + tc->name.substr(tc->name.find('.')+1)), tc(tc), choices(make_choices(tc)) {}
     TypeChoice(const TypeChoice &) = delete;
     TypeChoice &operator=(const TypeChoice &) = delete;
     const ast::TypeChoice *tc;

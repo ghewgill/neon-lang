@@ -1568,6 +1568,13 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
             const_cast<std::vector<const ast::Interface *> &>(actual_class->interfaces) = classtype->interfaces;
+        } else if (object.strtable[t.descriptor][0] == 'U') {
+            // Support recursive choice type declarations.
+            ast::TypeChoice *actual_choice = new ast::TypeChoice(Token(), name, name + "." + object.strtable[t.name], {}, this);
+            module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_choice);
+            ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
+            const ast::TypeChoice *choicetype = dynamic_cast<const ast::TypeChoice *>(type);
+            actual_choice->replace_choices(choicetype->choices);
         } else {
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
