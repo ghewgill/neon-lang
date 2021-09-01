@@ -36,6 +36,10 @@ ELSE
 END IF
 --= 1
 
+LET n: Number := (IF f ISA Fruit.cherry THEN f.cherry ELSE -1)
+print(n)
+--= 1
+
 CASE f
     WHEN ISA Fruit.apple DO
         print(f.apple)

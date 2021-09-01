@@ -3176,8 +3176,13 @@ const ast::Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
 {
     const ast::Expression *cond = analyze(expr->cond.get());
+    auto checks = cond->find_choice_checks();
+    checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks));
     const ast::Expression *left = analyze(expr->left.get());
+    checked_choice_variables.pop();
+    checked_choice_variables.push(checks_complement(checks));
     const ast::Expression *right = analyze(expr->right.get());
+    checked_choice_variables.pop();
     cond = convert(ast::TYPE_BOOLEAN, cond);
     if (cond == nullptr) {
         error(3265, expr->cond->token, "boolean expected");
