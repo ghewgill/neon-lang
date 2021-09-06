@@ -1019,7 +1019,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         if (dtype->elementtype == nullptr) {
             return [](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
                     {e}
                 );
             };

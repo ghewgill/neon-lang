@@ -2896,6 +2896,7 @@ public:
     }
 
     virtual bool always_returns() const override;
+    virtual bool is_scope_exit_statement() const override;
 
     virtual void generate_code(Emitter &emitter) const override;
 

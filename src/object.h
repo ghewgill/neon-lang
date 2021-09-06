@@ -51,6 +51,7 @@ class ObjectString: public Object {
 public:
     explicit ObjectString(const utf8string &s): s(s) {}
     virtual bool getString(utf8string &r) const override { r = s; return true; }
+    virtual bool invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const override;
     virtual utf8string toLiteralString() const override;
     virtual utf8string toString() const override { return s; }
 private:
@@ -91,6 +92,7 @@ class ObjectArray: public Object {
 public:
     explicit ObjectArray(const std::vector<std::shared_ptr<Object>> &a): a(a) {}
     virtual bool getArray(std::vector<std::shared_ptr<Object>> &r) const override { r = a; return true; }
+    virtual bool invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const override;
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override;
     virtual utf8string toString() const override;
 private:
@@ -104,6 +106,7 @@ class ObjectDictionary: public Object {
 public:
     explicit ObjectDictionary(const std::map<utf8string, std::shared_ptr<Object>> &d): d(d) {}
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &r) const override { r = d; return true; }
+    virtual bool invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const override;
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override;
     virtual utf8string toString() const override;
 private:
