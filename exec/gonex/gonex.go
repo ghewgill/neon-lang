@@ -2626,7 +2626,17 @@ func (self *executor) op_callp() {
 		args := self.pop().array
 		name := self.pop().str
 		o := self.pop().obj
-		if a, err := o.getArray(); err == nil {
+		if s, err := o.getString(); err == nil {
+			if name == "length" {
+				if len(args) == 0 {
+					self.push(make_cell_obj(objectNumber{float64(len(s))}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to length() (expected 0)"})
+				}
+			} else {
+				self.raise_literal("DynamicConversionException", objectString{"string object does not support this method"})
+			}
+		} else if a, err := o.getArray(); err == nil {
 			if name == "size" {
 				if len(args) == 0 {
 					self.push(make_cell_obj(objectNumber{float64(len(a))}))

@@ -2065,7 +2065,10 @@ def neon_object__invokeMethod(self):
     name = self.stack.pop()
     obj = self.stack.pop()
     r = None
-    if isinstance(obj, list):
+    if isinstance(obj, str):
+        if name == "length":
+            r = len(obj)
+    elif isinstance(obj, list):
         if name == "size":
             r = len(obj)
     elif isinstance(obj, dict):

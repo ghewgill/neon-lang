@@ -5,6 +5,19 @@
 #include "rtl_exec.h"
 #include "intrinsic.h"
 
+bool ObjectString::invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
+{
+    std::string method = name.str();
+    if (method == "length") {
+        if (args.size() != 0) {
+            throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("invalid number of arguments to length() (expected 0)"));
+        }
+        result = std::shared_ptr<Object> { new ObjectNumber(number_from_uint64(s.length())) };
+        return true;
+    }
+    throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("string object does not support this method"));
+}
+
 utf8string ObjectString::toLiteralString() const
 {
     return rtl::ne_string::quoted(s);

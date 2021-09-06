@@ -1218,6 +1218,19 @@ void object__invokeMethod(TExecutor *exec)
         goto cleanup;
     }
 
+    if (obj->object->type == oString) {
+        if (strcmp(name, "length") == 0) {
+            if (args->array != NULL && args->array->size != 0) {
+                exec->rtl_raise(exec, "DynamicConversionException", "invalid number of arguments to length() (expected 0)");
+                goto cleanup;
+            }
+            push(exec->stack, cell_fromObject(object_createNumberObject(number_from_uint64(((Cell*)obj->object->ptr)->string->length))));
+            goto cleanup;
+        }
+        exec->rtl_raise(exec, "DynamicConversionException", "string object does not support this method");
+        goto cleanup;
+    }
+
     if (obj->object->type == oArray) {
         if (strcmp(name, "size") == 0) {
             if (args->array != NULL && args->array->size != 0) {
