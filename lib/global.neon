@@ -120,6 +120,12 @@ EXCEPTION EndOfFileException
  */
 EXCEPTION FormatException
 
+/*  Exception: InterruptedException
+ *
+ *  Execution interrupted with Ctrl+C.
+ */
+EXCEPTION InterruptedException
+
 /*  Exception: InvalidFunctionException
  *
  *  An invalid function pointer was called.
