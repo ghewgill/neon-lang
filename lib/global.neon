@@ -43,8 +43,7 @@
  */
 TYPE ExceptionType IS RECORD
     name: String
-    info: String
-    code: Number
+    info: Object
     offset: Number
 END RECORD
 

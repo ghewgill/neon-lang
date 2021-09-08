@@ -1346,7 +1346,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
 
     {
         // The fields here must match the corresponding references to
-        // ExceptionType in exec.cpp.
+        // ExceptionType in exec.cpp, and the declaration in global.neon.
         std::vector<TypeRecord::Field> fields;
         fields.push_back(TypeRecord::Field(Token("name"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_OBJECT, false));
