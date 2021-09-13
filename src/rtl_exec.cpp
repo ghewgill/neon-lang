@@ -18,6 +18,8 @@ static std::map<std::string, size_t> VariableNames;
 
 void rtl_exec_init(int argc, char *argv[])
 {
+    extern void rtl_os_init();
+    rtl_os_init();
     extern void rtl_sys_init(int, char *[]);
     rtl_sys_init(argc, argv);
 

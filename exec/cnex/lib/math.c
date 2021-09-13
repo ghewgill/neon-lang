@@ -291,11 +291,6 @@ void math_sqrt(TExecutor *exec)
 {
     Number x = top(exec->stack)->number; pop(exec->stack);
 
-    if (number_is_negative(x)) {
-        exec->rtl_raise(exec, "ValueRangeException", number_to_string(x));
-        return;
-    }
-
     push(exec->stack, cell_fromNumber(number_sqrt(x)));
 }
 

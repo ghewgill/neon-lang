@@ -2,6 +2,7 @@
 #include <string>
 #include <windows.h>
 
+#include "exec.h"
 #include "rtl_exec.h"
 
 #include "enums.inc"
@@ -119,3 +120,14 @@ Number wait(const std::shared_ptr<Object> &process)
 } // namespace ne_os
 
 } // namespace rtl
+
+static BOOL WINAPI CtrlHandler(DWORD)
+{
+    executor_interrupt();
+    return TRUE;
+}
+
+void rtl_os_init()
+{
+    SetConsoleCtrlHandler(CtrlHandler, TRUE);
+}
