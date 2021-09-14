@@ -2658,6 +2658,15 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (ftype->params[p]->mode == ast::ParameterType::Mode::INOUT && not ref->can_generate_address()) {
                 error(3241, a->expr->token, "using this kind of expression with an INOUT parameter is currently not supported");
             }
+            if (a->mode.type == INOUT || a->mode.type == OUT) {
+                const ast::VariableExpression *varexp = dynamic_cast<const ast::VariableExpression *>(ref);
+                if (varexp != nullptr) {
+                    auto &checks = checked_choice_variables.top();
+                    // When assigning to a variable, remove it from any of the checked
+                    // choices so the compiler no longer assumes that it has any values.
+                    checks.erase(varexp->var);
+                }
+            }
         }
         if (ftype->params[p]->mode == ast::ParameterType::Mode::OUT && a->mode.type != OUT) {
             error(3184, a->expr->token, "OUT keyword required");
@@ -4472,7 +4481,6 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
         auto &checks = checked_choice_variables.top();
         // When assigning to a variable, remove it from any of the checked
         // choices so the compiler no longer assumes that it has any values.
-        // TODO: Needs to be done for OUT parameters too (elsewhere).
         checks.erase(varexp->var);
     }
     const ast::Expression *rhs = analyze(statement->expr.get());
