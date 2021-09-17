@@ -18,8 +18,8 @@ EXPORT sprintf
  *  Description:
  *      The available formatting codes are
  *
- *          #d - decimal number
- *          #s - string
+ *          %d - decimal number
+ *          %s - string
  *
  *  Exceptions:
  *      - <TypeMismatch> - if the wrong type is supplied for a parameter
@@ -34,7 +34,7 @@ FUNCTION sprintf(fmt: String, value: Object...): String
     VAR a: Number := 0
     VAR i: Number := 0
     WHILE i < fmt.length() DO
-        IF fmt[i] = "#" THEN
+        IF fmt[i] = "%" THEN
             INC i
             CASE fmt[i]
                 WHEN "d" DO
