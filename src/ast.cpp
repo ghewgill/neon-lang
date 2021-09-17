@@ -687,6 +687,22 @@ const Expression *TypeEnum::deserialize_value(const Bytecode::Bytes &value, int 
     return new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i).str()));
 }
 
+const Expression *TypeChoice::make_default_value() const
+{
+    return new ArrayLiteralExpression(nullptr, {new ConstantNumberExpression(number_from_uint32(0))}, {Token()});
+}
+
+std::string TypeChoice::serialize(const Expression *value) const
+{
+    Number x = value->eval_number();
+    return TypeString::serialize(utf8string(number_to_string(x)));
+}
+
+const Expression *TypeChoice::deserialize_value(const Bytecode::Bytes &/*value*/, int &/*i*/) const
+{
+    return nullptr; // TODO new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i).str()));
+}
+
 std::string ModuleVariable::text() const
 {
     return "ModuleVariable(" + module->name + "." + name + ")";
@@ -759,6 +775,13 @@ std::string ConstantEnumExpression::text() const
     return s.str();
 }
 
+std::string ConstantChoiceExpression::text() const
+{
+    std::stringstream s;
+    s << "ConstantChoiceExpression(" << value << ", " << expr->text() << ")";
+    return s.str();
+}
+
 bool ArrayLiteralExpression::all_constant(const std::vector<const Expression *> &elements)
 {
     for (auto e: elements) {
@@ -806,6 +829,15 @@ bool TypeTestExpression::eval_boolean() const
     return expr_after_conversion->type->make_converter(expr_before_conversion->type) != nullptr;
 }
 
+std::map<const ast::Variable *, std::set<int>> ChoiceTestExpression::find_choice_checks() const
+{
+    const ast::VariableExpression *ve = dynamic_cast<const ast::VariableExpression *>(expr);
+    if (ve == nullptr) {
+        return {};
+    }
+    return {{ve->var, {choice}}};
+}
+
 bool BooleanComparisonExpression::eval_boolean() const
 {
     switch (comp) {
@@ -845,6 +877,20 @@ bool EnumComparisonExpression::eval_boolean() const
             break;
     }
     internal_error("EnumComparisonExpression");
+}
+
+bool ChoiceComparisonExpression::eval_boolean() const
+{
+    switch (comp) {
+        case Comparison::EQ: return number_is_equal        (left->eval_number(), right->eval_number());
+        case Comparison::NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
+        case Comparison::LT:
+        case Comparison::GT:
+        case Comparison::LE:
+        case Comparison::GE:
+            break;
+    }
+    internal_error("ChoiceComparisonExpression");
 }
 
 bool StringComparisonExpression::eval_boolean() const

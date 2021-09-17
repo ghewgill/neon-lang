@@ -59,7 +59,7 @@ ImportDeclaration = 'IMPORT', ['OPTIONAL'], (Identifier, ['.', Identifier], ['AL
 
 TypeDeclaration = 'TYPE', Identifier, 'IS', Type;
 
-Type = ParameterisedType | RecordType | ClassType | EnumType | PointerType | FunctionPointerType | (Identifier, {'.', Identifier});
+Type = ParameterisedType | RecordType | ClassType | EnumType | ChoiceType | PointerType | FunctionPointerType | (Identifier, {'.', Identifier});
 
 ParameterisedType = ('Array' | 'Dictionary'), '<', Type, '>';
 
@@ -68,6 +68,8 @@ RecordType = 'RECORD', { ['PRIVATE'], Identifier, ':', Type}, 'END', 'RECORD';
 ClassType = 'CLASS', {'IMPLEMENTS', Identifier, ['.', Identifier], {',', Identifier, ['.', Identifier]}}, { ['PRIVATE'], Identifier, ':', Type}, 'END', 'CLASS';
 
 EnumType = 'ENUM', {Identifier}, 'END', 'ENUM';
+
+ChoiceType = 'CHOICE', {Identifier, [':', Type] }, 'END', 'CHOICE';
 
 PointerType = 'POINTER' | (['VALID'], 'POINTER', 'TO', Type);
 

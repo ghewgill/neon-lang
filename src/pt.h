@@ -14,6 +14,7 @@ namespace pt {
 
 class TypeSimple;
 class TypeEnum;
+class TypeChoice;
 class TypeRecord;
 class TypeClass;
 class TypePointer;
@@ -110,6 +111,7 @@ public:
 
     virtual void visit(const TypeSimple *) = 0;
     virtual void visit(const TypeEnum *) = 0;
+    virtual void visit(const TypeChoice *) = 0;
     virtual void visit(const TypeRecord *) = 0;
     virtual void visit(const TypeClass *) = 0;
     virtual void visit(const TypePointer *) = 0;
@@ -228,6 +230,19 @@ public:
     TypeEnum(const Token &token, const std::vector<std::pair<Token, int>> &names): Type(token), names(names) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<Token, int>> names;
+};
+
+class TypeChoice: public Type {
+public:
+    struct Choice {
+        explicit Choice(const Token &name, int index, std::unique_ptr<Type> &&type): name(name), index(index), type(std::move(type)) {}
+        Token name;
+        int index;
+        std::unique_ptr<Type> type;
+    };
+    TypeChoice(const Token &token, std::vector<std::unique_ptr<Choice>> &&choices): Type(token), choices(std::move(choices)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const std::vector<std::unique_ptr<Choice>> choices;
 };
 
 class TypeRecord: public Type {

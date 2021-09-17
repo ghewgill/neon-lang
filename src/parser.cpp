@@ -30,6 +30,7 @@ public:
     std::unique_ptr<Type> parseRecordType();
     std::unique_ptr<Type> parseClassType();
     std::unique_ptr<Type> parseEnumType();
+    std::unique_ptr<Type> parseChoiceType();
     std::unique_ptr<Type> parsePointerType();
     std::unique_ptr<Type> parseValidPointerType();
     std::unique_ptr<Type> parseFunctionType();
@@ -252,6 +253,37 @@ std::unique_ptr<Type> Parser::parseEnumType()
     return std::unique_ptr<Type> { new TypeEnum(tok_enum, names) };
 }
 
+std::unique_ptr<Type> Parser::parseChoiceType()
+{
+    if (tokens[i].type != CHOICE) {
+        internal_error("CHOICE expected");
+    }
+    auto &tok_choice = tokens[i];
+    i++;
+    std::vector<std::unique_ptr<TypeChoice::Choice>> choices;
+    int index = 0;
+    while (tokens[i].type != END) {
+        if (tokens[i].type != IDENTIFIER) {
+            error(2140, tokens[i], "identifier expected");
+        }
+        const Token &name = tokens[i];
+        i++;
+        std::unique_ptr<Type> type = nullptr;
+        if (tokens[i].type == COLON) {
+            i++;
+            type = parseType();
+        }
+        choices.push_back(std::unique_ptr<TypeChoice::Choice> { new TypeChoice::Choice(name, index, std::move(type)) });
+        index++;
+    }
+    i++;
+    if (tokens[i].type != CHOICE) {
+        error_a(2141, tokens[i-1], tokens[i], "'CHOICE' expected");
+    }
+    i++;
+    return std::unique_ptr<Type> { new TypeChoice(tok_choice, std::move(choices)) };
+}
+
 std::unique_ptr<Type> Parser::parsePointerType()
 {
     if (tokens[i].type != POINTER) {
@@ -314,6 +346,9 @@ std::unique_ptr<Type> Parser::parseType()
     }
     if (tokens[i].type == ENUM) {
         return parseEnumType();
+    }
+    if (tokens[i].type == CHOICE) {
+        return parseChoiceType();
     }
     if (tokens[i].type == POINTER) {
         return parsePointerType();

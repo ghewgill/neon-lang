@@ -2,6 +2,7 @@ array-resize.neon          # array default item
 array-sparse.neon          # array default item
 array2d.neon               # array copying semantics
 assert-multiline.neon      # exception
+assignment.neon            # choice
 binary-test.neon           # verifier
 bytes-index.neon           # index
 cformat-test.neon          # object
@@ -12,6 +13,7 @@ debug-example.neon         # debugger.log
 decimal.neon               # exception
 encoding-base64.neon       # verifier - incompatible object for function call
 enum.neon                  # enum toString
+equality.neon              # choice
 exception-as.neon          # ExceptionType
 exception-code.neon        # ExceptionType
 exception-tostring.neon    # ExceptionType

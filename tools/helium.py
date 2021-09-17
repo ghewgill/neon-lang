@@ -153,6 +153,7 @@ OPTIONAL = Keyword("OPTIONAL")
 IMPORTED = Keyword("IMPORTED")
 TESTCASE = Keyword("TESTCASE")
 EXPECT = Keyword("EXPECT")
+CHOICE = Keyword("CHOICE")
 
 class bytes:
     def __init__(self, a):
@@ -370,6 +371,12 @@ class TypeEnum:
     def resolve(self, env):
         return ClassEnum(self.names)
 
+class TypeChoice:
+    def __init__(self, choices):
+        self.choices = choices
+    def resolve(self, env):
+        return ClassChoice(self.choices)
+
 class TypePointer:
     def __init__(self, type):
         self.type = type
@@ -391,7 +398,7 @@ def infer_type(value):
         return TypeSimple("Number")
     if isinstance(value, StringLiteralExpression):
         return TypeSimple("String")
-    assert False, "need type deduction for: " + value
+    assert False, "need type deduction for: " + repr(value)
 
 class ImportDeclaration:
     def __init__(self, module, name, optional):
@@ -720,6 +727,8 @@ class DotExpression:
             if self.field == "size": return lambda env, self: len(obj)
             if self.field == "toString": return lambda env, self: "{{{}}}".format(", ".join("{}: {}".format(neon_string_quoted(env, k), neon_string_quoted(env, v) if isinstance(v, str) else str(v)) for k, v in sorted(obj.items())))
             return obj[self.field] # Support a.b syntax where a is an object.
+        elif isinstance(obj, ClassChoice):
+            return ClassChoice.Instance(self.field, None)
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
         elif hasattr(obj, self.field):
@@ -916,6 +925,8 @@ class TypeTestExpression:
                     return all(isinstance(x, int) and not isinstance(x, bool) for x in v.values())
                 if self.target.elementtype.name == "Object":
                     return True
+        if isinstance(v, ClassChoice.Instance):
+            return v._choice == self.target.name[-1]
         assert False, "add type ISA support for target {}".format(self.target)
 
 class MembershipExpression:
@@ -1046,6 +1057,9 @@ class FunctionCallExpression:
         if self.args and self.args[-1][2]: # spread
             args = args[:-1] + args[-1]
         obj = None
+        if isinstance(self.func, DotExpression) and isinstance(self.func.expr, IdentifierExpression) and isinstance(env.get_value(self.func.expr.name), ClassChoice):
+            r = ClassChoice.Instance(self.func.field, args[0])
+            return r
         if isinstance(self.func, (DotExpression, ArrowExpression)):
             # Evaluate and save obj once so we don't evaluate it twice for one call.
             obj = self.func.expr.eval(env)
@@ -1141,6 +1155,8 @@ class CaseStatement:
                     return all(isinstance(t, int) for t in x)
                 if self.target.elementtype.name == "Object":
                     return True
+            if isinstance(self.target, TypeCompound):
+                return x._choice == self.target.name[1]
     def __init__(self, expr, clauses):
         self.expr = expr
         self.clauses = clauses
@@ -1504,6 +1520,20 @@ class Parser:
         self.expect(ENUM)
         return TypeEnum(names)
 
+    def parse_choice_type(self):
+        self.expect(CHOICE)
+        choices = []
+        while self.tokens[self.i] is not END:
+            name = self.identifier()
+            type = None
+            if self.tokens[self.i] is COLON:
+                self.i += 1
+                type = self.parse_type()
+            choices.append((name, type))
+        self.expect(END)
+        self.expect(CHOICE)
+        return TypeChoice(choices)
+
     def parse_pointer_type(self):
         self.expect(POINTER)
         if self.tokens[self.i] is not TO:
@@ -1533,6 +1563,8 @@ class Parser:
             return self.parse_class_type()
         if self.tokens[self.i] is ENUM:
             return self.parse_enum_type()
+        if self.tokens[self.i] is CHOICE:
+            return self.parse_choice_type()
         if self.tokens[self.i] is POINTER:
             return self.parse_pointer_type()
         if self.tokens[self.i] is VALID:
@@ -1542,10 +1574,12 @@ class Parser:
         name = self.identifier()
         if self.tokens[self.i] is not DOT:
             return TypeSimple(name)
-        self.i += 1
-        module = name
-        name = self.identifier()
-        return TypeCompound((module, name))
+        name = (name,)
+        while self.tokens[self.i] is DOT:
+            self.i += 1
+            t = self.identifier()
+            name = name + (t,)
+        return TypeCompound(name)
 
     def parse_import(self):
         self.expect(IMPORT)
@@ -2602,6 +2636,27 @@ class ClassEnum(Class):
             setattr(self, name, ClassEnum.Instance(name))
     def default(self, env):
         return getattr(self, self.names[0])
+
+class ClassChoice(Class):
+    class Instance:
+        def __init__(self, name, value):
+            self._choice = name
+            setattr(self, name, value)
+        def __eq__(self, rhs):
+            return self._choice == rhs._choice and getattr(self, self._choice) == getattr(rhs, rhs._choice)
+        def toString(self, env, x):
+            value = getattr(x, x._choice)
+            # This should really check the choices to see whether there is data available,
+            # but checking for 'not None' is probably sufficient.
+            if value is not None:
+                return "<{}:{}>".format(x._choice, value)
+            else:
+                return "<{}>".format(x._choice)
+    def __init__(self, choices):
+        self.choices = choices
+    def default(self, env):
+        r = ClassChoice.Instance(self.choices[0][0], self.choices[0][1] and self.choices[0][1].resolve(env).default(env))
+        return r
 
 class ClassPointer(Class):
     def __init__(self, type):

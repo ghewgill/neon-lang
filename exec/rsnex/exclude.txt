@@ -59,6 +59,8 @@ cformat-test.neon
 check-if.neon
 check-valid.neon
 check.neon
+choice.neon
+choice-recursive.neon
 class-empty.neon
 cmdline.neon
 comments-block2.neon

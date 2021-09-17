@@ -12,6 +12,7 @@ array-tostring.neon        # array comparison
 array2d.neon               # copy semantics
 assert-enum.neon           # enum
 assert-multiline.neon      # stderr
+assignment.neon            # choice
 base-test.neon             # module
 bigint.neon                # bigint
 binary-test.neon           # module binary
@@ -24,6 +25,8 @@ bytes-value-index.neon     # bytes
 bytes.neon                 # bytes
 cal-test.neon              # os.system
 cformat-test.neon          # module
+choice.neon                # choice
+choice-recursive.neon      # choice
 cmdline.neon               # command line format
 complex-test.neon          # module
 concat-bytes.neon          # bytes
