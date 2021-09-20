@@ -4,6 +4,18 @@
 #include "number.h"
 #include "rtl_exec.h"
 
+namespace {
+    template <typename T> int popcount(T x)
+    {
+        int r = 0;
+        while (x != 0) {
+            r++;
+            x &= x - 1;
+        }
+        return r;
+    }
+}
+
 template <typename T> class traits {};
 
 template <> class traits<int32_t> {
@@ -83,6 +95,12 @@ template <typename T> Number binary_and(Number x, Number y)
     range_check<T>(x);
     range_check<T>(y);
     return traits<T>::to_number(traits<T>::from_number(x) & traits<T>::from_number(y));
+}
+
+template <typename T> Number binary_bitCount(Number x)
+{
+    range_check<T>(x);
+    return number_from_uint32(popcount(traits<T>::from_number(x)));
 }
 
 template <typename T> Number binary_extract(Number x, Number n, Number w)
@@ -208,6 +226,8 @@ namespace ne_binary {
 
 Number and32(Number x, Number y)                            { return binary_and<uint32_t>(x, y); }
 Number and64(Number x, Number y)                            { return binary_and<uint64_t>(x, y); }
+Number bitCount32(Number x)                                 { return binary_bitCount<uint32_t>(x); }
+Number bitCount64(Number x)                                 { return binary_bitCount<uint64_t>(x); }
 Number extract32(Number x, Number n, Number w)              { return binary_extract<uint32_t>(x, n, w); }
 Number extract64(Number x, Number n, Number w)              { return binary_extract<uint64_t>(x, n, w); }
 bool get32(Number x, Number n)                              { return binary_get<uint32_t>(x, n); }
@@ -240,6 +260,15 @@ std::vector<unsigned char> andBytes(const std::vector<unsigned char> &x, const s
         r[i] = x[i] & y[i];
     }
     return r;
+}
+
+Number bitCountBytes(const std::vector<unsigned char> &x)
+{
+    int r = 0;
+    for (auto z: x) {
+        r += popcount(z);
+    }
+    return number_from_uint32(r);
 }
 
 std::vector<unsigned char> notBytes(const std::vector<unsigned char> &x)

@@ -5,9 +5,35 @@
 #include "rtl_exec.h"
 #include "intrinsic.h"
 
+bool ObjectString::invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
+{
+    std::string method = name.str();
+    if (method == "length") {
+        if (args.size() != 0) {
+            throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("invalid number of arguments to length() (expected 0)"));
+        }
+        result = std::shared_ptr<Object> { new ObjectNumber(number_from_uint64(s.length())) };
+        return true;
+    }
+    throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("string object does not support this method"));
+}
+
 utf8string ObjectString::toLiteralString() const
 {
     return rtl::ne_string::quoted(s);
+}
+
+bool ObjectArray::invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
+{
+    std::string method = name.str();
+    if (method == "size") {
+        if (args.size() != 0) {
+            throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("invalid number of arguments to size() (expected 0)"));
+        }
+        result = std::shared_ptr<Object> { new ObjectNumber(number_from_uint64(a.size())) };
+        return true;
+    }
+    throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("array object does not support this method"));
 }
 
 bool ObjectArray::subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const
@@ -38,6 +64,30 @@ utf8string ObjectArray::toString() const
     }
     r.append("]");
     return r;
+}
+
+bool ObjectDictionary::invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
+{
+    std::string method = name.str();
+    if (method == "keys") {
+        if (args.size() != 0) {
+            throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("invalid number of arguments to keys() (expected 0)"));
+        }
+        std::vector<std::shared_ptr<Object>> keys;
+        for (auto &x: d) {
+            keys.push_back(std::shared_ptr<Object> { new ObjectString(x.first) });
+        }
+        result = std::shared_ptr<Object> { new ObjectArray(keys) };
+        return true;
+    }
+    if (method == "size") {
+        if (args.size() != 0) {
+            throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("invalid number of arguments to size() (expected 0)"));
+        }
+        result = std::shared_ptr<Object> { new ObjectNumber(number_from_uint64(d.size())) };
+        return true;
+    }
+    throw RtlException(rtl::ne_global::Exception_DynamicConversionException, utf8string("dictionary object does not support this method"));
 }
 
 bool ObjectDictionary::subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const

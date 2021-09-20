@@ -1,0 +1,19 @@
+TYPE Fruit IS CHOICE
+    apple: Number
+    banana: Number
+    cherry: Number
+END CHOICE
+
+FUNCTION foo(OUT f: Fruit)
+    f := Fruit.cherry(1)
+END FUNCTION
+
+BEGIN MAIN
+    VAR f: Fruit := Fruit.apple(5)
+    IF f ISA Fruit.apple THEN
+        ASSERT f.apple = 5
+        foo(OUT f)
+        ASSERT f.apple = 5
+    END IF
+END MAIN
+--! N3308

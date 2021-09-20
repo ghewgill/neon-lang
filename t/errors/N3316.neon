@@ -1,0 +1,17 @@
+TYPE Fruit IS CHOICE
+    apple
+    banana
+    cherry
+END CHOICE
+
+TYPE Veg IS CHOICE
+    asparagus
+    broccoli
+    carrot
+END CHOICE
+
+VAR f: Fruit
+CASE f
+    WHEN ISA Veg.asparagus DO
+             --<
+END CASE

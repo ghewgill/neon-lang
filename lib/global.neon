@@ -43,8 +43,7 @@
  */
 TYPE ExceptionType IS RECORD
     name: String
-    info: String
-    code: Number
+    info: Object
     offset: Number
 END RECORD
 
@@ -119,6 +118,12 @@ EXCEPTION EndOfFileException
  *  Format specifier not valid.
  */
 EXCEPTION FormatException
+
+/*  Exception: InterruptedException
+ *
+ *  Execution interrupted with Ctrl+C.
+ */
+EXCEPTION InterruptedException
 
 /*  Exception: InvalidFunctionException
  *

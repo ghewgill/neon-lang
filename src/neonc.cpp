@@ -21,12 +21,13 @@ extern void compile_jvm(CompilerSupport *support, const ast::Program *, std::str
 struct {
     std::string name;
     CompileProc proc;
+    std::string description;
 } Targets[] = {
-    {"cli", compile_cli},
-    {"c", compile_c},
-    {"cpp", compile_cpp},
-    {"js", compile_js},
-    {"jvm", compile_jvm},
+    {"cli", compile_cli, "CLI (.NET) target. Output file name is a .exe file."},
+    {"c",   compile_c,   "C target. Output file name is a .c source file."},
+    {"cpp", compile_cpp, "C++ target. Output file name is a .cpp source file."},
+    {"js",  compile_js,  "Javascript target. Output file name is a .js source file."},
+    {"jvm", compile_jvm, "JVM (Java VM) target. Output file is a .class file."},
 };
 
 int main(int argc, char *argv[])
@@ -41,7 +42,22 @@ int main(int argc, char *argv[])
     std::map<std::string, std::string> options;
 
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
+        fprintf(stderr, "Usage: %s [options] filename.neon ...\n", argv[0]);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "    Options:\n");
+        fprintf(stderr, "        -i          Ignore any errors, compile all named source files\n");
+        fprintf(stderr, "        -d          Print disassembly listing\n");
+        fprintf(stderr, "        --json      Print error messages in JSON form\n");
+        fprintf(stderr, "        --neonpath  Append given path to library search path\n");
+        fprintf(stderr, "        -o filename Output file name\n");
+        fprintf(stderr, "        -q          Quiet, print messages only in case of errors\n");
+        fprintf(stderr, "        -t target   Compilation target, see list below\n");
+        fprintf(stderr, "        -T name=val Target specific option setting\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "    Supported targets:\n");
+        for (auto &t: Targets) {
+            fprintf(stderr, "        %-8s%s\n", t.name.c_str(), t.description.c_str());
+        }
         exit(1);
     }
 

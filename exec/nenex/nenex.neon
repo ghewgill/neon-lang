@@ -549,7 +549,9 @@ FUNCTION f_pushpol(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_pushi(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
+    self.stack.append(makeValueNumber(val))
 END FUNCTION
 
 FUNCTION f_loadb(INOUT self: Executor)

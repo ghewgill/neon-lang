@@ -1,0 +1,8 @@
+TYPE Fruit IS CHOICE
+    apple: Number
+    banana: Number
+END CHOICE
+
+VAR a: Array<Fruit>
+print(a[0].apple)
+           --<

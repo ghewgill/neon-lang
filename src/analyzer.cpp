@@ -37,17 +37,19 @@ public:
     std::stack<std::pair<const ast::Type *, const ast::TypeFunction *>> functiontypes;
     std::stack<std::list<std::pair<std::string, unsigned int>>> loops;
     std::stack<std::set<std::string>> imported_checked_stack;
+    std::stack<std::map<const ast::Variable *, std::set<int>>> checked_choice_variables;
 
     const ast::Type *analyze(const pt::Type *type, AllowClass allow_class, const std::string &name = std::string());
     const ast::Type *analyze(const pt::TypeSimple *type, const std::string &name);
     const ast::Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
+    const ast::Type *analyze_choice(const pt::TypeChoice *type, const std::string &name);
     const ast::Type *analyze_record(const pt::TypeRecord *type, const std::string &name, ast::RequireName require_name);
     const ast::Type *analyze_class(const pt::TypeClass *type, const std::string &name);
     const ast::Type *analyze(const pt::TypePointer *type, const std::string &name);
     const ast::Type *analyze(const pt::TypeValidPointer *type, const std::string &name);
     const ast::Type *analyze(const pt::TypeFunctionPointer *type, const std::string &name);
     const ast::Type *analyze(const pt::TypeParameterised *type, const std::string &name);
-    const ast::Type *analyze(const pt::TypeImport *type, const std::string &name);
+    const ast::Type *analyze(const pt::TypeQualified *type, const std::string &name);
     const ast::Expression *analyze(const pt::Expression *expr);
     const ast::Expression *analyze(const pt::DummyExpression *expr);
     const ast::Expression *analyze(const pt::IdentityExpression *expr);
@@ -158,13 +160,14 @@ public:
     TypeAnalyzer &operator=(const TypeAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeEnum *t) override { type = a->analyze_enum(t, name); }
+    virtual void visit(const pt::TypeChoice *t) override { type = a->analyze_choice(t, name); }
     virtual void visit(const pt::TypeRecord *t) override { type = a->analyze_record(t, name, ast::RequireName::yes); }
     virtual void visit(const pt::TypeClass *t) override { type = a->analyze_class(t, name); }
     virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeValidPointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeFunctionPointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t, name); }
-    virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::TypeQualified *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -255,13 +258,14 @@ public:
     ExpressionAnalyzer &operator=(const ExpressionAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeChoice *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeQualified *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::DummyExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::IdentityExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::BooleanLiteralExpression *p) override { expr = a->analyze(p); }
@@ -351,13 +355,14 @@ public:
     DeclarationAnalyzer &operator=(const DeclarationAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeChoice *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeQualified *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -447,13 +452,14 @@ public:
     StatementAnalyzer &operator=(const StatementAnalyzer &) = delete;
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeChoice *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeQualified *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -567,6 +573,71 @@ static std::string path_stripext(const std::string &name)
         return name;
     }
     return name.substr(0, i);
+}
+
+void checks_dump(std::string msg, const std::map<const ast::Variable *, std::set<int>> &a)
+{
+    printf("%s:\n", msg.c_str());
+    for (auto &x: a) {
+        auto *choice_type = dynamic_cast<const ast::TypeChoice *>(x.first->type);
+        printf("  %s (%p): ", x.first->name.c_str(), x.first);
+        bool first = true;
+        for (auto &c: choice_type->choices) {
+            if (x.second.find(c.second.first) != x.second.end()) {
+                if (first) {
+                    first = false;
+                } else {
+                    printf(", ");
+                }
+                printf("%s", c.first.c_str());
+            }
+        }
+        puts("");
+    }
+    puts("");
+}
+
+std::map<const ast::Variable *, std::set<int>> checks_complement(const std::map<const ast::Variable *, std::set<int>> &a)
+{
+    std::map<const ast::Variable *, std::set<int>> r;
+    for (auto &x: a) {
+        auto *var = x.first;
+        auto &checks = x.second;
+        auto *choice_type = dynamic_cast<const ast::TypeChoice *>(var->type);
+        if (choice_type == nullptr) {
+            internal_error("choice type expected");
+        }
+        std::set<int> cr;
+        for (auto &c: choice_type->choices) {
+            if (checks.find(c.second.first) == checks.end()) {
+                cr.insert(c.second.first);
+            }
+        }
+        r[var] = cr;
+    }
+    return r;
+}
+
+std::map<const ast::Variable *, std::set<int>> checks_conjunction(const std::map<const ast::Variable *, std::set<int>> &a, const std::map<const ast::Variable *, std::set<int>> &b)
+{
+    std::map<const ast::Variable *, std::set<int>> r;
+    auto f = [&r](const ast::Variable *var, const std::set<int> &choices, const std::map<const ast::Variable *, std::set<int>> &other) {
+        auto i = other.find(var);
+        if (i != other.end()) {
+            std::set<int> intersection;
+            std::set_intersection(choices.begin(), choices.end(), i->second.begin(), i->second.end(), std::inserter(intersection, intersection.end()));
+            r[var] = intersection;
+        } else {
+            r[var] = choices;
+        }
+    };
+    for (auto &x: a) {
+        f(x.first, x.second, b);
+    }
+    for (auto &x: b) {
+        f(x.first, x.second, a);
+    }
+    return r;
 }
 
 static const ast::Expression *make_array_conversion(Analyzer *analyzer, const ast::TypeArray *from_type, const ast::Expression *from, const ast::TypeArray *to_type)
@@ -948,7 +1019,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         if (dtype->elementtype == nullptr) {
             return [](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
                     {e}
                 );
             };
@@ -1149,6 +1220,56 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             values[n.second] = new ConstantStringExpression(utf8string(n.first));
         }
         f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp))));
+        methods["toString"] = f;
+    }
+}
+
+ast::TypeChoice::TypeChoice(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, std::pair<int, const Type *>> &choices, Analyzer *analyzer)
+  : Type(declaration, name),
+    module(module),
+    choices(choices),
+    analyzer(analyzer)
+{
+    if (name.empty()) {
+        error(3302, declaration, "choice type must have name");
+    }
+    replace_choices(choices);
+}
+
+void ast::TypeChoice::replace_choices(const std::map<std::string, std::pair<int, const Type *>> &choices)
+{
+    const_cast<std::map<std::string, std::pair<int, const ast::Type *>> &>(this->choices) = choices;
+    {
+        std::vector<FunctionParameter *> params;
+        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
+        params.push_back(fp);
+        Function *f = new Function(Token(), "choice.toString", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, false, 1);
+        std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
+        for (auto c: choices) {
+            Expression *r;
+            if (c.second.second != nullptr) {
+                auto tostring = c.second.second->methods.find("toString");
+                if (tostring != c.second.second->methods.end()) {
+                    r = new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
+                        new ConstantStringExpression(utf8string("<" + c.first + ":")),
+                        new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
+                            new ast::FunctionCall(new VariableExpression(tostring->second), {new ChoiceReferenceExpression(c.second.second, new VariableExpression(fp), this, c.second.first)}),
+                            new ConstantStringExpression(utf8string(">"))
+                        })
+                    });
+                } else {
+                    r = new ConstantStringExpression(utf8string("<" + c.first + ":?>"));
+                }
+            } else {
+                r = new ConstantStringExpression(utf8string("<" + c.first + ">"));
+            }
+            clauses.push_back({
+                {new CaseStatement::ChoiceTestWhenCondition(Token(), c.second.first)},
+                {new ReturnStatement(Token(), r)}
+            });
+        }
+        f->statements.push_back(new CaseStatement(Token(), new VariableExpression(fp), clauses));
+        f->statements.push_back(new ReturnStatement(Token(), new ConstantStringExpression(utf8string("<UNKNOWN>"))));
         methods["toString"] = f;
     }
 }
@@ -1447,6 +1568,13 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
             const_cast<std::vector<const ast::Interface *> &>(actual_class->interfaces) = classtype->interfaces;
+        } else if (object.strtable[t.descriptor][0] == 'U') {
+            // Support recursive choice type declarations.
+            ast::TypeChoice *actual_choice = new ast::TypeChoice(Token(), name, name + "." + object.strtable[t.name], {}, this);
+            module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_choice);
+            ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
+            const ast::TypeChoice *choicetype = dynamic_cast<const ast::TypeChoice *>(type);
+            actual_choice->replace_choices(choicetype->choices);
         } else {
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
@@ -1546,6 +1674,23 @@ const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::str
     return new ast::TypeEnum(type->token, module_name, name, names, this);
 }
 
+const ast::Type *Analyzer::analyze_choice(const pt::TypeChoice *type, const std::string &name)
+{
+    std::map<std::string, std::pair<int, const ast::Type *>> choices;
+    int index = 0;
+    for (auto &x: type->choices) {
+        std::string choicename = x->name.text;
+        auto t = choices.find(choicename);
+        if (t != choices.end()) {
+            error2(3301, x->name, "duplicate choice: " + choicename, type->choices[t->second.first]->name, "first declaration here");
+        }
+        const ast::Type *atype = x->type != nullptr ? analyze(x->type.get(), AllowClass::no) : nullptr;
+        choices[choicename] = std::make_pair(index, atype);
+        index++;
+    }
+    return new ast::TypeChoice(type->token, module_name, name, choices, this);
+}
+
 std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type, std::string tname, bool for_class)
 {
     std::vector<ast::TypeRecord::Field> fields;
@@ -1567,7 +1712,7 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
             t = analyze_record(tr, "", ast::RequireName::no);
         } else {
             t = analyze(x->type.get(), AllowClass::no);
-            if (t->name == tname) {
+            if (t->name != "" && t->name == tname) {
                 error(3299, x->type->token, "Recursive record declaration not allowed");
             }
         }
@@ -1630,11 +1775,11 @@ const ast::Type *Analyzer::analyze(const pt::TypePointer *type, const std::strin
                     return new ast::TypeInterfacePointer(type->token, interface);
                 }
             }
-            const pt::TypeImport *import = dynamic_cast<const pt::TypeImport *>(type->reftype.get());
+            const pt::TypeQualified *import = dynamic_cast<const pt::TypeQualified *>(type->reftype.get());
             if (import != nullptr) {
-                ast::Module *module = dynamic_cast<ast::Module *>(scope.top()->lookupName(import->modname.text));
+                ast::Module *module = dynamic_cast<ast::Module *>(scope.top()->lookupName(import->names[0].text));
                 if (module != nullptr) {
-                    ast::Interface *interface = dynamic_cast<ast::Interface *>(module->scope->lookupName(import->subname.text));
+                    ast::Interface *interface = dynamic_cast<ast::Interface *>(module->scope->lookupName(import->names[1].text));
                     if (interface != nullptr) {
                         return new ast::TypeInterfacePointer(type->token, interface);
                     }
@@ -1742,23 +1887,23 @@ const ast::Type *Analyzer::analyze(const pt::TypeParameterised *type, const std:
     internal_error("Invalid parameterized type");
 }
 
-const ast::Type *Analyzer::analyze(const pt::TypeImport *type, const std::string &)
+const ast::Type *Analyzer::analyze(const pt::TypeQualified *type, const std::string &)
 {
-    ast::Name *modname = scope.top()->lookupName(type->modname.text);
+    ast::Name *modname = scope.top()->lookupName(type->names[0].text);
     if (modname == nullptr) {
-        error(3153, type->modname, "name not found");
+        error(3153, type->names[0], "name not found");
     }
     ast::Module *module = dynamic_cast<ast::Module *>(modname);
     if (module == nullptr) {
-        error(3154, type->modname, "module name expected");
+        error(3154, type->names[0], "module name expected");
     }
-    ast::Name *name = module->scope->lookupName(type->subname.text);
+    ast::Name *name = module->scope->lookupName(type->names[1].text);
     if (name == nullptr) {
-        error(3155, type->subname, "name not found in module");
+        error(3155, type->names[1], "name not found in module");
     }
     ast::Type *rtype = dynamic_cast<ast::Type *>(name);
     if (rtype == nullptr) {
-        error(3156, type->subname, "name not a type");
+        error(3156, type->names[1], "name not a type");
     }
     return rtype;
 }
@@ -1971,6 +2116,21 @@ const ast::Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
 
 const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
 {
+    const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(expr->base.get());
+    if (ident != nullptr) {
+        const ast::Name *name = scope.top()->lookupName(ident->name);
+        const ast::TypeChoice *choice_type = dynamic_cast<const ast::TypeChoice *>(name);
+        if (choice_type != nullptr) {
+            auto choice = choice_type->choices.find(expr->name.text);
+            if (choice == choice_type->choices.end()) {
+                error(3303, expr->name, "choice not found");
+            }
+            if (choice->second.second != nullptr) {
+                error(3304, expr->name, "need a value for this choice");
+            }
+            return new ast::ConstantChoiceExpression(choice_type, choice->second.first, nullptr);
+        }
+    }
     const ast::Name *name = analyze_qualified_name(expr);
     if (name != nullptr) {
         const ast::Constant *constant = dynamic_cast<const ast::Constant *>(name);
@@ -1997,6 +2157,29 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
     const ast::Expression *base = analyze(expr->base.get());
     if (base->type == ast::TYPE_OBJECT) {
         return new ast::ObjectSubscriptExpression(base, convert(ast::TYPE_OBJECT, new ast::ConstantStringExpression(utf8string(expr->name.text))));
+    }
+    const ast::TypeChoice *choicetype = dynamic_cast<const ast::TypeChoice *>(base->type);
+    if (choicetype != nullptr) {
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
+        if (ref == nullptr) {
+            error(3305, expr->token, "must be reference");
+        }
+        auto choice = choicetype->choices.find(expr->name.text);
+        if (choice == choicetype->choices.end()) {
+            error(3306, expr->name, "choice not found");
+        }
+        const ast::VariableExpression *vref = dynamic_cast<const ast::VariableExpression *>(ref);
+        if (vref == nullptr) {
+            error(3307, expr->name, "not a variable reference");
+        }
+        if (choice->second.second == nullptr) {
+            error(3318, expr->name, "no data associated with this choice");
+        }
+        auto ci = checked_choice_variables.top().find(vref->var);
+        if (ci == checked_choice_variables.top().end() || ci->second.size() != 1 || *ci->second.begin() != choice->second.first) {
+            error(3308, expr->name, "choice not definitely checked");
+        }
+        return new ast::ChoiceReferenceExpression(choice->second.second, ref, choicetype, choice->second.first);
     }
     const ast::TypeRecord *recordtype = dynamic_cast<const ast::TypeRecord *>(base->type);
     if (recordtype == nullptr) {
@@ -2234,33 +2417,54 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         // This check avoids trying to evaluate foo.bar as an
         // expression in foo.bar() where foo is actually a module.
         bool is_module_call = false;
+        const ast::TypeChoice *choice_type = nullptr;
         const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(dotmethod->base.get());
         if (ident != nullptr) {
             const ast::Name *name = scope.top()->lookupName(ident->name);
             is_module_call = dynamic_cast<const ast::Module *>(name) != nullptr;
+            choice_type = dynamic_cast<const ast::TypeChoice *>(name);
         }
         if (not is_module_call) {
-            const ast::Expression *base = analyze(dotmethod->base.get());
-            if (base->type == ast::TYPE_OBJECT) {
-                auto invoke = dynamic_cast<ast::Variable *>(scope.top()->lookupName("object__invokeMethod"));
-                if (invoke == nullptr) {
-                    internal_error("could not find object__invokeMethod");
+            if (choice_type != nullptr) {
+                auto choice = choice_type->choices.find(dotmethod->name.text);
+                if (choice == choice_type->choices.end()) {
+                    error(3309, dotmethod->name, "choice not found");
                 }
-                self = base;
-                initial_args.push_back(new ast::ConstantStringExpression(utf8string(dotmethod->name.text)));
-                func = new ast::VariableExpression(invoke);
-                allow_ignore_result = true;
+                if (choice->second.second == nullptr) {
+                    error(3319, dotmethod->name, "choice does not take data");
+                }
+                if (expr->args.size() != 1) {
+                    error(3310, expr->rparen, "expected 1 argument");
+                }
+                const ast::Expression *arg = analyze(expr->args[0]->expr.get());
+                arg = convert(choice->second.second, arg);
+                if (arg == nullptr) {
+                    error(3311, expr->args[0]->expr->token, "type mismatch");
+                }
+                return new ast::ConstantChoiceExpression(choice_type, choice->second.first, arg);
             } else {
-                auto m = base->type->methods.find(dotmethod->name.text);
-                if (m == base->type->methods.end()) {
-                    error(3137, dotmethod->name, "method not found");
-                } else {
-                    if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
-                        internal_error("class not expected here");
+                const ast::Expression *base = analyze(dotmethod->base.get());
+                if (base->type == ast::TYPE_OBJECT) {
+                    auto invoke = dynamic_cast<ast::Variable *>(scope.top()->lookupName("object__invokeMethod"));
+                    if (invoke == nullptr) {
+                        internal_error("could not find object__invokeMethod");
                     }
                     self = base;
+                    initial_args.push_back(new ast::ConstantStringExpression(utf8string(dotmethod->name.text)));
+                    func = new ast::VariableExpression(invoke);
+                    allow_ignore_result = true;
+                } else {
+                    auto m = base->type->methods.find(dotmethod->name.text);
+                    if (m == base->type->methods.end()) {
+                        error(3137, dotmethod->name, "method not found");
+                    } else {
+                        if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
+                            internal_error("class not expected here");
+                        }
+                        self = base;
+                    }
+                    func = new ast::VariableExpression(m->second);
                 }
-                func = new ast::VariableExpression(m->second);
             }
         } else {
             recordtype = dynamic_cast<const ast::TypeRecord *>(analyze_qualified_name(expr->base.get()));
@@ -2453,6 +2657,15 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             }
             if (ftype->params[p]->mode == ast::ParameterType::Mode::INOUT && not ref->can_generate_address()) {
                 error(3241, a->expr->token, "using this kind of expression with an INOUT parameter is currently not supported");
+            }
+            if (a->mode.type == INOUT || a->mode.type == OUT) {
+                const ast::VariableExpression *varexp = dynamic_cast<const ast::VariableExpression *>(ref);
+                if (varexp != nullptr) {
+                    auto &checks = checked_choice_variables.top();
+                    // When assigning to a variable, remove it from any of the checked
+                    // choices so the compiler no longer assumes that it has any values.
+                    checks.erase(varexp->var);
+                }
             }
         }
         if (ftype->params[p]->mode == ast::ParameterType::Mode::OUT && a->mode.type != OUT) {
@@ -2719,6 +2932,18 @@ const ast::Expression *Analyzer::analyze_comparison(const Token &token, const as
         }
     }
     {
+        const ast::TypeChoice *tc1 = dynamic_cast<const ast::TypeChoice *>(left->type);
+        const ast::TypeChoice *tc2 = dynamic_cast<const ast::TypeChoice *>(right->type);
+        if (tc1 != nullptr && tc2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3313, token, "comparison not available for CHOICE");
+            }
+            if (tc1->is_structure_compatible(tc2)) {
+                return new ast::ChoiceComparisonExpression(left, right, comp);
+            }
+        }
+    }
+    {
         const ast::TypePointer *tp1 = dynamic_cast<const ast::TypePointer *>(left->type);
         const ast::TypePointer *tp2 = dynamic_cast<const ast::TypePointer *>(right->type);
         if (tp1 != nullptr && tp2 != nullptr) {
@@ -2801,6 +3026,14 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
         if (c == nullptr) {
             error(3297, expr->token, "cannot use this kind of comparison in a chained manner");
         }
+        switch (c->comp) {
+            case ast::ComparisonExpression::Comparison::LT:
+            case ast::ComparisonExpression::Comparison::LE:
+            case ast::ComparisonExpression::Comparison::EQ:
+                break;
+            default:
+                error(3300, x->tok_comp, "comparison must be '<' or '<=' or '=' for chains");
+        }
         comps.push_back(c);
         token = x->right->token;
     }
@@ -2810,6 +3043,24 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
 const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
+    const pt::TypeQualified *qtype = dynamic_cast<const pt::TypeQualified *>(expr->target.get());
+    if (qtype != nullptr) {
+        const ast::Name *name = scope.top()->lookupName(qtype->names[0].text);
+        const ast::Module *mod = dynamic_cast<const ast::Module *>(name);
+        int i = 1;
+        if (mod != nullptr) {
+            name = mod->scope->lookupName(qtype->names[1].text);
+            i++;
+        }
+        const ast::TypeChoice *choice_type = dynamic_cast<const ast::TypeChoice *>(name);
+        if (choice_type != nullptr) {
+            auto choice = choice_type->choices.find(qtype->names[i].text);
+            if (choice == choice_type->choices.end()) {
+                error(3312, qtype->names[i], "choice not found");
+            }
+            return new ast::ChoiceTestExpression(left, choice_type, choice->second.first);
+        }
+    }
     const ast::Type *target = analyze(expr->target.get(), AllowClass::no);
     auto conv = target->make_converter(left->type);
     if (conv == nullptr) {
@@ -2934,8 +3185,13 @@ const ast::Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
 {
     const ast::Expression *cond = analyze(expr->cond.get());
+    auto checks = cond->find_choice_checks();
+    checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks));
     const ast::Expression *left = analyze(expr->left.get());
+    checked_choice_variables.pop();
+    checked_choice_variables.push(checks_complement(checks));
     const ast::Expression *right = analyze(expr->right.get());
+    checked_choice_variables.pop();
     cond = convert(ast::TYPE_BOOLEAN, cond);
     if (cond == nullptr) {
         error(3265, expr->cond->token, "boolean expected");
@@ -3197,6 +3453,35 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
             i++;
             return new ast::TypeEnum(Token(), "module", "enum", names, this);
         }
+        case 'U': {
+            i++;
+            std::map<std::string, std::pair<int, const ast::Type *>> choices;
+            if (descriptor.at(i) != '[') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            int value = 0;
+            for (;;) {
+                std::string name;
+                while (descriptor.at(i) != ':' && descriptor.at(i) != ',' && descriptor.at(i) != ']') {
+                    name.push_back(descriptor.at(i));
+                    i++;
+                }
+                const ast::Type *type = nullptr;
+                if (descriptor.at(i) == ':') {
+                    i++;
+                    type = deserialize_type(s, descriptor, i);
+                }
+                choices[name] = std::make_pair(value, type);
+                value++;
+                if (descriptor.at(i) == ']') {
+                    break;
+                }
+                i++;
+            }
+            i++;
+            return new ast::TypeChoice(Token(), "module", "choice", choices, this);
+        }
         case 'F': {
             i++;
             std::vector<const ast::ParameterType *> params;
@@ -3371,8 +3656,10 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     }
     ast::TypeClass *actual_class = nullptr;
     ast::TypeRecord *actual_record = nullptr;
+    ast::TypeChoice *actual_choice = nullptr;
     const pt::TypeRecord *classdecl = dynamic_cast<const pt::TypeClass *>(declaration->type.get());
     const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type.get());
+    const pt::TypeChoice *choicedecl = dynamic_cast<const pt::TypeChoice *>(declaration->type.get());
     if (classdecl != nullptr) {
         // Support recursive class type declarations.
         actual_class = new ast::TypeClass(classdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>(), std::vector<const ast::Interface *>());
@@ -3383,6 +3670,10 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         // see analyze_fields.)
         actual_record = new ast::TypeRecord(recdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_record);
+    } else if (choicedecl != nullptr) {
+        // Support recursive choice type declarations.
+        actual_choice = new ast::TypeChoice(choicedecl->token, module_name, name, {}, this);
+        scope.top()->addName(declaration->token, name, actual_choice);
     }
     const ast::Type *type = analyze(declaration->type.get(), AllowClass::yes, name);
     if (actual_class != nullptr) {
@@ -3396,6 +3687,10 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         const_cast<std::vector<ast::TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         type = actual_record;
+    } else if (actual_choice != nullptr) {
+        const ast::TypeChoice *choicetype = dynamic_cast<const ast::TypeChoice *>(type);
+        actual_choice->replace_choices(choicetype->choices);
+        type = actual_choice;
     } else {
         ast::Type *t = const_cast<ast::Type *>(type);
         if (type != ast::TYPE_BOOLEAN && type != ast::TYPE_NUMBER && type != ast::TYPE_STRING && type != ast::TYPE_BYTES) {
@@ -4181,6 +4476,13 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
     if (expr->is_readonly) {
         error(3105, statement->variables[0]->token, "assignment to readonly expression");
     }
+    const ast::VariableExpression *varexp = dynamic_cast<const ast::VariableExpression *>(ref);
+    if (varexp != nullptr) {
+        auto &checks = checked_choice_variables.top();
+        // When assigning to a variable, remove it from any of the checked
+        // choices so the compiler no longer assumes that it has any values.
+        checks.erase(varexp->var);
+    }
     const ast::Expression *rhs = analyze(statement->expr.get());
     rhs = convert(expr->type, rhs);
     if (rhs == nullptr) {
@@ -4194,11 +4496,12 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
 const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
 {
     const ast::Expression *expr = analyze(statement->expr.get());
-    if (expr->type != ast::TYPE_NUMBER && expr->type != ast::TYPE_STRING && dynamic_cast<const ast::TypeEnum *>(expr->type) == nullptr && expr->type != ast::TYPE_OBJECT) {
-        error(3050, statement->expr->token, "CASE expression must be Number, String, or ENUM");
+    if (expr->type != ast::TYPE_NUMBER && expr->type != ast::TYPE_STRING && dynamic_cast<const ast::TypeEnum *>(expr->type) == nullptr && dynamic_cast<const ast::TypeChoice *>(expr->type) == nullptr && expr->type != ast::TYPE_OBJECT) {
+        error(3050, statement->expr->token, "CASE expression must be Number, String, ENUM, or CHOICE");
     }
     std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> clauses;
     for (auto &x: statement->clauses) {
+        std::map<const ast::Variable *, std::set<int>> checks;
         std::vector<const ast::CaseStatement::WhenCondition *> conditions;
         for (auto &c: x.first) {
             const pt::CaseStatement::ComparisonWhenCondition *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(c.get());
@@ -4268,18 +4571,51 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 }
                 conditions.push_back(cond);
             } else if (twc != nullptr) {
-                if (expr->type != ast::TYPE_OBJECT) {
-                    error2(3263, statement->expr->token, "WHEN ISA requires Object type", twc->token, "used here");
+                if (expr->type == ast::TYPE_OBJECT) {
+                    const ast::Type *target = analyze(twc->target.get(), AllowClass::no);
+                    const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::TypeTestWhenCondition(twc->target->token, convert(target, expr), target);
+                    conditions.push_back(cond);
+                } else if (dynamic_cast<const ast::TypeChoice *>(expr->type) != nullptr) {
+                    const pt::TypeQualified *qtype = dynamic_cast<const pt::TypeQualified *>(twc->target.get());
+                    if (qtype == nullptr) {
+                        error(3314, twc->target->token, "must be qualified name");
+                    }
+                    const ast::Name *name = scope.top()->lookupName(qtype->names[0].text);
+                    const ast::Module *mod = dynamic_cast<const ast::Module *>(name);
+                    int i = 1;
+                    if (mod != nullptr) {
+                        name = mod->scope->lookupName(qtype->names[1].text);
+                        i++;
+                    }
+                    const ast::TypeChoice *choice_type = dynamic_cast<const ast::TypeChoice *>(name);
+                    if (choice_type == nullptr) {
+                        error(3315, qtype->names[i-1], "not a choice type");
+                    }
+                    if (choice_type != expr->type) {
+                        error(3316, qtype->names[i-1], "not matching type");
+                    }
+                    auto choice = choice_type->choices.find(qtype->names[i].text);
+                    if (choice == choice_type->choices.end()) {
+                        error(3317, qtype->names[i], "choice not found");
+                    }
+                    int index = choice->second.first;
+                    const ast::CaseStatement::ChoiceTestWhenCondition *cond = new ast::CaseStatement::ChoiceTestWhenCondition(twc->target->token, index);
+                    conditions.push_back(cond);
+                    const ast::VariableExpression *ve = dynamic_cast<const ast::VariableExpression *>(expr);
+                    if (ve != nullptr) {
+                        checks = {{ve->var, {index}}};
+                    }
+                } else {
+                    error2(3263, statement->expr->token, "WHEN ISA requires Object or CHOICE type", twc->token, "used here");
                 }
-                const ast::Type *target = analyze(twc->target.get(), AllowClass::no);
-                const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::TypeTestWhenCondition(twc->target->token, convert(target, expr), target);
-                conditions.push_back(cond);
             } else {
                 internal_error("unknown case when condition");
             }
         }
         scope.push(new ast::Scope(scope.top(), frame.top()));
+        checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks));
         std::vector<const ast::Statement *> statements = analyze(x.second);
+        checked_choice_variables.pop();
         scope.pop();
         clauses.emplace_back(std::make_pair(conditions, statements));
     }
@@ -4356,6 +4692,28 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
         }
         if (covered.size() < te->names.size()) {
             error(3283, statement->expr->token, "cases do not cover all enum values");
+        }
+    }
+    const ast::TypeChoice *tc = dynamic_cast<const ast::TypeChoice *>(expr->type);
+    if (tc != nullptr) {
+        std::set<int> covered;
+        for (auto &clause: clauses) {
+            for (auto &cond: clause.first) {
+                const ast::CaseStatement::ChoiceTestWhenCondition *cwc = dynamic_cast<const ast::CaseStatement::ChoiceTestWhenCondition *>(cond);
+                if (cwc != nullptr) {
+                    covered.insert(cwc->index);
+                } else {
+                    internal_error("unknown choice case when condition");
+                }
+            }
+            if (clause.first.empty()) {
+                for (auto &c: tc->choices) {
+                    covered.insert(c.second.first);
+                }
+            }
+        }
+        if (covered.size() < tc->choices.size()) {
+            error(3320, statement->expr->token, "cases do not cover all choices");
         }
     }
     return new ast::CaseStatement(statement->token, expr, clauses);
@@ -4513,11 +4871,22 @@ bool ast::CaseStatement::TypeTestWhenCondition::overlaps(const WhenCondition *co
     }
 }
 
+bool ast::CaseStatement::ChoiceTestWhenCondition::overlaps(const WhenCondition *cond) const
+{
+    const ChoiceTestWhenCondition *cwhen = dynamic_cast<const ChoiceTestWhenCondition *>(cond);
+    if (cwhen != nullptr) {
+        return index == cwhen->index;
+    } else {
+        internal_error("ChoiceTestWhenCondition");
+    }
+}
+
 const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
 {
     scope.push(new ast::Scope(scope.top(), frame.top()));
     std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
     const ast::Expression *cond { nullptr };
+    std::map<const ast::Variable *, std::set<int>> checks;
     const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(statement->cond.get());
     if (valid != nullptr) {
         for (auto &v: valid->tests) {
@@ -4548,6 +4917,7 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
         }
     } else {
         cond = analyze(statement->cond.get());
+        checks = cond->find_choice_checks();
         cond = convert(ast::TYPE_BOOLEAN, cond);
         if (cond == nullptr) {
             error(3199, statement->cond->token, "boolean value expected");
@@ -4562,6 +4932,9 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
         error(3201, statement->body.back()->token, "CHECK body must end in EXIT, NEXT, RAISE, or RETURN");
     }
     scope.pop();
+    auto before_checks = checked_choice_variables.top();
+    checked_choice_variables.pop();
+    checked_choice_variables.push(checks_conjunction(before_checks, checks));
     return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
 
@@ -5220,10 +5593,12 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
 {
     scope.push(new ast::Scope(scope.top(), frame.top()));
     std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
+    std::map<const ast::Variable *, std::set<int>> else_checks;
     for (auto &c: statement->condition_statements) {
         const ast::Expression *cond = nullptr;
         bool skip_statements = false;
         bool imported_checked = false;
+        std::map<const ast::Variable *, std::set<int>> checks;
         const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(c.first.get());
         const pt::ImportedModuleExpression *imported = dynamic_cast<const pt::ImportedModuleExpression *>(c.first.get());
         if (valid != nullptr) {
@@ -5284,21 +5659,27 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
             }
         } else {
             cond = analyze(c.first.get());
+            checks = cond->find_choice_checks();
             cond = convert(ast::TYPE_BOOLEAN, cond);
             if (cond == nullptr) {
                 error(3048, c.first->token, "boolean value expected");
             }
         }
         scope.push(new ast::Scope(scope.top(), frame.top()));
+        checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks));
         if (not skip_statements) {
             condition_statements.push_back(std::make_pair(cond, analyze(c.second)));
         }
+        checked_choice_variables.pop();
         scope.pop();
         if (imported_checked) {
             imported_checked_stack.pop();
         }
+        else_checks = checks_conjunction(else_checks, checks_complement(checks));
     }
+    checked_choice_variables.push(else_checks);
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
+    checked_choice_variables.pop();
     scope.pop();
     return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
@@ -5767,6 +6148,7 @@ const ast::Program *Analyzer::analyze()
         scope.push(new ast::Scope(scope.top(), frame.top()));
         r->scope = scope.top();
     }
+    checked_choice_variables.push({});
 
     //init_builtin_constants(global_scope);
 
@@ -5844,13 +6226,14 @@ public:
     VariableChecker &operator=(const VariableChecker &) = delete;
     virtual void visit(const pt::TypeSimple *) {}
     virtual void visit(const pt::TypeEnum *) {}
+    virtual void visit(const pt::TypeChoice *) {}
     virtual void visit(const pt::TypeRecord *) {}
     virtual void visit(const pt::TypeClass *) {}
     virtual void visit(const pt::TypePointer *) {}
     virtual void visit(const pt::TypeValidPointer *) {}
     virtual void visit(const pt::TypeFunctionPointer *) {}
     virtual void visit(const pt::TypeParameterised *) {}
-    virtual void visit(const pt::TypeImport *) {}
+    virtual void visit(const pt::TypeQualified *) {}
 
     virtual void visit(const pt::DummyExpression *) {}
     virtual void visit(const pt::IdentityExpression *node) { node->expr->accept(this); }

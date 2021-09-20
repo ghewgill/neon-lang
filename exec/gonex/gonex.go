@@ -2622,6 +2622,60 @@ func (self *executor) op_callp() {
 		} else {
 			self.raise_literal("ValueRangeException", objectString{"num() argument not a number"})
 		}
+	case "object__invokeMethod":
+		args := self.pop().array
+		name := self.pop().str
+		o := self.pop().obj
+		if s, err := o.getString(); err == nil {
+			if name == "length" {
+				if len(args) == 0 {
+					self.push(make_cell_obj(objectNumber{float64(len(s))}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to length() (expected 0)"})
+				}
+			} else {
+				self.raise_literal("DynamicConversionException", objectString{"string object does not support this method"})
+			}
+		} else if a, err := o.getArray(); err == nil {
+			if name == "size" {
+				if len(args) == 0 {
+					self.push(make_cell_obj(objectNumber{float64(len(a))}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to size() (expected 0)"})
+				}
+			} else {
+				self.raise_literal("DynamicConversionException", objectString{"array object does not support this method"})
+			}
+		} else if d, err := o.getDictionary(); err == nil {
+			if name == "keys" {
+				if len(args) == 0 {
+					i := 0
+					keys := make([]string, len(d))
+					for k := range d {
+						keys[i] = k
+						i++
+					}
+					sort.Strings(keys)
+					okeys := make([]object, len(d))
+					for i, k := range keys {
+						okeys[i] = objectString{k}
+					}
+					self.push(make_cell_obj(objectArray{okeys}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to keys() (expected 0)"})
+				}
+			} else if name == "size" {
+				if len(args) == 0 {
+					self.push(make_cell_obj(objectNumber{float64(len(d))}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to size() (expected 0)"})
+				}
+			} else {
+				self.raise_literal("DynamicConversionException", objectString{"dictionary object does not support this method"})
+			}
+		} else {
+			self.raise_literal("DynamicConversionException", objectString{"object does not support method calls"})
+		}
 	case "object__isNull":
 		o := self.pop().obj
 		if o == nil {

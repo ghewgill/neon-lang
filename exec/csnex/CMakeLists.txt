@@ -15,6 +15,7 @@ set(CSNEX_SOURCES
 )
 
 set(CSNEX_RUNTIME
+    lib/console.cs
     lib/io.cs
     lib/random.cs
     lib/runtime.cs
@@ -26,7 +27,7 @@ set(CSNEX_RUNTIME
 add_custom_command(
     OUTPUT csnex.exe
     COMMAND ${CSC} -warn:4 -warnaserror+ -debug+ -d:DEBUG -appconfig:App.config -out:csnex.exe ${CSNEX_SOURCES} ${CSNEX_RUNTIME}
-    DEPENDS ${CSNEX_SOURCES}
+    DEPENDS ${CSNEX_SOURCES} ${CSNEX_RUNTIME}
 )
 
 add_custom_target(csnex_target ALL

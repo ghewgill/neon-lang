@@ -121,6 +121,7 @@ enum TokenType {
     IMPORTED,
     TESTCASE,
     EXPECT,
+    CHOICE,
     UNKNOWN,
     MAX_TOKEN
 };
