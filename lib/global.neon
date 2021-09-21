@@ -173,6 +173,12 @@ EXCEPTION StackOverflowException
  */
 EXCEPTION StringIndexException
 
+/*  Exception: TestFailedException
+ *
+ *  Generic exception used for failing tests.
+ */
+EXCEPTION TestFailedException
+
 /*  Exception: Utf8DecodingException
  *
  *  Invalid UTF-8 encoding found in Bytes.decodeToString().
