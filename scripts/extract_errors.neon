@@ -34,7 +34,12 @@ FOREACH fn IN sources DO
     END FOREACH
 END FOREACH
 
-VAR out: textio.TextFile := textio.open("gen/errors.txt", textio.Mode.write)
+VAR r: textio.OpenResult := textio.open("gen/errors.txt", textio.Mode.write)
+CHECK r ISA textio.OpenResult.file ELSE
+    print(r.error)
+    sys.exit(1)
+END CHECK
+LET out: textio.TextFile := r.file
 FOREACH error IN errors.keys() DO
     textio.writeLine(out, "N\(error) \(errors[error])")
 END FOREACH

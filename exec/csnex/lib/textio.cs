@@ -74,16 +74,25 @@ namespace csnex.rtl
                     fa = FileAccess.Write;
                     fm = FileMode.OpenOrCreate;
                     break;
-            default:
-                exec.stack.Push(Cell.CreateObjectCell(new TextFileObject(null)));
-                return;
+                default:
+                    exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                        Cell.CreateNumberCell(new Number((int)OpenResult.error)),
+                        Cell.CreateStringCell("invalid mode")
+                    }));
+                    return;
             }
 
             try {
                 FileStream f = new FileStream(name, fm, fa);
-                exec.stack.Push(Cell.CreateObjectCell(new TextFileObject(f)));
+                exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)OpenResult.file)),
+                    Cell.CreateObjectCell(new TextFileObject(f))
+                }));
             } catch (IOException iox) {
-                exec.Raise("TextioException.Open", iox.HResult.ToString());
+                exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)OpenResult.error)),
+                    Cell.CreateStringCell(iox.HResult.ToString())
+                }));
             }
         }
 

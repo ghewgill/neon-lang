@@ -66,20 +66,40 @@ void textio_open(TExecutor *exec)
         case ENUM_Mode_write: m = "w+"; break;
         default:
             free(pszName);
-            push(exec->stack, cell_fromAddress(NULL));
+            Cell *r = cell_createArrayCell(2);
+            Cell *t = cell_arrayIndexForWrite(r, 0);
+            t->type = cNumber;
+            t->number = number_from_uint32(CHOICE_OpenResult_error);
+            t = cell_arrayIndexForWrite(r, 1);
+            t->type = cString;
+            t->string = string_createCString("invalid mode");
+            push(exec->stack, r);
             return;
     }
 
     FILE *f = fopen(pszName, m);
     if (f == NULL) {
-        exec->rtl_raise(exec, "TextioException.Open", number_to_string(number_from_sint32(errno)));
+        Cell *r = cell_createArrayCell(2);
+        Cell *t = cell_arrayIndexForWrite(r, 0);
+        t->type = cNumber;
+        t->number = number_from_uint32(CHOICE_OpenResult_error);
+        t = cell_arrayIndexForWrite(r, 1);
+        t->type = cString;
+        t->string = string_createCString(pszName);
+        push(exec->stack, r);
         free(pszName);
         return;
     }
-    Object *r = object_createFileObject(f);
     free(pszName);
 
-    push(exec->stack, cell_fromObject(r));
+    Cell *r = cell_createArrayCell(2);
+    Cell *t = cell_arrayIndexForWrite(r, 0);
+    t->type = cNumber;
+    t->number = number_from_uint32(CHOICE_OpenResult_file);
+    t = cell_arrayIndexForWrite(r, 1);
+    t->type = cObject;
+    t->object = object_createFileObject(f);
+    push(exec->stack, r);
 }
 
 void textio_readLine(TExecutor *exec)

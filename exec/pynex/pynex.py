@@ -2918,9 +2918,15 @@ def neon_textio_open(self):
     fn = self.stack.pop()
     try:
         f = open(fn, "r" if mode == 0 else "w")
-        self.stack.append(f)
+        self.stack.append([
+            Value(0), # file
+            Value(f)
+        ])
     except FileNotFoundError:
-        self.raise_literal("TextioException.Open", fn)
+        self.stack.append([
+            Value(1), # error
+            Value(fn)
+        ])
 
 def neon_textio_readLine(self):
     f = self.stack.pop()
