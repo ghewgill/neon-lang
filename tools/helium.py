@@ -1120,7 +1120,10 @@ class AssignmentStatement:
     def run(self, env):
         x = self.rhs.eval(env)
         import _io
-        if not isinstance(x, (_io.TextIOWrapper, _io.BufferedWriter)):
+        o = x
+        if isinstance(x, ClassChoice.Instance):
+            o = getattr(x, x._choice)
+        if not isinstance(o, (_io.TextIOWrapper, _io.BufferedWriter)):
             x = copy.deepcopy(x)
         self.var.set(env, x)
     def eval(self, env):
@@ -2665,7 +2668,7 @@ class ClassChoice(Class):
     def __init__(self, choices):
         self.choices = choices
     def default(self, env):
-        r = ClassChoice.Instance(self.choices[0][0], self.choices[0][1] and self.choices[0][1].resolve(env).default(env))
+        r = ClassChoice.Instance(self.choices[0][0], None)
         return r
 
 class ClassPointer(Class):
