@@ -2652,7 +2652,10 @@ def neon_mmap_open(self):
     f = os.open(name, os.O_RDONLY)
     size = os.fstat(f).st_size
     m = mmap.mmap(f, size, access=mmap.ACCESS_READ)
-    self.stack.append((f, m))
+    self.stack.append([
+        Value(0), # file
+        Value((f, m))
+    ])
 
 def neon_mmap_read(self):
     count = int(self.stack.pop())

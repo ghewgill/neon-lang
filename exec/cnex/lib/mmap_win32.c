@@ -5,6 +5,7 @@
 #include <windows.h>
 
 #include "cell.h"
+#include "enums.h"
 #include "exec.h"
 #include "nstring.h"
 #include "number.h"
@@ -106,7 +107,14 @@ void mmap_open(TExecutor *exec)
             free(f);
             free(name);
             snprintf(err, sizeof(err), "CreateFile: error (%d)", e);
-            exec->rtl_raise(exec, "OpenFileException", err);
+            Cell *r = cell_createArrayCell(2);
+            Cell *t = cell_arrayIndexForWrite(r, 0);
+            t->type = cNumber;
+            t->number = number_from_uint32(CHOICE_OpenResult_error);
+            t = cell_arrayIndexForWrite(r, 1);
+            t->type = cString;
+            t->string = string_createCString(err);
+            push(exec->stack, r);
             return;
         }
     }
@@ -117,7 +125,14 @@ void mmap_open(TExecutor *exec)
         free(f);
         free(name);
         snprintf(err, sizeof(err), "GetFileSizeEx: error (%d)", e);
-        exec->rtl_raise(exec, "OpenFileException", err);
+        Cell *r = cell_createArrayCell(2);
+        Cell *t = cell_arrayIndexForWrite(r, 0);
+        t->type = cNumber;
+        t->number = number_from_uint32(CHOICE_OpenResult_error);
+        t = cell_arrayIndexForWrite(r, 1);
+        t->type = cString;
+        t->string = string_createCString(err);
+        push(exec->stack, r);
         return;
     }
     f->len = size.QuadPart;
@@ -128,7 +143,14 @@ void mmap_open(TExecutor *exec)
         free(f);
         free(name);
         snprintf(err, sizeof(err), "CreateFileMapping: error (%d)", e);
-        exec->rtl_raise(exec, "OpenFileException", err);
+        Cell *r = cell_createArrayCell(2);
+        Cell *t = cell_arrayIndexForWrite(r, 0);
+        t->type = cNumber;
+        t->number = number_from_uint32(CHOICE_OpenResult_error);
+        t = cell_arrayIndexForWrite(r, 1);
+        t->type = cString;
+        t->string = string_createCString(err);
+        push(exec->stack, r);
         return;
     }
     f->view = MapViewOfFile(f->map, FILE_MAP_READ, 0, 0, 0);
@@ -139,11 +161,25 @@ void mmap_open(TExecutor *exec)
         free(f);
         free(name);
         snprintf(err, sizeof(err), "MapViewOfFile: error (%d)", e);
-        exec->rtl_raise(exec, "OpenFileException", err);
+        Cell *r = cell_createArrayCell(2);
+        Cell *t = cell_arrayIndexForWrite(r, 0);
+        t->type = cNumber;
+        t->number = number_from_uint32(CHOICE_OpenResult_error);
+        t = cell_arrayIndexForWrite(r, 1);
+        t->type = cString;
+        t->string = string_createCString(err);
+        push(exec->stack, r);
         return;
     }
 
-    push(exec->stack, cell_fromObject(object_createMMapObject(f)));
+    Cell *r = cell_createArrayCell(2);
+    Cell *t = cell_arrayIndexForWrite(r, 0);
+    t->type = cNumber;
+    t->number = number_from_uint32(CHOICE_OpenResult_file);
+    t = cell_arrayIndexForWrite(r, 1);
+    t->type = cObject;
+    t->object = object_createMMapObject(f);
+    push(exec->stack, r);
     free(name);
 }
 
