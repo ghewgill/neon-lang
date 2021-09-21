@@ -50,20 +50,29 @@ void close(const std::shared_ptr<Object> &pf)
     f->file = NULL;
 }
 
-std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
+Cell open(const utf8string &name, Cell &mode)
 {
     const char *m;
     switch (number_to_uint32(mode.number())) {
         case ENUM_Mode_read:  m = "r"; break;
         case ENUM_Mode_write: m = "w+"; break;
         default:
-            return NULL;
+            return Cell(std::vector<Cell> {
+                Cell(number_from_uint32(CHOICE_OpenResult_error)),
+                Cell(utf8string("invalid mode"))
+            });
     }
     FILE *f = fopen(name.c_str(), m);
     if (f == NULL) {
-        throw RtlException(Exception_TextioException_Open, utf8string("open error " + std::to_string(errno)));
+        return Cell(std::vector<Cell> {
+            Cell(number_from_uint32(CHOICE_OpenResult_error)),
+            Cell(utf8string("open error " + std::to_string(errno)))
+        });
     }
-    return std::shared_ptr<Object> { new TextFileObject(f) };
+    return Cell(std::vector<Cell> {
+        Cell(number_from_uint32(CHOICE_OpenResult_file)),
+        Cell(std::shared_ptr<Object> { new TextFileObject(f) })
+    });
 }
 
 bool readLine(const std::shared_ptr<Object> &pf, utf8string *s)

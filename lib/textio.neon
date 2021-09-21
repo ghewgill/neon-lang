@@ -5,6 +5,7 @@
 
 EXPORT TextFile
 EXPORT Mode
+EXPORT OpenResult
 
 EXPORT TextioException
 
@@ -34,6 +35,11 @@ END ENUM
  *  Opaque type representing a text file on disk.
  */
 TYPE TextFile IS Object
+
+TYPE OpenResult IS CHOICE
+    file: TextFile
+    error: String
+END CHOICE
 
 /*  Exception: TextioException
  *
@@ -87,7 +93,7 @@ DECLARE NATIVE FUNCTION close(f: TextFile)
  *
  *  Open a file with the given name and mode.
  */
-DECLARE NATIVE FUNCTION open(name: String, mode: Mode): TextFile
+DECLARE NATIVE FUNCTION open(name: String, mode: Mode): OpenResult
 
 /*  Function: readLine
  *

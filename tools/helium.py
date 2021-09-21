@@ -3289,9 +3289,9 @@ def neon_textio_close(env, f):
 
 def neon_textio_open(env, fn, mode):
     try:
-        return open(fn, "w" if mode.name == "write" else "r")
+        return ClassChoice.Instance("file", open(fn, "w" if mode.name == "write" else "r"))
     except OSError:
-        raise NeonException(["TextioException", "Open"], "open error")
+        return ClassChoice.Instance("error", "open error")
 
 def neon_textio_readLine(env, f, r):
     r = f.readline()

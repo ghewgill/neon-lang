@@ -3,9 +3,13 @@ IMPORT textio
 textio.writeLine(textio.stdout, "Hello World")
 --= Hello World
 
-TESTCASE textio.open("nonexistent.file", textio.Mode.read) EXPECT textio.TextioException.Open
+TESTCASE textio.open("nonexistent.file", textio.Mode.read) ISA textio.OpenResult.error
 
-VAR f: textio.TextFile := textio.open("LICENSE.txt", textio.Mode.read)
+VAR r: textio.OpenResult := textio.open("LICENSE.txt", textio.Mode.read)
+CHECK r ISA textio.OpenResult.file ELSE
+    RAISE TestFailedException
+END CHECK
+VAR f: textio.TextFile := r.file
 VAR s: String := ""
 print("\(textio.readLine(f, OUT s))")
 --= TRUE
