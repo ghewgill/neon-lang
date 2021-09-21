@@ -2415,9 +2415,15 @@ def neon_io_open(self):
     fn = self.stack.pop()
     try:
         f = open(fn, "rb" if mode == 0 else "wb")
-        self.stack.append(f)
+        self.stack.append([
+            Value(0), # file
+            Value(f)
+        ])
     except FileNotFoundError:
-        self.raise_literal("IoException.Open", fn)
+        self.stack.append([
+            Value(1), # error
+            Value(fn)
+        ])
 
 def neon_io_flush(self):
     f = self.stack.pop()

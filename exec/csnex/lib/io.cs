@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace csnex.rtl
@@ -83,15 +84,24 @@ namespace csnex.rtl
                     fm = FileMode.Append;
                     break;
                 default:
-                    Exec.stack.Push(Cell.CreateObjectCell(new FileObject(null)));
+                    Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                        Cell.CreateNumberCell(new Number((int)OpenResult.error)),
+                        Cell.CreateStringCell("invalid mode")
+                    }));
                     return;
             }
 
             try {
                 FileStream f = new FileStream(name, fm, fa);
-                Exec.stack.Push(Cell.CreateObjectCell(new FileObject(f)));
+                Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)OpenResult.file)),
+                    Cell.CreateObjectCell(new FileObject(f))
+                }));
             } catch (IOException iox) {
-                Exec.Raise("IoException.Open", iox.HResult.ToString());
+                Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)OpenResult.error)),
+                    Cell.CreateStringCell(iox.HResult.ToString())
+                }));
             }
         }
 
