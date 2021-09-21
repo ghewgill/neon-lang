@@ -2990,9 +2990,9 @@ def neon_io_fprint(env, f, s):
 
 def neon_io_open(env, fn, mode):
     try:
-        return open(fn, "wb" if mode.name == "write" else "rb")
+        return ClassChoice.Instance("file", open(fn, "wb" if mode.name == "write" else "rb"))
     except OSError:
-        raise NeonException(["IoException", "Open"], "open error")
+        return ClassChoice.Instance("error", "open error")
 
 def neon_io_readBytes(env, f, count):
     r = ClassBytes().default(env)

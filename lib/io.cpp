@@ -17,6 +17,7 @@
 #include "rtl_exec.h"
 
 #include "enums.inc"
+#include "choices.inc"
 
 class FileObject: public Object {
 public:
@@ -57,20 +58,29 @@ void flush(const std::shared_ptr<Object> &pf)
     fflush(f->file);
 }
 
-std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
+Cell open(const utf8string &name, Cell &mode)
 {
     const char *m;
     switch (number_to_uint32(mode.number())) {
         case ENUM_Mode_read:  m = "rb"; break;
         case ENUM_Mode_write: m = "w+b"; break;
         default:
-            return NULL;
+            return Cell(std::vector<Cell> {
+                Cell(number_from_uint32(CHOICE_OpenResult_error)),
+                Cell(utf8string("invalid mode"))
+            });
     }
     FILE *f = fopen(name.c_str(), m);
     if (f == NULL) {
-        throw RtlException(Exception_IoException_Open, utf8string("open error " + std::to_string(errno)));
+        return Cell(std::vector<Cell> {
+            Cell(number_from_uint32(CHOICE_OpenResult_error)),
+            Cell(utf8string("open error " + std::to_string(errno)))
+        });
     }
-    return std::shared_ptr<Object> { new FileObject(f) };
+    return Cell(std::vector<Cell> {
+        Cell(number_from_uint32(CHOICE_OpenResult_file)),
+        Cell(std::shared_ptr<Object> { new FileObject(f) })
+    });
 }
 
 std::vector<unsigned char> readBytes(const std::shared_ptr<Object> &pf, Number count)
