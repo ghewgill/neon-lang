@@ -9,6 +9,8 @@ binary-test.neon                # module binary
 cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # valid pointer
 check.neon                      # NEXT FOR
+choice.neon                     # choice.toString
+choice-recursive.neon           # choice
 complex-test.neon               # module math
 datetime-test.neon              # module datetime
 debug-example.neon              # debugger interface

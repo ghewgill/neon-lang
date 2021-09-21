@@ -497,6 +497,97 @@ public:
     }
 };
 
+class TypeChoice: public Type {
+public:
+    explicit TypeChoice(const ast::TypeChoice *tc): Type(tc, tc->name), tc(tc), choices(make_choices(tc)) {}
+    TypeChoice(const TypeChoice &) = delete;
+    TypeChoice &operator=(const TypeChoice &) = delete;
+    const ast::TypeChoice *tc;
+    const std::map<std::string, std::pair<int, const Type *>> choices;
+
+    virtual void generate_decl(Context &context) const override {
+        context.out << "typedef struct {\n";
+        context.out << "int _choice;\n";
+        bool any = false;
+        for (auto c: choices) {
+            if (c.second.second != nullptr) {
+                any = true;
+                break;
+            }
+        }
+        if (any) {
+            context.out << "union {\n";
+            for (auto c: choices) {
+                if (c.second.second != nullptr) {
+                    context.out << c.second.second->name << " " << c.first << ";\n";
+                }
+            }
+            context.out << "} u;\n";
+        }
+        context.out << "} " << name << ";\n";
+        context.out << "void " << name << "_constructor(" << name << " **r);\n";
+        context.out << "void " << name << "_destructor(" << name << " *r);\n";
+        context.out << "void " << name << "_copy(" << name << " *dest, const " << name << " *src);\n";
+        context.out << "int " << name << "_compare(const " << name << " *a, const " << name << " *b);\n";
+        context.out << "const MethodTable " << name << "_mtable = {\n";
+        context.out << ".constructor = (void (*)(void **))" << name << "_constructor,\n";
+        context.out << ".destructor = (void (*)(void *))" << name << "_destructor,\n";
+        context.out << ".copy = (void (*)(void *, const void *))" << name << "_copy,\n";
+        context.out << ".compare = (int (*)(const void *, const void *))" << name << "_compare,\n";
+        context.out << "};\n";
+        context.out << "void " << name << "_init(" << name << " *r) {\n";
+        context.out << "r->_choice = -1;\n";
+        context.out << "}\n";
+        context.out << "void " << name << "_deinit(" << name << " *r) {\n";
+        context.out << "switch (r->_choice) {\n";
+        for (auto c: choices) {
+            if (c.second.second != nullptr) {
+                context.out << "case " << c.second.first << ":\n";
+                c.second.second->generate_deinit(context, "r->u." + c.first);
+                context.out << "break;\n";
+            }
+        }
+        context.out << "}\n";
+        context.out << "}\n";
+        context.out << "void " << name << "_constructor(" << name << " **r) {\n";
+        context.out << "*r = malloc(sizeof(" << name <<"));\n";
+        context.out << name << "_init(*r);\n";
+        context.out << "}\n";
+        context.out << "void " << name << "_destructor(" << name << " *r) {\n";
+        context.out << name << "_deinit(r);\n";
+        context.out << "free(r);\n";
+        context.out << "}\n";
+        context.out << "void " << name << "_copy(" << name << " *dest, const " << name << " *src) {\n";
+        context.out << "dest->_choice = src->_choice;\n";
+        context.out << "switch (src->_choice) {\n";
+        for (auto c: choices) {
+            if (c.second.second != nullptr) {
+                context.out << "case " << c.second.first << ":\n";
+                context.out << c.second.second->name << "_copy(&dest->u." << c.first << ",&src->u." << c.first << ");\n";
+                context.out << "break;\n";
+            }
+        }
+        context.out << "}\n";
+        context.out << "}\n";
+        context.out << "int " << name << "_compare(const " << name << " *a, const " << name << " *b) {\n";
+        // TODO
+        context.out << "return 0;\n";
+        context.out << "}\n";
+    }
+
+    virtual void generate_default(Context &) const override {
+        internal_error("TypeChoice");
+    }
+
+    static std::map<std::string, std::pair<int, const Type *>> make_choices(const ast::TypeChoice *tc) {
+        std::map<std::string, std::pair<int, const Type *>> r;
+        for (auto c: tc->choices) {
+            r[c.first] = std::make_pair(c.second.first, transform(c.second.second));
+        }
+        return r;
+    }
+};
+
 class PredefinedVariable: public Variable {
 public:
     explicit PredefinedVariable(const ast::PredefinedVariable *pv): Variable(pv), pv(pv) {}
@@ -656,6 +747,35 @@ public:
     virtual std::string generate(Context &context) const override {
         std::string name = context.get_temp_name("Ne_Number");
         context.out << "Ne_Number_init_literal(&" << name << "," << cee->value << ");\n";
+        return name;
+    }
+};
+
+class ConstantChoiceExpression: public Expression {
+public:
+    explicit ConstantChoiceExpression(const ast::ConstantChoiceExpression *cce): Expression(cce), cce(cce), type(dynamic_cast<const TypeChoice *>(transform(cce->type))), expr(transform(cce->expr)) {}
+    ConstantChoiceExpression(const ConstantChoiceExpression &) = delete;
+    ConstantChoiceExpression &operator=(const ConstantChoiceExpression &) = delete;
+    const ast::ConstantChoiceExpression *cce;
+    const TypeChoice *type;
+    const Expression *expr;
+
+    virtual std::string generate(Context &context) const override {
+        std::string name = context.get_temp_name(type);
+        type->generate_init(context, name);
+        context.out << name << "._choice = " << cce->value << ";\n";
+        if (expr != nullptr) {
+            for (auto c: type->choices) {
+                if (c.second.first == cce->value) {
+                    context.push_scope();
+                    std::string value = expr->generate(context);
+                    context.out << c.second.second->name << "_copy(&" << name << ".u." << c.first << ",&" << value << ");\n";
+                    context.pop_scope();
+                    return name;
+                }
+            }
+            internal_error("ConstantChoiceExpression");
+        }
         return name;
     }
 };
@@ -978,6 +1098,25 @@ public:
     }
 };
 
+class ChoiceTestExpression: public Expression {
+public:
+    explicit ChoiceTestExpression(const ast::ChoiceTestExpression *cte): Expression(cte), cte(cte), expr(transform(cte->expr)), choice_type(dynamic_cast<const TypeChoice *>(transform(cte->choice_type))) {}
+    ChoiceTestExpression(const ChoiceTestExpression &) = delete;
+    ChoiceTestExpression &operator=(const ChoiceTestExpression &) = delete;
+    const ast::ChoiceTestExpression *cte;
+    const Expression *expr;
+    const TypeChoice *choice_type;
+
+    virtual std::string generate(Context &context) const override {
+        std::string result = context.get_temp_name("Ne_Boolean");
+        context.push_scope();
+        std::string exprname = expr->generate(context);
+        context.out << result << " = (" << exprname << "._choice == " << cte->choice << ");\n";
+        context.pop_scope();
+        return result;
+    }
+};
+
 class ArrayInExpression: public Expression {
 public:
     explicit ArrayInExpression(const ast::ArrayInExpression *aie): Expression(aie), aie(aie), left(transform(aie->left)), right(transform(aie->right)) {}
@@ -1146,6 +1285,18 @@ public:
             default:
                 internal_error("unexpected comparison type");
         }
+    }
+};
+
+class ChoiceComparisonExpression: public ComparisonExpression {
+public:
+    explicit ChoiceComparisonExpression(const ast::ChoiceComparisonExpression *cce): ComparisonExpression(cce), cce(cce) {}
+    ChoiceComparisonExpression(const ChoiceComparisonExpression &) = delete;
+    ChoiceComparisonExpression &operator=(const ChoiceComparisonExpression &) = delete;
+    const ast::ChoiceComparisonExpression *cce;
+
+    virtual void generate_comparison(Context &) const override {
+        internal_error("unimplemented choice comparison");
     }
 };
 
@@ -1774,6 +1925,28 @@ public:
     }
 };
 
+class ChoiceReferenceExpression: public Expression {
+public:
+    explicit ChoiceReferenceExpression(const ast::ChoiceReferenceExpression *cre): Expression(cre), cre(cre), expr(transform(cre->expr)), choice_type(dynamic_cast<const TypeChoice *>(transform(cre->choice_type))) {}
+    ChoiceReferenceExpression(const ChoiceReferenceExpression &) = delete;
+    ChoiceReferenceExpression &operator=(const ChoiceReferenceExpression &) = delete;
+    const ast::ChoiceReferenceExpression *cre;
+    const Expression *expr;
+    const TypeChoice *choice_type;
+
+    virtual std::string generate(Context &context) const override {
+        context.push_scope();
+        std::string name = expr->generate(context);
+        context.pop_scope();
+        for (auto c: choice_type->choices) {
+            if (c.second.first == cre->choice) {
+                return name + ".u." + c.first;
+            }
+        }
+        internal_error("ChoiceReferenceExpression");
+    }
+};
+
 class PointerDereferenceExpression: public Expression {
 public:
     explicit PointerDereferenceExpression(const ast::PointerDereferenceExpression *pde): Expression(pde), pde(pde), ptr(transform(pde->ptr)) {}
@@ -2079,16 +2252,32 @@ public:
             context.out << "(" << low_expr->type->name << "_compare(&" << exprname << ",&" << constnames[0] << ") >= 0 && " << high_expr->type->name << "_compare(&" << exprname << ",&" << constnames[1] << ") <= 0)";
         }
     };
+    class ChoiceTestWhenCondition: public WhenCondition {
+    public:
+        ChoiceTestWhenCondition(int choice): choice(choice) {}
+        ChoiceTestWhenCondition(const ChoiceTestWhenCondition &) = delete;
+        ChoiceTestWhenCondition &operator=(const ChoiceTestWhenCondition &) = delete;
+        const int choice;
+        virtual std::vector<std::string> generate_constant(Context &) const override {
+            return {};
+        }
+        virtual void generate(Context &context, std::string exprname, std::vector<std::string> /*constnames*/) const override {
+            context.out << "(" << exprname << "._choice == " << choice << ")";
+        }
+    };
     explicit CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
         for (auto &c: cs->clauses) {
             std::vector<const WhenCondition *> whens;
             for (auto w: c.first) {
                 auto *cwc = dynamic_cast<const ast::CaseStatement::ComparisonWhenCondition *>(w);
                 auto *rwc = dynamic_cast<const ast::CaseStatement::RangeWhenCondition *>(w);
+                auto *ctwc = dynamic_cast<const ast::CaseStatement::ChoiceTestWhenCondition *>(w);
                 if (cwc != nullptr) {
                     whens.push_back(new ComparisonWhenCondition(cwc->comp, transform(cwc->expr)));
                 } else if (rwc != nullptr) {
                     whens.push_back(new RangeWhenCondition(transform(rwc->low_expr), transform(rwc->high_expr)));
+                } else if (ctwc != nullptr) {
+                    whens.push_back(new ChoiceTestWhenCondition(ctwc->index));
                 } else {
                     internal_error("CaseStatement");
                 }
@@ -2659,6 +2848,7 @@ public:
     virtual void visit(const ast::TypeInterfacePointer *node) { r = new TypeInterfacePointer(node); }
     virtual void visit(const ast::TypeFunctionPointer *node) { r = new TypeFunctionPointer(node); }
     virtual void visit(const ast::TypeEnum *node) { r = new TypeEnum(node); }
+    virtual void visit(const ast::TypeChoice *node) { r = new TypeChoice(node); }
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
     virtual void visit(const ast::TypeInterface *) {}
@@ -2677,6 +2867,7 @@ public:
     virtual void visit(const ast::ConstantStringExpression *) {}
     virtual void visit(const ast::ConstantBytesExpression *) {}
     virtual void visit(const ast::ConstantEnumExpression *) {}
+    virtual void visit(const ast::ConstantChoiceExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
     virtual void visit(const ast::ConstantNilObject *) {}
@@ -2693,12 +2884,14 @@ public:
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
     virtual void visit(const ast::TypeTestExpression *) {}
+    virtual void visit(const ast::ChoiceTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
+    virtual void visit(const ast::ChoiceComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
@@ -2731,6 +2924,7 @@ public:
     virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
+    virtual void visit(const ast::ChoiceReferenceExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
@@ -2788,6 +2982,7 @@ public:
     virtual void visit(const ast::TypeInterfacePointer *) {}
     virtual void visit(const ast::TypeFunctionPointer *) {}
     virtual void visit(const ast::TypeEnum *) {}
+    virtual void visit(const ast::TypeChoice *) {}
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
     virtual void visit(const ast::TypeInterface *) {}
@@ -2806,6 +3001,7 @@ public:
     virtual void visit(const ast::ConstantStringExpression *) {}
     virtual void visit(const ast::ConstantBytesExpression *) {}
     virtual void visit(const ast::ConstantEnumExpression *) {}
+    virtual void visit(const ast::ConstantChoiceExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
     virtual void visit(const ast::ConstantNilObject *) {}
@@ -2822,12 +3018,14 @@ public:
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
     virtual void visit(const ast::TypeTestExpression *) {}
+    virtual void visit(const ast::ChoiceTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
+    virtual void visit(const ast::ChoiceComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
@@ -2860,6 +3058,7 @@ public:
     virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
+    virtual void visit(const ast::ChoiceReferenceExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
@@ -2917,6 +3116,7 @@ public:
     virtual void visit(const ast::TypeInterfacePointer *) {}
     virtual void visit(const ast::TypeFunctionPointer *) {}
     virtual void visit(const ast::TypeEnum *) {}
+    virtual void visit(const ast::TypeChoice *) {}
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
     virtual void visit(const ast::TypeInterface *) {}
@@ -2935,6 +3135,7 @@ public:
     virtual void visit(const ast::ConstantStringExpression *node) { r = new ConstantStringExpression(node); }
     virtual void visit(const ast::ConstantBytesExpression *node) { r = new ConstantBytesExpression(node); }
     virtual void visit(const ast::ConstantEnumExpression *node) { r = new ConstantEnumExpression(node); }
+    virtual void visit(const ast::ConstantChoiceExpression *node) { r = new ConstantChoiceExpression(node); }
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
     virtual void visit(const ast::ConstantNowhereExpression *node) { r = new ConstantNowhereExpression(node); }
     virtual void visit(const ast::ConstantNilObject *) { internal_error("ConstantNilObject"); }
@@ -2951,12 +3152,14 @@ public:
     virtual void visit(const ast::DisjunctionExpression *node) { r = new DisjunctionExpression(node); }
     virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
     virtual void visit(const ast::TypeTestExpression *) { internal_error("TypeTestExpression"); }
+    virtual void visit(const ast::ChoiceTestExpression *node) { r = new ChoiceTestExpression(node); }
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
     virtual void visit(const ast::DictionaryInExpression *node) { r =  new DictionaryInExpression(node); }
     virtual void visit(const ast::ChainedComparisonExpression *node) { r = new ChainedComparisonExpression(node); }
     virtual void visit(const ast::BooleanComparisonExpression *node) { r = new BooleanComparisonExpression(node); }
     virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
     virtual void visit(const ast::EnumComparisonExpression *node) { r = new EnumComparisonExpression(node); }
+    virtual void visit(const ast::ChoiceComparisonExpression *node) { r = new ChoiceComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
     virtual void visit(const ast::BytesComparisonExpression *node) { r = new BytesComparisonExpression(node); }
     virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
@@ -2989,6 +3192,7 @@ public:
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
+    virtual void visit(const ast::ChoiceReferenceExpression *node) { r = new ChoiceReferenceExpression(node); }
     virtual void visit(const ast::PointerDereferenceExpression *node) { r =  new PointerDereferenceExpression(node); }
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
@@ -3046,6 +3250,7 @@ public:
     virtual void visit(const ast::TypeInterfacePointer *) {}
     virtual void visit(const ast::TypeFunctionPointer *) {}
     virtual void visit(const ast::TypeEnum *) {}
+    virtual void visit(const ast::TypeChoice *) {}
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
     virtual void visit(const ast::TypeInterface *) {}
@@ -3064,6 +3269,7 @@ public:
     virtual void visit(const ast::ConstantStringExpression *) {}
     virtual void visit(const ast::ConstantBytesExpression *) {}
     virtual void visit(const ast::ConstantEnumExpression *) {}
+    virtual void visit(const ast::ConstantChoiceExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
     virtual void visit(const ast::ConstantNilObject *) {}
@@ -3080,12 +3286,14 @@ public:
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
     virtual void visit(const ast::TypeTestExpression *) {}
+    virtual void visit(const ast::ChoiceTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
+    virtual void visit(const ast::ChoiceComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
@@ -3118,6 +3326,7 @@ public:
     virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
+    virtual void visit(const ast::ChoiceReferenceExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
