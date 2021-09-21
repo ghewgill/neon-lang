@@ -5,6 +5,8 @@
 #include "number.h"
 #include "rtl_exec.h"
 
+#include "choices.inc"
+
 class MmapObject: public Object {
 public:
     MmapObject(): file(INVALID_HANDLE_VALUE), len(0), map(INVALID_HANDLE_VALUE), view(NULL) {}
@@ -39,7 +41,7 @@ void close(const std::shared_ptr<Object> &pf)
     f->view = NULL;
 }
 
-std::shared_ptr<Object> open(const utf8string &name, Cell &)
+Cell open(const utf8string &name, Cell &)
 {
     MmapObject *f = new MmapObject;
     f->file = INVALID_HANDLE_VALUE;
@@ -48,7 +50,10 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &)
         if (f->file == INVALID_HANDLE_VALUE) {
             DWORD e = GetLastError();
             delete f;
-            throw RtlException(Exception_OpenFileException, utf8string("CreateFile: error (" + std::to_string(e) + ")"));
+            return Cell(std::vector<Cell> {
+               Cell(number_from_uint32(CHOICE_OpenResult_error)),
+               Cell(utf8string("CreateFile: error (" + std::to_string(e) + ")"))
+            });
         }
     }
     LARGE_INTEGER size;
@@ -56,7 +61,10 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &)
         DWORD e = GetLastError();
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_OpenFileException, utf8string("GetFileSizeEx: error (" + std::to_string(e) + ")"));
+        return Cell(std::vector<Cell> {
+           Cell(number_from_uint32(CHOICE_OpenResult_error)),
+           Cell(utf8string("GetFileSizeEx: error (" + std::to_string(e) + ")"))
+        });
     }
     f->len = size.QuadPart;
     f->map = CreateFileMapping(f->file, NULL, PAGE_READONLY, 0, 0, NULL);
@@ -64,7 +72,10 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &)
         DWORD e = GetLastError();
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_OpenFileException, utf8string("CreateFileMapping: error (" + std::to_string(e) + ")"));
+        return Cell(std::vector<Cell> {
+           Cell(number_from_uint32(CHOICE_OpenResult_error)),
+           Cell(utf8string("CreateFileMapping: error (" + std::to_string(e) + ")"))
+        });
     }
     f->view = reinterpret_cast<BYTE *>(MapViewOfFile(f->map, FILE_MAP_READ, 0, 0, 0));
     if (f->view == NULL) {
@@ -72,9 +83,15 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &)
         CloseHandle(f->map);
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_OpenFileException, utf8string("MapViewOfFile: error (" + std::to_string(e) + ")"));
+        return Cell(std::vector<Cell> {
+           Cell(number_from_uint32(CHOICE_OpenResult_error)),
+           Cell(utf8string("MapViewOfFile: error (" + std::to_string(e) + ")"))
+        });
     }
-    return std::shared_ptr<Object> { f };
+    return Cell(std::vector<Cell> {
+       Cell(number_from_uint32(CHOICE_OpenResult_file)),
+       Cell(std::shared_ptr<Object> { f })
+    });
 }
 
 std::vector<unsigned char> read(const std::shared_ptr<Object> &pf, Number offset, Number count)

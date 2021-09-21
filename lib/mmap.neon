@@ -5,6 +5,7 @@
 
 EXPORT MemoryFile
 EXPORT Mode
+EXPORT OpenResult
 
 EXPORT close
 EXPORT open
@@ -30,6 +31,11 @@ END ENUM
  *  Opaque type representing a memory mapped file.
  */
 TYPE MemoryFile IS Object
+
+TYPE OpenResult IS CHOICE
+    file: MemoryFile
+    error: String
+END CHOICE
 
 /*  Exception: MmapException
  *
@@ -61,7 +67,7 @@ DECLARE NATIVE FUNCTION close(f: MemoryFile)
  *
  *  TODO: The only valid mode is currently Mode.read.
  */
-DECLARE NATIVE FUNCTION open(name: String, mode: Mode): MemoryFile
+DECLARE NATIVE FUNCTION open(name: String, mode: Mode): OpenResult
 
 /*  Function: read
  *
