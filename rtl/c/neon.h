@@ -65,7 +65,7 @@ static void void_Ptr_copy(void_Ptr *d, const void_Ptr *s) { *d = *s; }
 static int void_Ptr_compare(const void_Ptr *p, const void_Ptr *q) { return *p == *q ? 0 : *p > *q ? 1 : -1; }
 
 typedef Ne_Exception *(*Ne_FunctionPointer)();
-static void Ne_FunctionPointer_init(Ne_FunctionPointer *p) { p = NULL; }
+static void Ne_FunctionPointer_init(Ne_FunctionPointer *p) { *p = NULL; }
 static void Ne_FunctionPointer_deinit(Ne_FunctionPointer *p) {}
 static void Ne_FunctionPointer_copy(Ne_FunctionPointer *d, const Ne_FunctionPointer *s) { *d = *s; }
 static int Ne_FunctionPointer_compare(const Ne_FunctionPointer *p, const Ne_FunctionPointer *q) { return *p == *q ? 0 : 1; }
