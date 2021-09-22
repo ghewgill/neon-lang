@@ -8,7 +8,12 @@ IMPORT string
 
 EXPORT CONSTANT Digits: String := "0123456789abcdefghijklmnopqrstuvwxyz"
 
-EXPORT FUNCTION from(base: Number, digits: String): Number
+EXPORT TYPE NumberResult IS CHOICE
+    value: Number
+    error: String
+END CHOICE
+
+EXPORT FUNCTION from(base: Number, digits: String): NumberResult
     CHECK base = math.trunc(base) AND 2 <= base <= 36 ELSE
         RAISE ValueRangeException("invalid base: \(base)")
     END CHECK
@@ -16,11 +21,11 @@ EXPORT FUNCTION from(base: Number, digits: String): Number
     FOREACH c IN digits INDEX i DO
         LET d: string.FindResult := string.find(Digits, string.lower(c))
         CHECK d ISA string.FindResult.index ELSE
-            RAISE ValueRangeException("invalid digit: \(c) at index \(i)")
+            RETURN NumberResult.error("invalid digit: \(c) at index \(i)")
         END CHECK
         r := r * base + d.index
     END FOREACH
-    RETURN r
+    RETURN NumberResult.value(r)
 END FUNCTION
 
 EXPORT FUNCTION to(base: Number, value: Number): String
@@ -39,15 +44,15 @@ EXPORT FUNCTION to(base: Number, value: Number): String
     RETURN r
 END FUNCTION
 
-EXPORT FUNCTION fromBinary(digits: String): Number
+EXPORT FUNCTION fromBinary(digits: String): NumberResult
     RETURN from(2, digits)
 END FUNCTION
 
-EXPORT FUNCTION fromOctal(digits: String): Number
+EXPORT FUNCTION fromOctal(digits: String): NumberResult
     RETURN from(8, digits)
 END FUNCTION
 
-EXPORT FUNCTION fromHex(digits: String): Number
+EXPORT FUNCTION fromHex(digits: String): NumberResult
     RETURN from(16, digits)
 END FUNCTION
 
