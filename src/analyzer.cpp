@@ -4924,7 +4924,9 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
         }
     }
     condition_statements.push_back(std::make_pair(cond, std::vector<const ast::Statement *>()));
+    checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks_complement(checks)));
     std::vector<const ast::Statement *> else_statements = analyze(statement->body);
+    checked_choice_variables.pop();
     if (else_statements.empty()) {
         error(3200, statement->token, "body cannot be empty");
     }
