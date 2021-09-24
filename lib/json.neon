@@ -5,6 +5,8 @@
 
 IMPORT string
 
+EXPORT DecodeResult
+
 EXPORT decode
 EXPORT encode
 
@@ -13,11 +15,15 @@ EXPORT encode
  * TODO: Also, this could probably be improved a lot by using regex.
  */
 
-/*  Exception: JsonFormatException
- *
- *  Indicates that a formatting error was encountered when reading JSON.
- */
-EXCEPTION JsonFormatException
+TYPE DecodeError IS RECORD
+    message: String
+    index: Number
+END RECORD
+
+TYPE DecodeResult IS CHOICE
+    data: Object
+    error: DecodeError
+END CHOICE
 
 FUNCTION skipWhitespace(json: String, INOUT index: Number)
     WHILE index < json.length() AND (json[index] = " " OR json[index] = "\t" OR json[index] = "\r" OR json[index] = "\n") DO
@@ -25,7 +31,7 @@ FUNCTION skipWhitespace(json: String, INOUT index: Number)
     END WHILE
 END FUNCTION
 
-FUNCTION decodePart(json: String, INOUT index: Number): Object
+FUNCTION decodePart(json: String, INOUT index: Number): DecodeResult
     skipWhitespace(json, INOUT index)
     IF index < json.length() THEN
         CASE json[index]
@@ -37,13 +43,13 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                 LET s: String := json[start TO index-1]
                 CASE s
                     WHEN "null" DO
-                        RETURN NIL
+                        RETURN DecodeResult.data(NIL)
                     WHEN "false" DO
-                        RETURN FALSE
+                        RETURN DecodeResult.data(FALSE)
                     WHEN "true" DO
-                        RETURN TRUE
+                        RETURN DecodeResult.data(TRUE)
                     WHEN OTHERS DO
-                        RAISE JsonFormatException("null or false or true expected")
+                        RETURN DecodeResult.error(DecodeError(message WITH "null or false or true expected", index WITH start))
                 END CASE
             WHEN "-", "0" TO "9" DO
                 LET start: Number := index
@@ -54,7 +60,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                     INC index
                 ELSE
                     CHECK index < json.length() AND "1" <= json[index] <= "9" ELSE
-                        RAISE JsonFormatException("digit expected")
+                        RETURN DecodeResult.error(DecodeError(message WITH "digit expected", index WITH start))
                     END CHECK
                     INC index
                     WHILE index < json.length() AND "0" <= json[index] <= "9" DO
@@ -64,7 +70,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                 IF index < json.length() AND json[index] = "." THEN
                     INC index
                     CHECK index < json.length() AND "0" <= json[index] <= "9" ELSE
-                        RAISE JsonFormatException("digit expected")
+                        RETURN DecodeResult.error(DecodeError(message WITH "digit expected", index WITH start))
                     END CHECK
                     WHILE index < json.length() AND "0" <= json[index] <= "9" DO
                         INC index
@@ -76,19 +82,19 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                         INC index
                     END IF
                     CHECK index < json.length() AND "0" <= json[index] <= "9" ELSE
-                        RAISE JsonFormatException("digit expected")
+                        RETURN DecodeResult.error(DecodeError(message WITH "digit expected", index WITH start))
                     END CHECK
                     WHILE index < json.length() AND "0" <= json[index] <= "9" DO
                         INC index
                     END WHILE
                 END IF
-                RETURN num(json[start TO index-1])
+                RETURN DecodeResult.data(num(json[start TO index-1]))
             WHEN "\"" DO
                 INC index
                 VAR t: String := ""
                 WHILE index < json.length() AND json[index] <> "\"" DO
                     CHECK 0x20 <= string.toCodePoint(json[index]) <= 0x10ffff ELSE
-                        RAISE JsonFormatException("invalid character")
+                        RETURN DecodeResult.error(DecodeError(message WITH "invalid character", index WITH index))
                     END CHECK
                     IF json[index] = "\\" THEN
                         INC index
@@ -118,13 +124,13 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                                     ELSIF "A" <= json[index+i] <= "F" THEN
                                         char := char * 0x10 + (string.toCodePoint(json[index+i]) - string.toCodePoint("A"))
                                     ELSE
-                                        RAISE JsonFormatException("invalid hex character")
+                                        RETURN DecodeResult.error(DecodeError(message WITH "invalid hex character", index WITH index+i))
                                     END IF
                                 END FOR
                                 t.append(string.fromCodePoint(char))
                                 index := index + 4
                             WHEN OTHERS DO
-                                RAISE JsonFormatException("invalid escape sequence")
+                                RETURN DecodeResult.error(DecodeError(message WITH "invalid escape sequence", index WITH index))
                         END CASE
                     ELSE
                         t.append(json[index])
@@ -132,79 +138,93 @@ FUNCTION decodePart(json: String, INOUT index: Number): Object
                     INC index
                 END WHILE
                 CHECK index < json.length() ELSE
-                    RAISE JsonFormatException("missing trailing quote")
+                    RETURN DecodeResult.error(DecodeError(message WITH "missing trailing quote", index WITH index))
                 END CHECK
                 INC index
-                RETURN t
+                RETURN DecodeResult.data(t)
             WHEN "[" DO
                 INC index
                 VAR a: Array<Object> := []
                 skipWhitespace(json, INOUT index)
                 IF index < json.length() AND json[index] = "]" THEN
                     INC index
-                    RETURN a
+                    RETURN DecodeResult.data(a)
                 END IF
                 LOOP
-                    a.append(decodePart(json, INOUT index))
+                    LET t := decodePart(json, INOUT index)
+                    CHECK t ISA DecodeResult.data ELSE
+                        RETURN t
+                    END CHECK
+                    a.append(t.data)
                     skipWhitespace(json, INOUT index)
                     IF index < json.length() AND json[index] = "," THEN
                         INC index
                     ELSIF index < json.length() AND json[index] = "]" THEN
                         EXIT LOOP
                     ELSE
-                        RAISE JsonFormatException(", or ] expected")
+                        RETURN DecodeResult.error(DecodeError(message WITH ", or ] expected", index WITH index))
                     END IF
                     skipWhitespace(json, INOUT index)
                 END LOOP
                 INC index
-                RETURN a
+                RETURN DecodeResult.data(a)
             WHEN "{" DO
                 INC index
                 VAR d: Dictionary<Object> := {}
                 skipWhitespace(json, INOUT index)
                 IF index < json.length() AND json[index] = "}" THEN
                     INC index
-                    RETURN d
+                    RETURN DecodeResult.data(d)
                 END IF
                 LOOP
-                    LET vkey: Object := decodePart(json, INOUT index)
-                    IF NOT (vkey ISA String) THEN
-                        RAISE JsonFormatException("string key expected")
+                    VAR r := decodePart(json, INOUT index)
+                    CHECK r ISA DecodeResult.data ELSE
+                        RETURN r
+                    END CHECK
+                    IF NOT (r.data ISA String) THEN
+                        RETURN DecodeResult.error(DecodeError(message WITH "string key expected", index WITH index))
                     END IF
-                    LET key: String := vkey
+                    LET key: String := r.data
                     skipWhitespace(json, INOUT index)
                     IF index >= json.length() OR json[index] <> ":" THEN
-                        RAISE JsonFormatException(": expected")
+                        RETURN DecodeResult.error(DecodeError(message WITH ": expected", index WITH index))
                     END IF
                     INC index
-                    d[key] := decodePart(json, INOUT index)
+                    r := decodePart(json, INOUT index)
+                    CHECK r ISA DecodeResult.data ELSE
+                        RETURN r
+                    END CHECK
+                    d[key] := r.data
                     skipWhitespace(json, INOUT index)
                     IF index < json.length() AND json[index] = "," THEN
                         INC index
                     ELSIF index < json.length() AND json[index] = "}" THEN
                         EXIT LOOP
                     ELSE
-                        RAISE JsonFormatException(", or } expected")
+                        RETURN DecodeResult.error(DecodeError(message WITH ", or } expected", index WITH index))
                     END IF
                     skipWhitespace(json, INOUT index)
                 END LOOP
                 INC index
-                RETURN d
+                RETURN DecodeResult.data(d)
         END CASE
     END IF
-    RAISE JsonFormatException("value expected")
+    RETURN DecodeResult.error(DecodeError(message WITH "value expected", index WITH index))
 END FUNCTION
 
 /*  Function: decode
  *
  *  Decode JSON data in a string to a result in a <Object>.
  */
-FUNCTION decode(json: String): Object
+FUNCTION decode(json: String): DecodeResult
     VAR i: Number := 0
-    LET r: Object := decodePart(json, INOUT i)
+    LET r := decodePart(json, INOUT i)
+    CHECK r ISA DecodeResult.data ELSE
+        RETURN r
+    END CHECK
     skipWhitespace(json, INOUT i)
     IF i < json.length() THEN
-        RAISE JsonFormatException("unexpected input after value")
+        RETURN DecodeResult.error(DecodeError(message WITH "unexpected input after value", index WITH i))
     END IF
     RETURN r
 END FUNCTION

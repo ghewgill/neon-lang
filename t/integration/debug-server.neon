@@ -10,13 +10,23 @@ FUNCTION get(url: String): Object
     --io.write(io.stderr(), "get \(url)\n")
     LET data: String := simplehttp.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString()
     --io.write(io.stderr(), "\(data)\n")
-    RETURN json.decode(data)
+    LET d := json.decode(data)
+    CHECK d ISA json.DecodeResult.data ELSE
+        print(d.error.message)
+        EXIT PROCESS FAILURE
+    END CHECK
+    RETURN d.data
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): Object
     --io.write(io.stderr(), "post \(url)\n")
     LET data: String := simplehttp.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString()
-    RETURN json.decode(data)
+    LET d := json.decode(data)
+    CHECK d ISA json.DecodeResult.data ELSE
+        print(d.error.message)
+        EXIT PROCESS FAILURE
+    END CHECK
+    RETURN d.data
 END FUNCTION
 
 VAR p: os.Process := os.spawn("bin/neon -d \(Port) t/debug-example.neon")
