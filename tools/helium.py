@@ -154,6 +154,9 @@ IMPORTED = Keyword("IMPORTED")
 TESTCASE = Keyword("TESTCASE")
 EXPECT = Keyword("EXPECT")
 CHOICE = Keyword("CHOICE")
+PROCESS = Keyword("PROCESS")
+SUCCESS = Keyword("SUCCESS")
+FAILURE = Keyword("FAILURE")
 
 class bytes:
     def __init__(self, a):
@@ -1173,13 +1176,16 @@ class CaseStatement:
                 break
 
 class ExitStatement:
-    def __init__(self, label):
+    def __init__(self, label, arg):
         self.label = label
+        self.arg = arg
     def declare(self, env):
         pass
     def run(self, env):
         if self.label == "FUNCTION":
             raise ReturnException(None)
+        elif self.label == "PROCESS":
+            sys.exit(self.arg == "FAILURE")
         else:
             raise ExitException(self.label)
 
@@ -2185,7 +2191,11 @@ class Parser:
         self.expect(EXIT)
         label = self.tokens[self.i].name
         self.i += 1
-        return ExitStatement(label)
+        arg = None
+        if label == "PROCESS":
+            arg = self.tokens[self.i].name
+            self.i += 1
+        return ExitStatement(label, arg)
 
     def parse_export(self):
         self.expect(EXPORT)

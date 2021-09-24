@@ -5385,6 +5385,28 @@ const ast::Statement *Analyzer::analyze(const pt::ExitStatement *statement)
         }
         return new ast::ReturnStatement(statement->token, nullptr);
     }
+    if (statement->type.type == PROCESS) {
+        const ast::Module *sys = import_module(Token(), "sys", false);
+        if (sys == nullptr) {
+            internal_error("need module sys");
+        }
+        const ast::PredefinedFunction *sys_exit = dynamic_cast<const ast::PredefinedFunction *>(sys->scope->lookupName("exit"));
+        if (sys_exit == nullptr) {
+            internal_error("need sys.exit");
+        }
+        return new ast::ExpressionStatement(
+            statement->token,
+            new ast::FunctionCall(
+                new ast::VariableExpression(sys_exit),
+                {
+                    new ast::ConstantNumberExpression(number_from_uint32(statement->arg.type == FAILURE))
+                },
+                nullptr, // dispatch
+                false, // allow_ignore_result
+                true // is_sys_exit
+            )
+        );
+    }
     std::string type = statement->type.text;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {

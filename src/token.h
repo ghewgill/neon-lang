@@ -122,6 +122,9 @@ enum TokenType {
     TESTCASE,
     EXPECT,
     CHOICE,
+    PROCESS,
+    SUCCESS,
+    FAILURE,
     UNKNOWN,
     MAX_TOKEN
 };
