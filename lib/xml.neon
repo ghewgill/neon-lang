@@ -3,15 +3,29 @@
  *  Provides functions for working with XML files.
  */
 
-EXPORT parse
+EXPORT Element
+EXPORT Node
 EXPORT Document
+EXPORT parse
+
+TYPE Element IS RECORD
+    name: String
+    attributes: Dictionary<String>
+    -- TODO: Need ability to do forward type reference -- children: Array<Node>
+END RECORD
+
+TYPE Node IS CHOICE
+    element: Element
+    text: String
+    comment: String
+END CHOICE
 
 /*  Type: Document
  *
  *  Represents an XML document.
  */
 TYPE Document IS RECORD
-    dummy: Boolean
+    root: Element
 END RECORD
 
 /*  Function: parse
