@@ -922,7 +922,7 @@ bool BytesComparisonExpression::eval_boolean() const
 bool IfStatement::always_returns() const
 {
     for (auto cond: condition_statements) {
-        if (cond.second.empty() || not cond.second.back()->always_returns()) {
+        if (cond.statements.empty() || not cond.statements.back()->always_returns()) {
             return false;
         }
     }
@@ -935,7 +935,7 @@ bool IfStatement::always_returns() const
 bool IfStatement::is_scope_exit_statement() const
 {
     for (auto cond: condition_statements) {
-        if (cond.second.empty() || not cond.second.back()->is_scope_exit_statement()) {
+        if (cond.statements.empty() || not cond.statements.back()->is_scope_exit_statement()) {
             return false;
         }
     }
