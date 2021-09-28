@@ -4925,7 +4925,9 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
         }
     }
     condition_statements.push_back(std::make_pair(cond, std::vector<const ast::Statement *>()));
+    checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks_complement(checks)));
     std::vector<const ast::Statement *> else_statements = analyze(statement->body);
+    checked_choice_variables.pop();
     if (else_statements.empty()) {
         error(3200, statement->token, "body cannot be empty");
     }
@@ -5383,6 +5385,28 @@ const ast::Statement *Analyzer::analyze(const pt::ExitStatement *statement)
             error(3108, statement->token, "function must return a value");
         }
         return new ast::ReturnStatement(statement->token, nullptr);
+    }
+    if (statement->type.type == PROCESS) {
+        const ast::Module *sys = import_module(Token(), "sys", false);
+        if (sys == nullptr) {
+            internal_error("need module sys");
+        }
+        const ast::PredefinedFunction *sys_exit = dynamic_cast<const ast::PredefinedFunction *>(sys->scope->lookupName("exit"));
+        if (sys_exit == nullptr) {
+            internal_error("need sys.exit");
+        }
+        return new ast::ExpressionStatement(
+            statement->token,
+            new ast::FunctionCall(
+                new ast::VariableExpression(sys_exit),
+                {
+                    new ast::ConstantNumberExpression(number_from_uint32(statement->arg.type == FAILURE))
+                },
+                nullptr, // dispatch
+                false, // allow_ignore_result
+                true // is_sys_exit
+            )
+        );
     }
     std::string type = statement->type.text;
     if (not loops.empty()) {

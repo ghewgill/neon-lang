@@ -300,6 +300,7 @@ Program
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   ExitStatement(FUNCTION)
+  ExitStatement(PROCESS, FAILURE)
   ExitStatement(WHILE)
   ExitStatement(FOR)
   ExitStatement(FOREACH)

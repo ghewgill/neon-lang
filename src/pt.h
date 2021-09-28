@@ -893,9 +893,10 @@ public:
 
 class ExitStatement: public Statement {
 public:
-    ExitStatement(const Token &token, const Token &type): Statement(token), type(type) {}
+    ExitStatement(const Token &token, const Token &type, const Token &arg): Statement(token), type(type), arg(arg) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token type;
+    const Token arg;
 };
 
 class ExpressionStatement: public Statement {

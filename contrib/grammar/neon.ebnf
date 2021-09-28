@@ -119,7 +119,7 @@ ExecStatement = 'EXEC', ExecBody;
 
 WhenCondition = (('=' | '<>' | '<' | '>' | '<=' | '>='), Expression) | (Expression, ['TO', Expression]) | ('ISA', Type);
 
-ExitStatement = 'EXIT', ('FUNCTION' | 'WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT' | Identifier);
+ExitStatement = 'EXIT', ('FUNCTION' | 'PROCESS', ('SUCCESS' | 'FAILURE') | 'WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT' | Identifier);
 
 ExpressionStatement = Identifier, CompoundExpressionTail, {CompoundExpressionTail};
 

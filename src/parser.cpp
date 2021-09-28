@@ -1887,6 +1887,7 @@ std::unique_ptr<Statement> Parser::parseExitStatement()
     ++i;
     auto &type = tokens[i];
     if (type.type != FUNCTION
+     && type.type != PROCESS
      && type.type != WHILE
      && type.type != FOR
      && type.type != FOREACH
@@ -1896,7 +1897,19 @@ std::unique_ptr<Statement> Parser::parseExitStatement()
         error_a(2052, tokens[i-1], tokens[i], "loop type or label expected");
     }
     ++i;
-    return std::unique_ptr<Statement> { new ExitStatement(tok_exit, type) };
+    Token arg;
+    if (type.type == PROCESS) {
+        switch (tokens[i].type) {
+            case SUCCESS:
+            case FAILURE:
+                arg = tokens[i];
+                break;
+            default:
+                error(2142, tokens[i], "SUCCESS or FAILURE expected");
+        }
+        ++i;
+    }
+    return std::unique_ptr<Statement> { new ExitStatement(tok_exit, type, arg) };
 }
 
 std::unique_ptr<Statement> Parser::parseNextStatement()

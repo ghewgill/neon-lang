@@ -1015,6 +1015,7 @@ public:
     Expression &operator=(const Expression &) = delete;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const = 0;
+    virtual bool is_scope_exit_function() const { return false; }
     virtual std::map<const ast::Variable *, std::set<int>> find_choice_checks() const { return {}; }
     bool eval_boolean(const Token &token) const;
     Number eval_number(const Token &token) const;
@@ -2514,7 +2515,7 @@ public:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr, bool allow_ignore_result = false): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args), allow_ignore_result(allow_ignore_result) {}
+    FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr, bool allow_ignore_result = false, bool is_sys_exit = false): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args), allow_ignore_result(allow_ignore_result), is_sys_exit(is_sys_exit) {}
     FunctionCall(const FunctionCall &) = delete;
     FunctionCall &operator=(const FunctionCall &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2523,8 +2524,10 @@ public:
     const Expression *const dispatch;
     const std::vector<const Expression *> args;
     const bool allow_ignore_result;
+    const bool is_sys_exit;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return func->is_pure(context) && std::all_of(args.begin(), args.end(), [&context](const Expression *x) { return x->is_pure(context); }); }
+    virtual bool is_scope_exit_function() const override { return is_sys_exit; }
     virtual bool eval_boolean() const override;
     virtual Number eval_number() const override;
     virtual utf8string eval_string() const override;
@@ -2717,6 +2720,7 @@ public:
     const Expression *const expr;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return expr->is_pure(context); }
+    virtual bool is_scope_exit_statement() const override { return expr->is_scope_exit_function(); }
 
     virtual void generate_code(Emitter &emitter) const override;
 

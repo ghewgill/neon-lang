@@ -376,7 +376,11 @@ public:
         write("ExecStatement(" + node->text + ")");
     }
     virtual void visit(const ExitStatement *node) override {
-        write("ExitStatement(" + node->type.text + ")");
+        if (node->type.type == PROCESS) {
+            write("ExitStatement(" + node->type.text + ", " + node->arg.text + ")");
+        } else {
+            write("ExitStatement(" + node->type.text + ")");
+        }
     }
     virtual void visit(const ExpressionStatement *node) override {
         write("ExpressionStatement");

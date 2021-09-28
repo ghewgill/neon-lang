@@ -497,6 +497,7 @@ END RECORD
 
 TYPE ExitStatement IS RECORD
     label: lexer.Token
+    arg: lexer.Token
 END RECORD
 
 TYPE ExpressionStatement IS RECORD
@@ -2896,15 +2897,26 @@ FUNCTION Parser.parseExitStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     LET tokExit: lexer.Token := self.token
     self.nextToken()
     LET label: lexer.Token := self.token
-    IF label.type NOT IN [TokenType.function, TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat, TokenType.identifier] THEN
+    IF label.type NOT IN [TokenType.function, TokenType.process, TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat, TokenType.identifier] THEN
         error_a(2052, self.tokens[self.index-1], self.token, "loop type or label expected")
     END IF
     self.nextToken()
+    VAR arg: lexer.Token := lexer.Token()
+    IF label.type = TokenType.process THEN
+        CASE self.token.type
+            WHEN TokenType.success, TokenType.failure DO
+                arg := self.token
+            WHEN OTHERS DO
+                error(2142, self.token, "SUCCESS or FAILURE expected")
+        END CASE
+        self.nextToken()
+    END IF
     RETURN NEW ParseTreeNode(
         type WITH Type.ExitStatement,
         token WITH tokExit,
         exitstatement WITH ExitStatement(
-            label WITH label
+            label WITH label,
+            arg WITH arg
         )
     )
 END FUNCTION
@@ -4149,7 +4161,11 @@ FUNCTION dumpCheckStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
 FUNCTION dumpExitStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
-    dumpNode(depth, "ExitStatement(\(node->exitstatement.label.text))")
+    IF node->exitstatement.label.type = TokenType.process THEN
+        dumpNode(depth, "ExitStatement(\(node->exitstatement.label.text), \(node->exitstatement.arg.text))")
+    ELSE
+        dumpNode(depth, "ExitStatement(\(node->exitstatement.label.text))")
+    END IF
 END FUNCTION
 
 FUNCTION dumpExpressionStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
