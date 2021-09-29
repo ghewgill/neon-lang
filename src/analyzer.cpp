@@ -678,6 +678,7 @@ static const ast::Expression *make_array_conversion(Analyzer *analyzer, const as
                     Token(),
                     {
                         ast::IfStatement::ConditionBlock(
+                            0,
                             new ast::NumericComparisonExpression(
                                 new ast::VariableExpression(index),
                                 new ast::VariableExpression(bound),
@@ -754,6 +755,7 @@ static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, con
                     Token(),
                     {
                         ast::IfStatement::ConditionBlock(
+                            0,
                             new ast::NumericComparisonExpression(
                                 new ast::VariableExpression(index),
                                 new ast::VariableExpression(bound),
@@ -4923,7 +4925,7 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
             error(3199, statement->cond->token, "boolean value expected");
         }
     }
-    condition_statements.push_back(ast::IfStatement::ConditionBlock(cond, std::vector<const ast::Statement *>()));
+    condition_statements.push_back(ast::IfStatement::ConditionBlock(statement->cond->token.line, cond, std::vector<const ast::Statement *>()));
     checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks_complement(checks)));
     std::vector<const ast::Statement *> else_statements = analyze(statement->body);
     checked_choice_variables.pop();
@@ -5151,7 +5153,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     statements.push_back(
         new ast::IfStatement(
             statement->token,
-            {ast::IfStatement::ConditionBlock(new ast::VariableExpression(found), then_statements)},
+            {ast::IfStatement::ConditionBlock(statement->token.line, new ast::VariableExpression(found), then_statements)},
             else_statements
         )
     );
@@ -5489,6 +5491,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
             statement->token,
             std::vector<ast::IfStatement::ConditionBlock> {
                 ast::IfStatement::ConditionBlock(
+                    statement->token.line,
                     new ast::NumericComparisonExpression(
                         new ast::VariableExpression(var),
                         new ast::VariableExpression(bound),
@@ -5586,6 +5589,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
             statement->token,
             std::vector<ast::IfStatement::ConditionBlock> {
                 ast::IfStatement::ConditionBlock(
+                    statement->token.line,
                     new ast::NumericComparisonExpression(
                         new ast::VariableExpression(index),
                         new ast::VariableExpression(bound),
@@ -5692,7 +5696,7 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         scope.push(new ast::Scope(scope.top(), frame.top()));
         checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), checks));
         if (not skip_statements) {
-            condition_statements.push_back(ast::IfStatement::ConditionBlock(cond, analyze(c.second)));
+            condition_statements.push_back(ast::IfStatement::ConditionBlock(c.first->token.line, cond, analyze(c.second)));
         }
         checked_choice_variables.pop();
         scope.pop();
@@ -5815,6 +5819,7 @@ const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
             statement->cond->token,
             std::vector<ast::IfStatement::ConditionBlock> {
                 ast::IfStatement::ConditionBlock(
+                    statement->cond->token.line,
                     cond,
                     std::vector<const ast::Statement *> { new ast::ExitStatement(statement->cond->token, loop_id) }
                 )
@@ -5900,6 +5905,7 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
             statement->token,
             std::vector<ast::IfStatement::ConditionBlock> {
                 ast::IfStatement::ConditionBlock(
+                    statement->token.line,
                     new ast::LogicalNotExpression(expr),
                     fail_statements
                 )
@@ -6084,6 +6090,7 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
             statement->token,
             std::vector<ast::IfStatement::ConditionBlock> {
                 ast::IfStatement::ConditionBlock(
+                    statement->cond->token.line,
                     new ast::LogicalNotExpression(cond),
                     std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token, loop_id) }
                 )

@@ -2770,7 +2770,8 @@ class IfStatement: public Statement {
 public:
     class ConditionBlock {
     public:
-        ConditionBlock(const Expression *expr, const std::vector<const Statement *> &statements): expr(expr), statements(statements) {}
+        ConditionBlock(int line, const Expression *expr, const std::vector<const Statement *> &statements): line(line), expr(expr), statements(statements) {}
+        int line;
         const Expression *expr;
         std::vector<const Statement *> statements;
     };
