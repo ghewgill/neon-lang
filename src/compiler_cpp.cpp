@@ -1754,10 +1754,10 @@ public:
     explicit IfStatement(const ast::IfStatement *is): Statement(is), is(is), condition_statements(), else_statements() {
         for (auto cs: is->condition_statements) {
             std::vector<const Statement *> statements;
-            for (auto s: cs.second) {
+            for (auto s: cs.statements) {
                 statements.push_back(transform(s));
             }
-            condition_statements.push_back(std::make_pair(transform(cs.first), statements));
+            condition_statements.push_back(std::make_pair(transform(cs.expr), statements));
         }
         for (auto s: is->else_statements) {
             else_statements.push_back(transform(s));

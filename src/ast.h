@@ -2768,23 +2768,31 @@ public:
 
 class IfStatement: public Statement {
 public:
-    IfStatement(const Token &token, const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(token), condition_statements(condition_statements), else_statements(else_statements) {}
+    class ConditionBlock {
+    public:
+        ConditionBlock(int line, const Expression *expr, const std::vector<const Statement *> &statements): line(line), expr(expr), statements(statements) {}
+        int line;
+        const Expression *expr;
+        std::vector<const Statement *> statements;
+    };
+public:
+    IfStatement(const Token &token, const std::vector<ConditionBlock> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(token), condition_statements(condition_statements), else_statements(else_statements) {}
     IfStatement(const IfStatement &) = delete;
     IfStatement &operator=(const IfStatement &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
+    const std::vector<ConditionBlock> condition_statements;
     const std::vector<const Statement *> else_statements;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override {
         return std::all_of(
             condition_statements.begin(),
             condition_statements.end(),
-            [&context](const std::pair<const Expression *, std::vector<const Statement *>> /*auto*/ &x) {
-                return x.first->is_pure(context) &&
+            [&context](const ConditionBlock /*auto*/ &x) {
+                return x.expr->is_pure(context) &&
                     std::all_of(
-                        x.second.begin(),
-                        x.second.end(),
+                        x.statements.begin(),
+                        x.statements.end(),
                         [&context](const Statement *s) { return s->is_pure(context); }
                     );
             }
@@ -2801,7 +2809,7 @@ public:
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "IfStatement(" + condition_statements[0].first->text() + ")";
+        return "IfStatement(" + condition_statements[0].expr->text() + ")";
     }
 };
 

@@ -2262,8 +2262,9 @@ void ast::IfStatement::generate_code(Emitter &emitter) const
 {
     auto end_label = emitter.create_label();
     for (auto cs: condition_statements) {
-        const Expression *condition = cs.first;
-        const std::vector<const Statement *> &statements = cs.second;
+        emitter.debug_line(cs.line);
+        const Expression *condition = cs.expr;
+        const std::vector<const Statement *> &statements = cs.statements;
         condition->generate(emitter);
         auto else_label = emitter.create_label();
         emitter.emit_jump(Opcode::JF, else_label);
