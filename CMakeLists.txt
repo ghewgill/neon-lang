@@ -313,7 +313,7 @@ target_include_directories(common
     PRIVATE gen
 )
 target_link_libraries(common
-    bid
+    dec64
     ${GMP_TARGET}
     hash-library
 )

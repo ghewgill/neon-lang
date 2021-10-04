@@ -6,6 +6,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" 
 endif ()
 
 include(libbid.cmake)
+include(libdec64.cmake)
 include(libgmp.cmake)
 include(libhash.cmake)
 include(minijson.cmake)

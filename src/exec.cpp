@@ -39,6 +39,11 @@ std::set<std::string> g_ExtensionModules;
 
 void executor_raise_exception(size_t ip, const utf8string &name, const utf8string &info);
 
+static int _IDEC_glbflags = 0;
+const int BID_OVERFLOW_EXCEPTION = 0;
+const int BID_ZERO_DIVIDE_EXCEPTION = 0;
+const int BID_INVALID_EXCEPTION = 0;
+
 namespace {
 
 std::vector<std::string> split(const std::string &s, char d)

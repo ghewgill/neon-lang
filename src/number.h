@@ -9,20 +9,7 @@
 // accidentally use regular arithmetic operations on these numeric
 // values.
 
-#define DECIMAL_GLOBAL_ROUNDING 1
-#define DECIMAL_GLOBAL_EXCEPTION_FLAGS 1
-
-#ifndef _WCHAR_T_DEFINED
-#define _WCHAR_T_DEFINED
-#endif
-#include "bid_conf.h"
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
-#include "bid_functions.h"
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+#include "dec64.h"
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -40,15 +27,15 @@ enum class Rep {
 };
 
 struct Number {
-    Number(): rep(Rep::MPZ), mpz(), bid(bid128_from_uint32(0)) {}
-    Number(const mpz_class &x): rep(Rep::MPZ), mpz(x), bid(bid128_from_uint32(0)) {}
-    Number(BID_UINT128 x): rep(Rep::BID), mpz(), bid(x) {}
+    Number(): rep(Rep::MPZ), mpz(), bid(DEC64_ZERO) {}
+    Number(const mpz_class &x): rep(Rep::MPZ), mpz(x), bid(DEC64_ZERO) {}
+    Number(dec64 x): rep(Rep::BID), mpz(), bid(x) {}
     const mpz_class &get_mpz();
-    BID_UINT128 get_bid();
+    dec64 get_bid();
     Rep rep;
 private:
     mpz_class mpz;
-    BID_UINT128 bid;
+    dec64 bid;
 };
 
 Number number_add(Number x, Number y);
