@@ -39,11 +39,6 @@ std::set<std::string> g_ExtensionModules;
 
 void executor_raise_exception(size_t ip, const utf8string &name, const utf8string &info);
 
-static int _IDEC_glbflags = 0;
-const int BID_OVERFLOW_EXCEPTION = 0;
-const int BID_ZERO_DIVIDE_EXCEPTION = 0;
-const int BID_INVALID_EXCEPTION = 0;
-
 namespace {
 
 std::vector<std::string> split(const std::string &s, char d)
@@ -74,21 +69,14 @@ std::string just_path(const std::string &name)
 }
 
 // This class is specific to how the BID library notifies its exceptions.
-class BidExceptionHandler {
+class NumberExceptionHandler {
     size_t start_ip;
 public:
-    BidExceptionHandler(size_t start_ip): start_ip(start_ip) {
-        _IDEC_glbflags = 0;
+    NumberExceptionHandler(size_t start_ip): start_ip(start_ip) {
     }
-    void check_and_raise(const char *what) {
-        if (_IDEC_glbflags & BID_OVERFLOW_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_Overflow.name), utf8string(what));
-        }
-        if (_IDEC_glbflags & BID_ZERO_DIVIDE_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_DivideByZero.name), utf8string(what));
-        }
-        if (_IDEC_glbflags & BID_INVALID_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_Invalid.name), utf8string(what));
+    void check_and_raise(Number r, const char *exception, const char *what) {
+        if (number_is_nan(r)) {
+            executor_raise_exception(start_ip, utf8string(exception), utf8string(what));
         }
     }
 };
@@ -865,71 +853,86 @@ void Executor::exec_STOREV()
 
 void Executor::exec_NEGN()
 {
-    BidExceptionHandler handler(ip);
+    NumberExceptionHandler handler(ip);
     ip++;
     Number x = stack.top().number(); stack.pop();
-    stack.push(Cell(number_negate(x)));
-    handler.check_and_raise("negate");
+    Number r = number_negate(x);
+    handler.check_and_raise(r, rtl::ne_global::Exception_NumberException_Overflow.name, "negate");
+    stack.push(Cell(r));
 }
 
 void Executor::exec_ADDN()
 {
-    BidExceptionHandler handler(ip);
+    NumberExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
-    stack.push(Cell(number_add(a, b)));
-    handler.check_and_raise("add");
+    Number r = number_add(a, b);
+    handler.check_and_raise(r, rtl::ne_global::Exception_NumberException_Overflow.name, "add");
+    stack.push(Cell(r));
 }
 
 void Executor::exec_SUBN()
 {
-    BidExceptionHandler handler(ip);
+    NumberExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
-    stack.push(Cell(number_subtract(a, b)));
-    handler.check_and_raise("subtract");
+    Number r = number_subtract(a, b);
+    handler.check_and_raise(r, rtl::ne_global::Exception_NumberException_Overflow.name, "subtract");
+    stack.push(Cell(r));
 }
 
 void Executor::exec_MULN()
 {
-    BidExceptionHandler handler(ip);
+    NumberExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
-    stack.push(Cell(number_multiply(a, b)));
-    handler.check_and_raise("multiply");
+    Number r = number_multiply(a, b);
+    handler.check_and_raise(r, rtl::ne_global::Exception_NumberException_Overflow.name, "multiply");
+    stack.push(Cell(r));
 }
 
 void Executor::exec_DIVN()
 {
-    BidExceptionHandler handler(ip);
+    NumberExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
-    stack.push(Cell(number_divide(a, b)));
-    handler.check_and_raise("divide");
+    if (number_is_zero(b)) {
+        raise(rtl::ne_global::Exception_NumberException_DivideByZero, std::make_shared<ObjectString>(utf8string("")));
+        return;
+    }
+    Number r = number_divide(a, b);
+    handler.check_and_raise(r, rtl::ne_global::Exception_NumberException_Overflow.name, "divide");
+    stack.push(Cell(r));
 }
 
 void Executor::exec_MODN()
 {
-    BidExceptionHandler handler(ip);
+    NumberExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
-    stack.push(Cell(number_modulo(a, b)));
-    handler.check_and_raise("modulo");
+    if (number_is_zero(b)) {
+        raise(rtl::ne_global::Exception_NumberException_Invalid, std::make_shared<ObjectString>(utf8string("")));
+        return;
+    }
+    Number r = number_modulo(a, b);
+    handler.check_and_raise(r, rtl::ne_global::Exception_NumberException_Overflow.name, "modulo");
+    stack.push(Cell(r));
 }
 
 void Executor::exec_EXPN()
 {
-    BidExceptionHandler handler(ip);
+    NumberExceptionHandler handler(ip);
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
-    stack.push(Cell(number_pow(a, b)));
-    handler.check_and_raise("exponentiation");
+    Number r = number_pow(a, b);
+    handler.check_and_raise(r, rtl::ne_global::Exception_NumberException_Overflow.name, "exponentiation");
+    stack.push(Cell(r));
 }
 
 void Executor::exec_EQB()
@@ -1341,9 +1344,14 @@ void Executor::exec_CALLP()
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     std::string func = module->object.strtable.at(val);
     try {
-        BidExceptionHandler handler(start_ip);
+        NumberExceptionHandler handler(start_ip);
         rtl_call(stack, func, module->rtl_call_tokens[val]);
-        handler.check_and_raise(func.c_str());
+        if (stack.top().get_type() == Cell::Type::Number) {
+            Number r = stack.top().number();
+            if (number_is_nan(r)) {
+                handler.check_and_raise(r, rtl::ne_global::Exception_NumberException_Invalid.name, func.c_str());
+            }
+        }
     } catch (RtlException &x) {
         ip = start_ip;
         raise(x);
