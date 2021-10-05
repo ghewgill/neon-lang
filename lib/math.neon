@@ -46,6 +46,8 @@ EXPORT tanh
 EXPORT tgamma
 EXPORT trunc
 
+DECLARE NATIVE CONSTANT PRECISION_DIGITS: Number
+
 /*  Constant: Pi
  *
  *  The value of Pi to 34 significant digits.
