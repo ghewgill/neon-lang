@@ -9,6 +9,11 @@ namespace rtl {
 
 namespace ne_math {
 
+Number _CONSTANT_PRECISION_DIGITS()
+{
+    return number_from_uint32(34);
+}
+
 Number abs(Number x)
 {
     return number_abs(x);
