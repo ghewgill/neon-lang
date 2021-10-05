@@ -238,33 +238,34 @@ Number number_tan(Number x)
 
 Number number_acosh(Number x)
 {
-    return /*dec64_acosh*/(x.get_bid());
+    return dec64_log(x.get_bid() + dec64_sqrt(dec64_subtract(dec64_multiply(x.get_bid(), x.get_bid()), DEC64_ONE)));
 }
 
 Number number_asinh(Number x)
 {
-    return /*dec64_asinh*/(x.get_bid());
+    return dec64_log(x.get_bid() + dec64_sqrt(dec64_add(dec64_multiply(x.get_bid(), x.get_bid()), DEC64_ONE)));
 }
 
 Number number_atanh(Number x)
 {
-    return /*dec64_atanh*/(x.get_bid());
+    return dec64_divide(dec64_log(dec64_divide(dec64_add(DEC64_ONE, x.get_bid()), dec64_subtract(DEC64_ONE, x.get_bid()))), DEC64_TWO);
 }
 
 Number number_atan2(Number y, Number x)
 {
+    // TODO: dec64_atan2 is broken for (0, -1)
     return dec64_atan2(y.get_bid(), x.get_bid());
 }
 
 Number number_cbrt(Number x)
 {
     // TODO: mpz
-    return /*dec64_cbrt*/(x.get_bid());
+    return dec64_root(dec64_from_double(3), x.get_bid());
 }
 
 Number number_cosh(Number x)
 {
-    return /*dec64_cosh*/(x.get_bid());
+    return dec64_divide(dec64_add(dec64_exp(x.get_bid()), dec64_exp(dec64_neg(x.get_bid()))), DEC64_TWO);
 }
 
 Number number_erf(Number x)
@@ -280,27 +281,29 @@ Number number_erfc(Number x)
 Number number_exp2(Number x)
 {
     // TODO: mpz
-    return /*dec64_exp2*/(x.get_bid());
+    return dec64_raise(DEC64_TWO, x.get_bid());
 }
 
 Number number_expm1(Number x)
 {
-    return /*dec64_expm1*/(x.get_bid());
+    // TODO: need a better implementation
+    return dec64_subtract(dec64_exp(x.get_bid()), DEC64_ONE);
 }
 
-Number number_frexp(Number /*x*/, int * /* exp*/)
+Number number_frexp(Number x, int *exp)
 {
-    return DEC64_ZERO; //dec64_frexp(x.get_bid(), exp);
+    *exp = dec64_exponent(x.get_bid());
+    return dec64_new(dec64_coefficient(x.get_bid()), 0);
 }
 
-Number number_hypot(Number /*x*/, Number /*y*/)
+Number number_hypot(Number x, Number y)
 {
-    return DEC64_ZERO; //dec64_hypot(x.get_bid(), y.get_bid());
+    return dec64_sqrt(dec64_add(dec64_multiply(x.get_bid(), x.get_bid()), dec64_multiply(y.get_bid(), y.get_bid())));
 }
 
-Number number_ldexp(Number /*x*/, int /*exp*/)
+Number number_ldexp(Number x, int exp)
 {
-    return DEC64_ZERO; //dec64_ldexp(x.get_bid(), exp);
+    return dec64_new(sint64_from_dec64(x.get_bid()), exp);
 }
 
 Number number_lgamma(Number x)
@@ -310,17 +313,18 @@ Number number_lgamma(Number x)
 
 Number number_log10(Number x)
 {
-    return /*dec64_log10*/(x.get_bid());
+    return dec64_divide(dec64_log(x.get_bid()), dec64_log(dec64_from_double(10)));
 }
 
 Number number_log1p(Number x)
 {
-    return /*dec64_log1p*/(x.get_bid());
+    // TODO: needs better implementation
+    return dec64_log(dec64_add(DEC64_ONE, x.get_bid()));
 }
 
 Number number_log2(Number x)
 {
-    return /*dec64_log2*/(x.get_bid());
+    return dec64_divide(dec64_log(x.get_bid()), dec64_log(DEC64_TWO));
 }
 
 Number number_nearbyint(Number x)
@@ -328,22 +332,24 @@ Number number_nearbyint(Number x)
     if (x.rep == Rep::MPZ) {
         return x;
     }
-    return DEC64_ZERO; //dec64_nearbyint(x.get_bid());
+    return dec64_round(x.get_bid(), 0);
 }
 
 Number number_sinh(Number x)
 {
-    return /*dec64_sinh*/(x.get_bid());
+    return dec64_divide(dec64_subtract(dec64_exp(x.get_bid()), dec64_exp(dec64_neg(x.get_bid()))), DEC64_TWO);
 }
 
 Number number_tanh(Number x)
 {
-    return /*dec64_tanh*/(x.get_bid());
+    dec64 etwox = dec64_exp(dec64_multiply(DEC64_TWO, x.get_bid()));
+    return dec64_divide(dec64_subtract(etwox, DEC64_ONE), dec64_add(etwox, DEC64_ONE));
 }
 
 Number number_tgamma(Number x)
 {
-    return /*dec64_tgamma*/(x.get_bid());
+    // TODO: needs better implementation
+    return dec64_factorial(dec64_subtract(x.get_bid(), DEC64_ONE));
 }
 
 bool number_is_zero(Number x)
@@ -351,7 +357,7 @@ bool number_is_zero(Number x)
     if (x.rep == Rep::MPZ) {
         return x.get_mpz() == 0;
     }
-    return dec64_is_zero(x.get_bid()) != DEC64_FALSE;
+    return dec64_is_zero(x.get_bid()) == DEC64_TRUE;
 }
 
 bool number_is_negative(Number x)
@@ -359,7 +365,7 @@ bool number_is_negative(Number x)
     if (x.rep == Rep::MPZ) {
         return x.get_mpz() < 0;
     }
-    return dec64_is_less(x.get_bid(), DEC64_ZERO) != DEC64_FALSE;
+    return dec64_is_less(x.get_bid(), DEC64_ZERO) == DEC64_TRUE;
 }
 
 bool number_is_equal(Number x, Number y)
@@ -367,7 +373,7 @@ bool number_is_equal(Number x, Number y)
     if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
         return x.get_mpz() == y.get_mpz();
     }
-    return dec64_is_equal(x.get_bid(), y.get_bid()) != DEC64_FALSE;
+    return dec64_is_equal(x.get_bid(), y.get_bid()) == DEC64_TRUE;
 }
 
 bool number_is_not_equal(Number x, Number y)
@@ -383,7 +389,7 @@ bool number_is_less(Number x, Number y)
     if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
         return x.get_mpz() < y.get_mpz();
     }
-    return dec64_is_less(x.get_bid(), y.get_bid()) != DEC64_FALSE;
+    return dec64_is_less(x.get_bid(), y.get_bid()) == DEC64_TRUE;
 }
 
 bool number_is_greater(Number x, Number y)
@@ -391,7 +397,7 @@ bool number_is_greater(Number x, Number y)
     if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
         return x.get_mpz() > y.get_mpz();
     }
-    return dec64_is_less(y.get_bid(), x.get_bid()) != DEC64_FALSE;
+    return dec64_is_less(y.get_bid(), x.get_bid()) == DEC64_TRUE;
 }
 
 bool number_is_less_equal(Number x, Number y)
@@ -399,7 +405,7 @@ bool number_is_less_equal(Number x, Number y)
     if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
         return x.get_mpz() <= y.get_mpz();
     }
-    return dec64_is_less(x.get_bid(), y.get_bid()) != DEC64_FALSE || dec64_is_equal(x.get_bid(), y.get_bid()) != DEC64_FALSE;
+    return dec64_is_less(x.get_bid(), y.get_bid()) == DEC64_TRUE || dec64_is_equal(x.get_bid(), y.get_bid()) == DEC64_TRUE;
 }
 
 bool number_is_greater_equal(Number x, Number y)
@@ -407,7 +413,7 @@ bool number_is_greater_equal(Number x, Number y)
     if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
         return x.get_mpz() >= y.get_mpz();
     }
-    return dec64_is_less(y.get_bid(), x.get_bid()) != DEC64_FALSE || dec64_is_equal(x.get_bid(), y.get_bid()) != DEC64_FALSE;
+    return dec64_is_less(y.get_bid(), x.get_bid()) == DEC64_TRUE || dec64_is_equal(x.get_bid(), y.get_bid()) == DEC64_TRUE;
 }
 
 bool number_is_integer(Number x)
@@ -415,7 +421,7 @@ bool number_is_integer(Number x)
     if (x.rep == Rep::MPZ) {
         return true;
     }
-    return dec64_is_integer(x.get_bid()) != DEC64_FALSE;
+    return dec64_is_integer(x.get_bid()) == DEC64_TRUE;
 }
 
 bool number_is_odd(Number x)
@@ -439,7 +445,7 @@ bool number_is_nan(Number x)
     if (x.rep == Rep::MPZ) {
         return false;
     }
-    return dec64_is_nan(x.get_bid()) != DEC64_FALSE;
+    return dec64_is_nan(x.get_bid()) == DEC64_TRUE;
 }
 
 std::string number_to_string(Number x)
