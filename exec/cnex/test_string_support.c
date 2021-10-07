@@ -33,6 +33,7 @@ int main()
     TString *bar = string_createCString("bar");
     TString *foobar = string_createCString("foo.bar");
     TString *bytes = string_createString(127);
+    TString *badutf = string_createCString("foo.bar\x80\x7f\x34\x00");
     memcpy(bytes->data, ascii, sizeof(ascii));
     TString *byte = string_createString(1);
     byte->data[0] = '\0';
@@ -84,6 +85,9 @@ int main()
     assert(string_findCharRev(foobar, '.') == 3);
     assert(string_findCharRev(s2, ' ') == 19);
     assert(string_findCharRev(foobar, '/') == NPOS);
+
+    //assert(string_index(badutf, 7)->length == 0);
+    assert(string_getLength(badutf) == 0);
 
     return 0;
 }

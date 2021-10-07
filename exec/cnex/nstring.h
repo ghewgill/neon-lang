@@ -42,6 +42,7 @@ TString *string_appendString(TString *s, TString *ns);
 TString *string_appendCString(TString *s, const char *ns);
 TString *string_appendData(TString *s, char *buf, size_t len);
 TString *string_appendChar(TString *s, char c);
+TString *string_appendCodePoint(TString *s, uint32_t cp);
 
 void string_resizeString(TString *s, size_t n);
 
@@ -62,6 +63,10 @@ TString *string_subString(TString *s, int64_t pos, int64_t count);
 
 TString *string_toLowerCase(TString *s);
 TString *string_toUpperCase(TString *s);
+
+size_t string_getLength(TString *s);
+TString *string_index(TString *s, size_t index);
+BOOL string_isValidUtf8(TString *s, size_t *error_offset);
 
 const char *string_ensureNullTerminated(TString *s);
 

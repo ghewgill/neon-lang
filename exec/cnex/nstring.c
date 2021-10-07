@@ -162,6 +162,23 @@ TString *string_appendChar(TString *s, char c)
     return s;
 }
 
+TString *string_appendCodePoint(TString *s, uint32_t cp)
+{
+    char val[4];
+    uint32_t lead_byte = 0x7F;
+    int index = 0;
+    while (cp > lead_byte) {
+        val[index++] = (cp & 0x3F) | 0x80;
+        cp >>= 6;
+        lead_byte >>= (index == 1 ? 2 : 1);
+    }
+    val[index++] = (cp & lead_byte) | (~lead_byte << 1);
+    while (index) {
+        s = string_appendChar(s, val[--index]);
+    }
+    return s;
+}
+
 TString *string_appendData(TString *s, char *buf, size_t len)
 {
     s->data = realloc(s->data, s->length + len);
@@ -515,4 +532,119 @@ TString *string_quote(TString *s)
     }
     string_appendChar(r, '"');
     return r;
+}
+
+size_t string_getLength(TString *s)
+{
+    size_t len = 0;
+    for (size_t i = 0; i < s->length; i++) {
+        uint32_t c = s->data[i] & 0xff;
+        if (c & 0x80) {
+            if ((c & 0xe0) == 0xc0) {
+                c &= 0x1f;
+                i += 1;
+            } else if ((c & 0xf0) == 0xe0) {
+                c &= 0x0f;
+                i += 2;
+            } else if ((c & 0xf8) == 0xf0) {
+                c &= 0x07;
+                i += 3;
+            } else if ((c & 0xfc) == 0xf8) {
+                c &= 0x03;
+                i += 4;
+            } else if ((c & 0xfe) == 0xfc) {
+                c &= 0x01;
+                i += 5;
+            } else {
+                // Invalid UTF8, so abort the entire string.
+                return 0;
+            }
+        }
+        len++;
+    }
+    return len;
+}
+
+TString *string_index(TString *s, size_t index)
+{
+    TString *r = string_createString(0);
+
+    size_t idx = 0;
+    int n = 1;
+    for (size_t i = 0; i < s->length; i++) {
+        uint32_t c = s->data[i] & 0xff;
+        if (c & 0x80) {
+            n = 0;
+            if ((c & 0xe0) == 0xc0) {
+                c &= 0x1f;
+                n = 2;
+            } else if ((c & 0xf0) == 0xe0) {
+                c &= 0x0f;
+                n = 3;
+            } else if ((c & 0xf8) == 0xf0) {
+                c &= 0x07;
+                n = 4;
+            } else if ((c & 0xfc) == 0xf8) {
+                c &= 0x03;
+                n = 5;
+            } else if ((c & 0xfe) == 0xfc) {
+                c &= 0x01;
+                n = 6;
+            } else {
+                fatal_error("Invalid UTF8 in string: %02x", s->data[i]);
+            }
+        } else {
+            n = 1;
+        }
+        if (idx == index) {
+            r->data = realloc(r->data, n);
+            memcpy(r->data, &s->data[i], n);
+            r->length = n;
+            break;
+        } else {
+            i += n - 1;
+        }
+        idx++;
+    }
+    return r;
+}
+
+BOOL string_isValidUtf8(TString *s, size_t *error_offset)
+{
+    size_t idx = 0;
+    for (size_t i = 0; i < s->length; i++) {
+        uint32_t c = s->data[i] & 0xff;
+        if (c & 0x80) {
+            int n = 0;
+            if ((c & 0xe0) == 0xc0) {
+                c &= 0x1f;
+                n = 1;
+            } else if ((c & 0xf0) == 0xe0) {
+                c &= 0x0f;
+                n = 2;
+            } else if ((c & 0xf8) == 0xf0) {
+                c &= 0x07;
+                n = 3;
+            } else if ((c & 0xfc) == 0xf8) {
+                c &= 0x03;
+                n = 4;
+            } else if ((c & 0xfe) == 0xfc) {
+                c &= 0x01;
+                n = 5;
+            } else {
+                *error_offset = idx;
+                return FALSE;
+            }
+            while (n-- > 0) {
+                i++;
+                if ((s->data[i] & 0xc0) != 0x80) {
+                    *error_offset = idx;
+                    return FALSE;
+                }
+                c = (c << 6) | (s->data[i] & 0x3f);
+            }
+        }
+        idx++;
+    }
+    return TRUE;
 }
