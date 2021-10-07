@@ -861,8 +861,16 @@ void bytes__concat(TExecutor *exec)
 
 void bytes__decodeToString(TExecutor *exec)
 {
-    // ToDo: handle UTF8 Strings
     TString *s = top(exec->stack)->string;
+
+    size_t err_idx;
+    if (!string_isValidUtf8(s, &err_idx)) {
+        char offset[32];
+        snprintf(offset, sizeof(offset), "%zu", err_idx);
+        pop(exec->stack);
+        exec_rtl_raiseException(exec, "Utf8DecodingException", offset);
+        return;
+    }
 
     Cell *r = cell_fromCString(string_ensureNullTerminated(s));
 
@@ -1505,21 +1513,23 @@ void string__index(TExecutor *exec)
         exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
-    if (i >= (int64_t)a->string->length) {
+    if (i >= (int64_t)string_getLength(a->string)) {
         char n[128];
         snprintf(n, 128, "%" PRId64, i);
         exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
 
-    Cell *r = cell_fromStringLength((char*)a->string->data+i, 1);
+    Cell *r = cell_newCellType(cString);
+    r->string = string_index(a->string, i);
+
     push(exec->stack, r);
     cell_freeCell(a);
 }
 
 void string__length(TExecutor *exec)
 {
-    size_t n = top(exec->stack)->string->length; pop(exec->stack);
+    size_t n = string_getLength(top(exec->stack)->string); pop(exec->stack);
     push(exec->stack, cell_fromNumber(number_from_uint64(n)));
 }
 
