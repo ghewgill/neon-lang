@@ -2833,7 +2833,16 @@ def neon_sqlite_execRaw(self):
 def neon_sqlite_open(self):
     fn = self.stack.pop()
     r = sqlite3.connect(fn)
-    self.stack.append(r)
+    if r is None:
+        self.stack.append([
+            Value(1), # error
+            Value("open error")
+        ])
+    else:
+        self.stack.append([
+            Value(0), # db
+            Value(r)
+        ])
 
 def neon_string_find_internal(self):
     t = self.stack.pop()

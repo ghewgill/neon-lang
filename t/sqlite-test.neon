@@ -2,7 +2,11 @@ IMPORT sqlite
 
 VAR rows: sqlite.Rows
 
-LET db: sqlite.Database := sqlite.open("tmp/test.db")
+LET r: sqlite.OpenResult := sqlite.open("tmp/test.db")
+CHECK r ISA sqlite.OpenResult.db ELSE
+    RAISE TestFailedException
+END CHECK
+LET db := r.db
 rows := sqlite.execRaw(db, "drop table if exists foo")
 rows := sqlite.execRaw(db, "create table foo(name string, value integer)")
 rows := sqlite.execRaw(db, "insert into foo values ('property', 234)")
