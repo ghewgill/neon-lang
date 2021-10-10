@@ -5,6 +5,8 @@
 #include "cell.h"
 #include "rtl_exec.h"
 
+#include "choices.inc"
+
 class DatabaseObject: public Object {
 public:
     explicit DatabaseObject(sqlite3 *db): db(db) {}
@@ -38,14 +40,20 @@ namespace rtl {
 
 namespace ne_sqlite {
 
-std::shared_ptr<Object> open(const utf8string &name)
+Cell open(const utf8string &name)
 {
     sqlite3 *db;
     int r = sqlite3_open(name.c_str(), &db);
     if (r != SQLITE_OK) {
-        throw RtlException(ne_global::Exception_SqlException, utf8string(sqlite3_errmsg(db)));
+        return Cell(std::vector<Cell> {
+            Cell(number_from_uint32(CHOICE_OpenResult_error)),
+            Cell(utf8string(sqlite3_errmsg(db)))
+        });
     }
-    return std::shared_ptr<Object> { new DatabaseObject(db) };
+    return Cell(std::vector<Cell> {
+        Cell(number_from_uint32(CHOICE_OpenResult_file)), // TODO: db
+        Cell(std::shared_ptr<Object> { new DatabaseObject(db) })
+    });
 }
 
 Cell exec(const std::shared_ptr<Object> &pdb, const utf8string &sql, const std::map<utf8string, utf8string> &parameters)

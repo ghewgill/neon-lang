@@ -19,6 +19,8 @@ EXPORT cursorOpen
 EXPORT cursorFetch
 EXPORT cursorClose
 
+EXPORT OpenResult
+
 EXCEPTION SqliteException
 EXCEPTION SqliteException.InvalidDatabase
 EXCEPTION SqliteException.ParameterName
@@ -43,11 +45,16 @@ TYPE Row IS Array<String>
  */
 TYPE Rows IS Array<Row>
 
+TYPE OpenResult IS CHOICE
+    db: Database
+    error: String
+END CHOICE
+
 /*  Function: open
  *
  *  Open a database in the given named file.
  */
-DECLARE NATIVE FUNCTION open(name: String): Database
+DECLARE NATIVE FUNCTION open(name: String): OpenResult
 
 /*  Function: exec
  *
