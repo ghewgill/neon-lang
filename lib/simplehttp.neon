@@ -5,17 +5,36 @@
 IMPORT net
 IMPORT string
 
-EXPORT HttpException
-
 EXPORT get
 EXPORT post
 EXPORT setRequireValidCertificate
 
-/*  Exception: HttpException
- *
- *  Raised when an HTTP request returns anything other than 200 OK.
- */
-EXCEPTION HttpException
+EXPORT HttpResponse
+EXPORT HttpResult
+
+TYPE HttpResponse IS RECORD
+    code: Number
+    codeName: String
+    headers: Array<String>
+    data: Bytes
+END RECORD
+
+TYPE HttpResult IS CHOICE
+    response: HttpResponse
+    error: String
+END CHOICE
+
+TYPE UrlParts IS RECORD
+    scheme: String
+    server: String
+    port: Number
+    path: String
+END RECORD
+
+TYPE DecomposeResult IS CHOICE
+    parts: UrlParts
+    error: String
+END CHOICE
 
 VAR g_validateMode: net.TlsPeerValidateMode := net.TlsPeerValidateMode.RequireValidCertificate
 
@@ -27,8 +46,8 @@ VAR g_validateMode: net.TlsPeerValidateMode := net.TlsPeerValidateMode.RequireVa
  *      url - the url
  *      headers - the response headers from the server
  */
-FUNCTION get(url: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
-    RETURN exec("GET", url, "", requestHeaders, OUT responseHeaders)
+FUNCTION get(url: String, requestHeaders: Dictionary<String>): HttpResult
+    RETURN exec("GET", url, "", requestHeaders)
 END FUNCTION
 
 /*  Function: post
@@ -40,8 +59,8 @@ END FUNCTION
  *      post_data - the body of the POST request
  *      headers - the response headers from the server
  */
-FUNCTION post(url: String, post_data: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
-    RETURN exec("POST", url, post_data, requestHeaders, OUT responseHeaders)
+FUNCTION post(url: String, post_data: String, requestHeaders: Dictionary<String>): HttpResult
+    RETURN exec("POST", url, post_data, requestHeaders)
 END FUNCTION
 
 /*  Function: setRequireValidCertificate
@@ -56,12 +75,15 @@ FUNCTION setRequireValidCertificate(requireValid: Boolean)
     g_validateMode := (IF requireValid THEN net.TlsPeerValidateMode.RequireValidCertificate ELSE net.TlsPeerValidateMode.AllowInvalidCertificate)
 END FUNCTION
 
-FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
-    VAR scheme: String
-    VAR server: String
-    VAR port: Number
-    VAR path: String
-    decomposeUrl(url, OUT scheme, OUT server, OUT port, OUT path)
+FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Dictionary<String>): HttpResult
+    LET dcr := decomposeUrl(url)
+    CHECK dcr ISA DecomposeResult.parts ELSE
+        RETURN HttpResult.error(dcr.error)
+    END CHECK
+    LET scheme := dcr.parts.scheme
+    LET server := dcr.parts.server
+    LET port := dcr.parts.port
+    LET path := dcr.parts.path
     LET s: net.Socket := (IF scheme = "https" THEN net.tlsClientSocket(validateMode WITH g_validateMode) ELSE net.tcpSocket())
     s.connect(server, port)
     VAR request: String := "\(method) \(path) HTTP/1.0\r\n"
@@ -85,7 +107,7 @@ FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Di
         END IF
         response := response & buf
     END LOOP
-    responseHeaders := []
+    VAR responseHeaders: Array<String> := []
     VAR i: Number := 0
     LET status: String := nextLine(response, INOUT i)
     LOOP
@@ -96,39 +118,47 @@ FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Di
         responseHeaders.append(header)
     END LOOP
     s.close()
-    RETURN response[i TO LAST]
+    LET a := string.split(status, " ")
+    LET code := num(a[1])
+    LET codeName := string.join(a[2 TO LAST], " ")
+    RETURN HttpResult.response(HttpResponse(
+        code WITH code,
+        codeName WITH codeName,
+        headers WITH responseHeaders,
+        data WITH response[i TO LAST]
+    ))
 END FUNCTION
 
-FUNCTION decomposeUrl(url: String, OUT scheme: String, OUT server: String, OUT port: Number, OUT path: String)
+FUNCTION decomposeUrl(url: String): DecomposeResult
     LET schemecolon: string.FindResult := string.find(url, ":")
     CHECK schemecolon ISA string.FindResult.index ELSE
-        RAISE HttpException("url format error")
+        RETURN DecomposeResult.error("url format error")
     END CHECK
-    scheme: String := url[FIRST TO schemecolon.index-1]
+    LET scheme: String := url[FIRST TO schemecolon.index-1]
     CHECK scheme IN ["http", "https"] ELSE
-        RAISE HttpException("url scheme not supported")
+        RETURN DecomposeResult.error("url scheme not supported")
     END CHECK
     CHECK url[schemecolon.index TO schemecolon.index+2] = "://" ELSE
-        RAISE HttpException("url format error")
+        RETURN DecomposeResult.error("url format error")
     END CHECK
     LET tail: String := url[schemecolon.index+3 TO LAST]
     LET slash: string.FindResult := string.find(tail, "/")
     CHECK slash ISA string.FindResult.index ELSE
-        RAISE HttpException("url format error")
+        RETURN DecomposeResult.error("url format error")
     END CHECK
-    server := ""
-    port := (IF scheme = "https" THEN 443 ELSE 80)
+    VAR parts: UrlParts := UrlParts(scheme WITH scheme, port WITH (IF scheme = "https" THEN 443 ELSE 80))
     LET portcolon: string.FindResult := string.find(tail, ":")
     CASE portcolon
         WHEN ISA string.FindResult.notfound DO
-            server := tail[FIRST TO slash.index-1]
+            parts.server := tail[FIRST TO slash.index-1]
         WHEN ISA string.FindResult.index DO
-            server := tail[FIRST TO portcolon.index-1]
+            parts.server := tail[FIRST TO portcolon.index-1]
             IF portcolon.index < slash.index THEN
-                port := num(tail[portcolon.index+1 TO slash.index-1])
+                parts.port := num(tail[portcolon.index+1 TO slash.index-1])
             END IF
     END CASE
-    path := tail[slash.index TO LAST]
+    parts.path := tail[slash.index TO LAST]
+    RETURN DecomposeResult.parts(parts)
 END FUNCTION
 
 FUNCTION nextLine(buf: Bytes, INOUT i: Number): String
@@ -147,15 +177,14 @@ END FUNCTION
 
 BEGIN MAIN
     FUNCTION check(url: String, scheme: String, server: String, port: Number, path: String)
-        VAR c: String
-        VAR s: String
-        VAR p: Number
-        VAR t: String
-        decomposeUrl(url, OUT c, OUT s, OUT p, OUT t)
-        TESTCASE c = scheme
-        TESTCASE s = server
-        TESTCASE p = port
-        TESTCASE t = path
+        LET dcr := decomposeUrl(url)
+        CHECK dcr ISA DecomposeResult.parts ELSE
+            RAISE TestFailedException
+        END CHECK
+        TESTCASE dcr.parts.scheme = scheme
+        TESTCASE dcr.parts.server = server
+        TESTCASE dcr.parts.port = port
+        TESTCASE dcr.parts.path = path
     END FUNCTION
     check("http://hello/world", "http", "hello", 80, "/world")
     check("http://hello:1234/world", "http", "hello", 1234, "/world")
@@ -171,10 +200,13 @@ BEGIN MAIN
     TESTCASE nextLine(b, INOUT i) = ""
     TESTCASE i = 16
 
-    VAR responseHeaders: Array<String>
-    LET r: Bytes := get("http://neverssl.com/", {}, OUT responseHeaders)
-    FOREACH h IN responseHeaders DO
+    LET r := get("http://neverssl.com/", {})
+    CHECK r ISA HttpResult.response ELSE
+        RAISE TestFailedException
+    END CHECK
+    print("code=\(r.response.code) \(r.response.codeName)")
+    FOREACH h IN r.response.headers DO
         print(h)
     END FOREACH
-    print("size=\(r.size())")
+    print("size=\(r.response.data.size())")
 END MAIN
