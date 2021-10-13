@@ -315,6 +315,7 @@ else ()
             libressl-3.3.5/crypto/x509/x509name.c
             libressl-3.3.5/crypto/x509/x509rset.c
         )
+        target_compile_definitions(RESSL PRIVATE -DWIN32_LEAN_AND_MEAN)
         target_compile_definitions(RESSL PRIVATE -DLIBRESSL_INTERNAL)
         target_compile_definitions(RESSL PRIVATE -DOPENSSL_NO_HW_PADLOCK)
         target_compile_definitions(RESSL PRIVATE -D__BEGIN_HIDDEN_DECLS=)
