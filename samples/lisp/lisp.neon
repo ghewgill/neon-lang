@@ -12,7 +12,6 @@ EXPORT Symbol
 
 IMPORT io
 IMPORT math
-IMPORT regex
 IMPORT sys
 
 EXCEPTION ParseEndOfInputException
@@ -183,7 +182,22 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                 INC i
             END WHILE
             LET t: String := s[start TO i-1]
-            IF regex.search(@"^[-+]?\d+$", t, OUT _) THEN
+            FUNCTION is_number(ns: String): Boolean
+                VAR j := 0
+                IF j < ns.length() AND ns[j] IN ["-", "+"] THEN
+                    INC j
+                END IF
+                VAR any_digits := FALSE
+                WHILE j < ns.length() DO
+                    CHECK "0" <= ns[j] <= "9" ELSE
+                        RETURN FALSE
+                    END CHECK
+                    any_digits := TRUE
+                    INC j
+                END WHILE
+                RETURN any_digits
+            END FUNCTION
+            IF is_number(t) THEN
                 RETURN make_number(num(t))
             ELSE
                 RETURN make_symbol(t)

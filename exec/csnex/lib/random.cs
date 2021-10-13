@@ -20,7 +20,7 @@ namespace csnex.rtl
             rng.GetBytes(r);
             uint val = BitConverter.ToUInt32(r, 0);
 
-            Exec.stack.Push(new Cell(new Number(val)));
+            Exec.stack.Push(Cell.CreateNumberCell(new Number(val)));
         }
 
         public void bytes()
@@ -30,7 +30,7 @@ namespace csnex.rtl
             byte[] r = new byte[count];
             rng.GetBytes(r);
 
-            Exec.stack.Push(new Cell(r));
+            Exec.stack.Push(Cell.CreateBytesCell(r));
         }
     }
 }

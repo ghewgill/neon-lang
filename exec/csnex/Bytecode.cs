@@ -16,11 +16,16 @@ namespace csnex
 
         public List<ModuleImport> imports;
         public List<FunctionInfo> functions;
+        public List<Constant> constants;
+        public List<Variable> variables;
         public List<Function> exports;
         public List<Type> types;
         public List<ExceptionInfo> exceptions;
         public List<ExceptionExport> export_exceptions;
+        public List<ExportInterface> export_interfaces;
+        public List<Interface> interfaces;
         public List<Cell> globals;
+        public List<ClassInfo> classes;
 
         public Bytecode()
         {
@@ -108,11 +113,32 @@ namespace csnex
 
             /* Constants */
             int constantsize = Get_VInt(obj, ref i);
-            Debug.Assert(constantsize == 0);
+            constants = new List<Constant>();
+            while (constantsize > 0) {
+                Constant c = new Constant();
+                c.name = Get_VInt(obj, ref i);
+                c.type = Get_VInt(obj, ref i);
+                int datasize = Get_VInt(obj, ref i);
+                if (i+datasize > obj.Length) {
+                    throw new BytecodeException("invalid constant data size");
+                }
+                c.value = new byte[datasize];
+                Array.Copy(obj, i, c.value, 0, datasize);
+                i += datasize;
+                constantsize--;
+            }
 
-            /* Exported Variabes */
+            /* Exported Variables */
             int variablesize = Get_VInt(obj, ref i);
-            Debug.Assert(variablesize == 0);
+            variables = new List<Variable>();
+            while (variablesize > 0) {
+                Variable v = new Variable();
+                v.name = Get_VInt(obj, ref i);
+                v.type = Get_VInt(obj, ref i);
+                v.index = Get_VInt(obj, ref i);
+                variables.Add(v);
+                variablesize--;
+            }
 
             /* Exported Functions */
             int functionsize = Get_VInt(obj, ref i);
@@ -138,7 +164,21 @@ namespace csnex
 
             /* Exported Interfaces */
             int interfaceexportsize = Get_VInt(obj, ref i);
-            Debug.Assert(interfaceexportsize == 0);
+            export_interfaces = new List<ExportInterface>();
+            while (interfaceexportsize > 0) {
+                ExportInterface iface = new ExportInterface();
+                iface.methods = new Dictionary<int, int>();
+                iface.name = Get_VInt(obj, ref i);
+                int methoddescriptorsize = Get_VInt(obj, ref i);
+                while (methoddescriptorsize > 0) {
+                    int key = Get_VInt(obj, ref i);
+                    int val = Get_VInt(obj, ref i);
+                    iface.methods.Add(key, val);
+                    methoddescriptorsize--;
+                }
+                export_interfaces.Add(iface);
+                interfaceexportsize--;
+            }
 
             /* Imported Modules */
             int importsize = Get_VInt(obj, ref i);
@@ -187,7 +227,26 @@ namespace csnex
 
             /* Classes */
             int classsize = Get_VInt(obj, ref i);
-            Debug.Assert(classsize == 0);
+            classes = new List<ClassInfo>();
+            while (classsize > 0) {
+                ClassInfo cls = new ClassInfo();
+                cls.interfaces = new List<Interface>();
+                cls.name = Get_VInt(obj, ref i);
+                int interfacesize = Get_VInt(obj, ref i);
+                while (interfacesize > 0) {
+                    Interface inf = new Interface();
+                    int methodsize = Get_VInt(obj, ref i);
+                    inf.methods = new List<int>();
+                    while (methodsize > 0) {
+                        inf.methods.Add(Get_VInt(obj, ref i));
+                        methodsize--;
+                    }
+                    cls.interfaces.Add(inf);
+                    interfacesize--;
+                }
+                classes.Add(cls);
+                classsize--;
+            }
 
             code = new byte[obj.Length - i];
             Array.Copy(obj, i, code, 0, obj.Length - i);
@@ -197,6 +256,20 @@ namespace csnex
         {
             public int name;
             public int descriptor;
+        }
+
+        public struct Constant
+        {
+            public int name;
+            public int type;
+            public byte[] value;
+        }
+
+        public struct Variable
+        {
+            public int name;
+            public int type;
+            public int index;
         }
 
         public struct ModuleImport
@@ -236,6 +309,25 @@ namespace csnex
             public int name;
             public int descriptor;
             public int index;
+        }
+
+        public struct ExportInterface
+        {
+            public int name;
+            public Dictionary<int, int> methods;
+        }
+
+        public struct Interface
+        {
+            public int name;
+            public List<int> methods;
+        }
+
+        public struct ClassInfo
+        {
+            public int name;
+            public int interfacesize;
+            public List<Interface> interfaces;
         }
     }
 

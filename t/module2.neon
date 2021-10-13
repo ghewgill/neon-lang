@@ -18,6 +18,11 @@ print("\(module.const)")
 print(module.var)
 --= test
 
+IF module.var3 ISA module.choice.apple THEN
+    print("\(module.var3.apple)")
+END IF
+--= 3
+
 print(module.let)
 --= green
 

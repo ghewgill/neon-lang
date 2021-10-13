@@ -28,9 +28,9 @@ namespace csnex.rtl
         public io(Executor exe)
         {
             Exec = exe;
-            stdin = new Cell(new FileObject(Console.OpenStandardInput()));
-            stdout = new Cell(new FileObject(Console.OpenStandardOutput()));
-            stderr = new Cell(new FileObject(Console.OpenStandardError()));
+            stdin = Cell.CreateObjectCell(new FileObject(Console.OpenStandardInput()));
+            stdout = Cell.CreateObjectCell(new FileObject(Console.OpenStandardOutput()));
+            stderr = Cell.CreateObjectCell(new FileObject(Console.OpenStandardError()));
         }
 
         private Stream check_file(object pf)
@@ -83,13 +83,13 @@ namespace csnex.rtl
                     fm = FileMode.Append;
                     break;
                 default:
-                    Exec.stack.Push(new Cell(new FileObject(null)));
+                    Exec.stack.Push(Cell.CreateObjectCell(new FileObject(null)));
                     return;
             }
 
             try {
                 FileStream f = new FileStream(name, fm, fa);
-                Exec.stack.Push(new Cell(new FileObject(f)));
+                Exec.stack.Push(Cell.CreateObjectCell(new FileObject(f)));
             } catch (IOException iox) {
                 Exec.Raise("IoException.Open", iox.HResult.ToString());
             }
@@ -114,7 +114,7 @@ namespace csnex.rtl
                 if (n != ncount) {
                     Array.Resize(ref r, n);
                 }
-                Exec.stack.Push(new Cell(r));
+                Exec.stack.Push(Cell.CreateBytesCell(r));
             } catch {
                 Exec.Raise("IoException.Read", "");
             }
@@ -151,7 +151,7 @@ namespace csnex.rtl
                 return;
             }
 
-            Exec.stack.Push(new Cell(new Number(f.Seek(0, SeekOrigin.Current))));
+            Exec.stack.Push(Cell.CreateNumberCell(new Number(f.Seek(0, SeekOrigin.Current))));
         }
 
         public void truncate()

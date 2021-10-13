@@ -1,0 +1,88 @@
+FUNCTION do(from, to: Number): String
+    VAR s := "hello"
+    s[from TO to] := "x"
+    RETURN s
+END FUNCTION
+
+TESTCASE do(-2, -2) EXPECT StringIndexException
+TESTCASE do(-2, -1) EXPECT StringIndexException
+TESTCASE do(-2,  0) EXPECT StringIndexException
+TESTCASE do(-2,  1) EXPECT StringIndexException
+TESTCASE do(-2,  2) EXPECT StringIndexException
+TESTCASE do(-2,  3) EXPECT StringIndexException
+TESTCASE do(-2,  4) EXPECT StringIndexException
+TESTCASE do(-2,  5) EXPECT StringIndexException
+TESTCASE do(-2,  6) EXPECT StringIndexException
+TESTCASE do(-2, -2) EXPECT StringIndexException
+
+TESTCASE do(-1, -1) EXPECT StringIndexException
+TESTCASE do(-1,  0) EXPECT StringIndexException
+TESTCASE do(-1,  1) EXPECT StringIndexException
+TESTCASE do(-1,  2) EXPECT StringIndexException
+TESTCASE do(-1,  3) EXPECT StringIndexException
+TESTCASE do(-1,  4) EXPECT StringIndexException
+TESTCASE do(-1,  5) EXPECT StringIndexException
+TESTCASE do(-1,  6) EXPECT StringIndexException
+
+TESTCASE do(0, -1) = "xhello"
+TESTCASE do(0,  0) = "xello"
+TESTCASE do(0,  1) = "xllo"
+TESTCASE do(0,  2) = "xlo"
+TESTCASE do(0,  3) = "xo"
+TESTCASE do(0,  4) = "x"
+TESTCASE do(0,  5) = "x"
+TESTCASE do(0,  6) = "x"
+
+TESTCASE do(1, -1) EXPECT StringIndexException
+TESTCASE do(1,  0) = "hxello"
+TESTCASE do(1,  1) = "hxllo"
+TESTCASE do(1,  2) = "hxlo"
+TESTCASE do(1,  3) = "hxo"
+TESTCASE do(1,  4) = "hx"
+TESTCASE do(1,  5) = "hx"
+TESTCASE do(1,  6) = "hx"
+
+TESTCASE do(2, -1) EXPECT StringIndexException
+TESTCASE do(2,  0) EXPECT StringIndexException
+TESTCASE do(2,  1) = "hexllo"
+TESTCASE do(2,  2) = "hexlo"
+TESTCASE do(2,  3) = "hexo"
+TESTCASE do(2,  4) = "hex"
+TESTCASE do(2,  5) = "hex"
+TESTCASE do(2,  6) = "hex"
+
+TESTCASE do(3, -1) EXPECT StringIndexException
+TESTCASE do(3,  0) EXPECT StringIndexException
+TESTCASE do(3,  1) EXPECT StringIndexException
+TESTCASE do(3,  2) = "helxlo"
+TESTCASE do(3,  3) = "helxo"
+TESTCASE do(3,  4) = "helx"
+TESTCASE do(3,  5) = "helx"
+TESTCASE do(3,  6) = "helx"
+
+TESTCASE do(4, -1) EXPECT StringIndexException
+TESTCASE do(4,  0) EXPECT StringIndexException
+TESTCASE do(4,  1) EXPECT StringIndexException
+TESTCASE do(4,  2) EXPECT StringIndexException
+TESTCASE do(4,  3) = "hellxo"
+TESTCASE do(4,  4) = "hellx"
+TESTCASE do(4,  5) = "hellx"
+TESTCASE do(4,  6) = "hellx"
+
+TESTCASE do(5, -1) EXPECT StringIndexException
+TESTCASE do(5,  0) EXPECT StringIndexException
+TESTCASE do(5,  1) EXPECT StringIndexException
+TESTCASE do(5,  2) EXPECT StringIndexException
+TESTCASE do(5,  3) EXPECT StringIndexException
+TESTCASE do(5,  4) = "hellox"
+TESTCASE do(5,  5) = "hellox"
+TESTCASE do(5,  6) = "hellox"
+
+TESTCASE do(6, -1) EXPECT StringIndexException
+TESTCASE do(6,  0) EXPECT StringIndexException
+TESTCASE do(6,  1) EXPECT StringIndexException
+TESTCASE do(6,  2) EXPECT StringIndexException
+TESTCASE do(6,  3) EXPECT StringIndexException
+TESTCASE do(6,  4) EXPECT StringIndexException
+TESTCASE do(6,  5) = "hello x"
+TESTCASE do(6,  6) = "hello x"

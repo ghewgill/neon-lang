@@ -44,7 +44,7 @@ namespace csnex
         {
             List<Cell> r = new List<Cell>();
             foreach (string value in self) {
-                r.Add(new Cell(value));
+                r.Add(Cell.CreateStringCell(value));
             }
             return r;
         }
@@ -56,6 +56,22 @@ namespace csnex
             }
             for (int i = 0; i < self.Count; i++) {
                 if (!self[i].Equals(rhs[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool Compare(this SortedDictionary<string, Cell> self, SortedDictionary<string, Cell> rhs)
+        {
+            if (self.Keys.Count != rhs.Keys.Count) {
+                return false;
+            }
+            foreach (string k in self.Keys) {
+                if (!rhs.ContainsKey(k)) {
+                    return false;
+                }
+                if (!self[k].Equals(rhs[k])) {
                     return false;
                 }
             }

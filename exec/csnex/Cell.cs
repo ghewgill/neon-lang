@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace csnex
 {
@@ -19,6 +20,7 @@ namespace csnex
             Dictionary,
             Number,
             Object,
+            Other,
             String,
         }
 
@@ -30,6 +32,7 @@ namespace csnex
         private Number m_Number;
         private Object m_Object;
         private String m_String;
+        private object m_Other;
 
 #region Cell Property Accessors
         public Cell Address {
@@ -147,6 +150,20 @@ namespace csnex
             }
         }
 
+        public object Other {
+            get {
+                if (type == Type.Other) {
+                    type = Type.Other;
+                }
+                Debug.Assert(type == Type.Other);
+                return m_Other;
+            }
+            set {
+                type = Type.Other;
+                m_Other = value;
+            }
+        }
+
         public String String {
             get {
                 if (type == Type.None) {
@@ -165,65 +182,94 @@ namespace csnex
         }
 
         public Type type { get; private set; }
+
+        public UInt64 AllocNum { get; }
 #endregion
 #region Constructors
-        public Cell()
+        public Cell(UInt64 alloc = 0)
         {
             type = Type.None;
+            AllocNum = alloc;
         }
 
-        public Cell(Type t)
+        public Cell(Type t, UInt64 alloc = 0)
         {
             type = t;
+            AllocNum = alloc;
+        }
+#endregion
+#region Static creation functions
+        public static Cell CreateAddressCell(Cell c)
+        {
+            Cell r = new Cell();
+            r.type = Type.Address;
+            r.m_Address = c;
+            return r;
         }
 
-        public Cell(List<Cell> a)
+        public static Cell CreateArrayCell(List<Cell> a)
         {
-            type = Type.Array;
-            m_Array = a;
+            Cell r = new Cell();
+            r.type = Type.Array;
+            r.m_Array = a;
+            return r;
         }
 
-        public Cell(Boolean b)
+        public static Cell CreateBooleanCell(Boolean b)
         {
-            type = Type.Boolean;
-            m_Boolean = b;
+            Cell r = new Cell();
+            r.type = Type.Boolean;
+            r.m_Boolean = b;
+            return r;
         }
 
-        public Cell(byte[] b)
+        public static Cell CreateBytesCell(byte[] b)
         {
-            type = Type.Bytes;
-            m_Bytes = new byte[b.Length];
-            b.CopyTo(m_Bytes, 0);
+            Cell r = new Cell();
+            r.type = Type.Bytes;
+            r.m_Bytes = new byte[b.Length];
+            b.CopyTo(r.m_Bytes, 0);
+            return r;
         }
 
-        public Cell(Cell c)
+        public static Cell CreateDictionaryCell(SortedDictionary<string, Cell> d)
         {
-            type = Type.Address;
-            m_Address = c;
+            Cell r = new Cell();
+            r.type = Type.Dictionary;
+            r.m_Dictionary = d;
+            return r;
         }
 
-        public Cell(SortedDictionary<string, Cell> d)
+        public static Cell CreateNumberCell(Number d)
         {
-            type = Type.Dictionary;
-            m_Dictionary = d;
+            Cell r = new Cell();
+            r.type = Type.Number;
+            r.m_Number = d;
+            return r;
         }
 
-        public Cell(Number d)
+        public static Cell CreateObjectCell(Object o)
         {
-            type = Type.Number;
-            m_Number = d;
+            Cell r = new Cell();
+            r.type = Type.Object;
+            r.m_Object = o;
+            return r;
         }
 
-        public Cell(Object o)
+        public static Cell CreateOtherCell(object p)
         {
-            type = Type.Object;
-            m_Object = o;
+            Cell r = new Cell();
+            r.type = Type.Other;
+            r.m_Other = p;
+            return r;
         }
 
-        public Cell(String s)
+        public static Cell CreateStringCell(String s)
         {
-            type = Type.String;
-            m_String = s;
+            Cell r = new Cell();
+            r.type = Type.String;
+            r.m_String = s;
+            return r;
         }
 #endregion
         public void ResetCell()
@@ -235,36 +281,52 @@ namespace csnex
             m_Dictionary = null;
             m_Number = null;
             m_Object = null;
+            m_Other = null;
             m_String = null;
             type = Type.None;
         }
 
         public static string toString(Cell c)
         {
-            string r;
+            StringBuilder r = new StringBuilder();
             switch (c.type) {
                 case Type.Array:
                 {
+                    r.Append("[");
                     int x;
-                    r = "[";
                     for (x = 0; x < c.Array.Count; x++) {
                         if (r.Length > 1) {
-                            r += ", ";
+                            r.Append(", ");
                         }
                         if (c.Array[x].type == Type.String) {
-                            r += c.Array[x].String.Quote();
+                            r.Append(c.Array[x].String.Quote());
                         } else {
-                            r += toString(c.Array[x]);
+                            r.Append(toString(c.Array[x]));
                         }
                     }
-                    r += "]";
-                    return r;
+                    r.Append("]");
+                    return r.ToString();
                 }
                 case Type.Boolean:
                     if (c.Boolean) {
                         return "TRUE";
                     }
                     return "FALSE";
+                case Type.Dictionary:
+                    r.Append("{");
+                    bool first = true;
+                    foreach (KeyValuePair<string, Cell> e in c.Dictionary) {
+                        if (first) {
+                            first = false;
+                        } else {
+                            r.Append(", ");
+                        }
+                        r.Append(e.Key.Quote());
+                        r.Append(": ");
+                        r.Append(e.Value != null ? e.Value.ToString().Quote() : "null");
+                    }
+                    r.Append("}");
+                    return r.ToString();
                 case Type.Number:
                     return c.Number.ToString();
                 case Type.String:
@@ -276,6 +338,11 @@ namespace csnex
         public override String ToString()
         {
             switch (type) {
+                case Type.Address:
+                    if (Address != null) {
+                        return Address.ToString();
+                    }
+                    return "NIL";
                 case Type.Boolean:
                     if (Boolean) {
                         return "TRUE";
@@ -283,6 +350,8 @@ namespace csnex
                     return "FALSE";
                 case Type.Object:
                     return Object.toString();
+                case Type.Other:
+                    return Other.ToString();
                 case Type.String:
                     return String;
             }
@@ -300,13 +369,15 @@ namespace csnex
                 case Type.Boolean:
                 case Type.Bytes:
                 case Type.Dictionary:
-                    // Not implemenetd yet.
+                    // Not implemented yet.
                     return false;
                 case Type.Number:
                     return Number.IsEqual(Number, x.Number);
                 case Type.Object:
-                    // Not Implemented yet.
+                    // Not implemented yet.
                     return false;
+                case Type.Other:
+                    return m_Other == x.m_Other;
                 case Type.String:
                     return String.Compare(String, x.String) == 0;
             }
@@ -349,6 +420,9 @@ namespace csnex
                 case Type.Object:
                     dest.m_Object = source.Object;
                     break;
+                case Type.Other:
+                    dest.m_Other = source.Other;
+                    break;
                 case Type.String:
                     dest.String = source.String;
                     break;
@@ -365,81 +439,6 @@ namespace csnex
             CopyCell(x, c);
             return x;
         }
-
-#region Set functions
-        public void Set(List<Cell> a)
-        {
-            if (type == Type.None) {
-                type = Type.Array;
-            }
-            Debug.Assert(type == Type.Array);
-            Array = a;
-        }
-
-        public void Set(Boolean b)
-        {
-            if (type == Type.None) {
-                type = Type.Boolean;
-            }
-            Debug.Assert(type == Type.Boolean);
-            Boolean = b;
-        }
-
-        public void Set(byte[] b)
-        {
-            if (type == Type.None) {
-                type = Type.Bytes;
-            }
-            Debug.Assert(type == Type.Bytes);
-            m_Bytes = new byte[b.Length];
-            b.CopyTo(m_Bytes, 0);
-        }
-
-        public void Set(Cell c)
-        {
-            if (type == Type.None) {
-                type = Type.Address;
-            }
-            Debug.Assert(type == Type.Address);
-            Address = c;
-        }
-
-        public void Set(SortedDictionary<string, Cell> d)
-        {
-            if (type == Type.None) {
-                type = Type.Dictionary;
-            }
-            Debug.Assert(type == Type.Dictionary);
-            Dictionary = d;
-        }
-
-        public void Set(Number n)
-        {
-            if (type == Type.None) {
-                type = Type.Number;
-            }
-            Debug.Assert(type == Type.Number);
-            Number = n;
-        }
-
-        public void Set(Object o)
-        {
-            if (type == Type.None) {
-                type = Type.Object;
-            }
-            Debug.Assert(type == Type.Object);
-            Object = o;
-        }
-
-        public void Set(string s)
-        {
-            if (type == Type.None) {
-                type = Type.String;
-            }
-            Debug.Assert(type == Type.String);
-            String = s;
-        }
-#endregion
 #region Index functions
         public Cell ArrayIndexForWrite(int i)
         {

@@ -1,0 +1,10 @@
+TYPE Fruit IS CHOICE
+    apple
+    banana
+END CHOICE
+
+VAR f: Fruit
+IF f ISA Fruit.apple THEN
+    print(f.apple)
+            --<
+END IF

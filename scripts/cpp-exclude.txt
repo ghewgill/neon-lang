@@ -59,6 +59,8 @@ cformat-test.neon
 check-if.neon
 check-valid.neon
 check.neon
+choice.neon
+choice-recursive.neon
 class-empty.neon
 cmdline.neon
 comments-block2.neon
@@ -330,6 +332,7 @@ string-in.neon
 string-index.neon
 string-multiline.neon
 string-slice.neon
+string-splice.neon
 strings.neon
 string-test.neon
 struct-test.neon

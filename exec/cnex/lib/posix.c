@@ -138,8 +138,6 @@ void posix_execve(struct tagTExecutor *exec)
     }
     cell_freeCell(argv);
     cell_freeCell(envp);
-    free(a);
-    free(e);
 }
 
 #if HAVE_AT_FUNCTIONS

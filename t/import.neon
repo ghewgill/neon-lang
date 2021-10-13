@@ -9,8 +9,9 @@ FUNCTION Cls.f(self: VALID POINTER TO Cls)
 END FUNCTION
 
 VAR r: export.Record
-VAR c: POINTER TO export.Class
+VAR p: POINTER TO export.Class
 VAR e: export.Enum
+VAR c: export.Choice
 
 TESTCASE export.cb = TRUE
 TESTCASE export.cn = 1
@@ -19,6 +20,9 @@ TESTCASE export.ca = [1]
 TESTCASE export.cd["a"] = 1
 TESTCASE export.cr.n = 1
 --TESTCASE export.ce = export.Enum.green
+IF export.cc ISA export.Choice.apple THEN
+    TESTCASE export.cc.apple = 5
+END IF
 
 TRY
 TRAP export.TestException DO

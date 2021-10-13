@@ -1563,6 +1563,24 @@ def neon_binary_andBytes(self):
     a = self.stack.pop()
     self.stack.append(bytearray([x & y for x, y in zip(a, b)]))
 
+def neon_binary_bitCount32(self):
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", a)
+        return
+    self.stack.append(bin(a).count("1"))
+
+def neon_binary_bitCount64(self):
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", a)
+        return
+    self.stack.append(bin(a).count("1"))
+
+def neon_binary_bitCountBytes(self):
+    a = self.stack.pop()
+    self.stack.append(sum(bin(x).count("1") for x in a))
+
 def neon_binary_extract32(self):
     w = int(self.stack.pop())
     n = int(self.stack.pop())
@@ -2046,7 +2064,20 @@ def neon_object__invokeMethod(self):
     args = self.stack.pop()
     name = self.stack.pop()
     obj = self.stack.pop()
-    r = getattr(obj, name)(*[x.value for x in args])
+    r = None
+    if isinstance(obj, str):
+        if name == "length":
+            r = len(obj)
+    elif isinstance(obj, list):
+        if name == "size":
+            r = len(obj)
+    elif isinstance(obj, dict):
+        if name == "keys":
+            r = [Value(x) for x in sorted(obj.keys())]
+        if name == "size":
+            r = len(obj)
+    if r is None:
+        r = getattr(obj, name)(*[x.value for x in args])
     self.stack.append(r)
 
 def neon_object__isNull(self):
@@ -2155,6 +2186,8 @@ def neon_pointer__toString(self):
 
 def neon_print(self):
     s = self.stack.pop()
+    if isinstance(s, list):
+        s = "[{}]".format(", ".join(literal(x.value) for x in s))
     print(s)
 
 def neon_str(self):
@@ -2207,7 +2240,16 @@ def neon_string__splice(self):
         first += len(a) - 1
     if last_from_end:
         last += len(a) - 1
-    r = a[:first] + b + a[last+1:]
+    if first < 0:
+        self.raise_literal("StringIndexException", (str(first), 0))
+        return
+    if last < first-1:
+        self.raise_literal("StringIndexException", (str(last), 0))
+        return
+    padding = ""
+    if first > len(a):
+        padding = " " * (first - len(a))
+    r = a[:first] + padding + b + a[last+1:]
     self.stack.append(r)
 
 def neon_string__substring(self):

@@ -122,6 +122,7 @@ string-format.neon          # callmf
 string-in.neon              # string$find
 string-index.neon           # exception StringIndexException
 string-slice.neon           # string__splice
+string-splice.neon          # string__splice
 string-test.neon            # string$find
 strings.neon                # string__splice
 struct-test.neon            # exception Utf8DecodingException

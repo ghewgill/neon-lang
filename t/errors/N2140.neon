@@ -1,0 +1,3 @@
+TYPE Fruit IS CHOICE
+    5
+    --<

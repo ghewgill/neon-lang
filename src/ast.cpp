@@ -687,6 +687,22 @@ const Expression *TypeEnum::deserialize_value(const Bytecode::Bytes &value, int 
     return new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i).str()));
 }
 
+const Expression *TypeChoice::make_default_value() const
+{
+    return new ArrayLiteralExpression(nullptr, {new ConstantNumberExpression(number_from_uint32(0))}, {Token()});
+}
+
+std::string TypeChoice::serialize(const Expression *value) const
+{
+    Number x = value->eval_number();
+    return TypeString::serialize(utf8string(number_to_string(x)));
+}
+
+const Expression *TypeChoice::deserialize_value(const Bytecode::Bytes &/*value*/, int &/*i*/) const
+{
+    return nullptr; // TODO new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i).str()));
+}
+
 std::string ModuleVariable::text() const
 {
     return "ModuleVariable(" + module->name + "." + name + ")";
@@ -759,6 +775,13 @@ std::string ConstantEnumExpression::text() const
     return s.str();
 }
 
+std::string ConstantChoiceExpression::text() const
+{
+    std::stringstream s;
+    s << "ConstantChoiceExpression(" << value << ", " << expr->text() << ")";
+    return s.str();
+}
+
 bool ArrayLiteralExpression::all_constant(const std::vector<const Expression *> &elements)
 {
     for (auto e: elements) {
@@ -806,6 +829,15 @@ bool TypeTestExpression::eval_boolean() const
     return expr_after_conversion->type->make_converter(expr_before_conversion->type) != nullptr;
 }
 
+std::map<const ast::Variable *, std::set<int>> ChoiceTestExpression::find_choice_checks() const
+{
+    const ast::VariableExpression *ve = dynamic_cast<const ast::VariableExpression *>(expr);
+    if (ve == nullptr) {
+        return {};
+    }
+    return {{ve->var, {choice}}};
+}
+
 bool BooleanComparisonExpression::eval_boolean() const
 {
     switch (comp) {
@@ -847,6 +879,20 @@ bool EnumComparisonExpression::eval_boolean() const
     internal_error("EnumComparisonExpression");
 }
 
+bool ChoiceComparisonExpression::eval_boolean() const
+{
+    switch (comp) {
+        case Comparison::EQ: return number_is_equal        (left->eval_number(), right->eval_number());
+        case Comparison::NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
+        case Comparison::LT:
+        case Comparison::GT:
+        case Comparison::LE:
+        case Comparison::GE:
+            break;
+    }
+    internal_error("ChoiceComparisonExpression");
+}
+
 bool StringComparisonExpression::eval_boolean() const
 {
     switch (comp) {
@@ -876,7 +922,7 @@ bool BytesComparisonExpression::eval_boolean() const
 bool IfStatement::always_returns() const
 {
     for (auto cond: condition_statements) {
-        if (cond.second.empty() || not cond.second.back()->always_returns()) {
+        if (cond.statements.empty() || not cond.statements.back()->always_returns()) {
             return false;
         }
     }
@@ -889,7 +935,7 @@ bool IfStatement::always_returns() const
 bool IfStatement::is_scope_exit_statement() const
 {
     for (auto cond: condition_statements) {
-        if (cond.second.empty() || not cond.second.back()->is_scope_exit_statement()) {
+        if (cond.statements.empty() || not cond.statements.back()->is_scope_exit_statement()) {
             return false;
         }
     }
@@ -922,6 +968,21 @@ bool CaseStatement::always_returns() const
         if (clause.second.empty() || not clause.second.back()->always_returns()) {
             return false;
         }
+    }
+    return true;
+}
+
+bool CaseStatement::is_scope_exit_statement() const
+{
+    bool seen_others = false;
+    for (auto clause: clauses) {
+        seen_others |= clause.first.empty();
+        if (clause.second.empty() || not clause.second.back()->is_scope_exit_statement()) {
+            return false;
+        }
+    }
+    if (not seen_others) {
+        return false;
     }
     return true;
 }
@@ -1331,7 +1392,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
 
     {
         // The fields here must match the corresponding references to
-        // ExceptionType in exec.cpp.
+        // ExceptionType in exec.cpp, and the declaration in global.neon.
         std::vector<TypeRecord::Field> fields;
         fields.push_back(TypeRecord::Field(Token("name"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_OBJECT, false));

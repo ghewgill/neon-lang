@@ -132,6 +132,9 @@ public:
     void breakpoint();
     void log(const std::string &message);
 
+    // Module: os
+    void interrupt();
+
     // Module: runtime
     void garbage_collect();
     size_t get_allocated_object_count();
@@ -158,6 +161,7 @@ public:
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
+    volatile bool interrupted;
 
     std::list<Cell> allocs;
     unsigned int allocations;
@@ -552,6 +556,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     stack(),
     callstack(),
     frames(),
+    interrupted(false),
     allocs(),
     allocations(0),
     debug_server(debug_port ? new HttpServer(debug_port, this) : nullptr),
@@ -1781,7 +1786,7 @@ void Executor::raise_literal(const utf8string &exception, std::shared_ptr<Object
                 fprintf(stderr, "  Stack frame #%lu: file %s address %lu (line number not found)\n", static_cast<unsigned long>(callstack.size()), module->debug->source_path.c_str(), static_cast<unsigned long>(ip));
             }
         } else {
-            fprintf(stderr, "  Stack frame #%lu: file %s address %lu (no debug info available)\n", static_cast<unsigned long>(callstack.size()), source_path.c_str(), static_cast<unsigned long>(ip));
+            fprintf(stderr, "  Stack frame #%lu: module %s address %lu (no debug info available)\n", static_cast<unsigned long>(callstack.size()), module->name.c_str(), static_cast<unsigned long>(ip));
         }
         if (callstack.empty()) {
             break;
@@ -1812,6 +1817,13 @@ void Executor::breakpoint()
 void Executor::log(const std::string &message)
 {
     debugger_log.push_back(message);
+}
+
+// This function should be limited to setting a flag, because
+// it is called (from os module) on a signal or other thread context.
+void Executor::interrupt()
+{
+    interrupted = true;
 }
 
 static void mark(Cell *c)
@@ -2084,6 +2096,10 @@ int Executor::exec_loop(size_t min_callstack_depth)
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();
         }
+        if (interrupted) {
+            interrupted = false;
+            raise_literal(utf8string(rtl::ne_global::Exception_InterruptedException.name), std::make_shared<ObjectString>(utf8string("Ctrl+C Pressed")));
+        }
     }
     return exit_code;
 }
@@ -2278,6 +2294,11 @@ void Executor::handle_POST(const std::string &path, const std::string &data, Htt
         r << "{}";
     }
     response.content = r.str();
+}
+
+void executor_interrupt()
+{
+    g_executor->interrupt();
 }
 
 void executor_breakpoint()

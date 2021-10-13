@@ -316,6 +316,12 @@ Number string__length(const utf8string &self)
 utf8string string__splice(const utf8string &t, const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     // TODO: utf8
+    if (not number_is_integer(first)) {
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(first)));
+    }
+    if (not number_is_integer(last)) {
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(last)));
+    }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
     if (first_from_end) {
@@ -324,7 +330,18 @@ utf8string string__splice(const utf8string &t, const utf8string &s, Number first
     if (last_from_end) {
         l += s.size() - 1;
     }
-    return utf8string(s.str().substr(0, f) + t.str() + s.str().substr(l + 1));
+    if (f < 0) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(f)));
+    }
+    if (l < f-1) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(l)));
+    }
+    int64_t slen = static_cast<int64_t>(s.str().length());
+    std::string padding;
+    if (f > slen) {
+        padding = std::string(f - slen, ' ');
+    }
+    return utf8string(s.str().substr(0, f) + padding + t.str() + (l < slen ? s.str().substr(l + 1) : ""));
 }
 
 utf8string string__substring(const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)

@@ -7,6 +7,16 @@
 #include "nstring.h"
 
 
+static int popcount(uint64_t x)
+{
+    int r = 0;
+    while (x != 0) {
+        r++;
+        x &= x - 1;
+    }
+    return r;
+}
+
 static BOOL range_check32(TExecutor *exec, Number x)
 {
     if (number_is_less(x, BID_MIN_INT32) || number_is_greater(x, BID_MAX_INT32)) {
@@ -84,6 +94,16 @@ void binary_and32(TExecutor *exec)
         return;
     }
     push(exec->stack, cell_fromNumber(number_from_uint32(number_to_uint32(x) & number_to_uint32(y))));
+}
+
+void binary_bitCount32(TExecutor *exec)
+{
+    Number x = top(exec->stack)->number; pop(exec->stack);
+
+    if (!range_checkU32(exec, x)) {
+        return;
+    }
+    push(exec->stack, cell_fromNumber(number_from_uint32(popcount(number_to_uint32(x)))));
 }
 
 void binary_extract32(TExecutor *exec)
@@ -311,6 +331,16 @@ void binary_and64(TExecutor *exec)
     }
 
     push(exec->stack, cell_fromNumber(number_from_uint64(number_to_uint64(x) & number_to_uint64(y))));
+}
+
+void binary_bitCount64(TExecutor *exec)
+{
+    Number x = top(exec->stack)->number; pop(exec->stack);
+
+    if (!range_checkU64(exec, x)) {
+        return;
+    }
+    push(exec->stack, cell_fromNumber(number_from_uint32(popcount(number_to_uint64(x)))));
 }
 
 void binary_extract64(TExecutor *exec)
@@ -543,6 +573,18 @@ void binary_andBytes(TExecutor *exec)
     push(exec->stack, cell_fromString(r));
     string_freeString(r);
     string_freeString(y);
+    string_freeString(x);
+}
+
+void binary_bitCountBytes(TExecutor *exec)
+{
+    TString *x = string_fromString(top(exec->stack)->string); pop(exec->stack);
+
+    int r = 0;
+    for (size_t i = 0; i < x->length; i++) {
+        r += popcount((unsigned char)x->data[i]);
+    }
+    push(exec->stack, cell_fromNumber(number_from_uint32(r)));
     string_freeString(x);
 }
 

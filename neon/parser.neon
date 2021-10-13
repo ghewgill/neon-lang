@@ -104,12 +104,13 @@ END RECORD
 TYPE Type IS ENUM
     TypeSimple
     TypeEnum
+    TypeChoice
     TypeRecord
     TypeClass
     TypePointer
     TypeFunctionPointer
     TypeParameterised
-    TypeImport
+    TypeQualified
     DummyExpression
     IdentityExpression
     BooleanLiteralExpression
@@ -195,6 +196,15 @@ TYPE TypeEnum IS RECORD
     names: Array<lexer.Token>
 END RECORD
 
+TYPE Choice IS RECORD
+    name: lexer.Token
+    type: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE TypeChoice IS RECORD
+    choices: Array<Choice>
+END RECORD
+
 TYPE Field IS RECORD
     name: lexer.Token
     type: POINTER TO ParseTreeNode
@@ -224,9 +234,8 @@ TYPE TypeParameterised IS RECORD
     elementtype: POINTER TO ParseTreeNode
 END RECORD
 
-TYPE TypeImport IS RECORD
-    modname: lexer.Token
-    subname: lexer.Token
+TYPE TypeQualified IS RECORD
+    names: Array<lexer.Token>
 END RECORD
 
 TYPE BaseExpression IS RECORD
@@ -488,6 +497,7 @@ END RECORD
 
 TYPE ExitStatement IS RECORD
     label: lexer.Token
+    arg: lexer.Token
 END RECORD
 
 TYPE ExpressionStatement IS RECORD
@@ -583,12 +593,13 @@ TYPE ParseTreeNode IS CLASS
     token: lexer.Token
     typesimple: TypeSimple
     typeenum: TypeEnum
+    typechoice: TypeChoice
     typerecord: TypeRecord
     typeclass: TypeClass
     typepointer: TypePointer
     typefunctionpointer: TypeFunctionPointer
     typeparameterised: TypeParameterised
-    typeimport: TypeImport
+    typequalified: TypeQualified
     baseexpression: BaseExpression
     unaryexpression: UnaryExpression
     binaryexpression: BinaryExpression
@@ -2046,6 +2057,38 @@ FUNCTION Parser.parseEnumType(INOUT self: Parser): POINTER TO ParseTreeNode
     )
 END FUNCTION
 
+FUNCTION Parser.parseChoiceType(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.choice
+    LET tokChoice: lexer.Token := self.token
+    self.nextToken()
+    VAR choices: Array<Choice> := []
+    WHILE self.token.type <> TokenType.end DO
+        IF self.token.type <> TokenType.identifier THEN
+            error(2140, self.token, "identifier expected")
+        END IF
+        LET name: lexer.Token := self.token
+        self.nextToken()
+        VAR choice: Choice := Choice(name WITH name)
+        IF self.token.type = TokenType.colon THEN
+            self.nextToken()
+            choice.type := self.parseType()
+        END IF
+        choices.append(choice)
+    END WHILE
+    self.nextToken()
+    IF self.token.type <> TokenType.choice THEN
+        error_a(2141, self.tokens[self.index-1], self.token, "'CHOICE' expected")
+    END IF
+    self.nextToken()
+    RETURN NEW ParseTreeNode(
+        type WITH Type.TypeChoice,
+        token WITH tokChoice,
+        typechoice WITH TypeChoice(
+            choices WITH choices
+        )
+    )
+END FUNCTION
+
 FUNCTION Parser.parseRecordType(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.record
     LET tokRecord: lexer.Token := self.token
@@ -2223,6 +2266,8 @@ FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseParameterisedType()
         WHEN TokenType.enum DO
             RETURN self.parseEnumType()
+        WHEN TokenType.choice DO
+            RETURN self.parseChoiceType()
         WHEN TokenType.record DO
             RETURN self.parseRecordType()
         WHEN TokenType.class DO
@@ -2239,18 +2284,20 @@ FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
     LET name: lexer.Token := self.token
     self.nextToken()
     IF self.token.type = TokenType.dot THEN
-        self.nextToken()
-        IF self.token.type <> TokenType.identifier THEN
-            error(2075, self.token, "identifier expected")
-        END IF
-        LET subname: lexer.Token := self.token
-        self.nextToken()
+        VAR names: Array<lexer.Token> := [name]
+        WHILE self.token.type = TokenType.dot DO
+            self.nextToken()
+            IF self.token.type <> TokenType.identifier THEN
+                error(2075, self.token, "identifier expected")
+            END IF
+            names.append(self.token)
+            self.nextToken()
+        END WHILE
         RETURN NEW ParseTreeNode(
-            type WITH Type.TypeImport,
+            type WITH Type.TypeQualified,
             token WITH name,
-            typeimport WITH TypeImport(
-                modname WITH name,
-                subname WITH subname
+            typequalified WITH TypeQualified(
+                names WITH names
             )
         )
     ELSE
@@ -2850,15 +2897,26 @@ FUNCTION Parser.parseExitStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     LET tokExit: lexer.Token := self.token
     self.nextToken()
     LET label: lexer.Token := self.token
-    IF label.type NOT IN [TokenType.function, TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat, TokenType.identifier] THEN
+    IF label.type NOT IN [TokenType.function, TokenType.process, TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat, TokenType.identifier] THEN
         error_a(2052, self.tokens[self.index-1], self.token, "loop type or label expected")
     END IF
     self.nextToken()
+    VAR arg: lexer.Token := lexer.Token()
+    IF label.type = TokenType.process THEN
+        CASE self.token.type
+            WHEN TokenType.success, TokenType.failure DO
+                arg := self.token
+            WHEN OTHERS DO
+                error(2142, self.token, "SUCCESS or FAILURE expected")
+        END CASE
+        self.nextToken()
+    END IF
     RETURN NEW ParseTreeNode(
         type WITH Type.ExitStatement,
         token WITH tokExit,
         exitstatement WITH ExitStatement(
-            label WITH label
+            label WITH label,
+            arg WITH arg
         )
     )
 END FUNCTION
@@ -3658,6 +3716,17 @@ FUNCTION dumpTypeEnum(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TypeEnum(\(names))")
 END FUNCTION
 
+FUNCTION dumpTypeChoice(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH c IN node->typechoice.choices DO
+        IF names <> "" THEN
+            names.append(",")
+        END IF
+        names.append(c.name.text)
+    END FOREACH
+    dumpNode(depth, "TypeChoice(\(names))")
+END FUNCTION
+
 FUNCTION dumpTypeRecord(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH f IN node->typerecord.fields DO
@@ -3695,7 +3764,15 @@ FUNCTION dumpTypeParameterised(node: VALID POINTER TO ParseTreeNode, depth: Numb
     dumpParseTree(node->typeparameterised.elementtype, depth+1)
 END FUNCTION
 
-FUNCTION dumpTypeImport(node: VALID POINTER TO ParseTreeNode, depth: Number)
+FUNCTION dumpTypeQualified(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH n IN node->typequalified.names DO
+        IF names <> "" THEN
+            names.append(",")
+        END IF
+        names.append(n.text)
+    END FOREACH
+    dumpNode(depth, "TypeQualified(\(names))")
 END FUNCTION
 
 FUNCTION dumpDummyExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
@@ -4084,7 +4161,11 @@ FUNCTION dumpCheckStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
 FUNCTION dumpExitStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
-    dumpNode(depth, "ExitStatement(\(node->exitstatement.label.text))")
+    IF node->exitstatement.label.type = TokenType.process THEN
+        dumpNode(depth, "ExitStatement(\(node->exitstatement.label.text), \(node->exitstatement.arg.text))")
+    ELSE
+        dumpNode(depth, "ExitStatement(\(node->exitstatement.label.text))")
+    END IF
 END FUNCTION
 
 FUNCTION dumpExpressionStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
@@ -4207,12 +4288,13 @@ LET Dumper: IParseTreeVisitor := {
     -- TODO: use values like Type.Program.toString() instead of literals
     "TypeSimple":                           dumpTypeSimple,
     "TypeEnum":                             dumpTypeEnum,
+    "TypeChoice":                           dumpTypeChoice,
     "TypeRecord":                           dumpTypeRecord,
     "TypeClass":                            dumpTypeClass,
     "TypePointer":                          dumpTypePointer,
     "TypeFunctionPointer":                  dumpTypeFunctionPointer,
     "TypeParameterised":                    dumpTypeParameterised,
-    "TypeImport":                           dumpTypeImport,
+    "TypeQualified":                        dumpTypeQualified,
     "DummyExpression":                      dumpDummyExpression,
     "IdentityExpression":                   dumpIdentityExpression,
     "BooleanLiteralExpression":             dumpBooleanLiteralExpression,

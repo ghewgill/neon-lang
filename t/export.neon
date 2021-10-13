@@ -5,6 +5,7 @@ EXPORT Record
 EXPORT Class
 EXPORT Class2
 EXPORT Enum
+EXPORT Choice
 
 EXPORT cb
 EXPORT cn
@@ -13,6 +14,7 @@ EXPORT ca
 EXPORT cd
 EXPORT cr
 EXPORT ce
+EXPORT cc
 
 EXPORT vb
 EXPORT vn
@@ -22,6 +24,7 @@ EXPORT va
 EXPORT vd
 EXPORT vr
 EXPORT ve
+EXPORT vc
 --EXPORT vp
 
 EXCEPTION TestException
@@ -54,6 +57,12 @@ TYPE Enum IS ENUM
     blue
 END ENUM
 
+TYPE Choice IS CHOICE
+    apple: Number
+    banana: Number
+    cherry: Number
+END CHOICE
+
 CONSTANT cb: Boolean := TRUE
 CONSTANT cn: Number := 1
 CONSTANT cs: String := "a"
@@ -61,6 +70,7 @@ CONSTANT ca: Array<Number> := [1]
 CONSTANT cd: Dictionary<Number> := {"a": 1}
 CONSTANT cr: Record := Record(n WITH 1)
 CONSTANT ce: Enum := Enum.green
+CONSTANT cc: Choice := Choice.apple(5)
 
 VAR vb: Boolean
 VAR vn: Number
@@ -70,4 +80,5 @@ VAR va: Array<Number>
 VAR vd: Dictionary<Number>
 VAR vr: Record
 VAR ve: Enum
+VAR vc: Choice
 --VAR vp: POINTER TO Record

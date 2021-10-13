@@ -74,12 +74,11 @@ sql-query.neon         # Feature not required
 sql-whenever.neon      # Feature not required
 sqlite-test.neon       # Module not required
 string-multiline.neon  # Feature not required
+string-splice.neon     # Feature not required
 sudoku-test.neon       # Sample not required
 tail-call.neon         # Feature not required
 time-stopwatch.neon    # Module not required
 time-test.neon         # Module not required
-varargs.neon           # Feature not required
-varargs-functionpointer.neon # Feature not required
 win32-test.neon        # Module not required
 compress-test.neon        # Module not required
 extsample-test.neon      # Extension functions not required

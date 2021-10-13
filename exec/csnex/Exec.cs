@@ -39,7 +39,7 @@ namespace csnex
             }
         }
 
-        public Executor(Module mod)
+        public Executor(Module mod, bool trace)
         {
             support = new Support(mod.SourcePath);
             exit_code = 0;
@@ -51,7 +51,10 @@ namespace csnex
             module = mod;
             modules.Add("", mod);
             param_recursion_limit = 1000;
+            Allocations = 0;
+            EnableTrace = trace;
             library = new List<KeyValuePair<string, object>>();
+            library.Add(new KeyValuePair<string, object>("console", new rtl.console(this)));
             library.Add(new KeyValuePair<string, object>("io", new rtl.io(this)));
             library.Add(new KeyValuePair<string, object>("random", new rtl.random(this)));
             library.Add(new KeyValuePair<string, object>("runtime", new rtl.runtime(this)));
@@ -77,7 +80,6 @@ namespace csnex
         }
 
         private List<KeyValuePair<string, object>> library;
-
         private int exit_code;
         public Stack<Cell> stack;
         private Stack<CallStack> callstack;
@@ -91,6 +93,13 @@ namespace csnex
         private Dictionary<string, Module> modules;
         private List<string> init_order;
         private Support support;
+        public UInt64 Allocations;
+        private readonly bool EnableTrace;
+
+        public bool ModuleIsMain()
+        {
+            return module.Equals(modules[""]);
+        }
 
         public int Run(bool EnableAssertions)
         {
@@ -125,9 +134,9 @@ namespace csnex
         private void RaiseLiteral(string name, Cell info)
         {
             List<Cell> exceptionvar = new List<Cell>();
-            exceptionvar.Add(new Cell(name));
+            exceptionvar.Add(Cell.CreateStringCell(name));
             exceptionvar.Add(info);
-            exceptionvar.Add(new Cell(new Number(ip)));
+            exceptionvar.Add(Cell.CreateNumberCell(new Number(ip)));
             int tip = ip;
             int sp = callstack.Count;
             for (;;) {
@@ -140,7 +149,7 @@ namespace csnex
                             while (stack.Count > (((frames.Count == 0 ? 0 : frames.Peek().OpstackDepth) + module.Bytecode.exceptions[i].stack_depth))) {
                                 stack.Pop();
                             }
-                            stack.Push(new Cell(exceptionvar));
+                            stack.Push(Cell.CreateArrayCell(exceptionvar));
                             return;
                         }
                     }
@@ -167,7 +176,7 @@ namespace csnex
 
         public void Raise(string name, string info)
         {
-            RaiseLiteral(name, new Cell(new ObjectString(info)));
+            RaiseLiteral(name, Cell.CreateObjectCell(new ObjectString(info)));
         }
 
 #region Opcode Handlers
@@ -176,28 +185,28 @@ namespace csnex
         {
             Boolean val = module.Bytecode.code[ip + 1] != 0;
             ip += 2;
-            stack.Push(new Cell(val));
+            stack.Push(Cell.CreateBooleanCell(val));
         }
 
         void PUSHN()
         {
             ip++;
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
-            stack.Push(new Cell(Number.FromString(module.Bytecode.strtable[val])));
+            stack.Push(Cell.CreateNumberCell(Number.FromString(module.Bytecode.strtable[val])));
         }
 
         void PUSHS()
         {
             ip++;
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
-            stack.Push(new Cell(module.Bytecode.strtable[val]));
+            stack.Push(Cell.CreateStringCell(module.Bytecode.strtable[val]));
         }
 
         void PUSHY()
         {
             ip++;
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
-            stack.Push(new Cell(module.Bytecode.bytetable[val]));
+            stack.Push(Cell.CreateBytesCell(module.Bytecode.bytetable[val]));
         }
 
         void PUSHPG()
@@ -205,7 +214,7 @@ namespace csnex
             ip++;
             int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             Debug.Assert(addr < module.Bytecode.globals.Count);
-            stack.Push(new Cell(module.Bytecode.globals[addr]));
+            stack.Push(Cell.CreateAddressCell(module.Bytecode.globals[addr]));
         }
 
         void PUSHPPG()
@@ -216,7 +225,7 @@ namespace csnex
             try {
                 object obj = library.Find(a => a.Key == var.Substring(0, var.IndexOf('$'))).Value;
                 PropertyInfo pi = obj.GetType().GetProperty(var.Substring(var.IndexOf('$')+1));
-                stack.Push(new Cell((Cell)pi.GetValue(obj)));
+                stack.Push(Cell.CreateAddressCell((Cell)pi.GetValue(obj)));
             } catch (TargetInvocationException ti) {
                 throw ti.InnerException;
             } catch {
@@ -226,14 +235,30 @@ namespace csnex
 
         void PUSHPMG()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int mod = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int name = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+
+            if (!modules.ContainsKey(module.Bytecode.strtable[mod])) {
+                throw new NeonException(string.Format("module not found: {0}\n", module.Bytecode.strtable[mod]));
+            }
+            Module m = modules[module.Bytecode.strtable[mod]];
+
+            for (int v = 0; v < m.Bytecode.variables.Count; v++) {
+                if (string.Compare(m.Bytecode.strtable[m.Bytecode.variables[v].name], module.Bytecode.strtable[name]) == 0) {
+                    int addr = m.Bytecode.variables[v].index;
+                    Debug.Assert(addr < m.Bytecode.globals.Count);
+                    stack.Push(Cell.CreateAddressCell(m.Bytecode.globals[addr]));
+                    return;
+                }
+            }
         }
 
         void PUSHPL()
         {
             ip++;
             int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
-            stack.Push(new Cell(frames.Peek().Locals[addr]));
+            stack.Push(Cell.CreateAddressCell(frames.Peek().Locals[addr]));
         }
 
         void PUSHPOL()
@@ -247,27 +272,67 @@ namespace csnex
                 frame = frame.Outer;
                 back--;
             }
-            stack.Push(new Cell(frame.Locals[addr]));
+            stack.Push(Cell.CreateAddressCell(frame.Locals[addr]));
         }
 
         void PUSHI()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int x = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            stack.Push(Cell.CreateNumberCell(new Number(x)));
         }
 
         void PUSHNIL()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            stack.Push(Cell.CreateAddressCell(null));
         }
 
         void PUSHFP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            List<Cell> a = new List<Cell>();
+            a.Add(Cell.CreateOtherCell(module));
+            a.Add(Cell.CreateNumberCell(new Number(addr)));
+            stack.Push(Cell.CreateArrayCell(a));
         }
 
         void PUSHCI()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+
+            int dot = module.Bytecode.strtable[val].IndexOf('.');
+            if (dot == -1) {
+                for (int c = 0; c < module.Bytecode.classes.Count; c++) {
+                    if (module.Bytecode.classes[c].name == val) {
+                        Cell ci = new Cell(Cell.Type.Array);
+                        ci.Array = new List<Cell>();
+                        ci.Array.Add(Cell.CreateOtherCell(module));
+                        ci.Array.Add(Cell.CreateOtherCell(module.Bytecode.classes[c]));
+                        stack.Push(ci);
+                        return;
+                    }
+                }
+            } else {
+                string modname = module.Bytecode.strtable[val].Substring(0, dot);
+                string methodname = module.Bytecode.strtable[val].Substring(dot+1, module.Bytecode.strtable[val].Length - dot - 1);
+                if (modules.ContainsKey(modname)) {
+                    Module mod = modules[modname];
+                    for (int c = 0; c < mod.Bytecode.classes.Count; c++) {
+                        if (string.Compare(mod.Bytecode.strtable[mod.Bytecode.classes[c].name], methodname) == 0) {
+                            Cell ci = new Cell(Cell.Type.Array);
+                            ci.Array = new List<Cell>();
+                            ci.Array.Add(Cell.CreateOtherCell(mod));
+                            ci.Array.Add(Cell.CreateOtherCell(mod.Bytecode.classes[c]));
+                            stack.Push(ci);
+                            return;
+                        }
+                    }
+                }
+            }
+            throw new NeonException(string.Format("csnex: unknown class name {0}\n", module.Bytecode.strtable[val]));
         }
 
         void PUSHPEG()
@@ -280,54 +345,56 @@ namespace csnex
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Boolean));
+            stack.Push(Cell.CreateBooleanCell(addr.Boolean));
         }
 
         void LOADN()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Number));
+            stack.Push(Cell.CreateNumberCell(addr.Number));
         }
 
         void LOADS()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.String));
+            stack.Push(Cell.CreateStringCell(addr.String));
         }
 
         void LOADY()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Bytes));
+            stack.Push(Cell.CreateBytesCell(addr.Bytes));
         }
 
         void LOADA()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Array));
+            stack.Push(Cell.CreateArrayCell(addr.Array));
         }
 
         void LOADD()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Dictionary));
+            stack.Push(Cell.CreateDictionaryCell(addr.Dictionary));
         }
 
         void LOADP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(Cell.CreateAddressCell(addr.Address));
         }
 
         void LOADJ()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Object));
+            stack.Push(Cell.CreateObjectCell(addr.Object));
         }
 
         void LOADV()
@@ -380,7 +447,9 @@ namespace csnex
 
         void STOREP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREJ()
@@ -400,7 +469,7 @@ namespace csnex
         {
             ip++;
             Number x = stack.Pop().Number;
-            stack.Push(new Cell(Number.Negate(x)));
+            stack.Push(Cell.CreateNumberCell(Number.Negate(x)));
         }
 
         void ADDN()
@@ -408,7 +477,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.Add(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Add(a, b)));
         }
 
         void SUBN()
@@ -416,7 +485,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.Subtract(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Subtract(a, b)));
         }
 
         void MULN()
@@ -424,7 +493,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.Multiply(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Multiply(a, b)));
         }
 
         void DIVN()
@@ -436,7 +505,7 @@ namespace csnex
                 Raise("NumberException.DivideByZero", "");
                 return;
             }
-            stack.Push(new Cell(Number.Divide(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Divide(a, b)));
         }
 
         void MODN()
@@ -448,7 +517,7 @@ namespace csnex
                 Raise("NumberException.DivideByZero", "");
                 return;
             }
-            stack.Push(new Cell(Number.Modulo(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Modulo(a, b)));
         }
 
         void EXPN()
@@ -460,7 +529,7 @@ namespace csnex
                 Raise("NumberException.DivideByZero", "");
                 return;
             }
-            stack.Push(new Cell(Number.Pow(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Pow(a, b)));
         }
 #endregion
 #region Comparison Opcodes
@@ -469,7 +538,7 @@ namespace csnex
             ip++;
             bool b = stack.Pop().Boolean;
             bool a = stack.Pop().Boolean;
-            stack.Push(new Cell(a == b));
+            stack.Push(Cell.CreateBooleanCell(a == b));
         }
 
         void NEB()
@@ -477,7 +546,7 @@ namespace csnex
             ip++;
             bool b = stack.Pop().Boolean;
             bool a = stack.Pop().Boolean;
-            stack.Push(new Cell(a != b));
+            stack.Push(Cell.CreateBooleanCell(a != b));
         }
 
         void EQN()
@@ -485,7 +554,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsEqual(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsEqual(a, b)));
         }
 
         void NEN()
@@ -493,7 +562,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(!Number.IsEqual(a, b)));
+            stack.Push(Cell.CreateBooleanCell(!Number.IsEqual(a, b)));
         }
 
         void LTN()
@@ -501,7 +570,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsLessThan(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsLessThan(a, b)));
         }
 
         void GTN()
@@ -509,7 +578,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsGreaterThan(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsGreaterThan(a, b)));
         }
 
         void LEN()
@@ -517,7 +586,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsLessOrEqual(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsLessOrEqual(a, b)));
         }
 
         void GEN()
@@ -525,7 +594,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsGreaterOrEqual(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsGreaterOrEqual(a, b)));
         }
 
         void EQS()
@@ -533,7 +602,7 @@ namespace csnex
             ip++;
             string b = stack.Pop().String;
             string a = stack.Pop().String;
-            stack.Push(new Cell(string.Compare(a, b) == 0));
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) == 0));
         }
 
         void NES()
@@ -541,7 +610,7 @@ namespace csnex
             ip++;
             string b = stack.Pop().String;
             string a = stack.Pop().String;
-            stack.Push(new Cell(string.Compare(a, b) != 0));
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) != 0));
         }
 
         void LTS()
@@ -549,7 +618,7 @@ namespace csnex
             ip++;
             string b = stack.Pop().String;
             string a = stack.Pop().String;
-            stack.Push(new Cell(string.Compare(a, b) < 0));
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) < 0));
         }
 
         void GTS()
@@ -557,7 +626,7 @@ namespace csnex
             ip++;
             string b = stack.Pop().String;
             string a = stack.Pop().String;
-            stack.Push(new Cell(string.Compare(a, b) > 0));
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) > 0));
         }
 
         void LES()
@@ -565,7 +634,7 @@ namespace csnex
             ip++;
             string b = stack.Pop().String;
             string a = stack.Pop().String;
-            stack.Push(new Cell(string.Compare(a, b) <= 0));
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) <= 0));
         }
 
         void GES()
@@ -573,7 +642,7 @@ namespace csnex
             ip++;
             string b = stack.Pop().String;
             string a = stack.Pop().String;
-            stack.Push(new Cell(string.Compare(a, b) >= 0));
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) >= 0));
         }
 
         void EQY()
@@ -581,7 +650,7 @@ namespace csnex
             ip++;
             Cell b = stack.Pop();
             Cell a = stack.Pop();
-            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) == 0));
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) == 0));
         }
 
         void NEY()
@@ -589,7 +658,7 @@ namespace csnex
             ip++;
             Cell b = stack.Pop();
             Cell a = stack.Pop();
-            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) != 0));
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) != 0));
         }
 
         void LTY()
@@ -597,7 +666,7 @@ namespace csnex
             ip++;
             Cell b = stack.Pop();
             Cell a = stack.Pop();
-            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) < 0));
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) < 0));
         }
 
         void GTY()
@@ -605,7 +674,7 @@ namespace csnex
             ip++;
             Cell b = stack.Pop();
             Cell a = stack.Pop();
-            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) > 0));
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) > 0));
         }
 
         void LEY()
@@ -613,7 +682,7 @@ namespace csnex
             ip++;
             Cell b = stack.Pop();
             Cell a = stack.Pop();
-            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) <= 0));
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) <= 0));
         }
 
         void GEY()
@@ -621,7 +690,7 @@ namespace csnex
             ip++;
             Cell b = stack.Pop();
             Cell a = stack.Pop();
-            stack.Push(new Cell(a.Bytes.Compare(b.Bytes) >= 0));
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) >= 0));
         }
 
         void EQA()
@@ -629,8 +698,7 @@ namespace csnex
             ip++;
             Cell b = stack.Pop();
             Cell a = stack.Pop();
-            Cell r = new Cell(a.Array.Compare(b.Array));
-            stack.Push(r);
+            stack.Push(Cell.CreateBooleanCell(a.Array.Compare(b.Array)));
         }
 
         void NEA()
@@ -638,28 +706,39 @@ namespace csnex
             ip++;
             Cell b = stack.Pop();
             Cell a = stack.Pop();
-            Cell r = new Cell(!a.Array.Compare(b.Array));
-            stack.Push(r);
+            stack.Push(Cell.CreateBooleanCell(!a.Array.Compare(b.Array)));
         }
 
         void EQD()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Dictionary.Compare(b.Dictionary)));
         }
 
         void NED()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(!a.Dictionary.Compare(b.Dictionary)));
         }
 
         void EQP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop().Address;
+            Cell a = stack.Pop().Address;
+            stack.Push(Cell.CreateBooleanCell(a == b));
         }
 
         void NEP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop().Address;
+            Cell a = stack.Pop().Address;
+            stack.Push(Cell.CreateBooleanCell(a != b));
         }
 
         void EQV()
@@ -687,7 +766,7 @@ namespace csnex
         {
             ip++;
             bool x = stack.Pop().Boolean;
-            stack.Push(new Cell(!x));
+            stack.Push(Cell.CreateBooleanCell(!x));
         }
 #endregion
 #region Index Opcodes
@@ -711,7 +790,7 @@ namespace csnex
                 Raise("ArrayIndexException", index.ToString());
                 return;
             }
-            stack.Push(new Cell(addr.ArrayIndexForRead(i)));
+            stack.Push(Cell.CreateAddressCell(addr.ArrayIndexForRead(i)));
         }
 
         void INDEXAW()
@@ -729,7 +808,7 @@ namespace csnex
                 Raise("ArrayIndexException", index.ToString());
                 return;
             }
-            stack.Push(new Cell(addr.ArrayIndexForWrite(i)));
+            stack.Push(Cell.CreateAddressCell(addr.ArrayIndexForWrite(i)));
         }
 
         void INDEXAV()
@@ -739,17 +818,17 @@ namespace csnex
             Cell array = stack.Pop();
 
             if (!index.IsInteger()) {
-                RaiseLiteral("ArrayIndexException", new Cell(index.ToString()));
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(index.ToString()));
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                RaiseLiteral("ArrayIndexException", new Cell(new Number(i).ToString()));
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(i).ToString()));
                 return;
             }
             uint j = (uint)i;
             if (j >= array.Array.Count) {
-                RaiseLiteral("ArrayIndexException", new Cell(new Number(j).ToString()));
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(j).ToString()));
                 return;
             }
             Debug.Assert(j < array.Array.Count);
@@ -758,7 +837,22 @@ namespace csnex
 
         void INDEXAN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number index = stack.Pop().Number;
+            Cell array = stack.Pop();
+
+            if (!index.IsInteger()) {
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(index.ToString()));
+                return;
+            }
+            int i = Number.number_to_int32(index);
+            if (i < 0 || i >= array.Array.Count) {
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(i).ToString()));
+                return;
+            }
+
+            Cell val = i < array.Array.Count ? Cell.FromCell(array.Array[i]) : new Cell();
+            stack.Push(val);
         }
 
         void INDEXDR()
@@ -770,7 +864,7 @@ namespace csnex
                 Raise("DictionaryIndexException", index);
                 return;
             }
-            stack.Push(new Cell(addr.DictionaryIndexForRead(index)));
+            stack.Push(Cell.CreateAddressCell(addr.DictionaryIndexForRead(index)));
         }
 
         void INDEXDW()
@@ -778,7 +872,7 @@ namespace csnex
             ip++;
             string index = stack.Pop().String;
             Cell dict = stack.Pop().Address;
-            stack.Push(new Cell(dict.DictionaryIndexForWrite(index)));
+            stack.Push(Cell.CreateAddressCell(dict.DictionaryIndexForWrite(index)));
         }
 
         void INDEXDV()
@@ -806,7 +900,7 @@ namespace csnex
 
             bool v = array.Array.Exists(x => x.Equals(val));
 
-            stack.Push(new Cell(v));
+            stack.Push(Cell.CreateBooleanCell(v));
         }
 
         void IND()
@@ -817,7 +911,7 @@ namespace csnex
 
             bool v = dictionary.ContainsKey(key);
 
-            stack.Push(new Cell(v));
+            stack.Push(Cell.CreateBooleanCell(v));
         }
 #endregion
 #region CALLx Opcodes
@@ -882,7 +976,21 @@ namespace csnex
 
         void CALLI()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            if (callstack.Count >= param_recursion_limit) {
+                Raise("StackOverflowException", "");
+                return;
+            }
+
+            Cell a = stack.Pop();
+            Module mod = (Module)a.Array[0].Other;
+            Number nindex = a.Array[1].Number;
+            if (nindex.IsZero() || !nindex.IsInteger()) {
+                Raise("InvalidFunctionException", "");
+                return;
+            }
+            int index = Number.number_to_int32(nindex);
+            Invoke(mod, index);
         }
 
         void CALLE()
@@ -897,7 +1005,20 @@ namespace csnex
 
         void CALLV()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            if (callstack.Count >= param_recursion_limit) {
+                Raise("StackOverflowException", "");
+                return;
+            }
+
+            Cell pi = stack.Pop();
+            Cell instance = pi.Array[0].Address;
+            int interface_index = Number.number_to_int32(pi.Array[1].Number);
+            Module m = (Module)instance.Array[0].Array[0].Other;
+            Bytecode.ClassInfo classinfo = (Bytecode.ClassInfo)instance.Array[0].Array[1].Other;
+
+            Invoke(m, classinfo.interfaces[interface_index].methods[val]);
         }
 #endregion
 #region JUMP Opcodes
@@ -1011,7 +1132,7 @@ namespace csnex
                 a.Add(stack.Pop());
                 val--;
             }
-            stack.Push(new Cell(a));
+            stack.Push(Cell.CreateArrayCell(a));
         }
 
         void CONSD()
@@ -1026,7 +1147,7 @@ namespace csnex
                 d.Add(key, value);
                 val--;
             }
-            stack.Push(new Cell(d));
+            stack.Push(Cell.CreateDictionaryCell(d));
         }
 #endregion
 #region Exception Opcodes
@@ -1043,7 +1164,16 @@ namespace csnex
 #region Memory Opcodes
         void ALLOC()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+
+            Allocations++;
+            Cell cell = new Cell(Cell.Type.Array, Allocations);
+            cell.Array = new List<Cell>();
+            for (int i = 0; i < val; i++) {
+                cell.Array.Add(new Cell());
+            }
+            stack.Push(Cell.CreateAddressCell(cell));
         }
 
         void RESETC()
@@ -1113,6 +1243,9 @@ namespace csnex
         private int Loop(Int64 min_callstack_depth)
         {
             while (callstack.Count > min_callstack_depth && ip < module.Bytecode.code.Length && exit_code == 0) {
+                if (EnableTrace) {
+                    Console.Error.WriteLine("mod {0} ip {1} ({2}) {3}", module.Name, ip, stack.Count, InstructionDisassembler.DisassembleInstruction(module.Bytecode, ip));
+                }
                 try {
                     switch ((Opcode)module.Bytecode.code[ip]) {
                         case Opcode.PUSHB: PUSHB(); break;                // push boolean immediate
