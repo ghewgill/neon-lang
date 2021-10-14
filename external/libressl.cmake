@@ -539,6 +539,7 @@ else ()
         target_compile_definitions(RESSL PRIVATE -DOPENSSL_NO_HW_PADLOCK)
         target_compile_definitions(RESSL PRIVATE -D__BEGIN_HIDDEN_DECLS=)
         target_compile_definitions(RESSL PRIVATE -D__END_HIDDEN_DECLS=)
+        target_compile_definitions(RESSL PRIVATE -DHAVE_STRNLEN)
         target_include_directories(RESSL
             PUBLIC libressl-3.3.5/include
             PRIVATE libressl-3.3.5/include/compat
