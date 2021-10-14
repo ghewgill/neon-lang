@@ -16,6 +16,7 @@ else ()
         add_library(RESSL
             libressl-3.3.5/crypto/aes/aes_cbc.c
             libressl-3.3.5/crypto/aes/aes_core.c
+            libressl-3.3.5/crypto/aes/aes_wrap.c
             libressl-3.3.5/crypto/asn1/a_bitstr.c
             libressl-3.3.5/crypto/asn1/a_bool.c
             libressl-3.3.5/crypto/asn1/a_d2i_fp.c
@@ -38,7 +39,9 @@ else ()
             libressl-3.3.5/crypto/asn1/a_verify.c
             libressl-3.3.5/crypto/asn1/ameth_lib.c
             libressl-3.3.5/crypto/asn1/asn_mime.c
+            libressl-3.3.5/crypto/asn1/asn_moid.c
             libressl-3.3.5/crypto/asn1/asn_pack.c
+            libressl-3.3.5/crypto/asn1/asn1_err.c
             libressl-3.3.5/crypto/asn1/asn1_gen.c
             libressl-3.3.5/crypto/asn1/asn1_lib.c
             libressl-3.3.5/crypto/asn1/asn1_par.c
@@ -49,6 +52,7 @@ else ()
             libressl-3.3.5/crypto/asn1/f_int.c
             libressl-3.3.5/crypto/asn1/f_string.c
             libressl-3.3.5/crypto/asn1/i2d_pr.c
+            libressl-3.3.5/crypto/asn1/nsseq.c
             libressl-3.3.5/crypto/asn1/p5_pbe.c
             libressl-3.3.5/crypto/asn1/p5_pbev2.c
             libressl-3.3.5/crypto/asn1/p8_pkey.c
@@ -67,8 +71,10 @@ else ()
             libressl-3.3.5/crypto/asn1/x_bignum.c
             libressl-3.3.5/crypto/asn1/x_crl.c
             libressl-3.3.5/crypto/asn1/x_exten.c
+            libressl-3.3.5/crypto/asn1/x_info.c
             libressl-3.3.5/crypto/asn1/x_long.c
             libressl-3.3.5/crypto/asn1/x_name.c
+            libressl-3.3.5/crypto/asn1/x_pkey.c
             libressl-3.3.5/crypto/asn1/x_pubkey.c
             libressl-3.3.5/crypto/asn1/x_req.c
             libressl-3.3.5/crypto/asn1/x_sig.c
@@ -76,17 +82,27 @@ else ()
             libressl-3.3.5/crypto/asn1/x_val.c
             libressl-3.3.5/crypto/asn1/x_x509.c
             libressl-3.3.5/crypto/asn1/x_x509a.c
+            libressl-3.3.5/crypto/bf/bf_cfb64.c
+            libressl-3.3.5/crypto/bf/bf_ecb.c
+            libressl-3.3.5/crypto/bf/bf_enc.c
+            libressl-3.3.5/crypto/bf/bf_ofb64.c
+            libressl-3.3.5/crypto/bf/bf_skey.c
             libressl-3.3.5/crypto/bio/b_dump.c
             libressl-3.3.5/crypto/bio/b_print.c
+            libressl-3.3.5/crypto/bio/bf_buff.c
+            libressl-3.3.5/crypto/bio/bio_err.c
             libressl-3.3.5/crypto/bio/bio_lib.c
             libressl-3.3.5/crypto/bio/bss_file.c
             libressl-3.3.5/crypto/bio/bss_mem.c
             libressl-3.3.5/crypto/bio/bss_null.c
+            libressl-3.3.5/crypto/bio/bss_sock.c
             libressl-3.3.5/crypto/bn/bn_add.c
             libressl-3.3.5/crypto/bn/bn_asm.c
             libressl-3.3.5/crypto/bn/bn_blind.c
+            libressl-3.3.5/crypto/bn/bn_const.c
             libressl-3.3.5/crypto/bn/bn_ctx.c
             libressl-3.3.5/crypto/bn/bn_div.c
+            libressl-3.3.5/crypto/bn/bn_err.c
             libressl-3.3.5/crypto/bn/bn_exp.c
             libressl-3.3.5/crypto/bn/bn_exp2.c
             libressl-3.3.5/crypto/bn/bn_gcd.c
@@ -105,12 +121,26 @@ else ()
             libressl-3.3.5/crypto/bn/bn_sqr.c
             libressl-3.3.5/crypto/bn/bn_sqrt.c
             libressl-3.3.5/crypto/bn/bn_word.c
+            libressl-3.3.5/crypto/buffer/buf_err.c
             libressl-3.3.5/crypto/buffer/buffer.c
+            libressl-3.3.5/crypto/camellia/camellia.c
+            libressl-3.3.5/crypto/camellia/cmll_cbc.c
+            libressl-3.3.5/crypto/camellia/cmll_cfb.c
+            libressl-3.3.5/crypto/camellia/cmll_ecb.c
+            libressl-3.3.5/crypto/camellia/cmll_misc.c
+            libressl-3.3.5/crypto/camellia/cmll_ofb.c
+            libressl-3.3.5/crypto/cast/c_cfb64.c
+            libressl-3.3.5/crypto/cast/c_ecb.c
+            libressl-3.3.5/crypto/cast/c_enc.c
+            libressl-3.3.5/crypto/cast/c_ofb64.c
+            libressl-3.3.5/crypto/cast/c_skey.c
+            libressl-3.3.5/crypto/chacha/chacha.c
             libressl-3.3.5/crypto/cmac/cm_ameth.c
             libressl-3.3.5/crypto/cmac/cm_pmeth.c
             libressl-3.3.5/crypto/cmac/cmac.c
             libressl-3.3.5/crypto/cms/cms_asn1.c
             libressl-3.3.5/crypto/cms/cms_att.c
+            libressl-3.3.5/crypto/cms/cms_err.c
             libressl-3.3.5/crypto/cms/cms_dd.c
             libressl-3.3.5/crypto/cms/cms_enc.c
             libressl-3.3.5/crypto/cms/cms_env.c
@@ -122,30 +152,54 @@ else ()
             libressl-3.3.5/crypto/compat/arc4random.c
             libressl-3.3.5/crypto/compat/bsd-asprintf.c
             libressl-3.3.5/crypto/compat/explicit_bzero_win.c
+            libressl-3.3.5/crypto/compat/freezero.c
             libressl-3.3.5/crypto/compat/getentropy_win.c
+            libressl-3.3.5/crypto/compat/getpagesize.c
+            libressl-3.3.5/crypto/compat/getprogname_windows.c
             libressl-3.3.5/crypto/compat/posix_win.c
             libressl-3.3.5/crypto/compat/reallocarray.c
+            libressl-3.3.5/crypto/compat/recallocarray.c
             libressl-3.3.5/crypto/compat/strcasecmp.c
             libressl-3.3.5/crypto/compat/strlcat.c
             libressl-3.3.5/crypto/compat/strlcpy.c
             libressl-3.3.5/crypto/compat/strndup.c
+            libressl-3.3.5/crypto/compat/strsep.c
+            libressl-3.3.5/crypto/compat/syslog_r.c
             libressl-3.3.5/crypto/compat/timegm.c
             libressl-3.3.5/crypto/compat/timingsafe_bcmp.c
             libressl-3.3.5/crypto/compat/timingsafe_memcmp.c
             libressl-3.3.5/crypto/conf/conf_api.c
             libressl-3.3.5/crypto/conf/conf_def.c
+            libressl-3.3.5/crypto/conf/conf_err.c
             libressl-3.3.5/crypto/conf/conf_lib.c
+            libressl-3.3.5/crypto/conf/conf_mall.c
             libressl-3.3.5/crypto/conf/conf_mod.c
+            libressl-3.3.5/crypto/conf/conf_sap.c
             libressl-3.3.5/crypto/cryptlib.c
+            libressl-3.3.5/crypto/curve25519/curve25519.c
+            libressl-3.3.5/crypto/curve25519/curve25519-generic.c
+            libressl-3.3.5/crypto/des/cfb_enc.c
+            libressl-3.3.5/crypto/des/cfb64ede.c
+            libressl-3.3.5/crypto/des/cfb64enc.c
+            libressl-3.3.5/crypto/des/des_enc.c
+            libressl-3.3.5/crypto/des/ecb_enc.c
+            libressl-3.3.5/crypto/des/ecb3_enc.c
+            libressl-3.3.5/crypto/des/ofb64ede.c
+            libressl-3.3.5/crypto/des/ofb64enc.c
+            libressl-3.3.5/crypto/des/rand_key.c
+            libressl-3.3.5/crypto/des/set_key.c
+            libressl-3.3.5/crypto/des/xcbc_enc.c
             libressl-3.3.5/crypto/dh/dh_ameth.c
             libressl-3.3.5/crypto/dh/dh_asn1.c
             libressl-3.3.5/crypto/dh/dh_check.c
+            libressl-3.3.5/crypto/dh/dh_err.c
             libressl-3.3.5/crypto/dh/dh_gen.c
             libressl-3.3.5/crypto/dh/dh_key.c
             libressl-3.3.5/crypto/dh/dh_lib.c
             libressl-3.3.5/crypto/dh/dh_pmeth.c
             libressl-3.3.5/crypto/dsa/dsa_ameth.c
             libressl-3.3.5/crypto/dsa/dsa_asn1.c
+            libressl-3.3.5/crypto/dsa/dsa_err.c
             libressl-3.3.5/crypto/dsa/dsa_gen.c
             libressl-3.3.5/crypto/dsa/dsa_key.c
             libressl-3.3.5/crypto/dsa/dsa_lib.c
@@ -153,14 +207,18 @@ else ()
             libressl-3.3.5/crypto/dsa/dsa_pmeth.c
             libressl-3.3.5/crypto/dsa/dsa_sign.c
             libressl-3.3.5/crypto/dsa/dsa_vrf.c
+            libressl-3.3.5/crypto/dso/dso_err.c
             libressl-3.3.5/crypto/dso/dso_lib.c
             libressl-3.3.5/crypto/dso/dso_null.c
             libressl-3.3.5/crypto/dso/dso_openssl.c
             libressl-3.3.5/crypto/ec/ec_ameth.c
             libressl-3.3.5/crypto/ec/ec_asn1.c
+            libressl-3.3.5/crypto/ec/ec_check.c
             libressl-3.3.5/crypto/ec/ec_curve.c
             libressl-3.3.5/crypto/ec/ec_cvt.c
+            libressl-3.3.5/crypto/ec/ec_err.c
             libressl-3.3.5/crypto/ec/ec_key.c
+            libressl-3.3.5/crypto/ec/ec_kmeth.c
             libressl-3.3.5/crypto/ec/ec_lib.c
             libressl-3.3.5/crypto/ec/ec_mult.c
             libressl-3.3.5/crypto/ec/ec_oct.c
@@ -175,27 +233,38 @@ else ()
             libressl-3.3.5/crypto/ec/ecp_oct.c
             libressl-3.3.5/crypto/ec/ecp_smpl.c
             libressl-3.3.5/crypto/ecdh/ecdh_kdf.c
+            libressl-3.3.5/crypto/ecdh/ech_err.c
             libressl-3.3.5/crypto/ecdh/ech_key.c
             libressl-3.3.5/crypto/ecdh/ech_lib.c
             libressl-3.3.5/crypto/ecdsa/ecs_asn1.c
+            libressl-3.3.5/crypto/ecdsa/ecs_err.c
             libressl-3.3.5/crypto/ecdsa/ecs_lib.c
             libressl-3.3.5/crypto/ecdsa/ecs_ossl.c
             libressl-3.3.5/crypto/ecdsa/ecs_sign.c
             libressl-3.3.5/crypto/ecdsa/ecs_vrf.c
+            libressl-3.3.5/crypto/engine/eng_all.c
+            libressl-3.3.5/crypto/engine/eng_cnf.c
+            libressl-3.3.5/crypto/engine/eng_ctrl.c
+            libressl-3.3.5/crypto/engine/eng_err.c
+            libressl-3.3.5/crypto/engine/eng_fat.c
             libressl-3.3.5/crypto/engine/eng_init.c
             libressl-3.3.5/crypto/engine/eng_lib.c
             libressl-3.3.5/crypto/engine/eng_list.c
+            libressl-3.3.5/crypto/engine/eng_pkey.c
             libressl-3.3.5/crypto/engine/eng_table.c
             libressl-3.3.5/crypto/engine/tb_asnmth.c
             libressl-3.3.5/crypto/engine/tb_cipher.c
             libressl-3.3.5/crypto/engine/tb_dh.c
             libressl-3.3.5/crypto/engine/tb_digest.c
             libressl-3.3.5/crypto/engine/tb_dsa.c
+            libressl-3.3.5/crypto/engine/tb_eckey.c
             libressl-3.3.5/crypto/engine/tb_ecdh.c
             libressl-3.3.5/crypto/engine/tb_ecdsa.c
             libressl-3.3.5/crypto/engine/tb_pkmeth.c
+            libressl-3.3.5/crypto/engine/tb_rand.c
             libressl-3.3.5/crypto/engine/tb_rsa.c
             libressl-3.3.5/crypto/err/err.c
+            libressl-3.3.5/crypto/err/err_all.c
             libressl-3.3.5/crypto/err/err_prn.c
             libressl-3.3.5/crypto/evp/bio_b64.c
             libressl-3.3.5/crypto/evp/bio_enc.c
@@ -203,15 +272,44 @@ else ()
             libressl-3.3.5/crypto/evp/c_all.c
             libressl-3.3.5/crypto/evp/digest.c
             libressl-3.3.5/crypto/evp/e_aes.c
+            libressl-3.3.5/crypto/evp/e_aes_cbc_hmac_sha1.c
+            libressl-3.3.5/crypto/evp/e_bf.c
+            libressl-3.3.5/crypto/evp/e_camellia.c
+            libressl-3.3.5/crypto/evp/e_cast.c
+            libressl-3.3.5/crypto/evp/e_chacha.c
+            libressl-3.3.5/crypto/evp/e_chacha20poly1305.c
+            libressl-3.3.5/crypto/evp/e_des.c
+            libressl-3.3.5/crypto/evp/e_des3.c
+            libressl-3.3.5/crypto/evp/e_gost2814789.c
+            libressl-3.3.5/crypto/evp/e_idea.c
+            libressl-3.3.5/crypto/evp/e_null.c
+            libressl-3.3.5/crypto/evp/e_rc2.c
+            libressl-3.3.5/crypto/evp/e_rc4.c
+            libressl-3.3.5/crypto/evp/e_rc4_hmac_md5.c
+            libressl-3.3.5/crypto/evp/e_sm4.c
+            libressl-3.3.5/crypto/evp/e_xcbc_d.c
             libressl-3.3.5/crypto/evp/encode.c
+            libressl-3.3.5/crypto/evp/evp_aead.c
             libressl-3.3.5/crypto/evp/evp_enc.c
+            libressl-3.3.5/crypto/evp/evp_err.c
             libressl-3.3.5/crypto/evp/evp_key.c
             libressl-3.3.5/crypto/evp/evp_lib.c
             libressl-3.3.5/crypto/evp/evp_pbe.c
             libressl-3.3.5/crypto/evp/evp_pkey.c
+            libressl-3.3.5/crypto/evp/m_dss.c
+            libressl-3.3.5/crypto/evp/m_dss1.c
+            libressl-3.3.5/crypto/evp/m_ecdsa.c
+            libressl-3.3.5/crypto/evp/m_gost2814789.c
+            libressl-3.3.5/crypto/evp/m_gostr341194.c
+            libressl-3.3.5/crypto/evp/m_md4.c
             libressl-3.3.5/crypto/evp/m_md5.c
+            libressl-3.3.5/crypto/evp/m_md5_sha1.c
+            libressl-3.3.5/crypto/evp/m_ripemd.c
             libressl-3.3.5/crypto/evp/m_sha1.c
             libressl-3.3.5/crypto/evp/m_sigver.c
+            libressl-3.3.5/crypto/evp/m_sm3.c
+            libressl-3.3.5/crypto/evp/m_streebog.c
+            libressl-3.3.5/crypto/evp/m_wp.c
             libressl-3.3.5/crypto/evp/names.c
             libressl-3.3.5/crypto/evp/p_lib.c
             libressl-3.3.5/crypto/evp/p_sign.c
@@ -223,6 +321,7 @@ else ()
             libressl-3.3.5/crypto/evp/pmeth_lib.c
             libressl-3.3.5/crypto/ex_data.c
             libressl-3.3.5/crypto/gost/gost_asn1.c
+            libressl-3.3.5/crypto/gost/gost_err.c
             libressl-3.3.5/crypto/gost/gost2814789.c
             libressl-3.3.5/crypto/gost/gost89_keywrap.c
             libressl-3.3.5/crypto/gost/gost89_params.c
@@ -235,11 +334,18 @@ else ()
             libressl-3.3.5/crypto/gost/gostr341001_pmeth.c
             libressl-3.3.5/crypto/gost/gostr341194.c
             libressl-3.3.5/crypto/gost/streebog.c
+            libressl-3.3.5/crypto/hkdf/hkdf.c
             libressl-3.3.5/crypto/hmac/hm_ameth.c
             libressl-3.3.5/crypto/hmac/hm_pmeth.c
             libressl-3.3.5/crypto/hmac/hmac.c
+            libressl-3.3.5/crypto/idea/i_cbc.c
+            libressl-3.3.5/crypto/idea/i_cfb64.c
+            libressl-3.3.5/crypto/idea/i_ecb.c
+            libressl-3.3.5/crypto/idea/i_ofb64.c
+            libressl-3.3.5/crypto/idea/i_skey.c
             libressl-3.3.5/crypto/lhash/lhash.c
             libressl-3.3.5/crypto/malloc-wrapper.c
+            libressl-3.3.5/crypto/md4/md4_dgst.c
             libressl-3.3.5/crypto/md5/md5_dgst.c
             libressl-3.3.5/crypto/mem_clr.c
             libressl-3.3.5/crypto/mem_dbg.c
@@ -254,11 +360,20 @@ else ()
             libressl-3.3.5/crypto/o_time.c
             libressl-3.3.5/crypto/objects/o_names.c
             libressl-3.3.5/crypto/objects/obj_dat.c
+            libressl-3.3.5/crypto/objects/obj_err.c
             libressl-3.3.5/crypto/objects/obj_lib.c
             libressl-3.3.5/crypto/objects/obj_xref.c
             libressl-3.3.5/crypto/ocsp/ocsp_asn.c
+            libressl-3.3.5/crypto/ocsp/ocsp_err.c
+            libressl-3.3.5/crypto/pem/pem_all.c
+            libressl-3.3.5/crypto/pem/pem_err.c
+            libressl-3.3.5/crypto/pem/pem_info.c
             libressl-3.3.5/crypto/pem/pem_lib.c
             libressl-3.3.5/crypto/pem/pem_oth.c
+            libressl-3.3.5/crypto/pem/pem_pk8.c
+            libressl-3.3.5/crypto/pem/pem_pkey.c
+            libressl-3.3.5/crypto/pem/pem_x509.c
+            libressl-3.3.5/crypto/pem/pem_xaux.c
             libressl-3.3.5/crypto/pkcs12/p12_add.c
             libressl-3.3.5/crypto/pkcs12/p12_asn.c
             libressl-3.3.5/crypto/pkcs12/p12_crpt.c
@@ -267,15 +382,28 @@ else ()
             libressl-3.3.5/crypto/pkcs12/p12_p8d.c
             libressl-3.3.5/crypto/pkcs12/p12_p8e.c
             libressl-3.3.5/crypto/pkcs12/p12_utl.c
+            libressl-3.3.5/crypto/pkcs12/pk12err.c
             libressl-3.3.5/crypto/pkcs7/pk7_asn1.c
             libressl-3.3.5/crypto/pkcs7/pk7_attr.c
             libressl-3.3.5/crypto/pkcs7/pk7_doit.c
             libressl-3.3.5/crypto/pkcs7/pk7_lib.c
+            libressl-3.3.5/crypto/pkcs7/pkcs7err.c
+            libressl-3.3.5/crypto/poly1305/poly1305.c
+            libressl-3.3.5/crypto/rand/rand_err.c
             libressl-3.3.5/crypto/rand/rand_lib.c
+            libressl-3.3.5/crypto/rc2/rc2_cbc.c
+            libressl-3.3.5/crypto/rc2/rc2_ecb.c
+            libressl-3.3.5/crypto/rc2/rc2_skey.c
+            libressl-3.3.5/crypto/rc2/rc2cfb64.c
+            libressl-3.3.5/crypto/rc2/rc2ofb64.c
+            libressl-3.3.5/crypto/rc4/rc4_enc.c
+            libressl-3.3.5/crypto/rc4/rc4_skey.c
+            libressl-3.3.5/crypto/ripemd/rmd_dgst.c
             libressl-3.3.5/crypto/rsa/rsa_ameth.c
             libressl-3.3.5/crypto/rsa/rsa_asn1.c
             libressl-3.3.5/crypto/rsa/rsa_crpt.c
             libressl-3.3.5/crypto/rsa/rsa_eay.c
+            libressl-3.3.5/crypto/rsa/rsa_err.c
             libressl-3.3.5/crypto/rsa/rsa_gen.c
             libressl-3.3.5/crypto/rsa/rsa_lib.c
             libressl-3.3.5/crypto/rsa/rsa_none.c
@@ -289,14 +417,25 @@ else ()
             libressl-3.3.5/crypto/sha/sha1dgst.c
             libressl-3.3.5/crypto/sha/sha256.c
             libressl-3.3.5/crypto/sha/sha512.c
+            libressl-3.3.5/crypto/sm3/sm3.c
+            libressl-3.3.5/crypto/sm4/sm4.c
             libressl-3.3.5/crypto/stack/stack.c
+            libressl-3.3.5/crypto/ts/ts_err.c
+            libressl-3.3.5/crypto/ui/ui_err.c
             libressl-3.3.5/crypto/ui/ui_lib.c
             libressl-3.3.5/crypto/ui/ui_openssl_win.c
-            libressl-3.3.5/crypto/x509/x_all.c
+            libressl-3.3.5/crypto/whrlpool/wp_block.c
+            libressl-3.3.5/crypto/whrlpool/wp_dgst.c
+            libressl-3.3.5/crypto/x509/by_dir.c
+            libressl-3.3.5/crypto/x509/by_file.c
+            libressl-3.3.5/crypto/x509/by_mem.c
             libressl-3.3.5/crypto/x509/pcy_cache.c
+            libressl-3.3.5/crypto/x509/pcy_data.c
             libressl-3.3.5/crypto/x509/pcy_lib.c
+            libressl-3.3.5/crypto/x509/pcy_map.c
             libressl-3.3.5/crypto/x509/pcy_node.c
             libressl-3.3.5/crypto/x509/pcy_tree.c
+            libressl-3.3.5/crypto/x509/x_all.c
             libressl-3.3.5/crypto/x509/x509_akey.c
             libressl-3.3.5/crypto/x509/x509_akeya.c
             libressl-3.3.5/crypto/x509/x509_alt.c
@@ -308,8 +447,10 @@ else ()
             libressl-3.3.5/crypto/x509/x509_constraints.c
             libressl-3.3.5/crypto/x509/x509_cpols.c
             libressl-3.3.5/crypto/x509/x509_crld.c
+            libressl-3.3.5/crypto/x509/x509_d2.c
             libressl-3.3.5/crypto/x509/x509_def.c
             libressl-3.3.5/crypto/x509/x509_enum.c
+            libressl-3.3.5/crypto/x509/x509_err.c
             libressl-3.3.5/crypto/x509/x509_ext.c
             libressl-3.3.5/crypto/x509/x509_extku.c
             libressl-3.3.5/crypto/x509/x509_genn.c
@@ -340,9 +481,58 @@ else ()
             libressl-3.3.5/crypto/x509/x509_vfy.c
             libressl-3.3.5/crypto/x509/x509_vpm.c
             libressl-3.3.5/crypto/x509/x509_utl.c
+            libressl-3.3.5/crypto/x509/x509cset.c
             libressl-3.3.5/crypto/x509/x509name.c
             libressl-3.3.5/crypto/x509/x509rset.c
+            libressl-3.3.5/crypto/x509/x509type.c
+            libressl-3.3.5/crypto/cpt_err.c
+            libressl-3.3.5/crypto/crypto_init.c
+            libressl-3.3.5/crypto/crypto_lock.c
+            libressl-3.3.5/ssl/bs_cbb.c
+            libressl-3.3.5/ssl/bs_cbs.c
+            libressl-3.3.5/ssl/d1_both.c
+            libressl-3.3.5/ssl/d1_lib.c
+            libressl-3.3.5/ssl/d1_pkt.c
+            libressl-3.3.5/ssl/d1_srtp.c
+            libressl-3.3.5/ssl/pqueue.c
+            libressl-3.3.5/ssl/s3_cbc.c
+            libressl-3.3.5/ssl/s3_lib.c
+            libressl-3.3.5/ssl/ssl_algs.c
+            libressl-3.3.5/ssl/ssl_asn1.c
+            libressl-3.3.5/ssl/ssl_both.c
+            libressl-3.3.5/ssl/ssl_cert.c
+            libressl-3.3.5/ssl/ssl_ciph.c
+            libressl-3.3.5/ssl/ssl_ciphers.c
+            libressl-3.3.5/ssl/ssl_clnt.c
+            libressl-3.3.5/ssl/ssl_err.c
+            libressl-3.3.5/ssl/ssl_init.c
+            libressl-3.3.5/ssl/ssl_kex.c
             libressl-3.3.5/ssl/ssl_lib.c
+            libressl-3.3.5/ssl/ssl_methods.c
+            libressl-3.3.5/ssl/ssl_packet.c
+            libressl-3.3.5/ssl/ssl_pkt.c
+            libressl-3.3.5/ssl/ssl_rsa.c
+            libressl-3.3.5/ssl/ssl_sess.c
+            libressl-3.3.5/ssl/ssl_sigalgs.c
+            libressl-3.3.5/ssl/ssl_srvr.c
+            libressl-3.3.5/ssl/ssl_tlsext.c
+            libressl-3.3.5/ssl/ssl_transcript.c
+            libressl-3.3.5/ssl/ssl_versions.c
+            libressl-3.3.5/ssl/t1_enc.c
+            libressl-3.3.5/ssl/t1_lib.c
+            libressl-3.3.5/ssl/tls12_record_layer.c
+            libressl-3.3.5/ssl/tls13_buffer.c
+            libressl-3.3.5/ssl/tls13_client.c
+            libressl-3.3.5/ssl/tls13_error.c
+            libressl-3.3.5/ssl/tls13_handshake.c
+            libressl-3.3.5/ssl/tls13_handshake_msg.c
+            libressl-3.3.5/ssl/tls13_key_schedule.c
+            libressl-3.3.5/ssl/tls13_key_share.c
+            libressl-3.3.5/ssl/tls13_legacy.c
+            libressl-3.3.5/ssl/tls13_lib.c
+            libressl-3.3.5/ssl/tls13_record.c
+            libressl-3.3.5/ssl/tls13_record_layer.c
+            libressl-3.3.5/ssl/tls13_server.c
         )
         target_compile_definitions(RESSL PRIVATE -DWIN32_LEAN_AND_MEAN)
         target_compile_definitions(RESSL PRIVATE -DLIBRESSL_INTERNAL)
@@ -357,8 +547,13 @@ else ()
             PRIVATE libressl-3.3.5/crypto/bn
             PRIVATE libressl-3.3.5/crypto/ec
             PRIVATE libressl-3.3.5/crypto/ecdh
+            PRIVATE libressl-3.3.5/crypto/ecdsa
             PRIVATE libressl-3.3.5/crypto/evp
             PRIVATE libressl-3.3.5/crypto/modes
+        )
+        target_link_libraries(RESSL
+            bcrypt
+            ws2_32
         )
         set(OPENSSL_TARGET "RESSL")
     else (WIN32)
