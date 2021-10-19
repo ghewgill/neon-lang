@@ -234,6 +234,7 @@ def parse_params(paramstr):
     return r, variadic
 
 enums = dict()
+choices = dict()
 variables = dict()
 functions = dict()
 exceptions = []
@@ -244,6 +245,7 @@ for fn in sys.argv[1:]:
         prefix = os.path.basename(fn)[:-5] + "$"
         with open(fn) as f:
             in_enum = None
+            in_choice = None
             for s in f:
                 a = s.split()
                 if a[:1] == ["TYPE"]:
@@ -261,6 +263,10 @@ for fn in sys.argv[1:]:
                         AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)
                         enums[name] = []
                         in_enum = name
+                    elif atype == "CHOICE":
+                        AstFromNeon[name] = ("TYPE_GENERIC", VALUE)
+                        choices[name] = []
+                        in_choice = name
                     elif atype == "Object":
                         AstFromNeon[name] = ("TYPE_OBJECT", VALUE)
                         AstFromNeon["INOUT "+name] = ("TYPE_OBJECT", REF)
@@ -327,6 +333,11 @@ for fn in sys.argv[1:]:
                         in_enum = None
                     else:
                         enums[in_enum].append(a[0])
+                elif in_choice:
+                    if a[:2] == ["END", "CHOICE"]:
+                        in_choice = None
+                    else:
+                        choices[in_choice].append(a[0].split(":")[0])
     else:
         print("Unexpected file: {}".format(fn), file=sys.stderr)
         sys.exit(1)
@@ -513,6 +524,11 @@ with open("gen/enums.inc", "w") as inc:
     for name, values in enums.items():
         for i, v in enumerate(values):
             print("static const uint32_t ENUM_{}_{} = {};".format(name, v, i), file=inc)
+
+with open("gen/choices.inc", "w") as inc:
+    for name, values in choices.items():
+        for i, v in enumerate(values):
+            print("static const uint32_t CHOICE_{}_{} = {};".format(name, v, i), file=inc)
 
 with open("gen/exceptions.inc", "w") as inc:
     print("struct ExceptionName {", file=inc)
