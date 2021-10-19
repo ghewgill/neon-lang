@@ -14,7 +14,7 @@ CHECK r ISA textio.OpenResult.file ELSE
     RAISE TestFailedException
 END CHECK
 f := r.file
-print("\(textio.readLine(f, OUT _))")
---= FALSE
+print("\(textio.readLine(f))")
+--= <eof>
 
 textio.close(f)

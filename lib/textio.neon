@@ -6,6 +6,7 @@
 EXPORT TextFile
 EXPORT Mode
 EXPORT OpenResult
+EXPORT ReadLineResult
 
 EXPORT TextioException
 
@@ -38,6 +39,12 @@ TYPE TextFile IS Object
 
 TYPE OpenResult IS CHOICE
     file: TextFile
+    error: String
+END CHOICE
+
+TYPE ReadLineResult IS CHOICE
+    line: String
+    eof
     error: String
 END CHOICE
 
@@ -102,7 +109,7 @@ DECLARE NATIVE FUNCTION open(name: String, mode: Mode): OpenResult
  *  Returns:
  *      FALSE if there are no more lines in the file, otherwise TRUE.
  */
-DECLARE NATIVE FUNCTION readLine(f: TextFile, OUT s: String): Boolean
+DECLARE NATIVE FUNCTION readLine(f: TextFile): ReadLineResult
 
 /*  Function: seekEnd
  *

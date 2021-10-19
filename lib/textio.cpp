@@ -16,6 +16,7 @@
 #include "rtl_exec.h"
 
 #include "enums.inc"
+#include "choices.inc"
 
 class TextFileObject: public Object {
 public:
@@ -75,19 +76,22 @@ Cell open(const utf8string &name, Cell &mode)
     });
 }
 
-bool readLine(const std::shared_ptr<Object> &pf, utf8string *s)
+Cell readLine(const std::shared_ptr<Object> &pf)
 {
+    utf8string s;
     TextFileObject *f = check_file(pf);
-    s->clear();
     for (;;) {
         char buf[1024];
         if (fgets(buf, sizeof(buf), f->file) == NULL) {
-            return not s->empty();
+            if (s.empty()) {
+                return Cell(std::vector<Cell> {Cell(Number(CHOICE_ReadLineResult_eof))});
+            }
+            return Cell(std::vector<Cell> {Cell(Number(CHOICE_ReadLineResult_line)), Cell(s)});
         }
-        s->append(buf);
-        if (s->at(s->length()-1) == '\n') {
-            s->resize(s->length()-1);
-            return true;
+        s.append(buf);
+        if (s.at(s.length()-1) == '\n') {
+            s.resize(s.length()-1);
+            return Cell(std::vector<Cell> {Cell(Number(CHOICE_ReadLineResult_line)), Cell(s)});
         }
     }
 }

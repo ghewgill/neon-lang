@@ -10,10 +10,11 @@ CHECK r ISA textio.OpenResult.file ELSE
     RAISE TestFailedException
 END CHECK
 VAR f: textio.TextFile := r.file
-VAR s: String := ""
-print("\(textio.readLine(f, OUT s))")
---= TRUE
-print(s)
+VAR rlr: textio.ReadLineResult := textio.readLine(f)
+CHECK rlr ISA textio.ReadLineResult.line ELSE
+    RAISE TestFailedException
+END CHECK
+print(rlr.line)
 --= The MIT License (MIT)
 
 textio.close(f)
