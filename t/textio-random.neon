@@ -18,6 +18,9 @@ CHECK r ISA textio.OpenResult.file ELSE
     RAISE TestFailedException
 END CHECK
 f := r.file
-VAR t: String
-TESTCASE textio.readLine(f, OUT t) AND t = s
+LET rlr: textio.ReadLineResult := textio.readLine(f)
+CHECK rlr ISA textio.ReadLineResult.line ELSE
+    RAISE TestFailedException
+END CHECK
+TESTCASE rlr.line = s
 textio.close(f)

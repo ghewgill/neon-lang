@@ -2954,12 +2954,10 @@ def neon_textio_readLine(self):
     try:
         s = f.readline()
         if not s:
-            self.stack.append(False)
-            self.stack.append("")
+            self.stack.append([Value(1)]) # eof
             return
         s = s.rstrip("\n")
-        self.stack.append(True)
-        self.stack.append(s)
+        self.stack.append([Value(0), Value(s)]) # line
     except IOError:
         self.raise_literal("TextioException", "")
 

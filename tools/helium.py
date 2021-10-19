@@ -2652,7 +2652,7 @@ class ClassEnum(Class):
 
 class ClassChoice(Class):
     class Instance:
-        def __init__(self, name, value):
+        def __init__(self, name, value=None):
             self._choice = name
             setattr(self, name, value)
         def __eq__(self, rhs):
@@ -3296,11 +3296,11 @@ def neon_textio_open(env, fn, mode):
     except OSError:
         return ClassChoice.Instance("error", "open error")
 
-def neon_textio_readLine(env, f, r):
+def neon_textio_readLine(env, f):
     r = f.readline()
     if not r:
-        return False, ""
-    return r is not None, r.rstrip("\r\n")
+        return ClassChoice.Instance("eof")
+    return ClassChoice.Instance("line", r.rstrip("\r\n"))
 
 def neon_textio_seekEnd(env, f):
     f.seek(0, os.SEEK_END)

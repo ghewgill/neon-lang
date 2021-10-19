@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace csnex.rtl
@@ -102,18 +103,31 @@ namespace csnex.rtl
 
             Stream f = check_file(pf);
             if (f == null) {
+                exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)ReadLineResult.error)),
+                    Cell.CreateStringCell("not a file")
+                }));
                 return;
             }
 
             try {
                 StreamReader sr = new StreamReader(f);
-                Cell r = Cell.CreateStringCell(sr.ReadLine());
-                Boolean ret = r.String != null;
-
-                exec.stack.Push(Cell.CreateBooleanCell(ret));
-                exec.stack.Push(r);
+                String s = sr.ReadLine();
+                if (s != null) {
+                    exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                        Cell.CreateNumberCell(new Number((int)ReadLineResult.line)),
+                        Cell.CreateStringCell(s)
+                    }));
+                } else {
+                    exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                        Cell.CreateNumberCell(new Number((int)ReadLineResult.eof))
+                    }));
+                }
             } catch (IOException iox) {
-                exec.Raise("TextioException.Read", iox.HResult.ToString());
+                exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)ReadLineResult.error)),
+                    Cell.CreateStringCell(iox.HResult.ToString())
+                }));
             }
         }
 
