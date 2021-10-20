@@ -17,9 +17,9 @@ LOOP
         END IF
         FOR i := clients.size()-1 TO 0 STEP -1 DO
             IF clients[i] IN read THEN
-                VAR buf: Bytes
-                IF clients[i].recv(1000, OUT buf) THEN
-                    clients[i].send(buf)
+                LET r := clients[i].recv(1000)
+                IF r ISA net.RecvResult.data THEN
+                    clients[i].send(r.data)
                 ELSE
                     clients[i].close()
                     clients.remove(i)

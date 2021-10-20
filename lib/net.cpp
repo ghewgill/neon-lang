@@ -10,6 +10,7 @@
 #include "socketx.h"
 
 #include "enums.inc"
+#include "choices.inc"
 
 // https://wiki.openssl.org/index.php/SSL/TLS_Client
 
@@ -496,14 +497,54 @@ bool socket_needsWrite(const std::shared_ptr<Object> &socket)
     return check_socket(socket)->needsWrite();
 }
 
-bool socket_recv(const std::shared_ptr<Object> &socket, Number count, std::vector<unsigned char> *buffer)
+Cell socket_recv(const std::shared_ptr<Object> &socket, Number count)
 {
-    return check_socket(socket)->recv(count, buffer);
+<<<<<<< HEAD
+    auto r = check_socket(socket)->recv(count, buffer);
+    switch (r.status) {
+        case 
+=======
+    SOCKET s = check_socket(socket)->handle;
+    int n = number_to_sint32(count);
+    std::vector<unsigned char> buffer(n);
+    int r = recv(s, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer.data())), n, 0);
+    if (r < 0) {
+        int err = errno;
+        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_error)), Cell(utf8string(strerror(err)))});
+    }
+    if (r == 0) {
+        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_eof))});
+    }
+    buffer.resize(r);
+    return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_data)), Cell(buffer)});
+>>>>>>> f4c0a06... Change net.recv to return RecvResult
 }
 
-bool socket_recvfrom(const std::shared_ptr<Object> &socket, Number count, utf8string *remote_address, Number *remote_port, std::vector<unsigned char> *buffer)
+Cell socket_recvfrom(const std::shared_ptr<Object> &socket, Number count)
 {
+<<<<<<< HEAD
     return check_socket(socket)->recvfrom(count, remote_address, remote_port, buffer);
+=======
+    SOCKET s = check_socket(socket)->handle;
+    int n = number_to_sint32(count);
+    std::vector<unsigned char> buffer(n);
+    struct sockaddr_in sin;
+    socklen_t sin_len = sizeof(sin);
+    int r = recvfrom(s, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer.data())), n, 0, reinterpret_cast<sockaddr *>(&sin), &sin_len);
+    if (r < 0) {
+        int err = errno;
+        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_error)), Cell(utf8string(strerror(err)))});
+    }
+    if (r == 0) {
+        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_eof))});
+    }
+    buffer.resize(r);
+    return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_data)), Cell(std::vector<Cell> {
+        Cell(utf8string(inet_ntoa(sin.sin_addr))),
+        Cell(number_from_uint32(ntohs(sin.sin_port))),
+        Cell(buffer)
+    })});
+>>>>>>> f4c0a06... Change net.recv to return RecvResult
 }
 
 void socket_send(const std::shared_ptr<Object> &socket, const std::vector<unsigned char> &data)

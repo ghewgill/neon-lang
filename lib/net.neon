@@ -14,6 +14,9 @@ EXPORT udpSocket
 EXPORT tlsClientSocket
 EXPORT tlsServerSocket
 
+EXPORT RecvResult
+EXPORT RecvFromResult
+
 /*  Exception: SocketException
  *
  *  Indicates some kind of socket error.
@@ -44,6 +47,24 @@ TYPE TlsPeerValidateMode IS ENUM
     AllowInvalidCertificate
 END ENUM
 
+TYPE RecvResult IS CHOICE
+    data: Bytes
+    eof
+    error: String
+END CHOICE
+
+TYPE RecvFromData IS RECORD
+    remoteAddress: String
+    remotePort: Number
+    data: Bytes
+END RECORD
+
+TYPE RecvFromResult IS CHOICE
+    data: RecvFromData
+    eof
+    error: String
+END CHOICE
+
 DECLARE NATIVE FUNCTION socket_accept(socket: Object): Object
 DECLARE NATIVE FUNCTION socket_bind(socket: Object, address: String, port: Number)
 DECLARE NATIVE FUNCTION socket_close(socket: Object)
@@ -53,8 +74,8 @@ DECLARE NATIVE FUNCTION socket_getTlsVersion(socket: Object): String
 DECLARE NATIVE FUNCTION socket_isTlsInitComplete(socket: Object): Boolean
 DECLARE NATIVE FUNCTION socket_listen(socket: Object, port: Number)
 DECLARE NATIVE FUNCTION socket_needsWrite(socket: Object): Boolean
-DECLARE NATIVE FUNCTION socket_recv(socket: Object, count: Number, OUT buffer: Bytes): Boolean
-DECLARE NATIVE FUNCTION socket_recvfrom(socket: Object, count: Number, OUT remote_address: String, OUT remote_port: Number, OUT buffer: Bytes): Boolean
+DECLARE NATIVE FUNCTION socket_recv(socket: Object, count: Number): RecvResult
+DECLARE NATIVE FUNCTION socket_recvfrom(socket: Object, count: Number): RecvFromResult
 DECLARE NATIVE FUNCTION socket_send(socket: Object, data: Bytes)
 DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
 DECLARE NATIVE FUNCTION socket_tcpSocket(): Object
@@ -156,16 +177,16 @@ END FUNCTION
  *
  *  Receive (read) bytes from a socket.
  */
-FUNCTION Socket.recv(self: Socket, count: Number, OUT buffer: Bytes): Boolean
-    RETURN socket_recv(self.s, count, OUT buffer)
+FUNCTION Socket.recv(self: Socket, count: Number): RecvResult
+    RETURN socket_recv(self.s, count)
 END FUNCTION
 
 /*  Function: Socket.recvfrom
  *
  *  Receive (read) bytes from a socket, also returning the remote address where they came from.
  */
-FUNCTION Socket.recvfrom(self: Socket, count: Number, OUT remote_address: String, OUT remote_port: Number, OUT buffer: Bytes): Boolean
-    RETURN socket_recvfrom(self.s, count, OUT remote_address, OUT remote_port, OUT buffer)
+FUNCTION Socket.recvfrom(self: Socket, count: Number): RecvFromResult
+    RETURN socket_recvfrom(self.s, count)
 END FUNCTION
 
 /*  Function: Socket.send
