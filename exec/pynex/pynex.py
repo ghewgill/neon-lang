@@ -2687,8 +2687,10 @@ def neon_net_socket_recv(self):
     count = int(self.stack.pop())
     sock = self.stack.pop()
     r = sock.recv(count)
-    self.stack.append(len(r) > 0)
-    self.stack.append(r)
+    if len(r) > 0:
+        self.stack.append([Value(0), Value(r)]) # data
+    else:
+        self.stack.append([Value(1)]) # eof
 
 def neon_net_socket_send(self):
     b = self.stack.pop()

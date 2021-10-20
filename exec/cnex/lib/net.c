@@ -10,6 +10,7 @@
 
 #include "array.h"
 #include "cell.h"
+#include "enums.h"
 #include "exec.h"
 #include "object.h"
 #include "socketx.h"
@@ -249,24 +250,37 @@ void net_socket_recv(TExecutor *exec)
     int r = recv(s, (char*)buf, n, 0);
     if (r < 0) {
         perror("recv");
-        Cell *empty = cell_fromCString("");
-        // We need to make sure that we're returning a BYTES cell.
-        empty->type = cBytes;
-        push(exec->stack, empty);
-    }
-    if (r == 0) {
-        push(exec->stack, cell_fromBoolean(FALSE));
-        push(exec->stack, cell_fromBytes(string_newString()));
+        int err = errno;
+        Cell *ret = cell_createArrayCell(2);
+        Cell *t = cell_arrayIndexForWrite(ret, 0);
+        t->type = cNumber;
+        t->number = number_from_uint32(CHOICE_RecvResult_error);
+        t = cell_arrayIndexForWrite(ret, 1);
+        t->type = cString;
+        t->string = string_createCString(strerror(err));
+        push(exec->stack, ret);
         return;
     }
-    TString *ret = string_newString();
-    ret->data = (char*)buf;
-    ret->length = r;
+    if (r == 0) {
+        Cell *ret = cell_createArrayCell(2);
+        Cell *t = cell_arrayIndexForWrite(ret, 0);
+        t->type = cNumber;
+        t->number = number_from_uint32(CHOICE_RecvResult_eof);
+        push(exec->stack, ret);
+        return;
+    }
+    TString *data = string_newString();
+    data->data = (char*)buf;
+    data->length = r;
 
-    // Note that cell_fromBytes() will automatically resize (truncate) the returned buffer to r.
-    push(exec->stack, cell_fromBoolean(TRUE));
-    push(exec->stack, cell_fromBytes(ret));
-    string_freeString(ret);
+    Cell *ret = cell_createArrayCell(2);
+    Cell *t = cell_arrayIndexForWrite(ret, 0);
+    t->type = cNumber;
+    t->number = number_from_uint32(CHOICE_RecvResult_data);
+    t = cell_arrayIndexForWrite(ret, 1);
+    t->type = cBytes;
+    t->string = data;
+    push(exec->stack, ret);
 }
 
 void net_socket_send(TExecutor *exec)

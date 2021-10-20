@@ -225,6 +225,12 @@ bool &Cell::boolean()
     return boolean_value;
 }
 
+Number Cell::get_number() const
+{
+    assert(type == Type::Number);
+    return number_value;
+}
+
 Number &Cell::number()
 {
     if (type == Type::None) {

@@ -10,6 +10,7 @@
 #include "socketx.h"
 
 #include "enums.inc"
+#include "choices.inc"
 
 // https://wiki.openssl.org/index.php/SSL/TLS_Client
 
@@ -30,8 +31,8 @@ public:
     virtual bool isTlsInitComplete() { return false; }
     virtual void listen(Number port) = 0;
     virtual bool needsWrite() { return false; }
-    virtual bool recv(Number count, std::vector<unsigned char> *buffer) = 0;
-    virtual bool recvfrom(Number count, utf8string *remote_address, Number *remote_port, std::vector<unsigned char> *buffer) = 0;
+    virtual Cell recv(Number count) = 0;
+    virtual Cell recvfrom(Number count) = 0;
     virtual void send(const std::vector<unsigned char> &data) = 0;
 };
 
@@ -126,41 +127,41 @@ public:
             return;
         }
     }
-    virtual bool recv(Number count, std::vector<unsigned char> *buffer) override {
+    virtual Cell recv(Number count) override {
         int n = number_to_sint32(count);
-        buffer->resize(n);
-        int r = ::recv(handle, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer->data())), n, 0);
+        std::vector<unsigned char> buffer(n);
+        int r = ::recv(handle, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer.data())), n, 0);
         if (r < 0) {
+            int err = errno;
             perror("recv");
-            buffer->clear();
-            return false;
+            return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_error)), Cell(utf8string(strerror(err)))});
         }
         if (r == 0) {
-            buffer->clear();
-            return false;
+            return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_eof))});
         }
-        buffer->resize(r);
-        return true;
+        buffer.resize(r);
+        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_data)), Cell(buffer)});
     }
-    virtual bool recvfrom(Number count, utf8string *remote_address, Number *remote_port, std::vector<unsigned char> *buffer) override {
+    virtual Cell recvfrom(Number count) override {
         int n = number_to_sint32(count);
-        buffer->resize(n);
+        std::vector<unsigned char> buffer(n);
         struct sockaddr_in sin;
         socklen_t sin_len = sizeof(sin);
-        int r = ::recvfrom(handle, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer->data())), n, 0, reinterpret_cast<sockaddr *>(&sin), &sin_len);
+        int r = ::recvfrom(handle, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer.data())), n, 0, reinterpret_cast<sockaddr *>(&sin), &sin_len);
         if (r < 0) {
+            int err = errno;
             perror("recvfrom");
-            buffer->clear();
-            return false;
+            return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_error)), Cell(utf8string(strerror(err)))});
         }
         if (r == 0) {
-            buffer->clear();
-            return false;
+            return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_eof))});
         }
-        buffer->resize(r);
-        *remote_address = utf8string(inet_ntoa(sin.sin_addr));
-        *remote_port = number_from_uint32(ntohs(sin.sin_port));
-        return true;
+        buffer.resize(r);
+        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_data)), Cell(std::vector<Cell> {
+            Cell(utf8string(inet_ntoa(sin.sin_addr))),
+            Cell(number_from_uint32(ntohs(sin.sin_port))),
+            Cell(buffer)
+        })});
     }
     virtual void send(const std::vector<unsigned char> &data) override {
         ::send(handle, reinterpret_cast<const char *>(data.data()), static_cast<int>(data.size()), 0);
@@ -241,10 +242,11 @@ public:
             if (validateMode == ENUM_TlsPeerValidateMode_RequireValidCertificate && SSL_get_verify_result(ssl) != X509_V_OK) {
                 throw RtlException(rtl::ne_net::Exception_SocketException_PeerCertificateInvalid, utf8string(""));
             }
-            std::vector<unsigned char> raw_buffer;
-            if (not socket->recv(number_from_uint32(1000), &raw_buffer)) {
+            Cell r = socket->recv(number_from_uint32(1000));
+            if (number_to_double(r.array()[0].get_number()) != CHOICE_RecvResult_data) {
                 return false;
             }
+            const std::vector<unsigned char> &raw_buffer = r.array_for_write()[1].bytes();
             int n = BIO_write(read_bio, raw_buffer.data(), raw_buffer.size());
             if (n < static_cast<int>(raw_buffer.size())) {
                 abort(); // TODO
@@ -280,15 +282,15 @@ public:
     virtual bool needsWrite() override {
         return write_buf.size() > 0;
     }
-    virtual bool recv(Number count, std::vector<unsigned char> *buffer) override {
+    virtual Cell recv(Number count) override {
         //printf("recv\n");
-        buffer->clear();
-        std::vector<unsigned char> raw_buffer;
-        bool r = socket->recv(count, &raw_buffer);
-        if (not r) {
+        std::vector<unsigned char> buffer;
+        Cell r = socket->recv(count);
+        if (number_to_double(r.array()[0].get_number()) != CHOICE_RecvResult_data) {
             //printf("  close\n");
-            return false;
+            return r;
         }
+        const std::vector<unsigned char> &raw_buffer = r.array_for_write()[1].bytes();
         //printf("  raw_buffer=%zd\n", raw_buffer.size());
         size_t i = 0;
         while (i < raw_buffer.size()) {
@@ -302,7 +304,8 @@ public:
                 //printf("  init not finished\n");
                 do_handshake();
                 if (not SSL_is_init_finished(ssl)) {
-                    return true;
+                    abort(); // TODO: Has this path been tested?
+                    return r;
                 }
                 if (validateMode == ENUM_TlsPeerValidateMode_RequireValidCertificate && SSL_get_verify_result(ssl) != X509_V_OK) {
                     throw RtlException(rtl::ne_net::Exception_SocketException_PeerCertificateInvalid, utf8string(""));
@@ -318,15 +321,15 @@ public:
                 if (r <= 0) {
                     break;
                 }
-                std::copy(buf, buf + r, std::back_inserter(*buffer));
+                std::copy(buf, buf + r, std::back_inserter(buffer));
             }
             int err = SSL_get_error(ssl, n);
             (void)err; //printf("  err=%d\n", err);
         }
-        return true;
+        return r;
     }
-    virtual bool recvfrom(Number, utf8string *, Number *, std::vector<unsigned char> *) override {
-        return false;
+    virtual Cell recvfrom(Number) override {
+        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_error)), Cell(utf8string("not supported for this socket type"))});
     }
     virtual void send(const std::vector<unsigned char> &data) override {
         //printf("send %zd\n", data.size());
@@ -502,14 +505,14 @@ bool socket_needsWrite(const std::shared_ptr<Object> &socket)
     return check_socket(socket)->needsWrite();
 }
 
-bool socket_recv(const std::shared_ptr<Object> &socket, Number count, std::vector<unsigned char> *buffer)
+Cell socket_recv(const std::shared_ptr<Object> &socket, Number count)
 {
-    return check_socket(socket)->recv(count, buffer);
+    return check_socket(socket)->recv(count);
 }
 
-bool socket_recvfrom(const std::shared_ptr<Object> &socket, Number count, utf8string *remote_address, Number *remote_port, std::vector<unsigned char> *buffer)
+Cell socket_recvfrom(const std::shared_ptr<Object> &socket, Number count)
 {
-    return check_socket(socket)->recvfrom(count, remote_address, remote_port, buffer);
+    return check_socket(socket)->recvfrom(count);
 }
 
 void socket_send(const std::shared_ptr<Object> &socket, const std::vector<unsigned char> &data)

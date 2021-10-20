@@ -101,11 +101,11 @@ FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Di
     END IF
     VAR response: Bytes := HEXBYTES ""
     LOOP
-        VAR buf: Bytes
-        IF NOT s.recv(1024, OUT buf) THEN
+        LET r := s.recv(1024)
+        CHECK r ISA net.RecvResult.data ELSE
             EXIT LOOP
-        END IF
-        response := response & buf
+        END CHECK
+        response := response & r.data
     END LOOP
     VAR responseHeaders: Array<String> := []
     VAR i: Number := 0
