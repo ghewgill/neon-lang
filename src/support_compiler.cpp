@@ -1,6 +1,7 @@
 #include "support.h"
 
 #include <fstream>
+#include <iostream>
 #include <iso646.h>
 #include <sstream>
 
@@ -97,5 +98,9 @@ void CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
 void CompilerSupport::writeOutput(const std::string &name, const std::vector<unsigned char> &content)
 {
     std::ofstream f(name, std::ios::binary);
+    if (not f) {
+        std::cerr << "error: Could not create output file: " << name << "\n";
+        exit(1);
+    }
     f.write(reinterpret_cast<const char *>(content.data()), content.size());
 }
