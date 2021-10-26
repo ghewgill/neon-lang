@@ -33,15 +33,7 @@ END CHOICE
  *
  *  Find the index of a string within another.
  */
-FUNCTION find(s: String, t: String): FindResult
-    LET r: Number := find_internal(s, t)
-    CHECK r >= 0 ELSE
-        RETURN FindResult.notfound
-    END CHECK
-    RETURN FindResult.index(r)
-END FUNCTION
-
-DECLARE NATIVE FUNCTION find_internal(s: String, t: String): Number
+DECLARE NATIVE FUNCTION find(s: String, t: String): FindResult
 
 /*  Function: format
  *

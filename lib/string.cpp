@@ -3,21 +3,29 @@
 #include <string>
 #include <vector>
 
+#include "cell.h"
 #include "intrinsic.h"
 #include "number.h"
 #include "utf8string.h"
+
+#include "choices.inc"
 
 namespace rtl {
 
 namespace ne_string {
 
-Number find_internal(const utf8string &s, const utf8string &t)
+Cell find(const utf8string &s, const utf8string &t)
 {
     std::string::size_type i = s.str().find(t.str());
     if (i == std::string::npos) {
-        return number_from_sint64(-1);
+        return Cell(std::vector<Cell> {
+            Cell(number_from_uint32(CHOICE_FindResult_notfound))
+        });
     }
-    return number_from_uint64(i);
+    return Cell(std::vector<Cell> {
+        Cell(number_from_uint32(CHOICE_FindResult_index)),
+        Cell(number_from_uint32(i))
+    });
 }
 
 utf8string fromCodePoint(Number code)

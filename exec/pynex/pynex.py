@@ -2846,10 +2846,19 @@ def neon_sqlite_open(self):
             Value(r)
         ])
 
-def neon_string_find_internal(self):
+def neon_string_find(self):
     t = self.stack.pop()
     s = self.stack.pop()
-    self.stack.append(s.find(t))
+    r = s.find(t)
+    if r < 0:
+        self.stack.append([
+            Value(0) # notfound
+        ])
+    else:
+        self.stack.append([
+            Value(1), # index
+            Value(r)
+        ])
 
 def neon_string_hasPrefix(self):
     prefix = self.stack.pop()

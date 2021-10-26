@@ -284,7 +284,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("sqlite$cursorClose",        sqlite_cursorClose),
 
     // string - string module functions
-    PDFUNC("string$find_internal",      string_find_internal),
+    PDFUNC("string$find",               string_find),
     PDFUNC("string$fromCodePoint",      string_fromCodePoint),
     PDFUNC("string$lower",              string_lower),
     PDFUNC("string$quoted",             string_quoted),
