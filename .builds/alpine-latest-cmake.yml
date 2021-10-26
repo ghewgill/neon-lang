@@ -3,6 +3,7 @@ packages:
 - cmake
 - gmp-dev
 - zlib-dev
+- openssl-dev
 - perl
 # optional
 #- openjdk11 (javac not found)
