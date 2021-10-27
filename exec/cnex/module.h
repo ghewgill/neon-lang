@@ -2,6 +2,8 @@
 #define MODULE_H
 #include <stdint.h>
 
+#include "cJSON.h"
+
 struct tagTExecutor;
 
 typedef struct tagTModule {
@@ -13,6 +15,7 @@ typedef struct tagTModule {
     unsigned int codelen;
     struct tagTBytecode *bytecode;
     struct tagTCell *globals;
+    cJSON *debug_symbols;
 } TModule;
 
 
@@ -21,6 +24,7 @@ TModule *module_newModule(const char *name);
 TModule *module_findModule(struct tagTExecutor *self, const char *name);
 TModule *module_loadModule(struct tagTExecutor *self, const char *name, unsigned int module_num);
 TModule *module_loadNeonProgram(const char *neonxPath);
+void module_loadDebugSymbols(TModule *m);
 
 void module_freeModule(TModule *m);
 

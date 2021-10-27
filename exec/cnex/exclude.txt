@@ -1,6 +1,4 @@
 bigint.neon                # gmp
-debug-example.neon         # debugger
-debug-server.neon          # debugger
 file-linelength.neon       # buffer size
 gc-array.neon              # Object Count
 gc-long-chain.neon         # Object Count

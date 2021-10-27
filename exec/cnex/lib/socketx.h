@@ -1,4 +1,6 @@
 // Setup the network sockets for the different platforms.
+#ifndef SOCKETX_H
+#define SOCKETX_H
 #ifdef _WIN32
 
 #include <winsock.h>
@@ -16,8 +18,9 @@ typedef int socklen_t;
 #include <unistd.h>
 
 #define closesocket(x)      close(x)
+#define INVALID_SOCKET     -1
 
 typedef int SOCKET;
-const int INVALID_SOCKET = -1;
 
+#endif
 #endif
