@@ -1073,10 +1073,10 @@ public:
 
     virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &context) const override {
-        context.ca.code << OP_getstatic << context.cf.Field(mv->module->name, mv->name, type->jtype);
+        context.ca.code << OP_getstatic << context.cf.Field("neon/lib/" + mv->module->name, mv->name, type->jtype);
     }
     virtual void generate_store(Context &context) const override {
-        context.ca.code << OP_putstatic << context.cf.Field(mv->module->name, mv->name, type->jtype);
+        context.ca.code << OP_putstatic << context.cf.Field("neon/lib/" + mv->module->name, mv->name, type->jtype);
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ModuleVariable"); }
 };
@@ -3344,14 +3344,14 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        context.ca.code << OP_invokestatic << context.cf.Method(mf->module->name, Function::make_java_method_name(mf->name), signature);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/lib/" + mf->module->name, Function::make_java_method_name(mf->name), signature);
         // TODO: out parameters
     }
 };
 
 class Program {
 public:
-    Program(CompilerSupport *support, const ast::Program *program): support(support), program(program), statements() {
+    Program(CompilerSupport *support, const ast::Program *program, const std::map<std::string, std::string> &options): support(support), program(program), options(options), statements() {
         for (auto s: program->statements) {
             statements.push_back(transform(s));
         }
@@ -3361,6 +3361,7 @@ public:
     virtual ~Program() {}
     CompilerSupport *support;
     const ast::Program *program;
+    const std::map<std::string, std::string> &options;
     std::vector<const Statement *> statements;
 
     virtual void generate() const {
@@ -3369,13 +3370,36 @@ public:
         if (i != std::string::npos) {
             path = program->source_path.substr(0, i + 1);
         }
+        std::string package_prefix;
+        auto p = options.find("package");
+        if (p != options.end()) {
+            std::string package = p->second;
+            package_prefix = package + ".";
+            for (std::string::size_type i = 0; i < package_prefix.length(); i++) {
+                if (package_prefix[i] == '.') {
+                    package_prefix[i] = '/';
+                }
+            }
+            while (not package.empty()) {
+                std::string part;
+                auto dot = package.find('.');
+                if (dot != std::string::npos) {
+                    part = package.substr(0, dot);
+                    package = package.substr(dot+1);
+                } else {
+                    part = package;
+                    package.clear();
+                }
+                path += part + "/";
+            }
+        }
         ClassFile cf(path, program->module_name);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
         cf.constant_pool_count = 0;
         cf.access_flags = ACC_PUBLIC | ACC_SUPER;
-        cf.this_class = cf.Class(cf.name);
+        cf.this_class = cf.Class(package_prefix + cf.name);
         cf.super_class = cf.Class("java/lang/Object");
 
         ClassContext classcontext(support, cf);
@@ -4039,13 +4063,13 @@ Statement *transform(const ast::Statement *s)
 
 } // namespace jvm
 
-void compile_jvm(CompilerSupport *support, const ast::Program *p, std::string /*output*/, std::map<std::string, std::string> /*options*/)
+void compile_jvm(CompilerSupport *support, const ast::Program *p, std::string /*output*/, std::map<std::string, std::string> options)
 {
     jvm::g_type_cache.clear();
     jvm::g_variable_cache.clear();
     jvm::g_expression_cache.clear();
     jvm::g_statement_cache.clear();
 
-    jvm::Program *ct = new jvm::Program(support, p);
+    jvm::Program *ct = new jvm::Program(support, p, options);
     ct->generate();
 }

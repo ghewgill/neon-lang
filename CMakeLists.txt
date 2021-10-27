@@ -225,6 +225,20 @@ set_source_files_properties(
 )
 
 if (JAVAC)
+    string(REPLACE "lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
+    string(REPLACE "lib/struct.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON_WITHOUT_GLOBAL}") # TODO
+    string(REPLACE ".neon" ".class" RTL_CLASSES "${RTL_NEON_WITHOUT_GLOBAL}")
+    foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
+        string(REPLACE ".neon" ".class" class ${rtl_neon})
+        add_custom_command(
+            OUTPUT ${class}
+            COMMAND neonc -q -t jvm -T package=neon.lib ${rtl_neon}
+            DEPENDS neonc ${rtl_neon}
+        )
+    endforeach ()
+    add_custom_target(neon_jvm_rtl ALL
+        DEPENDS ${RTL_CLASSES}
+    )
     set(NEON_JVM
         rtl/jvm/neon/Binary.java
         rtl/jvm/neon/Datetime.java
@@ -247,26 +261,12 @@ if (JAVAC)
         string(REPLACE ".java" ".class" class ${java})
         add_custom_command(
             OUTPUT ${class}
-            COMMAND javac -cp rtl/jvm ${java}
-            DEPENDS ${java}
+            COMMAND javac -cp rtl/jvm:lib ${java}
+            DEPENDS ${java} neon_jvm_rtl
         )
     endforeach ()
     add_custom_target(neon_jvm ALL
         DEPENDS ${NEON_JVM_CLASSES}
-    )
-    string(REPLACE "lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
-    string(REPLACE "lib/struct.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON_WITHOUT_GLOBAL}") # TODO
-    string(REPLACE ".neon" ".class" RTL_CLASSES "${RTL_NEON_WITHOUT_GLOBAL}")
-    foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
-        string(REPLACE ".neon" ".class" class ${rtl_neon})
-        add_custom_command(
-            OUTPUT ${class}
-            COMMAND neonc -q -t jvm ${rtl_neon}
-            DEPENDS neonc ${rtl_neon}
-        )
-    endforeach ()
-    add_custom_target(neon_jvm_rtl ALL
-        DEPENDS ${RTL_CLASSES}
     )
 endif (JAVAC)
 
