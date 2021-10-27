@@ -6,17 +6,6 @@
 #include "nstring.h"
 
 
-int64_t string_findCString(TString *self, const char *p)
-{
-    int64_t r = -1;
-
-    TString psz = { 0, 0 };
-    psz.data = (char*)p;
-    psz.length = strlen(p);
-    r = string_findString(self, 0, &psz);
-    return r;
-}
-
 int main()
 {
     char ascii[127];
@@ -61,8 +50,8 @@ int main()
     byte->data[0] = '\t';
     assert(string_findString(bytes, 0, byte)  == 9);
     // Test PSZ string finds
-    assert(string_findCString(foobar, "oo.ba")  == 1);
-    assert(string_findCString(s1,   "#1's")  == 15);
+    assert(string_findCString(foobar, 0, "oo.ba")  == 1);
+    assert(string_findCString(s1, 0, "#1's")  == 15);
     // Test findFirst/LastNotOf's
     assert(string_findFirstNotOf(s3, 0, string_createCString("\r\n\t ")) == 6);
     assert(string_findLastNotOf(s3, string_createCString(" ")) == 33);

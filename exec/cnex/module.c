@@ -75,14 +75,16 @@ TModule *module_loadNeonProgram(const char *neonxPath)
 
     pModule->source_path = strdup(neonxPath);
     pModule->path_only = path_getPathOnly(pModule->source_path);
-    pModule->code = malloc(nSize);
+    pModule->codelen = nSize;
+    pModule->code = malloc(pModule->codelen);
     if (pModule->code == NULL) {
         fatal_error("Could not allocate memory for neon bytecode.");
     }
-    unsigned int bytes_read = (unsigned int)fread(pModule->code, 1, nSize, fp);
+    unsigned int bytes_read = (unsigned int)fread(pModule->code, 1, pModule->codelen, fp);
     fclose(fp);
 
     bytecode_loadBytecode(pModule->bytecode, pModule->code, bytes_read);
+    module_loadDebugSymbols(pModule);
 
     return pModule;
 }
@@ -112,6 +114,16 @@ TModule *module_loadModule(TExecutor *exec, const char *name, unsigned int modul
     path_readModule(r);
     bytecode_loadBytecode(r->bytecode, r->code, r->codelen);
 
+    // Load debug symbols, if there are any.
+    if (exec->debugging) {
+        if (r->debug_symbols == NULL) {
+            module_loadDebugSymbols(r);
+            // ToDo: Validate debug symbols against the bytecode source hash - complain, or stop execution if we're debugging and the symbols don't
+            //       match, or we couldn't find any.  If we're not the MAIN MODULE, debugging should continue.  The debugger should be made to step
+            //       assembly debug. if we don't have debug symbols.
+        }
+    }
+
     // Traverse any imports, and recursively load them, if they exist.
     for (unsigned int m = 0; m < r->bytecode->importsize; m++) {
         module_loadModule(exec, r->bytecode->strings[r->bytecode->imports[m].name]->data, exec->module_count);
@@ -128,6 +140,29 @@ TModule *module_loadModule(TExecutor *exec, const char *name, unsigned int modul
     return r;
 }
 
+void module_loadDebugSymbols(TModule *m)
+{
+    m->debug_symbols = NULL;
+    char *dbgpath = strdup(m->source_path);
+    dbgpath[strlen(m->source_path)-1] = 'd';
+
+    FILE *fp = fopen(dbgpath, "rb");
+    if (fp != NULL) {
+        fseek(fp, 0, SEEK_END);
+        long nSize = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        char *debug = malloc(nSize + 1);
+        if (debug != NULL) {
+            size_t nr = fread(debug, 1, nSize, fp);
+            fclose(fp);
+            debug[nr] = '\0'; // Ensure data is null-terminated.
+            m->debug_symbols = cJSON_Parse(debug);
+            free(debug);
+        }
+    }
+    free(dbgpath);
+}
+
 void module_freeModule(TModule *m)
 {
     for (unsigned int i = 0; i < m->bytecode->global_size; i++) {
@@ -140,6 +175,8 @@ void module_freeModule(TModule *m)
     if (m->extension_path) {
         free(m->extension_path);
     }
+    // If our debug_symbols are NULL, it is ok to pass NULL to cJSON_Delete().
+    cJSON_Delete(m->debug_symbols);
     free(m->name);
     free(m->code);
     free(m);

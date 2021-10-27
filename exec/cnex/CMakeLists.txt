@@ -49,6 +49,7 @@ endif ()
 set(CNEX_RTL
     lib/binary.c
     lib/datetime.c
+    lib/debugger.c
     lib/file.c
     lib/io.c
     lib/math.c
@@ -76,6 +77,7 @@ add_executable(cnex
     framestack.c
     gc.c
     global.c
+    httpserver.c
     module.c
     nstring.c
     number.c

@@ -20,6 +20,7 @@
 
 #include "lib/binary.h"
 #include "lib/datetime.h"
+#include "lib/debugger.h"
 #include "lib/io.h"
 #include "lib/file.h"
 #include "lib/math.h"
@@ -82,6 +83,10 @@ TDispatch gfuncDispatch[] = {
     // datetime - Date/Time module
     PDFUNC("datetime$gmtime",           datetime_gmtime),
     PDFUNC("datetime$timegm",           datetime_timegm),
+
+    // debug - Debugger functions
+    PDFUNC("debugger$breakpoint",       debugger_breakpoint),
+    PDFUNC("debugger$log",              debugger_log),
 
     // file - File Module
     PDFUNC("file$_CONSTANT_Separator",  file_CONSTANT_Separator),

@@ -29,6 +29,7 @@
 #include "exec.h"
 #include "gc.h"
 #include "global.h"
+#include "httpserver.h"
 #include "framestack.h"
 #include "module.h"
 #include "neonext.h"
@@ -49,29 +50,42 @@
 #define LIBRARY_NAME_PREFIX "lib"
 #endif
 
+const char *DebuggerStateName[] = {
+    "stopped",
+    "run",
+    "single_step",
+    "source_step",
+    "quit",
+};
+
+
 TExtensionModule *g_ExtensionModules;
 extern struct Ne_MethodTable ExtensionMethodTable;
 TExecutor *g_executor;
 
 void invoke(TExecutor *self, TModule *m, int index);
+void exec_handleGET(TExecutor *exec, TString *path, HttpResponse *response);
+void exec_handlePOST(TExecutor *exec, TString *path, TString *data, HttpResponse *response);
 
 typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
     BOOL ExecutorDisassembly;
     BOOL EnableAssertions;
     int  ArgStart;
+    int  DebugPort;
     char *pszFilename;
     char *pszExecutableName;
     char *pszExecutablePath;
 } TOptions;
 
-static TOptions gOptions = { FALSE, FALSE, TRUE, 0, NULL, NULL, NULL };
-
+static TOptions gOptions = { FALSE, FALSE, TRUE, 0, 0, NULL, NULL, NULL };
 
 void exec_freeExecutor(TExecutor *e)
 {
     // First, assert that we've emptied the stack during normal execution.
-    if (e->exit_code == 0) {
+    // Note: We don't want to assert here if the user was running under
+    // the debugger.  In that case, they could have just stopped debugging.
+    if (e->exit_code == 0 && e->debugging == FALSE) {
         assert(isEmpty(e->stack));
     }
     // Next, destroy the opstack.
@@ -98,6 +112,11 @@ void exec_freeExecutor(TExecutor *e)
     // Destroy the callstack.
     free(e->callstack);
 
+    // Free the debugger
+    server_freeServer(e->debug_server);
+    free(e->debugger_breakpoints);
+    string_freeStringArray(e->debugger_log);
+
     // Finally, free the TExecutor object.
     free(e);
 }
@@ -109,7 +128,8 @@ void showUsage(void)
     fprintf(stderr, "Usage:\n\n");
     fprintf(stderr, "   %s [options] program.neonx\n", gOptions.pszExecutableName);
     fprintf(stderr, "\n Where [options] is one or more of the following:\n");
-    fprintf(stderr, "     -d       Display executor debug stats.\n");
+    fprintf(stderr, "     -D       Display executor debug stats.\n");
+    fprintf(stderr, "     -d port  Use debug [port] for interactive debugger.\n");
     fprintf(stderr, "     -t       Trace execution disassembly during run.\n");
     fprintf(stderr, "     -h       Display this help screen.\n");
     fprintf(stderr, "     -n       No Assertions\n");
@@ -125,8 +145,20 @@ BOOL ParseOptions(int argc, char* argv[])
                 exit(1);
             } else if (argv[nIndex][1] == 't') {
                 gOptions.ExecutorDisassembly = TRUE;
-            } else if (argv[nIndex][1] == 'd') {
+            } else if (argv[nIndex][1] == 'D') {
                 gOptions.ExecutorDebugStats = TRUE;
+            } else if (argv[nIndex][1] == 'd') {
+                nIndex++;
+                if (argv[nIndex]) {
+                    gOptions.DebugPort = atoi(argv[nIndex]);
+                    if (gOptions.DebugPort <= 0 || gOptions.DebugPort > 65535) {
+                        printf("-d requires a valid debug port between 1 and 65535.\n");
+                        return FALSE;
+                    }
+                } else {
+                    printf("A debug port is required after the -d parameter.\n");
+                    return FALSE;
+                }
             } else if (argv[nIndex][1] == 'n') {
                 gOptions.EnableAssertions = FALSE;
             } else {
@@ -277,6 +309,26 @@ TExecutor *exec_newExecutor(TModule *object)
     r->collection_interval = 1000;
     r->firstObject = NULL;
 
+    // Initialize the Debugger
+    r->debugging = FALSE;
+    r->debug_server = NULL;
+    r->debugger_state = dbgSTOPPED;
+    r->debugger_step_source_depth = 0;
+    r->debugger_breakpoints = NULL;
+    // Always create the debug_log, in case a program calls debugger.log(); we'll need a place to store the entry.
+    r->debugger_log = string_createStringArray();
+    if (gOptions.DebugPort) {
+        r->debugging = TRUE;
+        r->handlers.handle_GET = exec_handleGET;
+        r->handlers.handle_POST = exec_handlePOST;
+        r->debug_server = server_createServer((unsigned short)gOptions.DebugPort, &r->handlers);
+        if (r->debug_server) {
+            r->debug_server->exec = r;
+        }
+        r->debugger_breakpoints = malloc(sizeof(char) * object->bytecode->codelen);
+        memset(r->debugger_breakpoints, 0, object->bytecode->codelen);
+    }
+
     // Load and initialize all the module code.  Note that there is always at least
     // one module!  See: runtime$moduleIsMain() call.
     r->module_count = 1;
@@ -313,6 +365,45 @@ TExecutor *exec_newExecutor(TModule *object)
     r->diagnostics.total_allocations = 0;
     r->diagnostics.collected_objects = 0;
     return r;
+}
+
+int findDebugLine(TModule *m, int ip)
+{
+    cJSON *jip = NULL;
+    cJSON *jln = NULL;
+    cJSON *jelm = NULL;
+    cJSON *lines = NULL;
+    // Iterate the line_numbers JSON element, looking for the source code line that is
+    // associated with the provided Instruction Pointer (ip) value.
+    lines = cJSON_GetObjectItem(m->debug_symbols, "line_numbers");
+    cJSON_ArrayForEach(jelm, lines)
+    {
+        jip = cJSON_GetArrayItem(jelm, 0);
+        if (!cJSON_IsInvalid(jip) && jip->valueint == ip) {
+            // We found the line, so break out, and return it.
+            jln = cJSON_GetArrayItem(jelm, 1);
+            break;
+        }
+    }
+    // If we don't find a matching line number, just return 0.
+    if (jln == NULL || cJSON_IsInvalid(jln)) {
+        return 0;
+    }
+    return jln->valueint;
+}
+
+TStringArray *getSourceLines(TModule *m)
+{
+    TStringArray *arr = string_createStringArray();
+    cJSON *jelm = NULL;
+    cJSON *lines = cJSON_GetObjectItem(m->debug_symbols, "source");
+    cJSON_ArrayForEach(jelm, lines)
+    {
+        if (!cJSON_IsInvalid(jelm) && jelm->type == cJSON_String) {
+            string_appendStringArrayElement(arr, string_createCString(jelm->valuestring));
+        }
+    }
+    return arr;
 }
 
 void dump_frames(TExecutor *exec)
@@ -1688,6 +1779,34 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
         if (self->disassemble) {
             fprintf(stderr, "mod %s ip %d (%d) %s\n", self->module->name, self->ip, self->stack->top, disasm_disassembleInstruction(self));
         }
+        if (self->debug_server != NULL && self->debugging == TRUE) {
+            switch (self->debugger_state) {
+                case dbgSTOPPED:
+                    break;
+                case dbgRUN:
+                    if (self->debugger_breakpoints[self->ip] == 1) {
+                        self->debugger_state = dbgSTOPPED;
+                    }
+                    break;
+                case dbgSTEP_INSTRUCTION:
+                    self->debugger_state = dbgSTOPPED;
+                    break;
+                case dbgSTEP_SOURCE:
+                    if (self->callstacktop+1 <= self->debugger_step_source_depth && self->module->debug_symbols != NULL && findDebugLine(self->module, self->ip)) {
+                        self->debugger_state = dbgSTOPPED;
+                    }
+                    break;
+                case dbgQUIT:
+                    break;
+            }
+            server_service(self->debug_server, FALSE);
+            while (self->debugger_state == dbgSTOPPED) {
+                server_service(self->debug_server, TRUE);
+            }
+            if (self->debugger_state == dbgQUIT) {
+                return 1;
+            }
+        }
         switch (self->module->bytecode->code[self->ip]) {
             case PUSHB:   exec_PUSHB(self); break;
             case PUSHN:   exec_PUSHN(self); break;
@@ -1795,4 +1914,241 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
         self->diagnostics.total_opcodes++;
     }
     return self->exit_code;
+}
+
+cJSON *cell_writer(Cell *c)
+{
+    char addr[32];
+    cJSON *writer = cJSON_CreateObject();
+    switch (c->type) {
+        case cNothing:
+            cJSON_AddStringToObject(writer, "type", "none");
+            cJSON_AddNullToObject(writer, "value");
+            break;
+        case cAddress:
+            cJSON_AddStringToObject(writer, "type", "address");
+            snprintf(addr, sizeof(addr), "%p", c->address);
+            cJSON_AddNumberToObject(writer, "value", atof(addr)); // cJSON uses Floats for all numbers.
+            break;
+        case cBoolean:
+            cJSON_AddStringToObject(writer, "type", "boolean");
+            cJSON_AddBoolToObject(writer, "value", c->boolean);
+            break;
+        case cNumber:
+            cJSON_AddStringToObject(writer, "type", "number");
+            cJSON_AddStringToObject(writer, "value", number_to_string(c->number));
+            break;
+        case cString:
+            cJSON_AddStringToObject(writer, "type", "string");
+            cJSON_AddStringToObject(writer, "value", string_ensureNullTerminated(c->string));
+            break;
+        case cBytes:
+            // ToDo: I don't think this is correct?  Perhaps we want a more controlled
+            // output of bytes?  Maybe a hex output so every byte is listed as 0x00, 0x01, 0x02, 0x03, etc.
+            // Maybe just an array of numbers that are the byte values?
+            cJSON_AddStringToObject(writer, "type", "bytes");
+            cJSON_AddStringToObject(writer, "value", string_ensureNullTerminated(c->string));
+            break;
+        case cObject:
+            cJSON_AddStringToObject(writer, "type", "object");
+            snprintf(addr, sizeof(addr), "%p", c->object->ptr);
+            cJSON_AddNumberToObject(writer, "value", atof(addr)); // cJSON uses Floats for all numbers.
+            break;
+        case cArray:
+            cJSON_AddStringToObject(writer, "type", "array");
+            cJSON *array = cJSON_CreateArray();
+            for (size_t i = 0; i < c->array->size; i++) {
+                cJSON_AddItemToArray(array, cell_writer(&c->array->data[i]));
+            }
+            cJSON_AddItemToObject(writer, "value", array);
+            break;
+        case cDictionary:
+            cJSON_AddStringToObject(writer, "type", "dictionary");
+            cJSON *dict = cJSON_CreateObject();
+            for (int i = 0; i < c->dictionary->len; i++) {
+                cJSON_AddItemToObject(dict, string_ensureNullTerminated(c->dictionary->data[i].key), cell_writer(c->dictionary->data[i].value));
+            }
+            cJSON_AddItemToObject(writer, "value", dict);
+            break;
+        case cOther:
+            cJSON_AddStringToObject(writer, "type", "other");
+            snprintf(addr, sizeof(addr), "%p", c->other);
+            cJSON_AddNumberToObject(writer, "value", atof(addr)); // cJSON uses Floats for all numbers.
+            break;
+    }
+    return writer;
+}
+
+void exec_handleGET(TExecutor *exec, TString *path, HttpResponse *response)
+{
+    cJSON *writer = NULL;
+    TString *r = NULL;
+    TStringArray *parts = string_splitString(path, '/');
+
+    if (string_compareCString(path, "/break") == 0) {
+        response->code = 200;
+        writer = cJSON_CreateObject();
+        cJSON *ar = cJSON_CreateArray();
+        // ToDo: Convert this to a dynamic array of breakpoints, or some other method to hold all of the break points.
+        for (unsigned int i = 0; i < exec->modules[0]->bytecode->codelen; i++) {
+            if (exec->debugger_breakpoints[i]) {
+                 cJSON_AddItemToArray(ar, cJSON_CreateNumber(i));
+            }
+        }
+        cJSON_AddItemToObject(writer, "debugger_breakpoints", ar);
+    } else if (string_compareCString(path, "/callstack") == 0) {
+        response->code = 200;
+        writer = cJSON_CreateArray();
+        for (int i = exec->callstacktop; i != -1; i--) {
+            cJSON *element = cJSON_CreateObject();
+            cJSON_AddStringToObject(element, "module",  exec->callstack[i].mod->name ? exec->callstack[i].mod->name : "");
+            cJSON_AddNumberToObject(element, "ip",      (double)exec->callstack[i].ip);  // cJSON uses Floats for all numbers.
+            cJSON_AddItemToArray(writer, element);
+        }
+    } else if (string_compareCString(path, "/frames") == 0) {
+        response->code = 200;
+        writer = cJSON_CreateArray();
+        for (int i = exec->framestack->top; i != -1; i--) {
+            cJSON *frame = cJSON_CreateObject();
+            cJSON *cells = cJSON_CreateArray();
+            for (uint32_t l = 0; l < exec->framestack->data[i]->frame_size; l++) {
+                cJSON_AddItemToArray(cells, cell_writer(&exec->framestack->data[i]->locals[l]));
+            }
+            cJSON_AddItemToObject(frame, "locals", cells);
+            cJSON_AddItemToArray(writer, frame);
+        }
+    } else if (parts->size >= 3 && string_compareCString(parts->data[1], "module") == 0) {
+        char *modname = string_asCString(parts->data[2]);
+        if (strcmp(modname, "-") == 0) {
+            modname[0] = '\0';
+        }
+        TModule *m = module_findModule(exec, modname);
+        if (m != NULL) {
+            if (parts->size == 4 && string_compareCString(parts->data[3], "bytecode") == 0) {
+                writer = cJSON_CreateArray();
+                response->code = 200;
+                for (size_t i = 0; i < m->codelen; i++) {
+                    cJSON *byte = cJSON_CreateNumber((double)m->code[i]); // cJSON uses Floats for all numbers.
+                    cJSON_AddItemToArray(writer, byte);
+                }
+            } else if (parts->size == 4 && string_compareCString(parts->data[3], "debuginfo") == 0) {
+                response->code = 200;
+                writer = cJSON_Duplicate(m->debug_symbols, TRUE);
+            } else if (parts->size == 5 && string_compareCString(parts->data[3], "global") == 0) {
+                response->code = 200;
+                uint64_t index = number_to_uint64(number_from_string(string_ensureNullTerminated(parts->data[4])));
+                if (index > m->bytecode->global_size) {
+                    response->code = 202;
+                } else {
+                    writer = cell_writer(&m->globals[index]);
+                }
+            } else if (parts->size == 4 && string_compareCString(parts->data[3], "source") == 0) {
+                response->code = 200;
+                writer = cJSON_CreateArray();
+                TStringArray *source = getSourceLines(m);
+                for (int i = 0; i < source->size; i++) {
+                    cJSON_AddItemToArray(writer, cJSON_CreateString(string_ensureNullTerminated(source->data[i])));
+                }
+                string_freeStringArray(source);
+            }
+        }
+        free(modname);
+    } else if (string_compareCString(path, "/modules") == 0) {
+        response->code = 200;
+        writer = cJSON_CreateArray();
+        for (unsigned int i = 0; i < exec->module_count; i++) {
+            cJSON_AddItemToArray(writer, cJSON_CreateString(exec->modules[i]->name));
+        }
+    } else if (string_compareCString(path, "/opstack") == 0) {
+        response->code = 200;
+        writer = cJSON_CreateArray();
+        for (int i = exec->stack->top; i != -1; i--) {
+            cJSON_AddItemToArray(writer, cell_writer(exec->stack->data[i]));
+        }
+    } else if (string_compareCString(path, "/status") == 0) {
+        response->code = 200;
+        writer = cJSON_CreateObject();
+        cJSON_AddStringToObject(writer, "state",        DebuggerStateName[exec->debugger_state]);
+        cJSON_AddStringToObject(writer, "module",       exec->module->name);
+        cJSON_AddNumberToObject(writer, "ip",           exec->ip);
+        cJSON_AddNumberToObject(writer, "log_messages", (double)exec->debugger_log->size); // cJSON uses Floats for all numbers.
+    }
+    if (response->code == 200 && writer != NULL) {
+        char *s = cJSON_Print(writer);
+        r = string_createCString(s);
+        free(s);
+        cJSON_Delete(writer);
+    } else if (response->code == 404) {
+        string_ensureNullTerminated(path);
+        char err[1056]; // 1024 just for the potential URL path + error text.
+        snprintf(err, sizeof(err), "[debug server] path not found: %s", path->data);
+        r = string_createCString(err);
+    }
+    if (r == NULL) {
+        r = string_createCString("{}");
+    }
+    response->content = r;
+    string_freeStringArray(parts);
+}
+
+void exec_handlePOST(TExecutor *exec, TString *path, TString *data, HttpResponse *response)
+{
+    cJSON *writer = NULL;
+    TString *r = NULL;
+    TStringArray *parts = string_splitString(path, '/');
+
+    if (parts->size == 3 && string_compareCString(parts->data[1], "break") == 0) {
+        response->code = 200;
+        // ToDo: Allow setting breakpoints inside other modules!
+        // ToDo: /break/-/1
+        // ToDo: /break/string/1329 - to break on entry of string.isBlank() for example
+        size_t addr = atoi(string_ensureNullTerminated(parts->data[2]));
+        if (string_compareCString(data, "true") == 0) {
+            exec->debugger_breakpoints[addr] = 1;
+        } else {
+            exec->debugger_breakpoints[addr] = 0;
+        }
+    } else if (string_compareCString(path, "/continue") == 0) {
+        response->code = 200;
+        exec->debugger_state = dbgRUN;
+    } else if (string_compareCString(path, "/log") == 0) {
+        response->code = 200;
+        writer = cJSON_CreateArray();
+        for (int i = 0; i < exec->debugger_log->size; i++) {
+            cJSON_AddItemToArray(writer, cJSON_CreateString(string_ensureNullTerminated(exec->debugger_log->data[i])));
+        }
+        string_clearStringArray(exec->debugger_log);
+    } else if (string_compareCString(path, "/quit") == 0) {
+        response->code = 200;
+        exec->debugger_state = dbgQUIT;
+    } else if (string_compareCString(path, "/step/instruction") == 0) {
+        response->code = 200;
+        exec->debugger_state = dbgSTEP_INSTRUCTION;
+    } else if (parts->size == 4 && string_compareCString(parts->data[1], "step") == 0 && string_compareCString(parts->data[2], "source") == 0) {
+        response->code = 200;
+        exec->debugger_state = dbgSTEP_SOURCE;
+        exec->debugger_step_source_depth = exec->callstacksize + atoi(string_ensureNullTerminated(parts->data[3]));
+    } else if (string_compareCString(path, "/stop") == 0) {
+        response->code = 200;
+        exec->debugger_state = dbgSTOPPED;
+    }
+    if (response->code == 200) {
+        if (writer != NULL) {
+            char *s = cJSON_PrintBuffered(writer, 512, 0);
+            r = string_createCString(s);
+            free(s);
+            cJSON_Delete(writer);
+        }
+    } else if (response->code == 0) {
+        response->code = 404;
+        const char *pth = string_ensureNullTerminated(path);
+        char err[1056]; // 1024 just for the potential URL path + error text.
+        snprintf(err, sizeof(err), "[debug server] path not found: %s", pth);
+        r = string_createCString(err);
+    }
+    if (r == NULL) {
+        r = string_createCString("{}");
+    }
+    string_freeStringArray(parts);
+    response->content = r;
 }

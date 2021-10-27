@@ -3,8 +3,19 @@
 #include <stdint.h>
 #include <time.h>
 
+#include "httpserver.h"
 #include "number.h"
 #include "util.h"
+
+struct tagTStringArray;
+
+typedef enum eDebuggerState {
+    dbgSTOPPED,
+    dbgRUN,
+    dbgSTEP_INSTRUCTION,
+    dbgSTEP_SOURCE,
+    dbgQUIT,
+} DebuggerState;
 
 typedef struct tagTExecutor {
     unsigned int ip;
@@ -40,6 +51,14 @@ typedef struct tagTExecutor {
         size_t total_allocations;
         size_t collected_objects;
     } diagnostics;
+
+    BOOL debugging;
+    HttpServerImpl *debug_server;
+    IHttpServerHandler handlers;
+    DebuggerState debugger_state;
+    int64_t debugger_step_source_depth;
+    char *debugger_breakpoints;
+    struct tagTStringArray *debugger_log;
 } TExecutor;
 
 int exec_loop(TExecutor *self, int64_t min_callstack_depth);
