@@ -15,6 +15,11 @@
 #include "parser.h"
 #include "compiler.h"
 
+#ifdef _MSC_VER
+#include <direct.h>
+#define mkdir(x,y) _mkdir(x)
+#endif
+
 #ifdef USE_RTLX
 #include "rtl.inc"
 #endif
