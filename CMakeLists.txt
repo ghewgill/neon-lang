@@ -232,7 +232,7 @@ if (JAVAC)
         string(REPLACE ".neon" ".class" class ${rtl_neon})
         add_custom_command(
             OUTPUT ${class}
-            COMMAND neonc -q -t jvm -T package=neon.lib ${rtl_neon}
+            COMMAND neonc -q -t jvm -T package=neon.lib -T classdir=rtl/jvm ${rtl_neon}
             DEPENDS neonc ${rtl_neon}
         )
     endforeach ()
@@ -261,7 +261,7 @@ if (JAVAC)
         string(REPLACE ".java" ".class" class ${java})
         add_custom_command(
             OUTPUT ${class}
-            COMMAND javac -cp rtl/jvm:lib ${java}
+            COMMAND javac -cp rtl/jvm ${java}
             DEPENDS ${java} neon_jvm_rtl
         )
     endforeach ()

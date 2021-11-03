@@ -35,4 +35,4 @@ if java is None:
 
 subprocess.check_call([neonc, "-q", "-t", "jvm", fullname])
 classpath = path if path else "."
-subprocess.check_call([java, "-cp", os.pathsep.join([classpath, "rtl/jvm", "lib"]), name.replace(".neon", "")] + sys.argv[i+1:])
+subprocess.check_call([java, "-cp", os.pathsep.join([classpath, "rtl/jvm"]), name.replace(".neon", "")] + sys.argv[i+1:])

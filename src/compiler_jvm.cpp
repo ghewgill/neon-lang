@@ -3366,9 +3366,17 @@ public:
 
     virtual void generate() const {
         std::string path;
-        std::string::size_type i = program->source_path.find_last_of("/\\:");
-        if (i != std::string::npos) {
-            path = program->source_path.substr(0, i + 1);
+        auto cp = options.find("classdir");
+        if (cp != options.end() && not cp->second.empty()) {
+            path = cp->second;
+            if (path.back() != '/' && path.back() != '\\') {
+                path.push_back('/');
+            }
+        } else {
+            std::string::size_type i = program->source_path.find_last_of("/\\:");
+            if (i != std::string::npos) {
+                path = program->source_path.substr(0, i + 1);
+            }
         }
         std::string package_prefix;
         auto p = options.find("package");
