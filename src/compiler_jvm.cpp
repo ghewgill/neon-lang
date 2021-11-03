@@ -747,7 +747,7 @@ public:
 
         for (size_t i = 0; i < tr->fields.size(); i++) {
             field_info f;
-            f.access_flags = 0;
+            f.access_flags = ACC_PUBLIC;
             f.name_index = cf.utf8(tr->fields[i].name.text);
             f.descriptor_index = cf.utf8(field_types[i]->jtype);
             cf.fields.push_back(f);
@@ -3380,26 +3380,14 @@ public:
                     package_prefix[i] = '/';
                 }
             }
-            while (not package.empty()) {
-                std::string part;
-                auto dot = package.find('.');
-                if (dot != std::string::npos) {
-                    part = package.substr(0, dot);
-                    package = package.substr(dot+1);
-                } else {
-                    part = package;
-                    package.clear();
-                }
-                path += part + "/";
-            }
         }
-        ClassFile cf(path, program->module_name);
+        ClassFile cf(path, package_prefix + program->module_name);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
         cf.constant_pool_count = 0;
         cf.access_flags = ACC_PUBLIC | ACC_SUPER;
-        cf.this_class = cf.Class(package_prefix + cf.name);
+        cf.this_class = cf.Class(cf.name);
         cf.super_class = cf.Class("java/lang/Object");
 
         ClassContext classcontext(support, cf);
