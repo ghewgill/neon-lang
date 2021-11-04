@@ -424,10 +424,11 @@ public:
 
 class ClassContext {
 public:
-    ClassContext(CompilerSupport *support, ClassFile &cf): support(support), cf(cf), generated_types() {}
+    ClassContext(CompilerSupport *support, std::string package_prefix, ClassFile &cf): support(support), package_prefix(package_prefix), cf(cf), generated_types() {}
     ClassContext(const ClassContext &) = delete;
     ClassContext &operator=(const ClassContext &) = delete;
     CompilerSupport *support;
+    std::string package_prefix;
     ClassFile &cf;
     std::set<const class Type *> generated_types;
 };
@@ -736,7 +737,7 @@ public:
         context.ca.code << OP_invokespecial << context.cf.Method(classname, "<init>", get_init_descriptor());
     }
     virtual void generate_class(Context &context) const override {
-        ClassFile cf(context.cf.path, classname);
+        ClassFile cf(context.cf.path, context.cc.package_prefix + classname);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -747,7 +748,7 @@ public:
 
         for (size_t i = 0; i < tr->fields.size(); i++) {
             field_info f;
-            f.access_flags = 0;
+            f.access_flags = ACC_PUBLIC;
             f.name_index = cf.utf8(tr->fields[i].name.text);
             f.descriptor_index = cf.utf8(field_types[i]->jtype);
             cf.fields.push_back(f);
@@ -860,7 +861,7 @@ public:
         context.ca.code << OP_getstatic << context.cf.Field(classname, te->names.begin()->first, jtype);
     }
     virtual void generate_class(Context &context) const override {
-        ClassFile cf(context.cf.path, classname);
+        ClassFile cf(context.cf.path, context.cc.package_prefix + classname);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -975,7 +976,7 @@ public:
     const std::map<std::string, std::pair<int, const Type *>> choices;
 
     virtual void generate_class(Context &context) const override {
-        ClassFile cf(context.cf.path, classname);
+        ClassFile cf(context.cf.path, context.cc.package_prefix + classname);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -1073,10 +1074,12 @@ public:
 
     virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &context) const override {
-        context.ca.code << OP_getstatic << context.cf.Field(mv->module->name, mv->name, type->jtype);
+        // TODO: figure out how to use correct class package prefix here
+        context.ca.code << OP_getstatic << context.cf.Field("neon/lib/" + mv->module->name, mv->name, type->jtype);
     }
     virtual void generate_store(Context &context) const override {
-        context.ca.code << OP_putstatic << context.cf.Field(mv->module->name, mv->name, type->jtype);
+        // TODO: figure out how to use correct class package prefix here
+        context.ca.code << OP_putstatic << context.cf.Field("neon/lib/" + mv->module->name, mv->name, type->jtype);
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ModuleVariable"); }
 };
@@ -3344,14 +3347,15 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        context.ca.code << OP_invokestatic << context.cf.Method(mf->module->name, Function::make_java_method_name(mf->name), signature);
+        // TODO: figure out how to use correct class package prefix here
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/lib/" + mf->module->name, Function::make_java_method_name(mf->name), signature);
         // TODO: out parameters
     }
 };
 
 class Program {
 public:
-    Program(CompilerSupport *support, const ast::Program *program): support(support), program(program), statements() {
+    Program(CompilerSupport *support, const ast::Program *program, const std::map<std::string, std::string> &options): support(support), program(program), options(options), statements() {
         for (auto s: program->statements) {
             statements.push_back(transform(s));
         }
@@ -3361,15 +3365,35 @@ public:
     virtual ~Program() {}
     CompilerSupport *support;
     const ast::Program *program;
+    const std::map<std::string, std::string> &options;
     std::vector<const Statement *> statements;
 
     virtual void generate() const {
         std::string path;
-        std::string::size_type i = program->source_path.find_last_of("/\\:");
-        if (i != std::string::npos) {
-            path = program->source_path.substr(0, i + 1);
+        auto cp = options.find("classdir");
+        if (cp != options.end() && not cp->second.empty()) {
+            path = cp->second;
+            if (path.back() != '/' && path.back() != '\\') {
+                path.push_back('/');
+            }
+        } else {
+            std::string::size_type i = program->source_path.find_last_of("/\\:");
+            if (i != std::string::npos) {
+                path = program->source_path.substr(0, i + 1);
+            }
         }
-        ClassFile cf(path, program->module_name);
+        std::string package_prefix;
+        auto p = options.find("package");
+        if (p != options.end()) {
+            std::string package = p->second;
+            package_prefix = package + ".";
+            for (std::string::size_type i = 0; i < package_prefix.length(); i++) {
+                if (package_prefix[i] == '.') {
+                    package_prefix[i] = '/';
+                }
+            }
+        }
+        ClassFile cf(path, package_prefix + program->module_name);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -3378,7 +3402,7 @@ public:
         cf.this_class = cf.Class(cf.name);
         cf.super_class = cf.Class("java/lang/Object");
 
-        ClassContext classcontext(support, cf);
+        ClassContext classcontext(support, package_prefix, cf);
         for (size_t s = 0; s < program->frame->getCount(); s++) {
             auto slot = program->frame->getSlot(s);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
@@ -4039,13 +4063,13 @@ Statement *transform(const ast::Statement *s)
 
 } // namespace jvm
 
-void compile_jvm(CompilerSupport *support, const ast::Program *p, std::string /*output*/, std::map<std::string, std::string> /*options*/)
+void compile_jvm(CompilerSupport *support, const ast::Program *p, std::string /*output*/, std::map<std::string, std::string> options)
 {
     jvm::g_type_cache.clear();
     jvm::g_variable_cache.clear();
     jvm::g_expression_cache.clear();
     jvm::g_statement_cache.clear();
 
-    jvm::Program *ct = new jvm::Program(support, p);
+    jvm::Program *ct = new jvm::Program(support, p, options);
     ct->generate();
 }

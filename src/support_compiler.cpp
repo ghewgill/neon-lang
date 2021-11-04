@@ -5,6 +5,8 @@
 #include <iso646.h>
 #include <sstream>
 
+#include <sys/stat.h>
+
 #include <sha256.h>
 
 #include "analyzer.h"
@@ -12,6 +14,11 @@
 #include "lexer.h"
 #include "parser.h"
 #include "compiler.h"
+
+#ifdef _MSC_VER
+#include <direct.h>
+#define mkdir(x,y) _mkdir(x)
+#endif
 
 #ifdef USE_RTLX
 #include "rtl.inc"
@@ -97,6 +104,19 @@ void CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
 
 void CompilerSupport::writeOutput(const std::string &name, const std::vector<unsigned char> &content)
 {
+    std::string::size_type slash = 0;
+    while (true) {
+        slash = name.find('/', slash+1);
+        if (slash == std::string::npos) {
+            break;
+        }
+        if (mkdir(name.substr(0, slash).c_str(), 0700) != 0) {
+            if (errno != EEXIST) {
+                printf("error: Could not create output path: %s\n", name.substr(0, slash).c_str());
+                exit(1);
+            }
+        }
+    }
     std::ofstream f(name, std::ios::binary);
     if (not f) {
         std::cerr << "error: Could not create output file: " << name << "\n";
