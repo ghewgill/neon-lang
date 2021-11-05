@@ -92,6 +92,45 @@ const uint8_t OP_wide           = 193;
 
 const uint8_t T_BYTE            = 8;
 
+std::string package_name(std::string modname)
+{
+    static const std::set<std::string> lib_names {
+        "base",
+        "binary",
+        "cformat",
+        "complex",
+        "console",
+        "datetime",
+        "debugger",
+        "encoding",
+        "file",
+        "global",
+        "io",
+        "json",
+        "math",
+        "mmap",
+        "multiarray",
+        "net",
+        "os",
+        "posix",
+        "process",
+        "random",
+        "runtime",
+        "simplehttp",
+        "sqlite",
+        "string",
+        "struct",
+        "sys",
+        "textio",
+        "time",
+        "xml",
+    };
+    if (lib_names.find(modname) != lib_names.end()) {
+        return "neon/lib/" + modname;
+    }
+    return modname;
+}
+
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
 {
     a.push_back(u8);
@@ -424,13 +463,12 @@ public:
 
 class ClassContext {
 public:
-    ClassContext(CompilerSupport *support, std::string package_prefix, ClassFile &cf): support(support), package_prefix(package_prefix), cf(cf), generated_types() {}
+    ClassContext(CompilerSupport *support, std::string package_prefix, ClassFile &cf): support(support), package_prefix(package_prefix), cf(cf) {}
     ClassContext(const ClassContext &) = delete;
     ClassContext &operator=(const ClassContext &) = delete;
     CompilerSupport *support;
     std::string package_prefix;
     ClassFile &cf;
-    std::set<const class Type *> generated_types;
 };
 
 class Context {
@@ -548,7 +586,7 @@ public:
     virtual ~Type() {}
     const std::string classname;
     const std::string jtype;
-    virtual void generate_class(Context &) const {}
+    virtual void generate_class(ClassContext &) const {}
     virtual void generate_default(Context &context) const = 0;
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const { internal_error("Type::generate_call"); }
 };
@@ -718,7 +756,7 @@ public:
 
 class TypeRecord: public Type {
 public:
-    explicit TypeRecord(const ast::TypeRecord *tr): Type(tr, tr->module + "$" + tr->name.substr(tr->name.find('.')+1)), tr(tr), field_types() {
+    explicit TypeRecord(const ast::TypeRecord *tr): Type(tr, package_name(tr->module) + "$" + tr->name.substr(tr->name.find('.')+1)), tr(tr), field_types() {
         for (auto f: tr->fields) {
             field_types.push_back(transform(f.type));
         }
@@ -736,8 +774,8 @@ public:
         }
         context.ca.code << OP_invokespecial << context.cf.Method(classname, "<init>", get_init_descriptor());
     }
-    virtual void generate_class(Context &context) const override {
-        ClassFile cf(context.cf.path, context.cc.package_prefix + classname);
+    virtual void generate_class(ClassContext &cc) const override {
+        ClassFile cf(cc.cf.path, classname);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -788,7 +826,7 @@ public:
         }
 
         auto data = cf.serialize();
-        context.cc.support->writeOutput(context.cf.path + cf.name + ".class", data);
+        cc.support->writeOutput(cc.cf.path + cf.name + ".class", data);
     }
     std::string get_init_descriptor() const {
         std::string descriptor = "(";
@@ -851,7 +889,7 @@ public:
 
 class TypeEnum: public Type {
 public:
-    explicit TypeEnum(const ast::TypeEnum *te): Type(te, te->module + "$" + te->name), te(te) {}
+    explicit TypeEnum(const ast::TypeEnum *te): Type(te, package_name(te->module) + "$" + te->name), te(te) {}
     TypeEnum(const TypeEnum &) = delete;
     TypeEnum &operator=(const TypeEnum &) = delete;
     const ast::TypeEnum *te;
@@ -860,8 +898,8 @@ public:
         // TODO: not begin(). Whatever value 0 is.
         context.ca.code << OP_getstatic << context.cf.Field(classname, te->names.begin()->first, jtype);
     }
-    virtual void generate_class(Context &context) const override {
-        ClassFile cf(context.cf.path, context.cc.package_prefix + classname);
+    virtual void generate_class(ClassContext &cc) const override {
+        ClassFile cf(cc.cf.path, classname);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -890,7 +928,7 @@ public:
                     Code_attribute ca;
                     ca.max_stack = 16;
                     ca.max_locals = 4;
-                    Context function_context(context.cc, ca);
+                    Context function_context(cc, ca);
                     ca.code << OP_aload_0;
                     ca.code << OP_invokespecial << cf.Method("java/lang/Object", "<init>", "()V");
                     //ca.code << OP_aload_1;
@@ -920,7 +958,7 @@ public:
                     Code_attribute ca;
                     ca.max_stack = 16;
                     ca.max_locals = 4;
-                    Context function_context(context.cc, ca);
+                    Context function_context(cc, ca);
                     ca.code << OP_aload_0;
                     ca.code << OP_getfield << cf.Field(classname, "$NAME", "Ljava/lang/String;");
                     ca.code << OP_areturn;
@@ -943,7 +981,7 @@ public:
                     Code_attribute ca;
                     ca.max_stack = 16;
                     ca.max_locals = 4;
-                    Context function_context(context.cc, ca);
+                    Context function_context(cc, ca);
 #if 0
                     for (auto e: te->names) {
                         ca.code << OP_new << cf.Class(classname);
@@ -963,20 +1001,20 @@ public:
         }
 
         auto data = cf.serialize();
-        context.cc.support->writeOutput(context.cf.path + cf.name + ".class", data);
+        cc.support->writeOutput(cc.cf.path + cf.name + ".class", data);
     }
 };
 
 class TypeChoice: public Type {
 public:
-    explicit TypeChoice(const ast::TypeChoice *tc): Type(tc, tc->module + "$" + tc->name.substr(tc->name.find('.')+1)), tc(tc), choices(make_choices(tc)) {}
+    explicit TypeChoice(const ast::TypeChoice *tc): Type(tc, package_name(tc->module) + "$" + tc->name.substr(tc->name.find('.')+1)), tc(tc), choices(make_choices(tc)) {}
     TypeChoice(const TypeChoice &) = delete;
     TypeChoice &operator=(const TypeChoice &) = delete;
     const ast::TypeChoice *tc;
     const std::map<std::string, std::pair<int, const Type *>> choices;
 
-    virtual void generate_class(Context &context) const override {
-        ClassFile cf(context.cf.path, context.cc.package_prefix + classname);
+    virtual void generate_class(ClassContext &cc) const override {
+        ClassFile cf(cc.cf.path, classname);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -1025,12 +1063,12 @@ public:
         }
         for (auto m: tc->methods) {
             const Variable *f = transform(m.second);
-            f->generate_decl(context.cc, false);
+            f->generate_decl(cc, false);
             // TODO: free f, memory leak
         }
 
         auto data = cf.serialize();
-        context.cc.support->writeOutput(context.cf.path + cf.name + ".class", data);
+        cc.support->writeOutput(cc.cf.path + cf.name + ".class", data);
     }
 
     virtual void generate_default(Context &) const override {
@@ -1074,12 +1112,10 @@ public:
 
     virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &context) const override {
-        // TODO: figure out how to use correct class package prefix here
-        context.ca.code << OP_getstatic << context.cf.Field("neon/lib/" + mv->module->name, mv->name, type->jtype);
+        context.ca.code << OP_getstatic << context.cf.Field(package_name(mv->module->name), mv->name, type->jtype);
     }
     virtual void generate_store(Context &context) const override {
-        // TODO: figure out how to use correct class package prefix here
-        context.ca.code << OP_putstatic << context.cf.Field("neon/lib/" + mv->module->name, mv->name, type->jtype);
+        context.ca.code << OP_putstatic << context.cf.Field(package_name(mv->module->name), mv->name, type->jtype);
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ModuleVariable"); }
 };
@@ -1267,7 +1303,6 @@ public:
     const TypeEnum *type;
 
     virtual void generate(Context &context) const override {
-        context.cc.generated_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
         for (auto e: type->te->names) {
             if (e.second == cee->value) {
                 context.ca.code << OP_getstatic << context.cf.Field(type->classname, e.first, type->jtype);
@@ -1290,7 +1325,6 @@ public:
     const Expression *expr;
 
     virtual void generate(Context &context) const override {
-        context.cc.generated_types.insert(type); // TODO: do this somewhere better as above
         for (auto c: type->choices) {
             if (c.second.first == cce->value) {
                 context.ca.code << OP_new << context.cf.Class(type->classname);
@@ -1430,7 +1464,6 @@ public:
     std::vector<const Expression *> values;
 
     virtual void generate(Context &context) const override {
-        context.cc.generated_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
         context.ca.code << OP_new << context.cf.Class(type->classname);
         context.ca.code << OP_dup;
         for (auto v: values) {
@@ -1460,7 +1493,6 @@ public:
     const TypeRecord *type;
 
     virtual void generate(Context &context) const override {
-        context.cc.generated_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
         if (value != nullptr) {
             value->generate(context);
         } else {
@@ -2654,7 +2686,10 @@ public:
     TypeDeclarationStatement &operator=(const TypeDeclarationStatement &) = delete;
     const ast::TypeDeclarationStatement *tds;
 
-    virtual void generate(Context &) const override {}
+    virtual void generate(Context &context) const override {
+        const Type *t = transform(tds->type);
+        t->generate_class(context.cc);
+    }
 };
 
 class DeclarationStatement: public Statement {
@@ -3347,8 +3382,7 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        // TODO: figure out how to use correct class package prefix here
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/lib/" + mf->module->name, Function::make_java_method_name(mf->name), signature);
+        context.ca.code << OP_invokestatic << context.cf.Method(package_name(mf->module->name), Function::make_java_method_name(mf->name), signature);
         // TODO: out parameters
     }
 };
@@ -3451,9 +3485,6 @@ public:
                     ca.code << OP_invokestatic << context.cf.Method("java/lang/System", "exit", "(I)V");
                     ca.code << OP_return;
                     code.info = ca.serialize();
-                    for (auto t: classcontext.generated_types) {
-                        t->generate_class(context);
-                    }
                 }
                 m.attributes.push_back(code);
             }
