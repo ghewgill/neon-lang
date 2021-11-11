@@ -334,9 +334,23 @@ void file_mkdir(TExecutor *exec)
 
     int r = mkdir(path, 0755);
     if (r != 0) {
-        handle_error(exec, errno, path);
+        Cell *ret = cell_createArrayCell(2);
+        Cell *e = cell_arrayIndexForWrite(ret, 0);
+        e->type = cNumber;
+        e->number = number_from_uint32(CHOICE_FileResult_error);
+        e = cell_arrayIndexForWrite(ret, 1);
+        e->type = cString;
+        e->string = string_createCString(path);
+        push(exec->stack, ret);
+        free(path);
+        return;
     }
 
+    Cell *ret = cell_createArrayCell(1);
+    Cell *e = cell_arrayIndexForWrite(ret, 0);
+    e->type = cNumber;
+    e->number = number_from_uint32(CHOICE_FileResult_ok);
+    push(exec->stack, ret);
     free(path);
 }
 

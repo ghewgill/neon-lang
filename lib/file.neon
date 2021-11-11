@@ -9,6 +9,7 @@ EXPORT Separator
 
 EXPORT FileType
 EXPORT FileInfo
+EXPORT FileResult
 
 EXPORT copy
 EXPORT copyOverwriteIfExists
@@ -99,6 +100,11 @@ TYPE FileInfo IS RECORD
     lastAccessTime: Number
     lastModificationTime: Number
 END RECORD
+
+TYPE FileResult IS CHOICE
+    ok
+    error: String
+END CHOICE
 
 /*  Function: copy
  *
@@ -204,7 +210,7 @@ DECLARE NATIVE FUNCTION isDirectory(path: String): Boolean
  *      - <FileException.DirectoryExists> - if the directory already exists
  *      - <FileException.PathNotFound> - if the path (not including the last component) does not exist
  */
-DECLARE NATIVE FUNCTION mkdir(path: String)
+DECLARE NATIVE FUNCTION mkdir(path: String): FileResult
 
 /*  Function: pathJoin
  *

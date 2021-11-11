@@ -17,6 +17,9 @@
 #define ENUM_FileType_directory     1
 #define ENUM_FileType_special       2
 
+#define CHOICE_FileResult_ok        0
+#define CHOICE_FileResult_error     1
+
 #define CHOICE_FindResult_notfound  0
 #define CHOICE_FindResult_index     1
 

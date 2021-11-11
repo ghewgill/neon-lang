@@ -2414,9 +2414,11 @@ func (self *executor) op_callp() {
 		name := self.pop().str
 		err := os.Mkdir(name, 0755)
 		if err != nil && os.IsExist(err) {
-			self.raise_literal("FileException.DirectoryExists", objectString{name})
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str(name)})) // error
 		} else if err != nil {
 			panic(err)
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 		}
 	case "file$readBytes":
 		name := self.pop().str

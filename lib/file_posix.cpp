@@ -13,6 +13,7 @@
 
 #include "rtl_exec.h"
 #include "enums.inc"
+#include "choices.inc"
 
 static void handle_error(int error, const utf8string &path)
 {
@@ -239,12 +240,13 @@ bool isDirectory(const utf8string &path)
     return stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
 }
 
-void mkdir(const utf8string &path)
+Cell mkdir(const utf8string &path)
 {
     int r = ::mkdir(path.c_str(), 0755);
     if (r != 0) {
-        handle_error(errno, path);
+        return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_error)), Cell(path)});
     }
+    return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
 }
 
 void removeEmptyDirectory(const utf8string &path)

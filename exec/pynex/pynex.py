@@ -2369,7 +2369,14 @@ def neon_file_mkdir(self):
     try:
         os.mkdir(fn)
     except FileExistsError:
-        self.raise_literal("FileException.DirectoryExists", fn)
+        self.stack.append([
+            Value(1), # error
+            Value(fn)
+        ])
+        return
+    self.stack.append([
+        Value(0) # ok
+    ])
 
 def neon_file_readBytes(self):
     fn = self.stack.pop()

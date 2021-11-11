@@ -1,10 +1,15 @@
 IMPORT file
 
-TRY
-    file.mkdir("tmp/dummy")
-    file.mkdir("tmp/dummy")
-TRAP file.FileException.DirectoryExists AS x DO
-    print(x.info)
-END TRY
+IF file.isDirectory("tmp/dummy") THEN
+    file.removeDirectoryTree("tmp/dummy")
+END IF
+CHECK file.mkdir("tmp/dummy") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
+LET r: file.FileResult := file.mkdir("tmp/dummy")
+CHECK r ISA file.FileResult.error ELSE
+    RAISE TestFailedException
+END CHECK
+print(r.error)
 
 --= tmp/dummy
