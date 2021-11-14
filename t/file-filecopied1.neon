@@ -1,22 +1,13 @@
 IMPORT file
 
-file.delete("tmp/license-copy.txt")
+CHECK file.delete("tmp/license-copy.txt") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
 file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "the Neon test suite, and can be ", "safely deleted."])
 
-TRY
-    -- Try this a few times because sometimes on the OS X build on CI,
-    -- we get an ENOENT error from copyfile() which is not the result we
-    -- expected. Trying again seems to fix it.
-    FOR i := 1 TO 3 DO
-        TRY
-            file.copy("LICENSE.txt", "tmp/license-copy.txt")
-            print("File copied")
-            EXIT FOR
-        TRAP file.FileException.PathNotFound DO
-        END TRY
-    END FOR
-TRAP file.FileException.Exists DO
+LET r: file.FileResult := file.copy("LICENSE.txt", "tmp/license-copy.txt")
+IF r ISA file.FileResult.error THEN
     print("Failed")
-END TRY
+END IF
 
 --= Failed

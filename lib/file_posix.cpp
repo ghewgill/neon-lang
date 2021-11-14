@@ -15,16 +15,12 @@
 #include "enums.inc"
 #include "choices.inc"
 
-static void handle_error(int error, const utf8string &path)
+static Cell error_result(int error, const utf8string &path)
 {
-    switch (error) {
-        case EACCES: throw RtlException(rtl::ne_file::Exception_FileException_PermissionDenied, path);
-        case EEXIST: throw RtlException(rtl::ne_file::Exception_FileException_DirectoryExists, path);
-        case ENOENT: throw RtlException(rtl::ne_file::Exception_FileException_PathNotFound, path);
-        default:
-            throw RtlException(rtl::ne_file::Exception_FileException, path + ": " + strerror(error));
-    }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(utf8string(path + ": " + strerror(error)))});
 }
+
+static void handle_error(int, const utf8string &) {}
 
 namespace rtl {
 
@@ -35,36 +31,36 @@ utf8string _CONSTANT_Separator()
     return utf8string("/");
 }
 
-void copy(const utf8string &filename, const utf8string &destination)
+Cell copy(const utf8string &filename, const utf8string &destination)
 {
 #ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL|COPYFILE_EXCL);
     if (r != 0) {
         if (errno == EEXIST) {
-            throw RtlException(Exception_FileException_Exists, destination);
+            return error_result(errno, destination);
         }
-        handle_error(errno, filename);
+        return error_result(errno, filename);
     }
 #else
     int sourcefd = open(filename.c_str(), O_RDONLY);
     if (sourcefd < 0) {
-        handle_error(errno, filename);
+        return error_result(errno, filename);
     }
     struct stat statbuf;
     int r = fstat(sourcefd, &statbuf);
     if (r != 0) {
         int error = errno;
         close(sourcefd);
-        handle_error(error, filename);
+        return error_result(error, filename);
     }
     int destfd = open(destination.c_str(), O_CREAT|O_WRONLY|O_TRUNC|O_EXCL, 0);
     if (destfd < 0) {
         int error = errno;
         close(sourcefd);
         if (error == EEXIST) {
-            throw RtlException(Exception_FileException_Exists, destination);
+            return error_result(error, destination);
         }
-        handle_error(error, destination);
+        return error_result(error, destination);
     }
     char buf[BUFSIZ];
     for (;;) {
@@ -74,7 +70,7 @@ void copy(const utf8string &filename, const utf8string &destination)
             close(sourcefd);
             close(destfd);
             unlink(destination.c_str());
-            handle_error(error, filename);
+            return error_result(error, filename);
         } else if (n == 0) {
             break;
         }
@@ -84,7 +80,7 @@ void copy(const utf8string &filename, const utf8string &destination)
             close(sourcefd);
             close(destfd);
             unlink(destination.c_str());
-            handle_error(error, destination);
+            return error_result(error, destination);
         }
     }
     close(sourcefd);
@@ -93,14 +89,14 @@ void copy(const utf8string &filename, const utf8string &destination)
         close(sourcefd);
         close(destfd);
         unlink(destination.c_str());
-        handle_error(error, destination);
+        return error_result(error, destination);
     }
     if (fchown(destfd, statbuf.st_uid, statbuf.st_gid) != 0) {
         int error = errno;
         close(sourcefd);
         close(destfd);
         unlink(destination.c_str());
-        handle_error(error, destination);
+        return error_result(error, destination);
     }
     close(destfd);
     struct utimbuf utimebuf;
@@ -108,32 +104,33 @@ void copy(const utf8string &filename, const utf8string &destination)
     utimebuf.modtime = statbuf.st_mtime;
     utime(destination.c_str(), &utimebuf);
 #endif
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
-void copyOverwriteIfExists(const utf8string &filename, const utf8string &destination)
+Cell copyOverwriteIfExists(const utf8string &filename, const utf8string &destination)
 {
 #ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL);
     if (r != 0) {
-        handle_error(errno, filename);
+        return error_result(errno, filename);
     }
 #else
     int sourcefd = open(filename.c_str(), O_RDONLY);
     if (sourcefd < 0) {
-        handle_error(errno, filename);
+        return error_result(errno, filename);
     }
     struct stat statbuf;
     int r = fstat(sourcefd, &statbuf);
     if (r != 0) {
         int error = errno;
         close(sourcefd);
-        handle_error(error, filename);
+        return error_result(error, filename);
     }
     int destfd = open(destination.c_str(), O_CREAT|O_WRONLY|O_TRUNC, 0);
     if (destfd < 0) {
         int error = errno;
         close(sourcefd);
-        handle_error(error, destination);
+        return error_result(error, destination);
     }
     char buf[BUFSIZ];
     for (;;) {
@@ -143,7 +140,7 @@ void copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
             close(sourcefd);
             close(destfd);
             unlink(destination.c_str());
-            handle_error(error, filename);
+            return error_result(error, filename);
         } else if (n == 0) {
             break;
         }
@@ -153,7 +150,7 @@ void copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
             close(sourcefd);
             close(destfd);
             unlink(destination.c_str());
-            handle_error(error, destination);
+            return error_result(error, destination);
         }
     }
     close(sourcefd);
@@ -162,14 +159,14 @@ void copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
         close(sourcefd);
         close(destfd);
         unlink(destination.c_str());
-        handle_error(error, destination);
+        return error_result(error, destination);
     }
     if (fchown(destfd, statbuf.st_uid, statbuf.st_gid) != 0) {
         int error = errno;
         close(sourcefd);
         close(destfd);
         unlink(destination.c_str());
-        handle_error(error, destination);
+        return error_result(error, destination);
     }
     close(destfd);
     struct utimbuf utimebuf;
@@ -177,16 +174,18 @@ void copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
     utimebuf.modtime = statbuf.st_mtime;
     utime(destination.c_str(), &utimebuf);
 #endif
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
-void delete_(const utf8string &filename)
+Cell delete_(const utf8string &filename)
 {
     int r = unlink(filename.c_str());
     if (r != 0) {
         if (errno != ENOENT) {
-            handle_error(errno, filename);
+            return error_result(errno, filename);
         }
     }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
 bool exists(const utf8string &filename)
@@ -249,12 +248,13 @@ Cell mkdir(const utf8string &path)
     return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
 }
 
-void removeEmptyDirectory(const utf8string &path)
+Cell removeEmptyDirectory(const utf8string &path)
 {
     int r = rmdir(path.c_str());
     if (r != 0) {
-        handle_error(errno, path);
+        return error_result(errno, path);
     }
+    return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
 }
 
 void rename(const utf8string &oldname, const utf8string &newname)

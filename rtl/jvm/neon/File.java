@@ -2,18 +2,24 @@ package neon;
 
 public class File {
 
-    public static void copy(java.lang.String filename, java.lang.String destination) {
+    public static neon.lib.file$FileResult copy(java.lang.String filename, java.lang.String destination) {
         try {
             java.nio.file.Files.copy(
                 java.nio.file.FileSystems.getDefault().getPath(filename),
                 java.nio.file.FileSystems.getDefault().getPath(destination)
             );
         } catch (java.io.IOException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+            r._choice = 1; // error
+            r.error = "FileException: " + x;
+            return r;
         }
+        neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+        r._choice = 0; // ok
+        return r;
     }
 
-    public static void copyOverwriteIfExists(java.lang.String filename, java.lang.String destination) {
+    public static neon.lib.file$FileResult copyOverwriteIfExists(java.lang.String filename, java.lang.String destination) {
         try {
             java.nio.file.Files.copy(
                 java.nio.file.FileSystems.getDefault().getPath(filename),
@@ -21,12 +27,21 @@ public class File {
                 java.nio.file.StandardCopyOption.REPLACE_EXISTING
             );
         } catch (java.io.IOException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+            r._choice = 1; // error
+            r.error = "FileException: " + x;
+            return r;
         }
+        neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+        r._choice = 0; // ok
+        return r;
     }
 
-    public static void delete(java.lang.String filename) {
+    public static neon.lib.file$FileResult delete(java.lang.String filename) {
         new java.io.File(filename).delete();
+        neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+        r._choice = 0; // ok
+        return r;
     }
 
     public static Boolean exists(java.lang.String filename) {

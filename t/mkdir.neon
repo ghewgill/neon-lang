@@ -1,7 +1,9 @@
 IMPORT file
 
 IF file.isDirectory("tmp/dummy") THEN
-    file.removeDirectoryTree("tmp/dummy")
+    CHECK file.removeDirectoryTree("tmp/dummy") ISA file.FileResult.ok ELSE
+        RAISE TestFailedException
+    END CHECK
 END IF
 CHECK file.mkdir("tmp/dummy") ISA file.FileResult.ok ELSE
     RAISE TestFailedException

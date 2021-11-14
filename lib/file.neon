@@ -127,7 +127,7 @@ END CHOICE
  *      > END TRY
  *
  */
-DECLARE NATIVE FUNCTION copy(filename: String, destination: String)
+DECLARE NATIVE FUNCTION copy(filename: String, destination: String): FileResult
 
 /*  Function: copyOverwriteIfExists
  *
@@ -141,7 +141,7 @@ DECLARE NATIVE FUNCTION copy(filename: String, destination: String)
  *      > file.copyOverwriteIfExists("LICENSE.txt", "tmp/Copy_of_LICENSE.txt")
  *
  */
-DECLARE NATIVE FUNCTION copyOverwriteIfExists(filename: String, destination: String)
+DECLARE NATIVE FUNCTION copyOverwriteIfExists(filename: String, destination: String): FileResult
 
 /*  Function: delete
  *
@@ -151,7 +151,7 @@ DECLARE NATIVE FUNCTION copyOverwriteIfExists(filename: String, destination: Str
  *  Exceptions:
  *      - <FileException.PermissionDenied> - if the file permissions prevent the operation
  */
-DECLARE NATIVE FUNCTION delete(filename: String)
+DECLARE NATIVE FUNCTION delete(filename: String): FileResult
 
 /*  Function: exists
  *
@@ -273,7 +273,8 @@ DECLARE NATIVE FUNCTION readLines(filename: String): Array<String>
  *
  *  Remove directory tree recursively.
  */
-FUNCTION removeDirectoryTree(path: String)
+FUNCTION removeDirectoryTree(path: String): FileResult
+    VAR failed := FALSE
     LET names: Array<String> := files(path)
     FOREACH name IN names DO
         IF name IN [".", ".."] THEN
@@ -281,19 +282,29 @@ FUNCTION removeDirectoryTree(path: String)
         END IF
         LET pathname: String := pathJoin(path, name)
         IF isDirectory(name) THEN
-            removeDirectoryTree(pathname)
+            IF removeDirectoryTree(pathname) ISA FileResult.error THEN
+                failed := TRUE
+            END IF
         ELSE
-            delete(pathname)
+            IF delete(pathname) ISA FileResult.error THEN
+                failed := TRUE
+            END IF
         END IF
     END FOREACH
-    removeEmptyDirectory(path)
+    IF removeEmptyDirectory(path) ISA FileResult.error THEN
+        failed := TRUE
+    END IF
+    IF failed THEN
+        RETURN FileResult.error("Some files could not be removed")
+    END IF
+    RETURN FileResult.ok
 END FUNCTION
 
 /*  Function: removeEmptyDirectory
  *
  *  Remove an empty directory.
  */
-DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String)
+DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String): FileResult
 
 /*  Function: rename
  *

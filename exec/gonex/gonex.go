@@ -2338,7 +2338,7 @@ func (self *executor) op_callp() {
 		srcname := self.pop().str
 		dst, err := os.OpenFile(dstname, os.O_CREATE|os.O_EXCL, 0644)
 		if err != nil && os.IsExist(err) {
-			self.raise_literal("FileException.Exists", objectString{err.Error()})
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str(err.Error())})) // error
 		} else {
 			if err != nil {
 				panic(err)
@@ -2350,17 +2350,20 @@ func (self *executor) op_callp() {
 			}
 			defer src.Close()
 			io.Copy(src, dst)
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 		}
 	case "file$copyOverwriteIfExists":
 		dstname := self.pop().str
 		srcname := self.pop().str
 		neon_file_copyOverwriteIfExists(srcname, dstname)
+		self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 	case "file$delete":
 		name := self.pop().str
 		err := os.Remove(name)
 		if err != nil && !os.IsNotExist(err) {
 			panic(err)
 		}
+		self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 	case "file$exists":
 		name := self.pop().str
 		_, err := os.Stat(name)
@@ -2448,7 +2451,9 @@ func (self *executor) op_callp() {
 		name := self.pop().str
 		err := os.Remove(name)
 		if err != nil {
-			self.raise_literal("FileException", objectString{err.Error()})
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str(err.Error())})) // error
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 		}
 	case "file$rename":
 		newname := self.pop().str

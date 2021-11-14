@@ -42,20 +42,28 @@ TESTCASE fi.lastModificationTime > 0
 file.writeLines("tmp/file-test.tmp", ["hello", "world"])
 print(bstr(file.exists("tmp/file-test.tmp")))
 --= TRUE
-file.delete("tmp/file-test.tmp")
+CHECK file.delete("tmp/file-test.tmp") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
 print(bstr(file.exists("tmp/file-test.tmp")))
 --= FALSE
-file.delete("tmp/file-test.tmp") -- No exception expected.
+CHECK file.delete("tmp/file-test.tmp") ISA file.FileResult.ok ELSE -- No exception expected.
+    RAISE TestFailedException
+END CHECK
 
 file.writeLines("tmp/file-test.tmp", ["hello", "world"])
-file.delete("tmp/file-test2.tmp")
+CHECK file.delete("tmp/file-test2.tmp") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
 file.rename("tmp/file-test.tmp", "tmp/file-test2.tmp")
 print(bstr(file.exists("tmp/file-test.tmp")))
 --= FALSE
 print(bstr(file.exists("tmp/file-test2.tmp")))
 --= TRUE
 
-file.copyOverwriteIfExists("tmp/file-test2.tmp", "tmp/file-test3.tmp")
+CHECK file.copyOverwriteIfExists("tmp/file-test2.tmp", "tmp/file-test3.tmp") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
 print(bstr(file.exists("tmp/file-test2.tmp")))
 --= TRUE
 print(bstr(file.exists("tmp/file-test3.tmp")))
@@ -67,14 +75,11 @@ END CHECK
 print(bstr(file.isDirectory("tmp/foo")))
 --= TRUE
 file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
-TRY
-    file.removeEmptyDirectory("tmp/foo")
-TRAP file.FileException DO
-    print("ok")
-END TRY
---= ok
-file.delete("tmp/foo/bar.txt")
-file.removeEmptyDirectory("tmp/foo")
+TESTCASE file.removeEmptyDirectory("tmp/foo") ISA file.FileResult.error
+CHECK file.delete("tmp/foo/bar.txt") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
+TESTCASE file.removeEmptyDirectory("tmp/foo") ISA file.FileResult.ok
 print(bstr(file.isDirectory("tmp/foo")))
 --= FALSE
 
@@ -84,7 +89,9 @@ END CHECK
 print(bstr(file.isDirectory("tmp/foo")))
 --= TRUE
 file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
-file.removeDirectoryTree("tmp/foo")
+CHECK file.removeDirectoryTree("tmp/foo") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
 print(bstr(file.isDirectory("tmp/foo")))
 --= FALSE
 

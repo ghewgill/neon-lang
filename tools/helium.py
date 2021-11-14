@@ -2911,17 +2911,20 @@ def neon_console_input(env, prompt):
 
 def neon_file_copy(env, src, dest):
     if neon_file_exists(env, dest):
-        raise NeonException(["FileException", "Exists"])
+        return ClassChoice.Instance("error", "Exists")
     shutil.copyfile(src, dest)
+    return ClassChoice.Instance("ok")
 
 def neon_file_copyOverwriteIfExists(env, src, dest):
     shutil.copyfile(src, dest)
+    return ClassChoice.Instance("ok")
 
 def neon_file_delete(env, fn):
     try:
         os.unlink(fn)
     except OSError:
         pass
+    return ClassChoice.Instance("ok")
 
 def neon_file_exists(env, fn):
     return os.access(fn, os.F_OK)
@@ -2963,7 +2966,8 @@ def neon_file_removeEmptyDirectory(env, path):
     try:
         os.rmdir(path)
     except OSError:
-        raise NeonException("FileException")
+        return ClassChoice.Instance("error", "remove error")
+    return ClassChoice.Instance("ok")
 
 def neon_file_rename(env, old, new):
     os.rename(old, new)

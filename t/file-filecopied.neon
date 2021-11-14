@@ -1,11 +1,13 @@
 IMPORT file
 
-file.delete("tmp/license-copy.txt")
-TRY 
-    file.copy("LICENSE.txt", "tmp/license-copy.txt")
+CHECK file.delete("tmp/license-copy.txt") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
+LET r: file.FileResult := file.copy("LICENSE.txt", "tmp/license-copy.txt")
+IF r ISA file.FileResult.ok THEN
     print("File copied")
-TRAP file.FileException.Exists DO
+ELSE
     print("Failed")
-END TRY
+END IF
 
 --= File copied

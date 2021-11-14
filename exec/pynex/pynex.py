@@ -2313,17 +2313,19 @@ def neon_file_copy(self):
     try:
         destf = open(dest, "xb")
     except FileExistsError:
-        self.raise_literal("FileException.Exists", dest)
+        self.stack.append([Value(1), Value(dest)]) # error
         return
     srcf = open(src, "rb")
     shutil.copyfileobj(srcf, destf)
     destf.close()
     srcf.close()
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_copyOverwriteIfExists(self):
     dest = self.stack.pop()
     src = self.stack.pop()
     shutil.copyfile(src, dest)
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_delete(self):
     fn = self.stack.pop()
@@ -2331,6 +2333,7 @@ def neon_file_delete(self):
         os.remove(fn)
     except FileNotFoundError:
         pass
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_exists(self):
     n = self.stack.pop()
@@ -2393,7 +2396,9 @@ def neon_file_removeEmptyDirectory(self):
     try:
         os.rmdir(fn)
     except OSError:
-        self.raise_literal("FileException", "")
+        self.stack.append([Value(1), Value("directory not empty")]) # error
+        return
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_rename(self):
     newname = self.stack.pop()

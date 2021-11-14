@@ -1,18 +1,18 @@
 IMPORT file
 
-file.delete("tmp/license-copy.txt")
+CHECK file.delete("tmp/license-copy.txt") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
 file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "the Neon test suite, and can be ", "safely deleted."])
 
-TRY 
-    file.copyOverwriteIfExists("LICENSE.txt", "tmp/license-copy.txt")
-    LET lines: Array<String> := file.readLines("tmp/license-copy.txt")
-    IF lines[FIRST] = "The MIT License (MIT)" THEN
-        print("copyOverwriteIfExists Success")
-    ELSE
-        print("copy failed")
-    END IF
-TRAP file.FileException.Exists DO
-    print("Failed")
-END TRY
+CHECK file.copyOverwriteIfExists("LICENSE.txt", "tmp/license-copy.txt") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
+LET lines: Array<String> := file.readLines("tmp/license-copy.txt")
+IF lines[FIRST] = "The MIT License (MIT)" THEN
+    print("copyOverwriteIfExists Success")
+ELSE
+    print("copy failed")
+END IF
 
 --= copyOverwriteIfExists Success
