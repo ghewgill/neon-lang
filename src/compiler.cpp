@@ -1015,7 +1015,7 @@ std::string ast::TypeChoice::get_type_descriptor(Emitter &emitter) const
         if (i != choices.end()) {
             const ast::Type *type = i->second.second;
             if (type != nullptr) {
-                r += ":" + type->get_type_descriptor(emitter);
+                r += ":" + emitter.get_type_reference(type);
             }
         }
     }
@@ -1036,6 +1036,17 @@ void ast::Variable::generate_store(Emitter &emitter) const
 void ast::Variable::generate_call(Emitter &emitter) const
 {
     type->generate_call(emitter);
+}
+
+void ast::TypeChoice::get_type_references(std::set<const Type *> &references) const
+{
+    for (auto c: choices) {
+        if (c.second.second != nullptr) {
+            if (references.insert(c.second.second).second) {
+                c.second.second->get_type_references(references);
+            }
+        }
+    }
 }
 
 void ast::PredefinedVariable::generate_address(Emitter &emitter) const
