@@ -14,8 +14,11 @@ print(str(a.size()))
 print(a[0])
 --= The MIT License (MIT)
 
-VAR buf: Bytes
-buf := file.readBytes("LICENSE.txt")
+LET r: file.BytesResult := file.readBytes("LICENSE.txt")
+CHECK r ISA file.BytesResult.data ELSE
+    RAISE TestFailedException
+END CHECK
+LET buf: Bytes := r.data
 print(bstr(buf.size() = 1076 OR buf.size() = 1097)) -- account for lf vs crlf
 --= TRUE
 VAR arr: Array<Number> := buf.toArray()
@@ -29,7 +32,11 @@ a := file.files("t")
 print(bstr("file-test.neon" IN a))
 --= TRUE
 
-LET fi: file.FileInfo := file.getInfo("t/file-test.neon")
+LET fir: file.FileInfoResult := file.getInfo("t/file-test.neon")
+CHECK fir ISA file.FileInfoResult.info ELSE
+    RAISE TestFailedException
+END CHECK
+LET fi: file.FileInfo := fir.info
 print(fi.name)
 --= file-test.neon
 TESTCASE 1000 <= fi.size <= 10000

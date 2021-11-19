@@ -1,13 +1,22 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "array.h"
+#include "enums.h"
 #include "cell.h"
 #include "exec.h"
 #include "nstring.h"
 #include "stack.h"
 
+
+Cell *file_error_result(int choice, int error, const char *path)
+{
+    char err[300];
+    snprintf(err, sizeof(err), "%s: %s", path, strerror(error));
+    return cell_makeChoice_string(choice, string_createCString(err));
+}
 
 
 void file_readBytes(TExecutor *exec)
@@ -16,7 +25,7 @@ void file_readBytes(TExecutor *exec)
 
     FILE *f = fopen(filename, "rb");
     if (!f) {
-        exec->rtl_raise(exec, "FileException.Open", filename);
+        push(exec->stack, file_error_result(CHOICE_BytesResult_error, errno, filename));
         free(filename);
         return;
     }
@@ -33,7 +42,7 @@ void file_readBytes(TExecutor *exec)
     // Ensure that the returned Cell is a cBytes type.
     r->type = cBytes;
 
-    push(exec->stack, r);
+    push(exec->stack, cell_makeChoice_cell(CHOICE_BytesResult_data, r));
     free(filename);
 }
 

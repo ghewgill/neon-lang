@@ -1595,6 +1595,11 @@ FUNCTION makeExecutor(bytes: Bytes): Executor
 END FUNCTION
 
 BEGIN MAIN
-    VAR e: Executor := makeExecutor(file.readBytes(sys.args[1]))
+    LET r: file.BytesResult := file.readBytes(sys.args[1])
+    CHECK r ISA file.BytesResult.data ELSE
+        print("Could not read file: \(sys.args[1])")
+        EXIT PROCESS FAILURE
+    END CHECK
+    VAR e: Executor := makeExecutor(r.data)
     e.run()
 END MAIN

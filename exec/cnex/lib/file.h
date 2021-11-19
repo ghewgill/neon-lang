@@ -19,4 +19,7 @@ void file_rename(struct tagTExecutor *exec);
 void file_writeBytes(struct tagTExecutor *exec);
 void file_writeLines(struct tagTExecutor *exec);
 
+// Internal functions.
+struct tagTCell *file_error_result(int choice, int error, const char *path);
+
 #endif

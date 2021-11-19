@@ -20,6 +20,12 @@
 #define CHOICE_FileResult_ok        0
 #define CHOICE_FileResult_error     1
 
+#define CHOICE_FileInfoResult_info  0
+#define CHOICE_FileInfoResult_error 1
+
+#define CHOICE_BytesResult_data     0
+#define CHOICE_BytesResult_error    1
+
 #define CHOICE_FindResult_notfound  0
 #define CHOICE_FindResult_index     1
 

@@ -2357,7 +2357,7 @@ def neon_file_getInfo(self):
         st.st_atime,
         st.st_mtime,
     ]
-    self.stack.append([Value(x) for x in r])
+    self.stack.append([Value(0), Value([Value(x) for x in r])]) # info
 
 def neon_file_isDirectory(self):
     fn = self.stack.pop()
@@ -2384,7 +2384,7 @@ def neon_file_mkdir(self):
 def neon_file_readBytes(self):
     fn = self.stack.pop()
     r = open(fn, "rb").read()
-    self.stack.append(r)
+    self.stack.append([Value(0), Value(r)]) # data
 
 def neon_file_readLines(self):
     fn = self.stack.pop()

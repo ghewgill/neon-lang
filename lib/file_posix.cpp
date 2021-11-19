@@ -214,7 +214,7 @@ Cell getInfo(const utf8string &name)
 {
     struct stat st;
     if (stat(name.c_str(), &st) != 0) {
-        handle_error(errno, name);
+        return error_result(errno, name);
     }
     std::vector<Cell> r;
     r.push_back(Cell(name.str().rfind('/') != std::string::npos ? utf8string(name.str().substr(name.str().rfind('/')+1)) : name));
@@ -230,7 +230,7 @@ Cell getInfo(const utf8string &name)
     r.push_back(Cell(Number()));
     r.push_back(Cell(number_from_uint32(st.st_atime)));
     r.push_back(Cell(number_from_uint32(st.st_mtime)));
-    return Cell(r);
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileInfoResult_info)), Cell(r)});
 }
 
 bool isDirectory(const utf8string &path)

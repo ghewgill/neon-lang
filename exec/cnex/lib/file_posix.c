@@ -1,3 +1,5 @@
+#include "file.h"
+
 #ifdef __APPLE__
 #include <copyfile.h>
 #else
@@ -19,34 +21,6 @@
 #include "cell.h"
 #include "nstring.h"
 #include "stack.h"
-
-static Cell *cell_choice_none(int choice)
-{
-    Cell *r = cell_createArrayCell(1);
-    Cell *e = cell_arrayIndexForWrite(r, 0);
-    e->type = cNumber;
-    e->number = number_from_uint32(choice);
-    return r;
-}
-
-static Cell *cell_choice_string(int choice, TString *str)
-{
-    Cell *r = cell_createArrayCell(2);
-    Cell *e = cell_arrayIndexForWrite(r, 0);
-    e->type = cNumber;
-    e->number = number_from_uint32(choice);
-    e = cell_arrayIndexForWrite(r, 1);
-    e->type = cString;
-    e->string = str;
-    return r;
-}
-
-static Cell *error_result(int error, const char *path)
-{
-    char err[PATH_MAX + 100];
-    snprintf(err, sizeof(err), "%s: %s", path, strerror(error));
-    return cell_choice_string(CHOICE_FileResult_error, string_createCString(err));
-}
 
 static void handle_error(TExecutor *exec, int error, const char *path)
 {
@@ -80,18 +54,18 @@ void file_copy(TExecutor *exec)
     int r = copyfile(filename->data, destination->data, NULL, COPYFILE_ALL | COPYFILE_EXCL);
     if (r != 0) {
         if (errno == EEXIST) {
-            push(exec->stack, error_result(errno, destination->data));
+            push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, destination->data));
             goto bail;
         }
-        push(exec->stack, error_result(errno, filename->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename->data));
         goto bail;
     }
-    push(exec->stack, cell_choice_none(CHOICE_FileResult_ok));
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     goto bail;
 #else
     int sourcefd = open(filename->data, O_RDONLY);
     if (sourcefd < 0) {
-        push(exec->stack, error_result(errno, filename->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename->data));
         goto bail;
     }
     struct stat statbuf;
@@ -99,7 +73,7 @@ void file_copy(TExecutor *exec)
     if (r != 0) {
         int error = errno;
         close(sourcefd);
-        push(exec->stack, error_result(error, filename->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, error, filename->data));
         goto bail;
     }
     int destfd = open(destination->data, O_CREAT | O_WRONLY | O_TRUNC | O_EXCL, 0);
@@ -107,10 +81,10 @@ void file_copy(TExecutor *exec)
         int error = errno;
         close(sourcefd);
         if (error == EEXIST) {
-            push(exec->stack, error_result(error, destination->data));
+            push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
             goto bail;
         }
-        push(exec->stack, error_result(error, destination->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
         goto bail;
     }
     char buf[BUFSIZ];
@@ -121,7 +95,7 @@ void file_copy(TExecutor *exec)
             close(sourcefd);
             close(destfd);
             unlink(destination->data);
-            push(exec->stack, error_result(error, filename->data));
+            push(exec->stack, file_error_result(CHOICE_FileResult_error, error, filename->data));
             goto bail;
         } else if (n == 0) {
             break;
@@ -132,7 +106,7 @@ void file_copy(TExecutor *exec)
             close(sourcefd);
             close(destfd);
             unlink(destination->data);
-            push(exec->stack, error_result(error, destination->data));
+            push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
             goto bail;
         }
     }
@@ -142,7 +116,7 @@ void file_copy(TExecutor *exec)
         close(sourcefd);
         close(destfd);
         unlink(destination->data);
-        push(exec->stack, error_result(error, destination->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
         goto bail;
     }
     if (fchown(destfd, statbuf.st_uid, statbuf.st_gid) != 0) {
@@ -150,7 +124,7 @@ void file_copy(TExecutor *exec)
         close(sourcefd);
         close(destfd);
         unlink(destination->data);
-        push(exec->stack, error_result(error, destination->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
         goto bail;
     }
     close(destfd);
@@ -158,7 +132,7 @@ void file_copy(TExecutor *exec)
     utimebuf.actime = statbuf.st_atime;
     utimebuf.modtime = statbuf.st_mtime;
     utime(destination->data, &utimebuf);
-    push(exec->stack, cell_choice_none(CHOICE_FileResult_ok));
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
 #endif
 
 bail:
@@ -176,14 +150,14 @@ void file_copyOverwriteIfExists(TExecutor *exec)
 #ifdef __APPLE__
     int r = copyfile(filename->data, destination->data, NULL, COPYFILE_ALL);
     if (r != 0) {
-        push(exec->stack, error_result(errno, filename->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename->data));
         goto bail;
     }
-    push(exec->stack, cell_choice_none(CHOICE_FileResult_ok));
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
 #else
     int sourcefd = open(filename->data, O_RDONLY);
     if (sourcefd < 0) {
-        push(exec->stack, error_result(errno, filename->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename->data));
         goto bail;
     }
     struct stat statbuf;
@@ -191,14 +165,14 @@ void file_copyOverwriteIfExists(TExecutor *exec)
     if (r != 0) {
         int error = errno;
         close(sourcefd);
-        push(exec->stack, error_result(error, filename->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, error, filename->data));
         goto bail;
     }
     int destfd = open(destination->data, O_CREAT | O_WRONLY | O_TRUNC, 0);
     if (destfd < 0) {
         int error = errno;
         close(sourcefd);
-        push(exec->stack, error_result(error, destination->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
         goto bail;
     }
     char buf[BUFSIZ];
@@ -209,7 +183,7 @@ void file_copyOverwriteIfExists(TExecutor *exec)
             close(sourcefd);
             close(destfd);
             unlink(destination->data);
-            push(exec->stack, error_result(error, filename->data));
+            push(exec->stack, file_error_result(CHOICE_FileResult_error, error, filename->data));
             goto bail;
         } else if (n == 0) {
             break;
@@ -220,7 +194,7 @@ void file_copyOverwriteIfExists(TExecutor *exec)
             close(sourcefd);
             close(destfd);
             unlink(destination->data);
-            push(exec->stack, error_result(error, destination->data));
+            push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
         }
     }
     close(sourcefd);
@@ -229,7 +203,7 @@ void file_copyOverwriteIfExists(TExecutor *exec)
         close(sourcefd);
         close(destfd);
         unlink(destination->data);
-        push(exec->stack, error_result(error, destination->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
         goto bail;
     }
     if (fchown(destfd, statbuf.st_uid, statbuf.st_gid) != 0) {
@@ -237,7 +211,7 @@ void file_copyOverwriteIfExists(TExecutor *exec)
         close(sourcefd);
         close(destfd);
         unlink(destination->data);
-        push(exec->stack, error_result(error, destination->data));
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, error, destination->data));
         goto bail;
     }
     close(destfd);
@@ -245,7 +219,7 @@ void file_copyOverwriteIfExists(TExecutor *exec)
     utimebuf.actime = statbuf.st_atime;
     utimebuf.modtime = statbuf.st_mtime;
     utime(destination->data, &utimebuf);
-    push(exec->stack, cell_choice_none(CHOICE_FileResult_ok));
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
 #endif
 
 bail:
@@ -261,11 +235,11 @@ void file_delete(TExecutor *exec)
     int r = unlink(filename->data);
     if (r != 0) {
         if (errno != ENOENT) {
-            push(exec->stack, error_result(errno, filename->data));
+            push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename->data));
             goto cleanup;
         }
     }
-    push(exec->stack, cell_choice_none(CHOICE_FileResult_ok));
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
 cleanup:
     string_freeString(filename);
 }
@@ -311,7 +285,7 @@ void file_getInfo(TExecutor *exec)
 
     struct stat st;
     if (stat(name->data, &st) != 0) {
-        handle_error(exec, errno, name->data);
+        push(exec->stack, file_error_result(CHOICE_FileInfoResult_error, errno, name->data));
         string_freeString(name);
         return;
     }
@@ -349,7 +323,7 @@ void file_getInfo(TExecutor *exec)
     t.type = cNumber; t.number = number_from_uint32(st.st_mtime);
     cell_arrayAppendElement(r, t);
 
-    push(exec->stack, r);
+    push(exec->stack, cell_makeChoice_cell(CHOICE_FileInfoResult_info, r));
     string_freeString(name);
 }
 
@@ -368,12 +342,12 @@ void file_mkdir(TExecutor *exec)
 
     int r = mkdir(path, 0755);
     if (r != 0) {
-        push(exec->stack, cell_choice_string(CHOICE_FileResult_error, string_createCString(path)));
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(path)));
         free(path);
         return;
     }
 
-    push(exec->stack, cell_choice_none(CHOICE_FileResult_ok));
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(path);
 }
 
@@ -383,12 +357,12 @@ void file_removeEmptyDirectory(TExecutor *exec)
 
     int r = rmdir(path);
     if (r != 0) {
-        push(exec->stack, cell_choice_string(CHOICE_FileResult_error, string_createCString(path)));
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(path)));
         free(path);
         return;
     }
 
-    push(exec->stack, cell_choice_none(CHOICE_FileResult_ok));
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(path);
 }
 

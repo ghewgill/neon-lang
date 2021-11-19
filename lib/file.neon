@@ -9,7 +9,9 @@ EXPORT Separator
 
 EXPORT FileType
 EXPORT FileInfo
+EXPORT FileInfoResult
 EXPORT FileResult
+EXPORT BytesResult
 
 EXPORT copy
 EXPORT copyOverwriteIfExists
@@ -106,6 +108,16 @@ TYPE FileResult IS CHOICE
     error: String
 END CHOICE
 
+TYPE FileInfoResult IS CHOICE
+    info: FileInfo
+    error: String
+END CHOICE
+
+TYPE BytesResult IS CHOICE
+    data: Bytes
+    error: String
+END CHOICE
+
 /*  Function: copy
  *
  *  Copies a file to a new destination.  If the destination file already exists, a FileException.Exists
@@ -193,7 +205,7 @@ END FUNCTION
  *
  *  Given a file name, return the file information.
  */
-DECLARE NATIVE FUNCTION getInfo(name: String): FileInfo
+DECLARE NATIVE FUNCTION getInfo(name: String): FileInfoResult
 
 /*  Function: isDirectory
  *
@@ -258,7 +270,7 @@ END FUNCTION
  *  Exceptions:
  *      - <FileOpenError> - if the file cannot be opened
  */
-DECLARE NATIVE FUNCTION readBytes(filename: String): Bytes
+DECLARE NATIVE FUNCTION readBytes(filename: String): BytesResult
 
 /*  Function: readLines
  *

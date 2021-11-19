@@ -2956,7 +2956,7 @@ def neon_file_readBytes(env, fn):
     with open(fn, "rb") as f:
         r = ClassBytes().default(env)
         r.fromArray(env, [x for x in f.read()])
-        return r
+        return ClassChoice.Instance("data", r)
 
 def neon_file_readLines(env, fn):
     with codecs.open(fn, "r", encoding="utf-8") as f:

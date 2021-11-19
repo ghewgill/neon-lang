@@ -4381,7 +4381,12 @@ FUNCTION dumpParseTree(pt: POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
 BEGIN MAIN
-    LET tokens: Array<lexer.Token> := lexer.tokenize(sys.args[1], file.readBytes(sys.args[1]).decodeToString())
+    LET r: file.BytesResult := file.readBytes(sys.args[1])
+    CHECK r ISA file.BytesResult.data ELSE
+        print("Could not open file: \(sys.args[1])")
+        EXIT PROCESS FAILURE
+    END CHECK
+    LET tokens: Array<lexer.Token> := lexer.tokenize(sys.args[1], r.data.decodeToString())
     --print("tokens \(tokens.size())")
     VAR parser: Parser := makeParser(tokens)
     LET pt: POINTER TO ParseTreeNode := parser.parse()

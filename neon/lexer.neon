@@ -798,7 +798,12 @@ END FUNCTION
 
 BEGIN MAIN
     FOREACH fn IN sys.args[1 TO LAST] DO
-        LET bytes: Bytes := file.readBytes(fn)
+        LET r: file.BytesResult := file.readBytes(fn)
+        CHECK r ISA file.BytesResult.data ELSE
+            print("Could not open file: \(fn)")
+            NEXT FOREACH
+        END CHECK
+        LET bytes: Bytes := r.data
         TRY
             LET tokens: Array<Token> := tokenize(fn, bytes.decodeToString())
             FOREACH t IN tokens DO

@@ -87,4 +87,8 @@ BOOL cell_arrayElementExists(const Cell *a, const Cell *e);
 Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key);
 Cell *cell_dictionaryIndexForRead(Cell *c, struct tagTString *key);
 
+Cell *cell_makeChoice_none(int choice);
+Cell *cell_makeChoice_string(int choice, struct tagTString *str);
+Cell *cell_makeChoice_cell(int choice, Cell *value);
+
 #endif

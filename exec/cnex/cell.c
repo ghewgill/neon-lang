@@ -704,3 +704,38 @@ void cell_freeCell(Cell *c)
     cell_clearCell(c);
     free(c);
 }
+
+Cell *cell_makeChoice_none(int choice)
+{
+    Cell *r = cell_createArrayCell(1);
+    Cell *e = cell_arrayIndexForWrite(r, 0);
+    e->type = cNumber;
+    e->number = number_from_uint32(choice);
+    return r;
+}
+
+Cell *cell_makeChoice_string(int choice, TString *str)
+{
+    Cell *r = cell_createArrayCell(2);
+    Cell *e = cell_arrayIndexForWrite(r, 0);
+    e->type = cNumber;
+    e->number = number_from_uint32(choice);
+    e = cell_arrayIndexForWrite(r, 1);
+    e->type = cString;
+    e->string = str;
+    return r;
+}
+
+Cell *cell_makeChoice_cell(int choice, Cell *value)
+{
+    Cell *r = cell_createArrayCell(2);
+    Cell *e = cell_arrayIndexForWrite(r, 0);
+    e->type = cNumber;
+    e->number = number_from_uint32(choice);
+    e = cell_arrayIndexForWrite(r, 1);
+    // TODO: This should really be done with a "move" operation,
+    // instead of a copy and free.
+    cell_copyCell(e, value);
+    cell_freeCell(value);
+    return r;
+}

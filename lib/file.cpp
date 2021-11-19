@@ -5,16 +5,18 @@
 
 #include "rtl_exec.h"
 
+#include "choices.inc"
+
 namespace rtl {
 
 namespace ne_file {
 
-std::vector<unsigned char> readBytes(const utf8string &filename)
+Cell readBytes(const utf8string &filename)
 {
     std::vector<unsigned char> r;
     std::ifstream f(filename.str(), std::ios::binary);
     if (not f.is_open()) {
-        throw RtlException(Exception_FileException_Open, filename);
+        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_BytesResult_error)), Cell(filename) });
     }
     for (;;) {
         char buf[16384];
@@ -25,7 +27,7 @@ std::vector<unsigned char> readBytes(const utf8string &filename)
         }
         std::copy(buf, buf+n, std::back_inserter(r));
     }
-    return r;
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_BytesResult_data)), Cell(r) });;
 }
 
 std::vector<utf8string> readLines(const utf8string &filename)

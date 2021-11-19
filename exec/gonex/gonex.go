@@ -2404,7 +2404,7 @@ func (self *executor) op_callp() {
 		a[6] = make_cell_num(0)
 		a[7] = make_cell_num(0)
 		a[8] = make_cell_num(float64(fileinfo.ModTime().Unix()))
-		self.push(make_cell_array(a))
+		self.push(make_cell_array([]cell{make_cell_num(0), make_cell_array(a)})) // info
 	case "file$isDirectory":
 		name := self.pop().str
 		fileinfo, err := os.Stat(name)
@@ -2429,7 +2429,7 @@ func (self *executor) op_callp() {
 		if err != nil {
 			panic(err)
 		}
-		self.push(make_cell_bytes(b))
+		self.push(make_cell_array([]cell{make_cell_num(0), make_cell_bytes(b)})) // data
 	case "file$readLines":
 		name := self.pop().str
 		f, err := os.Open(name)

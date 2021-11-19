@@ -52,12 +52,15 @@ public class File {
         new java.io.File(path).mkdir();
     }
 
-    public static byte[] readBytes(java.lang.String filename) {
+    public static neon.lib.file$BytesResult readBytes(java.lang.String filename) {
         java.io.InputStream in;
         try {
             in = new java.io.FileInputStream(filename);
         } catch (java.io.FileNotFoundException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$BytesResult r = new neon.lib.file$BytesResult();
+            r._choice = 1; // error
+            r.error = x.toString();
+            return r;
         }
         byte[] buf = new byte[4096];
         int i = 0;
@@ -76,10 +79,16 @@ public class File {
             }
             in.close();
         } catch (java.io.IOException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$BytesResult r = new neon.lib.file$BytesResult();
+            r._choice = 1; // error
+            r.error = x.toString();
+            return r;
         }
-        byte[] r = new byte[i];
-        System.arraycopy(buf, 0, r, 0, i);
+        byte[] data = new byte[i];
+        System.arraycopy(buf, 0, data, 0, i);
+        neon.lib.file$BytesResult r = new neon.lib.file$BytesResult();
+        r._choice = 0; // data
+        r.data = data;
         return r;
     }
 
