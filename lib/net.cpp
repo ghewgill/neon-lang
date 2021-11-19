@@ -432,12 +432,18 @@ std::shared_ptr<Object> socket_tcpSocket()
 
 std::shared_ptr<Object> socket_tlsClientSocket(Cell &validateMode)
 {
+#ifdef _WIN32
+    initWinsock();
+#endif
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
     return std::make_shared<TlsSocketObject>(std::make_shared<RawSocketObject>(s), TlsSocketObject::TlsMode::CLIENT, number_to_uint32(validateMode.number()), nullptr, nullptr);
 }
 
 std::shared_ptr<Object> socket_tlsServerSocket(const utf8string &certfile, const utf8string &keyfile)
 {
+#ifdef _WIN32
+    initWinsock();
+#endif
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
     return std::make_shared<TlsSocketObject>(std::make_shared<RawSocketObject>(s), TlsSocketObject::TlsMode::SERVER, ENUM_TlsPeerValidateMode_RequireValidCertificate, certfile.c_str(), keyfile.c_str());
 }
