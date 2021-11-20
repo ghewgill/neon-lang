@@ -49,8 +49,12 @@ void file_copy(TExecutor *exec)
 
     BOOL r = CopyFile(filename, destination, TRUE);
     if (!r) {
-        handle_error(exec, GetLastError(), destination);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(destination)));
+        free(destination);
+        free(filename);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(destination);
     free(filename);
 }
@@ -62,8 +66,12 @@ void file_copyOverwriteIfExists(TExecutor *exec)
 
     BOOL r = CopyFile(filename, destination, FALSE);
     if (!r) {
-        handle_error(exec, GetLastError(), destination);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(destination)));
+        free(destination);
+        free(filename);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(destination);
     free(filename);
 }
@@ -75,9 +83,12 @@ void file_delete(TExecutor *exec)
     BOOL r = DeleteFile(filename);
     if (!r) {
         if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-            handle_error(exec, GetLastError(), filename);
+            push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(filename)));
+            free(filename);
+            return;
         }
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(filename);
 }
 
@@ -184,8 +195,11 @@ void file_mkdir(TExecutor *exec)
 
     BOOL r = CreateDirectory(path, NULL);
     if (!r) {
-        handle_error(exec, GetLastError(), path);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(path)));
+        free(path);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(path);
 }
 
@@ -195,8 +209,11 @@ void file_removeEmptyDirectory(TExecutor *exec)
 
     BOOL r = RemoveDirectory(path);
     if (!r) {
-        handle_error(exec, GetLastError(), path);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(path)));
+        free(path);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(path);
 }
 

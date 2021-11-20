@@ -4,6 +4,13 @@
 
 #include "rtl_exec.h"
 #include "enums.inc"
+#include "choices.inc"
+
+static Cell error_result(int error, const utf8string &path)
+{
+    // TODO: Text error message
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(utf8string(path + ": " + std::to_string(error).c_str()))});
+}
 
 static void handle_error(DWORD error, const utf8string &path)
 {
@@ -35,30 +42,33 @@ utf8string _CONSTANT_Separator()
     return utf8string("\\");
 }
 
-void copy(const utf8string &filename, const utf8string &destination)
+Cell copy(const utf8string &filename, const utf8string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), TRUE);
     if (!r) {
-        handle_error(GetLastError(), destination);
+        return error_result(GetLastError(), destination);
     }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
-void copyOverwriteIfExists(const utf8string &filename, const utf8string &destination)
+Cell copyOverwriteIfExists(const utf8string &filename, const utf8string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), FALSE);
     if (!r) {
-        handle_error(GetLastError(), filename);
+        return error_result(GetLastError(), destination);
     }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
-void delete_(const utf8string &filename)
+Cell delete_(const utf8string &filename)
 {
     BOOL r = DeleteFile(filename.c_str());
     if (!r) {
         if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-            handle_error(GetLastError(), filename);
+            return error_result(GetLastError(), filename);
         }
     }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
 bool exists(const utf8string &filename)
@@ -85,7 +95,7 @@ Cell getInfo(const utf8string &name)
     WIN32_FIND_DATA fd;
     HANDLE ff = FindFirstFile(name.c_str(), &fd);
     if (ff == INVALID_HANDLE_VALUE) {
-        handle_error(GetLastError(), name);
+        return error_result(GetLastError(), name);
     }
     FindClose(ff);
     std::vector<Cell> r;
@@ -103,7 +113,7 @@ Cell getInfo(const utf8string &name)
     r.push_back(Cell(unix_time_from_filetime(fd.ftCreationTime)));
     r.push_back(Cell(unix_time_from_filetime(fd.ftLastAccessTime)));
     r.push_back(Cell(unix_time_from_filetime(fd.ftLastWriteTime)));
-    return Cell(r);
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileInfoResult_info)), Cell(r)});
 }
 
 bool isDirectory(const utf8string &path)
@@ -112,21 +122,23 @@ bool isDirectory(const utf8string &path)
     return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
 
-void mkdir(const utf8string &path)
+Cell mkdir(const utf8string &path)
 {
     // TODO: Convert UTF-8 path to UCS-16 and call CreateDirectoryW.
     BOOL r = CreateDirectoryA(path.c_str(), NULL);
     if (!r) {
-        handle_error(GetLastError(), path);
+        return error_result(GetLastError(), path);
     }
+    return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
 }
 
-void removeEmptyDirectory(const utf8string &path)
+Cell removeEmptyDirectory(const utf8string &path)
 {
     BOOL r = RemoveDirectory(path.c_str());
     if (!r) {
-        handle_error(GetLastError(), path);
+        return error_result(GetLastError(), path);
     }
+    return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
 }
 
 void rename(const utf8string &oldname, const utf8string &newname)
