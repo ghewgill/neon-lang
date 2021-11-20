@@ -32,7 +32,12 @@ END IF
 FUNCTION yamlLoad(fn: String): Object
     -- Simplistic YAML load function that is suitable for module registry entries.
     VAR r: Dictionary<Object> := {}
-    LET lines: Array<String> := file.readLines(fn)
+    LET lr: file.LinesResult := file.readLines(fn)
+    CHECK lr ISA file.LinesResult.lines ELSE
+        print("Could not read file: \(fn)")
+        EXIT PROCESS FAILURE
+    END CHECK
+    LET lines: Array<String> := lr.lines
     FOREACH line IN lines DO
         LET colon: string.FindResult := string.find(line, ":")
         IF colon ISA string.FindResult.index THEN

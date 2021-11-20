@@ -3,8 +3,11 @@ IMPORT file
 VAR lines: Array<String> := ["Hello", "Neon", "", "World!"]
 file.writeLines("tmp/linetest.txt", lines)
 
-VAR data: Array<String>
-data := file.readLines("tmp/linetest.txt")
+LET r: file.LinesResult := file.readLines("tmp/linetest.txt")
+CHECK r ISA file.LinesResult.lines ELSE
+    RAISE TestFailedException
+END CHECK
+LET data: Array<String> := r.lines
 
 print("\(data.size()) lines read.")
 --= 4 lines read.

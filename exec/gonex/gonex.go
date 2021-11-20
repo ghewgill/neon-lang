@@ -2446,7 +2446,7 @@ func (self *executor) op_callp() {
 			}
 			a = append(a, make_cell_str(s[:len(s)-1]))
 		}
-		self.push(make_cell_array(a))
+		self.push(make_cell_array([]cell{make_cell_num(0), make_cell_array(a)})) // lines
 	case "file$removeEmptyDirectory":
 		name := self.pop().str
 		err := os.Remove(name)

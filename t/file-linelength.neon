@@ -5,5 +5,9 @@ FOR i := 1 TO 16 DO
     s := s & s
 END FOR
 file.writeLines("tmp/linelength.tmp", [s])
-VAR t: Array<String> := file.readLines("tmp/linelength.tmp")
+LET r: file.LinesResult := file.readLines("tmp/linelength.tmp")
+CHECK r ISA file.LinesResult.lines ELSE
+    RAISE TestFailedException
+END CHECK
+LET t: Array<String> := r.lines
 TESTCASE t[0] = s

@@ -23,7 +23,12 @@ TYPE Function IS RECORD
 END RECORD
 
 FUNCTION extractOpcodes(): Array<String>
-    LET header: Array<String> := file.readLines("src/opcode.h")
+    LET lr: file.LinesResult := file.readLines("src/opcode.h")
+    CHECK lr ISA file.LinesResult.lines ELSE
+        print("Could not read: src/opcode.h")
+        EXIT PROCESS FAILURE
+    END CHECK
+    LET header: Array<String> := lr.lines
     LET start: Number := header.find("enum class Opcode {") + 1
     LET end: Number := header.find("};") - 1
 

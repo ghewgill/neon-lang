@@ -9,7 +9,12 @@ IMPORT file
 IMPORT string
 IMPORT sys
 
-LET unicodedata: Array<String> := file.readLines(sys.args[1])
+LET r: file.LinesResult := file.readLines(sys.args[1])
+CHECK r ISA file.LinesResult.lines ELSE
+    print("Error reading file: \(sys.args[1])")
+    EXIT PROCESS FAILURE
+END CHECK
+LET unicodedata: Array<String> := r.lines
 VAR names: Dictionary<String> := {}
 FOREACH s IN unicodedata DO
     VAR a: Array<String> := string.split(s, ";")

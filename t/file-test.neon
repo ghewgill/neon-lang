@@ -6,19 +6,21 @@ END FUNCTION
 
 TESTCASE file.Separator IN ["/", "\\"]
 
-VAR a: Array<String>
-
-a := file.readLines("LICENSE.txt")
-print(str(a.size()))
---= 21
-print(a[0])
---= The MIT License (MIT)
-
-LET r: file.BytesResult := file.readBytes("LICENSE.txt")
-CHECK r ISA file.BytesResult.data ELSE
+LET lr: file.LinesResult := file.readLines("LICENSE.txt")
+CHECK lr ISA file.LinesResult.lines ELSE
     RAISE TestFailedException
 END CHECK
-LET buf: Bytes := r.data
+LET lines: Array<String> := lr.lines
+print(str(lines.size()))
+--= 21
+print(lines[0])
+--= The MIT License (MIT)
+
+LET br: file.BytesResult := file.readBytes("LICENSE.txt")
+CHECK br ISA file.BytesResult.data ELSE
+    RAISE TestFailedException
+END CHECK
+LET buf: Bytes := br.data
 print(bstr(buf.size() = 1076 OR buf.size() = 1097)) -- account for lf vs crlf
 --= TRUE
 VAR arr: Array<Number> := buf.toArray()
@@ -28,7 +30,7 @@ print("\(arr[0])")
 print(bstr(file.isDirectory("t")))
 --= TRUE
 
-a := file.files("t")
+LET a: Array<String> := file.files("t")
 print(bstr("file-test.neon" IN a))
 --= TRUE
 

@@ -26,6 +26,9 @@
 #define CHOICE_BytesResult_data     0
 #define CHOICE_BytesResult_error    1
 
+#define CHOICE_LinesResult_lines    0
+#define CHOICE_LinesResult_error    1
+
 #define CHOICE_FindResult_notfound  0
 #define CHOICE_FindResult_index     1
 

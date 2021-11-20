@@ -8,7 +8,11 @@ file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "th
 CHECK file.copyOverwriteIfExists("LICENSE.txt", "tmp/license-copy.txt") ISA file.FileResult.ok ELSE
     RAISE TestFailedException
 END CHECK
-LET lines: Array<String> := file.readLines("tmp/license-copy.txt")
+LET r: file.LinesResult := file.readLines("tmp/license-copy.txt")
+CHECK r ISA file.LinesResult.lines ELSE
+    RAISE TestFailedException
+END CHECK
+LET lines: Array<String> := r.lines
 IF lines[FIRST] = "The MIT License (MIT)" THEN
     print("copyOverwriteIfExists Success")
 ELSE

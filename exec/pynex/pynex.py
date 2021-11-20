@@ -2389,7 +2389,7 @@ def neon_file_readBytes(self):
 def neon_file_readLines(self):
     fn = self.stack.pop()
     r = [Value(x.rstrip("\n")) for x in open(fn).readlines()]
-    self.stack.append(r)
+    self.stack.append([Value(0), Value(r)]) # lines
 
 def neon_file_removeEmptyDirectory(self):
     fn = self.stack.pop()

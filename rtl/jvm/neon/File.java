@@ -92,26 +92,35 @@ public class File {
         return r;
     }
 
-    public static neon.type.Array readLines(java.lang.String filename) {
+    public static neon.lib.file$LinesResult readLines(java.lang.String filename) {
         java.io.BufferedReader br;
         try {
             br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(filename)));
         } catch (java.io.FileNotFoundException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$LinesResult r = new neon.lib.file$LinesResult();
+            r._choice = 1; // error
+            r.error = x.toString();
+            return r;
         }
-        neon.type.Array r = new neon.type.Array();
+        neon.type.Array a = new neon.type.Array();
         try {
             while (true) {
                 java.lang.String s = br.readLine();
                 if (s == null) {
                     break;
                 }
-                r.add(s);
+                a.add(s);
             }
             br.close();
         } catch (java.io.IOException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$LinesResult r = new neon.lib.file$LinesResult();
+            r._choice = 1; // error
+            r.error = x.toString();
+            return r;
         }
+        neon.lib.file$LinesResult r = new neon.lib.file$LinesResult();
+        r._choice = 0; // lines
+        r.lines = a;
         return r;
     }
 

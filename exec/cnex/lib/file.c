@@ -52,7 +52,7 @@ void file_readLines(TExecutor *exec)
 
     FILE *f = fopen(filename, "r");
     if (!f) {
-        exec->rtl_raise(exec, "FileException.Open", filename);
+        push(exec->stack, file_error_result(CHOICE_BytesResult_error, errno, filename));
         free(filename);
         return;
     }
@@ -76,7 +76,7 @@ void file_readLines(TExecutor *exec)
     }
     fclose(f);
 
-    push(exec->stack, r);
+    push(exec->stack, cell_makeChoice_cell(CHOICE_LinesResult_lines, r));
     free(filename);
 }
 

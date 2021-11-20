@@ -12,6 +12,7 @@ EXPORT FileInfo
 EXPORT FileInfoResult
 EXPORT FileResult
 EXPORT BytesResult
+EXPORT LinesResult
 
 EXPORT copy
 EXPORT copyOverwriteIfExists
@@ -115,6 +116,11 @@ END CHOICE
 
 TYPE BytesResult IS CHOICE
     data: Bytes
+    error: String
+END CHOICE
+
+TYPE LinesResult IS CHOICE
+    lines: Array<String>
     error: String
 END CHOICE
 
@@ -279,7 +285,7 @@ DECLARE NATIVE FUNCTION readBytes(filename: String): BytesResult
  *  Exceptions:
  *      - <FileOpenError> - if the file cannot be opened
  */
-DECLARE NATIVE FUNCTION readLines(filename: String): Array<String> 
+DECLARE NATIVE FUNCTION readLines(filename: String): LinesResult
 
 /*  Function: removeDirectoryTree
  *

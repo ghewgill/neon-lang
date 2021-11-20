@@ -27,21 +27,21 @@ Cell readBytes(const utf8string &filename)
         }
         std::copy(buf, buf+n, std::back_inserter(r));
     }
-    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_BytesResult_data)), Cell(r) });;
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_BytesResult_data)), Cell(r) });
 }
 
-std::vector<utf8string> readLines(const utf8string &filename)
+Cell readLines(const utf8string &filename)
 {
-    std::vector<utf8string> r;
+    std::vector<Cell> r;
     std::ifstream f(filename.str());
     if (not f.is_open()) {
-        throw RtlException(Exception_FileException_Open, filename);
+        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_LinesResult_error)), Cell(filename) });
     }
     std::string s;
     while (std::getline(f, s)) {
-        r.push_back(utf8string(s));
+        r.push_back(Cell(s.c_str()));
     }
-    return r;
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_LinesResult_lines)), Cell(r) });
 }
 
 void writeBytes(const utf8string &filename, const std::vector<unsigned char> &data)

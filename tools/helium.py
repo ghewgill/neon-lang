@@ -355,6 +355,8 @@ class TypeCompound:
         self.name = name
     def resolve(self, env):
         return g_Modules[self.name[0]].env.get_value(self.name[1])
+    def __repr__(self):
+        return "<TypeCompound:{}>".format(self.name)
 
 class Field:
     def __init__(self, name, type):
@@ -930,7 +932,7 @@ class TypeTestExpression:
                     return True
         if isinstance(v, ClassChoice.Instance):
             return v._choice == self.target.name[-1]
-        assert False, "add type ISA support for target {}".format(self.target)
+        assert False, "add type ISA support for type {} target {}".format(type(v), self.target)
 
 class MembershipExpression:
     def __init__(self, left, right):
@@ -2960,7 +2962,7 @@ def neon_file_readBytes(env, fn):
 
 def neon_file_readLines(env, fn):
     with codecs.open(fn, "r", encoding="utf-8") as f:
-        return list(map(lambda x: x.rstrip("\r\n"), f.readlines()))
+        return ClassChoice.Instance("lines", list(map(lambda x: x.rstrip("\r\n"), f.readlines())))
 
 def neon_file_removeEmptyDirectory(env, path):
     try:
