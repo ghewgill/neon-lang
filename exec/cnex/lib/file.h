@@ -16,7 +16,6 @@ void file_readBytes(struct tagTExecutor *exec);
 void file_readLines(struct tagTExecutor *exec);
 void file_removeEmptyDirectory(struct tagTExecutor *exec);
 void file_rename(struct tagTExecutor *exec);
-void file_symlink(struct tagTExecutor *exec);
 void file_writeBytes(struct tagTExecutor *exec);
 void file_writeLines(struct tagTExecutor *exec);
 

@@ -122,7 +122,6 @@ file-filecopied2.neon
 file-filecopied3.neon
 file-filecopied.neon
 file-linelength.neon
-file-symlink.neon
 file-test.neon
 file-writebytes.neon
 file-writelines.neon
@@ -281,6 +280,7 @@ pointer-nil.neon
 pointer-print.neon
 pointer-valid.neon
 posix-fork.neon
+posix-symlink.neon
 predeclare1.neon
 predeclare2.neon
 predeclare3.neon

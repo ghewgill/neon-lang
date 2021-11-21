@@ -102,7 +102,6 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("file$readLines",            file_readLines),
     PDFUNC("file$removeEmptyDirectory", file_removeEmptyDirectory),
     PDFUNC("file$rename",               file_rename),
-    PDFUNC("file$symlink",              file_symlink),
     PDFUNC("file$writeBytes",           file_writeBytes),
     PDFUNC("file$writeLines",           file_writeLines),
 

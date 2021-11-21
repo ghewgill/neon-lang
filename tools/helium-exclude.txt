@@ -13,7 +13,6 @@ decimal.neon           # Module not required
 encoding-base64.neon   # Module not required
 exception-as.neon      # Exception offset not supported
 export-inline.neon     # Native mul not required
-file-symlink.neon      # Feature not required
 forth-test.neon        # Sample not required
 function-namedargs.neon# Named arguments not required
 gc1.neon               # Garbage collector not required
@@ -59,6 +58,7 @@ outer-tail.neon        # Feature not required
 parameter-out-array.neon # Feature not required
 parameter-out-string.neon # Feature not required
 posix-fork.neon        # fork not required
+posix-symlink.neon     # Feature not required
 print-object.neon      # object print format
 process-test.neon      # Module not required
 recursion-limit.neon   # Feature not required

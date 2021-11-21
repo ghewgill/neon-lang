@@ -2965,11 +2965,6 @@ def neon_file_removeEmptyDirectory(env, path):
 def neon_file_rename(env, old, new):
     os.rename(old, new)
 
-def neon_file_symlink(env, target, newlink, targetIsDirectory):
-    # Note: Python 2 does not support the targetIsDirectory option.
-    # Also, Python 2 doesn't support os.symlink() on windows.
-    os.symlink(target, newlink)
-
 def neon_file_writeBytes(env, fn, bytes):
     with open(fn, "wb") as f:
         f.write("".join(chr(x) for x in bytes.a))
