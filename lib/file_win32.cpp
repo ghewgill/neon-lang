@@ -141,12 +141,13 @@ Cell removeEmptyDirectory(const utf8string &path)
     return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
 }
 
-void rename(const utf8string &oldname, const utf8string &newname)
+Cell rename(const utf8string &oldname, const utf8string &newname)
 {
     BOOL r = MoveFile(oldname.c_str(), newname.c_str());
     if (!r) {
-        handle_error(GetLastError(), oldname);
+        return error_result(GetLastError(), oldname);
     }
+    return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
 }
 
 } // namespace ne_file

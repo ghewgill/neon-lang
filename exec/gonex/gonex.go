@@ -2460,7 +2460,9 @@ func (self *executor) op_callp() {
 		oldname := self.pop().str
 		err := os.Rename(oldname, newname)
 		if err != nil {
-			panic(err)
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str(err.Error())})) // error
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 		}
 	case "file$writeBytes":
 		b := self.pop().bytes

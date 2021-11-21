@@ -332,7 +332,7 @@ DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String): FileResult
  *  Exceptions:
  *      - <PathNotFound> - if the file does not exist
  */
-DECLARE NATIVE FUNCTION rename(oldname: String, newname: String)
+DECLARE NATIVE FUNCTION rename(oldname: String, newname: String): FileResult
 
 /*  Function: wildcardMatch
  *

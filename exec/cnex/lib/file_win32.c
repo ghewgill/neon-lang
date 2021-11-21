@@ -224,8 +224,12 @@ void file_rename(TExecutor *exec)
 
     BOOL r = MoveFile(oldname, newname);
     if (!r) {
-        handle_error(exec, GetLastError(), oldname);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(oldname)));
+        free(oldname);
+        free(newname);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(oldname);
     free(newname);
 }

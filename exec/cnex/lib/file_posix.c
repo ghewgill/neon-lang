@@ -375,9 +375,13 @@ void file_rename(TExecutor *exec)
 
     int r = rename(oldname->data, newname->data);
     if (r != 0) {
-        handle_error(exec, errno, oldname->data);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(oldname->data)));
+        pop(exec->stack);
+        pop(exec->stack);
+        return;
     }
 
     pop(exec->stack);
     pop(exec->stack);
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
 }

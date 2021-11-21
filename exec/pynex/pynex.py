@@ -2404,6 +2404,7 @@ def neon_file_rename(self):
     newname = self.stack.pop()
     oldname = self.stack.pop()
     os.rename(oldname, newname)
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_writeBytes(self):
     data = self.stack.pop()

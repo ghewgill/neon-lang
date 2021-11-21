@@ -64,7 +64,9 @@ file.writeLines("tmp/file-test.tmp", ["hello", "world"])
 CHECK file.delete("tmp/file-test2.tmp") ISA file.FileResult.ok ELSE
     RAISE TestFailedException
 END CHECK
-file.rename("tmp/file-test.tmp", "tmp/file-test2.tmp")
+CHECK file.rename("tmp/file-test.tmp", "tmp/file-test2.tmp") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
 print(bstr(file.exists("tmp/file-test.tmp")))
 --= FALSE
 print(bstr(file.exists("tmp/file-test2.tmp")))
