@@ -20,8 +20,6 @@ static Cell error_result(int error, const utf8string &path)
     return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(utf8string(path + ": " + strerror(error)))});
 }
 
-static void handle_error(int, const utf8string &) {}
-
 namespace rtl {
 
 namespace ne_file {

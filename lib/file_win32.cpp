@@ -12,19 +12,6 @@ static Cell error_result(int error, const utf8string &path)
     return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(utf8string(path + ": " + std::to_string(error).c_str()))});
 }
 
-static void handle_error(DWORD error, const utf8string &path)
-{
-    switch (error) {
-        case ERROR_ALREADY_EXISTS: throw RtlException(rtl::ne_file::Exception_FileException_DirectoryExists, path);
-        case ERROR_ACCESS_DENIED: throw RtlException(rtl::ne_file::Exception_FileException_PermissionDenied, path);
-        case ERROR_PATH_NOT_FOUND: throw RtlException(rtl::ne_file::Exception_FileException_PathNotFound, path);
-        case ERROR_FILE_EXISTS: throw RtlException(rtl::ne_file::Exception_FileException_Exists, path);
-        case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(rtl::ne_file::Exception_FileException_PermissionDenied, path);
-        default:
-            throw RtlException(rtl::ne_file::Exception_FileException, path + ": " + utf8string(std::to_string(error)));
-    }
-}
-
 static Number unix_time_from_filetime(const FILETIME &ft)
 {
     return number_divide(

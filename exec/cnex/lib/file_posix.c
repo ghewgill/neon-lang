@@ -22,22 +22,6 @@
 #include "nstring.h"
 #include "stack.h"
 
-static void handle_error(TExecutor *exec, int error, const char *path)
-{
-    switch (error) {
-        case EACCES: exec->rtl_raise(exec, "FileException.PermissionDenied", path);      break;
-        case EEXIST: exec->rtl_raise(exec, "FileException.DirectoryExists", path);       break;
-        case ENOENT: exec->rtl_raise(exec, "FileException.PathNotFound", path);          break;
-        default: {
-            char err[PATH_MAX + 100];
-            snprintf(err, sizeof(err), "%s: %s", path, strerror(error));
-            exec->rtl_raise(exec, "FileException", err);
-            break;
-        }
-    }
-}
-
-
 void file_CONSTANT_Separator(TExecutor *exec)
 {
     push(exec->stack, cell_fromCString("/"));
