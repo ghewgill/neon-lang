@@ -1,7 +1,17 @@
 IMPORT file
 IMPORT posix
 
-file.delete("tmp/LICENSE.txt")
+CHECK file.delete("tmp/LICENSE.txt") ISA file.FileResult.ok ELSE
+    RAISE TestFailedException
+END CHECK
 TESTCASE posix.symlink("../LICENSE.txt", "tmp/LICENSE.txt") = 0
-LET text: Bytes := file.readBytes("tmp/LICENSE.txt")
-TESTCASE text = file.readBytes("LICENSE.txt")
+VAR r: file.BytesResult := file.readBytes("tmp/LICENSE.txt")
+CHECK r ISA file.BytesResult.data ELSE
+    RAISE TestFailedException
+END CHECK
+LET text: Bytes := r.data
+r := file.readBytes("LICENSE.txt")
+CHECK r ISA file.BytesResult.data ELSE
+    RAISE TestFailedException
+END CHECK
+TESTCASE text = r.data
