@@ -140,15 +140,17 @@ FUNCTION path_handler(path: String, params: Array<Object>): Response
             r.content := page.toBytes()
         END IF
     ELSE
-        TRY
-            r.code := 200
-            r.content_type := "text/plain"
-            r.content := file.readBytes(local_path)
-        TRAP file.FileException.Open DO
-            r.code := 404
-            r.content_type := "text/plain"
-            r.content := toBytes("file not found")
-        END TRY
+        LET br := file.readBytes(local_path)
+        CASE br
+            WHEN ISA file.BytesResult.data DO
+                r.code := 200
+                r.content_type := "text/plain"
+                r.content := br.data
+            WHEN ISA file.BytesResult.error DO
+                r.code := 404
+                r.content_type := "text/plain"
+                r.content := toBytes("file not found")
+        END CASE
     END IF
     RETURN r
 END FUNCTION

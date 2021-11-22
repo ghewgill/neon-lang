@@ -243,7 +243,11 @@ END FUNCTION
 
 FUNCTION Editor.load(INOUT self: Editor, filename: String)
     self.filename := filename
-    self.buffer.load(file.readBytes(filename).decodeToString())
+    LET br := file.readBytes(filename)
+    CHECK br ISA file.BytesResult.data ELSE
+        EXIT FUNCTION
+    END CHECK
+    self.buffer.load(br.data.decodeToString())
 END FUNCTION
 
 FUNCTION Editor.refresh(self: Editor)
