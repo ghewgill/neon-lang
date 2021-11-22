@@ -124,32 +124,47 @@ public class File {
         return r;
     }
 
-    public static void writeBytes(java.lang.String filename, byte[] data) {
+    public static neon.lib.file$FileResult writeBytes(java.lang.String filename, byte[] data) {
         java.io.OutputStream out;
         try {
             out = new java.io.FileOutputStream(filename);
         } catch (java.io.FileNotFoundException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+            r._choice = 1; // error
+            r.error = x.toString();
+            return r;
         }
         try {
             out.write(data);
             out.close();
         } catch (java.io.IOException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+            r._choice = 1; // error
+            r.error = x.toString();
+            return r;
         }
+        neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+        r._choice = 0; // ok
+        return r;
     }
 
-    public static void writeLines(java.lang.String filename, neon.type.Array data) {
+    public static neon.lib.file$FileResult writeLines(java.lang.String filename, neon.type.Array data) {
         java.io.PrintWriter pw;
         try {
             pw = new java.io.PrintWriter(new java.io.FileOutputStream(filename));
         } catch (java.io.FileNotFoundException x) {
-            throw new neon.type.NeonException("FileException");
+            neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+            r._choice = 1; // error
+            r.error = x.toString();
+            return r;
         }
         for (Object s: data) {
             pw.println(s.toString());
         }
         pw.close();
+        neon.lib.file$FileResult r = new neon.lib.file$FileResult();
+        r._choice = 0; // ok
+        return r;
     }
 
 }

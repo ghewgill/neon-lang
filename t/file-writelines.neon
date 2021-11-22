@@ -1,7 +1,7 @@
 IMPORT file
 
 VAR lines: Array<String> := ["Hello", "Neon", "", "World!"]
-file.writeLines("tmp/linetest.txt", lines)
+TESTCASE file.writeLines("tmp/linetest.txt", lines) ISA file.FileResult.ok
 
 LET r: file.LinesResult := file.readLines("tmp/linetest.txt")
 CHECK r ISA file.LinesResult.lines ELSE

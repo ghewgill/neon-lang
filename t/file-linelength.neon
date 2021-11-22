@@ -4,7 +4,7 @@ VAR s: String := "0123456789"
 FOR i := 1 TO 16 DO
     s := s & s
 END FOR
-file.writeLines("tmp/linelength.tmp", [s])
+TESTCASE file.writeLines("tmp/linelength.tmp", [s]) ISA file.FileResult.ok
 LET r: file.LinesResult := file.readLines("tmp/linelength.tmp")
 CHECK r ISA file.LinesResult.lines ELSE
     RAISE TestFailedException

@@ -2976,12 +2976,20 @@ def neon_file_rename(env, old, new):
     return ClassChoice.Instance("ok")
 
 def neon_file_writeBytes(env, fn, bytes):
-    with open(fn, "wb") as f:
-        f.write("".join(chr(x) for x in bytes.a))
+    try:
+        with open(fn, "wb") as f:
+            f.write("".join(chr(x) for x in bytes.a))
+    except OSError as x:
+        return ClassChoice.Instance("error", str(x))
+    return ClassChoice.Instance("ok")
 
 def neon_file_writeLines(env, fn, lines):
-    with open(fn, "wb") as f:
-        f.writelines((x+"\n").encode() for x in lines)
+    try:
+        with open(fn, "wb") as f:
+            f.writelines((x+"\n").encode() for x in lines)
+    except OSError as x:
+        return ClassChoice.Instance("error", str(x))
+    return ClassChoice.Instance("ok")
 
 def neon_io_close(env, f):
     f.close()

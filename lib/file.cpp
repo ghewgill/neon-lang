@@ -44,30 +44,32 @@ Cell readLines(const utf8string &filename)
     return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_LinesResult_lines)), Cell(r) });
 }
 
-void writeBytes(const utf8string &filename, const std::vector<unsigned char> &data)
+Cell writeBytes(const utf8string &filename, const std::vector<unsigned char> &data)
 {
     std::ofstream f(filename.str(), std::ios::binary);
     if (not f.is_open()) {
-        throw RtlException(Exception_FileException_Open, filename);
+        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(filename) });
     }
     if (not f.write(reinterpret_cast<const char *>(data.data()), data.size())) {
-        throw RtlException(Exception_FileException_Write, filename);
+        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(filename) });
     }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok)) });
 }
 
-void writeLines(const utf8string &filename, const std::vector<utf8string> &lines)
+Cell writeLines(const utf8string &filename, const std::vector<utf8string> &lines)
 {
     std::ofstream f(filename.str(), std::ios::out | std::ios::trunc); // Truncate the file every time we open it to write lines to it.
     if (not f.is_open()) {
-        throw RtlException(Exception_FileException_Open, filename);
+        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(filename) });
     }
     for (auto s: lines) {
         f << s.str() << "\n";   // Write line, and line-ending for each element in the array.
         if (f.fail()) {
             // If the write fails for any reason, consider that a FileException.Write exception.
-            throw RtlException(Exception_FileException_Write, filename);
+            return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(filename) });
         }
     }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok)) });
 }
 
 } // namespace ne_file

@@ -380,7 +380,7 @@ END FUNCTION
  *      - <FileOpenError> - if the file cannot be opened
  *      - <FileWriteError> - if an error occurs during writing
  */
-DECLARE NATIVE FUNCTION writeBytes(filename: String, data: Bytes)
+DECLARE NATIVE FUNCTION writeBytes(filename: String, data: Bytes): FileResult
 
 /*  Function: writeLines
  *
@@ -390,7 +390,7 @@ DECLARE NATIVE FUNCTION writeBytes(filename: String, data: Bytes)
  *      - <FileOpenError> - if the file cannot be opened
  *      - <FileWriteError> - if an error occurs during writing
  */
-DECLARE NATIVE FUNCTION writeLines(filename: String, data: Array<String>)
+DECLARE NATIVE FUNCTION writeLines(filename: String, data: Array<String>): FileResult
 
 BEGIN MAIN
     TESTCASE wildcardMatch("", "")

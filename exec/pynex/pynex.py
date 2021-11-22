@@ -2411,6 +2411,7 @@ def neon_file_writeBytes(self):
     fn = self.stack.pop()
     with open(fn, "wb") as f:
         f.write(data)
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_writeLines(self):
     data = self.stack.pop()
@@ -2418,6 +2419,7 @@ def neon_file_writeLines(self):
     with open(fn, "w") as f:
         for s in data:
             print(s.value, file=f)
+    self.stack.append([Value(0)]) # ok
 
 def neon_io_close(self):
     f = self.stack.pop()

@@ -2468,6 +2468,7 @@ func (self *executor) op_callp() {
 		b := self.pop().bytes
 		name := self.pop().str
 		ioutil.WriteFile(name, b, 0644)
+		self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 	case "file$writeLines":
 		a := self.pop().array
 		name := self.pop().str
@@ -2479,6 +2480,7 @@ func (self *executor) op_callp() {
 		for _, s := range a {
 			f.WriteString(s.str + "\n")
 		}
+		self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 	case "math$abs":
 		x := self.pop().num
 		self.push(make_cell_num(math.Abs(x)))

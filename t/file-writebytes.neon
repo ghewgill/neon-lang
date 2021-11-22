@@ -2,7 +2,7 @@ IMPORT file
 
 LET an: Array<Number> := [4, 3, 2, 0, 1]
 LET buf: Bytes := an.toBytes()
-file.writeBytes("tmp/bytetest.bin", buf)
+TESTCASE file.writeBytes("tmp/bytetest.bin", buf) ISA file.FileResult.ok
 
 LET r: file.BytesResult := file.readBytes("tmp/bytetest.bin")
 CHECK r ISA file.BytesResult.data ELSE

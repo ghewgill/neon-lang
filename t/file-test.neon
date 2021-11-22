@@ -48,7 +48,7 @@ print(fi.type.toString())
 --= normal
 TESTCASE fi.lastModificationTime > 0
 
-file.writeLines("tmp/file-test.tmp", ["hello", "world"])
+TESTCASE file.writeLines("tmp/file-test.tmp", ["hello", "world"]) ISA file.FileResult.ok
 print(bstr(file.exists("tmp/file-test.tmp")))
 --= TRUE
 CHECK file.delete("tmp/file-test.tmp") ISA file.FileResult.ok ELSE
@@ -60,7 +60,7 @@ CHECK file.delete("tmp/file-test.tmp") ISA file.FileResult.ok ELSE -- No excepti
     RAISE TestFailedException
 END CHECK
 
-file.writeLines("tmp/file-test.tmp", ["hello", "world"])
+TESTCASE file.writeLines("tmp/file-test.tmp", ["hello", "world"]) ISA file.FileResult.ok
 CHECK file.delete("tmp/file-test2.tmp") ISA file.FileResult.ok ELSE
     RAISE TestFailedException
 END CHECK
@@ -85,7 +85,7 @@ CHECK file.mkdir("tmp/foo") ISA file.FileResult.ok ELSE
 END CHECK
 print(bstr(file.isDirectory("tmp/foo")))
 --= TRUE
-file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
+TESTCASE file.writeLines("tmp/foo/bar.txt", ["hello", "world"]) ISA file.FileResult.ok
 TESTCASE file.removeEmptyDirectory("tmp/foo") ISA file.FileResult.error
 CHECK file.delete("tmp/foo/bar.txt") ISA file.FileResult.ok ELSE
     RAISE TestFailedException
@@ -99,7 +99,7 @@ CHECK file.mkdir("tmp/foo") ISA file.FileResult.ok ELSE
 END CHECK
 print(bstr(file.isDirectory("tmp/foo")))
 --= TRUE
-file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
+TESTCASE file.writeLines("tmp/foo/bar.txt", ["hello", "world"]) ISA file.FileResult.ok
 CHECK file.removeDirectoryTree("tmp/foo") ISA file.FileResult.ok ELSE
     RAISE TestFailedException
 END CHECK

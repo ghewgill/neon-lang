@@ -87,20 +87,27 @@ void file_writeBytes(struct tagTExecutor *exec)
 
     FILE *f = fopen(filename, "wb");
     if (!f) {
-        exec->rtl_raise(exec, "FileException.Open", filename);
-        goto bail;
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename));
+        free(filename);
+        pop(exec->stack);
+        pop(exec->stack);
+        return;
     }
 
     if (fwrite(bytes->string->data, sizeof(uint8_t), bytes->string->length, f) != bytes->string->length) {
-        exec->rtl_raise(exec, "FileException.Write", filename);
-        goto bail;
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename));
+        free(filename);
+        pop(exec->stack);
+        pop(exec->stack);
+        return;
     }
     fclose(f);
 
-bail:
     free(filename);
     pop(exec->stack);
     pop(exec->stack);
+
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
 }
 
 void file_writeLines(TExecutor *exec)
@@ -110,20 +117,27 @@ void file_writeLines(TExecutor *exec)
 
     FILE *f = fopen(filename, "w");
     if (!f) {
-        exec->rtl_raise(exec, "FileException.Open", filename);
-        goto bail;
+        push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename));
+        free(filename);
+        pop(exec->stack);
+        pop(exec->stack);
+        return;
     }
     for (size_t i = 0; i < lines->array->size; i++) {
         if (fwrite(lines->array->data[i].string->data, sizeof(char), lines->array->data[i].string->length, f) != lines->array->data[i].string->length) {
-            exec->rtl_raise(exec, "FileException.Write", filename);
-            goto bail;
+            push(exec->stack, file_error_result(CHOICE_FileResult_error, errno, filename));
+            free(filename);
+            pop(exec->stack);
+            pop(exec->stack);
+            return;
         }
         fwrite("\n", sizeof(char), 1, f); // Write line-ending for each element in the array.
     }
     fclose(f);
 
-bail:
     free(filename);
     pop(exec->stack);
     pop(exec->stack);
+
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
 }

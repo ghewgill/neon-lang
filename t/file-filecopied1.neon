@@ -3,7 +3,7 @@ IMPORT file
 CHECK file.delete("tmp/license-copy.txt") ISA file.FileResult.ok ELSE
     RAISE TestFailedException
 END CHECK
-file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "the Neon test suite, and can be ", "safely deleted."])
+TESTCASE file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "the Neon test suite, and can be ", "safely deleted."]) ISA file.FileResult.ok
 
 LET r: file.FileResult := file.copy("LICENSE.txt", "tmp/license-copy.txt")
 IF r ISA file.FileResult.error THEN
