@@ -2973,6 +2973,7 @@ def neon_file_removeEmptyDirectory(env, path):
 
 def neon_file_rename(env, old, new):
     os.rename(old, new)
+    return ClassChoice.Instance("ok")
 
 def neon_file_writeBytes(env, fn, bytes):
     with open(fn, "wb") as f:
