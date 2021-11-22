@@ -1,3 +1,5 @@
+#include "file.h"
+
 #include <io.h>
 #include <windows.h>
 
@@ -133,9 +135,9 @@ void file_getInfo(TExecutor *exec)
     WIN32_FIND_DATA fd;
     HANDLE ff = FindFirstFile(name, &fd);
     if (ff == INVALID_HANDLE_VALUE) {
-        handle_error(exec , GetLastError(), name);
-        free(name);
         pop(exec->stack);
+        push(exec->stack, file_error_result(CHOICE_FileInfoResult_error, GetLastError(), name));
+        free(name);
         return;
     }
     FindClose(ff);
@@ -177,7 +179,7 @@ void file_getInfo(TExecutor *exec)
     cell_arrayAppendElement(r, t);
 
     pop(exec->stack);
-    push(exec->stack, r);
+    push(exec->stack, cell_makeChoice_cell(CHOICE_FileInfoResult_info, r));
 }
 
 void file_isDirectory(TExecutor *exec)

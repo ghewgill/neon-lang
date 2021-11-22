@@ -12,6 +12,3 @@ LET r: file.FileResult := file.mkdir("tmp/dummy")
 CHECK r ISA file.FileResult.error ELSE
     RAISE TestFailedException
 END CHECK
-print(r.error)
-
---= tmp/dummy
