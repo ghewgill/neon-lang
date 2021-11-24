@@ -5,18 +5,44 @@
 
 #include "rtl_exec.h"
 
+#include "enums.inc"
 #include "choices.inc"
 
 namespace rtl {
 
 namespace ne_file {
 
+Cell error_result(int error, const utf8string &path)
+{
+    int type = ENUM_Error_other;
+    switch (error) {
+        case EACCES:
+            type = ENUM_Error_permissionDenied;
+            break;
+        case EEXIST:
+            type = ENUM_Error_alreadyExists;
+            break;
+        case ENOENT:
+            type = ENUM_Error_notFound;
+            break;
+    }
+    return Cell(std::vector<Cell> {
+        Cell(number_from_uint32(CHOICE_FileResult_error)),
+        Cell(std::vector<Cell> {
+            /* type    */ Cell(number_from_sint32(type)),
+            /* os_code */ Cell(number_from_sint32(error)),
+            /* message */ Cell(utf8string(strerror(error))),
+            /* path    */ Cell(utf8string(path))
+        })
+    });
+}
+
 Cell readBytes(const utf8string &filename)
 {
     std::vector<unsigned char> r;
     std::ifstream f(filename.str(), std::ios::binary);
     if (not f.is_open()) {
-        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_BytesResult_error)), Cell(filename) });
+        return error_result(errno, filename);
     }
     for (;;) {
         char buf[16384];

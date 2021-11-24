@@ -6,12 +6,6 @@
 #include "enums.inc"
 #include "choices.inc"
 
-static Cell error_result(int error, const utf8string &path)
-{
-    // TODO: Text error message
-    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(utf8string(path + ": " + std::to_string(error).c_str()))});
-}
-
 static Number unix_time_from_filetime(const FILETIME &ft)
 {
     return number_divide(
@@ -23,6 +17,8 @@ static Number unix_time_from_filetime(const FILETIME &ft)
 namespace rtl {
 
 namespace ne_file {
+
+extern Cell error_result(int error, const utf8string &path);
 
 utf8string _CONSTANT_Separator()
 {

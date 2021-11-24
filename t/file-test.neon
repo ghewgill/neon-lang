@@ -122,3 +122,11 @@ print("\(directory) \(name)")
 file.pathSplit("a/b", OUT directory, OUT name)
 print("\(directory) \(name)")
 --= a b
+
+LET r: file.BytesResult := file.readBytes("nonexistent.file")
+CHECK r ISA file.BytesResult.error ELSE
+    RAISE TestFailedException
+END CHECK
+TESTCASE r.error.type = file.Error.notFound
+TESTCASE r.error.message <> ""
+TESTCASE r.error.path = "nonexistent.file"

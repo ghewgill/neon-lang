@@ -9,6 +9,8 @@ EXPORT Separator
 
 EXPORT FileType
 EXPORT FileInfo
+EXPORT Error
+EXPORT ErrorInfo
 EXPORT FileInfoResult
 EXPORT FileResult
 EXPORT BytesResult
@@ -104,24 +106,38 @@ TYPE FileInfo IS RECORD
     lastModificationTime: Number
 END RECORD
 
+TYPE Error IS ENUM
+    alreadyExists
+    notFound
+    permissionDenied
+    other
+END ENUM
+
+TYPE ErrorInfo IS RECORD
+    type: Error
+    os_code: Number
+    message: String
+    path: String
+END RECORD
+
 TYPE FileResult IS CHOICE
     ok
-    error: String
+    error: ErrorInfo
 END CHOICE
 
 TYPE FileInfoResult IS CHOICE
     info: FileInfo
-    error: String
+    error: ErrorInfo
 END CHOICE
 
 TYPE BytesResult IS CHOICE
     data: Bytes
-    error: String
+    error: ErrorInfo
 END CHOICE
 
 TYPE LinesResult IS CHOICE
     lines: Array<String>
-    error: String
+    error: ErrorInfo
 END CHOICE
 
 /*  Function: copy
@@ -292,7 +308,8 @@ DECLARE NATIVE FUNCTION readLines(filename: String): LinesResult
  *  Remove directory tree recursively.
  */
 FUNCTION removeDirectoryTree(path: String): FileResult
-    VAR failed := FALSE
+    VAR ret: FileResult := FileResult.ok
+    VAR r: FileResult
     LET names: Array<String> := files(path)
     FOREACH name IN names DO
         IF name IN [".", ".."] THEN
@@ -300,22 +317,28 @@ FUNCTION removeDirectoryTree(path: String): FileResult
         END IF
         LET pathname: String := pathJoin(path, name)
         IF isDirectory(name) THEN
-            IF removeDirectoryTree(pathname) ISA FileResult.error THEN
-                failed := TRUE
+            r := removeDirectoryTree(pathname)
+            IF r ISA FileResult.error THEN
+                IF ret ISA FileResult.ok THEN
+                    ret := r
+                END IF
             END IF
         ELSE
-            IF delete(pathname) ISA FileResult.error THEN
-                failed := TRUE
+            r := delete(pathname)
+            IF r ISA FileResult.error THEN
+                IF ret ISA FileResult.ok THEN
+                    ret := r
+                END IF
             END IF
         END IF
     END FOREACH
-    IF removeEmptyDirectory(path) ISA FileResult.error THEN
-        failed := TRUE
+    r := removeEmptyDirectory(path)
+    IF r ISA FileResult.error THEN
+        IF ret ISA FileResult.ok THEN
+            ret := r
+        END IF
     END IF
-    IF failed THEN
-        RETURN FileResult.error("Some files could not be removed")
-    END IF
-    RETURN FileResult.ok
+    RETURN ret
 END FUNCTION
 
 /*  Function: removeEmptyDirectory

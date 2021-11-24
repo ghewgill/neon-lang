@@ -13,9 +13,24 @@
 
 Cell *file_error_result(int choice, int error, const char *path)
 {
-    char err[300];
-    snprintf(err, sizeof(err), "%s: %s", path, strerror(error));
-    return cell_makeChoice_string(choice, string_createCString(err));
+    int type = ENUM_Error_other;
+    switch (error) {
+        case EACCES:
+            type = ENUM_Error_permissionDenied;
+            break;
+        case EEXIST:
+            type = ENUM_Error_alreadyExists;
+            break;
+        case ENOENT:
+            type = ENUM_Error_notFound;
+            break;
+    }
+    Cell *ei = cell_createArrayCell(0);
+    cell_arrayAppendElementPointer(ei, cell_fromNumber(number_from_sint32(type)));
+    cell_arrayAppendElementPointer(ei, cell_fromNumber(number_from_sint32(error)));
+    cell_arrayAppendElementPointer(ei, cell_fromCString(strerror(error)));
+    cell_arrayAppendElementPointer(ei, cell_fromCString(path));
+    return cell_makeChoice_cell(choice, ei);
 }
 
 

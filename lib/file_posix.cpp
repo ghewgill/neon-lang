@@ -15,14 +15,11 @@
 #include "enums.inc"
 #include "choices.inc"
 
-static Cell error_result(int error, const utf8string &path)
-{
-    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_error)), Cell(utf8string(path + ": " + strerror(error)))});
-}
-
 namespace rtl {
 
 namespace ne_file {
+
+extern Cell error_result(int error, const utf8string &path);
 
 utf8string _CONSTANT_Separator()
 {

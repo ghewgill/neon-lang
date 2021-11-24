@@ -17,6 +17,11 @@
 #define ENUM_FileType_directory     1
 #define ENUM_FileType_special       2
 
+#define ENUM_Error_alreadyExists    0
+#define ENUM_Error_notFound         1
+#define ENUM_Error_permissionDenied 2
+#define ENUM_Error_other            3
+
 #define CHOICE_FileResult_ok        0
 #define CHOICE_FileResult_error     1
 

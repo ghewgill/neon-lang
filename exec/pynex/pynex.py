@@ -3,6 +3,7 @@
 import calendar
 import ctypes
 import decimal
+import errno
 import math
 import mmap
 import os
@@ -2304,6 +2305,21 @@ def neon_substring(self):
     s = self.stack.pop().value
     self.stack.append(s[offset:offset+length])
 
+def neon_file_ERROR(ex):
+    return [
+        Value(1), # error
+        Value([
+            Value({
+                errno.EACCES: 2, # permissionDenied
+                errno.EEXIST: 0, # alreadyExists
+                errno.ENOENT: 1, # notFound
+            }.get(ex.errno, 3)), # other
+            Value(ex.errno),
+            Value(ex.strerror),
+            Value(ex.filename),
+        ])
+    ]
+
 def neon_file__CONSTANT_Separator(self):
     self.stack.append(os.sep)
 
@@ -2312,8 +2328,8 @@ def neon_file_copy(self):
     src = self.stack.pop()
     try:
         destf = open(dest, "xb")
-    except FileExistsError:
-        self.stack.append([Value(1), Value(dest)]) # error
+    except FileExistsError as x:
+        self.stack.append(neon_file_ERROR(x))
         return
     srcf = open(src, "rb")
     shutil.copyfileobj(srcf, destf)
@@ -2371,11 +2387,8 @@ def neon_file_mkdir(self):
     fn = self.stack.pop()
     try:
         os.mkdir(fn)
-    except FileExistsError:
-        self.stack.append([
-            Value(1), # error
-            Value(fn)
-        ])
+    except FileExistsError as x:
+        self.stack.append(neon_file_ERROR(x))
         return
     self.stack.append([
         Value(0) # ok
@@ -2383,20 +2396,26 @@ def neon_file_mkdir(self):
 
 def neon_file_readBytes(self):
     fn = self.stack.pop()
-    r = open(fn, "rb").read()
-    self.stack.append([Value(0), Value(r)]) # data
+    try:
+        r = open(fn, "rb").read()
+        self.stack.append([Value(0), Value(r)]) # data
+    except FileNotFoundError as x:
+        self.stack.append(neon_file_ERROR(x))
 
 def neon_file_readLines(self):
     fn = self.stack.pop()
-    r = [Value(x.rstrip("\n")) for x in open(fn).readlines()]
-    self.stack.append([Value(0), Value(r)]) # lines
+    try:
+        r = [Value(x.rstrip("\n")) for x in open(fn).readlines()]
+        self.stack.append([Value(0), Value(r)]) # lines
+    except FileNotFoundError as x:
+        self.stack.append(neon_file_ERROR(x))
 
 def neon_file_removeEmptyDirectory(self):
     fn = self.stack.pop()
     try:
         os.rmdir(fn)
-    except OSError:
-        self.stack.append([Value(1), Value("directory not empty")]) # error
+    except OSError as x:
+        self.stack.append(neon_file_ERROR(x))
         return
     self.stack.append([Value(0)]) # ok
 
@@ -2434,11 +2453,8 @@ def neon_io_open(self):
             Value(0), # file
             Value(f)
         ])
-    except FileNotFoundError:
-        self.stack.append([
-            Value(1), # error
-            Value(fn)
-        ])
+    except FileNotFoundError as x:
+        self.stack.append(neon_file_ERROR(x))
 
 def neon_io_flush(self):
     f = self.stack.pop()

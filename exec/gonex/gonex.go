@@ -2427,9 +2427,10 @@ func (self *executor) op_callp() {
 		name := self.pop().str
 		b, err := ioutil.ReadFile(name)
 		if err != nil {
-			panic(err)
+			self.push(neon_file_ERROR(err, 1, name)) // notFound
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(0), make_cell_bytes(b)})) // data
 		}
-		self.push(make_cell_array([]cell{make_cell_num(0), make_cell_bytes(b)})) // data
 	case "file$readLines":
 		name := self.pop().str
 		f, err := os.Open(name)
@@ -3313,6 +3314,18 @@ func (self *executor) raise_literal(exception string, info object) {
 
 	fmt.Fprintf(os.Stderr, "Unhandled exception %s (%s)\n", exception, info.toString())
 	os.Exit(1)
+}
+
+func neon_file_ERROR(err error, errortype int, filename string) cell {
+	return make_cell_array([]cell{
+		make_cell_num(1),
+		make_cell_array([]cell{
+			make_cell_num(float64(errortype)),
+			make_cell_num(0),
+			make_cell_str(err.Error()),
+			make_cell_str(filename),
+		}),
+	}) // error
 }
 
 func neon_file_copyOverwriteIfExists(srcname string, dstname string) {
