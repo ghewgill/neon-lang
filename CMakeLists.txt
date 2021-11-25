@@ -789,7 +789,7 @@ foreach (TEST ${TESTS_REPL})
     )
 endforeach ()
 
-file(GLOB_RECURSE SAMPLES neon/*.neon samples/*.neon tools/*.neon)
+file(GLOB_RECURSE SAMPLES neon/*.neon samples/*.neon scripts/*.neon tools/*.neon)
 foreach (SAMPLE ${SAMPLES})
     execute_process(
         COMMAND python3 tools/helium.py tools/imports.neon ${SAMPLE}
