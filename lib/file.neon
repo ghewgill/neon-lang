@@ -3,8 +3,6 @@
  *  Functions for working with files and directories.
  */
 
-EXPORT FileException
-
 EXPORT Separator
 
 EXPORT FileType
@@ -37,48 +35,6 @@ EXPORT writeBytes
 EXPORT writeLines
 
 DECLARE NATIVE CONSTANT Separator: String
-
-/*  Exception: FileException
- *
- *  Generic file error.
- */
-EXCEPTION FileException
-
-/*  Exception: FileException.DirectoryExists
- *
- *  Indicates that a directory already exists when calling <mkdir>.
- */
-EXCEPTION FileException.DirectoryExists
-
-/*  Exception: FileException.Exists
- *
- *  Indicates that a an attempt was made to create, or overwrite an existing file.
- */
-EXCEPTION FileException.Exists
-
-/*  Exception: FileException.Open
- *
- *  Indicates that an error occurred when opening a file.
- */
-EXCEPTION FileException.Open
-
-/*  Exception: FileException.PathNotFound
- *
- *  Indicates that a path was not found.
- */
-EXCEPTION FileException.PathNotFound
-
-/*  Exception: FileException.PermissionDenied
- *
- *  Indicates that an operation was denied due to filesystem permissions.
- */
-EXCEPTION FileException.PermissionDenied
-
-/*  Exception: FileException.Write
- *
- *  Indicates that an error occurred while writing to a file.
- */
-EXCEPTION FileException.Write
 
 /*  Type: FileType
  *

@@ -12,24 +12,6 @@
 #include "util.h"
 
 
-static void handle_error(TExecutor *exec, DWORD error, const char *path)
-{
-    switch (error) {
-        case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException.DirectoryExists", path);     break;
-        case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException.PermissionDenied", path);    break;
-        case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException.PathNotFound", path);        break;
-        case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException.Exists", path);              break;
-        case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException.PermissionDenied", path);    break;
-        default:
-        {
-            char err[MAX_PATH + 32];
-            snprintf(err, sizeof(err), "%s: %d", path, error);
-            exec->rtl_raise(exec, "FileException", err);
-            break;
-        }
-    }
-}
-
 static inline Number unix_time_from_filetime(const FILETIME *ft)
 {
     return number_divide(

@@ -16,13 +16,7 @@ IF file.isDirectory("lib/\(name)") THEN
     sys.exit(1)
 END IF
 
-VAR mod: Object
-TRY
-    mod := yamlLoad("neon-module-registry/\(name).yaml")
-TRAP file.FileException.Open DO
-    textio.writeLine(textio.stderr, "Module not found")
-    sys.exit(1)
-END TRY
+LET mod := yamlLoad("neon-module-registry/\(name).yaml")
 
 IF os.system("git clone \(mod["repository"]) lib/\(name)") <> 0 THEN
     print("Error cloning module")
