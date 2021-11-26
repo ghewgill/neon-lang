@@ -4,7 +4,7 @@ packages:
 - python3
 - gmp
 # optional
-- openjdk # version 1.7, needs 1.8
+- openjdk8
 - mono
 - node
 - rust

@@ -2393,15 +2393,6 @@ def neon_file_rename(self):
     oldname = self.stack.pop()
     os.rename(oldname, newname)
 
-def neon_file_symlink(self):
-    targetIsDirectory = self.stack.pop()
-    newlink = self.stack.pop()
-    target = self.stack.pop()
-    try:
-        os.symlink(target, newlink, targetIsDirectory)
-    except OSError:
-        self.raise_literal("FileException.Open", "")
-
 def neon_file_writeBytes(self):
     data = self.stack.pop()
     fn = self.stack.pop()
@@ -2709,6 +2700,15 @@ def neon_os_system(self):
 
 def neon_posix_fork(self):
     self.stack.append(os.fork())
+
+def neon_posix_symlink(self):
+    newlink = self.stack.pop()
+    target = self.stack.pop()
+    try:
+        os.symlink(target, newlink)
+        self.stack.append(0)
+    except OSError:
+        self.stack.append(-1)
 
 def neon_posix_wait(self):
     (pid, status) = os.wait()

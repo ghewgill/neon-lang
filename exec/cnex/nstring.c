@@ -116,12 +116,43 @@ int string_compareString(TString *lhs, TString *rhs)
         size = rhs->length;
     } else if (lhs->length < rhs->length) {
         size = lhs->length;
-    } 
+    }
     r = memcmp(lhs->data, rhs->data, size);
     if (r == 0) {
         if (lhs->length > rhs->length) {
             return 1;
         } else if (lhs->length < rhs->length) {
+            return -1;
+        }
+    }
+    return r;
+}
+
+int string_compareCString(TString *lhs, char *rhs)
+{
+    int r = 0;
+    if (lhs == NULL) {
+        // We can't compare anything to a NULL string.
+        return -1;
+    }
+    uint64_t size = lhs->length;
+    size_t rhs_length = strlen(rhs);
+
+    if (rhs == NULL && (lhs->data == NULL || lhs->length == 0)) {
+        // Allow compare against an empty string, or a NULL string.
+        return 0;
+    }
+
+    if (lhs->length > rhs_length) {
+        size = rhs_length;
+    } else if (lhs->length < rhs_length) {
+        size = lhs->length;
+    }
+    r = memcmp(lhs->data, rhs, size);
+    if (r == 0) {
+        if (lhs->length > rhs_length) {
+            return 1;
+        } else if (lhs->length < rhs_length) {
             return -1;
         }
     }
@@ -159,6 +190,23 @@ TString *string_appendChar(TString *s, char c)
 
     s->length++;
     s->data[s->length-1] =  c;
+    return s;
+}
+
+TString *string_appendCodePoint(TString *s, uint32_t cp)
+{
+    char val[4];
+    uint32_t lead_byte = 0x7F;
+    int index = 0;
+    while (cp > lead_byte) {
+        val[index++] = (cp & 0x3F) | 0x80;
+        cp >>= 6;
+        lead_byte >>= (index == 1 ? 2 : 1);
+    }
+    val[index++] = (cp & lead_byte) | (~lead_byte << 1);
+    while (index) {
+        s = string_appendChar(s, val[--index]);
+    }
     return s;
 }
 
@@ -373,6 +421,36 @@ int64_t string_findString(TString *self, size_t pos, TString *p)
     return -1;
 }
 
+int64_t string_findCString(TString *self, size_t pos, char *p)
+{
+    size_t plen = strlen(p);
+    if (p == NULL || plen == 0) {
+        return -1;
+    }
+    if (self == NULL || self->data == NULL || self->length == 0) {
+        return -1;
+    }
+    if (pos > self->length || plen > self->length || plen + pos > self->length) {
+        return -1;
+    }
+
+    for (size_t i = pos; i < ((self->length - plen) + 1); i++) {
+        if (self->data[i] == p[0]) {
+            BOOL bFound = TRUE;
+            for (size_t n = 1; n < plen - 1; n++) {
+                if (self->data[i+n] != p[n]) {
+                    bFound = FALSE;
+                    break;
+                }
+            }
+            if (bFound) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
 char *tprintf(char *dest, TString *s)
 {
     if (s == NULL) {
@@ -397,7 +475,7 @@ char *to_string(char *dest, size_t len, uint32_t val)
 
 const char *string_ensureNullTerminated(TString *s)
 {
-    // This function ensures that the string is null terminated without adding to actual length of the string.
+    // This function ensures that the string is null terminated without adding to the actual length of the string.
     s->data = realloc(s->data, s->length + 1);
     if (s->data == NULL) {
         fatal_error("Could not null terminate string with %d bytes.", s->length + 1);
@@ -515,4 +593,210 @@ TString *string_quote(TString *s)
     }
     string_appendChar(r, '"');
     return r;
+}
+
+size_t string_getLength(TString *s)
+{
+    size_t len = 0;
+    for (size_t i = 0; i < s->length; i++) {
+        uint32_t c = s->data[i] & 0xff;
+        if (c & 0x80) {
+            if ((c & 0xe0) == 0xc0) {
+                c &= 0x1f;
+                i += 1;
+            } else if ((c & 0xf0) == 0xe0) {
+                c &= 0x0f;
+                i += 2;
+            } else if ((c & 0xf8) == 0xf0) {
+                c &= 0x07;
+                i += 3;
+            } else if ((c & 0xfc) == 0xf8) {
+                c &= 0x03;
+                i += 4;
+            } else if ((c & 0xfe) == 0xfc) {
+                c &= 0x01;
+                i += 5;
+            } else {
+                // Invalid UTF8, so abort the entire string.
+                return 0;
+            }
+        }
+        len++;
+    }
+    return len;
+}
+
+TString *string_index(TString *s, size_t index)
+{
+    TString *r = string_createString(0);
+
+    size_t idx = 0;
+    int n = 1;
+    for (size_t i = 0; i < s->length; i++) {
+        uint32_t c = s->data[i] & 0xff;
+        if (c & 0x80) {
+            n = 0;
+            if ((c & 0xe0) == 0xc0) {
+                c &= 0x1f;
+                n = 2;
+            } else if ((c & 0xf0) == 0xe0) {
+                c &= 0x0f;
+                n = 3;
+            } else if ((c & 0xf8) == 0xf0) {
+                c &= 0x07;
+                n = 4;
+            } else if ((c & 0xfc) == 0xf8) {
+                c &= 0x03;
+                n = 5;
+            } else if ((c & 0xfe) == 0xfc) {
+                c &= 0x01;
+                n = 6;
+            } else {
+                fatal_error("Invalid UTF8 in string: %02x", s->data[i]);
+            }
+        } else {
+            n = 1;
+        }
+        if (idx == index) {
+            r->data = realloc(r->data, n);
+            memcpy(r->data, &s->data[i], n);
+            r->length = n;
+            break;
+        } else {
+            i += n - 1;
+        }
+        idx++;
+    }
+    return r;
+}
+
+BOOL string_isValidUtf8(TString *s, size_t *error_offset)
+{
+    size_t idx = 0;
+    for (size_t i = 0; i < s->length; i++) {
+        uint32_t c = s->data[i] & 0xff;
+        if (c & 0x80) {
+            int n = 0;
+            if ((c & 0xe0) == 0xc0) {
+                c &= 0x1f;
+                n = 1;
+            } else if ((c & 0xf0) == 0xe0) {
+                c &= 0x0f;
+                n = 2;
+            } else if ((c & 0xf8) == 0xf0) {
+                c &= 0x07;
+                n = 3;
+            } else if ((c & 0xfc) == 0xf8) {
+                c &= 0x03;
+                n = 4;
+            } else if ((c & 0xfe) == 0xfc) {
+                c &= 0x01;
+                n = 5;
+            } else {
+                *error_offset = idx;
+                return FALSE;
+            }
+            while (n-- > 0) {
+                i++;
+                if ((s->data[i] & 0xc0) != 0x80) {
+                    *error_offset = idx;
+                    return FALSE;
+                }
+                c = (c << 6) | (s->data[i] & 0x3f);
+            }
+        }
+        idx++;
+    }
+    return TRUE;
+}
+
+
+TStringArray *string_createStringArray()
+{
+    TStringArray *a = malloc(sizeof(TStringArray));
+    a->size = 0;
+    a->data = NULL;
+    return a;
+}
+
+void string_freeStringArray(TStringArray *self)
+{
+    if (self != NULL && self->data != NULL) {
+        for (int64_t i = 0; i < self->size; i++) {
+            string_freeString(*(&self->data[i]));
+        }
+        free(self->data);
+    }
+    free(self);
+}
+
+void string_clearStringArray(TStringArray *self)
+{
+    if (self != NULL && self->data != NULL) {
+        for (int64_t i = 0; i < self->size; i++) {
+            string_freeString(*(&self->data[i]));
+        }
+        free(self->data);
+    }
+    self->data = malloc(sizeof(TString*));
+    self->size = 0;
+}
+
+size_t string_appendStringArrayElement(TStringArray *self, TString *element)
+{
+    if (self == NULL) {
+        fatal_error("Uninitialized array passed to string_appendArrayStringElement!");
+    }
+    if (self->data) {
+        self->data = realloc(self->data, sizeof(TString*) * (self->size + 1));
+        if (self->data == NULL) {
+            fatal_error("Not enough memory to expand string array.");
+        }
+        self->size++;
+    }
+    if (self->data == NULL) {
+        self->data = malloc(sizeof(TString*));
+        if (self->data == NULL) {
+            fatal_error("Failed to allocate memory TString array element.");
+        }
+        self->size = 1;
+    }
+    self->data[self->size-1] = element;
+
+    return self->size;
+}
+
+void string_removeStringArrayElement(TStringArray *self, size_t index)
+{
+    if (self != NULL && self->data != NULL) {
+        TString *d = self->data[index];
+        for(int64_t i = index; i+1 < self->size; i++) {
+            self->data[i] = self->data[i+1];
+        }
+        string_freeString(d);
+        self->size--;
+        self->data = realloc(self->data, sizeof(TString*) * self->size);
+    }
+}
+
+TStringArray *string_splitString(TString *s, char d)
+{
+    TStringArray *a = string_createStringArray();
+    if (s == NULL) {
+        // There is no strng to split, so just return an empty array.
+        return a;
+    }
+    size_t i = 0;
+    size_t start = i;
+    while (i < s->length) {
+        if (s->data[i] == d) {
+            string_appendStringArrayElement(a, string_subString(s, start, i - start));
+            start = i + 1;
+        }
+        i++;
+    }
+    if (i > start) {
+        string_appendStringArrayElement(a, string_subString(s, start, i-start));
+    }
+    return a;
 }

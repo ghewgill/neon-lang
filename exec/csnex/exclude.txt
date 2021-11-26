@@ -15,7 +15,6 @@ file-filecopied1.neon                           # file module
 file-filecopied2.neon                           # file module
 file-filecopied3.neon                           # file module
 file-linelength.neon                            # file module
-file-symlink.neon                               # file module
 file-test.neon                                  # file module
 file-writebytes.neon                            # file module
 file-writelines.neon                            # file module
@@ -46,6 +45,7 @@ object.neon
 object-record.neon                              # EQA
 opcode-coverage.neon                            # Missing Opcodes
 posix-fork.neon                                 # posix module
+posix-symlink.neon                              # posix module
 sql-connect.neon                                # SQLite / sql module
 sql-cursor.neon                                 # SQLite / sql module
 sql-embed.neon                                  # SQLite / sql module

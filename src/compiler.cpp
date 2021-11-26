@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <fstream>
+#include <iostream>
 #include <iso646.h>
 #include <sstream>
 #include <stack>
@@ -1014,7 +1015,7 @@ std::string ast::TypeChoice::get_type_descriptor(Emitter &emitter) const
         if (i != choices.end()) {
             const ast::Type *type = i->second.second;
             if (type != nullptr) {
-                r += ":" + type->get_type_descriptor(emitter);
+                r += ":" + emitter.get_type_reference(type);
             }
         }
     }
@@ -1035,6 +1036,17 @@ void ast::Variable::generate_store(Emitter &emitter) const
 void ast::Variable::generate_call(Emitter &emitter) const
 {
     type->generate_call(emitter);
+}
+
+void ast::TypeChoice::get_type_references(std::set<const Type *> &references) const
+{
+    for (auto c: choices) {
+        if (c.second.second != nullptr) {
+            if (references.insert(c.second.second).second) {
+                c.second.second->get_type_references(references);
+            }
+        }
+    }
 }
 
 void ast::PredefinedVariable::generate_address(Emitter &emitter) const
@@ -2931,6 +2943,10 @@ std::vector<unsigned char> compile(const ast::Program *p, DebugInfo *debug)
     p->generate(emitter);
     if (p->source_path != "-" && debug != nullptr) {
         std::ofstream out(p->source_path + "d");
+        if (not out) {
+            std::cerr << "error: Could not create output file: " << (p->source_path + "d") << "\n";
+            exit(1);
+        }
         minijson::object_writer writer(out, minijson::writer_configuration().pretty_printing(true));
         writer.write("source_path", p->source_path);
         writer.write("source_hash", hex_from_binary(p->source_hash));

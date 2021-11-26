@@ -2455,14 +2455,6 @@ func (self *executor) op_callp() {
 		if err != nil {
 			panic(err)
 		}
-	case "file$symlink":
-		/*targetIsDirectory :=*/ self.pop() /*.bool*/
-		newlink := self.pop().str
-		target := self.pop().str
-		err := os.Symlink(target, newlink)
-		if err != nil {
-			panic(err)
-		}
 	case "file$writeBytes":
 		b := self.pop().bytes
 		name := self.pop().str

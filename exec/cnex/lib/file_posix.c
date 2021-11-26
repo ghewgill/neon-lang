@@ -367,20 +367,3 @@ void file_rename(TExecutor *exec)
     pop(exec->stack);
     pop(exec->stack);
 }
-
-void file_symlink(TExecutor *exec)
-{
-    pop(exec->stack); // BOOL bTargetIsDirectory
-    TString *newlink = peek(exec->stack, 0)->string;
-    TString *target = peek(exec->stack, 1)->string;
-    string_ensureNullTerminated(newlink);
-    string_ensureNullTerminated(target);
-
-    int r = symlink(target->data, newlink->data);
-    if (r != 0) {
-        handle_error(exec, errno, newlink->data);
-    }
-
-    pop(exec->stack);
-    pop(exec->stack);
-}

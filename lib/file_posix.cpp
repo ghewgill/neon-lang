@@ -263,14 +263,6 @@ void rename(const utf8string &oldname, const utf8string &newname)
     }
 }
 
-void symlink(const utf8string &target, const utf8string &newlink, bool /*targetIsDirectory*/)
-{
-    int r = ::symlink(target.c_str(), newlink.c_str());
-    if (r != 0) {
-        handle_error(errno, newlink);
-    }
-}
-
 } // namespace ne_file
 
 } // namespace rtl

@@ -3061,6 +3061,9 @@ const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
             if (choice == choice_type->choices.end()) {
                 error(3312, qtype->names[i], "choice not found");
             }
+            if (dynamic_cast<const ast::TypeChoice *>(left->type) == nullptr) {
+                error(3321, expr->left->token, "choice value expected");
+            }
             return new ast::ChoiceTestExpression(left, choice_type, choice->second.first);
         }
     }

@@ -5,16 +5,21 @@
 
 EXPORT Socket
 EXPORT SocketException
+EXPORT TlsCertificate
+EXPORT TlsPeerValidateMode
 
 EXPORT select
 EXPORT tcpSocket
 EXPORT udpSocket
+EXPORT tlsClientSocket
+EXPORT tlsServerSocket
 
 /*  Exception: SocketException
  *
  *  Indicates some kind of socket error.
  */
 EXCEPTION SocketException
+EXCEPTION SocketException.PeerCertificateInvalid
 
 /*  Type: Socket
  *
@@ -29,16 +34,32 @@ TYPE Socket IS RECORD
     s: Object
 END RECORD
 
+TYPE TlsCertificate IS RECORD
+    commonName: String
+    -- TODO
+END RECORD
+
+TYPE TlsPeerValidateMode IS ENUM
+    RequireValidCertificate
+    AllowInvalidCertificate
+END ENUM
+
 DECLARE NATIVE FUNCTION socket_accept(socket: Object): Object
 DECLARE NATIVE FUNCTION socket_bind(socket: Object, address: String, port: Number)
 DECLARE NATIVE FUNCTION socket_close(socket: Object)
 DECLARE NATIVE FUNCTION socket_connect(socket: Object, host: String, port: Number)
+DECLARE NATIVE FUNCTION socket_getTlsPeerCertificate(socket: Object, OUT certificate: TlsCertificate): Boolean
+DECLARE NATIVE FUNCTION socket_getTlsVersion(socket: Object): String
+DECLARE NATIVE FUNCTION socket_isTlsInitComplete(socket: Object): Boolean
 DECLARE NATIVE FUNCTION socket_listen(socket: Object, port: Number)
+DECLARE NATIVE FUNCTION socket_needsWrite(socket: Object): Boolean
 DECLARE NATIVE FUNCTION socket_recv(socket: Object, count: Number, OUT buffer: Bytes): Boolean
 DECLARE NATIVE FUNCTION socket_recvfrom(socket: Object, count: Number, OUT remote_address: String, OUT remote_port: Number, OUT buffer: Bytes): Boolean
 DECLARE NATIVE FUNCTION socket_send(socket: Object, data: Bytes)
 DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
 DECLARE NATIVE FUNCTION socket_tcpSocket(): Object
+DECLARE NATIVE FUNCTION socket_tlsClientSocket(validateMode: TlsPeerValidateMode): Object
+DECLARE NATIVE FUNCTION socket_tlsServerSocket(certfile, keyfile: String): Object
 DECLARE NATIVE FUNCTION socket_udpSocket(): Object
 
 /*  Function: tcpSocket
@@ -47,6 +68,14 @@ DECLARE NATIVE FUNCTION socket_udpSocket(): Object
  */
 FUNCTION tcpSocket(): Socket
     RETURN Socket(s WITH socket_tcpSocket())
+END FUNCTION
+
+FUNCTION tlsClientSocket(validateMode: TlsPeerValidateMode DEFAULT TlsPeerValidateMode.RequireValidCertificate): Socket
+    RETURN Socket(s WITH socket_tlsClientSocket(validateMode))
+END FUNCTION
+
+FUNCTION tlsServerSocket(certfile, keyfile: String): Socket
+    RETURN Socket(s WITH socket_tlsServerSocket(certfile, keyfile))
 END FUNCTION
 
 /*  Function: udpSocket
@@ -99,12 +128,28 @@ FUNCTION Socket.connect(self: Socket, host: String, port: Number)
     socket_connect(self.s, host, port)
 END FUNCTION
 
+FUNCTION Socket.getTlsPeerCertificate(self: Socket, OUT certificate: TlsCertificate): Boolean
+    RETURN socket_getTlsPeerCertificate(self.s, OUT certificate)
+END FUNCTION
+
+FUNCTION Socket.getTlsVersion(self: Socket): String
+    RETURN socket_getTlsVersion(self.s)
+END FUNCTION
+
+FUNCTION Socket.isTlsInitComplete(self: Socket): Boolean
+    RETURN socket_isTlsInitComplete(self.s)
+END FUNCTION
+
 /*  Function: Socket.listen
  *
  *  Listen for incoming connections on a specific port.
  */
 FUNCTION Socket.listen(self: Socket, port: Number)
     socket_listen(self.s, port)
+END FUNCTION
+
+FUNCTION Socket.needsWrite(self: Socket): Boolean
+    RETURN socket_needsWrite(self.s)
 END FUNCTION
 
 /*  Function: Socket.recv

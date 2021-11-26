@@ -138,14 +138,6 @@ void rename(const utf8string &oldname, const utf8string &newname)
     }
 }
 
-void symlink(const utf8string &target, const utf8string &newlink, bool targetIsDirectory)
-{
-    BOOL r = CreateSymbolicLink(newlink.c_str(), target.c_str(), targetIsDirectory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
-    if (!r) {
-        handle_error(GetLastError(), newlink);
-    }
-}
-
 } // namespace ne_file
 
 } // namespace rtl

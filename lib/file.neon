@@ -26,7 +26,6 @@ EXPORT readLines
 EXPORT removeDirectoryTree
 EXPORT removeEmptyDirectory
 EXPORT rename
-EXPORT symlink
 EXPORT wildcardMatch
 EXPORT writeBytes
 EXPORT writeLines
@@ -299,15 +298,6 @@ DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String)
  *      - <PathNotFound> - if the file does not exist
  */
 DECLARE NATIVE FUNCTION rename(oldname: String, newname: String)
-
-/*  Function: symlink
- *
- *  Create a symlink named newlink that points to target.
- *
- *  Exceptions:
- *      - <PathNotFound> - if the path does not exist
- */
-DECLARE NATIVE FUNCTION symlink(target: String, newlink: String, targetIsDirectory: Boolean DEFAULT FALSE)
 
 /*  Function: wildcardMatch
  *

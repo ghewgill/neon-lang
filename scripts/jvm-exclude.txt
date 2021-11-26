@@ -19,7 +19,6 @@ exception-code.neon        # ExceptionType
 exception-tostring.neon    # ExceptionType
 export.neon                # enum with no name
 file-filecopied1.neon      # exception identification
-file-symlink.neon          # file.symlink
 file-test.neon             # stack size
 for.neon                   # number format (2 vs 2.0)
 gc-array.neon              # module runtime
@@ -74,6 +73,7 @@ outer-tail.neon            # verifier
 outer.neon                 # verifier
 outer2.neon                # verifier
 posix-fork.neon            # module posix
+posix-symlink.neon         # module posix
 predeclare1.neon           # something
 print-object.neon          # object
 random-test.neon           # module random

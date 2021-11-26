@@ -212,17 +212,3 @@ void file_rename(TExecutor *exec)
     free(oldname);
     free(newname);
 }
-
-void file_symlink(TExecutor *exec)
-{
-    BOOL targetIsDirectory = top(exec->stack)->boolean; pop(exec->stack);
-    char *newlink = string_asCString(top(exec->stack)->string); pop(exec->stack);
-    char *target = string_asCString(top(exec->stack)->string); pop(exec->stack);
-
-    BOOL r = CreateSymbolicLink(newlink, target, targetIsDirectory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
-    if (!r) {
-        handle_error(exec, GetLastError(), newlink);
-    }
-    free(newlink);
-    free(target);
-}

@@ -6,17 +6,6 @@
 #include "nstring.h"
 
 
-int64_t string_findCString(TString *self, const char *p)
-{
-    int64_t r = -1;
-
-    TString psz = { 0, 0 };
-    psz.data = (char*)p;
-    psz.length = strlen(p);
-    r = string_findString(self, 0, &psz);
-    return r;
-}
-
 int main()
 {
     char ascii[127];
@@ -33,6 +22,7 @@ int main()
     TString *bar = string_createCString("bar");
     TString *foobar = string_createCString("foo.bar");
     TString *bytes = string_createString(127);
+    TString *badutf = string_createCString("foo.bar\x80\x7f\x34\x00");
     memcpy(bytes->data, ascii, sizeof(ascii));
     TString *byte = string_createString(1);
     byte->data[0] = '\0';
@@ -60,8 +50,8 @@ int main()
     byte->data[0] = '\t';
     assert(string_findString(bytes, 0, byte)  == 9);
     // Test PSZ string finds
-    assert(string_findCString(foobar, "oo.ba")  == 1);
-    assert(string_findCString(s1,   "#1's")  == 15);
+    assert(string_findCString(foobar, 0, "oo.ba")  == 1);
+    assert(string_findCString(s1, 0, "#1's")  == 15);
     // Test findFirst/LastNotOf's
     assert(string_findFirstNotOf(s3, 0, string_createCString("\r\n\t ")) == 6);
     assert(string_findLastNotOf(s3, string_createCString(" ")) == 33);
@@ -84,6 +74,9 @@ int main()
     assert(string_findCharRev(foobar, '.') == 3);
     assert(string_findCharRev(s2, ' ') == 19);
     assert(string_findCharRev(foobar, '/') == NPOS);
+
+    //assert(string_index(badutf, 7)->length == 0);
+    assert(string_getLength(badutf) == 0);
 
     return 0;
 }

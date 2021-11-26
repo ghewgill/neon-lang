@@ -100,6 +100,7 @@ pointer5.neon                   # pointers
 pointer7.neon                   # pointers
 pointer-nil.neon                # pointers
 posix-fork.neon                 # module posix
+posix-symlink.neon              # module posix
 predeclare1.neon                # Ne_Array_mtable
 print-object.neon               # Ne_Object_mtable
 recursion-limit.neon            # module runtime

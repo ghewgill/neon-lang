@@ -1,6 +1,5 @@
 complex-test.neon          # precision
 decimal.neon               # arithmetic
-file-symlink.neon          # symlink win32
 gc-array.neon              # gc
 gc-long-chain.neon         # gc
 gc1.neon                   # gc

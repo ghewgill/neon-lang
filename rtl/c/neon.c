@@ -1112,6 +1112,12 @@ void Ne_Exception_unhandled()
     exit(1);
 }
 
+Ne_Exception *Ne_math__CONSTANT_PRECISION_DIGITS(Ne_Number *result)
+{
+    result->dval = 15;
+    return NULL;
+}
+
 Ne_Exception *Ne_math_abs(Ne_Number *result, const Ne_Number *x)
 {
     result->dval = fabs(x->dval);

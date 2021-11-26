@@ -36,7 +36,6 @@ file-filecopied1.neon       # file$delete
 file-filecopied2.neon       # file$delete
 file-filecopied3.neon       # file$delete
 file-linelength.neon        # file$writeLines
-file-symlink.neon           # file$delete
 file-test.neon              # pushpmg
 file-writebytes.neon        # array__toBytes__number
 file-writelines.neon        # file$writeLines
@@ -101,6 +100,7 @@ parameter-out-string.neon   # string__splice
 parameters.neon             # storep
 pointer-print.neon          # pointer__toString
 posix-fork.neon             # posix$fork
+posix-symlink.neon          # posix$symlink
 predeclare1.neon            # array__append
 process-test.neon           # process$call
 random-test.neon            # module random

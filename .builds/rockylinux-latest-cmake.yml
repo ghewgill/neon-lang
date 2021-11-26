@@ -1,17 +1,13 @@
-image: debian/stable
+image: rockylinux/latest
 packages:
-- python3
 - cmake
-- ncurses-dev
-- libgmp-dev
-- zlib1g-dev
-- libssl-dev
+- python3
 # optional
-- default-jdk
-- mono-mcs
+- java-1.8.0
+#- mono
 - nodejs
-- rustc
-- golang
+- rust
+- go
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 triggers:

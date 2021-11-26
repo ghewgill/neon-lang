@@ -189,6 +189,7 @@ Ne_Exception *Ne_file_symlink(const Ne_String *target, const Ne_String *newlink,
 Ne_Exception *Ne_file_writeBytes(const Ne_String *filename, const Ne_Bytes *data);
 Ne_Exception *Ne_file_writeLines(const Ne_String *filename, const Ne_Array *data);
 
+Ne_Exception *Ne_math__CONSTANT_PRECISION_DIGITS(Ne_Number *result);
 Ne_Exception *Ne_math_abs(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_math_acos(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_math_acosh(Ne_Number *result, const Ne_Number *x);
