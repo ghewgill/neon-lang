@@ -84,7 +84,7 @@ std::shared_ptr<Object> spawn(const utf8string &command)
         &si,
         &pi);
     if (not r) {
-        throw RtlException(ne_file::Exception_FileException_PathNotFound, command);
+        throw RtlException(Exception_OsException_Spawn, command);
     }
     AssignProcessToJobObject(job, pi.hProcess);
     CloseHandle(pi.hThread);
