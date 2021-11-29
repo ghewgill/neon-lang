@@ -11,9 +11,9 @@ print("\(a < b < c)")
 --= TRUE
 
 -- First condition false.
-print("\(a > b < c)")
+print("\(a+1 < b < c)")
 --= FALSE
 
 -- Second condition false.
-print("\(a < b > c)")
+print("\(a < b+1 < c)")
 --= FALSE

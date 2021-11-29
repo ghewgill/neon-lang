@@ -123,6 +123,10 @@ std::string reconstitute(const Token &t)
         case IMPORTED:    return "IMPORTED";
         case TESTCASE:    return "TESTCASE";
         case EXPECT:      return "EXPECT";
+        case CHOICE:      return "CHOICE";
+        case PROCESS:     return "PROCESS";
+        case SUCCESS:     return "SUCCESS";
+        case FAILURE:     return "FAILURE";
         case UNKNOWN:     return "UNKNOWN";
         case MAX_TOKEN:   return "";
     }

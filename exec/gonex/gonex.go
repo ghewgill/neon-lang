@@ -282,7 +282,7 @@ func (obj objectString) subscript(index object) (object, error) {
 }
 
 func (obj objectString) toLiteralString() string {
-	return "\"" + obj.str + "\""
+	return quoted(obj.str)
 }
 
 func (obj objectString) toString() string {
@@ -455,7 +455,7 @@ func (obj objectDictionary) toString() string {
 		} else {
 			r += ", "
 		}
-		r += "\"" + k + "\": "
+		r += quoted(k) + ": "
 		if obj.dict[k] != nil {
 			r += obj.dict[k].toLiteralString()
 		} else {
@@ -1515,7 +1515,7 @@ func (self *executor) op_divn() {
 	b := self.pop().num
 	a := self.pop().num
 	if b == 0 {
-		self.raise_literal("DivideByZeroException", objectString{""})
+		self.raise_literal("NumberException.DivideByZero", objectString{""})
 		return
 	}
 	self.push(make_cell_num(a / b))
@@ -2037,6 +2037,9 @@ func (self *executor) op_callp() {
 		a := self.pop().array
 		b := make([]byte, len(a))
 		for i, x := range a {
+			if x.num < 0 || x.num >= 256 {
+				self.raise_literal("ByteOutOfRangeException", objectString{fmt.Sprintf("%g", x.num)})
+			}
 			b[i] = byte(x.num)
 		}
 		self.push(make_cell_bytes(b))
@@ -2289,6 +2292,42 @@ func (self *executor) op_callp() {
 		r := self.pop().ref
 		d := r.load().dict
 		delete(d, key)
+	case "dictionary__toString__object":
+		d := self.pop().dict
+		r := "{"
+		keys := []string{}
+		for k := range d {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for i, k := range keys {
+			if i > 0 {
+				r += ", "
+			}
+			r += quoted(k)
+			r += ": "
+			r += d[k].obj.toLiteralString()
+		}
+		r += "}"
+		self.push(make_cell_str(r))
+	case "dictionary__toString__string":
+		d := self.pop().dict
+		r := "{"
+		keys := []string{}
+		for k := range d {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for i, k := range keys {
+			if i > 0 {
+				r += ", "
+			}
+			r += quoted(k)
+			r += ": "
+			r += quoted(d[k].str)
+		}
+		r += "}"
+		self.push(make_cell_str(r))
 	case "exceptiontype__toString":
 		et := self.pop().array
 		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v>", et[0].str, et[1].obj.toString(), et[2].num)))
@@ -2413,14 +2452,6 @@ func (self *executor) op_callp() {
 		newname := self.pop().str
 		oldname := self.pop().str
 		err := os.Rename(oldname, newname)
-		if err != nil {
-			panic(err)
-		}
-	case "file$symlink":
-		/*targetIsDirectory :=*/ self.pop() /*.bool*/
-		newlink := self.pop().str
-		target := self.pop().str
-		err := os.Symlink(target, newlink)
 		if err != nil {
 			panic(err)
 		}
@@ -2582,6 +2613,60 @@ func (self *executor) op_callp() {
 			self.push(make_cell_num(n))
 		} else {
 			self.raise_literal("ValueRangeException", objectString{"num() argument not a number"})
+		}
+	case "object__invokeMethod":
+		args := self.pop().array
+		name := self.pop().str
+		o := self.pop().obj
+		if s, err := o.getString(); err == nil {
+			if name == "length" {
+				if len(args) == 0 {
+					self.push(make_cell_obj(objectNumber{float64(len(s))}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to length() (expected 0)"})
+				}
+			} else {
+				self.raise_literal("DynamicConversionException", objectString{"string object does not support this method"})
+			}
+		} else if a, err := o.getArray(); err == nil {
+			if name == "size" {
+				if len(args) == 0 {
+					self.push(make_cell_obj(objectNumber{float64(len(a))}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to size() (expected 0)"})
+				}
+			} else {
+				self.raise_literal("DynamicConversionException", objectString{"array object does not support this method"})
+			}
+		} else if d, err := o.getDictionary(); err == nil {
+			if name == "keys" {
+				if len(args) == 0 {
+					i := 0
+					keys := make([]string, len(d))
+					for k := range d {
+						keys[i] = k
+						i++
+					}
+					sort.Strings(keys)
+					okeys := make([]object, len(d))
+					for i, k := range keys {
+						okeys[i] = objectString{k}
+					}
+					self.push(make_cell_obj(objectArray{okeys}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to keys() (expected 0)"})
+				}
+			} else if name == "size" {
+				if len(args) == 0 {
+					self.push(make_cell_obj(objectNumber{float64(len(d))}))
+				} else {
+					self.raise_literal("DynamicConversionException", objectString{"invalid number of arguments to size() (expected 0)"})
+				}
+			} else {
+				self.raise_literal("DynamicConversionException", objectString{"dictionary object does not support this method"})
+			}
+		} else {
+			self.raise_literal("DynamicConversionException", objectString{"object does not support method calls"})
 		}
 	case "object__isNull":
 		o := self.pop().obj
@@ -2809,7 +2894,7 @@ func (self *executor) op_callp() {
 	case "string$toCodePoint":
 		s := self.pop().str
 		if len(s) != 1 {
-			self.raise_literal("ArrayIndexException", objectString{"toCodePoint() requires string of length 1"})
+			self.raise_literal("StringIndexException", objectString{"toCodePoint() requires string of length 1"})
 		} else {
 			self.push(make_cell_num(float64(s[0])))
 		}
@@ -2862,7 +2947,21 @@ func (self *executor) op_callp() {
 		if last_from_end {
 			last += len(s) - 1
 		}
-		self.push(make_cell_str(s[:first] + t + s[last+1:]))
+		if first < 0 {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", first)})
+		} else if last < first-1 {
+			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", last)})
+		} else {
+			padding := ""
+			if first > len(s) {
+				padding = strings.Repeat(" ", first-len(s))
+				first = len(s)
+			}
+			if last >= len(s) {
+				last = len(s) - 1
+			}
+			self.push(make_cell_str(s[:first] + padding + t + s[last+1:]))
+		}
 	case "string__substring":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num

@@ -2,6 +2,7 @@
 #include <string>
 #include <windows.h>
 
+#include "exec.h"
 #include "rtl_exec.h"
 
 #include "enums.inc"
@@ -90,6 +91,19 @@ std::shared_ptr<Object> spawn(const utf8string &command)
     return std::shared_ptr<Object> { new ProcessObject(pi.hProcess) };
 }
 
+Number system(const utf8string &command)
+{
+    std::string cmd = command.str();
+    // Terrible hack to change slashes to backslashes so cmd.exe isn't confused.
+    // Probably better handled by calling a lower level function than system().
+    for (std::string::iterator i = cmd.begin(); not isspace(*i); ++i) {
+        if (*i == '/') {
+            *i = '\\';
+        }
+    }
+    return number_from_sint32(::system(cmd.c_str()));
+}
+
 Number wait(const std::shared_ptr<Object> &process)
 {
     DWORD r;
@@ -106,3 +120,14 @@ Number wait(const std::shared_ptr<Object> &process)
 } // namespace ne_os
 
 } // namespace rtl
+
+static BOOL WINAPI CtrlHandler(DWORD)
+{
+    executor_interrupt();
+    return TRUE;
+}
+
+void rtl_os_init()
+{
+    SetConsoleCtrlHandler(CtrlHandler, TRUE);
+}

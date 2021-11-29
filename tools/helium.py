@@ -148,14 +148,21 @@ INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
 ISA = Keyword("ISA")
+ELLIPSIS = Keyword("ELLIPSIS")
 OPTIONAL = Keyword("OPTIONAL")
 IMPORTED = Keyword("IMPORTED")
 TESTCASE = Keyword("TESTCASE")
 EXPECT = Keyword("EXPECT")
+CHOICE = Keyword("CHOICE")
+PROCESS = Keyword("PROCESS")
+SUCCESS = Keyword("SUCCESS")
+FAILURE = Keyword("FAILURE")
 
 class bytes:
     def __init__(self, a):
         self.a = a
+    def __eq__(self, rhs):
+        return self.a == rhs.a
     def __getitem__(self, key):
         return bytes(self.a.__getitem__(key))
     def __str__(self):
@@ -192,7 +199,13 @@ def tokenize_fragment(source):
         elif source[i] == "&": r.append(CONCAT); i += 1
         elif source[i] == "=": r.append(EQUAL); i += 1
         elif source[i] == ",": r.append(COMMA); i += 1
-        elif source[i] == ".": r.append(DOT); i += 1
+        elif source[i] == ".":
+            if source[i+1:i+3] == "..":
+                r.append(ELLIPSIS)
+                i += 3
+            else:
+                r.append(DOT)
+                i += 1
         elif source[i] == "-":
             if source[i+1] == "-":
                 while i < len(source) and source[i] != "\n":
@@ -361,6 +374,12 @@ class TypeEnum:
     def resolve(self, env):
         return ClassEnum(self.names)
 
+class TypeChoice:
+    def __init__(self, choices):
+        self.choices = choices
+    def resolve(self, env):
+        return ClassChoice(self.choices)
+
 class TypePointer:
     def __init__(self, type):
         self.type = type
@@ -368,11 +387,12 @@ class TypePointer:
         return ClassPointer(self.type)
 
 class TypeFunction:
-    def __init__(self, returntype, args):
+    def __init__(self, returntype, args, varargs):
         self.returntype = returntype
         self.args = args
+        self.varargs = varargs
     def resolve(self, env):
-        return ClassFunctionPointer(self.returntype, self.args)
+        return ClassFunctionPointer(self.returntype, self.args, self.varargs)
 
 def infer_type(value):
     if isinstance(value, BooleanLiteralExpression):
@@ -381,7 +401,7 @@ def infer_type(value):
         return TypeSimple("Number")
     if isinstance(value, StringLiteralExpression):
         return TypeSimple("String")
-    assert False, "need type deduction for: " + value
+    assert False, "need type deduction for: " + repr(value)
 
 class ImportDeclaration:
     def __init__(self, module, name, optional):
@@ -702,12 +722,16 @@ class DotExpression:
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
             if self.field == "reversed": return lambda env, self: neon_array_reversed(obj)
             if self.field == "size": return lambda env, self: len(obj)
-            if self.field == "toBytes": return lambda env, self: bytes(obj)
+            if self.field == "toBytes": return lambda env, self: neon_array_toBytes(obj)
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
             if self.field == "remove": return lambda env, self, k: neon_dictionary_remove(obj, k)
+            if self.field == "size": return lambda env, self: len(obj)
+            if self.field == "toString": return lambda env, self: "{{{}}}".format(", ".join("{}: {}".format(neon_string_quoted(env, k), neon_string_quoted(env, v) if isinstance(v, str) else str(v)) for k, v in sorted(obj.items())))
             return obj[self.field] # Support a.b syntax where a is an object.
+        elif isinstance(obj, ClassChoice):
+            return ClassChoice.Instance(self.field, None)
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
         elif hasattr(obj, self.field):
@@ -806,7 +830,7 @@ class DivisionExpression:
             else:
                 return x / y
         except ZeroDivisionError:
-            raise NeonException("DivideByZeroException")
+            raise NeonException(["NumberException", "DivideByZero"])
 
 class IntegerDivisionExpression:
     def __init__(self, left, right):
@@ -816,7 +840,7 @@ class IntegerDivisionExpression:
         try:
             return math.trunc(self.left.eval(env) / self.right.eval(env))
         except ZeroDivisionError:
-            raise NeonException("DivideByZeroException")
+            raise NeonException(["NumberException", "DivideByZero"])
 
 class ModuloExpression:
     def __init__(self, left, right):
@@ -904,6 +928,8 @@ class TypeTestExpression:
                     return all(isinstance(x, int) and not isinstance(x, bool) for x in v.values())
                 if self.target.elementtype.name == "Object":
                     return True
+        if isinstance(v, ClassChoice.Instance):
+            return v._choice == self.target.name[-1]
         assert False, "add type ISA support for target {}".format(self.target)
 
 class MembershipExpression:
@@ -934,10 +960,11 @@ class ValidPointerExpression:
         return all(x[0].eval(env) for x in self.tests)
 
 class NativeFunction:
-    def __init__(self, name, returntype, args):
+    def __init__(self, name, returntype, args, varargs):
         self.name = name
         self.returntype = returntype
         self.args = args
+        self.varargs = varargs
     def declare(self, env):
         f = globals()["neon_{}_{}".format(env.module(), self.name)]
         outs = [x.mode is not IN for x in self.args]
@@ -988,11 +1015,12 @@ class FunctionParameter:
         self.default = default
 
 class FunctionDeclaration:
-    def __init__(self, type, name, returntype, args, statements):
+    def __init__(self, type, name, returntype, args, varargs, statements):
         self.type = type
         self.name = name
         self.returntype = returntype
         self.args = args
+        self.varargs = varargs
         self.statements = statements
     def declare(self, env):
         type = ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args)
@@ -1015,6 +1043,7 @@ class FunctionDeclaration:
         outs = [x.mode is not IN for x in self.args]
         if any(outs):
             func._outs = outs
+        func._varargs = self.varargs
         if self.type is not None:
             env.get_value(self.type).methods[self.name] = func
         else:
@@ -1028,7 +1057,12 @@ class FunctionCallExpression:
         self.args = args
     def eval(self, env):
         args = [a[1].eval(env) for a in self.args]
+        if self.args and self.args[-1][2]: # spread
+            args = args[:-1] + args[-1]
         obj = None
+        if isinstance(self.func, DotExpression) and isinstance(self.func.expr, IdentifierExpression) and isinstance(env.get_value(self.func.expr.name), ClassChoice):
+            r = ClassChoice.Instance(self.func.field, args[0])
+            return r
         if isinstance(self.func, (DotExpression, ArrowExpression)):
             # Evaluate and save obj once so we don't evaluate it twice for one call.
             obj = self.func.expr.eval(env)
@@ -1044,6 +1078,8 @@ class FunctionCallExpression:
                 args = [obj] + args
             elif isinstance(self.func, ArrowExpression):
                 args = [obj] + args
+            if hasattr(f, "_varargs") and f._varargs is not None:
+                args = args[:f._varargs] + [args[f._varargs:]]
             r = f(funcenv, *args)
             if hasattr(f, "_outs"):
                 j = 1
@@ -1122,6 +1158,8 @@ class CaseStatement:
                     return all(isinstance(t, int) for t in x)
                 if self.target.elementtype.name == "Object":
                     return True
+            if isinstance(self.target, TypeCompound):
+                return x._choice == self.target.name[1]
     def __init__(self, expr, clauses):
         self.expr = expr
         self.clauses = clauses
@@ -1138,13 +1176,16 @@ class CaseStatement:
                 break
 
 class ExitStatement:
-    def __init__(self, label):
+    def __init__(self, label, arg):
         self.label = label
+        self.arg = arg
     def declare(self, env):
         pass
     def run(self, env):
         if self.label == "FUNCTION":
             raise ReturnException(None)
+        elif self.label == "PROCESS":
+            sys.exit(self.arg == "FAILURE")
         else:
             raise ExitException(self.label)
 
@@ -1485,6 +1526,20 @@ class Parser:
         self.expect(ENUM)
         return TypeEnum(names)
 
+    def parse_choice_type(self):
+        self.expect(CHOICE)
+        choices = []
+        while self.tokens[self.i] is not END:
+            name = self.identifier()
+            type = None
+            if self.tokens[self.i] is COLON:
+                self.i += 1
+                type = self.parse_type()
+            choices.append((name, type))
+        self.expect(END)
+        self.expect(CHOICE)
+        return TypeChoice(choices)
+
     def parse_pointer_type(self):
         self.expect(POINTER)
         if self.tokens[self.i] is not TO:
@@ -1502,8 +1557,8 @@ class Parser:
 
     def parse_function_type(self):
         self.expect(FUNCTION)
-        returntype, args = self.parse_function_parameters()
-        return TypeFunction(returntype, args)
+        returntype, args, varargs = self.parse_function_parameters()
+        return TypeFunction(returntype, args, varargs)
 
     def parse_type(self):
         if self.tokens[self.i] is ARRAY or self.tokens[self.i] is DICTIONARY:
@@ -1514,6 +1569,8 @@ class Parser:
             return self.parse_class_type()
         if self.tokens[self.i] is ENUM:
             return self.parse_enum_type()
+        if self.tokens[self.i] is CHOICE:
+            return self.parse_choice_type()
         if self.tokens[self.i] is POINTER:
             return self.parse_pointer_type()
         if self.tokens[self.i] is VALID:
@@ -1523,10 +1580,12 @@ class Parser:
         name = self.identifier()
         if self.tokens[self.i] is not DOT:
             return TypeSimple(name)
-        self.i += 1
-        module = name
-        name = self.identifier()
-        return TypeCompound((module, name))
+        name = (name,)
+        while self.tokens[self.i] is DOT:
+            self.i += 1
+            t = self.identifier()
+            name = name + (t,)
+        return TypeCompound(name)
 
     def parse_import(self):
         self.expect(IMPORT)
@@ -1564,6 +1623,7 @@ class Parser:
     def parse_function_parameters(self):
         self.expect(LPAREN)
         args = []
+        varargs = None
         if self.tokens[self.i] is not RPAREN:
             while True:
                 mode = IN
@@ -1575,6 +1635,9 @@ class Parser:
                 if self.tokens[self.i] is DEFAULT:
                     self.i += 1
                     default = self.parse_expression()
+                if self.tokens[self.i] is ELLIPSIS:
+                    self.i += 1
+                    varargs = len(args)
                 args.extend([FunctionParameter(x, vars[1], mode, default) for x in vars[0]])
                 if self.tokens[self.i] is not COMMA:
                     break
@@ -1584,7 +1647,7 @@ class Parser:
         if self.tokens[self.i] is COLON:
             self.i += 1
             returntype = self.parse_type()
-        return returntype, args
+        return returntype, args, varargs
 
     def parse_function_header(self):
         self.expect(FUNCTION)
@@ -1597,7 +1660,7 @@ class Parser:
         return tuple([type, name] + list(self.parse_function_parameters()))
 
     def parse_function_definition(self):
-        type, name, returntype, args = self.parse_function_header()
+        type, name, returntype, args, varargs = self.parse_function_header()
         statements = []
         while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
             s = self.parse_statement()
@@ -1605,7 +1668,7 @@ class Parser:
                 statements.append(s)
         self.expect(END)
         self.expect(FUNCTION)
-        return FunctionDeclaration(type, name, returntype, args, statements)
+        return FunctionDeclaration(type, name, returntype, args, varargs, statements)
 
     def parse_variable_declaration(self, require_type):
         names = []
@@ -1632,7 +1695,11 @@ class Parser:
                     name = self.tokens[self.i].name
                     self.i += 2
                 e = self.parse_expression()
-                args.append((name, e))
+                spread = False
+                if self.tokens[self.i] is ELLIPSIS:
+                    self.i += 1
+                    spread = True
+                args.append((name, e, spread))
                 if self.tokens[self.i] is not COMMA:
                     break
                 self.i += 1
@@ -2089,8 +2156,8 @@ class Parser:
                 if name == "Separator":
                     return ConstantDeclaration(name, type, StringLiteralExpression(os.sep))
             elif self.tokens[self.i] == FUNCTION:
-                type, name, returntype, args = self.parse_function_header()
-                return NativeFunction(name, returntype, args)
+                type, name, returntype, args, varargs = self.parse_function_header()
+                return NativeFunction(name, returntype, args, varargs)
             elif self.tokens[self.i] == VAR:
                 self.i += 1
                 name = self.identifier()
@@ -2124,7 +2191,11 @@ class Parser:
         self.expect(EXIT)
         label = self.tokens[self.i].name
         self.i += 1
-        return ExitStatement(label)
+        arg = None
+        if label == "PROCESS":
+            arg = self.tokens[self.i].name
+            self.i += 1
+        return ExitStatement(label, arg)
 
     def parse_export(self):
         self.expect(EXPORT)
@@ -2156,7 +2227,7 @@ class Parser:
             elif self.tokens[self.i] is IMPORTED:
                 self.i += 1
                 name = self.identifier()
-                cond = FunctionCallExpression(StringLiteralExpression(neon_runtime_isModuleImported), [("name", StringLiteralExpression(name))])
+                cond = FunctionCallExpression(StringLiteralExpression(neon_runtime_isModuleImported), [("name", StringLiteralExpression(name), False)])
             else:
                 cond = self.parse_expression()
             self.expect(THEN)
@@ -2279,7 +2350,7 @@ class Parser:
                 statements.append(s)
         self.expect(END)
         self.expect(MAIN)
-        return FunctionDeclaration(None, "MAIN", None, [], statements)
+        return FunctionDeclaration(None, "MAIN", None, [], False, statements)
 
     def parse_next_statement(self):
         self.expect(NEXT)
@@ -2576,6 +2647,27 @@ class ClassEnum(Class):
     def default(self, env):
         return getattr(self, self.names[0])
 
+class ClassChoice(Class):
+    class Instance:
+        def __init__(self, name, value):
+            self._choice = name
+            setattr(self, name, value)
+        def __eq__(self, rhs):
+            return self._choice == rhs._choice and getattr(self, self._choice) == getattr(rhs, rhs._choice)
+        def toString(self, env, x):
+            value = getattr(x, x._choice)
+            # This should really check the choices to see whether there is data available,
+            # but checking for 'not None' is probably sufficient.
+            if value is not None:
+                return "<{}:{}>".format(x._choice, value)
+            else:
+                return "<{}>".format(x._choice)
+    def __init__(self, choices):
+        self.choices = choices
+    def default(self, env):
+        r = ClassChoice.Instance(self.choices[0][0], self.choices[0][1] and self.choices[0][1].resolve(env).default(env))
+        return r
+
 class ClassPointer(Class):
     def __init__(self, type):
         self.type = type
@@ -2583,9 +2675,10 @@ class ClassPointer(Class):
         return None
 
 class ClassFunctionPointer(Class):
-    def __init__(self, returntype, args):
+    def __init__(self, returntype, args, varargs):
         self.returntype = returntype
         self.args = args
+        self.varargs = varargs
     def default(self, env):
         return None
 
@@ -2767,6 +2860,12 @@ def neon_array_resize(a, n):
 def neon_array_reversed(a):
     return list(reversed(a))
 
+def neon_array_toBytes(a):
+    for x in a:
+        if not (0 <= x < 256):
+            raise NeonException("ByteOutOfRangeException")
+    return bytes(a)
+
 def neon_dictionary_remove(d, k):
     if k in d:
         del d[k]
@@ -2786,6 +2885,8 @@ def neon_num(env, x):
         raise NeonException("ValueRangeException", x)
 
 def neon_print(env, x):
+    if isinstance(x, list):
+        x = "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in x))
     print(x)
 
 def neon_str(env, x):
@@ -2863,11 +2964,6 @@ def neon_file_removeEmptyDirectory(env, path):
 
 def neon_file_rename(env, old, new):
     os.rename(old, new)
-
-def neon_file_symlink(env, target, newlink, targetIsDirectory):
-    # Note: Python 2 does not support the targetIsDirectory option.
-    # Also, Python 2 doesn't support os.symlink() on windows.
-    os.symlink(target, newlink)
 
 def neon_file_writeBytes(env, fn, bytes):
     with open(fn, "wb") as f:

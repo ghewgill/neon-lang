@@ -19,5 +19,8 @@ print(str(a / b))
 print(str(a ^ b))
 --= 1024
 
+print(str(a ^ 0))
+--= 1
+
 print(str(b MOD a))
 --= 1

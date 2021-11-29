@@ -19,6 +19,11 @@ typedef struct tagTString {
     char   *data;
 } TString;
 
+typedef struct tagTStringArray {
+    TString **data;
+    int64_t size;
+} TStringArray;
+
 char *tprintf(char *dest, TString *s);
 char *to_string(char *dest, size_t len, uint32_t val);
 
@@ -32,6 +37,7 @@ TString *string_createString(size_t length);
 TString *string_createStringFromData(void *data, size_t len);
 
 int string_compareString(TString *lhs, TString *rhs);
+int string_compareCString(TString *lhs, char *rhs);
 BOOL string_isEmpty(TString *s);
 
 TString *string_copyString(TString *s);
@@ -42,6 +48,7 @@ TString *string_appendString(TString *s, TString *ns);
 TString *string_appendCString(TString *s, const char *ns);
 TString *string_appendData(TString *s, char *buf, size_t len);
 TString *string_appendChar(TString *s, char c);
+TString *string_appendCodePoint(TString *s, uint32_t cp);
 
 void string_resizeString(TString *s, size_t n);
 
@@ -54,6 +61,7 @@ size_t string_findChar(TString *self, char c);
 size_t string_findCharRev(TString *self, char c);
 
 int64_t string_findString(TString *self, size_t pos, TString *p);
+int64_t string_findCString(TString *self, size_t pos, char *p);
 int64_t string_findFirstOf(TString *self, size_t pos, TString *p);
 int64_t string_findFirstNotOf(TString *self, size_t pos, TString *p);
 int64_t string_findLastNotOf(TString *self, TString *p);
@@ -63,8 +71,19 @@ TString *string_subString(TString *s, int64_t pos, int64_t count);
 TString *string_toLowerCase(TString *s);
 TString *string_toUpperCase(TString *s);
 
+size_t string_getLength(TString *s);
+TString *string_index(TString *s, size_t index);
+BOOL string_isValidUtf8(TString *s, size_t *error_offset);
+
 const char *string_ensureNullTerminated(TString *s);
 
 TString *string_quote(TString *s);
+
+TStringArray *string_createStringArray();
+void string_freeStringArray(TStringArray *self);
+void string_clearStringArray(TStringArray *self);
+
+size_t string_appendStringArrayElement(TStringArray *a, TString *s);
+TStringArray *string_splitString(TString *s, char d);
 
 #endif

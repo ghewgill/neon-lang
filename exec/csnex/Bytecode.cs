@@ -1,21 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace csnex
 {
     public class Bytecode
     {
-        private const int BYTECODE_VERSION = 3;
+        public const int BYTECODE_VERSION = 3;
         private byte[] obj;
         public string source_path;
-        public List<String> strtable;
+        public List<string> strtable;
+        public List<byte[]> bytetable;
         public byte[] code;
 
         public List<ModuleImport> imports;
         public List<FunctionInfo> functions;
+        public List<Constant> constants;
+        public List<Variable> variables;
+        public List<Function> exports;
+        public List<Type> types;
         public List<ExceptionInfo> exceptions;
+        public List<ExceptionExport> export_exceptions;
+        public List<ExportInterface> export_interfaces;
+        public List<Interface> interfaces;
         public List<Cell> globals;
+        public List<ClassInfo> classes;
 
         public Bytecode()
         {
@@ -38,17 +48,19 @@ namespace csnex
             return r;
         }
 
-        public List<String> GetStrTable(byte[] obj, int size, ref int i)
+        public void GetStringBytesTable(byte[] obj, int size, ref int i)
         {
-            List<String> r = new List<string>();
-
+            bytetable = new List<byte[]>();
+            strtable = new List<string>();
             while (i < size) {
                 int len = Get_VInt(obj, ref i);
-                string ts = new string(System.Text.Encoding.UTF8.GetChars(obj, i, len));
-                r.Add(ts);
+                byte[] ts = new byte[len];
+                Array.Copy(obj, i, ts, 0, len);
+                bytetable.Add(ts);
+                // Yea, we're keeping two copies of the data here.  This could probably be optimized.
+                strtable.Add(new string(System.Text.Encoding.UTF8.GetChars(obj, i, len)));
                 i += len;
             }
-            return r;
         }
 
         public void LoadBytecode(string a_source_path, byte[] bytes)
@@ -84,33 +96,89 @@ namespace csnex
             int global_size = Get_VInt(obj, ref i);
             globals = new List<Cell>(global_size);
 
-            /* String Table */
+            /* Byte / String Table */
             int strtablesize = Get_VInt(obj, ref i);
-            strtable = GetStrTable(obj, strtablesize + i, ref i);
+            GetStringBytesTable(obj, strtablesize + i, ref i);
 
             /* Types */
             int typesize = Get_VInt(obj, ref i);
-            Debug.Assert(typesize == 0);
+            types = new List<Type>();
+            while (typesize > 0) {
+                Type t = new Type();
+                t.name = Get_VInt(obj, ref i);
+                t.descriptor = Get_VInt(obj, ref i);
+                types.Add(t);
+                typesize--;
+            }
 
             /* Constants */
             int constantsize = Get_VInt(obj, ref i);
-            Debug.Assert(constantsize == 0);
+            constants = new List<Constant>();
+            while (constantsize > 0) {
+                Constant c = new Constant();
+                c.name = Get_VInt(obj, ref i);
+                c.type = Get_VInt(obj, ref i);
+                int datasize = Get_VInt(obj, ref i);
+                if (i+datasize > obj.Length) {
+                    throw new BytecodeException("invalid constant data size");
+                }
+                c.value = new byte[datasize];
+                Array.Copy(obj, i, c.value, 0, datasize);
+                i += datasize;
+                constantsize--;
+            }
 
-            /* Exported Variabes */
+            /* Exported Variables */
             int variablesize = Get_VInt(obj, ref i);
-            Debug.Assert(variablesize == 0);
+            variables = new List<Variable>();
+            while (variablesize > 0) {
+                Variable v = new Variable();
+                v.name = Get_VInt(obj, ref i);
+                v.type = Get_VInt(obj, ref i);
+                v.index = Get_VInt(obj, ref i);
+                variables.Add(v);
+                variablesize--;
+            }
 
             /* Exported Functions */
             int functionsize = Get_VInt(obj, ref i);
-            Debug.Assert(functionsize == 0);
+            exports = new List<Function>();
+            while (functionsize > 0) {
+                Function ef = new Function();
+                ef.name = Get_VInt(obj, ref i);
+                ef.descriptor = Get_VInt(obj, ref i);
+                ef.index = Get_VInt(obj, ref i);
+                exports.Add(ef);
+                functionsize--;
+            }
 
             /* Exported Exceptions */
             int exceptionexportsize = Get_VInt(obj, ref i);
-            Debug.Assert(exceptionexportsize == 0);
+            export_exceptions = new List<ExceptionExport>();
+            while (exceptionexportsize > 0) {
+                ExceptionExport e = new ExceptionExport();
+                e.name = Get_VInt(obj, ref i);
+                export_exceptions.Add(e);
+                exceptionexportsize--;
+            }
 
             /* Exported Interfaces */
             int interfaceexportsize = Get_VInt(obj, ref i);
-            Debug.Assert(interfaceexportsize == 0);
+            export_interfaces = new List<ExportInterface>();
+            while (interfaceexportsize > 0) {
+                ExportInterface iface = new ExportInterface();
+                iface.methods = new Dictionary<int, int>();
+                iface.name = Get_VInt(obj, ref i);
+                int methoddescriptorsize = Get_VInt(obj, ref i);
+                while (methoddescriptorsize > 0) {
+                    int key = Get_VInt(obj, ref i);
+                    int val = Get_VInt(obj, ref i);
+                    iface.methods.Add(key, val);
+                    methoddescriptorsize--;
+                }
+                export_interfaces.Add(iface);
+                interfaceexportsize--;
+            }
 
             /* Imported Modules */
             int importsize = Get_VInt(obj, ref i);
@@ -159,10 +227,49 @@ namespace csnex
 
             /* Classes */
             int classsize = Get_VInt(obj, ref i);
-            Debug.Assert(classsize == 0);
+            classes = new List<ClassInfo>();
+            while (classsize > 0) {
+                ClassInfo cls = new ClassInfo();
+                cls.interfaces = new List<Interface>();
+                cls.name = Get_VInt(obj, ref i);
+                int interfacesize = Get_VInt(obj, ref i);
+                while (interfacesize > 0) {
+                    Interface inf = new Interface();
+                    int methodsize = Get_VInt(obj, ref i);
+                    inf.methods = new List<int>();
+                    while (methodsize > 0) {
+                        inf.methods.Add(Get_VInt(obj, ref i));
+                        methodsize--;
+                    }
+                    cls.interfaces.Add(inf);
+                    interfacesize--;
+                }
+                classes.Add(cls);
+                classsize--;
+            }
 
             code = new byte[obj.Length - i];
             Array.Copy(obj, i, code, 0, obj.Length - i);
+        }
+
+        public struct Type
+        {
+            public int name;
+            public int descriptor;
+        }
+
+        public struct Constant
+        {
+            public int name;
+            public int type;
+            public byte[] value;
+        }
+
+        public struct Variable
+        {
+            public int name;
+            public int type;
+            public int index;
         }
 
         public struct ModuleImport
@@ -170,6 +277,13 @@ namespace csnex
             public int name;
             public bool optional;
             public byte[] hash;
+        }
+
+        public struct Function
+        {
+            public int name;
+            public int descriptor;
+            public int index;
         }
 
         public struct FunctionInfo
@@ -189,5 +303,48 @@ namespace csnex
             public int handler;
             public int stack_depth;
         }
+
+        public struct ExceptionExport
+        {
+            public int name;
+            public int descriptor;
+            public int index;
+        }
+
+        public struct ExportInterface
+        {
+            public int name;
+            public Dictionary<int, int> methods;
+        }
+
+        public struct Interface
+        {
+            public int name;
+            public List<int> methods;
+        }
+
+        public struct ClassInfo
+        {
+            public int name;
+            public int interfacesize;
+            public List<Interface> interfaces;
+        }
+    }
+
+    public class Module
+    {
+        public Module()
+        {
+            Bytecode = new Bytecode();
+            Globals = new List<Cell>();
+            Name = null;
+            SourcePath = null;
+            Code = null;
+        }
+        public string      Name;
+        public string      SourcePath;
+        public byte[]      Code;
+        public Bytecode    Bytecode;
+        public List<Cell>  Globals;
     }
 }

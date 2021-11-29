@@ -3,6 +3,12 @@ packages:
 - cmake
 - python3
 - gmp
+# optional
+- openjdk8
+- mono
+- node
+- rust
+#- go (cannot find main module)
 sources:
 - https://git.sr.ht/~ghewgill/neon-lang
 triggers:

@@ -1,0 +1,5 @@
+TYPE Fruit IS CHOICE
+    apple
+    banana
+END TYPE
+    --<

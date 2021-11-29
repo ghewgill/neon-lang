@@ -23,6 +23,20 @@ VAR t2: Bytes := t1
 t1 := HEXBYTES "04 05 06"
 TESTCASE t2 = HEXBYTES "01 02 03"
 
+TYPE Fruit IS CHOICE
+    apple: Number
+    banana: Number
+    cherry: Number
+END CHOICE
+VAR c1: Fruit := Fruit.apple(4)
+VAR c2: Fruit := c1
+IF c1 ISA Fruit.apple THEN
+    c1.apple := 5
+END IF
+IF c2 ISA Fruit.apple THEN
+    TESTCASE c2.apple = 4
+END IF
+
 VAR a1: Array<Number> := [1, 2, 3]
 VAR a2: Array<Number> := a1
 a1[0] := -1

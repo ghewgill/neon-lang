@@ -36,7 +36,6 @@ file-filecopied1.neon       # file$delete
 file-filecopied2.neon       # file$delete
 file-filecopied3.neon       # file$delete
 file-linelength.neon        # file$writeLines
-file-symlink.neon           # file$delete
 file-test.neon              # pushpmg
 file-writebytes.neon        # array__toBytes__number
 file-writelines.neon        # file$writeLines
@@ -86,6 +85,8 @@ net-test.neon               # net$tcpSocket
 net-test-udp.neon           # net$udpSocket
 new-init-module.neon        # module
 number-ceil.neon            # math$ceil
+number-exception.neon
+object.neon                 # number formatting
 object-record.neon          # object__makeString
 opcode-coverage.neon        # runtime$moduleIsMain
 os-test.neon                # os$system
@@ -99,6 +100,7 @@ parameter-out-string.neon   # string__splice
 parameters.neon             # storep
 pointer-print.neon          # pointer__toString
 posix-fork.neon             # posix$fork
+posix-symlink.neon          # posix$symlink
 predeclare1.neon            # array__append
 process-test.neon           # process$call
 random-test.neon            # module random
@@ -120,6 +122,7 @@ string-format.neon          # callmf
 string-in.neon              # string$find
 string-index.neon           # exception StringIndexException
 string-slice.neon           # string__splice
+string-splice.neon          # string__splice
 string-test.neon            # string$find
 strings.neon                # string__splice
 struct-test.neon            # exception Utf8DecodingException

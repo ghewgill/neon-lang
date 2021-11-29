@@ -1,0 +1,27 @@
+image: rockylinux/latest
+packages:
+- cmake
+- python3
+# optional
+- java-1.8.0
+#- mono
+- nodejs
+- rust
+- go
+sources:
+- https://git.sr.ht/~ghewgill/neon-lang
+triggers:
+- action: email
+  condition: failure
+  to: ~ghewgill/neon-builds@lists.sr.ht
+tasks:
+- prep: |
+    cd neon-lang
+    git submodule deinit .
+- build: |
+    cd neon-lang
+    cmake .
+    cmake --build .
+- test: |
+    cd neon-lang
+    echo NOT RUNNING: ctest

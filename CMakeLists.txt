@@ -121,6 +121,7 @@ endif ()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(GMP)
 find_package(ZLIB)
+find_package(OpenSSL)
 add_subdirectory(external)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
@@ -224,6 +225,23 @@ set_source_files_properties(
 )
 
 if (JAVAC)
+    set(RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/global.neon")
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/struct.neon") # TODO (excluding struct for some reason)
+    set(RTL_CLASSES "")
+    foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
+        string(REPLACE ".neon" ".class" class ${rtl_neon})
+        set(class "rtl/jvm/neon/${class}")
+        add_custom_command(
+            OUTPUT ${class}
+            COMMAND neonc -q -t jvm -T package=neon.lib -T classdir=rtl/jvm ${rtl_neon}
+            DEPENDS neonc ${rtl_neon}
+        )
+        list(APPEND RTL_CLASSES "${class}")
+    endforeach ()
+    add_custom_target(neon_jvm_rtl ALL
+        DEPENDS ${RTL_CLASSES}
+    )
     set(NEON_JVM
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Binary.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Datetime.java
@@ -247,25 +265,11 @@ if (JAVAC)
         add_custom_command(
             OUTPUT ${class}
             COMMAND javac -cp ${CMAKE_SOURCE_DIR}/rtl/jvm ${java}
-            DEPENDS ${java}
+            DEPENDS ${java} neon_jvm_rtl
         )
     endforeach ()
     add_custom_target(neon_jvm ALL
         DEPENDS ${NEON_JVM_CLASSES}
-    )
-    string(REPLACE "${CMAKE_SOURCE_DIR}/lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
-    string(REPLACE "${CMAKE_SOURCE_DIR}/lib/struct.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON_WITHOUT_GLOBAL}") # TODO
-    string(REPLACE ".neon" ".class" RTL_CLASSES "${RTL_NEON_WITHOUT_GLOBAL}")
-    foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
-        string(REPLACE ".neon" ".class" class ${rtl_neon})
-        add_custom_command(
-            OUTPUT ${class}
-            COMMAND neonc -q -t jvm ${rtl_neon}
-            DEPENDS neonc ${rtl_neon}
-        )
-    endforeach ()
-    add_custom_target(neon_jvm_rtl ALL
-        DEPENDS ${RTL_CLASSES}
     )
 endif (JAVAC)
 
@@ -452,6 +456,7 @@ target_include_directories(executor
 target_link_libraries(executor
     common
     sqlite3
+    ${OPENSSL_TARGET}
 )
 if (WIN32)
     target_link_libraries(executor wsock32)
@@ -788,7 +793,7 @@ foreach (TEST ${TESTS_REPL})
     )
 endforeach ()
 
-file(GLOB_RECURSE SAMPLES neon/*.neon samples/*.neon tools/*.neon)
+file(GLOB_RECURSE SAMPLES neon/*.neon samples/*.neon scripts/*.neon tools/*.neon)
 foreach (SAMPLE ${SAMPLES})
     execute_process(
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/tools/imports.neon ${SAMPLE}

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <fstream>
+#include <iostream>
 #include <iso646.h>
 #include <sstream>
 #include <stack>
@@ -980,6 +981,48 @@ std::string ast::TypeEnum::get_type_descriptor(Emitter &) const
     return r;
 }
 
+void ast::TypeChoice::generate_load(Emitter &emitter) const
+{
+    emitter.emit(Opcode::LOADA);
+}
+
+void ast::TypeChoice::generate_store(Emitter &emitter) const
+{
+    emitter.emit(Opcode::STOREA);
+}
+
+void ast::TypeChoice::generate_call(Emitter &) const
+{
+    internal_error("TypeChoice");
+}
+
+std::string ast::TypeChoice::get_type_descriptor(Emitter &emitter) const
+{
+    std::string r = "U[";
+    std::vector<std::string> namevector(choices.size());
+    for (auto c: choices) {
+        if (not namevector[c.second.first].empty()) {
+            internal_error("duplicate choice value");
+        }
+        namevector[c.second.first] = c.first;
+    }
+    for (auto n: namevector) {
+        if (r.length() > 2) {
+            r += ",";
+        }
+        r += n;
+        auto i = choices.find(n);
+        if (i != choices.end()) {
+            const ast::Type *type = i->second.second;
+            if (type != nullptr) {
+                r += ":" + emitter.get_type_reference(type);
+            }
+        }
+    }
+    r += "]";
+    return r;
+}
+
 void ast::Variable::generate_load(Emitter &emitter) const
 {
     type->generate_load(emitter);
@@ -993,6 +1036,17 @@ void ast::Variable::generate_store(Emitter &emitter) const
 void ast::Variable::generate_call(Emitter &emitter) const
 {
     type->generate_call(emitter);
+}
+
+void ast::TypeChoice::get_type_references(std::set<const Type *> &references) const
+{
+    for (auto c: choices) {
+        if (c.second.second != nullptr) {
+            if (references.insert(c.second.second).second) {
+                c.second.second->get_type_references(references);
+            }
+        }
+    }
 }
 
 void ast::PredefinedVariable::generate_address(Emitter &emitter) const
@@ -1316,6 +1370,18 @@ void ast::ConstantEnumExpression::generate_expr(Emitter &emitter) const
     emitter.emit(Opcode::PUSHN, number_from_uint32(value));
 }
 
+void ast::ConstantChoiceExpression::generate_expr(Emitter &emitter) const
+{
+    if (expr != nullptr) {
+        expr->generate(emitter);
+        emitter.emit(Opcode::PUSHI, value);
+        emitter.emit(Opcode::CONSA, 2);
+    } else {
+        emitter.emit(Opcode::PUSHI, value);
+        emitter.emit(Opcode::CONSA, 1);
+    }
+}
+
 void ast::ConstantNilExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(Opcode::PUSHNIL);
@@ -1499,6 +1565,15 @@ void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
     emitter.jump_target(skip);
 }
 
+void ast::ChoiceTestExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAV);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::EQN);
+}
+
 void ast::ArrayInExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
@@ -1577,6 +1652,16 @@ void ast::EnumComparisonExpression::generate_comparison_opcode(Emitter &emitter)
         case Comparison::GT: emitter.emit(Opcode::GTN); break;
         case Comparison::LE: emitter.emit(Opcode::LEN); break;
         case Comparison::GE: emitter.emit(Opcode::GEN); break;
+    }
+}
+
+void ast::ChoiceComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
+{
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(Opcode::EQA); break;
+        case Comparison::NE: emitter.emit(Opcode::NEA); break;
+        default:
+            internal_error("unexpected comparison type");
     }
 }
 
@@ -1738,11 +1823,7 @@ void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter)
 {
     array->generate_address_read(emitter);
     index->generate(emitter);
-    if (always_create) {
-        emitter.emit(Opcode::INDEXAW);
-    } else {
-        emitter.emit(Opcode::INDEXAR);
-    }
+    emitter.emit(Opcode::INDEXAR);
 }
 
 void ast::ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) const
@@ -1756,11 +1837,7 @@ void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 {
     array->generate(emitter);
     index->generate(emitter);
-    if (always_create) {
-        emitter.emit(Opcode::INDEXAN);
-    } else {
-        emitter.emit(Opcode::INDEXAV);
-    }
+    emitter.emit(Opcode::INDEXAV);
 }
 
 void ast::DictionaryReferenceIndexExpression::generate_address_read(Emitter &emitter) const
@@ -1933,6 +2010,44 @@ void ast::ArrayValueRangeExpression::generate_expr(Emitter &emitter) const
     load->generate(emitter);
 }
 
+void ast::ChoiceReferenceExpression::generate_address_read(Emitter &emitter) const
+{
+    expr->generate_address_read(emitter);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAR);
+    emitter.emit(Opcode::LOADN);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::EQN);
+    auto skip_label = emitter.create_label();
+    emitter.emit_jump(Opcode::JT, skip_label);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
+    emitter.jump_target(skip_label);
+    expr->generate_address_read(emitter);
+    emitter.emit(Opcode::PUSHI, 1);
+    emitter.emit(Opcode::INDEXAR);
+}
+
+void ast::ChoiceReferenceExpression::generate_address_write(Emitter &emitter) const
+{
+    expr->generate_address_read(emitter);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAR);
+    emitter.emit(Opcode::LOADN);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::EQN);
+    auto skip_label = emitter.create_label();
+    emitter.emit_jump(Opcode::JT, skip_label);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
+    emitter.jump_target(skip_label);
+    expr->generate_address_write(emitter);
+    emitter.emit(Opcode::PUSHI, 1);
+    emitter.emit(Opcode::INDEXAW);
+}
+
 void ast::PointerDereferenceExpression::generate_address_read(Emitter &emitter) const
 {
     ptr->generate(emitter);
@@ -2083,7 +2198,7 @@ void ast::StatementExpression::generate_expr(Emitter &emitter) const
 
 void ast::Statement::generate(Emitter &emitter) const
 {
-    emitter.debug_line(line);
+    emitter.debug_line(token.line);
     generate_code(emitter);
 }
 
@@ -2159,8 +2274,9 @@ void ast::IfStatement::generate_code(Emitter &emitter) const
 {
     auto end_label = emitter.create_label();
     for (auto cs: condition_statements) {
-        const Expression *condition = cs.first;
-        const std::vector<const Statement *> &statements = cs.second;
+        emitter.debug_line(cs.line);
+        const Expression *condition = cs.expr;
+        const std::vector<const Statement *> &statements = cs.statements;
         condition->generate(emitter);
         auto else_label = emitter.create_label();
         emitter.emit_jump(Opcode::JF, else_label);
@@ -2380,6 +2496,15 @@ void ast::CaseStatement::TypeTestWhenCondition::generate(Emitter &emitter) const
     emitter.emit(Opcode::DROP);
     emitter.emit(Opcode::PUSHB, 0);
     emitter.jump_target(skip);
+}
+
+void ast::CaseStatement::ChoiceTestWhenCondition::generate(Emitter &emitter) const
+{
+    emitter.emit(Opcode::DUP);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAV);
+    emitter.emit(Opcode::PUSHI, index);
+    emitter.emit(Opcode::EQN);
 }
 
 void ast::BaseLoopStatement::generate_code(Emitter &emitter) const
@@ -2729,6 +2854,14 @@ void ast::TypeEnum::debuginfo(Emitter &, minijson::object_writer &out) const
     node.close();
 }
 
+void ast::TypeChoice::debuginfo(Emitter &, minijson::object_writer &out) const
+{
+    auto node = out.nested_object("type");
+    node.write("display", "Choice");
+    node.write("representation", "array");
+    node.close();
+}
+
 void ast::TypeModule::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto node = out.nested_object("type");
@@ -2810,6 +2943,10 @@ std::vector<unsigned char> compile(const ast::Program *p, DebugInfo *debug)
     p->generate(emitter);
     if (p->source_path != "-" && debug != nullptr) {
         std::ofstream out(p->source_path + "d");
+        if (not out) {
+            std::cerr << "error: Could not create output file: " << (p->source_path + "d") << "\n";
+            exit(1);
+        }
         minijson::object_writer writer(out, minijson::writer_configuration().pretty_printing(true));
         writer.write("source_path", p->source_path);
         writer.write("source_hash", hex_from_binary(p->source_hash));

@@ -15,6 +15,8 @@ print(str(x))
 x := "hello"
 print(x)
 --= hello
+print(x.length())
+--= 5
 
 LET one: Object := 1
 LET two: Object := 2
@@ -24,7 +26,12 @@ print("\(x)")
 --= [1, 2, 3]
 print(str(x[0]))
 --= 1
+print(x.size())
+--= 3
 
+x := {}
+print("\(x)")
+--= {}
 x := {"one": one, "two": two, "three": three}
 print("\(x)")
 --= {"one": 1, "three": 3, "two": 2}
@@ -32,7 +39,14 @@ print(str(x["two"]))
 --= 2
 print(str(x.three))
 --= 3
+print(x.size())
+--= 3
+print(x.keys())
+--= ["one", "three", "two"]
 
+x := []
+print("\(x)")
+--= []
 x := [1, 2, "three"]
 print("\(x)")
 --= [1, 2, "three"]

@@ -763,7 +763,7 @@ class Executor:
         b = self.stack.pop()
         a = self.stack.pop()
         if b == 0:
-            self.raise_literal("DivideByZeroException", "")
+            self.raise_literal("NumberException.DivideByZero", "")
             return
         if isinstance(a, int) and isinstance(b, int) and a % b == 0:
             self.stack.append(a // b)
@@ -775,7 +775,7 @@ class Executor:
         b = self.stack.pop()
         a = self.stack.pop()
         if b == 0:
-            self.raise_literal("DivideByZeroException", "")
+            self.raise_literal("NumberException.DivideByZero", "")
             return
         m = abs(b)
         if is_signed(a):
@@ -1518,6 +1518,10 @@ def neon_array__splice(self):
 
 def neon_array__toBytes__number(self):
     a = self.stack.pop()
+    for x in a:
+        if x.value is not None and not (0 <= x.value < 256):
+            self.raise_literal("ByteOutOfRangeException", x.value)
+            return
     self.stack.append(bytearray(int(x.value) if x.value is not None else 0 for x in a))
 
 def neon_array__toString__number(self):
@@ -1526,11 +1530,11 @@ def neon_array__toString__number(self):
 
 def neon_array__toString__object(self):
     a = self.stack.pop()
-    self.stack.append("[{}]".format(", ".join(str(x.value) for x in a)))
+    self.stack.append("[{}]".format(", ".join(literal(x.value) for x in a)))
 
 def neon_array__toString__string(self):
     a = self.stack.pop()
-    self.stack.append("[{}]".format(", ".join(quoted(x.value) for x in a)))
+    self.stack.append("[{}]".format(", ".join(literal(x.value) for x in a)))
 
 def neon_binary_and32(self):
     b = int(self.stack.pop())
@@ -1558,6 +1562,24 @@ def neon_binary_andBytes(self):
     b = self.stack.pop()
     a = self.stack.pop()
     self.stack.append(bytearray([x & y for x, y in zip(a, b)]))
+
+def neon_binary_bitCount32(self):
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFF):
+        self.raise_literal("ValueRangeException", a)
+        return
+    self.stack.append(bin(a).count("1"))
+
+def neon_binary_bitCount64(self):
+    a = int(self.stack.pop())
+    if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
+        self.raise_literal("ValueRangeException", a)
+        return
+    self.stack.append(bin(a).count("1"))
+
+def neon_binary_bitCountBytes(self):
+    a = self.stack.pop()
+    self.stack.append(sum(bin(x).count("1") for x in a))
 
 def neon_binary_extract32(self):
     w = int(self.stack.pop())
@@ -1971,6 +1993,14 @@ def neon_dictionary__remove(self):
     if key in d:
         del d[key]
 
+def neon_dictionary__toString__object(self):
+    d = self.stack.pop()
+    self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(str(v.value))) for k, v in sorted(d.items()))))
+
+def neon_dictionary__toString__string(self):
+    d = self.stack.pop()
+    self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(v.value)) for k, v in sorted(d.items()))))
+
 def neon_exceptiontype__toString(self):
     ei = self.stack.pop()
     self.stack.append("<ExceptionType:{},{},{}>".format(ei[0].value, ei[1].value, ei[2].value))
@@ -2034,7 +2064,20 @@ def neon_object__invokeMethod(self):
     args = self.stack.pop()
     name = self.stack.pop()
     obj = self.stack.pop()
-    r = getattr(obj, name)(*[x.value for x in args])
+    r = None
+    if isinstance(obj, str):
+        if name == "length":
+            r = len(obj)
+    elif isinstance(obj, list):
+        if name == "size":
+            r = len(obj)
+    elif isinstance(obj, dict):
+        if name == "keys":
+            r = [Value(x) for x in sorted(obj.keys())]
+        if name == "size":
+            r = len(obj)
+    if r is None:
+        r = getattr(obj, name)(*[x.value for x in args])
     self.stack.append(r)
 
 def neon_object__isNull(self):
@@ -2143,6 +2186,8 @@ def neon_pointer__toString(self):
 
 def neon_print(self):
     s = self.stack.pop()
+    if isinstance(s, list):
+        s = "[{}]".format(", ".join(literal(x.value) for x in s))
     print(s)
 
 def neon_str(self):
@@ -2195,7 +2240,16 @@ def neon_string__splice(self):
         first += len(a) - 1
     if last_from_end:
         last += len(a) - 1
-    r = a[:first] + b + a[last+1:]
+    if first < 0:
+        self.raise_literal("StringIndexException", (str(first), 0))
+        return
+    if last < first-1:
+        self.raise_literal("StringIndexException", (str(last), 0))
+        return
+    padding = ""
+    if first > len(a):
+        padding = " " * (first - len(a))
+    r = a[:first] + padding + b + a[last+1:]
     self.stack.append(r)
 
 def neon_string__substring(self):
@@ -2338,15 +2392,6 @@ def neon_file_rename(self):
     newname = self.stack.pop()
     oldname = self.stack.pop()
     os.rename(oldname, newname)
-
-def neon_file_symlink(self):
-    targetIsDirectory = self.stack.pop()
-    newlink = self.stack.pop()
-    target = self.stack.pop()
-    try:
-        os.symlink(target, newlink, targetIsDirectory)
-    except OSError:
-        self.raise_literal("FileException.Open", "")
 
 def neon_file_writeBytes(self):
     data = self.stack.pop()
@@ -2656,6 +2701,15 @@ def neon_os_system(self):
 def neon_posix_fork(self):
     self.stack.append(os.fork())
 
+def neon_posix_symlink(self):
+    newlink = self.stack.pop()
+    target = self.stack.pop()
+    try:
+        os.symlink(target, newlink)
+        self.stack.append(0)
+    except OSError:
+        self.stack.append(-1)
+
 def neon_posix_wait(self):
     (pid, status) = os.wait()
     self.stack.append(pid)
@@ -2828,7 +2882,7 @@ def neon_string_splitLines(self):
 def neon_string_toCodePoint(self):
     s = self.stack.pop()
     if len(s) != 1:
-        self.raise_literal("ArrayIndexException", "toCodePoint() requires string of length 1")
+        self.raise_literal("StringIndexException", "toCodePoint() requires string of length 1")
         return
     self.stack.append(ord(s))
 
@@ -2898,7 +2952,15 @@ def neon_time_now(self):
 
 def neon_time_sleep(self):
     t = self.stack.pop()
-    time.sleep(float(t))
+    # Sleep in a lop in case time.sleep() does not sleep
+    # for quite as long as we ask for.
+    start = time.monotonic()
+    while True:
+        now = time.monotonic()
+        elapsed = now - start
+        if elapsed >= t:
+            break
+        time.sleep(float(t) - elapsed)
 
 def neon_time_tick(self):
     self.stack.append(decimal.Decimal(time.monotonic()))

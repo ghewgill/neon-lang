@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "exec.h"
 #include "rtl_exec.h"
 
 #include "enums.inc"
@@ -98,6 +99,16 @@ std::shared_ptr<Object> spawn(const utf8string &command)
     return p;
 }
 
+Number system(const utf8string &command)
+{
+    std::string cmd = command.str();
+    int r = ::system(cmd.c_str());
+    if (WIFEXITED(r)) {
+        return number_from_uint8(WEXITSTATUS(r));
+    }
+    return number_from_sint8(-1);
+}
+
 Number wait(const std::shared_ptr<Object> &process)
 {
     int r;
@@ -121,3 +132,13 @@ Number wait(const std::shared_ptr<Object> &process)
 } // namespace ne_os
 
 } // namespace rtl
+
+static void sigint_handler(int)
+{
+    executor_interrupt();
+}
+
+void rtl_os_init()
+{
+    signal(SIGINT, sigint_handler);
+}

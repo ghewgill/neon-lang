@@ -1,0 +1,7 @@
+TYPE Fruit IS CHOICE
+    apple
+    banana
+END CHOICE
+
+LET x := Fruit.cherry
+               --<

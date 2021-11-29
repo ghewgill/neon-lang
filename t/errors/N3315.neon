@@ -1,0 +1,11 @@
+TYPE Fruit IS CHOICE
+    apple
+    banana
+    cherry
+END CHOICE
+
+VAR f: Fruit
+CASE f
+    WHEN ISA Number.apple DO
+             --<
+END CASE

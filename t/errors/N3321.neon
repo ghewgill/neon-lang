@@ -1,0 +1,5 @@
+TYPE Colour IS CHOICE red green blue END CHOICE
+
+IF 5 ISA Colour.red THEN
+   --<
+END IF

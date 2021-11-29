@@ -32,11 +32,21 @@ TYPE name IS ENUM END ENUM
 TYPE name IS ENUM one END ENUM
 TYPE name IS ENUM one two END ENUM
 
+-- Type, ChoiceType
+TYPE name IS CHOICE one END CHOICE
+TYPE name IS CHOICE one two END CHOICE
+TYPE name IS CHOICE one: type END CHOICE
+TYPE name IS CHOICE one: type two: type END CHOICE
+
 -- Type, PointerType
 TYPE name IS POINTER TO type
 
 -- Type, FunctionPointerType
 TYPE name IS FUNCTION()
+
+-- Type, TypeQualified
+TYPE name IS one.two
+TYPE name IS one.two.three
 
 -- ConstantDeclaration
 CONSTANT name: type := expr
@@ -141,6 +151,7 @@ CASE expr WHEN expr TO expr DO END CASE
 
 -- ExitStatement
 EXIT FUNCTION
+EXIT PROCESS FAILURE
 EXIT WHILE
 EXIT FOR
 EXIT FOREACH

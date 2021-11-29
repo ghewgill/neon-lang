@@ -40,8 +40,7 @@ void string_fromCodePoint(TExecutor *exec)
     }
 
     Cell *r = cell_createStringCell(0);
-    // ToDo: Implement UTF8 strings here!!
-    string_appendChar(r->string, (char)number_to_uint32(x));
+    string_appendCodePoint(r->string, number_to_uint32(x));
 
     push(exec->stack, r);
 }
@@ -138,14 +137,44 @@ void string_toCodePoint(TExecutor *exec)
 {
     Cell *s = top(exec->stack);
 
-    if (s->string->length != 1) {
-        exec->rtl_raise(exec, "ArrayIndexException", "toCodePoint() requires string of length 1");
+    if (string_getLength(s->string) != 1) {
+        exec->rtl_raise(exec, "StringIndexException", "toCodePoint() requires string of length 1");
         return;
     }
-    Number r = number_from_uint32((uint32_t)s->string->data[0]);
+
+    uint32_t c = s->string->data[0] & 0xff;
+    if (c & 0x80) {
+        int n = 0;
+        if ((c & 0xe0) == 0xc0) {
+            c &= 0x1f;
+            n = 1;
+        } else if ((c & 0xf0) == 0xe0) {
+            c &= 0x0f;
+            n = 2;
+        } else if ((c & 0xf8) == 0xf0) {
+            c &= 0x07;
+            n = 3;
+        } else if ((c & 0xfc) == 0xf8) {
+            c &= 0x03;
+            n = 4;
+        } else if ((c & 0xfe) == 0xfc) {
+            c &= 0x01;
+            n = 5;
+        }
+        int i = 0;
+        while (n-- > 0) {
+            i++;
+            if ((s->string->data[i] & 0xc0) != 0x80) {
+                pop(exec->stack);
+                exec_rtl_raiseException(exec, "Utf8DecodingException", "1");
+                return;
+            }
+            c = (c << 6) | (s->string->data[i] & 0x3f);
+        }
+    }
 
     pop(exec->stack);
-    push(exec->stack, cell_fromNumber(r));
+    push(exec->stack, cell_fromNumber(number_from_uint32(c)));
 }
 
 void string_trimCharacters(TExecutor *exec)

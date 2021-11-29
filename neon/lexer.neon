@@ -121,6 +121,10 @@ TYPE Type IS ENUM
     imported
     testcase
     expect
+    choice
+    process
+    success
+    failure
     unknown
     max_token
 END ENUM
@@ -258,6 +262,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSIF c = "\u2260" /*'≠'*/ THEN t.type := Type.notequal INC i
         ELSIF c = "\u2264" /*'≤'*/ THEN t.type := Type.lesseq INC i
         ELSIF c = "\u2265" /*'≥'*/ THEN t.type := Type.greatereq INC i
+        ELSIF c = "\u2254" /*'≔'*/ THEN t.type := Type.assign INC i
         ELSIF c = "\u00ac" /*'¬'*/ THEN t.type := Type.not INC i
         ELSIF c = "\u2227" /*'∧'*/ THEN t.type := Type.and INC i
         ELSIF c = "\u2228" /*'∨'*/ THEN t.type := Type.or INC i
@@ -423,6 +428,10 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "IMPORTED" THEN t.type := Type.imported
             ELSIF t.text = "TESTCASE" THEN t.type := Type.testcase
             ELSIF t.text = "EXPECT" THEN t.type := Type.expect
+            ELSIF t.text = "CHOICE" THEN t.type := Type.choice
+            ELSIF t.text = "PROCESS" THEN t.type := Type.process
+            ELSIF t.text = "SUCCESS" THEN t.type := Type.success
+            ELSIF t.text = "FAILURE" THEN t.type := Type.failure
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN

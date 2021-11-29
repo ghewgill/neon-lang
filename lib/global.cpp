@@ -163,9 +163,9 @@ std::vector<unsigned char> array__toBytes__number(const std::vector<Number> &a)
     std::vector<unsigned char> r;
     r.reserve(a.size());
     for (auto x: a) {
-        uint64_t b = number_to_uint64(x);
-        if (b >= 256) {
-            throw RtlException(Exception_ByteOutOfRangeException, utf8string(std::to_string(b)));
+        int64_t b = number_to_sint64(x);
+        if (b < 0 || b >= 256) {
+            throw RtlException(Exception_ByteOutOfRangeException, utf8string(number_to_string(x)));
         }
         r.push_back(static_cast<unsigned char>(b));
     }
@@ -205,7 +205,7 @@ utf8string array__toString__object(std::vector<std::shared_ptr<Object>> a)
         if (r.length() > 1) {
             r.append(", ");
         }
-        r.append(x->toString());
+        r.append(x->toLiteralString());
     }
     r.append("]");
     return r;
@@ -234,6 +234,51 @@ void dictionary__remove(Cell *self, const utf8string &key)
 {
     auto &d = self->dictionary_for_write();
     d.erase(key);
+}
+
+utf8string dictionary__toString__number(const std::map<utf8string, Number> &d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(number_to_string(e.second));
+    }
+    r.append("}");
+    return r;
+}
+
+utf8string dictionary__toString__string(const std::map<utf8string, utf8string> &d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(rtl::ne_string::quoted(e.second));
+    }
+    r.append("}");
+    return r;
+}
+
+utf8string dictionary__toString__object(std::map<utf8string, std::shared_ptr<Object>> d)
+{
+    utf8string r {"{"};
+    for (auto &e: d) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(rtl::ne_string::quoted(e.first));
+        r.append(": ");
+        r.append(e.second->toLiteralString());
+    }
+    r.append("}");
+    return r;
 }
 
 utf8string number__toString(Number self)
@@ -271,6 +316,12 @@ Number string__length(const utf8string &self)
 utf8string string__splice(const utf8string &t, const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     // TODO: utf8
+    if (not number_is_integer(first)) {
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(first)));
+    }
+    if (not number_is_integer(last)) {
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(last)));
+    }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
     if (first_from_end) {
@@ -279,7 +330,18 @@ utf8string string__splice(const utf8string &t, const utf8string &s, Number first
     if (last_from_end) {
         l += s.size() - 1;
     }
-    return utf8string(s.str().substr(0, f) + t.str() + s.str().substr(l + 1));
+    if (f < 0) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(f)));
+    }
+    if (l < f-1) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(l)));
+    }
+    int64_t slen = static_cast<int64_t>(s.str().length());
+    std::string padding;
+    if (f > slen) {
+        padding = std::string(f - slen, ' ');
+    }
+    return utf8string(s.str().substr(0, f) + padding + t.str() + (l < slen ? s.str().substr(l + 1) : ""));
 }
 
 utf8string string__substring(const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)

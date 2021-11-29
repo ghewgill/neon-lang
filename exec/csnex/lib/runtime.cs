@@ -11,12 +11,17 @@
 
         public void assertionsEnabled()
         {
-            exec.stack.Push(new Cell(exec.enable_assert));
+            exec.stack.Push(Cell.CreateBooleanCell(exec.enable_assert));
         }
 
         public void executorName()
         {
-            exec.stack.Push(new Cell("csnex"));
+            exec.stack.Push(Cell.CreateStringCell("csnex"));
+        }
+
+        public void moduleIsMain()
+        {
+            exec.stack.Push(Cell.CreateBooleanCell(exec.ModuleIsMain()));
         }
 
         public void setRecursionLimit()

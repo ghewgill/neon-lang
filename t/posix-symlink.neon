@@ -1,0 +1,7 @@
+IMPORT file
+IMPORT posix
+
+file.delete("tmp/LICENSE.txt")
+TESTCASE posix.symlink("../LICENSE.txt", "tmp/LICENSE.txt") = 0
+LET text: Bytes := file.readBytes("tmp/LICENSE.txt")
+TESTCASE text = file.readBytes("LICENSE.txt")

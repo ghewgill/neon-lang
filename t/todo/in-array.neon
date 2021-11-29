@@ -1,0 +1,6 @@
+-- TODO compiler does not accept this code yet, see Analyzer::analyze(const pt::MembershipExpression *expr)
+
+VAR a: Array<Array<Number>> := [[1, 2], [3, 4]]
+
+TESTCASE [1, 2] IN a
+TESTCASE [3, 5] NOT IN a

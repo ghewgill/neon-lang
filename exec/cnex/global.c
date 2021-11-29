@@ -20,6 +20,7 @@
 
 #include "lib/binary.h"
 #include "lib/datetime.h"
+#include "lib/debugger.h"
 #include "lib/io.h"
 #include "lib/file.h"
 #include "lib/math.h"
@@ -51,6 +52,8 @@ TDispatch gfuncDispatch[] = {
     // Binary - Bitwise operations
     PDFUNC("binary$and32",              binary_and32),
     PDFUNC("binary$and64",              binary_and64),
+    PDFUNC("binary$bitCount32",         binary_bitCount32),
+    PDFUNC("binary$bitCount64",         binary_bitCount64),
     PDFUNC("binary$extract32",          binary_extract32),
     PDFUNC("binary$extract64",          binary_extract64),
     PDFUNC("binary$get32",              binary_get32),
@@ -72,6 +75,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("binary$xor32",              binary_xor32),
     PDFUNC("binary$xor64",              binary_xor64),
     PDFUNC("binary$andBytes",           binary_andBytes),
+    PDFUNC("binary$bitCountBytes",      binary_bitCountBytes),
     PDFUNC("binary$notBytes",           binary_notBytes),
     PDFUNC("binary$orBytes",            binary_orBytes),
     PDFUNC("binary$xorBytes",           binary_xorBytes),
@@ -79,6 +83,10 @@ TDispatch gfuncDispatch[] = {
     // datetime - Date/Time module
     PDFUNC("datetime$gmtime",           datetime_gmtime),
     PDFUNC("datetime$timegm",           datetime_timegm),
+
+    // debug - Debugger functions
+    PDFUNC("debugger$breakpoint",       debugger_breakpoint),
+    PDFUNC("debugger$log",              debugger_log),
 
     // file - File Module
     PDFUNC("file$_CONSTANT_Separator",  file_CONSTANT_Separator),
@@ -94,7 +102,6 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("file$readLines",            file_readLines),
     PDFUNC("file$removeEmptyDirectory", file_removeEmptyDirectory),
     PDFUNC("file$rename",               file_rename),
-    PDFUNC("file$symlink",              file_symlink),
     PDFUNC("file$writeBytes",           file_writeBytes),
     PDFUNC("file$writeLines",           file_writeLines),
 
@@ -346,6 +353,7 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("dictionary__keys",          dictionary__keys),
     PDFUNC("dictionary__remove",        dictionary__remove),
+    PDFUNC("dictionary__toString__string", dictionary__toString__string),
 
     PDFUNC("exceptiontype__toString",   exceptiontype__toString),
 
@@ -857,8 +865,16 @@ void bytes__concat(TExecutor *exec)
 
 void bytes__decodeToString(TExecutor *exec)
 {
-    // ToDo: handle UTF8 Strings
     TString *s = top(exec->stack)->string;
+
+    size_t err_idx;
+    if (!string_isValidUtf8(s, &err_idx)) {
+        char offset[32];
+        snprintf(offset, sizeof(offset), "%zu", err_idx);
+        pop(exec->stack);
+        exec_rtl_raiseException(exec, "Utf8DecodingException", offset);
+        return;
+    }
 
     Cell *r = cell_fromCString(string_ensureNullTerminated(s));
 
@@ -1054,6 +1070,13 @@ void dictionary__remove(TExecutor *exec)
     string_freeString(key);
 }
 
+void dictionary__toString__string(TExecutor *exec)
+{
+    TString *s = cell_toString(top(exec->stack)); pop(exec->stack);
+    push(exec->stack, cell_fromString(s));
+    string_freeString(s);
+}
+
 
 void exceptiontype__toString(struct tagTExecutor *exec)
 {
@@ -1204,6 +1227,63 @@ void object__invokeMethod(TExecutor *exec)
 
     if (obj->object == NULL || obj->object->ptr == NULL) {
         exec->rtl_raise(exec, "DynamicConversionException", "object is null");
+        goto cleanup;
+    }
+
+    if (obj->object->type == oString) {
+        if (strcmp(name, "length") == 0) {
+            if (args->array != NULL && args->array->size != 0) {
+                exec->rtl_raise(exec, "DynamicConversionException", "invalid number of arguments to length() (expected 0)");
+                goto cleanup;
+            }
+            push(exec->stack, cell_fromObject(object_createNumberObject(number_from_uint64(((Cell*)obj->object->ptr)->string->length))));
+            goto cleanup;
+        }
+        exec->rtl_raise(exec, "DynamicConversionException", "string object does not support this method");
+        goto cleanup;
+    }
+
+    if (obj->object->type == oArray) {
+        if (strcmp(name, "size") == 0) {
+            if (args->array != NULL && args->array->size != 0) {
+                exec->rtl_raise(exec, "DynamicConversionException", "invalid number of arguments to size() (expected 0)");
+                goto cleanup;
+            }
+            push(exec->stack, cell_fromObject(object_createNumberObject(number_from_uint64(((Cell*)obj->object->ptr)->array->size))));
+            goto cleanup;
+        }
+        exec->rtl_raise(exec, "DynamicConversionException", "array object does not support this method");
+        goto cleanup;
+    }
+
+    if (obj->object->type == oDictionary) {
+        if (strcmp(name, "size") == 0) {
+            if (args->array != NULL && args->array->size != 0) {
+                exec->rtl_raise(exec, "DynamicConversionException", "invalid number of arguments to size() (expected 0)");
+                goto cleanup;
+            }
+            push(exec->stack, cell_fromObject(object_createNumberObject(number_from_sint64(((Cell*)obj->object->ptr)->dictionary->len))));
+            goto cleanup;
+        } else if (strcmp(name, "keys") == 0) {
+            if (args->array != NULL && args->array->size != 0) {
+                exec->rtl_raise(exec, "DynamicConversionException", "invalid number of arguments to keys() (expected 0)");
+                goto cleanup;
+            }
+
+            Cell *keys = dictionary_getKeys(((Cell*)obj->object->ptr)->dictionary);
+            Array *okeys = array_createArray();
+            for (size_t i = 0; i < keys->array->size; i++) {
+                Cell *key = cell_fromObject(object_createStringObject(keys->array->data[i].string));
+                array_appendElement(okeys, key);
+                cell_freeCell(key);
+            }
+            Cell *oArray = cell_fromObject(object_createArrayObject(okeys));
+            push(exec->stack, oArray);
+            cell_freeCell(keys);
+            array_freeArray(okeys);
+            goto cleanup;
+        }
+        exec->rtl_raise(exec, "DynamicConversionException", "dictionary object does not support this method");
         goto cleanup;
     }
 
@@ -1437,21 +1517,23 @@ void string__index(TExecutor *exec)
         exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
-    if (i >= (int64_t)a->string->length) {
+    if (i >= (int64_t)string_getLength(a->string)) {
         char n[128];
         snprintf(n, 128, "%" PRId64, i);
         exec->rtl_raise(exec, "StringIndexException", n);
         return;
     }
 
-    Cell *r = cell_fromStringLength((char*)a->string->data+i, 1);
+    Cell *r = cell_newCellType(cString);
+    r->string = string_index(a->string, i);
+
     push(exec->stack, r);
     cell_freeCell(a);
 }
 
 void string__length(TExecutor *exec)
 {
-    size_t n = top(exec->stack)->string->length; pop(exec->stack);
+    size_t n = string_getLength(top(exec->stack)->string); pop(exec->stack);
     push(exec->stack, cell_fromNumber(number_from_uint64(n)));
 }
 
@@ -1465,6 +1547,15 @@ void string__splice(TExecutor *exec)
     Cell *s = cell_fromCell(top(exec->stack));        pop(exec->stack);
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
+    if (!number_is_integer(first)) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
+        goto cleanup;
+    }
+    if (!number_is_integer(last)) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
+        goto cleanup;
+    }
+
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
     if (first_from_end) {
@@ -1473,22 +1564,39 @@ void string__splice(TExecutor *exec)
     if (last_from_end) {
         l += s->string->length - 1;
     }
+    if (f < 0) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(number_from_sint64(f)));
+        goto cleanup;
+    }
+    if (l < f-1) {
+        exec->rtl_raise(exec, "StringIndexException", number_to_string(number_from_sint64(l)));
+        goto cleanup;
+    }
+    int64_t new_len = (int64_t)s->string->length - (f < (int64_t)s->string->length ? (l < (int64_t)s->string->length ? l - f + 1 : (int64_t)s->string->length - f) : 0) + (int64_t)t->string->length;
+    int64_t padding = 0;
+    if (f > (int64_t)s->string->length) {
+        padding = f - s->string->length;
+        new_len += padding;
+    }
+    if (new_len > (int64_t)s->string->length) {
+        s->string->data = realloc(s->string->data, new_len);
+    }
+    memmove(&s->string->data[f + padding + t->string->length], &s->string->data[l + 1], (l < (int64_t)s->string->length ? (int64_t)s->string->length - l - 1 : 0));
+    memset(&s->string->data[s->string->length], ' ', padding);
+    memcpy(&s->string->data[f], t->string->data, t->string->length);
+    if (new_len < (int64_t)s->string->length) {
+        s->string->data = realloc(s->string->data, new_len);
+    }
+    s->string->length = new_len;
 
     Cell *sub = cell_newCellType(cString);
-    sub->string = string_newString();
-    sub->string->length = t->string->length + (((f - 1) + s->string->length) - l);
-    sub->string->data = malloc(sub->string->length);
-    if (sub->string->data == NULL) {
-        fatal_error("Could not allocate %d bytes to splice string", sub->string->length);
-    }
-    memcpy(sub->string->data, s->string->data, f);
-    memcpy(&sub->string->data[f], t->string->data, t->string->length);
-    memcpy(&sub->string->data[f + t->string->length], &s->string->data[l + 1], s->string->length - (l + 1));
+    sub->string = string_copyString(s->string);
 
+    push(exec->stack, sub);
+cleanup:
     cell_freeCell(s);
     cell_freeCell(t);
 
-    push(exec->stack, sub);
 }
 
 void string__substring(TExecutor *exec)

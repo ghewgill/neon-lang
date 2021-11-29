@@ -19,6 +19,9 @@ public:
     virtual void visit(const TypeEnum *node) override {
         write("TypeEnum(" + join(node->names) + ")");
     }
+    virtual void visit(const TypeChoice *node) override {
+        write("TypeChoice(" + join(node->choices) + ")");
+    }
     virtual void visit(const TypeRecord *node) override {
         write("TypeRecord(" + join(node->fields) + ")");
     }
@@ -41,8 +44,8 @@ public:
         write("TypeParameterised(" + node->name.text + ")");
         child(node->elementtype.get());
     }
-    virtual void visit(const TypeImport *node) override {
-        write("TypeImport(" + node->modname.text + "." + node->subname.text + ")");
+    virtual void visit(const TypeQualified *node) override {
+        write("TypeQualified(" + join(node->names) + ")");
     }
 
     virtual void visit(const DummyExpression *) override {
@@ -373,7 +376,11 @@ public:
         write("ExecStatement(" + node->text + ")");
     }
     virtual void visit(const ExitStatement *node) override {
-        write("ExitStatement(" + node->type.text + ")");
+        if (node->type.type == PROCESS) {
+            write("ExitStatement(" + node->type.text + ", " + node->arg.text + ")");
+        } else {
+            write("ExitStatement(" + node->type.text + ")");
+        }
     }
     virtual void visit(const ExpressionStatement *node) override {
         write("ExpressionStatement");
@@ -527,6 +534,17 @@ private:
             b.push_back(x.first.text);
         }
         return join(b);
+    }
+
+    static std::string join(const std::vector<std::unique_ptr<TypeChoice::Choice>> &a) {
+        std::string r;
+        for (auto &x: a) {
+            if (not r.empty()) {
+                r += ",";
+            }
+            r += x->name.text;
+        }
+        return r;
     }
 
     static std::string join(const std::vector<std::unique_ptr<TypeRecord::Field>> &a) {

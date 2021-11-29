@@ -2,6 +2,7 @@ array-resize.neon          # array default item
 array-sparse.neon          # array default item
 array2d.neon               # array copying semantics
 assert-multiline.neon      # exception
+assignment.neon            # choice
 binary-test.neon           # verifier
 bytes-index.neon           # index
 cformat-test.neon          # object
@@ -12,12 +13,12 @@ debug-example.neon         # debugger.log
 decimal.neon               # exception
 encoding-base64.neon       # verifier - incompatible object for function call
 enum.neon                  # enum toString
+equality.neon              # choice
 exception-as.neon          # ExceptionType
 exception-code.neon        # ExceptionType
 exception-tostring.neon    # ExceptionType
 export.neon                # enum with no name
 file-filecopied1.neon      # exception identification
-file-symlink.neon          # file.symlink
 file-test.neon             # stack size
 for.neon                   # number format (2 vs 2.0)
 gc-array.neon              # module runtime
@@ -53,6 +54,7 @@ net-test.neon              # net$Socket
 net-test-udp.neon          # net$Socket
 new-init-module.neon       # NoClassDefFoundError
 number-ceil.neon           # module math
+number-exception.neon
 object.neon                # object
 object-isa.neon            # object
 object-isa-case.neon       # object
@@ -71,6 +73,7 @@ outer-tail.neon            # verifier
 outer.neon                 # verifier
 outer2.neon                # verifier
 posix-fork.neon            # module posix
+posix-symlink.neon         # module posix
 predeclare1.neon           # something
 print-object.neon          # object
 random-test.neon           # module random
@@ -92,6 +95,7 @@ textio-random.neon         # PredefinedVariable textio$stdout
 textio-seek.neon           # PredefinedVariable textio$stdout
 textio-test.neon           # PredefinedVariable textio$stdout
 tostring.neon              # enum tostring
+tostring-quotes.neon
 unicode-string.neon        # UTF-8
 value-copy.neon            # value copy
 win32-test.neon            # win32

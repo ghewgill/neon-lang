@@ -22,21 +22,6 @@ utf8string getenv(const utf8string &name)
     return utf8string(r);
 }
 
-Number system(const utf8string &command)
-{
-    std::string cmd = command.str();
-#ifdef _WIN32
-    // Terrible hack to change slashes to backslashes so cmd.exe isn't confused.
-    // Probably better handled by calling a lower level function than system().
-    for (std::string::iterator i = cmd.begin(); not isspace(*i); ++i) {
-        if (*i == '/') {
-            *i = '\\';
-        }
-    }
-#endif
-    return number_from_sint32(::system(cmd.c_str()));
-}
-
 } // namespace ne_os
 
 } // namespace rtl

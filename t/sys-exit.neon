@@ -13,3 +13,5 @@ TRAP InvalidValueException AS x DO
     print(x.info)
 END TRY
 --= sys.exit invalid parameter: -1
+
+EXIT PROCESS SUCCESS

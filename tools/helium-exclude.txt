@@ -13,7 +13,6 @@ decimal.neon           # Module not required
 encoding-base64.neon   # Module not required
 exception-as.neon      # Exception offset not supported
 export-inline.neon     # Native mul not required
-file-symlink.neon      # Feature not required
 forth-test.neon        # Sample not required
 function-namedargs.neon# Named arguments not required
 gc1.neon               # Garbage collector not required
@@ -59,6 +58,7 @@ outer-tail.neon        # Feature not required
 parameter-out-array.neon # Feature not required
 parameter-out-string.neon # Feature not required
 posix-fork.neon        # fork not required
+posix-symlink.neon     # Feature not required
 print-object.neon      # object print format
 process-test.neon      # Module not required
 recursion-limit.neon   # Feature not required
@@ -74,12 +74,11 @@ sql-query.neon         # Feature not required
 sql-whenever.neon      # Feature not required
 sqlite-test.neon       # Module not required
 string-multiline.neon  # Feature not required
+string-splice.neon     # Feature not required
 sudoku-test.neon       # Sample not required
 tail-call.neon         # Feature not required
 time-stopwatch.neon    # Module not required
 time-test.neon         # Module not required
-varargs.neon           # Feature not required
-varargs-functionpointer.neon # Feature not required
 win32-test.neon        # Module not required
 compress-test.neon        # Module not required
 extsample-test.neon      # Extension functions not required
@@ -131,6 +130,7 @@ mismatch.neon
 module-assign-let.neon
 module-assign-var.neon
 module-scope.neon
+number-exception.neon
 opcode-coverage.neon
 pointer6.neon
 pointer-mismatch.neon
@@ -171,6 +171,7 @@ record-private.neon    # Feature not required yet
 strings.neon           # Feature not required yet
 string-slice.neon      # String slice assignment not supported here yet
 struct-test.neon       # Module not required yet
+tostring-quotes.neon   # Implementation needs more work
 unicode-length.neon    # Currently works here, but still TODO in cpp
 uninitialised-if-exit.neon # FIXME
 value-copy.neon        # Feature not required yet

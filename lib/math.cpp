@@ -9,6 +9,11 @@ namespace rtl {
 
 namespace ne_math {
 
+Number _CONSTANT_PRECISION_DIGITS()
+{
+    return number_from_uint32(34);
+}
+
 Number abs(Number x)
 {
     return number_abs(x);
@@ -207,9 +212,6 @@ Number sinh(Number x)
 
 Number sqrt(Number x)
 {
-    if (number_is_negative(x)) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
-    }
     return number_sqrt(x);
 }
 

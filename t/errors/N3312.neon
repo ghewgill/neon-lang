@@ -1,0 +1,9 @@
+TYPE Fruit IS CHOICE
+    apple: Number
+    banana: Number
+END CHOICE
+
+LET x := Fruit.apple(1)
+IF x ISA Fruit.cherry THEN
+               --<
+END IF

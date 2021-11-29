@@ -15,9 +15,9 @@ namespace csnex.rtl
             // Note that Environment.GetCommandLineArgs() returns the path to csnex as element 0.  We don't want that,
             // we want the .neonx file to be the first argument.
             for (int x = csnex.gOptions.ArgStart + 1; x < Environment.GetCommandLineArgs().Length; x++) {
-                arr.Add(new Cell(Environment.GetCommandLineArgs()[x]));
+                arr.Add(Cell.CreateStringCell(Environment.GetCommandLineArgs()[x]));
             }
-            args = new Cell(arr);
+            args = Cell.CreateArrayCell(arr);
         }
 
         public void exit()

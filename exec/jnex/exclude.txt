@@ -33,7 +33,6 @@ file-filecopied1.neon      # file
 file-filecopied2.neon      # file
 file-filecopied3.neon      # file
 file-linelength.neon       # file
-file-symlink.neon          # file
 file-test.neon             # file
 file-writebytes.neon       # file
 file-writelines.neon       # file
@@ -83,6 +82,7 @@ net-test.neon              # import
 net-test-udp.neon          # import
 new-init-module.neon       # module
 number-ceil.neon           # math
+number-exception.neon
 object-record.neon         # EQA
 opcode-coverage.neon       # runtime$moduleIsMain
 os-test.neon               # os
@@ -90,6 +90,7 @@ parameter-out-array.neon   # array__splice
 parameter-out-string.neon  # string__splice
 pointer-print.neon         # pointer__toString
 posix-fork.neon            # posix
+posix-symlink.neon         # posix
 process-test.neon          # process
 random-test.neon           # module random
 recursion-limit.neon       # runtime
@@ -108,6 +109,7 @@ string-format.neon         # format
 string-in.neon             # string.find
 string-index.neon          # index
 string-slice.neon          # string__splice
+string-splice.neon         # string__splice
 string-test.neon           # string
 strings.neon               # string__splice
 struct-test.neon           # CALLMF

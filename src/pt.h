@@ -14,13 +14,14 @@ namespace pt {
 
 class TypeSimple;
 class TypeEnum;
+class TypeChoice;
 class TypeRecord;
 class TypeClass;
 class TypePointer;
 class TypeValidPointer;
 class TypeFunctionPointer;
 class TypeParameterised;
-class TypeImport;
+class TypeQualified;
 
 class DummyExpression;
 class IdentityExpression;
@@ -110,13 +111,14 @@ public:
 
     virtual void visit(const TypeSimple *) = 0;
     virtual void visit(const TypeEnum *) = 0;
+    virtual void visit(const TypeChoice *) = 0;
     virtual void visit(const TypeRecord *) = 0;
     virtual void visit(const TypeClass *) = 0;
     virtual void visit(const TypePointer *) = 0;
     virtual void visit(const TypeValidPointer *) = 0;
     virtual void visit(const TypeFunctionPointer *) = 0;
     virtual void visit(const TypeParameterised *) = 0;
-    virtual void visit(const TypeImport *) = 0;
+    virtual void visit(const TypeQualified *) = 0;
 
     virtual void visit(const DummyExpression *) = 0;
     virtual void visit(const IdentityExpression *) = 0;
@@ -230,6 +232,19 @@ public:
     const std::vector<std::pair<Token, int>> names;
 };
 
+class TypeChoice: public Type {
+public:
+    struct Choice {
+        explicit Choice(const Token &name, int index, std::unique_ptr<Type> &&type): name(name), index(index), type(std::move(type)) {}
+        Token name;
+        int index;
+        std::unique_ptr<Type> type;
+    };
+    TypeChoice(const Token &token, std::vector<std::unique_ptr<Choice>> &&choices): Type(token), choices(std::move(choices)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const std::vector<std::unique_ptr<Choice>> choices;
+};
+
 class TypeRecord: public Type {
 public:
     struct Field {
@@ -279,12 +294,11 @@ public:
     std::unique_ptr<Type> elementtype;
 };
 
-class TypeImport: public Type {
+class TypeQualified: public Type {
 public:
-    TypeImport(const Token &token, const Token &modname, const Token &subname): Type(token), modname(modname), subname(subname) {}
+    TypeQualified(const Token &token, const std::vector<Token> &names): Type(token), names(names) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const Token modname;
-    const Token subname;
+    const std::vector<Token> names;
 };
 
 class Expression: public ParseTreeNode {
@@ -540,7 +554,8 @@ class ChainedComparisonExpression: public Expression {
 public:
     class Part {
     public:
-        explicit Part(ComparisonExpression::Comparison comp, std::unique_ptr<Expression> &&right): comp(comp), right(std::move(right)) {}
+        explicit Part(const Token &tok_comp, ComparisonExpression::Comparison comp, std::unique_ptr<Expression> &&right): tok_comp(tok_comp), comp(comp), right(std::move(right)) {}
+        const Token tok_comp;
         ComparisonExpression::Comparison comp;
         std::unique_ptr<Expression> right;
     };
@@ -878,9 +893,10 @@ public:
 
 class ExitStatement: public Statement {
 public:
-    ExitStatement(const Token &token, const Token &type): Statement(token), type(type) {}
+    ExitStatement(const Token &token, const Token &type, const Token &arg): Statement(token), type(type), arg(arg) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token type;
+    const Token arg;
 };
 
 class ExpressionStatement: public Statement {

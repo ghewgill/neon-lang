@@ -10,8 +10,35 @@ CONSTANT BYTECODE_VERSION: Number := 3
 EXCEPTION InternalException
 
 FUNCTION quoted(s: String): String
-    -- TODO: Do proper escaping.
-    RETURN "\"" & s & "\""
+    VAR r := "\""
+    FOREACH c IN s DO
+        CASE c
+            WHEN "\b" DO
+                r.append("\\b")
+            WHEN "\f" DO
+                r.append("\\f")
+            WHEN "\n" DO
+                r.append("\\n")
+            WHEN "\r" DO
+                r.append("\\r")
+            WHEN "\t" DO
+                r.append("\\t")
+            WHEN "\"", "\\" DO
+                r.append("\\")
+                r.append(c)
+            WHEN OTHERS DO
+                LET p := string.toCodePoint(c)
+                IF c >= " " AND p < 0x7f THEN
+                    r.append(c)
+                ELSIF p < 0x10000 THEN
+                    r.append("\\u\(p:04x)")
+                ELSE
+                    r.append("\\U\(p:08x)")
+                END IF
+        END CASE
+    END FOREACH
+    r.append("\"")
+    RETURN r
 END FUNCTION
 
 FUNCTION getVint(a: Array<Number>, INOUT i: Number): Number
@@ -522,7 +549,9 @@ FUNCTION f_pushpol(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_pushi(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
+    self.stack.append(makeValueNumber(val))
 END FUNCTION
 
 FUNCTION f_loadb(INOUT self: Executor)
@@ -714,7 +743,7 @@ FUNCTION f_divn(INOUT self: Executor)
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
     CHECK b <> 0 ELSE
-        self.raise_literal("DivideByZeroException", "")
+        self.raise_literal("NumberException.DivideByZero", "")
         EXIT FUNCTION
     END CHECK
     self.stack.append(makeValueNumber(a / b))
@@ -1055,6 +1084,10 @@ FUNCTION f_callp(INOUT self: Executor)
             VAR an: Array<Number> := []
             FOREACH p IN a DO
                 IF VALID p THEN
+                    IF NOT (0 <= p->n < 256) THEN
+                        self.raise_literal("ByteOutOfRangeException", str(p->n))
+                        EXIT FUNCTION
+                    END IF
                     an.append(p->n)
                 END IF
             END FOREACH
@@ -1080,7 +1113,9 @@ FUNCTION f_callp(INOUT self: Executor)
                     r.append(", ")
                 END IF
                 IF VALID x THEN
-                    r.append("\(x->o)")
+                    -- TODO: this fails object.neon test because it formats numbers with quotes
+                    LET s := "\(x->o)"
+                    r.append(quoted(s))
                 END IF
             END FOREACH
             r.append("]")
@@ -1181,6 +1216,37 @@ FUNCTION f_callp(INOUT self: Executor)
             IF VALID a THEN
                 a->d.remove(key)
             END IF
+        WHEN "dictionary__toString__object" DO
+            LET d: Dictionary<POINTER TO Value> := self.pop()->d
+            VAR r: String := "{"
+            FOREACH k IN d.keys() INDEX i DO
+                IF i > 0 THEN
+                    r.append(", ")
+                END IF
+                r.append(quoted(k))
+                r.append(": ")
+                IF VALID d[k] AS x THEN
+                    LET s := "\(x->o)"
+                    r.append(quoted(s))
+                END IF
+            END FOREACH
+            r.append("}")
+            self.stack.append(makeValueString(r))
+        WHEN "dictionary__toString__string" DO
+            LET d: Dictionary<POINTER TO Value> := self.pop()->d
+            VAR r: String := "{"
+            FOREACH k IN d.keys() INDEX i DO
+                IF i > 0 THEN
+                    r.append(", ")
+                END IF
+                r.append(quoted(k))
+                r.append(": ")
+                IF VALID d[k] AS x THEN
+                    r.append(quoted(x->s))
+                END IF
+            END FOREACH
+            r.append("}")
+            self.stack.append(makeValueString(r))
         WHEN "exceptiontype__toString" DO
             LET ei: Array<POINTER TO Value> := self.pop()->a
             VAR name: String := ""

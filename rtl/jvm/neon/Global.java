@@ -164,7 +164,11 @@ public class Global {
     public static byte[] array__toBytes__number(neon.type.Array self) {
         byte[] r = new byte[self.size()];
         for (int i = 0; i < self.size(); i++) {
-            r[i] = (byte)((neon.type.Number)self.get(i)).intValue();
+            int x = ((neon.type.Number)self.get(i)).intValue();
+            if (x < 0 || x >= 256) {
+                throw new neon.type.NeonException("ByteOutOfRangeException");
+            }
+            r[i] = (byte)x;
         }
         return r;
     }
@@ -338,6 +342,10 @@ public class Global {
         return x.toString();
     }
 
+    public static java.lang.Object object__makeNumber(neon.type.Number x) {
+        return x;
+    }
+
     public static java.lang.Object object__makeString(java.lang.String s) {
         return s;
     }
@@ -398,7 +406,20 @@ public class Global {
         if (last_from_end) {
             l += s.length() - 1;
         }
-        return s.substring(0, f) + t + s.substring(l + 1);
+        if (f < 0) {
+            throw new neon.type.NeonException("StringIndexException", s);
+        }
+        if (l < f-1) {
+            throw new neon.type.NeonException("StringIndexException", s);
+        }
+        java.lang.String padding = "";
+        if (f > s.length()) {
+            // In the absence of String.repeat (Java 11), this trick is from
+            // https://stackoverflow.com/a/4903603
+            padding = new java.lang.String(new char[f - s.length()]).replace("\0", " ");
+            f = s.length();
+        }
+        return s.substring(0, f) + padding + t + (l < s.length() ? s.substring(l + 1) : "");
     }
 
     public static byte[] string__toBytes(java.lang.String self) {

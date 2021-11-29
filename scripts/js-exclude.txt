@@ -12,6 +12,7 @@ array-tostring.neon        # array comparison
 array2d.neon               # copy semantics
 assert-enum.neon           # enum
 assert-multiline.neon      # stderr
+assignment.neon            # choice
 base-test.neon             # module
 bigint.neon                # bigint
 binary-test.neon           # module binary
@@ -24,6 +25,8 @@ bytes-value-index.neon     # bytes
 bytes.neon                 # bytes
 cal-test.neon              # os.system
 cformat-test.neon          # module
+choice.neon                # choice
+choice-recursive.neon      # choice
 cmdline.neon               # command line format
 complex-test.neon          # module
 concat-bytes.neon          # bytes
@@ -46,7 +49,6 @@ file-filecopied1.neon      # module file
 file-filecopied2.neon      # module file
 file-filecopied3.neon      # module file
 file-linelength.neon       # module file
-file-symlink.neon          # module file
 file-test.neon             # module file
 file-writebytes.neon       # module file
 file-writelines.neon       # module file
@@ -117,6 +119,7 @@ parameters.neon            # keyword in
 pointer-method.neon        # methods
 pointer-print.neon         # pointer__toString
 posix-fork.neon            # module posix
+posix-symlink.neon         # module posix
 predeclare1.neon           # something
 print-object.neon          # object
 process-test.neon          # module process
@@ -141,6 +144,7 @@ string-in.neon             # string.find
 string-index.neon          # index
 string-multiline.neon      # StringReferenceIndexExpression
 string-slice.neon          # StringReferenceIndexExpression
+string-splice.neon         # string splice
 string-test.neon           # module string
 strings.neon               # StringReferenceIndexExpression
 struct-test.neon           # DictionaryInExpression
@@ -153,6 +157,7 @@ textio-test.neon           # module textio
 time-stopwatch.neon        # module time
 time-test.neon             # module time
 tostring.neon              # keyword enum
+tostring-quotes.neon
 try-expression.neon        # TryExpression
 unicode-char.neon          # StringReferenceIndexExpression
 unicode-length.neon        # StringReferenceIndexExpression

@@ -48,7 +48,7 @@ neon = {
 
         divide: function(a, b) {
             if (b === 0) {
-                throw new NeonException("DivideByZeroException");
+                throw new NeonException("NumberException.DivideByZero");
             }
             return a / b;
         },

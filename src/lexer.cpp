@@ -153,6 +153,10 @@ std::string Token::tostring() const
         case IMPORTED:    s << "IMPORTED"; break;
         case TESTCASE:    s << "TESTCASE"; break;
         case EXPECT:      s << "EXPECT"; break;
+        case CHOICE:      s << "CHOICE"; break;
+        case PROCESS:     s << "PROCESS"; break;
+        case SUCCESS:     s << "SUCCESS"; break;
+        case FAILURE:     s << "FAILURE"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -264,6 +268,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         else if (c == 0x2260 /*'≠'*/) { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2264 /*'≤'*/) { t.type = LESSEQ; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2265 /*'≥'*/) { t.type = GREATEREQ; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2254 /*'≔'*/) { t.type = ASSIGN; utf8::advance(i, 1, source.end()); }
         else if (c == 0x00ac /*'¬'*/) { t.type = NOT; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2227 /*'∧'*/) { t.type = AND; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2228 /*'∨'*/) { t.type = OR; utf8::advance(i, 1, source.end()); }
@@ -429,6 +434,10 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "IMPORTED") t.type = IMPORTED;
             else if (t.text == "TESTCASE") t.type = TESTCASE;
             else if (t.text == "EXPECT") t.type = EXPECT;
+            else if (t.text == "CHOICE") t.type = CHOICE;
+            else if (t.text == "PROCESS") t.type = PROCESS;
+            else if (t.text == "SUCCESS") t.type = SUCCESS;
+            else if (t.text == "FAILURE") t.type = FAILURE;
             else if (all_upper(t.text)) {
                 t.type = UNKNOWN;
             } else if (t.text.find("__") != std::string::npos) {
@@ -643,6 +652,8 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                             continue;
                         }
                         default:
+                            t.column += i - startindex - 2;
+                            t.text = std::string("\\") + (char)c;
                             error(1009, t, "invalid escape character");
                     }
                 }
@@ -760,7 +771,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             }
             tokens.push_back(t);
         }
-        column += (i - startindex);
+        column += utf8::distance(startindex, i);
     }
     return tokens;
 }

@@ -2,46 +2,127 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Text;
 
 namespace csnex
 {
     public class Executor
     {
-        public Executor(Bytecode bc)
+        sealed class ActivationFrame
         {
+            public List<Cell> Locals;
+            public readonly int NestingDepth;
+            public readonly ActivationFrame Outer;
+            public readonly int OpstackDepth;
+
+            public ActivationFrame(int nest, ActivationFrame outer, int size, int stack_depth)
+            {
+                Locals = new List<Cell>();
+                for (int i = 0; i < size; i++) {
+                    Locals.Add(new Cell(Cell.Type.None));
+                }
+                NestingDepth = nest;
+                OpstackDepth = stack_depth;
+                Outer = outer;
+            }
+        }
+
+        sealed class CallStack
+        {
+            public Module mod;
+            public int ip;
+
+            public CallStack(int inst, Module m)
+            {
+                ip = inst;
+                mod = m;
+            }
+        }
+
+        public Executor(Module mod, bool trace)
+        {
+            support = new Support(mod.SourcePath);
             exit_code = 0;
             stack = new Stack<Cell>();
-            callstack = new Stack<int>();
+            callstack = new Stack<CallStack>();
             global = new Global(this);
-            bytecode = bc;
+            modules = new Dictionary<string, Module>();
+            init_order = new List<string>();
+            module = mod;
+            modules.Add("", mod);
             param_recursion_limit = 1000;
+            Allocations = 0;
+            EnableTrace = trace;
             library = new List<KeyValuePair<string, object>>();
+            library.Add(new KeyValuePair<string, object>("console", new rtl.console(this)));
+            library.Add(new KeyValuePair<string, object>("io", new rtl.io(this)));
+            library.Add(new KeyValuePair<string, object>("random", new rtl.random(this)));
             library.Add(new KeyValuePair<string, object>("runtime", new rtl.runtime(this)));
+            library.Add(new KeyValuePair<string, object>("string", new rtl.@string(this)));
             library.Add(new KeyValuePair<string, object>("sys", new rtl.sys(this)));
             library.Add(new KeyValuePair<string, object>("textio", new rtl.textio(this)));
+
+            LoadModuleCode(mod);
+        }
+
+        private void LoadModuleCode(Module mod)
+        {
+            // Iterate the imports, loading all the module code recursively, as necessary.
+            for (int m = 0; m < mod.Bytecode.imports.Count; m++) {
+                if (!modules.ContainsKey(mod.Bytecode.strtable[mod.Bytecode.imports[m].name])) {
+                    Module sub = support.ReadModule(mod.Bytecode.strtable[mod.Bytecode.imports[m].name]);
+                    sub.Bytecode.LoadBytecode(sub.SourcePath, sub.Code);
+                    LoadModuleCode(sub);
+                    modules.Add(sub.Name, sub);
+                    init_order.Add(sub.Name);
+                }
+            }
         }
 
         private List<KeyValuePair<string, object>> library;
-
         private int exit_code;
-        private readonly Bytecode bytecode;
         public Stack<Cell> stack;
-        private Stack<int> callstack;
+        private Stack<CallStack> callstack;
         public bool enable_assert;
         private int ip;
         private Global global;
         public Int32 param_recursion_limit;
+        private Stack<ActivationFrame> frames;
+        public int max_frames;
+        private Module module;
+        private Dictionary<string, Module> modules;
+        private List<string> init_order;
+        private Support support;
+        public UInt64 Allocations;
+        private readonly bool EnableTrace;
+
+        public bool ModuleIsMain()
+        {
+            return module.Equals(modules[""]);
+        }
 
         public int Run(bool EnableAssertions)
         {
-            ip = bytecode.code.Length;
-            Invoke(0);
+            frames = new Stack<ActivationFrame>();
+            ip = module.Bytecode.code.Length;
+            Invoke(module, 0);
 
-            for (int g = 0; g < bytecode.globals.Capacity; g++)
-            {
-                bytecode.globals.Add(new Cell(Cell.Type.None));
+            for (int g = 0; g < module.Bytecode.globals.Capacity; g++) {
+                module.Bytecode.globals.Add(new Cell(Cell.Type.None));
             }
 
+            // Initialize all dependent modules--in the correct order.
+            init_order.Reverse();
+            foreach (string s in init_order) {
+                Module mod = modules[s];
+                for (int g = 0; g < mod.Bytecode.globals.Capacity; g++) {
+                    mod.Bytecode.globals.Add(new Cell(Cell.Type.None));
+                }
+                Invoke(mod, 0);
+            }
+            dump_modules();
+
+            // Begin execution
             exit_code = Loop(0);
 
             if (exit_code == 0) {
@@ -53,25 +134,22 @@ namespace csnex
         private void RaiseLiteral(string name, Cell info)
         {
             List<Cell> exceptionvar = new List<Cell>();
-            exceptionvar.Add(new Cell(name));
+            exceptionvar.Add(Cell.CreateStringCell(name));
             exceptionvar.Add(info);
-            exceptionvar.Add(new Cell(new Number(ip)));
+            exceptionvar.Add(Cell.CreateNumberCell(new Number(ip)));
             int tip = ip;
             int sp = callstack.Count;
             for (;;) {
                 int i;
-                for (i = 0; i < bytecode.exceptions.Count; i++) {
-                    if ((bytecode.exceptions[i].start <= tip) && (tip < bytecode.exceptions[i].end)) {
-                        string handler = bytecode.strtable[bytecode.exceptions[i].exid];
+                for (i = 0; i < module.Bytecode.exceptions.Count; i++) {
+                    if ((module.Bytecode.exceptions[i].start <= tip) && (tip < module.Bytecode.exceptions[i].end)) {
+                        string handler = module.Bytecode.strtable[module.Bytecode.exceptions[i].exid];
                         if ((string.Compare(name, handler) == 0) || (name.Length > handler.Length && name.StartsWith(handler) && name[handler.Length] == '.')) {
-                            ip = bytecode.exceptions[i].handler;
-                            while (stack.Count > bytecode.exceptions[i].stack_depth) {
+                            ip = module.Bytecode.exceptions[i].handler;
+                            while (stack.Count > (((frames.Count == 0 ? 0 : frames.Peek().OpstackDepth) + module.Bytecode.exceptions[i].stack_depth))) {
                                 stack.Pop();
                             }
-                            while (sp > callstack.Count) {
-                                callstack.Pop();
-                            }
-                            stack.Push(new Cell(exceptionvar));
+                            stack.Push(Cell.CreateArrayCell(exceptionvar));
                             return;
                         }
                     }
@@ -79,7 +157,12 @@ namespace csnex
                 if (sp == 0) {
                     break;
                 }
-                tip = callstack.Peek();
+                if (frames.Count != 0) {
+                    frames.Pop();
+                }
+                CallStack f = callstack.Pop();
+                tip = f.ip;
+                module = f.mod;
                 sp -= 1;
             }
             Console.Error.WriteLine(string.Format("Unhandled exception {0} ({1})\n", name, info.ToString()));
@@ -93,54 +176,58 @@ namespace csnex
 
         public void Raise(string name, string info)
         {
-            RaiseLiteral(name, new Cell(new ObjectString(info)));
+            RaiseLiteral(name, Cell.CreateObjectCell(new ObjectString(info)));
         }
 
 #region Opcode Handlers
 #region PUSHx Opcodes
         void PUSHB()
         {
-            Boolean val = bytecode.code[ip + 1] != 0;
+            Boolean val = module.Bytecode.code[ip + 1] != 0;
             ip += 2;
-            stack.Push(new Cell(val));
+            stack.Push(Cell.CreateBooleanCell(val));
         }
 
         void PUSHN()
         {
             ip++;
-            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
-            stack.Push(new Cell(Number.FromString(bytecode.strtable[val])));
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            stack.Push(Cell.CreateNumberCell(Number.FromString(module.Bytecode.strtable[val])));
         }
 
         void PUSHS()
         {
             ip++;
-            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
-            stack.Push(new Cell(bytecode.strtable[val]));
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            stack.Push(Cell.CreateStringCell(module.Bytecode.strtable[val]));
         }
 
         void PUSHY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            stack.Push(Cell.CreateBytesCell(module.Bytecode.bytetable[val]));
         }
 
         void PUSHPG()
         {
             ip++;
-            int addr = Bytecode.Get_VInt(bytecode.code, ref ip);
-            Debug.Assert(addr < bytecode.globals.Count);
-            stack.Push(new Cell(bytecode.globals[addr]));
+            int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            Debug.Assert(addr < module.Bytecode.globals.Count);
+            stack.Push(Cell.CreateAddressCell(module.Bytecode.globals[addr]));
         }
 
         void PUSHPPG()
         {
             ip++;
-            int addr = Bytecode.Get_VInt(bytecode.code, ref ip);
-            string var = bytecode.strtable[addr];
+            int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            string var = module.Bytecode.strtable[addr];
             try {
                 object obj = library.Find(a => a.Key == var.Substring(0, var.IndexOf('$'))).Value;
                 PropertyInfo pi = obj.GetType().GetProperty(var.Substring(var.IndexOf('$')+1));
-                stack.Push(new Cell((Cell)pi.GetValue(obj)));
+                stack.Push(Cell.CreateAddressCell((Cell)pi.GetValue(obj)));
+            } catch (TargetInvocationException ti) {
+                throw ti.InnerException;
             } catch {
                 throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined variable.", var));
             }
@@ -148,37 +235,104 @@ namespace csnex
 
         void PUSHPMG()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int mod = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int name = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+
+            if (!modules.ContainsKey(module.Bytecode.strtable[mod])) {
+                throw new NeonException(string.Format("module not found: {0}\n", module.Bytecode.strtable[mod]));
+            }
+            Module m = modules[module.Bytecode.strtable[mod]];
+
+            for (int v = 0; v < m.Bytecode.variables.Count; v++) {
+                if (string.Compare(m.Bytecode.strtable[m.Bytecode.variables[v].name], module.Bytecode.strtable[name]) == 0) {
+                    int addr = m.Bytecode.variables[v].index;
+                    Debug.Assert(addr < m.Bytecode.globals.Count);
+                    stack.Push(Cell.CreateAddressCell(m.Bytecode.globals[addr]));
+                    return;
+                }
+            }
         }
 
         void PUSHPL()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            stack.Push(Cell.CreateAddressCell(frames.Peek().Locals[addr]));
         }
 
         void PUSHPOL()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int back = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            dump_frames();
+            ActivationFrame frame = frames.Peek();
+            while (back > 0) {
+                frame = frame.Outer;
+                back--;
+            }
+            stack.Push(Cell.CreateAddressCell(frame.Locals[addr]));
         }
 
         void PUSHI()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int x = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            stack.Push(Cell.CreateNumberCell(new Number(x)));
         }
 
         void PUSHNIL()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            stack.Push(Cell.CreateAddressCell(null));
         }
 
         void PUSHFP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int addr = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            List<Cell> a = new List<Cell>();
+            a.Add(Cell.CreateOtherCell(module));
+            a.Add(Cell.CreateNumberCell(new Number(addr)));
+            stack.Push(Cell.CreateArrayCell(a));
         }
 
         void PUSHCI()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+
+            int dot = module.Bytecode.strtable[val].IndexOf('.');
+            if (dot == -1) {
+                for (int c = 0; c < module.Bytecode.classes.Count; c++) {
+                    if (module.Bytecode.classes[c].name == val) {
+                        Cell ci = new Cell(Cell.Type.Array);
+                        ci.Array = new List<Cell>();
+                        ci.Array.Add(Cell.CreateOtherCell(module));
+                        ci.Array.Add(Cell.CreateOtherCell(module.Bytecode.classes[c]));
+                        stack.Push(ci);
+                        return;
+                    }
+                }
+            } else {
+                string modname = module.Bytecode.strtable[val].Substring(0, dot);
+                string methodname = module.Bytecode.strtable[val].Substring(dot+1, module.Bytecode.strtable[val].Length - dot - 1);
+                if (modules.ContainsKey(modname)) {
+                    Module mod = modules[modname];
+                    for (int c = 0; c < mod.Bytecode.classes.Count; c++) {
+                        if (string.Compare(mod.Bytecode.strtable[mod.Bytecode.classes[c].name], methodname) == 0) {
+                            Cell ci = new Cell(Cell.Type.Array);
+                            ci.Array = new List<Cell>();
+                            ci.Array.Add(Cell.CreateOtherCell(mod));
+                            ci.Array.Add(Cell.CreateOtherCell(mod.Bytecode.classes[c]));
+                            stack.Push(ci);
+                            return;
+                        }
+                    }
+                }
+            }
+            throw new NeonException(string.Format("csnex: unknown class name {0}\n", module.Bytecode.strtable[val]));
         }
 
         void PUSHPEG()
@@ -191,50 +345,56 @@ namespace csnex
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Boolean));
+            stack.Push(Cell.CreateBooleanCell(addr.Boolean));
         }
 
         void LOADN()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Number));
+            stack.Push(Cell.CreateNumberCell(addr.Number));
         }
 
         void LOADS()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.String));
+            stack.Push(Cell.CreateStringCell(addr.String));
         }
 
         void LOADY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(Cell.CreateBytesCell(addr.Bytes));
         }
 
         void LOADA()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Array));
+            stack.Push(Cell.CreateArrayCell(addr.Array));
         }
 
         void LOADD()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(Cell.CreateDictionaryCell(addr.Dictionary));
         }
 
         void LOADP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            stack.Push(Cell.CreateAddressCell(addr.Address));
         }
 
         void LOADJ()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            stack.Push(new Cell(addr.Object));
+            stack.Push(Cell.CreateObjectCell(addr.Object));
         }
 
         void LOADV()
@@ -247,58 +407,56 @@ namespace csnex
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            Boolean b = stack.Pop().Boolean;
-            addr.Set(b);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREN()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            Number num = stack.Pop().Number;
-            addr.Set(num);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STORES()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            string str = stack.Pop().String;
-            addr.Set(str);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREA()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            List<Cell> arr = stack.Pop().Array;
-            addr.Set(arr);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STORED()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            Dictionary<string, Cell> dict = stack.Pop().Dictionary;
-            addr.Set(dict);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell addr = stack.Pop().Address;
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREJ()
         {
             ip++;
             Cell addr = stack.Pop().Address;
-            Object obj = stack.Pop().Object;
-            addr.Set(obj);
+            Cell.CopyCell(addr, stack.Pop());
         }
 
         void STOREV()
@@ -311,7 +469,7 @@ namespace csnex
         {
             ip++;
             Number x = stack.Pop().Number;
-            stack.Push(new Cell(Number.Negate(x)));
+            stack.Push(Cell.CreateNumberCell(Number.Negate(x)));
         }
 
         void ADDN()
@@ -319,7 +477,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.Add(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Add(a, b)));
         }
 
         void SUBN()
@@ -327,7 +485,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.Subtract(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Subtract(a, b)));
         }
 
         void MULN()
@@ -335,7 +493,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.Multiply(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Multiply(a, b)));
         }
 
         void DIVN()
@@ -344,10 +502,10 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("DivideByZeroException", "");
+                Raise("NumberException.DivideByZero", "");
                 return;
             }
-            stack.Push(new Cell(Number.Divide(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Divide(a, b)));
         }
 
         void MODN()
@@ -356,10 +514,10 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("DivideByZeroException", "");
+                Raise("NumberException.DivideByZero", "");
                 return;
             }
-            stack.Push(new Cell(Number.Modulo(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Modulo(a, b)));
         }
 
         void EXPN()
@@ -368,21 +526,27 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("DivideByZeroException", "");
+                Raise("NumberException.DivideByZero", "");
                 return;
             }
-            stack.Push(new Cell(Number.Pow(a, b)));
+            stack.Push(Cell.CreateNumberCell(Number.Pow(a, b)));
         }
 #endregion
 #region Comparison Opcodes
         void EQB()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            bool b = stack.Pop().Boolean;
+            bool a = stack.Pop().Boolean;
+            stack.Push(Cell.CreateBooleanCell(a == b));
         }
 
         void NEB()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            bool b = stack.Pop().Boolean;
+            bool a = stack.Pop().Boolean;
+            stack.Push(Cell.CreateBooleanCell(a != b));
         }
 
         void EQN()
@@ -390,7 +554,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsEqual(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsEqual(a, b)));
         }
 
         void NEN()
@@ -398,7 +562,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(!Number.IsEqual(a, b)));
+            stack.Push(Cell.CreateBooleanCell(!Number.IsEqual(a, b)));
         }
 
         void LTN()
@@ -406,7 +570,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsLessThan(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsLessThan(a, b)));
         }
 
         void GTN()
@@ -414,7 +578,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsGreaterThan(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsGreaterThan(a, b)));
         }
 
         void LEN()
@@ -422,7 +586,7 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsLessOrEqual(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsLessOrEqual(a, b)));
         }
 
         void GEN()
@@ -430,22 +594,31 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            stack.Push(new Cell(Number.IsGreaterOrEqual(a, b)));
+            stack.Push(Cell.CreateBooleanCell(Number.IsGreaterOrEqual(a, b)));
         }
 
         void EQS()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) == 0));
         }
 
         void NES()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) != 0));
         }
 
         void LTS()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) < 0));
         }
 
         void GTS()
@@ -453,77 +626,119 @@ namespace csnex
             ip++;
             string b = stack.Pop().String;
             string a = stack.Pop().String;
-            stack.Push(new Cell(string.Compare(a, b) > 0));
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) > 0));
         }
 
         void LES()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) <= 0));
         }
 
         void GES()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string b = stack.Pop().String;
+            string a = stack.Pop().String;
+            stack.Push(Cell.CreateBooleanCell(string.Compare(a, b) >= 0));
         }
 
         void EQY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) == 0));
         }
 
         void NEY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) != 0));
         }
 
         void LTY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) < 0));
         }
 
         void GTY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) > 0));
         }
 
         void LEY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) <= 0));
         }
 
         void GEY()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Bytes.Compare(b.Bytes) >= 0));
         }
 
         void EQA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Array.Compare(b.Array)));
         }
 
         void NEA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(!a.Array.Compare(b.Array)));
         }
 
         void EQD()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(a.Dictionary.Compare(b.Dictionary)));
         }
 
         void NED()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop();
+            Cell a = stack.Pop();
+            stack.Push(Cell.CreateBooleanCell(!a.Dictionary.Compare(b.Dictionary)));
         }
 
         void EQP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop().Address;
+            Cell a = stack.Pop().Address;
+            stack.Push(Cell.CreateBooleanCell(a == b));
         }
 
         void NEP()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell b = stack.Pop().Address;
+            Cell a = stack.Pop().Address;
+            stack.Push(Cell.CreateBooleanCell(a != b));
         }
 
         void EQV()
@@ -551,7 +766,7 @@ namespace csnex
         {
             ip++;
             bool x = stack.Pop().Boolean;
-            stack.Push(new Cell(!x));
+            stack.Push(Cell.CreateBooleanCell(!x));
         }
 #endregion
 #region Index Opcodes
@@ -575,7 +790,7 @@ namespace csnex
                 Raise("ArrayIndexException", index.ToString());
                 return;
             }
-            stack.Push(new Cell(addr.ArrayIndexForRead(i)));
+            stack.Push(Cell.CreateAddressCell(addr.ArrayIndexForRead(i)));
         }
 
         void INDEXAW()
@@ -593,7 +808,7 @@ namespace csnex
                 Raise("ArrayIndexException", index.ToString());
                 return;
             }
-            stack.Push(new Cell(addr.ArrayIndexForWrite(i)));
+            stack.Push(Cell.CreateAddressCell(addr.ArrayIndexForWrite(i)));
         }
 
         void INDEXAV()
@@ -603,17 +818,17 @@ namespace csnex
             Cell array = stack.Pop();
 
             if (!index.IsInteger()) {
-                RaiseLiteral("ArrayIndexException", new Cell(index.ToString()));
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(index.ToString()));
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                RaiseLiteral("ArrayIndexException", new Cell(new Number(i).ToString()));
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(i).ToString()));
                 return;
             }
             uint j = (uint)i;
             if (j >= array.Array.Count) {
-                RaiseLiteral("ArrayIndexException", new Cell(new Number(j).ToString()));
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(j).ToString()));
                 return;
             }
             Debug.Assert(j < array.Array.Count);
@@ -622,41 +837,89 @@ namespace csnex
 
         void INDEXAN()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Number index = stack.Pop().Number;
+            Cell array = stack.Pop();
+
+            if (!index.IsInteger()) {
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(index.ToString()));
+                return;
+            }
+            int i = Number.number_to_int32(index);
+            if (i < 0 || i >= array.Array.Count) {
+                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(i).ToString()));
+                return;
+            }
+
+            Cell val = i < array.Array.Count ? Cell.FromCell(array.Array[i]) : new Cell();
+            stack.Push(val);
         }
 
         void INDEXDR()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string index = stack.Pop().String;
+            Cell addr = stack.Pop().Address;
+            if (!addr.Dictionary.ContainsKey(index)) {
+                Raise("DictionaryIndexException", index);
+                return;
+            }
+            stack.Push(Cell.CreateAddressCell(addr.DictionaryIndexForRead(index)));
         }
 
         void INDEXDW()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string index = stack.Pop().String;
+            Cell dict = stack.Pop().Address;
+            stack.Push(Cell.CreateAddressCell(dict.DictionaryIndexForWrite(index)));
         }
 
         void INDEXDV()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            string index = stack.Pop().String;
+            Cell dictionary = stack.Pop();
+
+            Cell val = dictionary.Dictionary[index];
+            if (val == null) {
+                Raise("DictionaryIndexException", index);
+                return;
+            }
+
+            Cell addr = Cell.FromCell(val);
+            stack.Push(addr);
         }
 #endregion
 #region INx Opcdes
         void INA()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell array = stack.Pop();
+            Cell val = stack.Pop();
+
+            bool v = array.Array.Exists(x => x.Equals(val));
+
+            stack.Push(Cell.CreateBooleanCell(v));
         }
 
         void IND()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            SortedDictionary<string, Cell> dictionary = stack.Pop().Dictionary;
+            string key = stack.Pop().String;
+
+            bool v = dictionary.ContainsKey(key);
+
+            stack.Push(Cell.CreateBooleanCell(v));
         }
 #endregion
 #region CALLx Opcodes
         void CALLP()
         {
             ip++;
-            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
-            string func = bytecode.strtable[val];
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            string func = module.Bytecode.strtable[val];
             try {
                 if (func.IndexOf('$') > 0) {
                     // Call a module function from our csnex.rtl namspace
@@ -668,6 +931,8 @@ namespace csnex
                     MethodInfo mi = global.GetType().GetMethod(func);
                     mi.Invoke(global, null);
                 }
+            } catch (TargetInvocationException ti) {
+                throw ti.InnerException;
             } catch {
                 throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined function call.", func));
             }
@@ -676,22 +941,56 @@ namespace csnex
         void CALLF()
         {
             ip++;
-            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             if (callstack.Count >= param_recursion_limit) {
                 Raise("StackOverflowException", "");
                 return;
             }
-            Invoke(val);
+            Invoke(module, val);
         }
 
         void CALLMF()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int mod = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int fun = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int efi = 0;
+            if (callstack.Count >= param_recursion_limit) {
+                Raise("StackOverflowException", "");
+                return;
+            }
+
+            Module m = modules[module.Bytecode.strtable[mod]];
+            if (m != null) {
+                for (efi = 0; efi < m.Bytecode.exports.Count; efi++) {
+                    string funcsig = string.Format("{0},{1}", m.Bytecode.strtable[m.Bytecode.exports[efi].name], m.Bytecode.strtable[m.Bytecode.exports[efi].descriptor]);
+                    if (string.Compare(funcsig, module.Bytecode.strtable[fun]) == 0) {
+                        Invoke(m, m.Bytecode.exports[efi].index);
+                        return;
+                    }
+                }
+                throw new NeonException(string.Format("function not found: {0}", module.Bytecode.strtable[fun]));
+            }
+            throw new NeonException(string.Format("module not found: {0}", module.Bytecode.strtable[mod]));
         }
 
         void CALLI()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            if (callstack.Count >= param_recursion_limit) {
+                Raise("StackOverflowException", "");
+                return;
+            }
+
+            Cell a = stack.Pop();
+            Module mod = (Module)a.Array[0].Other;
+            Number nindex = a.Array[1].Number;
+            if (nindex.IsZero() || !nindex.IsInteger()) {
+                Raise("InvalidFunctionException", "");
+                return;
+            }
+            int index = Number.number_to_int32(nindex);
+            Invoke(mod, index);
         }
 
         void CALLE()
@@ -706,21 +1005,34 @@ namespace csnex
 
         void CALLV()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            if (callstack.Count >= param_recursion_limit) {
+                Raise("StackOverflowException", "");
+                return;
+            }
+
+            Cell pi = stack.Pop();
+            Cell instance = pi.Array[0].Address;
+            int interface_index = Number.number_to_int32(pi.Array[1].Number);
+            Module m = (Module)instance.Array[0].Array[0].Other;
+            Bytecode.ClassInfo classinfo = (Bytecode.ClassInfo)instance.Array[0].Array[1].Other;
+
+            Invoke(m, classinfo.interfaces[interface_index].methods[val]);
         }
 #endregion
 #region JUMP Opcodes
         void JUMP()
         {
             ip++;
-            int target = Bytecode.Get_VInt(bytecode.code, ref ip);
+            int target = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             ip = target;
         }
 
         void JF()
         {
             ip++;
-            int target = Bytecode.Get_VInt(bytecode.code, ref ip);
+            int target = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             bool a = stack.Pop().Boolean;
             if (!a) {
                 ip = target;
@@ -730,7 +1042,7 @@ namespace csnex
         void JT()
         {
             ip++;
-            int target = Bytecode.Get_VInt(bytecode.code, ref ip);
+            int target = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             bool a = stack.Pop().Boolean;
             if (a) {
                 ip = target;
@@ -745,7 +1057,7 @@ namespace csnex
         void JUMPTBL()
         {
             ip++;
-            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             Number n = stack.Pop().Number;
             if (n.IsInteger() && !n.IsNegative()) {
                 int i = Number.number_to_int32(n);
@@ -766,7 +1078,10 @@ namespace csnex
 
         void RET()
         {
-            ip = callstack.Pop();
+            frames.Pop();
+            CallStack f = callstack.Pop();
+            ip = f.ip;
+            module = f.mod;
         }
 #endregion
 #region Stack Handler Opcodes
@@ -778,7 +1093,12 @@ namespace csnex
 
         void DUPX1()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            Cell a = stack.Pop();
+            Cell b = stack.Pop();
+            stack.Push(a);
+            stack.Push(b);
+            stack.Push(Cell.FromCell(a));
         }
 
         void DROP()
@@ -805,21 +1125,21 @@ namespace csnex
         void CONSA()
         {
             ip++;
-            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             List<Cell> a = new List<Cell>();
 
             while (val > 0) {
                 a.Add(stack.Pop());
                 val--;
             }
-            stack.Push(new Cell(a));
+            stack.Push(Cell.CreateArrayCell(a));
         }
 
         void CONSD()
         {
             ip++;
-            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
-            Dictionary<string, Cell> d = new Dictionary<string, Cell>();
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            SortedDictionary<string, Cell> d = new SortedDictionary<string, Cell>();
 
             while (val > 0) {
                 Cell value = stack.Pop();
@@ -827,7 +1147,7 @@ namespace csnex
                 d.Add(key, value);
                 val--;
             }
-            stack.Push(new Cell(d));
+            stack.Push(Cell.CreateDictionaryCell(d));
         }
 #endregion
 #region Exception Opcodes
@@ -835,16 +1155,25 @@ namespace csnex
         {
             int start_ip = ip;
             ip++;
-            int val = Bytecode.Get_VInt(bytecode.code, ref ip);
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             ip = start_ip;
             Cell info = stack.Pop();
-            RaiseLiteral(bytecode.strtable[val], info);
+            RaiseLiteral(module.Bytecode.strtable[val], info);
         }
 #endregion
 #region Memory Opcodes
         void ALLOC()
         {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
+            ip++;
+            int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+
+            Allocations++;
+            Cell cell = new Cell(Cell.Type.Array, Allocations);
+            cell.Array = new List<Cell>();
+            for (int i = 0; i < val; i++) {
+                cell.Array.Add(new Cell());
+            }
+            stack.Push(Cell.CreateAddressCell(cell));
         }
 
         void RESETC()
@@ -855,119 +1184,177 @@ namespace csnex
         }
 #endregion
 #endregion
-
-        private void Invoke(int index)
+#region Debug / Diagnostic functions
+#pragma warning disable 0162
+        void dump_frames()
         {
-            callstack.Push(ip);
-            ip = bytecode.functions[index].entry;
+            if (false) {
+                Console.Out.Write("Frames:\n");
+                for (int i = 0; i < frames.Count; i++) {
+                    ActivationFrame f = frames.ToArray()[i];
+                    Console.Out.Write("\t {0}\t{{ locals={1} }}\n", i, f.Locals.Count.ToString());
+                    for (int l = 0; 0 < f.Locals.Count; l++) {
+                        string x = f.Locals[l].ToString();
+                        Console.Out.Write("{0}: {1} {2}", l, f.Locals[l].type.ToString(), x);
+                    }
+                }
+            }
+        }
+        void dump_modules()
+        {
+            if (false) {
+                Console.Out.Write("Module {0} depends on the following modules:\n", modules[""].Name);
+                for (int i = 0; i < init_order.Count; i++) {
+                    Module m = modules[init_order[i]];
+                    Console.Out.Write("\t{0}\tGlobals: {1} Imports: {2}\n", m.Name, m.Bytecode.globals.Count, m.Bytecode.imports.Count);
+                }
+            }
+        }
+#pragma warning restore 0162
+#endregion
+
+        private void Invoke(Module m, int index)
+        {
+            callstack.Push(new CallStack(ip, module));
+
+            ActivationFrame outer = null;
+            int nest = m.Bytecode.functions[index].nest;
+            int args = m.Bytecode.functions[index].args;
+            int locals = m.Bytecode.functions[index].locals;
+            if (frames.Count > 0) {
+                Debug.Assert(nest <= frames.Peek().NestingDepth+1);
+                outer = frames.Peek();
+                while (outer != null && nest <= outer.NestingDepth) {
+                    Debug.Assert(outer.Outer == null || outer.NestingDepth == outer.Outer.NestingDepth+1);
+                    outer = outer.Outer;
+                }
+            }
+            ActivationFrame frame = new ActivationFrame(nest, outer, locals, stack.Count - args);
+            frames.Push(frame);
+            if (frames.Count > max_frames) {
+                max_frames = frames.Count;
+            }
+            dump_frames();
+
+            module = m;
+            ip = module.Bytecode.functions[index].entry;
         }
 
         private int Loop(Int64 min_callstack_depth)
         {
-            while (callstack.Count > min_callstack_depth && ip < bytecode.code.Length && exit_code == 0) {
-                switch ((Opcode)bytecode.code[ip]) {
-                    case Opcode.PUSHB: PUSHB(); break;                // push boolean immediate
-                    case Opcode.PUSHN: PUSHN(); break;                // push number immediate
-                    case Opcode.PUSHS: PUSHS(); break;                // push string immediate
-                    case Opcode.PUSHY: PUSHY(); break;                // push bytes immediate
-                    case Opcode.PUSHPG: PUSHPG(); break;              // push pointer to global
-                    case Opcode.PUSHPPG: PUSHPPG(); break;            // push pointer to predefined global
-                    case Opcode.PUSHPMG: PUSHPMG(); break;            // push pointer to module global
-                    case Opcode.PUSHPL: PUSHPL(); break;              // push pointer to local
-                    case Opcode.PUSHPOL: PUSHPOL(); break;            // push pointer to outer local
-                    case Opcode.PUSHI: PUSHI(); break;                // push 32-bit integer immediate
-                    case Opcode.LOADB: LOADB(); break;                // load boolean
-                    case Opcode.LOADN: LOADN(); break;                // load number
-                    case Opcode.LOADS: LOADS(); break;                // load string
-                    case Opcode.LOADY: LOADY(); break;                // load bytes
-                    case Opcode.LOADA: LOADA(); break;                // load array
-                    case Opcode.LOADD: LOADD(); break;                // load dictionary
-                    case Opcode.LOADP: LOADP(); break;                // load pointer
-                    case Opcode.LOADJ: LOADJ(); break;                // load object
-                    case Opcode.LOADV: LOADV(); break;                // load voidptr
-                    case Opcode.STOREB: STOREB(); break;              // store boolean
-                    case Opcode.STOREN: STOREN(); break;              // store number
-                    case Opcode.STORES: STORES(); break;              // store string
-                    case Opcode.STOREY: STOREY(); break;              // store bytes
-                    case Opcode.STOREA: STOREA(); break;              // store array
-                    case Opcode.STORED: STORED(); break;              // store dictionary
-                    case Opcode.STOREP: STOREP(); break;              // store pointer
-                    case Opcode.STOREJ: STOREJ(); break;              // store object
-                    case Opcode.STOREV: STOREV(); break;              // store voidptr
-                    case Opcode.NEGN: NEGN(); break;                  // negate number
-                    case Opcode.ADDN: ADDN(); break;                  // add number
-                    case Opcode.SUBN: SUBN(); break;                  // subtract number
-                    case Opcode.MULN: MULN(); break;                  // multiply number
-                    case Opcode.DIVN: DIVN(); break;                  // divide number
-                    case Opcode.MODN: MODN(); break;                  // modulo number
-                    case Opcode.EXPN: EXPN(); break;                  // exponentiate number
-                    case Opcode.EQB: EQB(); break;                    // compare equal boolean
-                    case Opcode.NEB: NEB(); break;                    // compare unequal boolean
-                    case Opcode.EQN: EQN(); break;                    // compare equal number
-                    case Opcode.NEN: NEN(); break;                    // compare unequal number
-                    case Opcode.LTN: LTN(); break;                    // compare less number
-                    case Opcode.GTN: GTN(); break;                    // compare greater number
-                    case Opcode.LEN: LEN(); break;                    // compare less equal number
-                    case Opcode.GEN: GEN(); break;                    // compare greater equal number
-                    case Opcode.EQS: EQS(); break;                    // compare equal string
-                    case Opcode.NES: NES(); break;                    // compare unequal string
-                    case Opcode.LTS: LTS(); break;                    // compare less string
-                    case Opcode.GTS: GTS(); break;                    // compare greater string
-                    case Opcode.LES: LES(); break;                    // compare less equal string
-                    case Opcode.GES: GES(); break;                    // compare greater equal string
-                    case Opcode.EQY: EQY(); break;                    // compare equal bytes
-                    case Opcode.NEY: NEY(); break;                    // compare unequal bytes
-                    case Opcode.LTY: LTY(); break;                    // compare less bytes
-                    case Opcode.GTY: GTY(); break;                    // compare greater bytes
-                    case Opcode.LEY: LEY(); break;                    // compare less equal bytes
-                    case Opcode.GEY: GEY(); break;                    // compare greater equal bytes
-                    case Opcode.EQA: EQA(); break;                    // compare equal array
-                    case Opcode.NEA: NEA(); break;                    // compare unequal array
-                    case Opcode.EQD: EQD(); break;                    // compare equal dictionary
-                    case Opcode.NED: NED(); break;                    // compare unequal dictionary
-                    case Opcode.EQP: EQP(); break;                    // compare equal pointer
-                    case Opcode.NEP: NEP(); break;                    // compare unequal pointer
-                    case Opcode.EQV: EQV(); break;                    // compare equal voidptr
-                    case Opcode.NEV: NEV(); break;                    // compare unequal voidptr
-                    case Opcode.ANDB: ANDB(); break;                  // and boolean
-                    case Opcode.ORB: ORB(); break;                    // or boolean
-                    case Opcode.NOTB: NOTB(); break;                  // not boolean
-                    case Opcode.INDEXAR: INDEXAR(); break;            // index array for read
-                    case Opcode.INDEXAW: INDEXAW(); break;            // index array for write
-                    case Opcode.INDEXAV: INDEXAV(); break;            // index array value
-                    case Opcode.INDEXAN: INDEXAN(); break;            // index array value, no exception
-                    case Opcode.INDEXDR: INDEXDR(); break;            // index dictionary for read
-                    case Opcode.INDEXDW: INDEXDW(); break;            // index dictionary for write
-                    case Opcode.INDEXDV: INDEXDV(); break;            // index dictionary value
-                    case Opcode.INA: INA(); break;                    // in array
-                    case Opcode.IND: IND(); break;                    // in dictionary
-                    case Opcode.CALLP: CALLP(); break;                // call predefined
-                    case Opcode.CALLF: CALLF(); break;                // call function
-                    case Opcode.CALLMF: CALLMF(); break;              // call module function
-                    case Opcode.CALLI: CALLI(); break;                // call indirect
-                    case Opcode.JUMP: JUMP(); break;                  // unconditional jump
-                    case Opcode.JF: JF(); break;                      // jump if false
-                    case Opcode.JT: JT(); break;                      // jump if true
-                    case Opcode.DUP: DUP(); break;                    // duplicate
-                    case Opcode.DUPX1: DUPX1(); break;                // duplicate under second value
-                    case Opcode.DROP: DROP(); break;                  // drop
-                    case Opcode.RET: RET(); break;                    // return
-                    case Opcode.CONSA: CONSA(); break;                // construct array
-                    case Opcode.CONSD: CONSD(); break;                // construct dictionary
-                    case Opcode.EXCEPT: EXCEPT(); break;              // throw exception
-                    case Opcode.ALLOC: ALLOC(); break;                // allocate record
-                    case Opcode.PUSHNIL: PUSHNIL(); break;            // push nil pointer
-                    case Opcode.RESETC: RESETC(); break;              // reset cell
-                    case Opcode.PUSHPEG: PUSHPEG(); break;            // push pointer to external global
-                    case Opcode.JUMPTBL: JUMPTBL(); break;            // jump table
-                    case Opcode.CALLX: CALLX(); break;                // call extension
-                    case Opcode.SWAP: SWAP(); break;                  // swap two top stack elements
-                    case Opcode.DROPN: DROPN(); break;                // drop element n
-                    case Opcode.PUSHFP: PUSHFP(); break;              // push function pointer
-                    case Opcode.CALLV: CALLV(); break;                // call virtual
-                    case Opcode.PUSHCI: PUSHCI(); break;              // push class info
-                    default:
-                        throw new InvalidOpcodeException(string.Format("Invalid opcode ({0}) in bytecode file.", bytecode.code[ip]));
+            while (callstack.Count > min_callstack_depth && ip < module.Bytecode.code.Length && exit_code == 0) {
+                if (EnableTrace) {
+                    Console.Error.WriteLine("mod {0} ip {1} ({2}) {3}", module.Name, ip, stack.Count, InstructionDisassembler.DisassembleInstruction(module.Bytecode, ip));
+                }
+                try {
+                    switch ((Opcode)module.Bytecode.code[ip]) {
+                        case Opcode.PUSHB: PUSHB(); break;                // push boolean immediate
+                        case Opcode.PUSHN: PUSHN(); break;                // push number immediate
+                        case Opcode.PUSHS: PUSHS(); break;                // push string immediate
+                        case Opcode.PUSHY: PUSHY(); break;                // push bytes immediate
+                        case Opcode.PUSHPG: PUSHPG(); break;              // push pointer to global
+                        case Opcode.PUSHPPG: PUSHPPG(); break;            // push pointer to predefined global
+                        case Opcode.PUSHPMG: PUSHPMG(); break;            // push pointer to module global
+                        case Opcode.PUSHPL: PUSHPL(); break;              // push pointer to local
+                        case Opcode.PUSHPOL: PUSHPOL(); break;            // push pointer to outer local
+                        case Opcode.PUSHI: PUSHI(); break;                // push 32-bit integer immediate
+                        case Opcode.LOADB: LOADB(); break;                // load boolean
+                        case Opcode.LOADN: LOADN(); break;                // load number
+                        case Opcode.LOADS: LOADS(); break;                // load string
+                        case Opcode.LOADY: LOADY(); break;                // load bytes
+                        case Opcode.LOADA: LOADA(); break;                // load array
+                        case Opcode.LOADD: LOADD(); break;                // load dictionary
+                        case Opcode.LOADP: LOADP(); break;                // load pointer
+                        case Opcode.LOADJ: LOADJ(); break;                // load object
+                        case Opcode.LOADV: LOADV(); break;                // load voidptr
+                        case Opcode.STOREB: STOREB(); break;              // store boolean
+                        case Opcode.STOREN: STOREN(); break;              // store number
+                        case Opcode.STORES: STORES(); break;              // store string
+                        case Opcode.STOREY: STOREY(); break;              // store bytes
+                        case Opcode.STOREA: STOREA(); break;              // store array
+                        case Opcode.STORED: STORED(); break;              // store dictionary
+                        case Opcode.STOREP: STOREP(); break;              // store pointer
+                        case Opcode.STOREJ: STOREJ(); break;              // store object
+                        case Opcode.STOREV: STOREV(); break;              // store voidptr
+                        case Opcode.NEGN: NEGN(); break;                  // negate number
+                        case Opcode.ADDN: ADDN(); break;                  // add number
+                        case Opcode.SUBN: SUBN(); break;                  // subtract number
+                        case Opcode.MULN: MULN(); break;                  // multiply number
+                        case Opcode.DIVN: DIVN(); break;                  // divide number
+                        case Opcode.MODN: MODN(); break;                  // modulo number
+                        case Opcode.EXPN: EXPN(); break;                  // exponentiate number
+                        case Opcode.EQB: EQB(); break;                    // compare equal boolean
+                        case Opcode.NEB: NEB(); break;                    // compare unequal boolean
+                        case Opcode.EQN: EQN(); break;                    // compare equal number
+                        case Opcode.NEN: NEN(); break;                    // compare unequal number
+                        case Opcode.LTN: LTN(); break;                    // compare less number
+                        case Opcode.GTN: GTN(); break;                    // compare greater number
+                        case Opcode.LEN: LEN(); break;                    // compare less equal number
+                        case Opcode.GEN: GEN(); break;                    // compare greater equal number
+                        case Opcode.EQS: EQS(); break;                    // compare equal string
+                        case Opcode.NES: NES(); break;                    // compare unequal string
+                        case Opcode.LTS: LTS(); break;                    // compare less string
+                        case Opcode.GTS: GTS(); break;                    // compare greater string
+                        case Opcode.LES: LES(); break;                    // compare less equal string
+                        case Opcode.GES: GES(); break;                    // compare greater equal string
+                        case Opcode.EQY: EQY(); break;                    // compare equal bytes
+                        case Opcode.NEY: NEY(); break;                    // compare unequal bytes
+                        case Opcode.LTY: LTY(); break;                    // compare less bytes
+                        case Opcode.GTY: GTY(); break;                    // compare greater bytes
+                        case Opcode.LEY: LEY(); break;                    // compare less equal bytes
+                        case Opcode.GEY: GEY(); break;                    // compare greater equal bytes
+                        case Opcode.EQA: EQA(); break;                    // compare equal array
+                        case Opcode.NEA: NEA(); break;                    // compare unequal array
+                        case Opcode.EQD: EQD(); break;                    // compare equal dictionary
+                        case Opcode.NED: NED(); break;                    // compare unequal dictionary
+                        case Opcode.EQP: EQP(); break;                    // compare equal pointer
+                        case Opcode.NEP: NEP(); break;                    // compare unequal pointer
+                        case Opcode.EQV: EQV(); break;                    // compare equal voidptr
+                        case Opcode.NEV: NEV(); break;                    // compare unequal voidptr
+                        case Opcode.ANDB: ANDB(); break;                  // and boolean
+                        case Opcode.ORB: ORB(); break;                    // or boolean
+                        case Opcode.NOTB: NOTB(); break;                  // not boolean
+                        case Opcode.INDEXAR: INDEXAR(); break;            // index array for read
+                        case Opcode.INDEXAW: INDEXAW(); break;            // index array for write
+                        case Opcode.INDEXAV: INDEXAV(); break;            // index array value
+                        case Opcode.INDEXAN: INDEXAN(); break;            // index array value, no exception
+                        case Opcode.INDEXDR: INDEXDR(); break;            // index dictionary for read
+                        case Opcode.INDEXDW: INDEXDW(); break;            // index dictionary for write
+                        case Opcode.INDEXDV: INDEXDV(); break;            // index dictionary value
+                        case Opcode.INA: INA(); break;                    // in array
+                        case Opcode.IND: IND(); break;                    // in dictionary
+                        case Opcode.CALLP: CALLP(); break;                // call predefined
+                        case Opcode.CALLF: CALLF(); break;                // call function
+                        case Opcode.CALLMF: CALLMF(); break;              // call module function
+                        case Opcode.CALLI: CALLI(); break;                // call indirect
+                        case Opcode.JUMP: JUMP(); break;                  // unconditional jump
+                        case Opcode.JF: JF(); break;                      // jump if false
+                        case Opcode.JT: JT(); break;                      // jump if true
+                        case Opcode.DUP: DUP(); break;                    // duplicate
+                        case Opcode.DUPX1: DUPX1(); break;                // duplicate under second value
+                        case Opcode.DROP: DROP(); break;                  // drop
+                        case Opcode.RET: RET(); break;                    // return
+                        case Opcode.CONSA: CONSA(); break;                // construct array
+                        case Opcode.CONSD: CONSD(); break;                // construct dictionary
+                        case Opcode.EXCEPT: EXCEPT(); break;              // throw exception
+                        case Opcode.ALLOC: ALLOC(); break;                // allocate record
+                        case Opcode.PUSHNIL: PUSHNIL(); break;            // push nil pointer
+                        case Opcode.RESETC: RESETC(); break;              // reset cell
+                        case Opcode.PUSHPEG: PUSHPEG(); break;            // push pointer to external global
+                        case Opcode.JUMPTBL: JUMPTBL(); break;            // jump table
+                        case Opcode.CALLX: CALLX(); break;                // call extension
+                        case Opcode.SWAP: SWAP(); break;                  // swap two top stack elements
+                        case Opcode.DROPN: DROPN(); break;                // drop element n
+                        case Opcode.PUSHFP: PUSHFP(); break;              // push function pointer
+                        case Opcode.CALLV: CALLV(); break;                // call virtual
+                        case Opcode.PUSHCI: PUSHCI(); break;              // push class info
+                        default:
+                            throw new InvalidOpcodeException(string.Format("Invalid opcode ({0}) in bytecode file.", module.Bytecode.code[ip]));
+                    }
+                } catch (NeonRuntimeException ne) {
+                    Raise(ne.Name, ne.Info);
+                } catch {
+                    throw;
                 }
             }
             return exit_code;

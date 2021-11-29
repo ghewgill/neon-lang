@@ -1,4 +1,4 @@
-set(JNEX_SOURCES
+set(JNEX
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigIntegerMath.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigComplex.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/Ifactor.java
@@ -19,6 +19,7 @@ set(JNEX_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectNumber.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeObjectString.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeonException.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/Util.java
 )
 string(REPLACE ".java" ".class" JNEX_CLASSES "${JNEX_SOURCES}")
 foreach (java ${JNEX_SOURCES})

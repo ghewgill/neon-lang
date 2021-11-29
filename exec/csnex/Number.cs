@@ -12,6 +12,11 @@ namespace csnex {
             val = 0;
         }
 
+        public Number(byte n)
+        {
+            val = n;
+        }
+
         public Number(Decimal n)
         {
             val = n;
@@ -20,6 +25,14 @@ namespace csnex {
         public Number(Int32 n)
         {
             val = n;
+        }
+
+        public Number(Number n)
+        {
+            val = 0;
+            if (n != null) {
+                val = n.val;
+            }
         }
 #endregion
 
@@ -109,6 +122,11 @@ namespace csnex {
             return Decimal.Compare(val, i) == 0;
         }
 
+        public bool IsNaN()
+        {
+            return Double.IsNaN(Decimal.ToDouble(val));
+        }
+
         public bool IsNegative()
         {
             return Math.Sign(val) == -1;
@@ -129,17 +147,17 @@ namespace csnex {
         {
             return Decimal.ToInt32(n.val);
         }
+
+        public static Int64 number_to_int64(Number n)
+        {
+            return Decimal.ToInt64(n.val);
+        }
 #endregion
 #region Overrides
         public override string ToString()
         {
             return val.ToString();
         }
-
-        internal static Int64 number_to_int64(Number index)
-        {
-            throw new System.NotImplementedException();
-        }
-    }
 #endregion
+    }
 }

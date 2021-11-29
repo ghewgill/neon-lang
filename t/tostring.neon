@@ -27,10 +27,10 @@ LET a: Array<String> := ["foo", "bar"]
 print(a.toString())
 --= ["foo", "bar"]
 
---LET d: Dictionary<String> := {"name": "foo", "value": "5"}
---print(d.toString())
---#= {"name": "foo", "value": "5"}
---
+LET d: Dictionary<String> := {"name": "foo", "value": "5"}
+print(d.toString())
+--= {"name": "foo", "value": "5"}
+
 --TYPE Item IS RECORD
 --    name: String
 --    value: Number

@@ -131,12 +131,13 @@ void path_readModule(TModule *m)
 
     m->source_path = strdup(modulePath);
     m->path_only = path_getPathOnly(m->source_path);
-    m->code = malloc(nSize);
+    m->codelen = nSize;
+    m->code = malloc(m->codelen);
     if (m->code == NULL) {
-        fatal_error("Could not allocate %d bytes for bytecode from %s module.", nSize, m->name);
+        fatal_error("Could not allocate %d bytes for bytecode from %s module.", m->codelen, m->name);
     }
 
-    m->codelen = (unsigned int)fread(m->code, 1, nSize, fp);
+    m->codelen = (unsigned int)fread(m->code, 1, m->codelen, fp);
     fclose(fp);
 }
 

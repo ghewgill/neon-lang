@@ -1,0 +1,12 @@
+TYPE Fruit IS CHOICE
+    apple
+    banana
+    cherry
+END CHOICE
+
+VAR f := Fruit.apple
+CASE f
+     --<
+    WHEN ISA Fruit.apple DO
+    WHEN ISA Fruit.banana DO
+END CASE

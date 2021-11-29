@@ -1,0 +1,68 @@
+TYPE FindResult IS CHOICE
+    notfound
+    index: Number
+END CHOICE
+
+FUNCTION find(s: String, target: String): FindResult
+    FOR i := 0 TO s.length()-1 DO
+        IF s[i TO i+target.length()-1] = target THEN
+            RETURN FindResult.index(i)
+        END IF
+    END FOR
+    RETURN FindResult.notfound
+END FUNCTION
+
+LET r: FindResult := find("foobar", "bar")
+IF r ISA FindResult.index THEN
+    print(r.index)
+ELSE
+    print("not found")
+END IF
+--= 3
+
+TYPE Fruit IS CHOICE
+    apple: Number
+    banana: Number
+    cherry: Number
+END CHOICE
+
+VAR f: Fruit := Fruit.cherry(1)
+IF f ISA Fruit.apple THEN
+    print(f.apple)
+ELSIF f ISA Fruit.banana THEN
+    print(f.banana)
+ELSE
+    print(f.cherry)
+END IF
+--= 1
+
+LET n: Number := (IF f ISA Fruit.cherry THEN f.cherry ELSE -1)
+print(n)
+--= 1
+
+CASE f
+    WHEN ISA Fruit.apple DO
+        print(f.apple)
+    WHEN ISA Fruit.banana DO
+        print(f.banana)
+    WHEN ISA Fruit.cherry DO
+        print(f.cherry)
+END CASE
+--= 1
+
+print("\(f)")
+--= <cherry:1>
+
+-- What to do here? There is no conversion from a choice directly
+-- to an Object, so we must have to call choice.toString instead.
+--print(f)
+----= <cherry:1>
+
+-- Determination of OR conditions not yet handled.
+--f := Fruit.cherry(2)
+--IF f ISA Fruit.apple OR f ISA Fruit.banana THEN
+--    print("apple or banana")
+--ELSE
+--    print(f.cherry)
+--END IF
+----= 2

@@ -88,6 +88,10 @@ print(file.pathJoin("a", "b"))
 --? a[/\\]b
 print(file.pathJoin("a", "/b"))
 --= /b
+print(file.pathJoin("a", "b", "c"))
+--? a[/\\]b[/\\]c
+print(file.pathJoin("a/", "", "c"))
+--= a/c
 
 VAR directory, name: String
 file.pathSplit("a", OUT directory, OUT name)

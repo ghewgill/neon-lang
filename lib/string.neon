@@ -245,7 +245,7 @@ END FUNCTION
 
 /*  Function: replaceOne
  *
- *  Return a string the first instacne of a given string replaced by another string.
+ *  Return a string the first instance of a given string replaced by another string.
  */
 FUNCTION replaceOne(s: String, target: String, replacement: String): String
     LET i: Number := find(s, target)
