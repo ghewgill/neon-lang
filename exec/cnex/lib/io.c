@@ -36,7 +36,10 @@ void object_releaseFileObject(Object *o)
 
         if (o->refcount <= 0) {
             if (o->ptr != NULL) {
-                fclose((FILE*)o->ptr);
+                // Do not close the handle if it happens to be one of the STD file handles.
+                if (o->ptr != stdout && o->ptr != stdin && o->ptr != stderr) {
+                    fclose((FILE*)o->ptr);
+                }
             }
             free(o);
         }
