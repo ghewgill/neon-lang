@@ -1535,7 +1535,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             fprintf(stderr, "neonc: Note: Optional module %s not found at compile time\n", name.c_str());
             return ast::MODULE_MISSING;
         } else {
-            error(3001, token, std::string("module not found: ") + e.what());
+            error(3001, token, std::string("module " + name + " not found: ") + e.what());
         }
     }
     ast::Module *module = new ast::Module(Token(), global_scope, name, optional);

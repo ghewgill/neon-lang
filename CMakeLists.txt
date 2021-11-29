@@ -174,26 +174,32 @@ endforeach ()
 set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/base.neon
     ${CMAKE_SOURCE_DIR}/lib/binary.neon
+    ${CMAKE_SOURCE_DIR}/lib/cformat.neon
     ${CMAKE_SOURCE_DIR}/lib/complex.neon
     ${CMAKE_SOURCE_DIR}/lib/console.neon
     ${CMAKE_SOURCE_DIR}/lib/datetime.neon
     ${CMAKE_SOURCE_DIR}/lib/debugger.neon
+    ${CMAKE_SOURCE_DIR}/lib/encoding.neon
     ${CMAKE_SOURCE_DIR}/lib/file.neon
     ${CMAKE_SOURCE_DIR}/lib/global.neon
     ${CMAKE_SOURCE_DIR}/lib/io.neon
+    ${CMAKE_SOURCE_DIR}/lib/json.neon
     ${CMAKE_SOURCE_DIR}/lib/math.neon
     ${CMAKE_SOURCE_DIR}/lib/mmap.neon
+    ${CMAKE_SOURCE_DIR}/lib/multiarray.neon
     ${CMAKE_SOURCE_DIR}/lib/net.neon
     ${CMAKE_SOURCE_DIR}/lib/os.neon
     ${CMAKE_SOURCE_DIR}/lib/process.neon
     ${CMAKE_SOURCE_DIR}/lib/random.neon
     ${CMAKE_SOURCE_DIR}/lib/runtime.neon
+    ${CMAKE_SOURCE_DIR}/lib/simplehttp.neon
     ${CMAKE_SOURCE_DIR}/lib/sqlite.neon
     ${CMAKE_SOURCE_DIR}/lib/string.neon
     ${CMAKE_SOURCE_DIR}/lib/struct.neon
     ${CMAKE_SOURCE_DIR}/lib/sys.neon
     ${CMAKE_SOURCE_DIR}/lib/textio.neon
     ${CMAKE_SOURCE_DIR}/lib/time.neon
+    ${CMAKE_SOURCE_DIR}/lib/xml.neon
 )
 if (WIN32)
 else (WIN32)
@@ -228,6 +234,8 @@ if (JAVAC)
     set(RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
     list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/global.neon")
     list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/struct.neon") # TODO (excluding struct for some reason)
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/json.neon") # TODO (excluding json for some reason)
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/simplehttp.neon") # TODO (excluding simplehttp for some reason)
     set(RTL_CLASSES "")
     foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
         string(REPLACE ".neon" ".class" class ${rtl_neon})
@@ -704,34 +712,34 @@ add_custom_target(testx ALL
     DEPENDS ${TESTSX}
 )
 add_tests("${TESTS}" "" $<TARGET_FILE:neon> "")
-add_tests("${TESTS}" "helium" "python3 tools/helium.py" "tools/helium-exclude.txt")
+add_tests("${TESTS}" "helium" "python3 ${CMAKE_SOURCE_DIR}/tools/helium.py" "${CMAKE_SOURCE_DIR}/tools/helium-exclude.txt")
 if (NOT (WIN32 AND DEFINED ENV{GITHUB_ACTIONS}))
     # TODO: Github Actions does not seem to be able to run the C++ compiler on Windows sensibly.
-    add_tests("${TESTS}" "cpp" "python3 scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "scripts/cpp-exclude.txt")
+    add_tests("${TESTS}" "cpp" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/cpp-exclude.txt")
 endif ()
 if (NODEJS)
-    add_tests("${TESTS}" "js" "python3 scripts/run_js.py --neonc $<TARGET_FILE:neonc>" "scripts/js-exclude.txt")
+    add_tests("${TESTS}" "js" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_js.py --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/js-exclude.txt")
 endif (NODEJS)
 if (JAVAC)
-    add_tests("${TESTS}" "jvm" "python3 scripts/run_jvm.py  --neonc $<TARGET_FILE:neonc> --java ${JAVA}" "scripts/jvm-exclude.txt")
+    add_tests("${TESTS}" "jvm" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_jvm.py  --neonc $<TARGET_FILE:neonc> --java ${JAVA}" "${CMAKE_SOURCE_DIR}/scripts/jvm-exclude.txt")
 endif (JAVAC)
 if (CSC)
-    add_tests("${TESTS}" "cli" "python3 scripts/run_cli.py --neonc $<TARGET_FILE:neonc>" "scripts/cli-exclude.txt")
+    add_tests("${TESTS}" "cli" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_cli.py --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/cli-exclude.txt")
 endif ()
-add_tests("${TESTS}" "nenex" "python3 ${CMAKE_SOURCE_DIR}/exec/nenex/run_test.py --neon $<TARGET_FILE:neon>" "exec/nenex/exclude.txt")
-add_tests("${TESTS}" "pynex" "python3 ${CMAKE_SOURCE_DIR}/exec/pynex/run_test.py" "exec/pynex/exclude.txt")
+add_tests("${TESTS}" "nenex" "python3 ${CMAKE_SOURCE_DIR}/exec/nenex/run_test.py --neon $<TARGET_FILE:neon>" "${CMAKE_SOURCE_DIR}/exec/nenex/exclude.txt")
+add_tests("${TESTS}" "pynex" "python3 ${CMAKE_SOURCE_DIR}/exec/pynex/run_test.py" "${CMAKE_SOURCE_DIR}/exec/pynex/exclude.txt")
 if (JAVAC)
-    add_tests("${TESTS}" "jnex" "python3 ${CMAKE_SOURCE_DIR}/exec/jnex/run_test.py --java ${JAVA}" "exec/jnex/exclude.txt")
+    add_tests("${TESTS}" "jnex" "python3 ${CMAKE_SOURCE_DIR}/exec/jnex/run_test.py --java ${JAVA}" "${CMAKE_SOURCE_DIR}/exec/jnex/exclude.txt")
 endif (JAVAC)
-add_tests("${TESTS}" "cnex" "python3 ${CMAKE_SOURCE_DIR}/exec/cnex/run_test.py --cnex $<TARGET_FILE:cnex>" "exec/cnex/exclude.txt")
+add_tests("${TESTS}" "cnex" "python3 ${CMAKE_SOURCE_DIR}/exec/cnex/run_test.py --cnex $<TARGET_FILE:cnex>" "${CMAKE_SOURCE_DIR}/exec/cnex/exclude.txt")
 if (CSC)
-    add_tests("${TESTS}" "csnex" "python3 ${CMAKE_SOURCE_DIR}/exec/csnex/run_test.py" "exec/csnex/exclude.txt")
+    add_tests("${TESTS}" "csnex" "python3 ${CMAKE_SOURCE_DIR}/exec/csnex/run_test.py" "${CMAKE_SOURCE_DIR}/exec/csnex/exclude.txt")
 endif (CSC)
 if (RUSTC)
-    add_tests("${TESTS}" "rsnex" "python3 ${CMAKE_SOURCE_DIR}/exec/rsnex/run_test.py" "exec/rsnex/exclude.txt")
+    add_tests("${TESTS}" "rsnex" "python3 ${CMAKE_SOURCE_DIR}/exec/rsnex/run_test.py" "${CMAKE_SOURCE_DIR}/exec/rsnex/exclude.txt")
 endif (RUSTC)
 if (GO)
-    add_tests("${TESTS}" "gonex" "python3 ${CMAKE_SOURCE_DIR}/exec/gonex/run_test.py" "exec/gonex/exclude.txt")
+    add_tests("${TESTS}" "gonex" "python3 ${CMAKE_SOURCE_DIR}/exec/gonex/run_test.py" "${CMAKE_SOURCE_DIR}/exec/gonex/exclude.txt")
 endif (GO)
 
 if (NOT WIN32)
