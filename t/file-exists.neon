@@ -1,6 +1,6 @@
 IMPORT file
 
-IF file.exists("t/file-exists.neon") THEN
+IF file.exists("LICENSE.txt") THEN
     print("file exists")
 ELSE
     print("file does not exist")
@@ -8,7 +8,7 @@ END IF
 
 --= file exists
 
-IF file.exists("t/file-exist.neon") THEN
+IF file.exists("LICENSE.not") THEN
     print("file exists")
 ELSE
     print("file does not exist")

@@ -1,4 +1,4 @@
-set(JNEX
+set(JNEX_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigIntegerMath.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigComplex.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/Ifactor.java
@@ -21,14 +21,16 @@ set(JNEX
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/NeonException.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/neon_lang/jnex/Util.java
 )
-string(REPLACE ".java" ".class" JNEX_CLASSES "${JNEX_SOURCES}")
+set(JNEX_CLASSES "")
 foreach (java ${JNEX_SOURCES})
-    string(REPLACE ".java" ".class" class ${java})
+    string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}" class ${java})
+    string(REPLACE ".java" ".class" class ${class})
     add_custom_command(
         OUTPUT ${class}
-        COMMAND javac -cp ${CMAKE_CURRENT_SOURCE_DIR}/src ${java}
+        COMMAND javac -cp ${CMAKE_CURRENT_SOURCE_DIR}/src -d ${CMAKE_CURRENT_BINARY_DIR}/src ${java}
         DEPENDS ${java}
     )
+    list(APPEND JNEX_CLASSES "${class}")
 endforeach ()
 add_custom_target(jnex ALL
     DEPENDS ${JNEX_CLASSES}

@@ -238,8 +238,8 @@ if (JAVAC)
     list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/simplehttp.neon") # TODO (excluding simplehttp for some reason)
     set(RTL_CLASSES "")
     foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
-        string(REPLACE ".neon" ".class" class ${rtl_neon})
-        set(class "rtl/jvm/neon/${class}")
+        get_filename_component(nameonly ${rtl_neon} NAME_WE)
+        set(class "${CMAKE_BINARY_DIR}/rtl/jvm/neon/lib/${nameonly}.class")
         add_custom_command(
             OUTPUT ${class}
             COMMAND neonc -q -t jvm -T package=neon.lib -T classdir=rtl/jvm ${rtl_neon}
@@ -267,14 +267,16 @@ if (JAVAC)
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/type/NeonException.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/type/Number.java
     )
-    string(REPLACE ".java" ".class" NEON_JVM_CLASSES "${NEON_JVM}")
+    set(NEON_JVM_CLASSES "")
     foreach (java ${NEON_JVM})
-        string(REPLACE ".java" ".class" class ${java})
+        string(REPLACE "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" class ${java})
+        string(REPLACE ".java" ".class" class ${class})
         add_custom_command(
             OUTPUT ${class}
-            COMMAND javac -cp ${CMAKE_SOURCE_DIR}/rtl/jvm ${java}
+            COMMAND javac -cp ${CMAKE_SOURCE_DIR}/rtl/jvm -d rtl/jvm ${java}
             DEPENDS ${java} neon_jvm_rtl
         )
+        list(APPEND NEON_JVM_CLASSES "${class}")
     endforeach ()
     add_custom_target(neon_jvm ALL
         DEPENDS ${NEON_JVM_CLASSES}
@@ -729,8 +731,8 @@ endif (JAVAC)
 if (CSC)
     add_tests("${TESTS}" "cli" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_cli.py --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/cli-exclude.txt")
 endif ()
-add_tests("${TESTS}" "nenex" "python3 ${CMAKE_SOURCE_DIR}/exec/nenex/run_test.py --neon $<TARGET_FILE:neon>" "${CMAKE_SOURCE_DIR}/exec/nenex/exclude.txt")
-add_tests("${TESTS}" "pynex" "python3 ${CMAKE_SOURCE_DIR}/exec/pynex/run_test.py" "${CMAKE_SOURCE_DIR}/exec/pynex/exclude.txt")
+add_tests("${TESTS}" "nenex" "python3 ${CMAKE_SOURCE_DIR}/exec/nenex/run_test.py --neon $<TARGET_FILE:neon> --nenex ${CMAKE_SOURCE_DIR}/exec/nenex/nenex.neon" "${CMAKE_SOURCE_DIR}/exec/nenex/exclude.txt")
+add_tests("${TESTS}" "pynex" "python3 ${CMAKE_SOURCE_DIR}/exec/pynex/run_test.py --pynex ${CMAKE_SOURCE_DIR}/exec/pynex/pynex.py" "${CMAKE_SOURCE_DIR}/exec/pynex/exclude.txt")
 if (JAVAC)
     add_tests("${TESTS}" "jnex" "python3 ${CMAKE_SOURCE_DIR}/exec/jnex/run_test.py --java ${JAVA}" "${CMAKE_SOURCE_DIR}/exec/jnex/exclude.txt")
 endif (JAVAC)
