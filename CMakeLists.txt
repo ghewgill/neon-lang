@@ -320,9 +320,9 @@ add_library(common STATIC
 )
 target_include_directories(common
     PRIVATE src
-    INTERFACE external/hash-library
-    INTERFACE external/minijson_writer-master
-    PUBLIC external/utfcpp-master/source
+    INTERFACE ${CMAKE_BINARY_DIR}/external/hash-library
+    INTERFACE ${CMAKE_BINARY_DIR}/external/minijson_writer-master
+    PUBLIC ${CMAKE_BINARY_DIR}/external/utfcpp-master/source
     PRIVATE ${CMAKE_BINARY_DIR}/gen
 )
 target_link_libraries(common
@@ -401,18 +401,21 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     )
 endif ()
 
-# Needed for USE_RTLX
-#string(REPLACE "lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
-#set(RTL_NEONX "")
-#foreach (src ${RTL_NEON_WITHOUT_GLOBAL})
-#    string(REPLACE ".neon" ".neonx" NEONX ${src})
-#    add_custom_command(
-#        OUTPUT "${src}x"
-#        COMMAND neonc ${src}
-#        DEPENDS ${src}
-#    )
-#    list(APPEND RTL_NEONX ${NEONX})
-#endforeach ()
+string(REPLACE "${CMAKE_SOURCE_DIR}/lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
+set(RTL_NEONX "")
+foreach (src ${RTL_NEON_WITHOUT_GLOBAL})
+    string(REPLACE ".neon" ".neonx" neonx ${src})
+    string(REPLACE "${CMAKE_SOURCE_DIR}/" "" neonx ${neonx})
+    add_custom_command(
+        OUTPUT ${neonx}
+        COMMAND neonc -q -o ${neonx} ${src}
+        DEPENDS neonc ${src}
+    )
+    list(APPEND RTL_NEONX ${neonx})
+endforeach ()
+add_custom_target(neon_rtl ALL
+    DEPENDS ${RTL_NEONX}
+)
 #add_custom_command(
 #    OUTPUT gen/rtlx.inc
 #    COMMAND python3 scripts/build_rtlx_inc.py ${RTL_NEONX}
@@ -879,10 +882,10 @@ add_test(
 )
 
 add_custom_target(docs ALL
-    COMMAND perl ${CMAKE_SOURCE_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/lib -o HTML gh-pages/html -p ${CMAKE_SOURCE_DIR}/lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3
+    COMMAND perl ${CMAKE_BINARY_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/lib -o HTML gh-pages/html -p ${CMAKE_SOURCE_DIR}/lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3
 )
 add_custom_target(docs_samples ALL
-    COMMAND perl ${CMAKE_SOURCE_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/samples -o HTML gh-pages/samples -p ${CMAKE_SOURCE_DIR}/samples/nd.proj -ro
+    COMMAND perl ${CMAKE_BINARY_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/samples -o HTML gh-pages/samples -p ${CMAKE_SOURCE_DIR}/samples/nd.proj -ro
 )
 
 add_custom_command(

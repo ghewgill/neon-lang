@@ -1,7 +1,7 @@
 if (NOT EXISTS external/minizip11)
     execute_process(
-        COMMAND python3 ../scripts/extract.py unzip11.zip minizip11
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/extract.py ${CMAKE_CURRENT_SOURCE_DIR}/unzip11.zip minizip11
+        WORKING_DIRECTORY external
         RESULT_VARIABLE retcode
     )
     if (NOT "${retcode}" STREQUAL "0")
@@ -23,6 +23,6 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Fre
     set_source_files_properties(minizip11/ioapi.c PROPERTIES COMPILE_DEFINITIONS "fopen64=fopen;fseeko64=fseeko;ftello64=ftello")
 endif ()
 target_include_directories(minizip
-    INTERFACE minizip11
+    INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/minizip11
 )
 target_link_libraries(minizip ${ZLIB_TARGET})

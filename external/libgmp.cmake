@@ -3,8 +3,8 @@ if (GMP_FOUND)
 else ()
     if (NOT EXISTS external/gmp-6.1.2)
         execute_process(
-            COMMAND python3 ../scripts/extract.py gmp-6.1.2.tar.bz2 .
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/extract.py ${CMAKE_CURRENT_SOURCE_DIR}/gmp-6.1.2.tar.bz2 .
+            WORKING_DIRECTORY external
             RESULT_VARIABLE retcode
         )
         if (NOT "${retcode}" STREQUAL "0")
