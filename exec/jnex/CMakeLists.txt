@@ -1,3 +1,4 @@
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src)
 set(JNEX_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigIntegerMath.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/org/nevec/rjm/BigComplex.java

@@ -10,6 +10,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY bin)
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/t) # TODO: remove this, it's just for Neon.dll which should go in a better place.
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/tmp)
 
 find_program(JAVAC javac)
