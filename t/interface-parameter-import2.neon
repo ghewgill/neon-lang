@@ -1,4 +1,4 @@
-IMPORT "t/interface-parameter-export2" ALIAS export
+IMPORT "interface-parameter-export2" ALIAS export
 
 EXPORT TYPE Cls IS CLASS IMPLEMENTS export.Interface
 END CLASS

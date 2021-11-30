@@ -8,6 +8,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY bin)
 
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/tmp)
+
 find_program(JAVAC javac)
 if (JAVAC)
     execute_process(
@@ -172,49 +176,55 @@ foreach (extension_dir ${EXTENSION_DIRS})
 endforeach ()
 
 set(RTL_NEON
-    lib/base.neon
-    lib/binary.neon
-    lib/complex.neon
-    lib/console.neon
-    lib/datetime.neon
-    lib/debugger.neon
-    lib/file.neon
-    lib/global.neon
-    lib/io.neon
-    lib/math.neon
-    lib/mmap.neon
-    lib/net.neon
-    lib/os.neon
-    lib/process.neon
-    lib/random.neon
-    lib/runtime.neon
-    lib/sqlite.neon
-    lib/string.neon
-    lib/struct.neon
-    lib/sys.neon
-    lib/textio.neon
-    lib/time.neon
+    ${CMAKE_SOURCE_DIR}/lib/base.neon
+    ${CMAKE_SOURCE_DIR}/lib/binary.neon
+    ${CMAKE_SOURCE_DIR}/lib/cformat.neon
+    ${CMAKE_SOURCE_DIR}/lib/complex.neon
+    ${CMAKE_SOURCE_DIR}/lib/console.neon
+    ${CMAKE_SOURCE_DIR}/lib/datetime.neon
+    ${CMAKE_SOURCE_DIR}/lib/debugger.neon
+    ${CMAKE_SOURCE_DIR}/lib/encoding.neon
+    ${CMAKE_SOURCE_DIR}/lib/file.neon
+    ${CMAKE_SOURCE_DIR}/lib/global.neon
+    ${CMAKE_SOURCE_DIR}/lib/io.neon
+    ${CMAKE_SOURCE_DIR}/lib/json.neon
+    ${CMAKE_SOURCE_DIR}/lib/math.neon
+    ${CMAKE_SOURCE_DIR}/lib/mmap.neon
+    ${CMAKE_SOURCE_DIR}/lib/multiarray.neon
+    ${CMAKE_SOURCE_DIR}/lib/net.neon
+    ${CMAKE_SOURCE_DIR}/lib/os.neon
+    ${CMAKE_SOURCE_DIR}/lib/process.neon
+    ${CMAKE_SOURCE_DIR}/lib/random.neon
+    ${CMAKE_SOURCE_DIR}/lib/runtime.neon
+    ${CMAKE_SOURCE_DIR}/lib/simplehttp.neon
+    ${CMAKE_SOURCE_DIR}/lib/sqlite.neon
+    ${CMAKE_SOURCE_DIR}/lib/string.neon
+    ${CMAKE_SOURCE_DIR}/lib/struct.neon
+    ${CMAKE_SOURCE_DIR}/lib/sys.neon
+    ${CMAKE_SOURCE_DIR}/lib/textio.neon
+    ${CMAKE_SOURCE_DIR}/lib/time.neon
+    ${CMAKE_SOURCE_DIR}/lib/xml.neon
 )
 if (WIN32)
 else (WIN32)
-    set(RTL_NEON "${RTL_NEON};lib/posix.neon")
+    set(RTL_NEON "${RTL_NEON};${CMAKE_SOURCE_DIR}/lib/posix.neon")
 endif (WIN32)
 
 add_custom_command(
-    OUTPUT gen/thunks.inc gen/functions_compile.inc gen/functions_exec.inc gen/enums.inc gen/exceptions.inc
-    COMMAND python3 scripts/make_thunks.py ${RTL_NEON}
+    OUTPUT ${CMAKE_BINARY_DIR}/gen/thunks.inc ${CMAKE_BINARY_DIR}/gen/functions_compile.inc ${CMAKE_BINARY_DIR}/gen/functions_exec.inc ${CMAKE_BINARY_DIR}/gen/enums.inc ${CMAKE_BINARY_DIR}/gen/exceptions.inc
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/make_thunks.py ${RTL_NEON}
     DEPENDS scripts/make_thunks.py
     DEPENDS ${RTL_NEON}
 )
 set_source_files_properties(
     src/ast.cpp
     src/intrinsic.cpp
-    PROPERTIES OBJECT_DEPENDS gen/exceptions.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/gen/exceptions.inc
 )
 
 add_custom_command(
     OUTPUT gen/unicodedata.inc
-    COMMAND python3 tools/helium.py scripts/make_unicode.neon data/UnicodeData.txt >gen/unicodedata.inc
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/scripts/make_unicode.neon ${CMAKE_SOURCE_DIR}/data/UnicodeData.txt >gen/unicodedata.inc
     DEPENDS tools/helium.py
     DEPENDS scripts/make_unicode.neon
     DEPENDS data/UnicodeData.txt
@@ -226,12 +236,14 @@ set_source_files_properties(
 
 if (JAVAC)
     set(RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
-    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "lib/global.neon")
-    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "lib/struct.neon") # TODO (excluding struct for some reason)
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/global.neon")
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/struct.neon") # TODO (excluding struct for some reason)
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/json.neon") # TODO (excluding json for some reason)
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/simplehttp.neon") # TODO (excluding simplehttp for some reason)
     set(RTL_CLASSES "")
     foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
-        string(REPLACE ".neon" ".class" class ${rtl_neon})
-        set(class "rtl/jvm/neon/${class}")
+        get_filename_component(nameonly ${rtl_neon} NAME_WE)
+        set(class "${CMAKE_BINARY_DIR}/rtl/jvm/neon/lib/${nameonly}.class")
         add_custom_command(
             OUTPUT ${class}
             COMMAND neonc -q -t jvm -T package=neon.lib -T classdir=rtl/jvm ${rtl_neon}
@@ -243,30 +255,32 @@ if (JAVAC)
         DEPENDS ${RTL_CLASSES}
     )
     set(NEON_JVM
-        rtl/jvm/neon/Binary.java
-        rtl/jvm/neon/Datetime.java
-        rtl/jvm/neon/File.java
-        rtl/jvm/neon/Global.java
-        rtl/jvm/neon/Hash.java
-        rtl/jvm/neon/Io.java
-        rtl/jvm/neon/Math.java
-        rtl/jvm/neon/Os.java
-        rtl/jvm/neon/String.java
-        rtl/jvm/neon/Sys.java
-        rtl/jvm/neon/Textio.java
-        rtl/jvm/neon/Time.java
-        rtl/jvm/neon/type/Array.java
-        rtl/jvm/neon/type/NeonException.java
-        rtl/jvm/neon/type/Number.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Binary.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Datetime.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/File.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Global.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Hash.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Io.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Math.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Os.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/String.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Sys.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Textio.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Time.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/type/Array.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/type/NeonException.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/type/Number.java
     )
-    string(REPLACE ".java" ".class" NEON_JVM_CLASSES "${NEON_JVM}")
+    set(NEON_JVM_CLASSES "")
     foreach (java ${NEON_JVM})
-        string(REPLACE ".java" ".class" class ${java})
+        string(REPLACE "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" class ${java})
+        string(REPLACE ".java" ".class" class ${class})
         add_custom_command(
             OUTPUT ${class}
-            COMMAND javac -cp rtl/jvm ${java}
+            COMMAND javac -cp ${CMAKE_SOURCE_DIR}/rtl/jvm -d rtl/jvm ${java}
             DEPENDS ${java} neon_jvm_rtl
         )
+        list(APPEND NEON_JVM_CLASSES "${class}")
     endforeach ()
     add_custom_target(neon_jvm ALL
         DEPENDS ${NEON_JVM_CLASSES}
@@ -275,7 +289,7 @@ endif (JAVAC)
 
 if (CSC)
     set(NEON_CLI
-        rtl/cli/Global.cs
+        ${CMAKE_SOURCE_DIR}/rtl/cli/Global.cs
     )
     # TODO: Use cmake C# support (3.8.2+)
     add_custom_command(
@@ -311,10 +325,11 @@ add_library(common STATIC
     gen/version.cpp
 )
 target_include_directories(common
-    INTERFACE external/hash-library
-    INTERFACE external/minijson_writer-master
-    PUBLIC external/utfcpp-master/source
-    PRIVATE gen
+    PRIVATE src
+    INTERFACE ${CMAKE_BINARY_DIR}/external/hash-library
+    INTERFACE ${CMAKE_BINARY_DIR}/external/minijson_writer-master
+    PUBLIC ${CMAKE_BINARY_DIR}/external/utfcpp-master/source
+    PRIVATE ${CMAKE_BINARY_DIR}/gen
 )
 target_link_libraries(common
     bid
@@ -324,7 +339,7 @@ target_link_libraries(common
 
 add_custom_command(
     OUTPUT gen/rtl.inc
-    COMMAND python3 scripts/build_rtl_inc.py ${RTL_NEON}
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/build_rtl_inc.py ${RTL_NEON}
     DEPENDS scripts/build_rtl_inc.py
     DEPENDS ${RTL_NEON}
 )
@@ -344,10 +359,10 @@ add_library(compiler STATIC
 )
 set_source_files_properties(
     src/support_compiler.cpp
-    PROPERTIES OBJECT_DEPENDS gen/rtl.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/gen/rtl.inc
 )
 target_include_directories(compiler
-    PRIVATE gen
+    PRIVATE ${CMAKE_BINARY_DIR}/gen
 )
 target_link_libraries(compiler
     common
@@ -392,18 +407,21 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     )
 endif ()
 
-# Needed for USE_RTLX
-#string(REPLACE "lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
-#set(RTL_NEONX "")
-#foreach (src ${RTL_NEON_WITHOUT_GLOBAL})
-#    string(REPLACE ".neon" ".neonx" NEONX ${src})
-#    add_custom_command(
-#        OUTPUT "${src}x"
-#        COMMAND neonc ${src}
-#        DEPENDS ${src}
-#    )
-#    list(APPEND RTL_NEONX ${NEONX})
-#endforeach ()
+string(REPLACE "${CMAKE_SOURCE_DIR}/lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
+set(RTL_NEONX "")
+foreach (src ${RTL_NEON_WITHOUT_GLOBAL})
+    string(REPLACE ".neon" ".neonx" neonx ${src})
+    string(REPLACE "${CMAKE_SOURCE_DIR}/" "" neonx ${neonx})
+    add_custom_command(
+        OUTPUT ${neonx}
+        COMMAND neonc -q -o ${neonx} ${src}
+        DEPENDS neonc ${src}
+    )
+    list(APPEND RTL_NEONX ${neonx})
+endforeach ()
+add_custom_target(neon_rtl ALL
+    DEPENDS ${RTL_NEONX}
+)
 #add_custom_command(
 #    OUTPUT gen/rtlx.inc
 #    COMMAND python3 scripts/build_rtlx_inc.py ${RTL_NEONX}
@@ -445,11 +463,11 @@ add_library(executor STATIC
 target_compile_options(executor PRIVATE)
 set_source_files_properties(
     src/exec.cpp
-    PROPERTIES OBJECT_DEPENDS gen/exceptions.inc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/gen/exceptions.inc
 )
 target_include_directories(executor
     PRIVATE common
-    PRIVATE gen
+    PRIVATE ${CMAKE_BINARY_DIR}/gen
     PRIVATE src
 )
 target_link_libraries(executor
@@ -475,7 +493,7 @@ add_executable(neonc
     src/compiler_jvm.cpp
 )
 target_include_directories(neonc
-    PRIVATE gen
+    PRIVATE ${CMAKE_BINARY_DIR}/gen
 )
 target_link_libraries(neonc
     compiler
@@ -511,6 +529,9 @@ target_link_libraries(neonstub
 add_executable(neondis
     src/neondis.cpp
 )
+target_include_directories(neondis PRIVATE
+    ${CMAKE_BINARY_DIR}/src
+)
 target_link_libraries(neondis
     compiler
 )
@@ -528,7 +549,7 @@ add_executable(fuzz_lexer
     tests/fuzz_lexer.cpp
 )
 target_include_directories(fuzz_lexer PRIVATE
-    src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(fuzz_lexer
     compiler
@@ -538,7 +559,7 @@ add_executable(fuzz_parser
     tests/fuzz_parser.cpp
 )
 target_include_directories(fuzz_parser PRIVATE
-    src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(fuzz_parser
     compiler
@@ -548,7 +569,7 @@ add_executable(perf_lexer
     tests/perf_lexer.cpp
 )
 target_include_directories(perf_lexer PRIVATE
-    src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(perf_lexer
     compiler
@@ -558,7 +579,7 @@ add_executable(test_lexer
     tests/test_lexer.cpp
 )
 target_include_directories(test_lexer PRIVATE
-    src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(test_lexer
     compiler
@@ -569,7 +590,7 @@ add_test(
 )
 add_test(
     NAME test_lexer_coverage
-    COMMAND test_lexer tests/lexer-coverage.neon
+    COMMAND test_lexer ${CMAKE_SOURCE_DIR}/tests/lexer-coverage.neon
 )
 
 add_executable(test_number
@@ -590,7 +611,7 @@ add_executable(test_parser
     tests/test_parser.cpp
 )
 target_include_directories(test_parser PRIVATE
-    src
+    ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(test_parser
     compiler
@@ -615,8 +636,8 @@ add_test(
 )
 
 add_custom_command(
-    OUTPUT gen/errors.txt
-    COMMAND python3 tools/helium.py scripts/extract_errors.neon
+    OUTPUT ${CMAKE_BINARY_DIR}/gen/errors.txt
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/scripts/extract_errors.neon ${CMAKE_SOURCE_DIR}/src
     DEPENDS src/lexer.cpp
     DEPENDS src/parser.cpp
     DEPENDS src/analyzer.cpp
@@ -624,18 +645,18 @@ add_custom_command(
     DEPENDS src/ast.cpp
 )
 add_custom_target(errors_txt ALL
-    DEPENDS gen/errors.txt
+    DEPENDS ${CMAKE_BINARY_DIR}/gen/errors.txt
 )
 
 add_custom_command(
-    OUTPUT contrib/grammar/neon.w3c.ebnf
-    COMMAND python3 tools/helium.py contrib/grammar/ebnf_w3c.neon <contrib/grammar/neon.ebnf >contrib/grammar/neon.w3c.ebnf
+    OUTPUT ${CMAKE_BINARY_DIR}/gen/neon.w3c.ebnf
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/contrib/grammar/ebnf_w3c.neon <${CMAKE_SOURCE_DIR}/contrib/grammar/neon.ebnf >${CMAKE_BINARY_DIR}/gen/neon.w3c.ebnf
     DEPENDS tools/helium.py
     DEPENDS contrib/grammar/ebnf_w3c.neon
     DEPENDS contrib/grammar/neon.ebnf
 )
 add_custom_target(w3c_ebnf ALL
-    DEPENDS contrib/grammar/neon.w3c.ebnf
+    DEPENDS ${CMAKE_BINARY_DIR}/gen/neon.w3c.ebnf
 )
 
 function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
@@ -653,13 +674,13 @@ function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
             if (NOT ";${EXCLUDE};" MATCHES ";${T};")
                 add_test(
                     NAME "${TAG}:${T}"
-                    COMMAND python3 scripts/run_test.py --runner "${RUNNER}" ${TEST}
+                    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/run_test.py --runner "${RUNNER}" ${TEST}
                 )
             endif()
         else()
             add_test(
                 NAME "${T}"
-                COMMAND python3 scripts/run_test.py --runner "${RUNNER}" ${TEST}
+                COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/run_test.py --runner "${RUNNER}" ${TEST}
             )
         endif()
     endforeach()
@@ -690,7 +711,7 @@ foreach (TEST ${RUN_TESTS})
     endif (TEST_PLATFORM)
     add_custom_command(
         OUTPUT "${TEST}x"
-        COMMAND neonc -q ${TEST}
+        COMMAND neonc --neonpath ${CMAKE_SOURCE_DIR}/lib -q ${TEST}
         DEPENDS neonc ${TEST}
     )
     list(APPEND TESTS ${TEST})
@@ -700,34 +721,34 @@ add_custom_target(testx ALL
     DEPENDS ${TESTSX}
 )
 add_tests("${TESTS}" "" $<TARGET_FILE:neon> "")
-add_tests("${TESTS}" "helium" "python3 tools/helium.py" "tools/helium-exclude.txt")
+add_tests("${TESTS}" "helium" "python3 ${CMAKE_SOURCE_DIR}/tools/helium.py" "${CMAKE_SOURCE_DIR}/tools/helium-exclude.txt")
 if (NOT (WIN32 AND DEFINED ENV{GITHUB_ACTIONS}))
     # TODO: Github Actions does not seem to be able to run the C++ compiler on Windows sensibly.
-    add_tests("${TESTS}" "cpp" "python3 scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "scripts/cpp-exclude.txt")
+    add_tests("${TESTS}" "cpp" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/cpp-exclude.txt")
 endif ()
 if (NODEJS)
-    add_tests("${TESTS}" "js" "python3 scripts/run_js.py --neonc $<TARGET_FILE:neonc>" "scripts/js-exclude.txt")
+    add_tests("${TESTS}" "js" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_js.py --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/js-exclude.txt")
 endif (NODEJS)
 if (JAVAC)
-    add_tests("${TESTS}" "jvm" "python3 scripts/run_jvm.py  --neonc $<TARGET_FILE:neonc> --java ${JAVA}" "scripts/jvm-exclude.txt")
+    add_tests("${TESTS}" "jvm" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_jvm.py  --neonc $<TARGET_FILE:neonc> --java ${JAVA}" "${CMAKE_SOURCE_DIR}/scripts/jvm-exclude.txt")
 endif (JAVAC)
 if (CSC)
-    add_tests("${TESTS}" "cli" "python3 scripts/run_cli.py --neonc $<TARGET_FILE:neonc>" "scripts/cli-exclude.txt")
+    add_tests("${TESTS}" "cli" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_cli.py --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/cli-exclude.txt")
 endif ()
-add_tests("${TESTS}" "nenex" "python3 exec/nenex/run_test.py --neon $<TARGET_FILE:neon>" "exec/nenex/exclude.txt")
-add_tests("${TESTS}" "pynex" "python3 exec/pynex/run_test.py" "exec/pynex/exclude.txt")
+add_tests("${TESTS}" "nenex" "python3 ${CMAKE_SOURCE_DIR}/exec/nenex/run_test.py --neon $<TARGET_FILE:neon> --nenex ${CMAKE_SOURCE_DIR}/exec/nenex/nenex.neon" "${CMAKE_SOURCE_DIR}/exec/nenex/exclude.txt")
+add_tests("${TESTS}" "pynex" "python3 ${CMAKE_SOURCE_DIR}/exec/pynex/run_test.py --pynex ${CMAKE_SOURCE_DIR}/exec/pynex/pynex.py" "${CMAKE_SOURCE_DIR}/exec/pynex/exclude.txt")
 if (JAVAC)
-    add_tests("${TESTS}" "jnex" "python3 exec/jnex/run_test.py --java ${JAVA}" "exec/jnex/exclude.txt")
+    add_tests("${TESTS}" "jnex" "python3 ${CMAKE_SOURCE_DIR}/exec/jnex/run_test.py --java ${JAVA}" "${CMAKE_SOURCE_DIR}/exec/jnex/exclude.txt")
 endif (JAVAC)
-add_tests("${TESTS}" "cnex" "python3 exec/cnex/run_test.py --cnex $<TARGET_FILE:cnex>" "exec/cnex/exclude.txt")
+add_tests("${TESTS}" "cnex" "python3 ${CMAKE_SOURCE_DIR}/exec/cnex/run_test.py --cnex $<TARGET_FILE:cnex>" "${CMAKE_SOURCE_DIR}/exec/cnex/exclude.txt")
 if (CSC)
-    add_tests("${TESTS}" "csnex" "python3 exec/csnex/run_test.py" "exec/csnex/exclude.txt")
+    add_tests("${TESTS}" "csnex" "python3 ${CMAKE_SOURCE_DIR}/exec/csnex/run_test.py" "${CMAKE_SOURCE_DIR}/exec/csnex/exclude.txt")
 endif (CSC)
 if (RUSTC)
-    add_tests("${TESTS}" "rsnex" "python3 exec/rsnex/run_test.py" "exec/rsnex/exclude.txt")
+    add_tests("${TESTS}" "rsnex" "python3 ${CMAKE_SOURCE_DIR}/exec/rsnex/run_test.py" "${CMAKE_SOURCE_DIR}/exec/rsnex/exclude.txt")
 endif (RUSTC)
 if (GO)
-    add_tests("${TESTS}" "gonex" "python3 exec/gonex/run_test.py" "exec/gonex/exclude.txt")
+    add_tests("${TESTS}" "gonex" "python3 ${CMAKE_SOURCE_DIR}/exec/gonex/run_test.py" "${CMAKE_SOURCE_DIR}/exec/gonex/exclude.txt")
 endif (GO)
 
 if (NOT WIN32)
@@ -777,7 +798,7 @@ add_test(
 
 add_test(
     NAME "errors"
-    COMMAND python3 scripts/run_test.py --runner "$<TARGET_FILE:neonc> -q" --errors t/errors
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/run_test.py --runner "$<TARGET_FILE:neonc> -q" --errors t/errors
 )
 
 file(GLOB TESTS_REPL t/repl_*.neon)
@@ -792,14 +813,14 @@ endforeach ()
 file(GLOB_RECURSE SAMPLES neon/*.neon samples/*.neon scripts/*.neon tools/*.neon)
 foreach (SAMPLE ${SAMPLES})
     execute_process(
-        COMMAND python3 tools/helium.py tools/imports.neon ${SAMPLE}
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/helium.py --neonpath ${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/tools/imports.neon ${SAMPLE}
         OUTPUT_VARIABLE IMPORTS_NL
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     string(REPLACE "\n" ";" IMPORTS "${IMPORTS_NL}")
     set(MISSING_IMPORT "")
     foreach (IMPORT ${IMPORTS})
-        if (NOT EXISTS "lib/${IMPORT}.neon" AND NOT EXISTS "lib/${IMPORT}/${IMPORT}.neon")
+        if (NOT EXISTS "${CMAKE_SOURCE_DIR}/lib/${IMPORT}.neon" AND NOT EXISTS "${CMAKE_SOURCE_DIR}/lib/${IMPORT}/${IMPORT}.neon")
             set(MISSING_IMPORT ${IMPORT})
             break()
         endif()
@@ -867,32 +888,32 @@ add_test(
 )
 
 add_custom_target(docs ALL
-    COMMAND perl external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3
+    COMMAND perl ${CMAKE_BINARY_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/lib -o HTML gh-pages/html -p ${CMAKE_SOURCE_DIR}/lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3
 )
 add_custom_target(docs_samples ALL
-    COMMAND perl external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro
+    COMMAND perl ${CMAKE_BINARY_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/samples -o HTML gh-pages/samples -p ${CMAKE_SOURCE_DIR}/samples/nd.proj -ro
 )
 
 add_custom_command(
-    OUTPUT samples/hello/hello.neonx
-    COMMAND neonc samples/hello/hello.neon
-    DEPENDS neonc samples/hello/hello.neon
+    OUTPUT ${CMAKE_BINARY_DIR}/bin/hello.neonx
+    COMMAND neonc -o ${CMAKE_BINARY_DIR}/bin/hello.neonx ${CMAKE_SOURCE_DIR}/samples/hello/hello.neon
+    DEPENDS neonc ${CMAKE_SOURCE_DIR}/samples/hello/hello.neon
 )
 add_custom_target(hello_neb ALL
-    COMMAND neonbind -stub $<TARGET_FILE:neonstub> tmp/hello.neb samples/hello/hello.neonx
-    DEPENDS neonbind samples/hello/hello.neonx
+    COMMAND neonbind -stub $<TARGET_FILE:neonstub> tmp/hello.neb ${CMAKE_BINARY_DIR}/bin/hello.neonx
+    DEPENDS neonbind ${CMAKE_BINARY_DIR}/bin/hello.neonx
 )
 add_test(
     NAME hello_neb
     COMMAND neonx tmp/hello.neb
 )
 add_custom_target(hello_exe ALL
-    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e tmp/hello.exe samples/hello/hello.neonx
-    DEPENDS neonbind neonstub samples/hello/hello.neonx
+    COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e ${CMAKE_BINARY_DIR}/tmp/hello.exe ${CMAKE_BINARY_DIR}/bin/hello.neonx
+    DEPENDS neonbind neonstub ${CMAKE_BINARY_DIR}/bin/hello.neonx
 )
 add_test(
     NAME hello_exe
-    COMMAND tmp/hello.exe
+    COMMAND ${CMAKE_BINARY_DIR}/tmp/hello.exe
 )
 
 add_test(

@@ -1,27 +1,27 @@
 set(CSNEX_SOURCES
-    csnex.cs
-    Bytecode.cs
-    Cell.cs
-    Disassembly.cs
-    Enums.cs
-    Exceptions.cs
-    Exec.cs
-    Extensions.cs
-    Global.cs
-    Number.cs
-    Object.cs
-    Opcode.cs
-    Support.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/csnex.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cell.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Disassembly.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Enums.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Exceptions.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Exec.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Extensions.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Global.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Number.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Object.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Opcode.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Support.cs
 )
 
 set(CSNEX_RUNTIME
-    lib/console.cs
-    lib/io.cs
-    lib/random.cs
-    lib/runtime.cs
-    lib/string.cs
-    lib/sys.cs
-    lib/textio.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/console.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/io.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/random.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/runtime.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/string.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/sys.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/textio.cs
 )
 
 add_custom_command(

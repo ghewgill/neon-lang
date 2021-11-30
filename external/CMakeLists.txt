@@ -5,6 +5,8 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" 
     add_compile_options(-w)
 endif ()
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include)
+
 include(libbid.cmake)
 include(libgmp.cmake)
 include(libhash.cmake)

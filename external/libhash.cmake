@@ -1,14 +1,14 @@
 if (NOT EXISTS external/hash-library)
     execute_process(
-        COMMAND python3 ../scripts/extract.py hash-library.zip hash-library
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/extract.py ${CMAKE_CURRENT_SOURCE_DIR}/hash-library.zip hash-library
+        WORKING_DIRECTORY external
         RESULT_VARIABLE retcode
     )
     if (NOT "${retcode}" STREQUAL "0")
         message(FATAL_ERROR "Fatal error extracting archive")
     endif ()
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-        file(GLOB cpps hash-library/*.cpp)
+        file(GLOB cpps ${CMAKE_CURRENT_BINARY_DIR}/hash-library/*.cpp)
         foreach (fn ${cpps})
             execute_process(
                 COMMAND perl -n -i -e "print unless /<endian.h>/" ${fn}

@@ -3,8 +3,8 @@ if (OPENSSL_FOUND)
 else ()
     if (NOT EXISTS external/libressl-3.3.5)
         execute_process(
-            COMMAND python3 ../scripts/extract.py libressl-3.3.5.tar.gz .
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/extract.py ${CMAKE_CURRENT_SOURCE_DIR}/libressl-3.3.5.tar.gz .
+            WORKING_DIRECTORY external
             RESULT_VARIABLE retcode
         )
         if (NOT "${retcode}" STREQUAL "0")
@@ -565,13 +565,13 @@ else ()
         add_custom_target(libssl DEPENDS lib/libssl.a)
         add_library(RESSL::SSL STATIC IMPORTED GLOBAL)
         add_dependencies(RESSL::SSL libssl)
-        set_target_properties(RESSL::SSL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/include")
-        set_target_properties(RESSL::SSL PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/lib/libssl.a")
+        set_target_properties(RESSL::SSL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/include")
+        set_target_properties(RESSL::SSL PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/lib/libssl.a")
         add_custom_target(libcrypto DEPENDS lib/libcrypto.a)
         add_library(RESSL::Crypto STATIC IMPORTED GLOBAL)
         add_dependencies(RESSL::Crypto libcrypto)
-        set_target_properties(RESSL::Crypto PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/include")
-        set_target_properties(RESSL::Crypto PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/lib/libcrypto.a")
+        set_target_properties(RESSL::Crypto PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/include")
+        set_target_properties(RESSL::Crypto PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/lib/libcrypto.a")
         set(OPENSSL_TARGET "RESSL::SSL;RESSL::Crypto")
     endif (WIN32)
 endif ()
