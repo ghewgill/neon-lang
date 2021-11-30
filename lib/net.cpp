@@ -566,12 +566,13 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
         tv = &actual_tv;
     }
     int r;
-    do {
+    while (true) {
         r = select(nfds, &rfds, &wfds, &efds, tv);
         if (r < 0 && errno == EAGAIN) {
             continue;
         }
-    } while (false);
+        break;
+    }
     if (r < 0) {
         throw RtlException(Exception_SocketException, utf8string(""));
     }
