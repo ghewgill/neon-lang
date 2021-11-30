@@ -18,4 +18,4 @@ while i < len(sys.argv):
 fullname = sys.argv[i]
 path, name = os.path.split(fullname)
 
-subprocess.check_call([sys.executable, pynex, fullname + "x"] + sys.argv[2:])
+subprocess.check_call([sys.executable, pynex, fullname + "x"] + sys.argv[i+1:])
