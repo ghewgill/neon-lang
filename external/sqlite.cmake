@@ -15,5 +15,5 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Open
     target_link_libraries(sqlite3 pthread)
 endif ()
 target_include_directories(sqlite3
-    INTERFACE sqlite-amalgamation-3320300
+    INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/sqlite-amalgamation-3320300
 )
