@@ -16,12 +16,14 @@ config.log
 *.neond
 *.class
 lib/*.js
+t/*.c
 t/*.cpp
 t/*.js
 gen/
 bin/
 config.cache
 test_grammar
+*__neonbuild/
 
 external/IntelRDFPMathLib20U2/
 external/gmp-6.1.2/

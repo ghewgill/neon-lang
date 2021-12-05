@@ -3038,6 +3038,7 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
         }
         comps.push_back(c);
         token = x->right->token;
+        left = right;
     }
     return new ast::ChainedComparisonExpression(comps);
 }

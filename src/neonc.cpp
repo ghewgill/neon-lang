@@ -13,6 +13,7 @@
 #include "support.h"
 
 extern void compile_cli(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
+extern void compile_c(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
 extern void compile_cpp(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
 extern void compile_js(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
 extern void compile_jvm(CompilerSupport *support, const ast::Program *, std::string output, std::map<std::string, std::string> options);
@@ -23,6 +24,7 @@ struct {
     std::string description;
 } Targets[] = {
     {"cli", compile_cli, "CLI (.NET) target. Output file name is a .exe file."},
+    {"c",   compile_c,   "C target. Output file name is a .c source file."},
     {"cpp", compile_cpp, "C++ target. Output file name is a .cpp source file."},
     {"js",  compile_js,  "Javascript target. Output file name is a .js source file."},
     {"jvm", compile_jvm, "JVM (Java VM) target. Output file is a .class file."},

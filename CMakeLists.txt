@@ -489,6 +489,7 @@ endif ()
 add_executable(neonc
     src/neonc.cpp
     src/compiler_cli.cpp
+    src/compiler_c.cpp
     src/compiler_cpp.cpp
     src/compiler_js.cpp
     src/compiler_jvm.cpp
@@ -725,6 +726,7 @@ add_tests("${TESTS}" "" $<TARGET_FILE:neon> "")
 add_tests("${TESTS}" "helium" "python3 ${CMAKE_SOURCE_DIR}/tools/helium.py" "${CMAKE_SOURCE_DIR}/tools/helium-exclude.txt")
 if (NOT (WIN32 AND DEFINED ENV{GITHUB_ACTIONS}))
     # TODO: Github Actions does not seem to be able to run the C++ compiler on Windows sensibly.
+    add_tests("${TESTS}" "c" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_c.py --neon $<TARGET_FILE:neon> --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/c-exclude.txt")
     add_tests("${TESTS}" "cpp" "python3 ${CMAKE_SOURCE_DIR}/scripts/run_cpp.py --neonc $<TARGET_FILE:neonc>" "${CMAKE_SOURCE_DIR}/scripts/cpp-exclude.txt")
 endif ()
 if (NODEJS)
