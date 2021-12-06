@@ -126,7 +126,6 @@ textio-random.neon              # module textio
 textio-seek.neon                # module textio
 textio-test.neon                # module textio
 time-stopwatch.neon             # module time
-time-test.neon                  # module time
 tostring.neon                   # enum
 tostring-quotes.neon            # keywords
 try-expression.neon             # TryExpression

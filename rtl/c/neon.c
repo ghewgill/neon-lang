@@ -9,6 +9,11 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef _WIN32
+#else
+#include <sys/time.h>
+#endif
+
 const MethodTable Ne_Number_mtable = {
     .constructor = (void (*)(void **))Ne_Number_constructor,
     .destructor = (void (*)(void *))Ne_Number_destructor,
@@ -1470,12 +1475,24 @@ Ne_Exception *Ne_textio_writeLine(void *f, const Ne_String *s)
 
 Ne_Exception *Ne_time_now(Ne_Number *result)
 {
-    result->dval = time(NULL);
+    #ifdef _WIN32
+        result->dval = time(NULL);
+    #else
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        result->dval = tv.tv_sec + tv.tv_usec / 1000000.0;
+    #endif
     return NULL;
 }
 
 Ne_Exception *Ne_time_tick(Ne_Number *result)
 {
-    result->dval = time(NULL);
+    #ifdef _WIN32
+        result->dval = time(NULL);
+    #else
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        result->dval = tv.tv_sec + tv.tv_usec / 1000000.0;
+    #endif
     return NULL;
 }
