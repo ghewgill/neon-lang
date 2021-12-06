@@ -115,11 +115,10 @@ sql-query.neon                  # module sql
 sql-whenever.neon               # module sql
 stack-overflow.neon             # clang infinite recursion warning
 string-bytes.neon               # utf8
-string-escape.neon              # hex escape sequence out of range
+string-escape.neon              # utf8
 string-format.neon              # module string
 string-in.neon                  # TryExpression
 string-index.neon               # memory leak
-string-multiline.neon           # hex escape sequence out of range
 string-test.neon                # module string
 struct-test.neon                # bignum
 sys-exit.neon                   # ExceptionType

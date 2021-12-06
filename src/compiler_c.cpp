@@ -19,12 +19,15 @@ std::string quoted(const std::string &s)
             case '\\': r.append("\\\\"); break;
             default:
                 if (c < 0x20) {
-                    static const char hex[] = "0123456789abcdef";
                     char buf[10];
                     buf[0] = '\\';
-                    buf[1] = 'x';
-                    buf[2] = hex[(c >> 4) & 0xf];
-                    buf[3] = hex[c & 0xf];
+                    // Use octal here instead of hex, because
+                    // hex sequences can be arbitrary length
+                    // which can get confused with following
+                    // literal text.
+                    buf[1] = '0' + ((c >> 6) & 3);
+                    buf[2] = '0' + ((c >> 3) & 7);
+                    buf[3] = '0' + (c & 7);
                     buf[4] = 0;
                     r.append(buf);
                 } else {
