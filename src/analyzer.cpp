@@ -5446,8 +5446,8 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
     if (scope.top()->lookupName(name.text) != nullptr) {
         error2(3118, name, "duplicate identifier", scope.top()->getDeclaration(name.text), "first declaration here");
     }
-    ast::Variable *var = frame.top()->createVariable(name, name.text, ast::TYPE_NUMBER, false);
-    scope.top()->addName(var->declaration, var->name, var, true);
+    ast::Variable *var = frame.top()->createVariable(name, name.text + "_" + std::to_string(reinterpret_cast<intptr_t>(statement)), ast::TYPE_NUMBER, false);
+    scope.top()->addName(var->declaration, name.text, var, true);
     var->is_readonly = true;
     ast::Variable *bound = scope.top()->makeTemporary(ast::TYPE_NUMBER);
     const ast::Expression *start = analyze(statement->start.get());
