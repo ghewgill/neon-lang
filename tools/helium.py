@@ -8,6 +8,7 @@ import random
 import re
 import shutil
 import sys
+import time
 import unicodedata
 
 class Symbol:
@@ -3307,6 +3308,15 @@ def neon_textio_truncate(env, f):
 
 def neon_textio_writeLine(env, f, s):
     print(s, file=f)
+
+def neon_time_now(env):
+    return time.time()
+
+def neon_time_sleep(env, t):
+    time.sleep(t)
+
+def neon_time_tick(env):
+    return time.time()
 
 g_neonpath = "lib"
 
