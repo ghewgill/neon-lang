@@ -28,6 +28,13 @@ const MethodTable Ne_String_mtable = {
     .compare = (int (*)(const void *, const void *))Ne_String_compare,
 };
 
+const MethodTable Ne_Object_mtable = {
+    .constructor = (void (*)(void **))Ne_Object_constructor,
+    .destructor = (void (*)(void *))Ne_Object_destructor,
+    .copy = (void (*)(void *, const void *))Ne_Object_copy,
+    .compare = (int (*)(const void *, const void *))Ne_Object_compare,
+};
+
 static Ne_Exception Ne_Exception_current;
 
 static const char *Ne_String_null_terminate(const Ne_String *s)
@@ -61,7 +68,7 @@ void Ne_Boolean_deinit(Ne_Boolean *bool)
 
 int Ne_Boolean_compare(const Ne_Boolean *a, const Ne_Boolean *b)
 {
-    return *a == *b ? 0 : *a;
+    return *a == *b ? 0 : 1;
 }
 
 Ne_Exception *Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
@@ -499,6 +506,12 @@ void Ne_Array_init_copy(Ne_Array *dest, const Ne_Array *src)
     }
 }
 
+void Ne_Object_constructor(Ne_Object **obj)
+{
+    *obj = malloc(sizeof(Ne_Object));
+    Ne_Object_init(*obj);
+}
+
 void Ne_Object_init(Ne_Object *obj)
 {
     obj->type = neNothing;
@@ -513,6 +526,9 @@ void Ne_Object_copy(Ne_Object *dest, const Ne_Object *src)
     switch (dest->type) {
         case neNothing:
             break;
+        case neBoolean:
+            Ne_Boolean_init_copy(&dest->boo, &src->boo);
+            break;
         case neNumber:
             Ne_Number_init_copy(&dest->num, &src->num);
             break;
@@ -522,10 +538,19 @@ void Ne_Object_copy(Ne_Object *dest, const Ne_Object *src)
     }
 }
 
+void Ne_Object_destructor(Ne_Object *obj)
+{
+    Ne_Object_deinit(obj);
+    free(obj);
+}
+
 void Ne_Object_deinit(Ne_Object *obj)
 {
     switch (obj->type) {
         case neNothing:
+            break;
+        case neBoolean:
+            Ne_Boolean_deinit(&obj->boo);
             break;
         case neNumber:
             Ne_Number_deinit(&obj->num);
@@ -542,6 +567,33 @@ int Ne_Object_compare(const Ne_Object *a, const Ne_Object *b)
     return a == b ? 0 : 1;
 }
 
+Ne_Exception *Ne_object__getBoolean(Ne_Boolean *r, Ne_Object *obj)
+{
+    if (obj->type != neBoolean) {
+        return Ne_Exception_raise("DynamicConversionException");
+    }
+    Ne_Boolean_init_copy(r, &obj->boo);
+    return NULL;
+}
+
+Ne_Exception *Ne_object__getNumber(Ne_Number *r, Ne_Object *obj)
+{
+    if (obj->type != neNumber) {
+        return Ne_Exception_raise("DynamicConversionException");
+    }
+    Ne_Number_init_copy(r, &obj->num);
+    return NULL;
+}
+
+Ne_Exception *Ne_object__getString(Ne_String *r, Ne_Object *obj)
+{
+    if (obj->type != neString) {
+        return Ne_Exception_raise("DynamicConversionException");
+    }
+    Ne_String_init_copy(r, &obj->str);
+    return NULL;
+}
+
 Ne_Exception *Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj)
 {
     *r = obj->type == neNothing;
@@ -552,6 +604,14 @@ Ne_Exception *Ne_object__makeNull(Ne_Object *obj)
 {
     Ne_Object_init(obj);
     obj->type = neNothing;
+    return NULL;
+}
+
+Ne_Exception *Ne_object__makeBoolean(Ne_Object *obj, const Ne_Boolean *b)
+{
+    Ne_Object_init(obj);
+    obj->type = neBoolean;
+    Ne_Boolean_copy(&obj->boo, b);
     return NULL;
 }
 

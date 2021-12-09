@@ -9,6 +9,7 @@ typedef struct {
 
 extern const MethodTable Ne_Number_mtable;
 extern const MethodTable Ne_String_mtable;
+extern const MethodTable Ne_Object_mtable;
 
 typedef int Ne_Boolean;
 
@@ -28,12 +29,14 @@ typedef struct {
 
 enum Ne_ObjectType {
     neNothing,
+    neBoolean,
     neNumber,
     neString
 };
 
 typedef struct {
     enum Ne_ObjectType type;
+    Ne_Boolean boo;
     Ne_Number num;
     Ne_String str;
 } Ne_Object;
@@ -149,11 +152,17 @@ Ne_Exception *Ne_num(Ne_Number *result, const Ne_String *s);
 Ne_Exception *Ne_number__toString(Ne_String *result, const Ne_Number *n);
 void Ne_Object_init(Ne_Object *obj);
 void Ne_Object_init_copy(Ne_Object *dest, const Ne_Object *src);
+void Ne_Object_constructor(Ne_Object **obj);
 void Ne_Object_copy(Ne_Object *dest, const Ne_Object *src);
+void Ne_Object_destructor(Ne_Object *obj);
 void Ne_Object_deinit(Ne_Object *obj);
 int Ne_Object_compare(const Ne_Object *a, const Ne_Object *b);
+Ne_Exception *Ne_object__getBoolean(Ne_Boolean *r, Ne_Object *obj);
+Ne_Exception *Ne_object__getNumber(Ne_Number *r, Ne_Object *obj);
+Ne_Exception *Ne_object__getString(Ne_String *r, Ne_Object *obj);
 Ne_Exception *Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj);
 Ne_Exception *Ne_object__makeNull(Ne_Object *obj);
+Ne_Exception *Ne_object__makeBoolean(Ne_Object *obj, const Ne_Boolean *b);
 Ne_Exception *Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n);
 Ne_Exception *Ne_object__makeString(Ne_Object *obj, const Ne_String *s);
 Ne_Exception *Ne_object__toString(Ne_String *result, const Ne_Object *obj);

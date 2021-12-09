@@ -6,7 +6,6 @@ assignment.neon                 # pointer
 base-test.neon                  # memory leak
 bigint.neon                     # bigint
 binary-test.neon                # module binary
-cformat-test.neon               # Ne_Object_mtable
 check-valid.neon                # valid pointer
 check.neon                      # NEXT FOR
 choice.neon                     # choice.toString
@@ -79,8 +78,7 @@ object-isa-inconvertible.neon   # TypeTestExpression
 object-isa.neon                 # TypeTestExpression
 object.neon                     # ObjectSubscriptExpression
 object-native.neon              # ObjectSubscriptExpression
-object-null2.neon               # Ne_Object_mtable
-object-operator.neon            # Ne_object__getNumber
+object-null2.neon               # Ne_object__makeArray
 object-record.neon              # ObjectSubscriptExpression
 object-record-default.neon      # ConstantNilObject
 object-subscript.neon           # ObjectSubscriptExpression
@@ -102,7 +100,7 @@ pointer-nil.neon                # pointers
 posix-fork.neon                 # module posix
 posix-symlink.neon              # module posix
 predeclare1.neon                # Ne_Array_mtable
-print-object.neon               # Ne_Object_mtable
+print-object.neon               # Ne_object__makeBytes
 recursion-limit.neon            # module runtime
 rtl.neon                        # Ne_num
 runtime-test.neon               # module runtime
