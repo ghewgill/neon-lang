@@ -139,6 +139,7 @@ Ne_Exception *Ne_array__reversed(Ne_Array *dest, const Ne_Array *src);
 Ne_Exception *Ne_array__size(Ne_Number *result, const Ne_Array *a);
 Ne_Exception *Ne_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a);
 Ne_Exception *Ne_array__toString__number(Ne_String *r, const Ne_Array *a);
+Ne_Exception *Ne_array__toString__string(Ne_String *r, const Ne_Array *a);
 void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable);
 void Ne_Dictionary_init_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
 void Ne_Dictionary_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
@@ -180,6 +181,36 @@ void Ne_Exception_clear();
 int Ne_Exception_trap(const char *name);
 Ne_Exception *Ne_Exception_propagate();
 void Ne_Exception_unhandled();
+
+Ne_Exception *Ne_binary_and32(Ne_Number *r, Ne_Number *x, Ne_Number *y);
+Ne_Exception *Ne_binary_and64(Ne_Number *r, Ne_Number *x, Ne_Number *y);
+Ne_Exception *Ne_binary_andBytes(Ne_Bytes *r, Ne_Bytes *x, Ne_Bytes *y);
+Ne_Exception *Ne_binary_bitCount32(Ne_Number *r, Ne_Number *x);
+Ne_Exception *Ne_binary_bitCount64(Ne_Number *r, Ne_Number *x);
+Ne_Exception *Ne_binary_bitCountBytes(Ne_Number *r, Ne_Bytes *x);
+Ne_Exception *Ne_binary_extract32(Ne_Number *r, Ne_Number *x, Ne_Number *n, Ne_Number *w);
+Ne_Exception *Ne_binary_extract64(Ne_Number *r, Ne_Number *x, Ne_Number *n, Ne_Number *w);
+Ne_Exception *Ne_binary_get32(Ne_Boolean *r, Ne_Number *x, Ne_Number *n);
+Ne_Exception *Ne_binary_get64(Ne_Boolean *r, Ne_Number *x, Ne_Number *n);
+Ne_Exception *Ne_binary_not32(Ne_Number *r, Ne_Number *x);
+Ne_Exception *Ne_binary_not64(Ne_Number *r, Ne_Number *x);
+Ne_Exception *Ne_binary_notBytes(Ne_Bytes *r, Ne_Bytes *x);
+Ne_Exception *Ne_binary_or32(Ne_Number *r, Ne_Number *x, Ne_Number *y);
+Ne_Exception *Ne_binary_or64(Ne_Number *r, Ne_Number *x, Ne_Number *y);
+Ne_Exception *Ne_binary_orBytes(Ne_Bytes *r, Ne_Bytes *x, Ne_Bytes *y);
+Ne_Exception *Ne_binary_replace32(Ne_Number *r, Ne_Number *x, Ne_Number *n, Ne_Number *w, Ne_Number *y);
+Ne_Exception *Ne_binary_replace64(Ne_Number *r, Ne_Number *x, Ne_Number *n, Ne_Number *w, Ne_Number *y);
+Ne_Exception *Ne_binary_set32(Ne_Number *r, Ne_Number *x, Ne_Number *n, Ne_Boolean *v);
+Ne_Exception *Ne_binary_set64(Ne_Number *r, Ne_Number *x, Ne_Number *n, Ne_Boolean *v);
+Ne_Exception *Ne_binary_shiftLeft32(Ne_Number *r, Ne_Number *x, Ne_Number *n);
+Ne_Exception *Ne_binary_shiftLeft64(Ne_Number *r, Ne_Number *x, Ne_Number *n);
+Ne_Exception *Ne_binary_shiftRight32(Ne_Number *r, Ne_Number *x, Ne_Number *n);
+Ne_Exception *Ne_binary_shiftRight64(Ne_Number *r, Ne_Number *x, Ne_Number *n);
+Ne_Exception *Ne_binary_shiftRightSigned32(Ne_Number *r, Ne_Number *x, Ne_Number *n);
+Ne_Exception *Ne_binary_shiftRightSigned64(Ne_Number *r, Ne_Number *x, Ne_Number *n);
+Ne_Exception *Ne_binary_xor32(Ne_Number *r, Ne_Number *x, Ne_Number *y);
+Ne_Exception *Ne_binary_xor64(Ne_Number *r, Ne_Number *x, Ne_Number *y);
+Ne_Exception *Ne_binary_xorBytes(Ne_Bytes *r, Ne_Bytes *x, Ne_Bytes *y);
 
 Ne_Exception *Ne_file__CONSTANT_Separator(Ne_String *result);
 Ne_Exception *Ne_file_copy(const Ne_String *filename, const Ne_String *destination);
@@ -243,6 +274,8 @@ Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x);
 
 Ne_Exception *Ne_random_bytes(Ne_Bytes *result, const Ne_Number *n);
 Ne_Exception *Ne_random_uint32(Ne_Number *result);
+
+Ne_Exception *Ne_runtime_isModuleImported(Ne_Boolean *r, Ne_String *module);
 
 Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t);
 Ne_Exception *Ne_string_fromCodePoint(Ne_String *result, const Ne_Number *n);

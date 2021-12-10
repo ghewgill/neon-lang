@@ -332,7 +332,9 @@ void Ne_Bytes_init(Ne_Bytes *bytes)
 void Ne_Bytes_init_literal(Ne_Bytes *bytes, const unsigned char *data, int len)
 {
     bytes->data = malloc(len);
-    memcpy(bytes->data, data, len);
+    if (data != NULL) {
+        memcpy(bytes->data, data, len);
+    }
     bytes->len = len;
 }
 
@@ -932,6 +934,22 @@ Ne_Exception *Ne_array__toString__number(Ne_String *r, const Ne_Array *a)
     return NULL;
 }
 
+Ne_Exception *Ne_array__toString__string(Ne_String *r, const Ne_Array *a)
+{
+    char buf[100];
+    strcpy(buf, "[");
+    for (int i = 0; i < a->size; i++) {
+        if (i > 0) {
+            strcat(buf, ", ");
+        }
+        Ne_String *s = a->a[i];
+        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), "\"%.*s\"", s->len, s->ptr);
+    }
+    strcat(buf, "]");
+    Ne_String_init_literal(r, buf);
+    return NULL;
+}
+
 void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable)
 {
     d->size = 0;
@@ -1175,6 +1193,18 @@ void Ne_Exception_unhandled()
     fprintf(stderr, "Unhandled exception %s (%.*s)\n", Ne_Exception_current.name, detail.len, detail.ptr);
     Ne_Exception_clear();
     exit(1);
+}
+
+Ne_Exception *Ne_binary_xorBytes(Ne_Bytes *r, Ne_Bytes *x, Ne_Bytes *y)
+{
+    if (x->len != y->len) {
+        return Ne_Exception_raise("ValueRangeException");
+    }
+    Ne_Bytes_init_literal(r, NULL, x->len);
+    for (int i = 0; i < x->len; i++) {
+        r->data[i] = x->data[i] ^ y->data[i];
+    }
+    return NULL;
 }
 
 Ne_Exception *Ne_math__CONSTANT_PRECISION_DIGITS(Ne_Number *result)
@@ -1452,6 +1482,12 @@ Ne_Exception *Ne_random_uint32(Ne_Number *result)
     return NULL;
 }
 
+Ne_Exception *Ne_runtime_isModuleImported(Ne_Boolean *r, Ne_String *module)
+{
+    *r = 1;
+    return NULL;
+}
+
 Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t)
 {
     if (s->len < t->len) {
@@ -1522,7 +1558,18 @@ void Ne_sys__init(int argc, const char *argv[])
 
 Ne_Exception *Ne_sys_exit(const Ne_Number *n)
 {
-    exit(n->dval);
+    int i = (int)trunc(n->dval);
+    if (i != n->dval) {
+        char buf[50];
+        snprintf(buf, sizeof(buf), "sys.exit invalid parameter: %g", n->dval);
+        return Ne_Exception_raise_info_literal("InvalidValueException", buf);
+    }
+    if (i < 0 || i > 255) {
+        char buf[50];
+        snprintf(buf, sizeof(buf), "sys.exit invalid parameter: %g", n->dval);
+        return Ne_Exception_raise_info_literal("InvalidValueException", buf);
+    }
+    exit(i);
 }
 
 void *textio_x24stderr;

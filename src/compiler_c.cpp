@@ -1114,7 +1114,7 @@ public:
         std::string result = context.get_temp_name("Ne_Boolean");
         context.push_scope();
         std::string exprname = expr->generate(context);
-        context.out << result << " = (" << exprname << "._choice == " << cte->choice << ");\n";
+        context.out << result << " = " << exprname << "._choice == " << cte->choice << ";\n";
         context.pop_scope();
         return result;
     }
@@ -2265,7 +2265,7 @@ public:
             return {};
         }
         virtual void generate(Context &context, std::string exprname, std::vector<std::string> /*constnames*/) const override {
-            context.out << "(" << exprname << "._choice == " << choice << ")";
+            context.out << exprname << "._choice == " << choice;
         }
     };
     explicit CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
@@ -2597,8 +2597,8 @@ public:
         context.push_scope();
         std::string handler_label = context.push_handler();
         for (auto l: locals) {
-            context.out << l->type->name << " " << l->lv->name << ";\n";
-            l->type->generate_init(context, l->lv->name);
+            context.out << l->type->name << " " << l->generate(context) << ";\n";
+            l->type->generate_init(context, l->generate(context));
         }
         for (auto p: params) {
             context.out << p->type->name << "_copy(&" << p->fp->name << ",a_" << p->fp->name << ");\n";
@@ -2613,7 +2613,7 @@ public:
         context.out << "return Ne_Exception_propagate();\n";
         context.out << "skip_" << handler_label << ":\n";
         for (auto l: locals) {
-            context.out << l->type->name << "_deinit(&" << l->lv->name << ");\n";
+            context.out << l->type->name << "_deinit(&" << l->generate(context) << ");\n";
         }
         context.pop_scope("return NULL;\n");
     }

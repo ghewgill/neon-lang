@@ -1,6 +1,6 @@
 array2d.neon                    # Ne_Array_mtable
 array-subscript.neon            # Ne_Array_mtable
-array-tostring.neon             # Ne_array__toString_string
+array-tostring.neon             # memory
 assert-enum.neon                # enum.toString
 assignment.neon                 # pointer
 base-test.neon                  # memory leak
@@ -10,16 +10,16 @@ check-valid.neon                # valid pointer
 check.neon                      # NEXT FOR
 choice.neon                     # choice.toString
 choice-recursive.neon           # choice
-complex-test.neon               # module math
+complex-test.neon               # number range
 datetime-test.neon              # module datetime
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 dictionary.neon                 # memory leak
-encoding-base64.neon            # keywords
+encoding-base64.neon            # module binary
 enum.neon                       # enum.toString
 equality.neon                   # pointers
-exception-as.neon               # ExceptionType
-exception-code.neon             # ExceptionTransformer
+exception-as.neon               # exception info
+exception-code.neon             # exception info
 exception-tostring.neon         # ExceptionType
 export.neon                     # segfault
 file-exists.neon                # module file
@@ -33,7 +33,6 @@ file-test.neon                  # module file
 file-writebytes.neon            # module file
 file-writelines.neon            # module file
 foreach.neon                    # double free
-format.neon                     # format
 function-pointer.neon           # memory leak
 gc1.neon                        # gc
 gc2.neon                        # gc
@@ -42,7 +41,7 @@ gc-array.neon                   # gc
 gc-long-chain.neon              # gc
 gc-two-pointers.neon            # gc
 import.neon                     # InterfacePointerConstructor
-import-optional.neon            # module runtime
+import-optional.neon            # import optional
 import-string.neon              # segfault
 interface.neon                  # InterfaceMethodExpression
 interface-multiple.neon         # InterfacePointerConstructor
@@ -119,7 +118,6 @@ string-in.neon                  # TryExpression
 string-index.neon               # memory leak
 string-test.neon                # module string
 struct-test.neon                # bignum
-sys-exit.neon                   # ExceptionType
 textio-random.neon              # module textio
 textio-seek.neon                # module textio
 textio-test.neon                # module textio
