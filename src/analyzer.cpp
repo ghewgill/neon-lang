@@ -3848,6 +3848,9 @@ const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *decl
                 error(3113, declaration->value->token, "type mismatch");
             }
         } else {
+            if (expr->type == ast::TYPE_NOTHING) {
+                error(3324, declaration->value->token, "no value returned from function");
+            }
             if (expr->type->is_ambiguous()) {
                 error(3293, declaration->value->token, "this expression needs an explicit type declaration");
             }
@@ -3915,6 +3918,9 @@ const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declarati
             error(3140, declaration->value->token, "type mismatch");
         }
     } else {
+        if (expr->type == ast::TYPE_NOTHING) {
+            error(3323, declaration->value->token, "no value returned from function");
+        }
         if (expr->type->is_ambiguous()) {
             error(3294, declaration->value->token, "this expression needs an explicit type declaration");
         }
