@@ -187,6 +187,7 @@ set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/encoding.neon
     ${CMAKE_SOURCE_DIR}/lib/file.neon
     ${CMAKE_SOURCE_DIR}/lib/global.neon
+    ${CMAKE_SOURCE_DIR}/lib/http.neon
     ${CMAKE_SOURCE_DIR}/lib/io.neon
     ${CMAKE_SOURCE_DIR}/lib/json.neon
     ${CMAKE_SOURCE_DIR}/lib/math.neon
@@ -197,7 +198,6 @@ set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/process.neon
     ${CMAKE_SOURCE_DIR}/lib/random.neon
     ${CMAKE_SOURCE_DIR}/lib/runtime.neon
-    ${CMAKE_SOURCE_DIR}/lib/simplehttp.neon
     ${CMAKE_SOURCE_DIR}/lib/sqlite.neon
     ${CMAKE_SOURCE_DIR}/lib/string.neon
     ${CMAKE_SOURCE_DIR}/lib/struct.neon
@@ -240,7 +240,7 @@ if (JAVAC)
     list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/global.neon")
     list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/struct.neon") # TODO (excluding struct for some reason)
     list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/json.neon") # TODO (excluding json for some reason)
-    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/simplehttp.neon") # TODO (excluding simplehttp for some reason)
+    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/http.neon") # TODO (excluding http for some reason)
     set(RTL_CLASSES "")
     foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
         get_filename_component(nameonly ${rtl_neon} NAME_WE)

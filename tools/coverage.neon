@@ -1,6 +1,6 @@
+IMPORT http
 IMPORT json
 IMPORT os
-IMPORT simplehttp
 IMPORT string
 IMPORT sys
 IMPORT time
@@ -18,12 +18,12 @@ VAR AddressFromLine: Array<Number> := []
 VAR LineStatus: Array<Status> := []
 
 FUNCTION get(url: String): Object
-    LET data: String := simplehttp.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString()
+    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): Object
-    LET data: String := simplehttp.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString()
+    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
 
@@ -61,7 +61,7 @@ LOOP
         time.sleep(0.1)
         TRY
             r := get("/status")
-        TRAP simplehttp.HttpException DO
+        TRAP http.HttpException DO
             EXIT LOOP
         END TRY
     UNTIL r.state = "stopped"
