@@ -48,7 +48,6 @@ time-test.neon             # precision
 unicode-char.neon          # utf8
 unicode-length.neon        # utf8
 value-copy.neon            # copy semantics
-win32-test.neon            # external
 
 compress-test.neon         # module
 extsample-test.neon        # module

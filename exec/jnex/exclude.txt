@@ -123,7 +123,6 @@ unicode-length.neon        # UTF-8
 unicode-string.neon        # UTF-8
 value-copy.neon            # copy
 varargs-functionpointer.neon # PUSHFP
-win32-test.neon            # CALLMF
 
 compress-test.neon
 extsample-test.neon

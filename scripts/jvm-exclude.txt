@@ -98,7 +98,6 @@ tostring.neon              # enum tostring
 tostring-quotes.neon
 unicode-string.neon        # UTF-8
 value-copy.neon            # value copy
-win32-test.neon            # win32
 
 compress-test.neon         # compress.gzip
 extsample-test.neon        # extension functions

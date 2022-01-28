@@ -169,7 +169,6 @@ value-index.neon           # DictionaryValueIndexExpression
 varargs.neon               # varargs
 varargs-functionpointer.neon # varargs
 while-valid.neon           # unknown
-win32-test.neon            # module win32
 
 compress-test.neon         # module compress
 extsample-test.neon        # extension functions

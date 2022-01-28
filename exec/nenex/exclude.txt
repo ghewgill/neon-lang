@@ -138,7 +138,6 @@ value-copy.neon             # pushy
 value-index.neon            # indexan
 varargs-functionpointer.neon # pushfp
 varargs.neon                # pushppg
-win32-test.neon             # callmf
 
 compress-test.neon
 extsample-test.neon
