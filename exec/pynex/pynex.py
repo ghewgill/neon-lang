@@ -445,7 +445,7 @@ def equals(a, b):
     if isinstance(a, list):
         return len(a) == len(b) and all(equals(a[x].value, b[x].value) for x in range(len(a)))
     if isinstance(a, dict):
-        return len(a) == len(b) and all(k in b and v.value.equals(b[k].value) for k, v in a.items())
+        return len(a) == len(b) and all(k in b and equals(v.value, b[k].value) for k, v in a.items())
     return a == b
 
 def literal(v):
@@ -895,13 +895,22 @@ class Executor:
         self.stack.append(a < b)
 
     def GTY(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop()
+        a = self.stack.pop()
+        self.stack.append(a > b)
 
     def LEY(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop()
+        a = self.stack.pop()
+        self.stack.append(a <= b)
 
     def GEY(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop()
+        a = self.stack.pop()
+        self.stack.append(a >= b)
 
     def EQA(self):
         self.ip += 1
@@ -940,10 +949,16 @@ class Executor:
         self.stack.append(a is not b)
 
     def EQV(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop()
+        a = self.stack.pop()
+        self.stack.append(a is b)
 
     def NEV(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop()
+        a = self.stack.pop()
+        self.stack.append(a is not b)
 
     def ANDB(self):
         assert False
