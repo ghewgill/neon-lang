@@ -1,16 +1,8 @@
 IMPORT math
 
-VAR x: Number
-
-print(math.ceil(1).toString())
---= 1
-print(math.ceil(1.5).toString())
---= 2
-print(math.ceil(-1).toString())
---= -1
-print(math.ceil(-1.5).toString())
---= -1
-print(math.ceil(1e19).toString())
---= 10000000000000000000
-print(math.ceil(1e34).toString())
---= 1e34
+TESTCASE math.ceil(1) = 1
+TESTCASE math.ceil(1.5) = 2
+TESTCASE math.ceil(-1) = -1
+TESTCASE math.ceil(-1.5) = -1
+TESTCASE math.ceil(1e19) = 10000000000000000000
+TESTCASE math.ceil(1e34) = 1e34

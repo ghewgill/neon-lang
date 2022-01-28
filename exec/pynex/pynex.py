@@ -768,7 +768,7 @@ class Executor:
         if isinstance(a, int) and isinstance(b, int) and a % b == 0:
             self.stack.append(a // b)
         else:
-            self.stack.append(a / b)
+            self.stack.append(decimal.Decimal(a) / decimal.Decimal(b))
 
     def MODN(self):
         self.ip += 1
@@ -2510,7 +2510,7 @@ def neon_math_cbrt(self):
 
 def neon_math_ceil(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.ceil(float(x))))
+    self.stack.append(decimal.Decimal(x).to_integral_value(decimal.ROUND_CEILING))
 
 def neon_math_cos(self):
     x = self.stack.pop()
@@ -2542,13 +2542,20 @@ def neon_math_expm1(self):
 
 def neon_math_floor(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.floor(float(x))))
+    self.stack.append(decimal.Decimal(x).to_integral_value(decimal.ROUND_FLOOR))
 
 def neon_math_frexp(self):
     x = self.stack.pop()
-    (m, e) = math.frexp(float(x))
-    self.stack.append(decimal.Decimal(e))
+    m = x
+    e = 0
+    while m < 0.1:
+        m *= 10
+        e -= 1
+    while m >= 1:
+        m /= 10
+        e += 1
     self.stack.append(decimal.Decimal(m))
+    self.stack.append(decimal.Decimal(e))
 
 def neon_math_hypot(self):
     y = self.stack.pop()
@@ -2569,7 +2576,7 @@ def neon_math_intdiv(self):
 def neon_math_ldexp(self):
     i = self.stack.pop()
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.ldexp(float(x), int(i))))
+    self.stack.append(decimal.Decimal(x * (10 ** i)))
 
 def neon_math_lgamma(self):
     x = self.stack.pop()
@@ -2612,6 +2619,12 @@ def neon_math_odd(self):
         return
     self.stack.append((v % 2) != 0)
 
+def neon_math_powmod(self):
+    m = self.stack.pop()
+    y = self.stack.pop()
+    x = self.stack.pop()
+    self.stack.append(decimal.Context().power(x, y, m))
+
 def neon_math_round(self):
     value = self.stack.pop()
     places = self.stack.pop()
@@ -2650,7 +2663,7 @@ def neon_math_tgamma(self):
 
 def neon_math_trunc(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.trunc(float(x))))
+    self.stack.append(decimal.Decimal(x).to_integral_value(decimal.ROUND_DOWN))
 
 def neon_mmap_close(self):
     m = self.stack.pop()
