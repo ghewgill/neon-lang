@@ -2201,9 +2201,20 @@ def neon_pointer__toString(self):
 
 def neon_print(self):
     s = self.stack.pop()
-    if isinstance(s, list):
-        s = "[{}]".format(", ".join(literal(x.value) for x in s))
-    print(s)
+    if s is None:
+        print("NIL")
+    elif s is True:
+        print("TRUE")
+    elif s is False:
+        print("FALSE")
+    elif isinstance(s, list):
+        print("[{}]".format(", ".join(literal(x.value) for x in s)))
+    elif isinstance(s, dict):
+        print("{{{}}}".format(", ".join("{}: {}".format(literal(k), literal(v.value)) for k, v in sorted(s.items()))))
+    elif isinstance(s, bytes):
+        print("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in s)))
+    else:
+        print(s)
 
 def neon_str(self):
     v = self.stack.pop()

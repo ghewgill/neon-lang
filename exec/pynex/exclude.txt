@@ -9,8 +9,6 @@ gc-two-pointers.neon       # gc
 math-test.neon             # precision
 number-ceil.neon           # precision
 number-exception.neon
-print-object.neon          # object print format
-tostring-quotes.neon       # object print format
 
 compress-test.neon
 extsample-test.neon
