@@ -1,3 +1,7 @@
+-- NOTAG:helium
+-- NOTAG:cli,js,jvm
+-- NOTAG:csnex,gonex,jnex,nenex,pynex
+
 IMPORT runtime
 
 TYPE Node IS CLASS

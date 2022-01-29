@@ -15,12 +15,6 @@ exception-as.neon      # Exception offset not supported
 export-inline.neon     # Native mul not required
 forth-test.neon        # Sample not required
 function-namedargs.neon# Named arguments not required
-gc1.neon               # Garbage collector not required
-gc2.neon               # Garbage collector not required
-gc3.neon               # Garbage collector not required
-gc-array.neon          # Garbage collector not required
-gc-long-chain.neon     # Garbage collector not required
-gc-two-pointers.neon   # Garbage collector not required
 import-string.neon     # Feature not required
 inc-reference.neon     # increment
 interface-parameter-import.neon # Feature not required (import alias)

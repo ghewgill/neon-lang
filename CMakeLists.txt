@@ -676,7 +676,7 @@ function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
             if (NOT ";${EXCLUDE};" MATCHES ";${T};")
                 add_test(
                     NAME "${TAG}:${T}"
-                    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/run_test.py --runner "${RUNNER}" ${TEST}
+                    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/run_test.py --runner "${RUNNER}" --tag ${TAG} ${TEST}
                 )
             endif()
         else()

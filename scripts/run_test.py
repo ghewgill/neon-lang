@@ -11,6 +11,7 @@ class TestSkipped(BaseException): pass
 
 errors = None
 runner = ["bin/neon"]
+tag = None
 
 def run(fn):
     print("Running {} {}...".format(" ".join(runner), fn))
@@ -34,6 +35,11 @@ def run(fn):
             if "posix" in platforms and os.name == "posix":
                 break
             print("skipped: {}".format(",".join(x for x in platforms if x)))
+            raise TestSkipped()
+    notag = [m and m.group(1) for m in [re.search(r"NOTAG:(.*)", x) for x in all_comments]]
+    for nt in notag:
+        if nt is not None and tag in nt.split(","):
+            print("skipped")
             raise TestSkipped()
     args = []
     a = [x for x in all_comments if "ARGS" in x]
@@ -169,6 +175,7 @@ def run(fn):
 def main():
     global errors
     global runner
+    global tag
 
     i = 1
     while i < len(sys.argv):
@@ -178,6 +185,9 @@ def main():
         elif a == "--runner":
             i += 1
             runner = sys.argv[i].split()
+        elif a == "--tag":
+            i += 1
+            tag = sys.argv[i]
         else:
             break
         i += 1

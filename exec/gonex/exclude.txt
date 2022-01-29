@@ -9,12 +9,6 @@ debug-server.neon          # net$tcpSocket
 decimal.neon               # decimal
 file-filecopied2.neon      # copy
 for.neon                   # decimal
-gc1.neon                   # gc
-gc2.neon                   # gc
-gc3.neon                   # gc
-gc-array.neon              # gc
-gc-long-chain.neon         # gc
-gc-two-pointers.neon       # gc
 index.neon                 # copy semantics
 io-test.neon               # io.File
 math-test.neon             # math

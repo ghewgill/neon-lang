@@ -58,12 +58,6 @@ format.neon                # module string
 forth-test.neon            # os.system
 function-default-out.neon  # DummyExpression
 function-pointer.neon      # string.append
-gc-array.neon              # gc
-gc-long-chain.neon         # gc
-gc1.neon                   # gc
-gc2.neon                   # gc
-gc3.neon                   # gc
-gc-two-pointers.neon       # gc
 import.neon                # import
 import-optional.neon       # import
 in.neon                    # ArrayInExpression

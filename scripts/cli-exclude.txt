@@ -148,12 +148,6 @@ function-namedargs.neon
 function.neon
 function-pointer.neon
 function-pointer-nowhere.neon
-gc1.neon
-gc2.neon
-gc3.neon
-gc-array.neon
-gc-long-chain.neon
-gc-two-pointers.neon
 global-shadow.neon
 if.neon
 import-dup.neon

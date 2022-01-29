@@ -21,12 +21,6 @@ export.neon                # enum with no name
 file-filecopied1.neon      # exception identification
 file-test.neon             # stack size
 for.neon                   # number format (2 vs 2.0)
-gc-array.neon              # module runtime
-gc-long-chain.neon         # module runtime
-gc1.neon                   # PredefinedVariable
-gc2.neon                   # PredefinedVariable
-gc3.neon                   # PredefinedVariable
-gc-two-pointers.neon       # module runtime
 import.neon                # InterfacePointerConstructor
 import-optional.neon       # import
 inc-reference.neon         # increment

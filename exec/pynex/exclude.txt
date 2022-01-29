@@ -1,10 +1,4 @@
 decimal.neon               # arithmetic
-gc-array.neon              # gc
-gc-long-chain.neon         # gc
-gc1.neon                   # gc
-gc2.neon                   # gc
-gc3.neon                   # gc
-gc-two-pointers.neon       # gc
 number-exception.neon
 
 compress-test.neon
