@@ -58,12 +58,6 @@ format.neon                # module string
 forth-test.neon            # os.system
 function-default-out.neon  # DummyExpression
 function-pointer.neon      # string.append
-gc-array.neon              # gc
-gc-long-chain.neon         # gc
-gc1.neon                   # gc
-gc2.neon                   # gc
-gc3.neon                   # gc
-gc-two-pointers.neon       # gc
 import.neon                # import
 import-optional.neon       # import
 in.neon                    # ArrayInExpression
@@ -169,7 +163,6 @@ value-index.neon           # DictionaryValueIndexExpression
 varargs.neon               # varargs
 varargs-functionpointer.neon # varargs
 while-valid.neon           # unknown
-win32-test.neon            # module win32
 
 compress-test.neon         # module compress
 extsample-test.neon        # extension functions

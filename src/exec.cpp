@@ -1534,10 +1534,12 @@ void Executor::exec_PUSHPEG()
     }
     auto i = external_globals->find(module->object.strtable[val]);
     if (i == external_globals->end()) {
-        fprintf(stderr, "internal error: external global does not exist: %s\n", module->object.strtable[val].c_str());
-        exit(1);
+        Cell *c = new Cell();
+        (*external_globals)[module->object.strtable[val]] = c;
+        stack.push(Cell(c));
+    } else {
+        stack.push(Cell(i->second));
     }
-    stack.push(Cell(i->second));
 }
 
 void Executor::exec_JUMPTBL()

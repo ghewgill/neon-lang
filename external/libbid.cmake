@@ -1,7 +1,7 @@
 if (NOT EXISTS external/IntelRDFPMathLib20U2)
     execute_process(
-        COMMAND python3 ../scripts/extract.py IntelRDFPMathLib20U2.tar.gz .
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/extract.py ${CMAKE_CURRENT_SOURCE_DIR}/IntelRDFPMathLib20U2.tar.gz .
+        WORKING_DIRECTORY external
         RESULT_VARIABLE retcode
     )
     if (NOT "${retcode}" STREQUAL "0")
@@ -312,7 +312,7 @@ else (WIN32)
     target_compile_options(bid PRIVATE -Defi2)
 endif (WIN32)
 target_include_directories(bid
-    INTERFACE IntelRDFPMathLib20U2/LIBRARY/src
+    INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/IntelRDFPMathLib20U2/LIBRARY/src
 )
 target_link_libraries(bid
     dpml

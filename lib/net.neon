@@ -78,6 +78,8 @@ DECLARE NATIVE FUNCTION socket_recv(socket: Object, count: Number): RecvResult
 DECLARE NATIVE FUNCTION socket_recvfrom(socket: Object, count: Number): RecvFromResult
 DECLARE NATIVE FUNCTION socket_send(socket: Object, data: Bytes)
 DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
+DECLARE NATIVE FUNCTION socket_startTlsClient(socket: Object, validateMode: TlsPeerValidateMode): Object
+DECLARE NATIVE FUNCTION socket_startTlsServer(socket: Object, certfile, keyfile: String): Object
 DECLARE NATIVE FUNCTION socket_tcpSocket(): Object
 DECLARE NATIVE FUNCTION socket_tlsClientSocket(validateMode: TlsPeerValidateMode): Object
 DECLARE NATIVE FUNCTION socket_tlsServerSocket(certfile, keyfile: String): Object
@@ -195,4 +197,12 @@ END FUNCTION
  */
 FUNCTION Socket.send(self: Socket, data: Bytes)
     socket_send(self.s, data)
+END FUNCTION
+
+FUNCTION Socket.startTlsClient(INOUT self: Socket, validateMode: TlsPeerValidateMode DEFAULT TlsPeerValidateMode.RequireValidCertificate)
+    self.s := socket_startTlsClient(self.s, validateMode)
+END FUNCTION
+
+FUNCTION Socket.startTlsServer(INOUT self: Socket, certfile, keyfile: String)
+    self.s := socket_startTlsServer(self.s, certfile, keyfile)
 END FUNCTION

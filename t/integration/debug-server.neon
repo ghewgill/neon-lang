@@ -1,16 +1,16 @@
+IMPORT http
 --IMPORT io
 IMPORT json
 IMPORT os
-IMPORT simplehttp
 IMPORT time
 
 CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): Object
     --io.write(io.stderr(), "get \(url)\n")
-    LET hr := simplehttp.get("http://127.0.0.1:\(Port)\(url)", {})
+    LET hr := http.get("http://127.0.0.1:\(Port)\(url)", {})
     --io.write(io.stderr(), "\(data)\n")
-    CHECK hr ISA simplehttp.HttpResult.response ELSE
+    CHECK hr ISA http.HttpResult.response ELSE
         print(hr.error)
         EXIT PROCESS FAILURE
     END CHECK
@@ -24,8 +24,8 @@ END FUNCTION
 
 FUNCTION post(url: String, post_data: String): Object
     --io.write(io.stderr(), "post \(url)\n")
-    LET hr := simplehttp.post("http://127.0.0.1:\(Port)\(url)", post_data, {})
-    CHECK hr ISA simplehttp.HttpResult.response ELSE
+    LET hr := http.post("http://127.0.0.1:\(Port)\(url)", post_data, {})
+    CHECK hr ISA http.HttpResult.response ELSE
         print(hr.error)
         EXIT PROCESS FAILURE
     END CHECK

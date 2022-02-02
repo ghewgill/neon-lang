@@ -1,0 +1,3 @@
+FUNCTION foo() END FUNCTION
+VAR a := foo()
+         --<

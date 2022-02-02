@@ -347,12 +347,13 @@ void net_socket_select(TExecutor *exec)
         tv = &actual_tv;
     }
     int r;
-    do {
+    while (TRUE) {
         r = select(nfds, &rfds, &wfds, &efds, tv);
         if (r < 0 && errno == EAGAIN) {
             continue;
         }
-    } while (FALSE);
+        break;
+    }
 
     if (r < 0) {
         exec->rtl_raise(exec, "SocketException", number_to_string(number_from_sint32(errno)));

@@ -1,0 +1,255 @@
+IMPORT file
+IMPORT io
+IMPORT os
+IMPORT process
+IMPORT string
+IMPORT sys
+IMPORT textio
+
+VAR neonc := "bin/neonc"
+VAR cc := ""
+VAR cflags := ""
+VAR ccinclude := ""
+VAR ccoutput := ""
+VAR objsuffix := ""
+VAR link := ""
+VAR ldflags := ""
+VAR libs := ""
+VAR ldoutput := ""
+VAR exesuffix := ""
+VAR verbose := FALSE
+
+VAR tempdir: String
+
+TYPE Node IS CLASS
+    source: String
+    target: String
+    command: String
+    dependencies: Array<POINTER TO Node>
+END CLASS
+
+BEGIN MAIN
+    IF sys.args.size() < 2 THEN
+        textio.writeLine(textio.stderr, "Usage: neonbuild [options] filename")
+        sys.exit(1)
+    END IF
+
+    CASE os.platform()
+        WHEN os.Platform.posix DO
+            cc := "cc"
+            cflags := "-std=c99 -pedantic -Wall -Werror"
+            ccinclude := "-I"
+            ccoutput := "-o "
+            objsuffix := ".o"
+            libs := "-lm"
+            cflags.append(" -Wno-unused-function")
+        WHEN os.Platform.win32 DO
+            cc := "cl"
+            ccinclude := "/I"
+            ccoutput := "/Fo"
+            objsuffix := ".obj"
+            link := "link"
+            ldoutput := "/out:"
+            exesuffix := ".exe"
+        WHEN OTHERS DO
+            textio.writeLine(textio.stderr, "Unsupported platform: \(os.platform())")
+            sys.exit(1)
+    END CASE
+
+    IF link = "" THEN
+        link := cc
+    END IF
+    IF ldoutput = "" THEN
+        ldoutput := ccoutput
+    END IF
+
+    neonc := replaceIfExists(neonc, os.getenv("NEONC"))
+    cc := replaceIfExists(cc, os.getenv("CC"))
+    cflags := replaceIfExists(cflags, os.getenv("CFLAGS"))
+    link := replaceIfExists(link, os.getenv("LINK"))
+    ldflags := replaceIfExists(ldflags, os.getenv("LDFLAGS"))
+    libs := replaceIfExists(libs, os.getenv("LIBS"))
+
+    VAR i := 1
+    WHILE i < sys.args.size() DO
+        IF sys.args[i][0] = "-" THEN
+            CASE sys.args[i]
+                WHEN "-v" DO
+                    verbose := TRUE
+                WHEN OTHERS DO
+                    textio.writeLine(textio.stderr, "Unknown option: \(sys.args[i])")
+                    sys.exit(1)
+            END CASE
+        ELSE
+            EXIT WHILE
+        END IF
+        INC i
+    END WHILE
+
+    LET main := sys.args[i]
+    tempdir := string.replaceOne(main, ".neon", "__neonbuild")
+    IF NOT file.isDirectory(tempdir) THEN
+        LET r := file.mkdir(tempdir)
+        CHECK r ISA file.FileResult.ok ELSE
+            print("Unable to create temporary directory \(tempdir): \(r.error.message)")
+            EXIT PROCESS FAILURE
+        END CHECK
+    END IF
+
+    VAR objects: Array<String> := []
+    LET deps := loadDependencyTree(main, OUT objects)
+    LET exe := string.replaceOne(main, ".neon", "") & exesuffix
+    LET tree := NEW Node(
+        target WITH exe,
+        command WITH "\(link) \(ldoutput)\(exe) \(string.join(objects, " ")) rtl/c/neon\(objsuffix) \(ldflags) \(libs)",
+        dependencies WITH [
+            NEW Node(
+                source WITH "rtl/c/neon.c",
+                target WITH "rtl/c/neon\(objsuffix)",
+                command WITH "\(cc) -c \(cflags) \(ccinclude)rtl/c \(ccoutput)$TARGET $SOURCE"
+            ),
+            deps,
+        ]
+    )
+    --dumpTree(tree)
+    _ := execTree(tree)
+END MAIN
+
+FUNCTION replaceIfExists(value, newvalue: String): String
+    IF newvalue <> "" THEN
+        RETURN newvalue
+    END IF
+    RETURN value
+END FUNCTION
+
+FUNCTION loadDependencyTree(source: String, OUT objects: Array<String>): VALID POINTER TO Node
+    objects := []
+    VAR seen: Array<String> := []
+    UNUSED seen -- TODO: Unused variable detector does not look inside nested functions.
+    FUNCTION scanTree(src: String, main: Boolean): VALID POINTER TO Node
+        VAR srcdir: String
+        VAR srcname: String
+        file.pathSplit(src, OUT srcdir, OUT srcname)
+        LET neonnode := NEW Node(
+            source WITH src,
+            target WITH file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", ".c")),
+            command WITH "\(neonc) -q -t c -o $TARGET \((IF main THEN "-T main" ELSE "")) $SOURCE"
+        )
+        FOREACH m IN getDependencies(src) DO
+            IF m NOT IN seen THEN
+                seen.append(m)
+                neonnode->dependencies.append(scanTree(findSource(srcdir, m), FALSE))
+            END IF
+        END FOREACH
+        LET obj := file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", objsuffix))
+        objects.append(obj)
+        LET n := NEW Node(
+            source WITH file.pathJoin(tempdir, string.replaceOne(srcname, ".neon", ".c")),
+            target WITH obj,
+            command WITH "\(cc) -c \(cflags) \(ccinclude)rtl/c \(ccoutput)$TARGET $SOURCE",
+            dependencies WITH [neonnode])
+        RETURN n
+    END FUNCTION
+    RETURN scanTree(source, TRUE)
+END FUNCTION
+
+FUNCTION getDependencies(source: String): Array<String>
+    VAR r: Array<String> := []
+    LET rr := file.readLines(source)
+    CHECK rr ISA file.LinesResult.lines ELSE
+        print("Unable to read file \(source): \(rr.error.message)")
+        EXIT PROCESS FAILURE
+    END CHECK
+    LET lines := rr.lines
+    FOREACH line IN lines DO
+        LET a := string.split(line, " ")
+        IF a.size() >= 2 AND a[0] = "IMPORT" THEN
+            VAR i := 1
+            IF a[1] = "OPTIONAL" THEN
+                INC i
+                -- TODO: Hack for optional imports.
+                IF NOT file.exists(a[i] & ".neon") THEN
+                    NEXT FOREACH
+                END IF
+            END IF
+            IF a[i][FIRST] = "\"" AND a[i][LAST] = "\"" THEN
+                r.append(a[i][FIRST+1 TO LAST-1])
+            ELSE
+                r.append(string.split(a[i], ".")[0])
+            END IF
+        END IF
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION findSource(srcdir: String, module: String): String
+    IF file.exists("\(srcdir)/\(module).neon") THEN
+        RETURN "\(srcdir)/\(module).neon"
+    END IF
+    IF file.exists("\(module).neon") THEN
+        RETURN "\(module).neon"
+    END IF
+    IF file.exists("lib/\(module).neon") THEN
+        RETURN "lib/\(module).neon"
+    END IF
+    IF file.exists("lib/\(module)/\(module).neon") THEN
+        RETURN "lib/\(module)/\(module).neon"
+    END IF
+    textio.writeLine(textio.stderr, "Could not find module: \(module)")
+    sys.exit(1)
+    RETURN ""
+END FUNCTION
+
+FUNCTION dumpTree(tree: VALID POINTER TO Node, depth: Number DEFAULT 0)
+    print(string.repeat("  ", depth) & tree->target & "(" & tree->source & "): " & tree->command)
+    FOREACH d IN tree->dependencies DO
+        IF VALID d THEN
+            dumpTree(d, depth+1)
+        END IF
+    END FOREACH
+END FUNCTION
+
+FUNCTION execTree(tree: VALID POINTER TO Node): Boolean
+    VAR any: Boolean := FALSE
+    FOREACH d IN tree->dependencies DO
+        IF VALID d THEN
+            IF execTree(d) THEN
+                any := TRUE
+            END IF
+        END IF
+    END FOREACH
+    LET sourceinfo := file.getInfo(tree->source)
+    LET targetinfo := file.getInfo(tree->target)
+    IF sourceinfo ISA file.FileInfoResult.info THEN
+        IF targetinfo ISA file.FileInfoResult.info THEN
+            IF TRUE OR sourceinfo.info.lastModificationTime > targetinfo.info.lastModificationTime THEN
+                any := TRUE
+            END IF
+        ELSE
+            any := TRUE
+        END IF
+    ELSE
+        any := TRUE
+    END IF
+    IF any THEN
+        exec(tree)
+    END IF
+    RETURN any
+END FUNCTION
+
+FUNCTION exec(node: VALID POINTER TO Node)
+    VAR stdout: Bytes
+    VAR stderr: Bytes
+    VAR cmd := node->command
+    cmd := string.replaceAll(cmd, "$SOURCE", node->source)
+    cmd := string.replaceAll(cmd, "$TARGET", node->target)
+    IF verbose THEN
+        print(cmd)
+    END IF
+    VAR r := process.call(cmd, OUT stdout, OUT stderr)
+    IF r <> 0 THEN
+        io.writeBytes(io.stdout, stdout)
+        io.writeBytes(io.stderr, stderr)
+        sys.exit(1)
+    END IF
+END FUNCTION

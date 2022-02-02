@@ -336,7 +336,7 @@ public:
         std::copy(data.begin(), data.end(), std::back_inserter(encrypt_buf));
         process_outgoing_data();
     }
-private:
+
     void do_handshake() {
         //printf("do_handshake\n");
         int r = SSL_do_handshake(ssl);
@@ -569,12 +569,13 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
         tv = &actual_tv;
     }
     int r;
-    do {
+    while (true) {
         r = select(nfds, &rfds, &wfds, &efds, tv);
         if (r < 0 && errno == EAGAIN) {
             continue;
         }
-    } while (false);
+        break;
+    }
     if (r < 0) {
         throw RtlException(Exception_SocketException, utf8string(""));
     }
@@ -619,6 +620,27 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
     }
 
     return true;
+}
+
+std::shared_ptr<Object> socket_startTlsClient(const std::shared_ptr<Object> &socket, Cell &validateMode)
+{
+    std::shared_ptr<SocketObject> so = std::dynamic_pointer_cast<SocketObject>(socket);
+    if (dynamic_cast<RawSocketObject *>(socket.get()) == nullptr) {
+        return nullptr;
+    }
+    auto r = std::make_shared<TlsSocketObject>(so, TlsSocketObject::TlsMode::CLIENT, number_to_uint32(validateMode.number()), nullptr, nullptr);
+    // TODO: set up host name from underlying socket connect() call
+    r->do_handshake();
+    return r;
+}
+
+std::shared_ptr<Object> socket_startTlsServer(const std::shared_ptr<Object> &socket, const utf8string &certfile, const utf8string &keyfile)
+{
+    std::shared_ptr<SocketObject> so = std::dynamic_pointer_cast<SocketObject>(socket);
+    if (dynamic_cast<RawSocketObject *>(socket.get()) == nullptr) {
+        return nullptr;
+    }
+    return std::make_shared<TlsSocketObject>(so, TlsSocketObject::TlsMode::SERVER, ENUM_TlsPeerValidateMode_RequireValidCertificate, certfile.c_str(), keyfile.c_str());
 }
 
 } // namespace ne_net

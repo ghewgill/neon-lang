@@ -652,6 +652,8 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                             continue;
                         }
                         default:
+                            t.column += i - startindex - 2;
+                            t.text = std::string("\\") + (char)c;
                             error(1009, t, "invalid escape character");
                     }
                 }

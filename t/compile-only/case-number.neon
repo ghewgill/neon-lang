@@ -1,0 +1,14 @@
+-- TODO
+
+FUNCTION f(n: Number): Number
+    CASE n
+        WHEN 0 DO
+            RETURN 1
+        WHEN 1 DO
+            RETURN 0
+    END CASE
+END FUNCTION
+
+_ := f(2)
+
+--! return expected

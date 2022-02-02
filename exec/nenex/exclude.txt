@@ -43,12 +43,6 @@ foreach.neon                # format
 format.neon                 # callmf
 function-pointer-nowhere.neon # pushfp
 function-pointer.neon       # pushfp
-gc-array.neon               # gc
-gc-long-chain.neon          # gc
-gc1.neon                    # gc
-gc2.neon                    # gc
-gc3.neon                    # gc
-gc-two-pointers.neon        # gc
 import-dup.neon             # sys$exit
 import.neon                 # pushpmg
 import-optional.neon        # import
@@ -138,7 +132,6 @@ value-copy.neon             # pushy
 value-index.neon            # indexan
 varargs-functionpointer.neon # pushfp
 varargs.neon                # pushppg
-win32-test.neon             # callmf
 
 compress-test.neon
 extsample-test.neon

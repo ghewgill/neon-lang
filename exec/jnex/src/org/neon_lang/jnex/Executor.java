@@ -94,10 +94,16 @@ class Executor {
         predefined.put("string__toBytes", this::string__toBytes);
         predefined.put("string__toString", this::string__toString);
         predefined.put("math$abs", this::math$abs);
+        predefined.put("math$atan", this::math$atan);
         predefined.put("math$ceil", this::math$ceil);
+        predefined.put("math$cos", this::math$cos);
+        predefined.put("math$exp", this::math$exp);
         predefined.put("math$floor", this::math$floor);
+        predefined.put("math$log", this::math$log);
         predefined.put("math$odd", this::math$odd);
         predefined.put("math$sign", this::math$sign);
+        predefined.put("math$sin", this::math$sin);
+        predefined.put("math$sqrt", this::math$sqrt);
         predefined.put("math$trunc", this::math$trunc);
         predefined.put("random$uint32", this::random$uint32);
         predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
@@ -111,6 +117,7 @@ class Executor {
         predefined.put("textio$open_internal", this::textio$open_internal);
         predefined.put("textio$readLine", this::textio$readLine);
         predefined.put("textio$writeLine", this::textio$writeLine);
+        predefined.put("time$now", this::time$now);
 
         this.args = new ArrayList<Cell>();
         for (String x: args) {
@@ -522,7 +529,7 @@ class Executor {
             raiseLiteral("NumberException.DivideByZero");
             return;
         }
-        stack.addFirst(new Cell(a.divide(b)));
+        stack.addFirst(new Cell(a.divide(b, 34, java.math.RoundingMode.HALF_EVEN)));
     }
 
     private void doMODN()
@@ -1915,16 +1922,40 @@ class Executor {
         stack.addFirst(new Cell(x.abs()));
     }
 
+    private void math$atan()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(BigDecimal.valueOf(Math.atan(x.doubleValue()))));
+    }
+
     private void math$ceil()
     {
         BigDecimal x = stack.removeFirst().getNumber();
         stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_CEILING)));
     }
 
+    private void math$cos()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(BigDecimal.valueOf(Math.cos(x.doubleValue()))));
+    }
+
+    private void math$exp()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(BigDecimal.valueOf(Math.exp(x.doubleValue()))));
+    }
+
     private void math$floor()
     {
         BigDecimal x = stack.removeFirst().getNumber();
         stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_FLOOR)));
+    }
+
+    private void math$log()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(BigDecimal.valueOf(Math.log(x.doubleValue()))));
     }
 
     private void math$odd()
@@ -1937,6 +1968,18 @@ class Executor {
     {
         BigDecimal x = stack.removeFirst().getNumber();
         stack.addFirst(new Cell(new BigDecimal(x.signum())));
+    }
+
+    private void math$sin()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(BigDecimal.valueOf(Math.sin(x.doubleValue()))));
+    }
+
+    private void math$sqrt()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(BigDecimal.valueOf(Math.sqrt(x.doubleValue()))));
     }
 
     private void math$trunc()
@@ -2048,5 +2091,10 @@ class Executor {
         String s = stack.removeFirst().getString();
         java.io.PrintStream f = (java.io.PrintStream)stack.removeFirst().getObject().getNative();
         f.println(s);
+    }
+
+    private void time$now()
+    {
+        stack.addFirst(new Cell(BigDecimal.valueOf(System.currentTimeMillis()).divide(BigDecimal.valueOf(1000))));
     }
 }

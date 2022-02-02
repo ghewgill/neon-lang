@@ -393,7 +393,6 @@ varargs.neon
 varargs-functionpointer.neon
 while.neon
 while-valid.neon
-win32-test.neon
 xml-test.neon
 
 compress-test.neon

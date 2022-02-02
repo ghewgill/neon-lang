@@ -40,12 +40,6 @@ foreach-eval.neon          # import
 format.neon                # CALLMF
 function-pointer-nowhere.neon # EQA
 function-pointer.neon      # PUSHFP
-gc-array.neon              # import
-gc-long-chain.neon         # import
-gc1.neon                   # import
-gc2.neon                   # import
-gc3.neon                   # import
-gc-two-pointers.neon       # import
 import-dup.neon            # sys
 import-optional.neon       # import
 import-string.neon         # import
@@ -125,7 +119,6 @@ unicode-length.neon        # UTF-8
 unicode-string.neon        # UTF-8
 value-copy.neon            # copy
 varargs-functionpointer.neon # PUSHFP
-win32-test.neon            # CALLMF
 
 compress-test.neon
 extsample-test.neon

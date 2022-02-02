@@ -3,8 +3,8 @@ if (GMP_FOUND)
 else ()
     if (NOT EXISTS external/gmp-6.1.2)
         execute_process(
-            COMMAND python3 ../scripts/extract.py gmp-6.1.2.tar.bz2 .
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/extract.py ${CMAKE_CURRENT_SOURCE_DIR}/gmp-6.1.2.tar.bz2 .
+            WORKING_DIRECTORY external
             RESULT_VARIABLE retcode
         )
         if (NOT "${retcode}" STREQUAL "0")
@@ -221,7 +221,7 @@ else ()
     else (WIN32)
         add_custom_command(
             OUTPUT lib/libgmp.a
-            COMMAND cd gmp-6.1.2 && ./configure --prefix=`pwd`/.. --with-pic --enable-cxx && make && make install
+            COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/gmp-6.1.2 && ./configure --prefix=${CMAKE_BINARY_DIR}/external --with-pic --enable-cxx && make && make install
         )
         add_custom_target(libgmp DEPENDS lib/libgmp.a)
         add_library(GMP STATIC IMPORTED GLOBAL)

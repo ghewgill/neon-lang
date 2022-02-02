@@ -4,17 +4,19 @@ IMPORT string
 IMPORT sys
 IMPORT textio
 
+LET src: String := sys.args[1]
+
 VAR errors: Dictionary<String> := {}
-LET sources: Array<String> := file.files("src")
+LET sources: Array<String> := file.files(src)
 FOREACH fn IN sources DO
     CHECK string.hasSuffix(fn, ".cpp") ELSE
         NEXT FOREACH
     END CHECK
-    LET r: file.LinesResult := file.readLines("src/" & fn)
-    CHECK r ISA file.LinesResult.lines ELSE
+    LET rr: file.LinesResult := file.readLines(src & "/" & fn)
+    CHECK rr ISA file.LinesResult.lines ELSE
         EXIT PROCESS FAILURE
     END CHECK
-    VAR lines: Array<String> := r.lines
+    VAR lines: Array<String> := rr.lines
     VAR enable: Boolean := TRUE
     FOREACH s IN lines DO
         IF string.hasPrefix(s, "#if 0") THEN
@@ -41,7 +43,7 @@ END FOREACH
 VAR r: textio.OpenResult := textio.open("gen/errors.txt", textio.Mode.write)
 CHECK r ISA textio.OpenResult.file ELSE
     print(r.error)
-    sys.exit(1)
+    EXIT PROCESS FAILURE
 END CHECK
 LET out: textio.TextFile := r.file
 FOREACH error IN errors.keys() DO

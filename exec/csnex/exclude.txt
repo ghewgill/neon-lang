@@ -19,12 +19,6 @@ file-test.neon                                  # file module
 file-writebytes.neon                            # file module
 file-writelines.neon                            # file module
 format.neon                                     # math$intdiv
-gc-array.neon                                   # garbage collection
-gc-long-chain.neon                              # garbage collection
-gc-two-pointers.neon                            # garbage collection
-gc1.neon                                        # garbage collection
-gc2.neon                                        # garbage collection
-gc3.neon                                        # garbage collection
 import-optional.neon                            # runtime$isModuleImported
 input.neon                                      # console module
 intdiv.neon                                     # math$intdiv

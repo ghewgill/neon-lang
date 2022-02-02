@@ -9,7 +9,6 @@ gc-two-pointers.neon       # garbage collection
 math-test.neon             # math.powmod()
 tostring.neon              # dictionary__toString__string
 tostring-quotes.neon       # dictionary__toString__object
-win32-test.neon            # CALLE
 
 http-test.neon             # string$split
 sodium-test.neon           # binary$shiftRight32() exception

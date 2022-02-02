@@ -1535,7 +1535,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             fprintf(stderr, "neonc: Note: Optional module %s not found at compile time\n", name.c_str());
             return ast::MODULE_MISSING;
         } else {
-            error(3001, token, std::string("module not found: ") + e.what());
+            error(3001, token, std::string("module " + name + " not found: ") + e.what());
         }
     }
     ast::Module *module = new ast::Module(Token(), global_scope, name, optional);
@@ -3038,6 +3038,7 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
         }
         comps.push_back(c);
         token = x->right->token;
+        left = right;
     }
     return new ast::ChainedComparisonExpression(comps);
 }
@@ -3847,6 +3848,9 @@ const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *decl
                 error(3113, declaration->value->token, "type mismatch");
             }
         } else {
+            if (expr->type == ast::TYPE_NOTHING) {
+                error(3324, declaration->value->token, "no value returned from function");
+            }
             if (expr->type->is_ambiguous()) {
                 error(3293, declaration->value->token, "this expression needs an explicit type declaration");
             }
@@ -3914,6 +3918,9 @@ const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declarati
             error(3140, declaration->value->token, "type mismatch");
         }
     } else {
+        if (expr->type == ast::TYPE_NOTHING) {
+            error(3323, declaration->value->token, "no value returned from function");
+        }
         if (expr->type->is_ambiguous()) {
             error(3294, declaration->value->token, "this expression needs an explicit type declaration");
         }
@@ -5467,8 +5474,8 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
     if (scope.top()->lookupName(name.text) != nullptr) {
         error2(3118, name, "duplicate identifier", scope.top()->getDeclaration(name.text), "first declaration here");
     }
-    ast::Variable *var = frame.top()->createVariable(name, name.text, ast::TYPE_NUMBER, false);
-    scope.top()->addName(var->declaration, var->name, var, true);
+    ast::Variable *var = frame.top()->createVariable(name, name.text + "_" + std::to_string(reinterpret_cast<intptr_t>(statement)), ast::TYPE_NUMBER, false);
+    scope.top()->addName(var->declaration, name.text, var, true);
     var->is_readonly = true;
     ast::Variable *bound = scope.top()->makeTemporary(ast::TYPE_NUMBER);
     const ast::Expression *start = analyze(statement->start.get());

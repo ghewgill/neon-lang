@@ -1,7 +1,7 @@
 IMPORT console
+IMPORT http
 IMPORT json
 IMPORT os
-IMPORT simplehttp
 IMPORT string
 IMPORT sys
 IMPORT time
@@ -9,8 +9,8 @@ IMPORT time
 CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): Object
-    LET hr := simplehttp.get("http://127.0.0.1:\(Port)\(url)", {})
-    CHECK hr ISA simplehttp.HttpResult.response ELSE
+    LET hr := http.get("http://127.0.0.1:\(Port)\(url)", {})
+    CHECK hr ISA http.HttpResult.response ELSE
         print(hr.error)
         EXIT PROCESS FAILURE
     END CHECK
@@ -23,8 +23,8 @@ FUNCTION get(url: String): Object
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): Object
-    LET hr := simplehttp.post("http://127.0.0.1:\(Port)\(url)", post_data, {})
-    CHECK hr ISA simplehttp.HttpResult.response ELSE
+    LET hr := http.post("http://127.0.0.1:\(Port)\(url)", post_data, {})
+    CHECK hr ISA http.HttpResult.response ELSE
         print(hr.error)
         EXIT PROCESS FAILURE
     END CHECK

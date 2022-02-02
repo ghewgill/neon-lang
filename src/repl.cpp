@@ -53,6 +53,8 @@ void Repl::handle(const std::string &s)
                 // so the assignment back to globals_ast won't happen.)
                 auto globals = globals_ast;
                 program = analyze(&compiler_support, parsetree.get(), &globals);
+                // TODO: Do we still need this? The PUSHPEG opcode now creates new entries
+                // in the external_globals map as needed.
                 globals_ast = globals;
                 for (auto g: globals_ast) {
                     if (globals_cells.find(g.first) == globals_cells.end()) {
