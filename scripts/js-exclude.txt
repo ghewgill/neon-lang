@@ -64,6 +64,7 @@ in.neon                    # ArrayInExpression
 inc-reference.neon         # actually works here so avoid the TODO
 index.neon                 # copy semantics
 interface.neon             # methods
+interface-compare.neon     # interface
 interface-multiple.neon    # method
 interface-parameter-export.neon # method
 interface-parameter-export2.neon # method

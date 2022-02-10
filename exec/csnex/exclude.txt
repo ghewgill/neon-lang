@@ -23,6 +23,7 @@ import-optional.neon                            # runtime$isModuleImported
 input.neon                                      # console module
 intdiv.neon                                     # math$intdiv
 interface.neon                                  # Invalid output
+interface-compare.neon                          # eqv
 json-test.neon                                  # object__makeNull
 math-test.neon                                  # math module
 mkdir.neon                                      # file module

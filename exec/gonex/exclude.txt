@@ -10,6 +10,7 @@ decimal.neon               # decimal
 file-filecopied2.neon      # copy
 for.neon                   # decimal
 index.neon                 # copy semantics
+interface-compare.neon     # eqv
 io-test.neon               # io.File
 math-test.neon             # math
 mmap-test.neon             # mmap$open

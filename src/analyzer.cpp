@@ -2975,6 +2975,21 @@ const ast::Expression *Analyzer::analyze_comparison(const Token &token, const as
             }
         }
     }
+    {
+        const ast::TypeInterfacePointer *ti1 = dynamic_cast<const ast::TypeInterfacePointer *>(left->type);
+        const ast::TypeInterfacePointer *ti2 = dynamic_cast<const ast::TypeInterfacePointer *>(right->type);
+        if (ti1 != nullptr && ti2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3325, token, "comparison not available for interface pointers");
+            }
+            return new ast::PointerComparisonExpression(new ast::InterfacePointerDeconstructor(left), new ast::InterfacePointerDeconstructor(right), comp);
+        }
+        if (ti1 != nullptr && dynamic_cast<const ast::ConstantNilExpression *>(right) != nullptr) {
+            return new ast::PointerComparisonExpression(new ast::InterfacePointerDeconstructor(left), right, comp);
+        } else if (ti2 != nullptr && dynamic_cast<const ast::ConstantNilExpression *>(left) != nullptr) {
+            return new ast::PointerComparisonExpression(left, new ast::InterfacePointerDeconstructor(right), comp);
+        }
+    }
     if (comp == ast::ComparisonExpression::Comparison::EQ || comp == ast::ComparisonExpression::Comparison::NE) {
         const ast::Expression *r = nullptr;
         if (left->type == ast::TYPE_OBJECT && dynamic_cast<const ast::ConstantNilExpression *>(right) != nullptr) {

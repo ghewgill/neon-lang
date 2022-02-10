@@ -26,6 +26,7 @@ import-optional.neon       # import
 inc-reference.neon         # increment
 index.neon                 # copy semantics
 interface.neon             # interface
+interface-compare.neon     # interface
 interface-multiple.neon    # interface
 interface-parameter-export.neon # interface
 interface-parameter-export2.neon # interface

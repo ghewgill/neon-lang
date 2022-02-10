@@ -44,6 +44,7 @@ import.neon                     # InterfacePointerConstructor
 import-optional.neon            # import optional
 import-string.neon              # segfault
 interface.neon                  # InterfaceMethodExpression
+interface-compare.neon          # InterfacePointerConstructor
 interface-multiple.neon         # InterfacePointerConstructor
 interface-parameter-export2.neon # InterfaceMethodExpression
 interface-parameter-export.neon # InterfaceMethodExpression

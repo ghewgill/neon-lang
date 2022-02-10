@@ -50,6 +50,7 @@ in.neon                     # ina
 inc-reference.neon          # array__toString__number
 index.neon                  # value semantics
 intdiv.neon                 # math$intdiv
+interface-compare.neon      # pushi
 interface-multiple.neon     # pushi
 interface-parameter-export.neon  # typesize
 interface-parameter-export2.neon # exportfunctionsize
