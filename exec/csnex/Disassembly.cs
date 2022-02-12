@@ -163,12 +163,6 @@ namespace csnex
             stream.AppendFormat("LOADJ");
             index++;
         }
-
-        void LOADV()
-        {
-            stream.AppendFormat("LOADV");
-            index++;
-        }
 #endregion
 #region STOREx Handlers
         void STOREB()
@@ -216,12 +210,6 @@ namespace csnex
         void STOREJ()
         {
             stream.AppendFormat("STOREJ");
-            index++;
-        }
-
-        void STOREV()
-        {
-            stream.AppendFormat("STOREV");
             index++;
         }
 #endregion
@@ -422,18 +410,6 @@ namespace csnex
         void NEP()
         {
             stream.AppendFormat("NEP");
-            index++;
-        }
-
-        void EQV()
-        {
-            stream.AppendFormat("EQV");
-            index++;
-        }
-
-        void NEV()
-        {
-            stream.AppendFormat("NEV");
             index++;
         }
 #endregion
@@ -690,7 +666,6 @@ namespace csnex
                 case Opcode.LOADD: LOADD(); break;
                 case Opcode.LOADP: LOADP(); break;
                 case Opcode.LOADJ: LOADJ(); break;
-                case Opcode.LOADV: LOADV(); break;
                 case Opcode.STOREB: STOREB(); break;
                 case Opcode.STOREN: STOREN(); break;
                 case Opcode.STORES: STORES(); break;
@@ -699,7 +674,6 @@ namespace csnex
                 case Opcode.STORED: STORED(); break;
                 case Opcode.STOREP: STOREP(); break;
                 case Opcode.STOREJ: STOREJ(); break;
-                case Opcode.STOREV: STOREV(); break;
                 case Opcode.NEGN: NEGN(); break;
                 case Opcode.ADDN: ADDN(); break;
                 case Opcode.SUBN: SUBN(); break;
@@ -733,8 +707,6 @@ namespace csnex
                 case Opcode.NED: NED(); break;
                 case Opcode.EQP: EQP(); break;
                 case Opcode.NEP: NEP(); break;
-                case Opcode.EQV: EQV(); break;
-                case Opcode.NEV: NEV(); break;
                 case Opcode.ANDB: ANDB(); break;
                 case Opcode.ORB: ORB(); break;
                 case Opcode.NOTB: NOTB(); break;

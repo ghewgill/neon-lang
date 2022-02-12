@@ -1,9 +1,0 @@
-TYPE P1 IS POINTER
-TYPE P2 IS POINTER
-
-VAR p1: P1
-VAR p2: P2
-
-p2 := p1
-
---! type mismatch

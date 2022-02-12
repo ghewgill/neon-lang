@@ -497,9 +497,9 @@ utf8string bytes__toString(const std::vector<unsigned char> &self)
     return utf8string(r.str());
 }
 
-utf8string pointer__toString(void *p)
+utf8string pointer__toString(Cell &p)
 {
-    return utf8string("<p:" + std::to_string(reinterpret_cast<intptr_t>(p)) + ">");
+    return utf8string("<p:" + std::to_string(reinterpret_cast<intptr_t>(p.address())) + ">");
 }
 
 utf8string functionpointer__toString(Cell &p)

@@ -198,7 +198,6 @@ public:
     void exec_LOADD();
     void exec_LOADP();
     void exec_LOADJ();
-    void exec_LOADV();
     void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
@@ -207,7 +206,6 @@ public:
     void exec_STORED();
     void exec_STOREP();
     void exec_STOREJ();
-    void exec_STOREV();
     void exec_NEGN();
     void exec_ADDN();
     void exec_SUBN();
@@ -241,8 +239,6 @@ public:
     void exec_NED();
     void exec_EQP();
     void exec_NEP();
-    void exec_EQV();
-    void exec_NEV();
     void exec_ANDB();
     void exec_ORB();
     void exec_NOTB();
@@ -301,6 +297,15 @@ const char *Executor::DebuggerStateName[] = {
 };
 
 static Executor *g_executor;
+
+class PointerObject: public Object {
+public:
+    explicit PointerObject(void *ptr): ptr(ptr) {}
+    PointerObject(const PointerObject &) = delete;
+    PointerObject &operator=(const PointerObject &) = delete;
+    virtual utf8string toString() const { return utf8string("<pointer:" + std::to_string(reinterpret_cast<intptr_t>(ptr)) + ">"); }
+    void *ptr;
+};
 
 extern "C" {
 
@@ -413,12 +418,20 @@ void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
 
 void *cell_get_pointer(const struct Ne_Cell *cell)
 {
-    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->other();
+    PointerObject *po = dynamic_cast<PointerObject *>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->object().get());
+    if (po == nullptr) {
+        return nullptr;
+    }
+    return po->ptr;
 }
 
 void cell_set_pointer(struct Ne_Cell *cell, void *p)
 {
-    reinterpret_cast<Cell *>(cell)->other() = p;
+    PointerObject *po = dynamic_cast<PointerObject *>(reinterpret_cast<Cell *>(cell)->object().get());
+    if (po == nullptr) {
+        return;
+    }
+    po->ptr = p;
 }
 
 int cell_get_array_size(const struct Ne_Cell *cell)
@@ -781,13 +794,6 @@ void Executor::exec_LOADJ()
     stack.push(Cell(addr->object()));
 }
 
-void Executor::exec_LOADV()
-{
-    ip++;
-    Cell *addr = stack.top().address(); stack.pop();
-    stack.push(Cell::makeOther(addr->other()));
-}
-
 void Executor::exec_STOREB()
 {
     ip++;
@@ -845,13 +851,6 @@ void Executor::exec_STOREP()
 }
 
 void Executor::exec_STOREJ()
-{
-    ip++;
-    Cell *addr = stack.top().address(); stack.pop();
-    *addr = stack.top(); stack.pop();
-}
-
-void Executor::exec_STOREV()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
@@ -1144,22 +1143,6 @@ void Executor::exec_NEP()
     ip++;
     Cell *b = stack.top().address(); stack.pop();
     Cell *a = stack.top().address(); stack.pop();
-    stack.push(Cell(a != b));
-}
-
-void Executor::exec_EQV()
-{
-    ip++;
-    void *b = stack.top().other(); stack.pop();
-    void *a = stack.top().other(); stack.pop();
-    stack.push(Cell(a == b));
-}
-
-void Executor::exec_NEV()
-{
-    ip++;
-    void *b = stack.top().other(); stack.pop();
-    void *a = stack.top().other(); stack.pop();
     stack.push(Cell(a != b));
 }
 
@@ -2012,7 +1995,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case Opcode::LOADD:   exec_LOADD(); break;
             case Opcode::LOADP:   exec_LOADP(); break;
             case Opcode::LOADJ:   exec_LOADJ(); break;
-            case Opcode::LOADV:   exec_LOADV(); break;
             case Opcode::STOREB:  exec_STOREB(); break;
             case Opcode::STOREN:  exec_STOREN(); break;
             case Opcode::STORES:  exec_STORES(); break;
@@ -2021,7 +2003,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case Opcode::STORED:  exec_STORED(); break;
             case Opcode::STOREP:  exec_STOREP(); break;
             case Opcode::STOREJ:  exec_STOREJ(); break;
-            case Opcode::STOREV:  exec_STOREV(); break;
             case Opcode::NEGN:    exec_NEGN(); break;
             case Opcode::ADDN:    exec_ADDN(); break;
             case Opcode::SUBN:    exec_SUBN(); break;
@@ -2055,8 +2036,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case Opcode::NED:     exec_NED(); break;
             case Opcode::EQP:     exec_EQP(); break;
             case Opcode::NEP:     exec_NEP(); break;
-            case Opcode::EQV:     exec_EQV(); break;
-            case Opcode::NEV:     exec_NEV(); break;
             case Opcode::ANDB:    exec_ANDB(); break;
             case Opcode::ORB:     exec_ORB(); break;
             case Opcode::NOTB:    exec_NOTB(); break;

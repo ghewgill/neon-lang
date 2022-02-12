@@ -2218,7 +2218,7 @@ const ast::Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
     }
     const ast::TypeRecord *recordtype = pointertype->reftype;
     if (recordtype == nullptr) {
-        error(3117, expr->base->token, "pointer must not be a generic pointer");
+        internal_error("pointer does not have a referred type");
     }
     if (dynamic_cast<const ast::TypeForwardClass *>(recordtype) != nullptr) {
         error2(3104, expr->base->token, "class not defined yet", recordtype->declaration, "forward declaration here");

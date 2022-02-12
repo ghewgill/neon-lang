@@ -157,12 +157,6 @@ void disasm_LOADJ(TInstructionDisassembler *disasm)
     disasm->index++;
 }
 
-void disasm_LOADV(TInstructionDisassembler *disasm)
-{
-    snprintf(disasm->out, MAX_BUFFER, "LOADV");
-    disasm->index++;
-}
-
 void disasm_STOREB(TInstructionDisassembler *disasm)
 {
     snprintf(disasm->out, MAX_BUFFER, "STOREB");
@@ -208,12 +202,6 @@ void disasm_STOREP(TInstructionDisassembler *disasm)
 void disasm_STOREJ(TInstructionDisassembler *disasm)
 {
     snprintf(disasm->out, MAX_BUFFER, "STOREJ");
-    disasm->index++;
-}
-
-void disasm_STOREV(TInstructionDisassembler *disasm)
-{
-    snprintf(disasm->out, MAX_BUFFER, "STOREV");
     disasm->index++;
 }
 
@@ -412,18 +400,6 @@ void disasm_EQP(TInstructionDisassembler *disasm)
 void disasm_NEP(TInstructionDisassembler *disasm)
 {
     snprintf(disasm->out, MAX_BUFFER, "NEP");
-    disasm->index++;
-}
-
-void disasm_EQV(TInstructionDisassembler *disasm)
-{
-    snprintf(disasm->out, MAX_BUFFER, "EQV");
-    disasm->index++;
-}
-
-void disasm_NEV(TInstructionDisassembler *disasm)
-{
-    snprintf(disasm->out, MAX_BUFFER, "NEV");
     disasm->index++;
 }
 
@@ -697,7 +673,6 @@ void disasm_disassemble(TInstructionDisassembler *disasm)
         case LOADD:   disasm_LOADD(disasm); break;
         case LOADP:   disasm_LOADP(disasm); break;
         case LOADJ:   disasm_LOADJ(disasm); break;
-        case LOADV:   disasm_LOADV(disasm); break;
         case STOREB:  disasm_STOREB(disasm); break;
         case STOREN:  disasm_STOREN(disasm); break;
         case STORES:  disasm_STORES(disasm); break;
@@ -706,7 +681,6 @@ void disasm_disassemble(TInstructionDisassembler *disasm)
         case STORED:  disasm_STORED(disasm); break;
         case STOREP:  disasm_STOREP(disasm); break;
         case STOREJ:  disasm_STOREJ(disasm); break;
-        case STOREV:  disasm_STOREV(disasm); break;
         case NEGN:    disasm_NEGN(disasm); break;
         case ADDN:    disasm_ADDN(disasm); break;
         case SUBN:    disasm_SUBN(disasm); break;
@@ -740,8 +714,6 @@ void disasm_disassemble(TInstructionDisassembler *disasm)
         case NED:     disasm_NED(disasm); break;
         case EQP:     disasm_EQP(disasm); break;
         case NEP:     disasm_NEP(disasm); break;
-        case EQV:     disasm_EQV(disasm); break;
-        case NEV:     disasm_NEV(disasm); break;
         case ANDB:    disasm_ANDB(disasm); break;
         case ORB:     disasm_ORB(disasm); break;
         case NOTB:    disasm_NOTB(disasm); break;

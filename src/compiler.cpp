@@ -144,7 +144,6 @@ void Emitter::emit(Opcode b)
             case Opcode::LOADD:     break;
             case Opcode::LOADP:     break;
             case Opcode::LOADJ:     break;
-            case Opcode::LOADV:     break;
             case Opcode::STOREB:    stack_depth -= 2; break;
             case Opcode::STOREN:    stack_depth -= 2; break;
             case Opcode::STORES:    stack_depth -= 2; break;
@@ -153,7 +152,6 @@ void Emitter::emit(Opcode b)
             case Opcode::STORED:    stack_depth -= 2; break;
             case Opcode::STOREP:    stack_depth -= 2; break;
             case Opcode::STOREJ:    stack_depth -= 2; break;
-            case Opcode::STOREV:    stack_depth -= 2; break;
             case Opcode::NEGN:      break;
             case Opcode::ADDN:      stack_depth -= 1; break;
             case Opcode::SUBN:      stack_depth -= 1; break;
@@ -187,8 +185,6 @@ void Emitter::emit(Opcode b)
             case Opcode::NED:       stack_depth -= 1; break;
             case Opcode::EQP:       stack_depth -= 1; break;
             case Opcode::NEP:       stack_depth -= 1; break;
-            case Opcode::EQV:       stack_depth -= 1; break;
-            case Opcode::NEV:       stack_depth -= 1; break;
             case Opcode::ANDB:      stack_depth -= 1; break;
             case Opcode::ORB:       stack_depth -= 1; break;
             case Opcode::NOTB:      break;
@@ -857,20 +853,12 @@ std::string ast::TypeClass::get_type_descriptor(Emitter &emitter) const
 
 void ast::TypePointer::generate_load(Emitter &emitter) const
 {
-    if (reftype != nullptr) {
-        emitter.emit(Opcode::LOADP);
-    } else {
-        emitter.emit(Opcode::LOADV);
-    }
+    emitter.emit(Opcode::LOADP);
 }
 
 void ast::TypePointer::generate_store(Emitter &emitter) const
 {
-    if (reftype != nullptr) {
-        emitter.emit(Opcode::STOREP);
-    } else {
-        emitter.emit(Opcode::STOREV);
-    }
+    emitter.emit(Opcode::STOREP);
 }
 
 void ast::TypePointer::generate_call(Emitter &) const
@@ -1721,22 +1709,11 @@ void ast::DictionaryComparisonExpression::generate_comparison_opcode(Emitter &em
 
 void ast::PointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    const ast::TypePointer *tp1 = dynamic_cast<const ast::TypePointer *>(left->type);
-    const ast::TypePointer *tp2 = dynamic_cast<const ast::TypePointer *>(right->type);
-    if (tp1->reftype != nullptr || tp2->reftype != nullptr) {
-        switch (comp) {
-            case Comparison::EQ: emitter.emit(Opcode::EQP); break;
-            case Comparison::NE: emitter.emit(Opcode::NEP); break;
-            default:
-                internal_error("unexpected comparison type");
-        }
-    } else {
-        switch (comp) {
-            case Comparison::EQ: emitter.emit(Opcode::EQV); break;
-            case Comparison::NE: emitter.emit(Opcode::NEV); break;
-            default:
-                internal_error("unexpected comparison type");
-        }
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(Opcode::EQP); break;
+        case Comparison::NE: emitter.emit(Opcode::NEP); break;
+        default:
+            internal_error("unexpected comparison type");
     }
 }
 

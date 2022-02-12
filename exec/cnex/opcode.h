@@ -20,7 +20,6 @@
     OPCODE(LOADD)      /* load dictionary */\
     OPCODE(LOADP)      /* load pointer */\
     OPCODE(LOADJ)      /* load object */\
-    OPCODE(LOADV)      /* load voidptr */\
     OPCODE(STOREB)     /* store boolean */\
     OPCODE(STOREN)     /* store number */\
     OPCODE(STORES)     /* store string */\
@@ -29,7 +28,6 @@
     OPCODE(STORED)     /* store dictionary */\
     OPCODE(STOREP)     /* store pointer */\
     OPCODE(STOREJ)     /* store object */\
-    OPCODE(STOREV)     /* store voidptr */\
     OPCODE(NEGN)       /* negate number */\
     OPCODE(ADDN)       /* add number */\
     OPCODE(SUBN)       /* subtract number */\
@@ -63,8 +61,6 @@
     OPCODE(NED)        /* compare unequal dictionary */\
     OPCODE(EQP)        /* compare equal pointer */\
     OPCODE(NEP)        /* compare unequal pointer */\
-    OPCODE(EQV)        /* compare equal voidptr */\
-    OPCODE(NEV)        /* compare unequal voidptr */\
     OPCODE(ANDB)       /* and boolean */\
     OPCODE(ORB)        /* or boolean */\
     OPCODE(NOTB)       /* not boolean */\

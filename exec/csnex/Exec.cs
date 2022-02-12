@@ -396,11 +396,6 @@ namespace csnex
             Cell addr = stack.Pop().Address;
             stack.Push(Cell.CreateObjectCell(addr.Object));
         }
-
-        void LOADV()
-        {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
-        }
 #endregion
 #region STOREx Opcodes
         void STOREB()
@@ -457,11 +452,6 @@ namespace csnex
             ip++;
             Cell addr = stack.Pop().Address;
             Cell.CopyCell(addr, stack.Pop());
-        }
-
-        void STOREV()
-        {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Arithmetic Opcodes
@@ -739,16 +729,6 @@ namespace csnex
             Cell b = stack.Pop().Address;
             Cell a = stack.Pop().Address;
             stack.Push(Cell.CreateBooleanCell(a != b));
-        }
-
-        void EQV()
-        {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
-        }
-
-        void NEV()
-        {
-            throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
         }
 #endregion
 #region Logic Opcodes
@@ -1266,7 +1246,6 @@ namespace csnex
                         case Opcode.LOADD: LOADD(); break;                // load dictionary
                         case Opcode.LOADP: LOADP(); break;                // load pointer
                         case Opcode.LOADJ: LOADJ(); break;                // load object
-                        case Opcode.LOADV: LOADV(); break;                // load voidptr
                         case Opcode.STOREB: STOREB(); break;              // store boolean
                         case Opcode.STOREN: STOREN(); break;              // store number
                         case Opcode.STORES: STORES(); break;              // store string
@@ -1275,7 +1254,6 @@ namespace csnex
                         case Opcode.STORED: STORED(); break;              // store dictionary
                         case Opcode.STOREP: STOREP(); break;              // store pointer
                         case Opcode.STOREJ: STOREJ(); break;              // store object
-                        case Opcode.STOREV: STOREV(); break;              // store voidptr
                         case Opcode.NEGN: NEGN(); break;                  // negate number
                         case Opcode.ADDN: ADDN(); break;                  // add number
                         case Opcode.SUBN: SUBN(); break;                  // subtract number
@@ -1309,8 +1287,6 @@ namespace csnex
                         case Opcode.NED: NED(); break;                    // compare unequal dictionary
                         case Opcode.EQP: EQP(); break;                    // compare equal pointer
                         case Opcode.NEP: NEP(); break;                    // compare unequal pointer
-                        case Opcode.EQV: EQV(); break;                    // compare equal voidptr
-                        case Opcode.NEV: NEV(); break;                    // compare unequal voidptr
                         case Opcode.ANDB: ANDB(); break;                  // and boolean
                         case Opcode.ORB: ORB(); break;                    // or boolean
                         case Opcode.NOTB: NOTB(); break;                  // not boolean

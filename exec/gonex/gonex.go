@@ -41,7 +41,6 @@ const (
 	LOADD   = iota // load dictionary
 	LOADP   = iota // load pointer
 	LOADJ   = iota // load object
-	LOADV   = iota // load voidptr
 	STOREB  = iota // store boolean
 	STOREN  = iota // store number
 	STORES  = iota // store string
@@ -50,7 +49,6 @@ const (
 	STORED  = iota // store dictionary
 	STOREP  = iota // store pointer
 	STOREJ  = iota // store object
-	STOREV  = iota // store voidptr
 	NEGN    = iota // negate number
 	ADDN    = iota // add number
 	SUBN    = iota // subtract number
@@ -84,8 +82,6 @@ const (
 	NED     = iota // compare unequal dictionary
 	EQP     = iota // compare equal pointer
 	NEP     = iota // compare unequal pointer
-	EQV     = iota // compare equal voidptr
-	NEV     = iota // compare unequal voidptr
 	ANDB    = iota // and boolean
 	ORB     = iota // or boolean
 	NOTB    = iota // not boolean
@@ -1103,8 +1099,6 @@ func (self *executor) run() {
 			self.op_loadp()
 		case LOADJ:
 			self.op_loadj()
-		case LOADV:
-			self.op_loadv()
 		case STOREB:
 			self.op_storeb()
 		case STOREN:
@@ -1121,8 +1115,6 @@ func (self *executor) run() {
 			self.op_storep()
 		case STOREJ:
 			self.op_storej()
-		case STOREV:
-			self.op_storev()
 		case NEGN:
 			self.op_negn()
 		case ADDN:
@@ -1189,10 +1181,6 @@ func (self *executor) run() {
 			self.op_eqp()
 		case NEP:
 			self.op_nep()
-		case EQV:
-			self.op_eqv()
-		case NEV:
-			self.op_nev()
 		case ANDB:
 			self.op_andb()
 		case ORB:

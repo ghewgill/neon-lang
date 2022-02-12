@@ -343,7 +343,6 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_loadd,
     f_loadp,
     f_loadj,
-    f_loadv,
     f_storeb,
     f_storen,
     f_stores,
@@ -352,7 +351,6 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_stored,
     f_storep,
     f_storej,
-    f_storev,
     f_negn,
     f_addn,
     f_subn,
@@ -386,8 +384,6 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_ned,
     f_eqp,
     f_nep,
-    f_eqv,
-    f_nev,
     f_andb,
     f_orb,
     f_notb,
@@ -628,10 +624,6 @@ FUNCTION f_loadj(INOUT self: Executor)
     self.stack.append(makeValueObject(addr->o))
 END FUNCTION
 
-FUNCTION f_loadv(INOUT self: Executor)
-    ASSERT FALSE
-END FUNCTION
-
 FUNCTION f_storeb(INOUT self: Executor)
     INC self.ip
     LET addr: POINTER TO Value := self.pop()->p
@@ -705,10 +697,6 @@ FUNCTION f_storej(INOUT self: Executor)
     END CHECK
     addr->type := Type.object -- TODO: It looks like this is probably necessary for other store opcodes too.
     addr->o := self.pop()->o
-END FUNCTION
-
-FUNCTION f_storev(INOUT self: Executor)
-    ASSERT FALSE
 END FUNCTION
 
 FUNCTION f_negn(INOUT self: Executor)
@@ -930,14 +918,6 @@ FUNCTION f_nep(INOUT self: Executor)
     LET b: POINTER TO Value := self.pop()->p
     LET a: POINTER TO Value := self.pop()->p
     self.stack.append(makeValueBoolean(a <> b))
-END FUNCTION
-
-FUNCTION f_eqv(INOUT self: Executor)
-    ASSERT FALSE
-END FUNCTION
-
-FUNCTION f_nev(INOUT self: Executor)
-    ASSERT FALSE
 END FUNCTION
 
 FUNCTION f_andb(INOUT self: Executor)

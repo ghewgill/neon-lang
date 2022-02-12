@@ -291,13 +291,12 @@ std::unique_ptr<Type> Parser::parsePointerType()
     }
     auto &tok_pointer = tokens[i];
     i++;
-    if (tokens[i].type == TO) {
-        i++;
-        std::unique_ptr<Type> reftype = parseType();
-        return std::unique_ptr<Type> { new TypePointer(tok_pointer, std::move(reftype)) };
-    } else {
-        return std::unique_ptr<Type> { new TypePointer(tok_pointer, nullptr) };
+    if (tokens[i].type != TO) {
+        error(2143, tokens[i], "TO expected");
     }
+    i++;
+    std::unique_ptr<Type> reftype = parseType();
+    return std::unique_ptr<Type> { new TypePointer(tok_pointer, std::move(reftype)) };
 }
 
 std::unique_ptr<Type> Parser::parseValidPointerType()

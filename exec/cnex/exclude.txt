@@ -10,6 +10,7 @@ math-test.neon             # math.powmod()
 tostring.neon              # dictionary__toString__string
 tostring-quotes.neon       # dictionary__toString__object
 
+extsample-test.neon        # cell_set_pointer
 http-test.neon             # string$split
 sodium-test.neon           # binary$shiftRight32() exception
 zeromq-test.neon           # module

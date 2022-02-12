@@ -224,7 +224,7 @@ DECLARE NATIVE FUNCTION bytes__splice(t: Bytes, s: Bytes, first: Number, first_f
 DECLARE NATIVE FUNCTION bytes__decodeToString(self: Bytes): String
 DECLARE NATIVE FUNCTION bytes__toArray(self: Bytes): Array<Number>
 DECLARE NATIVE FUNCTION bytes__toString(self: Bytes): String
-DECLARE NATIVE FUNCTION pointer__toString(self: POINTER): String
+DECLARE NATIVE FUNCTION pointer__toString(self: Cell): String
 DECLARE NATIVE FUNCTION functionpointer__toString(self: Cell): String
 DECLARE NATIVE FUNCTION interfacepointer__toString(self: Cell): String
 DECLARE NATIVE FUNCTION object__makeNull(): Object

@@ -1,6 +1,0 @@
-VAR p: POINTER := NIL
-
-IF VALID p AS q THEN
-    print(q->foo)
-          --<
-END IF
