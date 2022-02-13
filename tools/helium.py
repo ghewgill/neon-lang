@@ -2829,13 +2829,18 @@ def run(program):
     program.run(program.env)
 
 def eval_cond(left, cond, right):
-    return (
-        left == right if cond is EQUAL else
-        left != right if cond is NOTEQUAL else
-        left < right if cond is LESS else
-        left > right if cond is GREATER else
-        left <= right if cond is LESSEQ else
-        left >= right if cond is GREATEREQ else False)
+    if left is None or right is None:
+        return (
+            left is right if cond is EQUAL else
+            left is not right if cond is NOTEQUAL else False)
+    else:
+        return (
+            left == right if cond is EQUAL else
+            left != right if cond is NOTEQUAL else
+            left < right if cond is LESS else
+            left > right if cond is GREATER else
+            left <= right if cond is LESSEQ else
+            left >= right if cond is GREATEREQ else False)
 
 def neon_array_find(a, x):
     try:
