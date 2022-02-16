@@ -691,6 +691,10 @@ endfunction(add_tests)
 file(GLOB COMPILE_TESTS t/compile-only/*.neon)
 add_tests("${COMPILE_TESTS}" "compile" "$<TARGET_FILE:neonc> -q" "")
 
+execute_process(
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/make_regex_test.py
+)
+
 file(GLOB RUN_TESTS t/*.neon)
 foreach (extension_dir ${EXTENSION_DIRS})
     file(GLOB extension_tests ${extension_dir}/t/*.neon)
