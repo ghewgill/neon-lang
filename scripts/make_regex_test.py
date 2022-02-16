@@ -9,8 +9,9 @@ def literal(s):
         return "\"{}\"".format(s)
 
 class Test:
-    def __init__(self, pattern):
+    def __init__(self, pattern, modifiers):
         self.pattern = pattern
+        self.modifiers = modifiers
         self.matches = []
         self.nomatches = []
 
@@ -29,8 +30,11 @@ with open("data/regex-testoutput1", encoding="latin1") as inf:
         while not re.search("/[a-z]*$", pattern.strip()):
             pattern += inf.readline()
         pattern = pattern[1:]
-        pattern = re.sub("/[a-z]*$", "", pattern)
-        test = Test(pattern)
+        m = re.search("/([a-z]*)$", pattern)
+        assert m is not None, pattern
+        modifiers = m.group(1)
+        pattern = pattern[:-1-len(m.group(1))]
+        test = Test(pattern, modifiers)
         s = inf.readline()
         while True:
             if s.startswith("\\= Expect no match"):
@@ -66,7 +70,7 @@ with open("t/regex-test.neon", "w") as outf:
     print(file=outf)
     for i, t in enumerate(tests):
         print("FUNCTION test{}()".format(i), file=outf)
-        print("    LET r := regex.parse({})".format(literal(t.pattern)), file=outf)
+        print("    LET r := regex.parse({}{})".format(literal(t.pattern), ", ignoreCase WITH TRUE" if "i" in t.modifiers else ""), file=outf)
         for m in t.matches:
             print("    TESTCASE regex.searchRegex(r, {})".format(literal(m[0])), file=outf)
         for m in t.nomatches:
