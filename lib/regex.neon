@@ -1,0 +1,86 @@
+IMPORT string
+
+EXPORT Regex
+
+EXPORT parse
+EXPORT search
+EXPORT searchRegex
+
+INTERFACE Regex
+    FUNCTION dump(self: Regex, indent: Number DEFAULT 0)
+    FUNCTION match(self: Regex, s: String): Boolean
+END INTERFACE
+
+TYPE RegexLiteral IS CLASS IMPLEMENTS Regex
+    match: String
+    next: POINTER TO Regex
+END CLASS
+
+FUNCTION RegexLiteral.dump(self: VALID POINTER TO RegexLiteral, indent: Number)
+    print(string.repeat(" ", indent*2) & "Literal " & self->match)
+    IF self->next <> NIL THEN
+        self->next->dump(indent)
+    END IF
+END FUNCTION
+
+FUNCTION RegexLiteral.match(self: VALID POINTER TO RegexLiteral, s: String): Boolean
+    IF s.length() = 0 OR s[0] <> self->match THEN
+        RETURN FALSE
+    END IF
+    IF self->next <> NIL THEN
+        RETURN self->next->match(s[1 TO LAST])
+    END IF
+    RETURN TRUE
+END FUNCTION
+
+TYPE RegexAny IS CLASS IMPLEMENTS Regex
+    next: POINTER TO Regex
+END CLASS
+
+FUNCTION RegexAny.dump(self: VALID POINTER TO RegexAny, indent: Number)
+    print(string.repeat(" ", indent*2) & "Any")
+    IF self->next <> NIL THEN
+        self->next->dump(indent)
+    END IF
+END FUNCTION
+
+FUNCTION RegexAny.match(self: VALID POINTER TO RegexAny, s: String): Boolean
+    RETURN TRUE
+END FUNCTION
+
+FUNCTION parse(regex: String): POINTER TO Regex
+    CHECK regex.length() > 0 ELSE
+        RETURN NIL
+    END CHECK
+    CASE regex[0]
+        WHEN "." DO
+            RETURN NEW RegexAny(next WITH parse(regex[1 TO LAST]))
+        WHEN OTHERS DO
+            RETURN NEW RegexLiteral(match WITH regex[0], next WITH parse(regex[1 TO LAST]))
+    END CASE
+END FUNCTION
+
+FUNCTION search(regex: String, s: String): Boolean
+    LET r := parse(regex)
+    RETURN r->match(s)
+END FUNCTION
+
+FUNCTION searchRegex(r: VALID POINTER TO Regex, s: String): Boolean
+    FOR i := 0 TO s.length() DO
+        IF r->match(s[i TO LAST]) THEN
+            RETURN TRUE
+        END IF
+    END FOR
+    RETURN FALSE
+END FUNCTION
+
+BEGIN MAIN
+    LET r1 := parse("abc")
+    r1->dump()
+    TESTCASE r1->match("abc")
+    TESTCASE NOT r1->match("axc")
+    LET r2 := parse("a.c")
+    r2->dump()
+    TESTCASE r2->match("abc")
+    TESTCASE NOT r2->match("acb")
+END MAIN
