@@ -1,105 +1,115 @@
 IMPORT string
 
+EXPORT Match
 EXPORT Regex
 
 EXPORT parse
 EXPORT search
 EXPORT searchRegex
 
-INTERFACE Regex
-    FUNCTION dump(self: Regex, indent: Number DEFAULT 0)
-    FUNCTION match(self: Regex, s: String): Boolean
+INTERFACE Match
+    FUNCTION dump(self: Match, indent: Number DEFAULT 0)
+    FUNCTION match(self: Match, target: String): Boolean
 END INTERFACE
 
-TYPE RegexLiteral IS CLASS IMPLEMENTS Regex
+TYPE Regex IS Array<VALID POINTER TO Match>
+
+TYPE MatchLiteral IS CLASS IMPLEMENTS Match
     match: String
-    next: POINTER TO Regex
 END CLASS
 
-FUNCTION RegexLiteral.dump(self: VALID POINTER TO RegexLiteral, indent: Number)
+FUNCTION MatchLiteral.dump(self: VALID POINTER TO MatchLiteral, indent: Number)
     print(string.repeat(" ", indent*2) & "Literal " & self->match)
-    IF self->next <> NIL THEN
-        self->next->dump(indent)
-    END IF
 END FUNCTION
 
-FUNCTION RegexLiteral.match(self: VALID POINTER TO RegexLiteral, s: String): Boolean
-    CHECK s.length() > 0 ELSE
+FUNCTION MatchLiteral.match(self: VALID POINTER TO MatchLiteral, target: String): Boolean
+    CHECK target.length() > 0 ELSE
         RETURN FALSE
     END CHECK
-    IF s[0] <> self->match THEN
+    IF target[0] <> self->match THEN
         RETURN FALSE
-    END IF
-    IF self->next <> NIL THEN
-        RETURN self->next->match(s[1 TO LAST])
     END IF
     RETURN TRUE
 END FUNCTION
 
-TYPE RegexLiteralIgnoreCase IS CLASS IMPLEMENTS Regex
+TYPE MatchLiteralIgnoreCase IS CLASS IMPLEMENTS Match
     match: String
-    next: POINTER TO Regex
 END CLASS
 
-FUNCTION RegexLiteralIgnoreCase.dump(self: VALID POINTER TO RegexLiteralIgnoreCase, indent: Number)
+FUNCTION MatchLiteralIgnoreCase.dump(self: VALID POINTER TO MatchLiteralIgnoreCase, indent: Number)
     print(string.repeat(" ", indent*2) & "LiteralIgnoreCase " & self->match)
-    IF self->next <> NIL THEN
-        self->next->dump(indent)
-    END IF
 END FUNCTION
 
-FUNCTION RegexLiteralIgnoreCase.match(self: VALID POINTER TO RegexLiteralIgnoreCase, s: String): Boolean
-    CHECK s.length() > 0 ELSE
+FUNCTION MatchLiteralIgnoreCase.match(self: VALID POINTER TO MatchLiteralIgnoreCase, target: String): Boolean
+    CHECK target.length() > 0 ELSE
         RETURN FALSE
     END CHECK
-    IF string.lower(s[0]) <> self->match THEN
+    IF string.lower(target[0]) <> self->match THEN
         RETURN FALSE
-    END IF
-    IF self->next <> NIL THEN
-        RETURN self->next->match(s[1 TO LAST])
     END IF
     RETURN TRUE
 END FUNCTION
 
-TYPE RegexAny IS CLASS IMPLEMENTS Regex
-    next: POINTER TO Regex
+TYPE MatchAny IS CLASS IMPLEMENTS Match
 END CLASS
 
-FUNCTION RegexAny.dump(self: VALID POINTER TO RegexAny, indent: Number)
+FUNCTION MatchAny.dump(self: VALID POINTER TO MatchAny, indent: Number)
     print(string.repeat(" ", indent*2) & "Any")
-    IF self->next <> NIL THEN
-        self->next->dump(indent)
-    END IF
 END FUNCTION
 
-FUNCTION RegexAny.match(self: VALID POINTER TO RegexAny, s: String): Boolean
+FUNCTION MatchAny.match(self: VALID POINTER TO MatchAny, target: String): Boolean
     RETURN TRUE
 END FUNCTION
 
-FUNCTION parse(regex: String, ignoreCase: Boolean DEFAULT FALSE): POINTER TO Regex
-    CHECK regex.length() > 0 ELSE
-        RETURN NIL
+FUNCTION dump(regex: Regex)
+    FOREACH m IN regex DO
+        m->dump()
+    END FOREACH
+END FUNCTION
+
+FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
+    CHECK pattern.length() > 0 ELSE
+        RETURN []
     END CHECK
-    CASE regex[0]
-        WHEN "." DO
-            RETURN NEW RegexAny(next WITH parse(regex[1 TO LAST]))
-        WHEN OTHERS DO
-            IF ignoreCase THEN
-                RETURN NEW RegexLiteralIgnoreCase(match WITH string.lower(regex[0]), next WITH parse(regex[1 TO LAST], ignoreCase WITH TRUE))
-            ELSE
-                RETURN NEW RegexLiteral(match WITH regex[0], next WITH parse(regex[1 TO LAST]))
-            END IF
-    END CASE
+    VAR r: Regex := []
+    VAR i := 0
+    WHILE i < pattern.length() DO
+        CASE pattern[i]
+            WHEN "." DO
+                r.append(NEW MatchAny())
+            WHEN OTHERS DO
+                IF ignoreCase THEN
+                    r.append(NEW MatchLiteralIgnoreCase(match WITH string.lower(pattern[i])))
+                ELSE
+                    r.append(NEW MatchLiteral(match WITH pattern[i]))
+                END IF
+        END CASE
+        INC i
+    END WHILE
+    RETURN r
 END FUNCTION
 
-FUNCTION search(regex: String, s: String): Boolean
-    LET r := parse(regex)
-    RETURN r->match(s)
+FUNCTION match(regex: Regex, target: String): Boolean
+    CHECK regex.size() > 0 ELSE
+        RETURN TRUE
+    END CHECK
+    CHECK target.length() > 0 ELSE
+        RETURN FALSE
+    END CHECK
+    IF NOT regex[0]->match(target[0]) THEN
+        RETURN FALSE
+    END IF
+    RETURN match(regex[1 TO LAST], target[1 TO LAST])
 END FUNCTION
 
-FUNCTION searchRegex(r: VALID POINTER TO Regex, s: String): Boolean
-    FOR i := 0 TO s.length() DO
-        IF r->match(s[i TO LAST]) THEN
+FUNCTION search(pattern: String, target: String): Boolean
+    LET r := parse(pattern)
+    RETURN match(r, target)
+END FUNCTION
+
+FUNCTION searchRegex(r: Regex, target: String): Boolean
+    FOR i := 0 TO target.length() DO
+        IF match(r, target[i TO LAST]) THEN
             RETURN TRUE
         END IF
     END FOR
@@ -108,11 +118,11 @@ END FUNCTION
 
 BEGIN MAIN
     LET r1 := parse("abc")
-    r1->dump()
-    TESTCASE r1->match("abc")
-    TESTCASE NOT r1->match("axc")
+    dump(r1)
+    TESTCASE match(r1, "abc")
+    TESTCASE NOT match(r1, "axc")
     LET r2 := parse("a.c")
-    r2->dump()
-    TESTCASE r2->match("abc")
-    TESTCASE NOT r2->match("acb")
+    dump(r2)
+    TESTCASE match(r2, "abc")
+    TESTCASE NOT match(r2, "acb")
 END MAIN
