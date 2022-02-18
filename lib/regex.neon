@@ -1,8 +1,10 @@
+IMPORT base
 IMPORT string
 
 EXPORT Match
 EXPORT Regex
 
+EXPORT dump
 EXPORT parse
 EXPORT search
 EXPORT searchRegex
@@ -102,6 +104,33 @@ FUNCTION MatchRepeat.match(self: VALID POINTER TO MatchRepeat, target: String, I
     RETURN n >= self->minimum
 END FUNCTION
 
+TYPE MatchBegin IS CLASS IMPLEMENTS Match
+END CLASS
+
+FUNCTION MatchBegin.dump(self: VALID POINTER TO MatchBegin): String
+    RETURN "^"
+END FUNCTION
+
+FUNCTION MatchBegin.match(self: VALID POINTER TO MatchBegin, target: String, INOUT i: Number): Boolean
+    -- TODO: This needs to check that we are at the actual start of the string, not starting a new match in the middle.
+    RETURN i = 0
+END FUNCTION
+
+TYPE MatchGroup IS CLASS IMPLEMENTS Match
+    regex: Regex
+END CLASS
+
+FUNCTION MatchGroup.dump(self: VALID POINTER TO MatchGroup): String
+    RETURN "(\(dump(self->regex)))"
+END FUNCTION
+
+FUNCTION MatchGroup.match(self: VALID POINTER TO MatchGroup, target: String, INOUT i: Number): Boolean
+    IF NOT matchPart(self->regex, target, INOUT i) THEN
+        RETURN FALSE
+    END IF
+    RETURN TRUE
+END FUNCTION
+
 FUNCTION dump(regex: Regex): String
     VAR r := ""
     FOREACH m IN regex DO
@@ -110,38 +139,42 @@ FUNCTION dump(regex: Regex): String
     RETURN r
 END FUNCTION
 
-FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
+FUNCTION parsePart(pattern: String, INOUT i: Number, ignoreCase: Boolean DEFAULT FALSE): Regex
     CHECK pattern.length() > 0 ELSE
         RETURN []
     END CHECK
     VAR r: Regex := []
-    VAR i := 0
     WHILE i < pattern.length() DO
         CASE pattern[i]
+            WHEN "^" DO
+                r.append(NEW MatchBegin())
             WHEN "." DO
                 r.append(NEW MatchAny())
             WHEN "?" DO
+                INC i
                 r[LAST] := NEW MatchRepeat(
                     minimum WITH 0,
                     maximum WITH 1,
                     sub WITH r[LAST],
-                    tail WITH parse(pattern[i+1 TO LAST], ignoreCase WITH ignoreCase)
+                    tail WITH parsePart(pattern, INOUT i, ignoreCase WITH ignoreCase)
                 )
                 EXIT WHILE
             WHEN "*" DO
+                INC i
                 r[LAST] := NEW MatchRepeat(
                     minimum WITH 0,
                     maximum WITH -1,
                     sub WITH r[LAST],
-                    tail WITH parse(pattern[i+1 TO LAST], ignoreCase WITH ignoreCase)
+                    tail WITH parsePart(pattern, INOUT i, ignoreCase WITH ignoreCase)
                 )
                 EXIT WHILE
             WHEN "+" DO
+                INC i
                 r[LAST] := NEW MatchRepeat(
                     minimum WITH 1,
                     maximum WITH -1,
                     sub WITH r[LAST],
-                    tail WITH parse(pattern[i+1 TO LAST], ignoreCase WITH ignoreCase)
+                    tail WITH parsePart(pattern, INOUT i, ignoreCase WITH ignoreCase)
                 )
                 EXIT WHILE
             WHEN "{" DO
@@ -175,9 +208,57 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                     minimum WITH min,
                     maximum WITH max,
                     sub WITH r[LAST],
-                    tail WITH parse(pattern[i TO LAST], ignoreCase WITH ignoreCase)
+                    tail WITH parsePart(pattern, INOUT i, ignoreCase WITH ignoreCase)
                 )
                 EXIT WHILE
+            WHEN "(" DO
+                INC i
+                r.append(NEW MatchGroup(regex WITH parsePart(pattern, INOUT i, ignoreCase)))
+            WHEN ")" DO
+                EXIT WHILE
+            WHEN "\\" DO
+                INC i
+                CASE pattern[i]
+                    WHEN "t" DO
+                        r.append(NEW MatchLiteral(match WITH "\t"))
+                    WHEN "n" DO
+                        r.append(NEW MatchLiteral(match WITH "\n"))
+                    WHEN "r" DO
+                        r.append(NEW MatchLiteral(match WITH "\r"))
+                    WHEN "f" DO
+                        r.append(NEW MatchLiteral(match WITH "\f"))
+                    WHEN "a" DO
+                        r.append(NEW MatchLiteral(match WITH "\u0007"))
+                    WHEN "e" DO
+                        r.append(NEW MatchLiteral(match WITH "\u001b"))
+                    WHEN "c" DO
+                        INC i
+                        r.append(NEW MatchLiteral(match WITH string.fromCodePoint(string.toCodePoint(string.upper(pattern[i])) - 64)))
+                    WHEN "x" DO
+                        r.append(NEW MatchLiteral(match WITH string.fromCodePoint(base.fromHex(pattern[i TO i+1]))))
+                        i := i + 2
+                    WHEN "N" DO
+                        ASSERT FALSE
+                    WHEN "o" DO
+                        ASSERT FALSE
+                    WHEN "0", "1" DO
+                        r.append(NEW MatchLiteral(match WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
+                        i := i + 2
+                    WHEN "l" DO
+                        ASSERT FALSE
+                    WHEN "u" DO
+                        ASSERT FALSE
+                    WHEN "L" DO
+                        ASSERT FALSE
+                    WHEN "U" DO
+                        ASSERT FALSE
+                    WHEN "Q" DO
+                        ASSERT FALSE
+                    WHEN "E" DO
+                        ASSERT FALSE
+                    WHEN OTHERS DO
+                        r.append(NEW MatchLiteral(match WITH pattern[i]))
+                END CASE
             WHEN OTHERS DO
                 IF ignoreCase THEN
                     r.append(NEW MatchLiteralIgnoreCase(match WITH string.lower(pattern[i])))
@@ -190,20 +271,35 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
     RETURN r
 END FUNCTION
 
-FUNCTION match(regex: Regex, target: String): Boolean
+FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
+    VAR i := 0
+    LET r := parsePart(pattern, INOUT i, ignoreCase)
+    IF i < pattern.length() THEN
+        print(pattern)
+        print(string.repeat(" ", i) & "^ syntax error here")
+        RETURN []
+    END IF
+    RETURN r
+END FUNCTION
+
+FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
     CHECK regex.size() > 0 ELSE
         RETURN TRUE
     END CHECK
     CHECK target.length() > 0 ELSE
         RETURN FALSE
     END CHECK
-    VAR i := 0
     FOREACH m IN regex DO
         IF NOT m->match(target, INOUT i) THEN
             RETURN FALSE
         END IF
     END FOREACH
     RETURN TRUE
+END FUNCTION
+
+FUNCTION match(regex: Regex, target: String): Boolean
+    VAR i := 0
+    RETURN matchPart(regex, target, INOUT i)
 END FUNCTION
 
 FUNCTION search(pattern: String, target: String): Boolean
@@ -213,7 +309,8 @@ END FUNCTION
 
 FUNCTION searchRegex(r: Regex, target: String): Boolean
     FOR i := 0 TO target.length() DO
-        IF match(r, target[i TO LAST]) THEN
+        VAR j := i
+        IF matchPart(r, target, INOUT j) THEN
             RETURN TRUE
         END IF
     END FOR
@@ -251,4 +348,17 @@ BEGIN MAIN
     TESTCASE match(r6, "abbc")
     TESTCASE match(r6, "abbbc")
     TESTCASE NOT match(r6, "abbbbc")
+    LET r7 := parse("^abc")
+    print(dump(r7))
+    TESTCASE match(r7, "abc")
+    TESTCASE NOT match(r7, "xabc")
+    LET r8 := parse("a(b)c")
+    print(dump(r8))
+    TESTCASE match(r8, "abc")
+    LET r9 := parse("a(b){1,2}c")
+    print(dump(r9))
+    TESTCASE NOT match(r9, "ac")
+    TESTCASE match(r9, "abc")
+    TESTCASE match(r9, "abbc")
+    TESTCASE NOT match(r9, "abbbc")
 END MAIN
