@@ -8,8 +8,8 @@ EXPORT search
 EXPORT searchRegex
 
 INTERFACE Match
-    FUNCTION dump(self: Match, indent: Number DEFAULT 0)
-    FUNCTION match(self: Match, target: String): Boolean
+    FUNCTION dump(self: Match): String
+    FUNCTION match(self: Match, target: String, INOUT i: Number): Boolean
 END INTERFACE
 
 TYPE Regex IS Array<VALID POINTER TO Match>
@@ -18,17 +18,19 @@ TYPE MatchLiteral IS CLASS IMPLEMENTS Match
     match: String
 END CLASS
 
-FUNCTION MatchLiteral.dump(self: VALID POINTER TO MatchLiteral, indent: Number)
-    print(string.repeat(" ", indent*2) & "Literal " & self->match)
+FUNCTION MatchLiteral.dump(self: VALID POINTER TO MatchLiteral): String
+    RETURN self->match
 END FUNCTION
 
-FUNCTION MatchLiteral.match(self: VALID POINTER TO MatchLiteral, target: String): Boolean
+FUNCTION MatchLiteral.match(self: VALID POINTER TO MatchLiteral, target: String, INOUT i: Number): Boolean
     CHECK target.length() > 0 ELSE
         RETURN FALSE
     END CHECK
-    IF target[0] <> self->match THEN
+    LET len := self->match.length()
+    IF target[i TO i+len-1] <> self->match THEN
         RETURN FALSE
     END IF
+    i := i + len
     RETURN TRUE
 END FUNCTION
 
@@ -36,35 +38,76 @@ TYPE MatchLiteralIgnoreCase IS CLASS IMPLEMENTS Match
     match: String
 END CLASS
 
-FUNCTION MatchLiteralIgnoreCase.dump(self: VALID POINTER TO MatchLiteralIgnoreCase, indent: Number)
-    print(string.repeat(" ", indent*2) & "LiteralIgnoreCase " & self->match)
+FUNCTION MatchLiteralIgnoreCase.dump(self: VALID POINTER TO MatchLiteralIgnoreCase): String
+    RETURN self->match
 END FUNCTION
 
-FUNCTION MatchLiteralIgnoreCase.match(self: VALID POINTER TO MatchLiteralIgnoreCase, target: String): Boolean
+FUNCTION MatchLiteralIgnoreCase.match(self: VALID POINTER TO MatchLiteralIgnoreCase, target: String, INOUT i: Number): Boolean
     CHECK target.length() > 0 ELSE
         RETURN FALSE
     END CHECK
-    IF string.lower(target[0]) <> self->match THEN
+    LET len := self->match.length()
+    IF string.lower(target[i TO i+len-1]) <> self->match THEN
         RETURN FALSE
     END IF
+    i := i + len
     RETURN TRUE
 END FUNCTION
 
 TYPE MatchAny IS CLASS IMPLEMENTS Match
 END CLASS
 
-FUNCTION MatchAny.dump(self: VALID POINTER TO MatchAny, indent: Number)
-    print(string.repeat(" ", indent*2) & "Any")
+FUNCTION MatchAny.dump(self: VALID POINTER TO MatchAny): String
+    RETURN "."
 END FUNCTION
 
-FUNCTION MatchAny.match(self: VALID POINTER TO MatchAny, target: String): Boolean
+FUNCTION MatchAny.match(self: VALID POINTER TO MatchAny, target: String, INOUT i: Number): Boolean
+    INC i
     RETURN TRUE
 END FUNCTION
 
-FUNCTION dump(regex: Regex)
+TYPE MatchRepeat IS CLASS IMPLEMENTS Match
+    minimum: Number
+    maximum: Number
+    sub: POINTER TO Match
+    tail: Regex
+END CLASS
+
+FUNCTION MatchRepeat.dump(self: VALID POINTER TO MatchRepeat): String
+    RETURN "\(self->sub->dump()){\(self->minimum),\(self->maximum)}\(dump(self->tail))"
+END FUNCTION
+
+FUNCTION MatchRepeat.match(self: VALID POINTER TO MatchRepeat, target: String, INOUT i: Number): Boolean
+    VAR n := 0
+    VAR backtrack: Array<Number> := []
+    WHILE self->maximum < 0 OR n < self->maximum DO
+        LET b := i
+        IF NOT self->sub->match(target, INOUT i) THEN
+            EXIT WHILE
+        END IF
+        backtrack.append(b)
+        INC n
+    END WHILE
+    WHILE n >= self->minimum DO
+        IF match(self->tail, target[i TO LAST]) THEN
+            EXIT WHILE
+        END IF
+        IF backtrack.size() = 0 THEN
+            RETURN FALSE
+        END IF
+        i := backtrack[LAST]
+        backtrack := backtrack[FIRST TO LAST-1]
+        DEC n
+    END WHILE
+    RETURN n >= self->minimum
+END FUNCTION
+
+FUNCTION dump(regex: Regex): String
+    VAR r := ""
     FOREACH m IN regex DO
-        m->dump()
+        r.append(m->dump())
     END FOREACH
+    RETURN r
 END FUNCTION
 
 FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
@@ -77,6 +120,64 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
         CASE pattern[i]
             WHEN "." DO
                 r.append(NEW MatchAny())
+            WHEN "?" DO
+                r[LAST] := NEW MatchRepeat(
+                    minimum WITH 0,
+                    maximum WITH 1,
+                    sub WITH r[LAST],
+                    tail WITH parse(pattern[i+1 TO LAST], ignoreCase WITH ignoreCase)
+                )
+                EXIT WHILE
+            WHEN "*" DO
+                r[LAST] := NEW MatchRepeat(
+                    minimum WITH 0,
+                    maximum WITH -1,
+                    sub WITH r[LAST],
+                    tail WITH parse(pattern[i+1 TO LAST], ignoreCase WITH ignoreCase)
+                )
+                EXIT WHILE
+            WHEN "+" DO
+                r[LAST] := NEW MatchRepeat(
+                    minimum WITH 1,
+                    maximum WITH -1,
+                    sub WITH r[LAST],
+                    tail WITH parse(pattern[i+1 TO LAST], ignoreCase WITH ignoreCase)
+                )
+                EXIT WHILE
+            WHEN "{" DO
+                VAR min := 0
+                VAR max := -1
+                INC i
+                VAR j := i
+                WHILE j < pattern.length() AND "0" <= pattern[j] <= "9" DO
+                    INC j
+                END WHILE
+                IF j > i THEN
+                    min := num(pattern[i TO j-1])
+                    i := j
+                END IF
+                IF pattern[i] = "," THEN
+                    INC i
+                    j := i
+                    WHILE j < pattern.length() AND "0" <= pattern[j] <= "9" DO
+                        INC j
+                    END WHILE
+                    IF j > i THEN
+                        max := num(pattern[i TO j-1])
+                        i := j
+                    END IF
+                ELSE
+                    max := min
+                END IF
+                ASSERT pattern[i] = "}"
+                INC i
+                r[LAST] := NEW MatchRepeat(
+                    minimum WITH min,
+                    maximum WITH max,
+                    sub WITH r[LAST],
+                    tail WITH parse(pattern[i TO LAST], ignoreCase WITH ignoreCase)
+                )
+                EXIT WHILE
             WHEN OTHERS DO
                 IF ignoreCase THEN
                     r.append(NEW MatchLiteralIgnoreCase(match WITH string.lower(pattern[i])))
@@ -96,10 +197,13 @@ FUNCTION match(regex: Regex, target: String): Boolean
     CHECK target.length() > 0 ELSE
         RETURN FALSE
     END CHECK
-    IF NOT regex[0]->match(target[0]) THEN
-        RETURN FALSE
-    END IF
-    RETURN match(regex[1 TO LAST], target[1 TO LAST])
+    VAR i := 0
+    FOREACH m IN regex DO
+        IF NOT m->match(target, INOUT i) THEN
+            RETURN FALSE
+        END IF
+    END FOREACH
+    RETURN TRUE
 END FUNCTION
 
 FUNCTION search(pattern: String, target: String): Boolean
@@ -118,11 +222,33 @@ END FUNCTION
 
 BEGIN MAIN
     LET r1 := parse("abc")
-    dump(r1)
+    print(dump(r1))
     TESTCASE match(r1, "abc")
     TESTCASE NOT match(r1, "axc")
     LET r2 := parse("a.c")
-    dump(r2)
+    print(dump(r2))
     TESTCASE match(r2, "abc")
     TESTCASE NOT match(r2, "acb")
+    LET r3 := parse("ab?c")
+    print(dump(r3))
+    TESTCASE match(r3, "ac")
+    TESTCASE match(r3, "abc")
+    TESTCASE NOT match(r3, "abbc")
+    LET r4 := parse("ab*c")
+    print(dump(r4))
+    TESTCASE match(r4, "ac")
+    TESTCASE match(r4, "abc")
+    TESTCASE match(r4, "abbc")
+    LET r5 := parse("ab+c")
+    print(dump(r5))
+    TESTCASE NOT match(r5, "ac")
+    TESTCASE match(r5, "abc")
+    TESTCASE match(r5, "abbc")
+    LET r6 := parse("ab{2,3}c")
+    print(dump(r6))
+    TESTCASE NOT match(r6, "ac")
+    TESTCASE NOT match(r6, "abc")
+    TESTCASE match(r6, "abbc")
+    TESTCASE match(r6, "abbbc")
+    TESTCASE NOT match(r6, "abbbbc")
 END MAIN
