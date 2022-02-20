@@ -131,6 +131,27 @@ FUNCTION MatchGroup.match(self: VALID POINTER TO MatchGroup, target: String, INO
     RETURN TRUE
 END FUNCTION
 
+TYPE MatchAlternative IS CLASS IMPLEMENTS Match
+    alternatives: Array<Regex>
+END CLASS
+
+FUNCTION MatchAlternative.dump(self: VALID POINTER TO MatchAlternative): String
+    VAR r := ""
+    FOREACH a IN self->alternatives DO
+        IF r.length() > 0 THEN
+            r.append("|")
+        END IF
+        r.append(dump(a))
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION MatchAlternative.match(self: VALID POINTER TO MatchAlternative, target: String, INOUT i: Number): Boolean
+    FOREACH a IN self->alternatives DO
+    END FOREACH
+    RETURN FALSE
+END FUNCTION
+
 FUNCTION dump(regex: Regex): String
     VAR r := ""
     FOREACH m IN regex DO
@@ -139,7 +160,7 @@ FUNCTION dump(regex: Regex): String
     RETURN r
 END FUNCTION
 
-FUNCTION parsePart(pattern: String, INOUT i: Number, ignoreCase: Boolean DEFAULT FALSE): Regex
+FUNCTION parsePart(pattern: String, INOUT i: Number, ignoreCase: Boolean DEFAULT FALSE, terminator: String DEFAULT ""): Regex
     CHECK pattern.length() > 0 ELSE
         RETURN []
     END CHECK
@@ -216,6 +237,17 @@ FUNCTION parsePart(pattern: String, INOUT i: Number, ignoreCase: Boolean DEFAULT
                 r.append(NEW MatchGroup(regex WITH parsePart(pattern, INOUT i, ignoreCase)))
             WHEN ")" DO
                 EXIT WHILE
+            WHEN "|" DO
+                IF terminator = "|" THEN
+                    EXIT WHILE
+                END IF
+                LET a := NEW MatchAlternative()
+                a->alternatives.append(r)
+                WHILE pattern[i] = "|" DO
+                    INC i
+                    a->alternatives.append(parsePart(pattern, INOUT i, ignoreCase, terminator WITH "|"))
+                END WHILE
+                RETURN [a]
             WHEN "\\" DO
                 INC i
                 CASE pattern[i]
@@ -355,10 +387,26 @@ BEGIN MAIN
     LET r8 := parse("a(b)c")
     print(dump(r8))
     TESTCASE match(r8, "abc")
-    LET r9 := parse("a(b){1,2}c")
+    LET r9 := parse("a(b){1,2}bc")
     print(dump(r9))
     TESTCASE NOT match(r9, "ac")
-    TESTCASE match(r9, "abc")
+    TESTCASE NOT match(r9, "abc")
     TESTCASE match(r9, "abbc")
-    TESTCASE NOT match(r9, "abbbc")
+    TESTCASE match(r9, "abbbc")
+    TESTCASE NOT match(r9, "abbbbc")
+    LET r10 := parse("a(b{1,2})bc")
+    print(dump(r10))
+    TESTCASE NOT match(r10, "ac")
+    TESTCASE NOT match(r10, "abc")
+    TESTCASE match(r10, "abbc")
+    TESTCASE match(r10, "abbbc")
+    TESTCASE NOT match(r10, "abbbbc")
+    /*
+    LET r11 := parse("a|bc")
+    print(dump(r11))
+    TESTCASE match(r11, "a")
+    TESTCASE match(r11, "bc")
+    TESTCASE match(r11, "abc")
+    TESTCASE NOT match(r11, "b")
+    */
 END MAIN
