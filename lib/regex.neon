@@ -1,5 +1,5 @@
 --IMPORT base
-IMPORT string
+--IMPORT string
 
 EXPORT Match
 EXPORT Regex
@@ -19,11 +19,23 @@ FUNCTION MatchLoopBegin.toString(self: MatchLoopBegin): String
     RETURN "MatchLoopBegin(min=\(self.minimum), max=\(self.maximum), next=\(self.next))"
 END FUNCTION
 
+TYPE MatchAltBegin IS RECORD
+    alternatives: Array<Number>
+    next: Number
+END RECORD
+
+FUNCTION MatchAltBegin.toString(self: MatchAltBegin): String
+    RETURN "MatchAltBegin(alts=\(self.alternatives), next=\(self.next))"
+END FUNCTION
+
 TYPE Match IS CHOICE
     any
     literal: String
+    begin
     loopBegin: MatchLoopBegin
     loopEnd: Number
+    --altBegin: MatchAltBegin
+    --altEnd: Number
 END CHOICE
 
 TYPE Regex IS Array<Match>
@@ -192,36 +204,20 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
         RETURN []
     END CHECK
     VAR r: Regex := []
+    VAR groupstart := [0]
     VAR i := 0
     WHILE i < pattern.length() DO
         CASE pattern[i]
-            /*
             WHEN "^" DO
-                r.append(NEW MatchBegin())
-            */
+                r.append(Match.begin)
             WHEN "." DO
                 r.append(Match.any)
             WHEN "?" DO
                 r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
-            /*
             WHEN "*" DO
-                INC i
-                r[LAST] := NEW MatchRepeat(
-                    minimum WITH 0,
-                    maximum WITH -1,
-                    sub WITH r[LAST],
-                    tail WITH parsePart(pattern, INOUT i, ignoreCase WITH ignoreCase)
-                )
-                EXIT WHILE
+                r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
             WHEN "+" DO
-                INC i
-                r[LAST] := NEW MatchRepeat(
-                    minimum WITH 1,
-                    maximum WITH -1,
-                    sub WITH r[LAST],
-                    tail WITH parsePart(pattern, INOUT i, ignoreCase WITH ignoreCase)
-                )
-                EXIT WHILE
+                r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 1, maximum WITH -1, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
             WHEN "{" DO
                 VAR min := 0
                 VAR max := -1
@@ -248,30 +244,23 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                     max := min
                 END IF
                 ASSERT pattern[i] = "}"
-                INC i
-                r[LAST] := NEW MatchRepeat(
-                    minimum WITH min,
-                    maximum WITH max,
-                    sub WITH r[LAST],
-                    tail WITH parsePart(pattern, INOUT i, ignoreCase WITH ignoreCase)
-                )
-                EXIT WHILE
+                r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH min, maximum WITH max, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
             WHEN "(" DO
-                INC i
-                r.append(NEW MatchGroup(regex WITH parsePart(pattern, INOUT i, ignoreCase)))
+                groupstart.append(r.size())
             WHEN ")" DO
-                EXIT WHILE
+                CHECK groupstart.size() > 1 ELSE
+                    -- Syntax error.
+                    RETURN []
+                END CHECK
+                groupstart := groupstart[FIRST TO LAST-1]
+            /*
             WHEN "|" DO
-                IF terminator = "|" THEN
-                    EXIT WHILE
+                LET gs := groupstart[LAST]
+                IF r[gs] ISA Match.altBegin THEN
+                    r[gs].alternatives.append(
+                ELSE
+                    r := r[FIRST TO gs-1] & [Match.altBegin(MatchAltBegin(alternatives WITH [gs+1, 
                 END IF
-                LET a := NEW MatchAlternative()
-                a->alternatives.append(r)
-                WHILE pattern[i] = "|" DO
-                    INC i
-                    a->alternatives.append(parsePart(pattern, INOUT i, ignoreCase, terminator WITH "|"))
-                END WHILE
-                RETURN [a]
             WHEN "\\" DO
                 INC i
                 CASE pattern[i]
@@ -347,15 +336,16 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
     CHECK target.length() > 0 ELSE
         RETURN FALSE
     END CHECK
-    print("-- matching target: \(target)")
+    --print("-- matching target: \(target)")
     VAR counters: Array<Number> := []
     VAR context: Array<BacktrackInfo> := []
     VAR ri := 0
     WHILE ri < regex.size() LABEL main DO
         LET m := regex[ri]
-        print("\(ri) \(m)")
-        print("  \(target)")
-        print(string.repeat(" ", 2+i) & "|")
+        --print("\(ri) \(m)")
+        --print("  \(target)")
+        --print(string.repeat(" ", 2+i) & "|")
+        VAR ok := TRUE
         CASE m
             WHEN ISA Match.any DO
                 INC i
@@ -363,29 +353,20 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 IF target[i] = m.literal THEN
                     INC i
                 ELSE
-                    WHILE context.size() > 0 DO
-                        ri := context[LAST].instruction
-                        i := context[LAST].index
-                        DEC counters[ri]
-                        LET lb := regex[ri]
-                        CHECK lb ISA Match.loopBegin ELSE
-                            ASSERT FALSE -- Internal error.
-                            RETURN FALSE
-                        END CHECK
-                        IF counters[ri] >= lb.loopBegin.minimum THEN
-                            ri := lb.loopBegin.next
-                            NEXT main
-                        END IF
-                        context := context[FIRST TO LAST-1]
-                    END WHILE
-                    RETURN FALSE
+                    ok := FALSE
+                END IF
+            WHEN ISA Match.begin DO
+                IF i = 0 THEN
+                    -- Accept
+                ELSE
+                    ok := FALSE
                 END IF
             WHEN ISA Match.loopBegin DO
                 LET next := m.loopBegin.next
                 IF ri >= counters.size() THEN
                     counters[ri] := 0
                 END IF
-                IF counters[ri] < m.loopBegin.maximum THEN
+                IF m.loopBegin.maximum < 0 OR counters[ri] < m.loopBegin.maximum THEN
                     context.append(BacktrackInfo(
                         instruction WITH ri,
                         index WITH i
@@ -404,7 +385,26 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 ri := m.loopEnd
                 NEXT main
         END CASE
-        INC ri
+        IF ok THEN
+            INC ri
+        ELSE
+            WHILE context.size() > 0 DO
+                ri := context[LAST].instruction
+                i := context[LAST].index
+                DEC counters[ri]
+                LET lb := regex[ri]
+                CHECK lb ISA Match.loopBegin ELSE
+                    ASSERT FALSE -- Internal error.
+                    RETURN FALSE
+                END CHECK
+                IF counters[ri] >= lb.loopBegin.minimum THEN
+                    ri := lb.loopBegin.next
+                    NEXT main
+                END IF
+                context := context[FIRST TO LAST-1]
+            END WHILE
+            RETURN FALSE
+        END IF
     END WHILE
     RETURN TRUE
 END FUNCTION
@@ -429,64 +429,77 @@ FUNCTION searchRegex(r: Regex, target: String): Boolean
     RETURN FALSE
 END FUNCTION
 
+FUNCTION test(pattern: String, cases: Array<Array<Object>>)
+    LET r := parse(pattern)
+    print(dump(r))
+    FOREACH t IN cases DO
+        IF t[0] <> match(r, t[1]) THEN
+            print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
+            EXIT PROCESS FAILURE
+        END IF
+    END FOREACH
+END FUNCTION
+
 BEGIN MAIN
-    LET r1 := parse("abc")
-    print(dump(r1))
-    TESTCASE match(r1, "abc")
-    TESTCASE NOT match(r1, "axc")
-    LET r2 := parse("a.c")
-    print(dump(r2))
-    TESTCASE match(r2, "abc")
-    TESTCASE NOT match(r2, "acb")
-    LET r3 := parse("ab?c")
-    print(dump(r3))
-    TESTCASE match(r3, "ac")
-    TESTCASE match(r3, "abc")
-    TESTCASE NOT match(r3, "abbc")
-    LET r4 := parse("ab*c")
-    print(dump(r4))
-    TESTCASE match(r4, "ac")
-    TESTCASE match(r4, "abc")
-    TESTCASE match(r4, "abbc")
-    LET r5 := parse("ab+c")
-    print(dump(r5))
-    TESTCASE NOT match(r5, "ac")
-    TESTCASE match(r5, "abc")
-    TESTCASE match(r5, "abbc")
-    LET r6 := parse("ab{2,3}c")
-    print(dump(r6))
-    TESTCASE NOT match(r6, "ac")
-    TESTCASE NOT match(r6, "abc")
-    TESTCASE match(r6, "abbc")
-    TESTCASE match(r6, "abbbc")
-    TESTCASE NOT match(r6, "abbbbc")
-    LET r7 := parse("^abc")
-    print(dump(r7))
-    TESTCASE match(r7, "abc")
-    TESTCASE NOT match(r7, "xabc")
-    LET r8 := parse("a(b)c")
-    print(dump(r8))
-    TESTCASE match(r8, "abc")
-    LET r9 := parse("a(b){1,2}bc")
-    print(dump(r9))
-    TESTCASE NOT match(r9, "ac")
-    TESTCASE NOT match(r9, "abc")
-    TESTCASE match(r9, "abbc")
-    TESTCASE match(r9, "abbbc")
-    TESTCASE NOT match(r9, "abbbbc")
-    LET r10 := parse("a(b{1,2})bc")
-    print(dump(r10))
-    TESTCASE NOT match(r10, "ac")
-    TESTCASE NOT match(r10, "abc")
-    TESTCASE match(r10, "abbc")
-    TESTCASE match(r10, "abbbc")
-    TESTCASE NOT match(r10, "abbbbc")
+    test("abc", [
+        [TRUE, "abc"],
+        [FALSE, "axc"],
+    ])
+    test("a.c", [
+        [TRUE, "abc"],
+        [FALSE, "acb"],
+    ])
+    test("ab?c", [
+        [TRUE, "ac"],
+        [TRUE, "abc"],
+        [FALSE, "abbc"],
+    ])
+    test("ab*c", [
+        [TRUE, "ac"],
+        [TRUE, "abc"],
+        [TRUE, "abbc"],
+    ])
+    test("ab+c", [
+        [FALSE, "ac"],
+        [TRUE, "abc"],
+        [TRUE, "abbc"],
+    ])
+    test("ab{2,3}c", [
+        [FALSE, "ac"],
+        [FALSE, "abc"],
+        [TRUE, "abbc"],
+        [TRUE, "abbbc"],
+        [FALSE, "abbbbc"],
+    ])
+    test("^abc", [
+        [TRUE, "abc"],
+        [FALSE, "xabc"],
+    ])
+    test("a(b)c", [
+        [TRUE, "abc"],
+    ])
+    test("a(b){1,2}bc", [
+        [FALSE, "ac"],
+        [FALSE, "abc"],
+        [TRUE, "abbc"],
+        [TRUE, "abbbc"],
+        [FALSE, "abbbbc"],
+    ])
+    test("a(b{1,2})bc", [
+        [FALSE, "ac"],
+        [FALSE, "abc"],
+        [TRUE, "abbc"],
+        [TRUE, "abbbc"],
+        [FALSE, "abbbbc"],
+    ])
     /*
-    LET r11 := parse("a|bc")
-    print(dump(r11))
-    TESTCASE match(r11, "a")
-    TESTCASE match(r11, "bc")
-    TESTCASE match(r11, "abc")
-    TESTCASE NOT match(r11, "b")
+    test(""a|bc", [
+        [TRUE, "a"],
+        [TRUE, "bc"],
+        [TRUE, "abc"],
+        [TRUE, "bbc"],
+        [FALSE, "b"],
+    ])
     */
+    print("passed")
 END MAIN
