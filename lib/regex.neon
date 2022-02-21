@@ -1,4 +1,4 @@
-IMPORT base
+--IMPORT base
 IMPORT string
 
 EXPORT Match
@@ -9,6 +9,26 @@ EXPORT parse
 EXPORT search
 EXPORT searchRegex
 
+TYPE MatchLoopBegin IS RECORD
+    minimum: Number
+    maximum: Number
+    next: Number
+END RECORD
+
+FUNCTION MatchLoopBegin.toString(self: MatchLoopBegin): String
+    RETURN "MatchLoopBegin(min=\(self.minimum), max=\(self.maximum), next=\(self.next))"
+END FUNCTION
+
+TYPE Match IS CHOICE
+    any
+    literal: String
+    loopBegin: MatchLoopBegin
+    loopEnd: Number
+END CHOICE
+
+TYPE Regex IS Array<Match>
+
+/*
 INTERFACE Match
     FUNCTION dump(self: Match): String
     FUNCTION match(self: Match, target: String, INOUT i: Number): Boolean
@@ -151,35 +171,39 @@ FUNCTION MatchAlternative.match(self: VALID POINTER TO MatchAlternative, target:
     END FOREACH
     RETURN FALSE
 END FUNCTION
+*/
 
 FUNCTION dump(regex: Regex): String
     VAR r := ""
     FOREACH m IN regex DO
-        r.append(m->dump())
+        r.append("\(m)")
+        --CASE m
+        --    WHEN ISA Match.any DO
+        --        r.append(".")
+        --    WHEN ISA Match.literal DO
+        --        r.append(m.literal)
+        --END CASE
     END FOREACH
     RETURN r
 END FUNCTION
 
-FUNCTION parsePart(pattern: String, INOUT i: Number, ignoreCase: Boolean DEFAULT FALSE, terminator: String DEFAULT ""): Regex
+FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
     CHECK pattern.length() > 0 ELSE
         RETURN []
     END CHECK
     VAR r: Regex := []
+    VAR i := 0
     WHILE i < pattern.length() DO
         CASE pattern[i]
+            /*
             WHEN "^" DO
                 r.append(NEW MatchBegin())
+            */
             WHEN "." DO
-                r.append(NEW MatchAny())
+                r.append(Match.any)
             WHEN "?" DO
-                INC i
-                r[LAST] := NEW MatchRepeat(
-                    minimum WITH 0,
-                    maximum WITH 1,
-                    sub WITH r[LAST],
-                    tail WITH parsePart(pattern, INOUT i, ignoreCase WITH ignoreCase)
-                )
-                EXIT WHILE
+                r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
+            /*
             WHEN "*" DO
                 INC i
                 r[LAST] := NEW MatchRepeat(
@@ -291,41 +315,97 @@ FUNCTION parsePart(pattern: String, INOUT i: Number, ignoreCase: Boolean DEFAULT
                     WHEN OTHERS DO
                         r.append(NEW MatchLiteral(match WITH pattern[i]))
                 END CASE
+            */
             WHEN OTHERS DO
+                r.append(Match.literal(pattern[i]))
+                /*
                 IF ignoreCase THEN
                     r.append(NEW MatchLiteralIgnoreCase(match WITH string.lower(pattern[i])))
                 ELSE
                     r.append(NEW MatchLiteral(match WITH pattern[i]))
                 END IF
+                */
         END CASE
         INC i
     END WHILE
     RETURN r
 END FUNCTION
 
-FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
-    VAR i := 0
-    LET r := parsePart(pattern, INOUT i, ignoreCase)
-    IF i < pattern.length() THEN
-        print(pattern)
-        print(string.repeat(" ", i) & "^ syntax error here")
-        RETURN []
-    END IF
-    RETURN r
-END FUNCTION
+TYPE BacktrackInfo IS RECORD
+    instruction: Number
+    index: Number
+END RECORD
 
 FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
+    FUNCTION backtrack(): Boolean
+        RETURN FALSE
+    END FUNCTION
+
     CHECK regex.size() > 0 ELSE
         RETURN TRUE
     END CHECK
     CHECK target.length() > 0 ELSE
         RETURN FALSE
     END CHECK
-    FOREACH m IN regex DO
-        IF NOT m->match(target, INOUT i) THEN
-            RETURN FALSE
-        END IF
-    END FOREACH
+    print("-- matching target: \(target)")
+    VAR counters: Array<Number> := []
+    VAR context: Array<BacktrackInfo> := []
+    VAR ri := 0
+    WHILE ri < regex.size() LABEL main DO
+        LET m := regex[ri]
+        print("\(ri) \(m)")
+        print("  \(target)")
+        print(string.repeat(" ", 2+i) & "|")
+        CASE m
+            WHEN ISA Match.any DO
+                INC i
+            WHEN ISA Match.literal DO
+                IF target[i] = m.literal THEN
+                    INC i
+                ELSE
+                    WHILE context.size() > 0 DO
+                        ri := context[LAST].instruction
+                        i := context[LAST].index
+                        DEC counters[ri]
+                        LET lb := regex[ri]
+                        CHECK lb ISA Match.loopBegin ELSE
+                            ASSERT FALSE -- Internal error.
+                            RETURN FALSE
+                        END CHECK
+                        IF counters[ri] >= lb.loopBegin.minimum THEN
+                            ri := lb.loopBegin.next
+                            NEXT main
+                        END IF
+                        context := context[FIRST TO LAST-1]
+                    END WHILE
+                    RETURN FALSE
+                END IF
+            WHEN ISA Match.loopBegin DO
+                LET next := m.loopBegin.next
+                IF ri >= counters.size() THEN
+                    counters[ri] := 0
+                END IF
+                IF counters[ri] < m.loopBegin.maximum THEN
+                    context.append(BacktrackInfo(
+                        instruction WITH ri,
+                        index WITH i
+                    ))
+                    INC counters[ri]
+                ELSE
+                    ri := next -- TODO: m.loopBegin.next
+                    NEXT main
+                END IF
+            WHEN ISA Match.loopEnd DO
+                LET lb := regex[m.loopEnd]
+                CHECK lb ISA Match.loopBegin ELSE
+                    ASSERT FALSE -- Internal error.
+                    RETURN FALSE
+                END CHECK
+                ri := m.loopEnd
+                NEXT main
+        END CASE
+        INC ri
+    END WHILE
     RETURN TRUE
 END FUNCTION
 
