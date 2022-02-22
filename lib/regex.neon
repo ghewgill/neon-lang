@@ -1,5 +1,5 @@
 --IMPORT base
---IMPORT string
+IMPORT string
 
 EXPORT Match
 EXPORT Regex
@@ -34,8 +34,8 @@ TYPE Match IS CHOICE
     begin
     loopBegin: MatchLoopBegin
     loopEnd: Number
-    --altBegin: MatchAltBegin
-    --altEnd: Number
+    altBegin: MatchAltBegin
+    altEnd: Number
 END CHOICE
 
 TYPE Regex IS Array<Match>
@@ -205,20 +205,39 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
     END CHECK
     VAR r: Regex := []
     VAR groupstart := [0]
+    VAR quantifierstart := -1
     VAR i := 0
     WHILE i < pattern.length() DO
+        VAR qs := -1
         CASE pattern[i]
             WHEN "^" DO
                 r.append(Match.begin)
             WHEN "." DO
+                qs := r.size()
                 r.append(Match.any)
             WHEN "?" DO
-                r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
+                IF quantifierstart < 0 THEN
+                    -- Syntax error.
+                    RETURN []
+                END IF
+                r := r[FIRST TO quantifierstart-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEnd(quantifierstart-r.size()-1)]
             WHEN "*" DO
-                r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
+                IF quantifierstart < 0 THEN
+                    -- Syntax error.
+                    RETURN []
+                END IF
+                r := r[FIRST TO quantifierstart-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEnd(quantifierstart-r.size()-1)]
             WHEN "+" DO
-                r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 1, maximum WITH -1, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
+                IF quantifierstart < 0 THEN
+                    -- Syntax error.
+                    RETURN []
+                END IF
+                r := r[FIRST TO quantifierstart-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 1, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEnd(quantifierstart-r.size()-1)]
             WHEN "{" DO
+                IF quantifierstart < 0 THEN
+                    -- Syntax error.
+                    RETURN []
+                END IF
                 VAR min := 0
                 VAR max := -1
                 INC i
@@ -244,7 +263,7 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                     max := min
                 END IF
                 ASSERT pattern[i] = "}"
-                r := r[FIRST TO LAST-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH min, maximum WITH max, next WITH r.size()+2))] & r[LAST TO LAST] & [Match.loopEnd(r.size()-1)]
+                r := r[FIRST TO quantifierstart-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH min, maximum WITH max, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEnd(quantifierstart-r.size()-1)]
             WHEN "(" DO
                 groupstart.append(r.size())
             WHEN ")" DO
@@ -252,15 +271,30 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                     -- Syntax error.
                     RETURN []
                 END CHECK
+                LET gs := groupstart[LAST]
+                LET mgs := r[gs]
+                IF mgs ISA Match.altBegin THEN
+                    r[gs] := Match.altBegin(MatchAltBegin(alternatives WITH mgs.altBegin.alternatives, next WITH r.size()))
+                    FOREACH a IN mgs.altBegin.alternatives[1 TO LAST] DO
+                        CHECK r[a-1] ISA Match.altEnd ELSE
+                            ASSERT FALSE -- Internal error.
+                            EXIT PROCESS FAILURE
+                        END CHECK
+                        r[a-1] := Match.altEnd(r.size() - (a-1))
+                    END FOREACH
+                END IF
+                qs := gs
                 groupstart := groupstart[FIRST TO LAST-1]
-            /*
             WHEN "|" DO
                 LET gs := groupstart[LAST]
-                IF r[gs] ISA Match.altBegin THEN
-                    r[gs].alternatives.append(
+                LET mgs := r[gs]
+                IF mgs ISA Match.altBegin THEN
+                    r.append(Match.altEnd(0))
+                    r[gs] := Match.altBegin(MatchAltBegin(alternatives WITH mgs.altBegin.alternatives & [r.size()-gs]))
                 ELSE
-                    r := r[FIRST TO gs-1] & [Match.altBegin(MatchAltBegin(alternatives WITH [gs+1, 
+                    r := r[FIRST TO gs-1] & [Match.altBegin(MatchAltBegin(alternatives WITH [1, r.size()-gs+2]))] & r[gs TO LAST] & [Match.altEnd(0)]
                 END IF
+            /*
             WHEN "\\" DO
                 INC i
                 CASE pattern[i]
@@ -306,6 +340,7 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                 END CASE
             */
             WHEN OTHERS DO
+                qs := r.size()
                 r.append(Match.literal(pattern[i]))
                 /*
                 IF ignoreCase THEN
@@ -315,8 +350,24 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                 END IF
                 */
         END CASE
+        IF qs >= 0 THEN
+            quantifierstart := qs
+        ELSE
+            quantifierstart := -1
+        END IF
         INC i
     END WHILE
+    LET m0 := r[0]
+    IF m0 ISA Match.altBegin THEN
+        r[0] := Match.altBegin(MatchAltBegin(alternatives WITH m0.altBegin.alternatives, next WITH r.size()))
+        FOREACH a IN m0.altBegin.alternatives[1 TO LAST] DO
+            CHECK r[a-1] ISA Match.altEnd ELSE
+                ASSERT FALSE -- Internal error.
+                EXIT PROCESS FAILURE
+            END CHECK
+            r[a-1] := Match.altEnd(r.size() - (a-1))
+        END FOREACH
+    END IF
     RETURN r
 END FUNCTION
 
@@ -342,15 +393,15 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
     VAR ri := 0
     WHILE ri < regex.size() LABEL main DO
         LET m := regex[ri]
-        --print("\(ri) \(m)")
-        --print("  \(target)")
-        --print(string.repeat(" ", 2+i) & "|")
+        print("\(ri) \(m)")
+        print("  \(target)")
+        print(string.repeat(" ", 2+i) & "|")
         VAR ok := TRUE
         CASE m
             WHEN ISA Match.any DO
                 INC i
             WHEN ISA Match.literal DO
-                IF target[i] = m.literal THEN
+                IF i < target.length() AND target[i] = m.literal THEN
                     INC i
                 ELSE
                     ok := FALSE
@@ -373,17 +424,27 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                     ))
                     INC counters[ri]
                 ELSE
-                    ri := next -- TODO: m.loopBegin.next
+                    ri := ri + next -- TODO: m.loopBegin.next
                     NEXT main
                 END IF
             WHEN ISA Match.loopEnd DO
-                LET lb := regex[m.loopEnd]
+                ri := ri + m.loopEnd
+                LET lb := regex[ri]
                 CHECK lb ISA Match.loopBegin ELSE
                     ASSERT FALSE -- Internal error.
                     RETURN FALSE
                 END CHECK
-                ri := m.loopEnd
                 NEXT main
+            WHEN ISA Match.altBegin DO
+                IF ri >= counters.size() THEN
+                    counters[ri] := 0
+                END IF
+                context.append(BacktrackInfo(
+                    instruction WITH ri,
+                    index WITH i
+                ))
+            WHEN ISA Match.altEnd DO
+                ri := ri + m.altEnd
         END CASE
         IF ok THEN
             INC ri
@@ -391,17 +452,26 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
             WHILE context.size() > 0 DO
                 ri := context[LAST].instruction
                 i := context[LAST].index
-                DEC counters[ri]
-                LET lb := regex[ri]
-                CHECK lb ISA Match.loopBegin ELSE
-                    ASSERT FALSE -- Internal error.
-                    RETURN FALSE
-                END CHECK
-                IF counters[ri] >= lb.loopBegin.minimum THEN
-                    ri := lb.loopBegin.next
-                    NEXT main
-                END IF
-                context := context[FIRST TO LAST-1]
+                print("backtrack ri=\(ri) i=\(i)")
+                LET bt := regex[ri]
+                CASE bt
+                    WHEN ISA Match.loopBegin DO
+                        DEC counters[ri]
+                        IF counters[ri] >= bt.loopBegin.minimum THEN
+                            ri := ri + bt.loopBegin.next
+                            NEXT main
+                        END IF
+                        context := context[FIRST TO LAST-1]
+                    WHEN ISA Match.altBegin DO
+                        INC counters[ri]
+                        IF counters[ri] < bt.altBegin.alternatives.size() THEN
+                            ri := bt.altBegin.alternatives[counters[ri]]
+                            NEXT main
+                        END IF
+                        context := context[FIRST TO LAST-1]
+                    WHEN OTHERS DO
+                        ASSERT FALSE -- Internal error
+                END CASE
             END WHILE
             RETURN FALSE
         END IF
@@ -430,11 +500,20 @@ FUNCTION searchRegex(r: Regex, target: String): Boolean
 END FUNCTION
 
 FUNCTION test(pattern: String, cases: Array<Array<Object>>)
+    print(pattern)
     LET r := parse(pattern)
-    print(dump(r))
+    IF r.size() = 0 THEN
+        print("failed pattern parse: \(pattern)")
+        EXIT PROCESS FAILURE
+    END IF
+    FOREACH m IN r INDEX i DO
+        print("  \(i) \(dump([m]))")
+    END FOREACH
+    --print(dump(r))
     FOREACH t IN cases DO
-        IF t[0] <> match(r, t[1]) THEN
-            print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
+        print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
+        IF t[0] <> searchRegex(r, t[1]) THEN
+            print("failed")
             EXIT PROCESS FAILURE
         END IF
     END FOREACH
@@ -492,14 +571,45 @@ BEGIN MAIN
         [TRUE, "abbbc"],
         [FALSE, "abbbbc"],
     ])
-    /*
-    test(""a|bc", [
+    test("a|bc", [
         [TRUE, "a"],
         [TRUE, "bc"],
         [TRUE, "abc"],
         [TRUE, "bbc"],
         [FALSE, "b"],
     ])
-    */
+    test("a|bc|def", [
+        [TRUE, "a"],
+        [TRUE, "bc"],
+        [TRUE, "def"],
+    ])
+    test("a(bc)*d", [
+        [TRUE, "ad"],
+        [FALSE, "abc"],
+        [TRUE, "abcd"],
+        [TRUE, "abcbcd"],
+    ])
+    test("(0|(1(01*0)*1))*", [
+        --[TRUE, ""],
+        [TRUE, "0"],
+        [TRUE, "00"],
+        [FALSE, "01"],
+        [FALSE, "10"],
+        [TRUE, "11"],
+        [TRUE, "000"],
+        [FALSE, "001"],
+        [FALSE, "010"],
+        [TRUE, "011"],
+        [FALSE, "101"],
+        [FALSE, "110"],
+        [TRUE, "110"],
+        [TRUE, "0000"],
+        [TRUE, "0011"],
+        [TRUE, "0110"],
+        [TRUE, "1001"],
+        [TRUE, "1100"],
+        [TRUE, "1111"],
+        [TRUE, "00000"],
+    ])
     print("passed")
 END MAIN
