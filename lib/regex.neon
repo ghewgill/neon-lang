@@ -1,5 +1,5 @@
 --IMPORT base
-IMPORT string
+--IMPORT string
 
 EXPORT Match
 EXPORT Regex
@@ -32,6 +32,7 @@ TYPE Match IS CHOICE
     any
     literal: String
     begin
+    end
     loopBegin: MatchLoopBegin
     loopEnd: Number
     altBegin: MatchAltBegin
@@ -212,6 +213,8 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
         CASE pattern[i]
             WHEN "^" DO
                 r.append(Match.begin)
+            WHEN "$" DO
+                r.append(Match.end)
             WHEN "." DO
                 qs := r.size()
                 r.append(Match.any)
@@ -274,13 +277,14 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                 LET gs := groupstart[LAST]
                 LET mgs := r[gs]
                 IF mgs ISA Match.altBegin THEN
-                    r[gs] := Match.altBegin(MatchAltBegin(alternatives WITH mgs.altBegin.alternatives, next WITH r.size()))
-                    FOREACH a IN mgs.altBegin.alternatives[1 TO LAST] DO
-                        CHECK r[a-1] ISA Match.altEnd ELSE
+                    r.append(Match.altEnd(0))
+                    r[gs] := Match.altBegin(MatchAltBegin(alternatives WITH mgs.altBegin.alternatives, next WITH r.size()-gs))
+                    FOREACH a IN mgs.altBegin.alternatives[1 TO LAST] & [r.size()-gs] DO
+                        CHECK r[gs+a-1] ISA Match.altEnd ELSE
                             ASSERT FALSE -- Internal error.
                             EXIT PROCESS FAILURE
                         END CHECK
-                        r[a-1] := Match.altEnd(r.size() - (a-1))
+                        r[gs+a-1] := Match.altEnd(r.size() - a)
                     END FOREACH
                 END IF
                 qs := gs
@@ -377,15 +381,8 @@ TYPE BacktrackInfo IS RECORD
 END RECORD
 
 FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
-    FUNCTION backtrack(): Boolean
-        RETURN FALSE
-    END FUNCTION
-
     CHECK regex.size() > 0 ELSE
         RETURN TRUE
-    END CHECK
-    CHECK target.length() > 0 ELSE
-        RETURN FALSE
     END CHECK
     --print("-- matching target: \(target)")
     VAR counters: Array<Number> := []
@@ -393,9 +390,10 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
     VAR ri := 0
     WHILE ri < regex.size() LABEL main DO
         LET m := regex[ri]
-        print("\(ri) \(m)")
-        print("  \(target)")
-        print(string.repeat(" ", 2+i) & "|")
+        --print("\(ri) \(m)")
+        --print(context)
+        --print("  \(target)")
+        --print(string.repeat(" ", 2+i) & "|")
         VAR ok := TRUE
         CASE m
             WHEN ISA Match.any DO
@@ -408,6 +406,12 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 END IF
             WHEN ISA Match.begin DO
                 IF i = 0 THEN
+                    -- Accept
+                ELSE
+                    ok := FALSE
+                END IF
+            WHEN ISA Match.end DO
+                IF i = target.length() THEN
                     -- Accept
                 ELSE
                     ok := FALSE
@@ -436,15 +440,14 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 END CHECK
                 NEXT main
             WHEN ISA Match.altBegin DO
-                IF ri >= counters.size() THEN
-                    counters[ri] := 0
-                END IF
+                counters[ri] := 0
                 context.append(BacktrackInfo(
                     instruction WITH ri,
                     index WITH i
                 ))
             WHEN ISA Match.altEnd DO
                 ri := ri + m.altEnd
+                NEXT main
         END CASE
         IF ok THEN
             INC ri
@@ -452,11 +455,12 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
             WHILE context.size() > 0 DO
                 ri := context[LAST].instruction
                 i := context[LAST].index
-                print("backtrack ri=\(ri) i=\(i)")
+                --print("backtrack ri=\(ri) i=\(i)")
                 LET bt := regex[ri]
                 CASE bt
                     WHEN ISA Match.loopBegin DO
                         DEC counters[ri]
+                        --print("  loop counter=\(counters[ri])")
                         IF counters[ri] >= bt.loopBegin.minimum THEN
                             ri := ri + bt.loopBegin.next
                             NEXT main
@@ -464,8 +468,9 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                         context := context[FIRST TO LAST-1]
                     WHEN ISA Match.altBegin DO
                         INC counters[ri]
+                        --print("  alt counter=\(counters[ri])")
                         IF counters[ri] < bt.altBegin.alternatives.size() THEN
-                            ri := bt.altBegin.alternatives[counters[ri]]
+                            ri := ri + bt.altBegin.alternatives[counters[ri]]
                             NEXT main
                         END IF
                         context := context[FIRST TO LAST-1]
@@ -506,12 +511,12 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
         print("failed pattern parse: \(pattern)")
         EXIT PROCESS FAILURE
     END IF
-    FOREACH m IN r INDEX i DO
-        print("  \(i) \(dump([m]))")
-    END FOREACH
+    --FOREACH m IN r INDEX i DO
+    --    print("  \(i) \(dump([m]))")
+    --END FOREACH
     --print(dump(r))
     FOREACH t IN cases DO
-        print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
+        --print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
         IF t[0] <> searchRegex(r, t[1]) THEN
             print("failed")
             EXIT PROCESS FAILURE
@@ -589,8 +594,14 @@ BEGIN MAIN
         [TRUE, "abcd"],
         [TRUE, "abcbcd"],
     ])
-    test("(0|(1(01*0)*1))*", [
-        --[TRUE, ""],
+    test("a(b|c)*d", [
+        [TRUE, "ad"],
+        [TRUE, "abcd"],
+        [TRUE, "abbbbcbd"],
+        [FALSE, "abc"],
+    ])
+    test("^(0|(1(01*0)*1))*$", [
+        [TRUE, ""],
         [TRUE, "0"],
         [TRUE, "00"],
         [FALSE, "01"],
@@ -600,14 +611,25 @@ BEGIN MAIN
         [FALSE, "001"],
         [FALSE, "010"],
         [TRUE, "011"],
+        [FALSE, "100"],
         [FALSE, "101"],
-        [FALSE, "110"],
         [TRUE, "110"],
+        [FALSE, "111"],
         [TRUE, "0000"],
+        [FALSE, "0001"],
+        [FALSE, "0010"],
         [TRUE, "0011"],
+        [FALSE, "0100"],
+        [FALSE, "0101"],
         [TRUE, "0110"],
+        [FALSE, "0111"],
+        [FALSE, "1000"],
         [TRUE, "1001"],
+        [FALSE, "1010"],
+        [FALSE, "1011"],
         [TRUE, "1100"],
+        [FALSE, "1101"],
+        [FALSE, "1110"],
         [TRUE, "1111"],
         [TRUE, "00000"],
     ])
