@@ -70,6 +70,7 @@ with open("t/regex-test.neon", "w") as outf:
     print(file=outf)
     for i, t in enumerate(tests):
         print("FUNCTION test{}()".format(i), file=outf)
+        print("    print(\"test{} \" & {})".format(i, literal(t.pattern)), file=outf)
         print("    LET r := regex.parse({}{})".format(literal(t.pattern), ", ignoreCase WITH TRUE" if "i" in t.modifiers else ""), file=outf)
         for m in t.matches:
             print("    TESTCASE regex.searchRegex(r, {})".format(literal(m[0])), file=outf)

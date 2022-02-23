@@ -1,5 +1,5 @@
 --IMPORT base
---IMPORT string
+IMPORT string
 
 EXPORT Match
 EXPORT Regex
@@ -8,6 +8,8 @@ EXPORT dump
 EXPORT parse
 EXPORT search
 EXPORT searchRegex
+
+CONSTANT Debug := FALSE
 
 TYPE MatchLoopBegin IS RECORD
     minimum: Number
@@ -372,6 +374,12 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
             r[a-1] := Match.altEnd(r.size() - (a-1))
         END FOREACH
     END IF
+    IF Debug THEN
+        FOREACH m IN r INDEX ii DO
+            print("  \(ii) \(dump([m]))")
+        END FOREACH
+        --print(dump(r))
+    END IF
     RETURN r
 END FUNCTION
 
@@ -384,16 +392,20 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
     CHECK regex.size() > 0 ELSE
         RETURN TRUE
     END CHECK
-    --print("-- matching target: \(target)")
+    IF Debug THEN
+        print("-- matching target: \(target)")
+    END IF
     VAR counters: Array<Number> := []
     VAR context: Array<BacktrackInfo> := []
     VAR ri := 0
     WHILE ri < regex.size() LABEL main DO
         LET m := regex[ri]
-        --print("\(ri) \(m)")
-        --print(context)
-        --print("  \(target)")
-        --print(string.repeat(" ", 2+i) & "|")
+        IF Debug THEN
+            print("\(ri) \(m)")
+            print(context)
+            print("  \(target)")
+            print(string.repeat(" ", 2+i) & "|")
+        END IF
         VAR ok := TRUE
         CASE m
             WHEN ISA Match.any DO
@@ -452,23 +464,32 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
         IF ok THEN
             INC ri
         ELSE
+            IF Debug THEN
+                print("backtrack")
+            END IF
             WHILE context.size() > 0 DO
                 ri := context[LAST].instruction
                 i := context[LAST].index
-                --print("backtrack ri=\(ri) i=\(i)")
+                IF Debug THEN
+                    print("  ri=\(ri) i=\(i)")
+                END IF
                 LET bt := regex[ri]
                 CASE bt
                     WHEN ISA Match.loopBegin DO
                         DEC counters[ri]
-                        --print("  loop counter=\(counters[ri])")
+                        IF Debug THEN
+                            print("  loop counter=\(counters[ri])")
+                        END IF
+                        context := context[FIRST TO LAST-1]
                         IF counters[ri] >= bt.loopBegin.minimum THEN
                             ri := ri + bt.loopBegin.next
                             NEXT main
                         END IF
-                        context := context[FIRST TO LAST-1]
                     WHEN ISA Match.altBegin DO
                         INC counters[ri]
-                        --print("  alt counter=\(counters[ri])")
+                        IF Debug THEN
+                            print("  alt counter=\(counters[ri])")
+                        END IF
                         IF counters[ri] < bt.altBegin.alternatives.size() THEN
                             ri := ri + bt.altBegin.alternatives[counters[ri]]
                             NEXT main
@@ -478,6 +499,9 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                         ASSERT FALSE -- Internal error
                 END CASE
             END WHILE
+            IF Debug THEN
+                print("  failed")
+            END IF
             RETURN FALSE
         END IF
     END WHILE
@@ -495,6 +519,9 @@ FUNCTION search(pattern: String, target: String): Boolean
 END FUNCTION
 
 FUNCTION searchRegex(r: Regex, target: String): Boolean
+    IF Debug THEN
+        print("searchRegex \(target)")
+    END IF
     FOR i := 0 TO target.length() DO
         VAR j := i
         IF matchPart(r, target, INOUT j) THEN
@@ -511,12 +538,10 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
         print("failed pattern parse: \(pattern)")
         EXIT PROCESS FAILURE
     END IF
-    --FOREACH m IN r INDEX i DO
-    --    print("  \(i) \(dump([m]))")
-    --END FOREACH
-    --print(dump(r))
     FOREACH t IN cases DO
-        --print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
+        IF Debug THEN
+            print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
+        END IF
         IF t[0] <> searchRegex(r, t[1]) THEN
             print("failed")
             EXIT PROCESS FAILURE
@@ -632,6 +657,9 @@ BEGIN MAIN
         [FALSE, "1110"],
         [TRUE, "1111"],
         [TRUE, "00000"],
+    ])
+    test("a*ab", [
+        [TRUE, "ab"],
     ])
     print("passed")
 END MAIN
