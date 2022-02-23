@@ -33,6 +33,7 @@ END FUNCTION
 TYPE Match IS CHOICE
     any
     literal: String
+    literalIgnoreCase: String
     begin
     end
     loopBegin: MatchLoopBegin
@@ -347,14 +348,11 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
             */
             WHEN OTHERS DO
                 qs := r.size()
-                r.append(Match.literal(pattern[i]))
-                /*
                 IF ignoreCase THEN
-                    r.append(NEW MatchLiteralIgnoreCase(match WITH string.lower(pattern[i])))
+                    r.append(Match.literalIgnoreCase(pattern[i]))
                 ELSE
-                    r.append(NEW MatchLiteral(match WITH pattern[i]))
+                    r.append(Match.literal(pattern[i]))
                 END IF
-                */
         END CASE
         IF qs >= 0 THEN
             quantifierstart := qs
@@ -412,6 +410,12 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 INC i
             WHEN ISA Match.literal DO
                 IF i < target.length() AND target[i] = m.literal THEN
+                    INC i
+                ELSE
+                    ok := FALSE
+                END IF
+            WHEN ISA Match.literalIgnoreCase DO
+                IF i < target.length() AND string.lower(target[i]) = string.lower(m.literalIgnoreCase) THEN
                     INC i
                 ELSE
                     ok := FALSE
