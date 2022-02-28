@@ -36,8 +36,10 @@ TYPE Match IS CHOICE
     literalIgnoreCase: String
     begin
     end
-    loopBegin: MatchLoopBegin
-    loopEnd: Number
+    loopBeginGreedy: MatchLoopBegin
+    loopEndGreedy: Number
+    loopBeginNonGreedy: MatchLoopBegin
+    loopEndNonGreedy: Number
     altBegin: MatchAltBegin
     altEnd: Number
 END CHOICE
@@ -226,19 +228,29 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                     -- Syntax error.
                     RETURN []
                 END IF
-                r := r[FIRST TO quantifierstart-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEnd(quantifierstart-r.size()-1)]
+                r := r[FIRST TO quantifierstart-1] & [Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndGreedy(quantifierstart-r.size()-1)]
             WHEN "*" DO
                 IF quantifierstart < 0 THEN
                     -- Syntax error.
                     RETURN []
                 END IF
-                r := r[FIRST TO quantifierstart-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEnd(quantifierstart-r.size()-1)]
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndNonGreedy(quantifierstart-r.size()-1)]
+                ELSE
+                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndGreedy(quantifierstart-r.size()-1)]
+                END IF
             WHEN "+" DO
                 IF quantifierstart < 0 THEN
                     -- Syntax error.
                     RETURN []
                 END IF
-                r := r[FIRST TO quantifierstart-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH 1, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEnd(quantifierstart-r.size()-1)]
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH 1, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndNonGreedy(quantifierstart-r.size()-1)]
+                ELSE
+                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 1, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndGreedy(quantifierstart-r.size()-1)]
+                END IF
             WHEN "{" DO
                 IF quantifierstart < 0 THEN
                     -- Syntax error.
@@ -269,7 +281,12 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                     max := min
                 END IF
                 ASSERT pattern[i] = "}"
-                r := r[FIRST TO quantifierstart-1] & [Match.loopBegin(MatchLoopBegin(minimum WITH min, maximum WITH max, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEnd(quantifierstart-r.size()-1)]
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH min, maximum WITH max, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndNonGreedy(quantifierstart-r.size()-1)]
+                ELSE
+                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginGreedy(MatchLoopBegin(minimum WITH min, maximum WITH max, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndGreedy(quantifierstart-r.size()-1)]
+                END IF
             WHEN "(" DO
                 groupstart.append(r.size())
             WHEN ")" DO
@@ -432,29 +449,55 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 ELSE
                     ok := FALSE
                 END IF
-            WHEN ISA Match.loopBegin DO
-                LET next := m.loopBegin.next
+            WHEN ISA Match.loopBeginGreedy DO
+                LET next := m.loopBeginGreedy.next
                 IF ri >= counters.size() THEN
                     counters[ri] := 0
                 END IF
-                IF m.loopBegin.maximum < 0 OR counters[ri] < m.loopBegin.maximum THEN
+                IF m.loopBeginGreedy.maximum < 0 OR counters[ri] < m.loopBeginGreedy.maximum THEN
                     context.append(BacktrackInfo(
                         instruction WITH ri,
                         index WITH i
                     ))
                     INC counters[ri]
                 ELSE
-                    ri := ri + next -- TODO: m.loopBegin.next
+                    ri := ri + next -- TODO: m.loopBeginGreedy.next
                     NEXT main
                 END IF
-            WHEN ISA Match.loopEnd DO
-                ri := ri + m.loopEnd
+            WHEN ISA Match.loopEndGreedy DO
+                ri := ri + m.loopEndGreedy
                 LET lb := regex[ri]
-                CHECK lb ISA Match.loopBegin ELSE
+                CHECK lb ISA Match.loopBeginGreedy ELSE
                     ASSERT FALSE -- Internal error.
                     RETURN FALSE
                 END CHECK
                 NEXT main
+            WHEN ISA Match.loopBeginNonGreedy DO
+                LET next := m.loopBeginNonGreedy.next
+                counters[ri] := 0
+                IF m.loopBeginNonGreedy.minimum = 0 THEN
+                    context.append(BacktrackInfo(
+                        instruction WITH next-1,
+                        index WITH i
+                    ))
+                    ri := next
+                END IF
+            WHEN ISA Match.loopEndNonGreedy DO
+                LET lbi := ri + m.loopEndNonGreedy
+                LET lb := regex[lbi]
+                CHECK lb ISA Match.loopBeginNonGreedy ELSE
+                    ASSERT FALSE -- Internal error.
+                    RETURN FALSE
+                END CHECK
+                context.append(BacktrackInfo(
+                    instruction WITH ri,
+                    index WITH i
+                ))
+                INC counters[lbi]
+                IF counters[lbi] < lb.loopBeginNonGreedy.minimum THEN
+                    ri := lbi + 1
+                    NEXT main
+                END IF
             WHEN ISA Match.altBegin DO
                 counters[ri] := 0
                 context.append(BacktrackInfo(
@@ -472,6 +515,7 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 print("backtrack")
             END IF
             WHILE context.size() > 0 DO
+                LET lastri := ri
                 ri := context[LAST].instruction
                 i := context[LAST].index
                 IF Debug THEN
@@ -479,14 +523,29 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 END IF
                 LET bt := regex[ri]
                 CASE bt
-                    WHEN ISA Match.loopBegin DO
+                    WHEN ISA Match.loopBeginGreedy DO
                         DEC counters[ri]
                         IF Debug THEN
-                            print("  loop counter=\(counters[ri])")
+                            print("  loopG counter=\(counters[ri])")
                         END IF
                         context := context[FIRST TO LAST-1]
-                        IF counters[ri] >= bt.loopBegin.minimum THEN
-                            ri := ri + bt.loopBegin.next
+                        IF counters[ri] >= bt.loopBeginGreedy.minimum THEN
+                            ri := ri + bt.loopBeginGreedy.next
+                            NEXT main
+                        END IF
+                    WHEN ISA Match.loopEndNonGreedy DO
+                        LET lbi := ri + bt.loopEndNonGreedy
+                        IF Debug THEN
+                            print("  loopEndNG counter=\(counters[lbi])")
+                        END IF
+                        LET lb := regex[lbi]
+                        CHECK lb ISA Match.loopBeginNonGreedy ELSE
+                            ASSERT FALSE -- Internal error.
+                            EXIT PROCESS FAILURE
+                        END CHECK
+                        context := context[FIRST TO LAST-1]
+                        IF lb.loopBeginNonGreedy.maximum < 0 OR counters[lbi] < lb.loopBeginNonGreedy.maximum THEN
+                            ri := lbi + 1
                             NEXT main
                         END IF
                     WHEN ISA Match.altBegin DO
@@ -664,6 +723,12 @@ BEGIN MAIN
     ])
     test("a*ab", [
         [TRUE, "ab"],
+    ])
+    test("ab+?bc", [
+        [FALSE, "ac"],
+        [FALSE, "abc"],
+        [TRUE, "abbc"],
+        [TRUE, "abbbc"],
     ])
     print("passed")
 END MAIN
