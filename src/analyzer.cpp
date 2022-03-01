@@ -5730,7 +5730,7 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         }
         else_checks = checks_conjunction(else_checks, checks_complement(checks));
     }
-    checked_choice_variables.push(else_checks);
+    checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), else_checks));
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
     checked_choice_variables.pop();
     scope.pop();
