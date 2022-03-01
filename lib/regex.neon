@@ -450,7 +450,6 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                     ok := FALSE
                 END IF
             WHEN ISA Match.loopBeginGreedy DO
-                LET next := m.loopBeginGreedy.next
                 IF ri >= counters.size() THEN
                     counters[ri] := 0
                 END IF
@@ -461,7 +460,7 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                     ))
                     INC counters[ri]
                 ELSE
-                    ri := ri + next -- TODO: m.loopBeginGreedy.next
+                    ri := ri + m.loopBeginGreedy.next
                     NEXT main
                 END IF
             WHEN ISA Match.loopEndGreedy DO
