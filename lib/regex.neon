@@ -304,7 +304,7 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                             ASSERT FALSE -- Internal error.
                             EXIT PROCESS FAILURE
                         END CHECK
-                        r[gs+a-1] := Match.altEnd(r.size() - a)
+                        r[gs+a-1] := Match.altEnd(r.size() - a + 1)
                     END FOREACH
                 END IF
                 qs := gs
@@ -410,7 +410,7 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
     IF Debug THEN
         print("-- matching target: \(target)")
     END IF
-    VAR counters: Array<Number> := []
+    VAR counters: Array<Array<Number>> := []
     VAR context: Array<BacktrackInfo> := []
     VAR ri := 0
     WHILE ri < regex.size() LABEL main DO
@@ -418,6 +418,7 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
         IF Debug THEN
             print("\(ri) \(m)")
             print(context)
+            print(counters)
             print("  \(target)")
             print(string.repeat(" ", 2+i) & "|")
         END IF
@@ -450,19 +451,19 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                     ok := FALSE
                 END IF
             WHEN ISA Match.loopBeginGreedy DO
-                IF ri >= counters.size() THEN
-                    counters[ri] := 0
-                END IF
-                IF m.loopBeginGreedy.maximum < 0 OR counters[ri] < m.loopBeginGreedy.maximum THEN
-                    context.append(BacktrackInfo(
-                        instruction WITH ri,
-                        index WITH i
-                    ))
-                    INC counters[ri]
-                ELSE
+                -- Handle degenerate case of a 0 maximum repeat group.
+                IF m.loopBeginGreedy.maximum = 0 THEN
                     ri := ri + m.loopBeginGreedy.next
                     NEXT main
                 END IF
+                IF ri >= counters.size() THEN
+                    counters[ri] := []
+                END IF
+                counters[ri].append(0)
+                context.append(BacktrackInfo(
+                    instruction WITH ri,
+                    index WITH i
+                ))
             WHEN ISA Match.loopEndGreedy DO
                 ri := ri + m.loopEndGreedy
                 LET lb := regex[ri]
@@ -470,10 +471,22 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                     ASSERT FALSE -- Internal error.
                     RETURN FALSE
                 END CHECK
-                NEXT main
+                INC counters[ri][LAST]
+                IF lb.loopBeginGreedy.maximum < 0 OR counters[ri][LAST] < lb.loopBeginGreedy.maximum THEN
+                    context.append(BacktrackInfo(
+                        instruction WITH ri,
+                        index WITH i
+                    ))
+                ELSE
+                    ri := ri + lb.loopBeginGreedy.next
+                    NEXT main
+                END IF
             WHEN ISA Match.loopBeginNonGreedy DO
+                IF ri >= counters.size() THEN
+                    counters[ri] := []
+                END IF
+                counters[ri].append(0)
                 LET next := m.loopBeginNonGreedy.next
-                counters[ri] := 0
                 IF m.loopBeginNonGreedy.minimum = 0 THEN
                     context.append(BacktrackInfo(
                         instruction WITH next-1,
@@ -492,13 +505,16 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                     instruction WITH ri,
                     index WITH i
                 ))
-                INC counters[lbi]
-                IF counters[lbi] < lb.loopBeginNonGreedy.minimum THEN
+                INC counters[lbi][LAST]
+                IF counters[lbi][LAST] < lb.loopBeginNonGreedy.minimum THEN
                     ri := lbi + 1
                     NEXT main
                 END IF
             WHEN ISA Match.altBegin DO
-                counters[ri] := 0
+                IF ri >= counters.size() THEN
+                    counters[ri] := []
+                END IF
+                counters[ri].append(0)
                 context.append(BacktrackInfo(
                     instruction WITH ri,
                     index WITH i
@@ -510,27 +526,34 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
         IF ok THEN
             INC ri
         ELSE
-            IF Debug THEN
-                print("backtrack")
-            END IF
             WHILE context.size() > 0 DO
+                IF Debug THEN
+                    print("backtrack")
+                    print(context)
+                    print(counters)
+                END IF
                 LET lastri := ri
                 ri := context[LAST].instruction
                 i := context[LAST].index
+                context.resize(context.size() - 1)
                 IF Debug THEN
                     print("  ri=\(ri) i=\(i)")
                 END IF
                 LET bt := regex[ri]
                 CASE bt
                     WHEN ISA Match.loopBeginGreedy DO
-                        DEC counters[ri]
-                        IF Debug THEN
-                            print("  loopG counter=\(counters[ri])")
+                        IF lastri >= ri + bt.loopBeginGreedy.next THEN
+                            DEC counters[ri][LAST]
                         END IF
-                        context := context[FIRST TO LAST-1]
-                        IF counters[ri] >= bt.loopBeginGreedy.minimum THEN
+                        IF Debug THEN
+                            print("  loopG counter=\(counters[ri][LAST])")
+                        END IF
+                        IF counters[ri][LAST] >= bt.loopBeginGreedy.minimum THEN
                             ri := ri + bt.loopBeginGreedy.next
                             NEXT main
+                        END IF
+                        IF counters[ri][LAST] < 0 THEN
+                            counters[ri].resize(counters[ri].size() - 1)
                         END IF
                     WHEN ISA Match.loopEndNonGreedy DO
                         LET lbi := ri + bt.loopEndNonGreedy
@@ -542,21 +565,25 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                             ASSERT FALSE -- Internal error.
                             EXIT PROCESS FAILURE
                         END CHECK
-                        context := context[FIRST TO LAST-1]
-                        IF lb.loopBeginNonGreedy.maximum < 0 OR counters[lbi] < lb.loopBeginNonGreedy.maximum THEN
+                        IF lb.loopBeginNonGreedy.maximum < 0 OR counters[lbi][LAST] < lb.loopBeginNonGreedy.maximum THEN
                             ri := lbi + 1
                             NEXT main
                         END IF
+                        counters[ri].resize(counters[ri].size() - 1)
                     WHEN ISA Match.altBegin DO
-                        INC counters[ri]
+                        INC counters[ri][LAST]
                         IF Debug THEN
-                            print("  alt counter=\(counters[ri])")
+                            print("  alt counter=\(counters[ri][LAST])")
                         END IF
-                        IF counters[ri] < bt.altBegin.alternatives.size() THEN
-                            ri := ri + bt.altBegin.alternatives[counters[ri]]
+                        IF counters[ri][LAST] < bt.altBegin.alternatives.size() THEN
+                            context.append(BacktrackInfo(
+                                instruction WITH ri,
+                                index WITH i
+                            ))
+                            ri := ri + bt.altBegin.alternatives[counters[ri][LAST]]
                             NEXT main
                         END IF
-                        context := context[FIRST TO LAST-1]
+                        counters[ri].resize(counters[ri].size() - 1)
                     WHEN OTHERS DO
                         ASSERT FALSE -- Internal error
                 END CASE
