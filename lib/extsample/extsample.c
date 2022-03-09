@@ -168,7 +168,7 @@ Ne_EXPORT int Ne_allocHandle(struct Ne_Cell *retval, struct Ne_ParameterList *in
 
 Ne_EXPORT int Ne_freeHandle(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
 {
-    void *p = Ne->cell_get_pointer(retval);
+    void *p = Ne->cell_get_pointer(Ne->parameterlist_get_cell(in_params, 0));
     free(p);
     return Ne_SUCCESS;
 }
