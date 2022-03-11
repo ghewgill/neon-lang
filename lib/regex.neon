@@ -36,6 +36,8 @@ TYPE Match IS CHOICE
     literalIgnoreCase: String
     begin
     end
+    groupStart: Boolean -- TODO: needs index as well as capture flag
+    groupEnd
     loopBeginGreedy: MatchLoopBegin
     loopEndGreedy: Number
     loopBeginNonGreedy: MatchLoopBegin
@@ -206,12 +208,16 @@ FUNCTION dump(regex: Regex): String
 END FUNCTION
 
 FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
+    IF Debug THEN
+        print("parse: \(pattern)")
+    END IF
     CHECK pattern.length() > 0 ELSE
         RETURN []
     END CHECK
     VAR r: Regex := []
-    VAR groupstart := [0]
+    VAR groupstart := [-1]
     VAR quantifierstart := -1
+    VAR toplevelalt := FALSE
     VAR i := 0
     WHILE i < pattern.length() DO
         VAR qs := -1
@@ -289,34 +295,46 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                 END IF
             WHEN "(" DO
                 groupstart.append(r.size())
+                r.append(Match.groupStart(TRUE))
             WHEN ")" DO
                 CHECK groupstart.size() > 1 ELSE
                     -- Syntax error.
                     RETURN []
                 END CHECK
                 LET gs := groupstart[LAST]
-                LET mgs := r[gs]
-                IF mgs ISA Match.altBegin THEN
-                    r.append(Match.altEnd(0))
-                    r[gs] := Match.altBegin(MatchAltBegin(alternatives WITH mgs.altBegin.alternatives, next WITH r.size()-gs))
-                    FOREACH a IN mgs.altBegin.alternatives[1 TO LAST] & [r.size()-gs] DO
-                        CHECK r[gs+a-1] ISA Match.altEnd ELSE
-                            ASSERT FALSE -- Internal error.
-                            EXIT PROCESS FAILURE
-                        END CHECK
-                        r[gs+a-1] := Match.altEnd(r.size() - a + 1)
-                    END FOREACH
+                LET ab := gs + 1
+                IF ab < r.size() THEN
+                    LET mab := r[ab]
+                    IF mab ISA Match.altBegin THEN
+                        r[ab] := Match.altBegin(MatchAltBegin(alternatives WITH mab.altBegin.alternatives, next WITH r.size()-ab))
+                        FOREACH a IN mab.altBegin.alternatives[1 TO LAST] DO
+                            CHECK r[ab+a-1] ISA Match.altEnd ELSE
+                                ASSERT FALSE -- Internal error.
+                                EXIT PROCESS FAILURE
+                            END CHECK
+                            r[ab+a-1] := Match.altEnd(r.size() - (ab + a) + 1)
+                        END FOREACH
+                    END IF
                 END IF
+                r.append(Match.groupEnd)
                 qs := gs
-                groupstart := groupstart[FIRST TO LAST-1]
+                groupstart.resize(groupstart.size() - 1)
             WHEN "|" DO
+                IF groupstart.size() <= 1 THEN
+                    toplevelalt := TRUE
+                END IF
                 LET gs := groupstart[LAST]
-                LET mgs := r[gs]
-                IF mgs ISA Match.altBegin THEN
-                    r.append(Match.altEnd(0))
-                    r[gs] := Match.altBegin(MatchAltBegin(alternatives WITH mgs.altBegin.alternatives & [r.size()-gs]))
+                LET ab := gs + 1
+                IF ab < r.size() THEN
+                    LET mab := r[ab]
+                    IF mab ISA Match.altBegin THEN
+                        r.append(Match.altEnd(0))
+                        r[ab] := Match.altBegin(MatchAltBegin(alternatives WITH mab.altBegin.alternatives & [r.size()-ab]))
+                    ELSE
+                        r := r[FIRST TO ab-1] & [Match.altBegin(MatchAltBegin(alternatives WITH [1, r.size()-ab+2]))] & r[ab TO LAST] & [Match.altEnd(0)]
+                    END IF
                 ELSE
-                    r := r[FIRST TO gs-1] & [Match.altBegin(MatchAltBegin(alternatives WITH [1, r.size()-gs+2]))] & r[gs TO LAST] & [Match.altEnd(0)]
+                    r := r & [Match.altBegin(MatchAltBegin(alternatives WITH [1, 2]))] & [Match.altEnd(0)]
                 END IF
             /*
             WHEN "\\" DO
@@ -378,8 +396,12 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
         END IF
         INC i
     END WHILE
-    LET m0 := r[0]
-    IF m0 ISA Match.altBegin THEN
+    IF toplevelalt THEN
+        LET m0 := r[0]
+        CHECK m0 ISA Match.altBegin ELSE
+            ASSERT FALSE -- Internal error.
+            RETURN []
+        END CHECK
         r[0] := Match.altBegin(MatchAltBegin(alternatives WITH m0.altBegin.alternatives, next WITH r.size()))
         FOREACH a IN m0.altBegin.alternatives[1 TO LAST] DO
             CHECK r[a-1] ISA Match.altEnd ELSE
@@ -450,6 +472,10 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                 ELSE
                     ok := FALSE
                 END IF
+            WHEN ISA Match.groupStart DO
+                -- TODO
+            WHEN ISA Match.groupEnd DO
+                -- TODO
             WHEN ISA Match.loopBeginGreedy DO
                 -- Handle degenerate case of a 0 maximum repeat group.
                 IF m.loopBeginGreedy.maximum = 0 THEN
@@ -486,6 +512,10 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                     counters[ri] := []
                 END IF
                 counters[ri].append(0)
+                context.append(BacktrackInfo(
+                    instruction WITH ri,
+                    index WITH i
+                ))
                 LET next := m.loopBeginNonGreedy.next
                 IF m.loopBeginNonGreedy.minimum = 0 THEN
                     context.append(BacktrackInfo(
@@ -527,19 +557,18 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
             INC ri
         ELSE
             WHILE context.size() > 0 DO
-                IF Debug THEN
-                    print("backtrack")
-                    print(context)
-                    print(counters)
-                END IF
                 LET lastri := ri
                 ri := context[LAST].instruction
                 i := context[LAST].index
                 context.resize(context.size() - 1)
-                IF Debug THEN
-                    print("  ri=\(ri) i=\(i)")
-                END IF
                 LET bt := regex[ri]
+                IF Debug THEN
+                    print("backtrack to \(bt)")
+                    print(context)
+                    print(counters)
+                    print("  \(target)")
+                    print(string.repeat(" ", 2+i) & "|")
+                END IF
                 CASE bt
                     WHEN ISA Match.loopBeginGreedy DO
                         IF lastri >= ri + bt.loopBeginGreedy.next THEN
@@ -549,16 +578,27 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                             print("  loopG counter=\(counters[ri][LAST])")
                         END IF
                         IF counters[ri][LAST] >= bt.loopBeginGreedy.minimum THEN
+                            IF Debug THEN
+                                print("  counter still more than minimum, so trying another")
+                            END IF
                             ri := ri + bt.loopBeginGreedy.next
                             NEXT main
+                        END IF
+                        IF Debug THEN
+                            print("  counter less than minimum, so backtracking again")
                         END IF
                         IF counters[ri][LAST] < 0 THEN
                             counters[ri].resize(counters[ri].size() - 1)
                         END IF
+                    WHEN ISA Match.loopBeginNonGreedy DO
+                        IF Debug THEN
+                            print("  removing counter for non greedy loop")
+                        END IF
+                        counters[ri].resize(counters[ri].size() - 1)
                     WHEN ISA Match.loopEndNonGreedy DO
                         LET lbi := ri + bt.loopEndNonGreedy
                         IF Debug THEN
-                            print("  loopEndNG counter=\(counters[lbi])")
+                            print("  loopEndNG counter=\(counters[lbi][LAST])")
                         END IF
                         LET lb := regex[lbi]
                         CHECK lb ISA Match.loopBeginNonGreedy ELSE
@@ -566,22 +606,34 @@ FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
                             EXIT PROCESS FAILURE
                         END CHECK
                         IF lb.loopBeginNonGreedy.maximum < 0 OR counters[lbi][LAST] < lb.loopBeginNonGreedy.maximum THEN
+                            IF Debug THEN
+                                print("  counter still less than maximum, trying another iteration")
+                            END IF
                             ri := lbi + 1
                             NEXT main
                         END IF
-                        counters[ri].resize(counters[ri].size() - 1)
+                        DEC counters[lbi][LAST]
+                        IF Debug THEN
+                            print("  counter exceeds maximum so backtracking again")
+                        END IF
                     WHEN ISA Match.altBegin DO
                         INC counters[ri][LAST]
                         IF Debug THEN
                             print("  alt counter=\(counters[ri][LAST])")
                         END IF
                         IF counters[ri][LAST] < bt.altBegin.alternatives.size() THEN
+                            IF Debug THEN
+                                print("  trying next alternative")
+                            END IF
                             context.append(BacktrackInfo(
                                 instruction WITH ri,
                                 index WITH i
                             ))
                             ri := ri + bt.altBegin.alternatives[counters[ri][LAST]]
                             NEXT main
+                        END IF
+                        IF Debug THEN
+                            print("  out of alternatives, backtracking again")
                         END IF
                         counters[ri].resize(counters[ri].size() - 1)
                     WHEN OTHERS DO
@@ -639,6 +691,174 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
 END FUNCTION
 
 BEGIN MAIN
+    TESTCASE parse("a") = [
+        Match.literal("a"),
+    ]
+    TESTCASE parse("^a") = [
+        Match.begin,
+        Match.literal("a"),
+    ]
+    TESTCASE parse("a$") = [
+        Match.literal("a"),
+        Match.end,
+    ]
+    TESTCASE parse("()") = [
+        Match.groupStart(TRUE),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("(a)") = [
+        Match.groupStart(TRUE),
+        Match.literal("a"),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("a?") = [
+        Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH 3)),
+        Match.literal("a"),
+        Match.loopEndGreedy(-2),
+    ]
+    TESTCASE parse("(a)?") = [
+        Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH 5)),
+        Match.groupStart(TRUE),
+        Match.literal("a"),
+        Match.groupEnd,
+        Match.loopEndGreedy(-4),
+    ]
+    TESTCASE parse("(a?)") = [
+        Match.groupStart(TRUE),
+        Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH 3)),
+        Match.literal("a"),
+        Match.loopEndGreedy(-2),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("a*") = [
+        Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH 3)),
+        Match.literal("a"),
+        Match.loopEndGreedy(-2),
+    ]
+    TESTCASE parse("(a)*") = [
+        Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH 5)),
+        Match.groupStart(TRUE),
+        Match.literal("a"),
+        Match.groupEnd,
+        Match.loopEndGreedy(-4),
+    ]
+    TESTCASE parse("(a*)") = [
+        Match.groupStart(TRUE),
+        Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH 3)),
+        Match.literal("a"),
+        Match.loopEndGreedy(-2),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("a*?") = [
+        Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH 3)),
+        Match.literal("a"),
+        Match.loopEndNonGreedy(-2),
+    ]
+    TESTCASE parse("(a)*?") = [
+        Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH 5)),
+        Match.groupStart(TRUE),
+        Match.literal("a"),
+        Match.groupEnd,
+        Match.loopEndNonGreedy(-4),
+    ]
+    TESTCASE parse("(a*?)") = [
+        Match.groupStart(TRUE),
+        Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH 3)),
+        Match.literal("a"),
+        Match.loopEndNonGreedy(-2),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("|") = [
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 2], next WITH 2)),
+        Match.altEnd(1),
+    ]
+    TESTCASE parse("(|)") = [
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 2], next WITH 2)),
+        Match.altEnd(1),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("b|c") = [
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3], next WITH 4)),
+        Match.literal("b"),
+        Match.altEnd(2),
+        Match.literal("c"),
+    ]
+    TESTCASE parse("(b|c)") = [
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3], next WITH 4)),
+        Match.literal("b"),
+        Match.altEnd(2),
+        Match.literal("c"),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("b|c|d") = [
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3, 5], next WITH 6)),
+        Match.literal("b"),
+        Match.altEnd(4),
+        Match.literal("c"),
+        Match.altEnd(2),
+        Match.literal("d"),
+    ]
+    TESTCASE parse("(b|c|d)") = [
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3, 5], next WITH 6)),
+        Match.literal("b"),
+        Match.altEnd(4),
+        Match.literal("c"),
+        Match.altEnd(2),
+        Match.literal("d"),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("((b|c)|d)") = [
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 8], next WITH 9)),
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3], next WITH 4)),
+        Match.literal("b"),
+        Match.altEnd(2),
+        Match.literal("c"),
+        Match.groupEnd,
+        Match.altEnd(2),
+        Match.literal("d"),
+        Match.groupEnd,
+    ]
+    TESTCASE parse("(b|(c|d))") = [
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3], next WITH 9)),
+        Match.literal("b"),
+        Match.altEnd(7),
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3], next WITH 4)),
+        Match.literal("c"),
+        Match.altEnd(2),
+        Match.literal("d"),
+        Match.groupEnd,
+        Match.groupEnd,
+    ]
+    TESTCASE parse("a(b|c)d") = [
+        Match.literal("a"),
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3], next WITH 4)),
+        Match.literal("b"),
+        Match.altEnd(2),
+        Match.literal("c"),
+        Match.groupEnd,
+        Match.literal("d"),
+    ]
+    TESTCASE parse("a(b|c)*d") = [
+        Match.literal("a"),
+        Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH 8)),
+        Match.groupStart(TRUE),
+        Match.altBegin(MatchAltBegin(alternatives WITH [1, 3], next WITH 4)),
+        Match.literal("b"),
+        Match.altEnd(2),
+        Match.literal("c"),
+        Match.groupEnd,
+        Match.loopEndGreedy(-7),
+        Match.literal("d"),
+    ]
+    /*
     test("abc", [
         [TRUE, "abc"],
         [FALSE, "axc"],
@@ -755,6 +975,10 @@ BEGIN MAIN
         [FALSE, "abc"],
         [TRUE, "abbc"],
         [TRUE, "abbbc"],
+    ])
+    */
+    test("^(b+?|a){1,2}?c", [
+        [TRUE, "bbac"],
     ])
     print("passed")
 END MAIN
