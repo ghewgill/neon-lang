@@ -5730,6 +5730,11 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         }
         else_checks = checks_conjunction(else_checks, checks_complement(checks));
     }
+    // Pop the scope containing any read-only copy of a valid pointer here,
+    // so it isn't also read-only in the else clause. A better way might be to
+    // only add the read-only copy to the scope inside the if valid clause.
+    scope.pop();
+    scope.push(new ast::Scope(scope.top(), frame.top()));
     checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), else_checks));
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
     checked_choice_variables.pop();
