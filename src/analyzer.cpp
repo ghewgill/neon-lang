@@ -4251,11 +4251,13 @@ const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declarat
     scope.pop();
     ast::Interface *interface = new ast::Interface(declaration->token, name, methods);
     scope.top()->addName(declaration->token, name, interface);
+    // This hack fixes up declared return types in interface function definitions
+    // so that they can return pointers to the interface we are currently declaring.
     for (auto &x: interface->methods) {
         if (x.second->returntype == ast::TYPE_INTERFACE) {
+            // TODO: This really should not be a valid pointer type, I don't think.
             const_cast<ast::TypeFunction *>(x.second)->returntype = new ast::TypeValidInterfacePointer(Token(), interface);
         }
-        printf("%s\n", x.second->text().c_str());
     }
     return new ast::NullStatement(declaration->token);
 }
@@ -5737,10 +5739,15 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         }
         else_checks = checks_conjunction(else_checks, checks_complement(checks));
     }
+    // Pop the scope containing any read-only copy of a valid pointer here,
+    // so it isn't also read-only in the else clause. A better way might be to
+    // only add the read-only copy to the scope inside the if valid clause.
     scope.pop();
+    scope.push(new ast::Scope(scope.top(), frame.top()));
     checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), else_checks));
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
     checked_choice_variables.pop();
+    scope.pop();
     return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
 

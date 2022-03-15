@@ -427,11 +427,7 @@ void *cell_get_pointer(const struct Ne_Cell *cell)
 
 void cell_set_pointer(struct Ne_Cell *cell, void *p)
 {
-    PointerObject *po = dynamic_cast<PointerObject *>(reinterpret_cast<Cell *>(cell)->object().get());
-    if (po == nullptr) {
-        return;
-    }
-    po->ptr = p;
+    reinterpret_cast<Cell *>(cell)->object_for_write() = std::make_shared<PointerObject>(p);
 }
 
 int cell_get_array_size(const struct Ne_Cell *cell)
