@@ -4249,7 +4249,16 @@ const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declarat
         method_names[methodname] = x.first;
     }
     scope.pop();
-    scope.top()->addName(declaration->token, name, new ast::Interface(declaration->token, name, methods));
+    ast::Interface *interface = new ast::Interface(declaration->token, name, methods);
+    scope.top()->addName(declaration->token, name, interface);
+    // This hack fixes up declared return types in interface function definitions
+    // so that they can return pointers to the interface we are currently declaring.
+    for (auto &x: interface->methods) {
+        if (x.second->returntype == ast::TYPE_INTERFACE) {
+            // TODO: This really should not be a valid pointer type, I don't think.
+            const_cast<ast::TypeFunction *>(x.second)->returntype = new ast::TypeValidInterfacePointer(Token(), interface);
+        }
+    }
     return new ast::NullStatement(declaration->token);
 }
 
