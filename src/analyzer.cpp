@@ -4249,7 +4249,14 @@ const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declarat
         method_names[methodname] = x.first;
     }
     scope.pop();
-    scope.top()->addName(declaration->token, name, new ast::Interface(declaration->token, name, methods));
+    ast::Interface *interface = new ast::Interface(declaration->token, name, methods);
+    scope.top()->addName(declaration->token, name, interface);
+    for (auto &x: interface->methods) {
+        if (x.second->returntype == ast::TYPE_INTERFACE) {
+            const_cast<ast::TypeFunction *>(x.second)->returntype = new ast::TypeValidInterfacePointer(Token(), interface);
+        }
+        printf("%s\n", x.second->text().c_str());
+    }
     return new ast::NullStatement(declaration->token);
 }
 
@@ -5730,10 +5737,10 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         }
         else_checks = checks_conjunction(else_checks, checks_complement(checks));
     }
+    scope.pop();
     checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), else_checks));
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
     checked_choice_variables.pop();
-    scope.pop();
     return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
 

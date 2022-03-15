@@ -1,267 +1,323 @@
 --IMPORT base
-IMPORT string
+--IMPORT string
 
-EXPORT Match
+--EXPORT Match
 EXPORT Regex
 
-EXPORT dump
+--EXPORT dump
 EXPORT parse
 EXPORT search
-EXPORT searchRegex
+--EXPORT searchRegex
 
-CONSTANT Debug := FALSE
+CONSTANT Debug := TRUE
 
-TYPE MatchLoopBegin IS RECORD
-    minimum: Number
-    maximum: Number
-    next: Number
-END RECORD
-
-FUNCTION MatchLoopBegin.toString(self: MatchLoopBegin): String
-    RETURN "MatchLoopBegin(min=\(self.minimum), max=\(self.maximum), next=\(self.next))"
-END FUNCTION
-
-TYPE MatchAltBegin IS RECORD
-    alternatives: Array<Number>
-    next: Number
-END RECORD
-
-FUNCTION MatchAltBegin.toString(self: MatchAltBegin): String
-    RETURN "MatchAltBegin(alts=\(self.alternatives), next=\(self.next))"
-END FUNCTION
-
-TYPE Match IS CHOICE
+TYPE Opcode IS CHOICE
     any
-    literal: String
-    literalIgnoreCase: String
+    char: String
     begin
     end
-    groupStart: Boolean -- TODO: needs index as well as capture flag
-    groupEnd
-    loopBeginGreedy: MatchLoopBegin
-    loopEndGreedy: Number
-    loopBeginNonGreedy: MatchLoopBegin
-    loopEndNonGreedy: Number
-    altBegin: MatchAltBegin
-    altEnd: Number
+    match
+    jump: Array<Number>
 END CHOICE
 
-TYPE Regex IS Array<Match>
+TYPE Regex IS Array<Opcode>
 
-/*
-INTERFACE Match
-    FUNCTION dump(self: Match): String
-    FUNCTION match(self: Match, target: String, INOUT i: Number): Boolean
+INTERFACE Expr
+    FUNCTION dump(self: Expr): String
+    FUNCTION reduce(self: Expr): Expr
+    FUNCTION size(self: Expr): Number
+    FUNCTION compile(self: Expr, INOUT regex: Regex)
 END INTERFACE
 
-TYPE Regex IS Array<VALID POINTER TO Match>
-
-TYPE MatchLiteral IS CLASS IMPLEMENTS Match
-    match: String
+TYPE ExprSequence IS CLASS IMPLEMENTS Expr
+    exprs: Array<VALID POINTER TO Expr>
 END CLASS
 
-FUNCTION MatchLiteral.dump(self: VALID POINTER TO MatchLiteral): String
-    RETURN self->match
+FUNCTION ExprSequence.dump(self: VALID POINTER TO ExprSequence): String
+    VAR r := ""
+    FOREACH e IN self->exprs DO
+        r.append(e->dump())
+    END FOREACH
+    RETURN r
 END FUNCTION
 
-FUNCTION MatchLiteral.match(self: VALID POINTER TO MatchLiteral, target: String, INOUT i: Number): Boolean
-    CHECK target.length() > 0 ELSE
-        RETURN FALSE
-    END CHECK
-    LET len := self->match.length()
-    IF target[i TO i+len-1] <> self->match THEN
-        RETURN FALSE
-    END IF
-    i := i + len
-    RETURN TRUE
+FUNCTION ExprSequence.reduce(self: VALID POINTER TO ExprSequence): POINTER TO Expr
+    VAR a: Array<VALID POINTER TO Expr> := []
+    FOREACH e IN self->exprs DO
+        a.append(e->reduce())
+    END FOREACH
+    RETURN NEW ExprSequence(exprs WITH a)
 END FUNCTION
 
-TYPE MatchLiteralIgnoreCase IS CLASS IMPLEMENTS Match
-    match: String
+FUNCTION ExprSequence.size(self: VALID POINTER TO ExprSequence): Number
+    VAR r := 0
+    FOREACH e IN self->exprs DO
+        r := r + e->size()
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION ExprSequence.compile(self: VALID POINTER TO ExprSequence, INOUT regex: Regex)
+    FOREACH e IN self->exprs DO
+        e->compile(INOUT regex)
+    END FOREACH
+END FUNCTION
+
+TYPE ExprLiteral IS CLASS IMPLEMENTS Expr
+    literal: String
 END CLASS
 
-FUNCTION MatchLiteralIgnoreCase.dump(self: VALID POINTER TO MatchLiteralIgnoreCase): String
-    RETURN self->match
+FUNCTION ExprLiteral.dump(self: VALID POINTER TO ExprLiteral): String
+    RETURN self->literal
 END FUNCTION
 
-FUNCTION MatchLiteralIgnoreCase.match(self: VALID POINTER TO MatchLiteralIgnoreCase, target: String, INOUT i: Number): Boolean
-    CHECK target.length() > 0 ELSE
-        RETURN FALSE
-    END CHECK
-    LET len := self->match.length()
-    IF string.lower(target[i TO i+len-1]) <> self->match THEN
-        RETURN FALSE
-    END IF
-    i := i + len
-    RETURN TRUE
+FUNCTION ExprLiteral.reduce(self: VALID POINTER TO ExprLiteral): POINTER TO Expr
+    RETURN self
 END FUNCTION
 
-TYPE MatchAny IS CLASS IMPLEMENTS Match
+FUNCTION ExprLiteral.size(self: VALID POINTER TO ExprLiteral): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprLiteral.compile(self: VALID POINTER TO ExprLiteral, INOUT regex: Regex)
+    regex.append(Opcode.char(self->literal))
+END FUNCTION
+
+TYPE ExprAny IS CLASS IMPLEMENTS Expr
 END CLASS
 
-FUNCTION MatchAny.dump(self: VALID POINTER TO MatchAny): String
+FUNCTION ExprAny.dump(self: VALID POINTER TO ExprAny): String
     RETURN "."
 END FUNCTION
 
-FUNCTION MatchAny.match(self: VALID POINTER TO MatchAny, target: String, INOUT i: Number): Boolean
-    INC i
-    RETURN TRUE
+FUNCTION ExprAny.reduce(self: VALID POINTER TO ExprAny): POINTER TO Expr
+    RETURN self
 END FUNCTION
 
-TYPE MatchRepeat IS CLASS IMPLEMENTS Match
+FUNCTION ExprAny.size(self: VALID POINTER TO ExprAny): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprAny.compile(self: VALID POINTER TO ExprAny, INOUT regex: Regex)
+    regex.append(Opcode.any)
+END FUNCTION
+
+TYPE ExprOpt IS CLASS IMPLEMENTS Expr
+    expr: VALID POINTER TO Expr
+END CLASS
+
+FUNCTION ExprOpt.dump(self: VALID POINTER TO ExprOpt): String
+    RETURN self->expr->dump() & "?"
+END FUNCTION
+
+FUNCTION ExprOpt.reduce(self: VALID POINTER TO ExprOpt): POINTER TO Expr
+    RETURN NEW ExprOpt(expr WITH self->expr->reduce())
+END FUNCTION
+
+FUNCTION ExprOpt.size(self: VALID POINTER TO ExprOpt): Number
+    RETURN 1 + self->expr->size()
+END FUNCTION
+
+FUNCTION ExprOpt.compile(self: VALID POINTER TO ExprOpt, INOUT regex: Regex)
+    regex.append(Opcode.jump([regex.size() + 1, regex.size() + 1 + self->expr->size()]))
+    self->expr->compile(INOUT regex)
+END FUNCTION
+
+TYPE ExprStar IS CLASS IMPLEMENTS Expr
+    expr: VALID POINTER TO Expr
+END CLASS
+
+FUNCTION ExprStar.dump(self: VALID POINTER TO ExprStar): String
+    RETURN "\(self->expr->dump())*"
+END FUNCTION
+
+FUNCTION ExprStar.reduce(self: VALID POINTER TO ExprStar): POINTER TO Expr
+    RETURN NEW ExprStar(expr WITH self->expr->reduce())
+END FUNCTION
+
+FUNCTION ExprStar.size(self: VALID POINTER TO ExprStar): Number
+    RETURN 1 + self->expr->size() + 1
+END FUNCTION
+
+FUNCTION ExprStar.compile(self: VALID POINTER TO ExprStar, INOUT regex: Regex)
+    LET top := regex.size()
+    regex.append(Opcode.jump([regex.size() + 1, regex.size() + 1 + self->expr->size() + 1]))
+    self->expr->compile(INOUT regex)
+    regex.append(Opcode.jump([top]))
+END FUNCTION
+
+TYPE ExprRepeat IS CLASS IMPLEMENTS Expr
     minimum: Number
     maximum: Number
-    sub: POINTER TO Match
-    tail: Regex
+    expr: VALID POINTER TO Expr
 END CLASS
 
-FUNCTION MatchRepeat.dump(self: VALID POINTER TO MatchRepeat): String
-    RETURN "\(self->sub->dump()){\(self->minimum),\(self->maximum)}\(dump(self->tail))"
+FUNCTION ExprRepeat.dump(self: VALID POINTER TO ExprRepeat): String
+    RETURN "\(self->expr->dump()){\(self->minimum),\(self->maximum)}"
 END FUNCTION
 
-FUNCTION MatchRepeat.match(self: VALID POINTER TO MatchRepeat, target: String, INOUT i: Number): Boolean
-    VAR n := 0
-    VAR backtrack: Array<Number> := []
-    WHILE self->maximum < 0 OR n < self->maximum DO
-        LET b := i
-        IF NOT self->sub->match(target, INOUT i) THEN
-            EXIT WHILE
-        END IF
-        backtrack.append(b)
-        INC n
-    END WHILE
-    WHILE n >= self->minimum DO
-        IF match(self->tail, target[i TO LAST]) THEN
-            EXIT WHILE
-        END IF
-        IF backtrack.size() = 0 THEN
-            RETURN FALSE
-        END IF
-        i := backtrack[LAST]
-        backtrack := backtrack[FIRST TO LAST-1]
-        DEC n
-    END WHILE
-    RETURN n >= self->minimum
+FUNCTION ExprRepeat.reduce(self: VALID POINTER TO ExprRepeat): POINTER TO Expr
+    LET r := NEW ExprSequence(exprs WITH [])
+    LET rexpr := self->expr->reduce()
+    FOR i := 1 TO self->minimum DO
+        r->exprs.append(rexpr)
+    END FOR
+    IF self->maximum < 0 THEN
+        r->exprs.append(NEW ExprStar(expr WITH rexpr))
+    ELSE
+        FOR i := self->minimum + 1 TO self->maximum DO
+            r->exprs.append(NEW ExprOpt(expr WITH rexpr))
+        END FOR
+    END IF
+    RETURN r
 END FUNCTION
 
-TYPE MatchBegin IS CLASS IMPLEMENTS Match
+FUNCTION ExprRepeat.size(self: VALID POINTER TO ExprRepeat): Number
+    ASSERT FALSE
+    RETURN 0
+END FUNCTION
+
+FUNCTION ExprRepeat.compile(self: VALID POINTER TO ExprRepeat, INOUT regex: Regex)
+    ASSERT FALSE
+END FUNCTION
+
+TYPE ExprBegin IS CLASS IMPLEMENTS Expr
 END CLASS
 
-FUNCTION MatchBegin.dump(self: VALID POINTER TO MatchBegin): String
+FUNCTION ExprBegin.dump(self: VALID POINTER TO ExprBegin): String
     RETURN "^"
 END FUNCTION
 
-FUNCTION MatchBegin.match(self: VALID POINTER TO MatchBegin, target: String, INOUT i: Number): Boolean
-    -- TODO: This needs to check that we are at the actual start of the string, not starting a new match in the middle.
-    RETURN i = 0
+FUNCTION ExprBegin.reduce(self: VALID POINTER TO ExprBegin): POINTER TO Expr
+    RETURN self
 END FUNCTION
 
-TYPE MatchGroup IS CLASS IMPLEMENTS Match
-    regex: Regex
+FUNCTION ExprBegin.size(self: VALID POINTER TO ExprBegin): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprBegin.compile(self: VALID POINTER TO ExprBegin, INOUT regex: Regex)
+    regex.append(Opcode.begin)
+END FUNCTION
+
+TYPE ExprEnd IS CLASS IMPLEMENTS Expr
 END CLASS
 
-FUNCTION MatchGroup.dump(self: VALID POINTER TO MatchGroup): String
-    RETURN "(\(dump(self->regex)))"
+FUNCTION ExprEnd.dump(self: VALID POINTER TO ExprEnd): String
+    RETURN "$"
 END FUNCTION
 
-FUNCTION MatchGroup.match(self: VALID POINTER TO MatchGroup, target: String, INOUT i: Number): Boolean
-    IF NOT matchPart(self->regex, target, INOUT i) THEN
-        RETURN FALSE
-    END IF
-    RETURN TRUE
+FUNCTION ExprEnd.reduce(self: VALID POINTER TO ExprEnd): POINTER TO Expr
+    RETURN self
 END FUNCTION
 
-TYPE MatchAlternative IS CLASS IMPLEMENTS Match
-    alternatives: Array<Regex>
+FUNCTION ExprEnd.size(self: VALID POINTER TO ExprEnd): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprEnd.compile(self: VALID POINTER TO ExprEnd, INOUT regex: Regex)
+    regex.append(Opcode.end)
+END FUNCTION
+
+TYPE ExprGroup IS CLASS IMPLEMENTS Expr
+    expr: POINTER TO Expr
 END CLASS
 
-FUNCTION MatchAlternative.dump(self: VALID POINTER TO MatchAlternative): String
+FUNCTION ExprGroup.dump(self: VALID POINTER TO ExprGroup): String
+    RETURN self->expr->dump()
+END FUNCTION
+
+FUNCTION ExprGroup.reduce(self: VALID POINTER TO ExprGroup): POINTER TO Expr
+    RETURN NEW ExprGroup(expr WITH self->expr->reduce())
+END FUNCTION
+
+FUNCTION ExprGroup.size(self: VALID POINTER TO ExprGroup): Number
+    RETURN self->expr->size()
+END FUNCTION
+
+FUNCTION ExprGroup.compile(self: VALID POINTER TO ExprGroup, INOUT regex: Regex)
+    self->expr->compile(INOUT regex)
+END FUNCTION
+
+TYPE ExprAlternative IS CLASS IMPLEMENTS Expr
+    alternatives: Array<POINTER TO Expr>
+END CLASS
+
+FUNCTION ExprAlternative.dump(self: VALID POINTER TO ExprAlternative): String
     VAR r := ""
     FOREACH a IN self->alternatives DO
         IF r.length() > 0 THEN
             r.append("|")
         END IF
-        r.append(dump(a))
+        r.append(a->dump())
     END FOREACH
     RETURN r
 END FUNCTION
 
-FUNCTION MatchAlternative.match(self: VALID POINTER TO MatchAlternative, target: String, INOUT i: Number): Boolean
+FUNCTION ExprAlternative.reduce(self: VALID POINTER TO ExprAlternative): POINTER TO Expr
+    VAR e: Array<POINTER TO Expr> := []
     FOREACH a IN self->alternatives DO
+        e.append(a->reduce())
     END FOREACH
-    RETURN FALSE
+    RETURN NEW ExprAlternative(alternatives WITH e)
 END FUNCTION
-*/
 
-FUNCTION dump(regex: Regex): String
-    VAR r := ""
-    FOREACH m IN regex DO
-        r.append("\(m)")
-        --CASE m
-        --    WHEN ISA Match.any DO
-        --        r.append(".")
-        --    WHEN ISA Match.literal DO
-        --        r.append(m.literal)
-        --END CASE
+FUNCTION ExprAlternative.size(self: VALID POINTER TO ExprAlternative): Number
+    VAR r := 0
+    FOREACH a IN self->alternatives DO
+        r := r + 1 + a->size()
     END FOREACH
     RETURN r
 END FUNCTION
 
-FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
-    IF Debug THEN
-        print("parse: \(pattern)")
-    END IF
-    CHECK pattern.length() > 0 ELSE
-        RETURN []
-    END CHECK
-    VAR r: Regex := []
-    VAR groupstart := [-1]
-    VAR quantifierstart := -1
-    VAR toplevelalt := FALSE
-    VAR i := 0
+FUNCTION ExprAlternative.compile(self: VALID POINTER TO ExprAlternative, INOUT regex: Regex)
+    LET out := regex.size() + self->size()
+    VAR jumps := [regex.size() + 1]
+    FOREACH a IN self->alternatives[0 TO LAST-1] DO
+        jumps.append(jumps[LAST] + a->size() + 1)
+    END FOREACH
+    regex.append(Opcode.jump(jumps))
+    FOREACH a IN self->alternatives INDEX i DO
+        a->compile(INOUT regex)
+        IF i + 1 < self->alternatives.size() THEN
+            regex.append(Opcode.jump([out]))
+        END IF
+    END FOREACH
+END FUNCTION
+
+FUNCTION parsePart(pattern: String, INOUT i: Number): VALID POINTER TO Expr
+    VAR a: POINTER TO ExprAlternative := NIL
+    VAR r: VALID POINTER TO ExprSequence := NEW ExprSequence
     WHILE i < pattern.length() DO
-        VAR qs := -1
         CASE pattern[i]
             WHEN "^" DO
-                r.append(Match.begin)
+                r->exprs.append(NEW ExprBegin)
             WHEN "$" DO
-                r.append(Match.end)
+                r->exprs.append(NEW ExprEnd)
             WHEN "." DO
-                qs := r.size()
-                r.append(Match.any)
+                r->exprs.append(NEW ExprAny)
             WHEN "?" DO
-                IF quantifierstart < 0 THEN
-                    -- Syntax error.
-                    RETURN []
-                END IF
-                r := r[FIRST TO quantifierstart-1] & [Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH 1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndGreedy(quantifierstart-r.size()-1)]
-            WHEN "*" DO
-                IF quantifierstart < 0 THEN
-                    -- Syntax error.
-                    RETURN []
-                END IF
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
-                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndNonGreedy(quantifierstart-r.size()-1)]
+                    r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST])
                 ELSE
-                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 0, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndGreedy(quantifierstart-r.size()-1)]
+                    r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST])
+                END IF
+            WHEN "*" DO
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST])
+                ELSE
+                    r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST])
                 END IF
             WHEN "+" DO
-                IF quantifierstart < 0 THEN
-                    -- Syntax error.
-                    RETURN []
-                END IF
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
-                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH 1, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndNonGreedy(quantifierstart-r.size()-1)]
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST])
                 ELSE
-                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginGreedy(MatchLoopBegin(minimum WITH 1, maximum WITH -1, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndGreedy(quantifierstart-r.size()-1)]
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST])
                 END IF
             WHEN "{" DO
-                IF quantifierstart < 0 THEN
-                    -- Syntax error.
-                    RETURN []
-                END IF
                 VAR min := 0
                 VAR max := -1
                 INC i
@@ -287,56 +343,40 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                     max := min
                 END IF
                 ASSERT pattern[i] = "}"
-                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
-                    INC i
-                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginNonGreedy(MatchLoopBegin(minimum WITH min, maximum WITH max, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndNonGreedy(quantifierstart-r.size()-1)]
-                ELSE
-                    r := r[FIRST TO quantifierstart-1] & [Match.loopBeginGreedy(MatchLoopBegin(minimum WITH min, maximum WITH max, next WITH r.size()-quantifierstart+2))] & r[quantifierstart TO LAST] & [Match.loopEndGreedy(quantifierstart-r.size()-1)]
-                END IF
+                r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST])
             WHEN "(" DO
-                groupstart.append(r.size())
-                r.append(Match.groupStart(TRUE))
+                INC i
+                LET e := parsePart(pattern, INOUT i)
+                ASSERT pattern[i] = ")"
+                r->exprs.append(NEW ExprGroup(expr WITH e))
             WHEN ")" DO
-                CHECK groupstart.size() > 1 ELSE
-                    -- Syntax error.
-                    RETURN []
-                END CHECK
-                LET gs := groupstart[LAST]
-                LET ab := gs + 1
-                IF ab < r.size() THEN
-                    LET mab := r[ab]
-                    IF mab ISA Match.altBegin THEN
-                        r[ab] := Match.altBegin(MatchAltBegin(alternatives WITH mab.altBegin.alternatives, next WITH r.size()-ab))
-                        FOREACH a IN mab.altBegin.alternatives[1 TO LAST] DO
-                            CHECK r[ab+a-1] ISA Match.altEnd ELSE
-                                ASSERT FALSE -- Internal error.
-                                EXIT PROCESS FAILURE
-                            END CHECK
-                            r[ab+a-1] := Match.altEnd(r.size() - (ab + a) + 1)
-                        END FOREACH
-                    END IF
-                END IF
-                r.append(Match.groupEnd)
-                qs := gs
-                groupstart.resize(groupstart.size() - 1)
+                EXIT WHILE
             WHEN "|" DO
-                IF groupstart.size() <= 1 THEN
-                    toplevelalt := TRUE
-                END IF
-                LET gs := groupstart[LAST]
-                LET ab := gs + 1
-                IF ab < r.size() THEN
-                    LET mab := r[ab]
-                    IF mab ISA Match.altBegin THEN
-                        r.append(Match.altEnd(0))
-                        r[ab] := Match.altBegin(MatchAltBegin(alternatives WITH mab.altBegin.alternatives & [r.size()-ab]))
-                    ELSE
-                        r := r[FIRST TO ab-1] & [Match.altBegin(MatchAltBegin(alternatives WITH [1, r.size()-ab+2]))] & r[ab TO LAST] & [Match.altEnd(0)]
-                    END IF
+                IF VALID a THEN
+                    a->alternatives.append(r)
                 ELSE
-                    r := r & [Match.altBegin(MatchAltBegin(alternatives WITH [1, 2]))] & [Match.altEnd(0)]
+                    a := NEW ExprAlternative(alternatives WITH [r])
                 END IF
-            /*
+                r := NEW ExprSequence
+            WHEN OTHERS DO
+                r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
+        END CASE
+        INC i
+    END WHILE
+    IF VALID a THEN
+        a->alternatives.append(r)
+        RETURN a
+    ELSE
+        RETURN r
+    END IF
+END FUNCTION
+
+FUNCTION parse(pattern: String): VALID POINTER TO Expr
+    VAR i := 0
+    RETURN parsePart(pattern, INOUT i)
+END FUNCTION
+
+/*
             WHEN "\\" DO
                 INC i
                 CASE pattern[i]
@@ -380,310 +420,86 @@ FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
                     WHEN OTHERS DO
                         r.append(NEW MatchLiteral(match WITH pattern[i]))
                 END CASE
-            */
-            WHEN OTHERS DO
-                qs := r.size()
-                IF ignoreCase THEN
-                    r.append(Match.literalIgnoreCase(pattern[i]))
-                ELSE
-                    r.append(Match.literal(pattern[i]))
-                END IF
-        END CASE
-        IF qs >= 0 THEN
-            quantifierstart := qs
-        ELSE
-            quantifierstart := -1
-        END IF
-        INC i
-    END WHILE
-    IF toplevelalt THEN
-        LET m0 := r[0]
-        CHECK m0 ISA Match.altBegin ELSE
-            ASSERT FALSE -- Internal error.
-            RETURN []
-        END CHECK
-        r[0] := Match.altBegin(MatchAltBegin(alternatives WITH m0.altBegin.alternatives, next WITH r.size()))
-        FOREACH a IN m0.altBegin.alternatives[1 TO LAST] DO
-            CHECK r[a-1] ISA Match.altEnd ELSE
-                ASSERT FALSE -- Internal error.
-                EXIT PROCESS FAILURE
-            END CHECK
-            r[a-1] := Match.altEnd(r.size() - (a-1))
-        END FOREACH
-    END IF
-    IF Debug THEN
-        FOREACH m IN r INDEX ii DO
-            print("  \(ii) \(dump([m]))")
-        END FOREACH
-        --print(dump(r))
-    END IF
+*/
+
+FUNCTION compile(expr: VALID POINTER TO Expr): Regex
+    VAR r: Regex := []
+    VAR e := expr->reduce()
+    -- TODO: This should just be a literal array expression,
+    --       but there is a segfault in the compiler for some reason.
+    VAR a: Array<VALID POINTER TO Expr> := []
+    a.append(NEW ExprStar(expr WITH NEW ExprAny))
+    a.append(e)
+    e := NEW ExprSequence(exprs WITH a)
+    e->compile(INOUT r)
+    r.append(Opcode.match)
     RETURN r
 END FUNCTION
 
-TYPE BacktrackInfo IS RECORD
-    instruction: Number
-    index: Number
-END RECORD
-
-FUNCTION matchPart(regex: Regex, target: String, INOUT i: Number): Boolean
-    CHECK regex.size() > 0 ELSE
-        RETURN TRUE
-    END CHECK
-    IF Debug THEN
-        print("-- matching target: \(target)")
-    END IF
-    VAR counters: Array<Array<Number>> := []
-    VAR context: Array<BacktrackInfo> := []
-    VAR ri := 0
-    WHILE ri < regex.size() LABEL main DO
-        LET m := regex[ri]
-        IF Debug THEN
-            print("\(ri) \(m)")
-            print(context)
-            print(counters)
-            print("  \(target)")
-            print(string.repeat(" ", 2+i) & "|")
-        END IF
-        VAR ok := TRUE
-        CASE m
-            WHEN ISA Match.any DO
-                INC i
-            WHEN ISA Match.literal DO
-                IF i < target.length() AND target[i] = m.literal THEN
-                    INC i
-                ELSE
-                    ok := FALSE
-                END IF
-            WHEN ISA Match.literalIgnoreCase DO
-                IF i < target.length() AND string.lower(target[i]) = string.lower(m.literalIgnoreCase) THEN
-                    INC i
-                ELSE
-                    ok := FALSE
-                END IF
-            WHEN ISA Match.begin DO
-                IF i = 0 THEN
-                    -- Accept
-                ELSE
-                    ok := FALSE
-                END IF
-            WHEN ISA Match.end DO
-                IF i = target.length() THEN
-                    -- Accept
-                ELSE
-                    ok := FALSE
-                END IF
-            WHEN ISA Match.groupStart DO
-                -- TODO
-            WHEN ISA Match.groupEnd DO
-                -- TODO
-            WHEN ISA Match.loopBeginGreedy DO
-                -- Handle degenerate case of a 0 maximum repeat group.
-                IF m.loopBeginGreedy.maximum = 0 THEN
-                    ri := ri + m.loopBeginGreedy.next
-                    NEXT main
-                END IF
-                IF ri >= counters.size() THEN
-                    counters[ri] := []
-                END IF
-                counters[ri].append(0)
-                context.append(BacktrackInfo(
-                    instruction WITH ri,
-                    index WITH i
-                ))
-            WHEN ISA Match.loopEndGreedy DO
-                ri := ri + m.loopEndGreedy
-                LET lb := regex[ri]
-                CHECK lb ISA Match.loopBeginGreedy ELSE
-                    ASSERT FALSE -- Internal error.
-                    RETURN FALSE
-                END CHECK
-                INC counters[ri][LAST]
-                IF lb.loopBeginGreedy.maximum < 0 OR counters[ri][LAST] < lb.loopBeginGreedy.maximum THEN
-                    context.append(BacktrackInfo(
-                        instruction WITH ri,
-                        index WITH i
-                    ))
-                ELSE
-                    ri := ri + lb.loopBeginGreedy.next
-                    NEXT main
-                END IF
-            WHEN ISA Match.loopBeginNonGreedy DO
-                IF ri >= counters.size() THEN
-                    counters[ri] := []
-                END IF
-                counters[ri].append(0)
-                context.append(BacktrackInfo(
-                    instruction WITH ri,
-                    index WITH i
-                ))
-                LET next := m.loopBeginNonGreedy.next
-                IF m.loopBeginNonGreedy.minimum = 0 THEN
-                    context.append(BacktrackInfo(
-                        instruction WITH next-1,
-                        index WITH i
-                    ))
-                    ri := next
-                END IF
-            WHEN ISA Match.loopEndNonGreedy DO
-                LET lbi := ri + m.loopEndNonGreedy
-                LET lb := regex[lbi]
-                CHECK lb ISA Match.loopBeginNonGreedy ELSE
-                    ASSERT FALSE -- Internal error.
-                    RETURN FALSE
-                END CHECK
-                context.append(BacktrackInfo(
-                    instruction WITH ri,
-                    index WITH i
-                ))
-                INC counters[lbi][LAST]
-                IF counters[lbi][LAST] < lb.loopBeginNonGreedy.minimum THEN
-                    ri := lbi + 1
-                    NEXT main
-                END IF
-            WHEN ISA Match.altBegin DO
-                IF ri >= counters.size() THEN
-                    counters[ri] := []
-                END IF
-                counters[ri].append(0)
-                context.append(BacktrackInfo(
-                    instruction WITH ri,
-                    index WITH i
-                ))
-            WHEN ISA Match.altEnd DO
-                ri := ri + m.altEnd
-                NEXT main
-        END CASE
-        IF ok THEN
-            INC ri
-        ELSE
-            WHILE context.size() > 0 DO
-                LET lastri := ri
-                ri := context[LAST].instruction
-                i := context[LAST].index
-                context.resize(context.size() - 1)
-                LET bt := regex[ri]
-                IF Debug THEN
-                    print("backtrack to \(bt)")
-                    print(context)
-                    print(counters)
-                    print("  \(target)")
-                    print(string.repeat(" ", 2+i) & "|")
-                END IF
-                CASE bt
-                    WHEN ISA Match.loopBeginGreedy DO
-                        IF lastri >= ri + bt.loopBeginGreedy.next THEN
-                            DEC counters[ri][LAST]
-                        END IF
-                        IF Debug THEN
-                            print("  loopG counter=\(counters[ri][LAST])")
-                        END IF
-                        IF counters[ri][LAST] >= bt.loopBeginGreedy.minimum THEN
-                            IF Debug THEN
-                                print("  counter still more than minimum, so trying another")
-                            END IF
-                            ri := ri + bt.loopBeginGreedy.next
-                            NEXT main
-                        END IF
-                        IF Debug THEN
-                            print("  counter less than minimum, so backtracking again")
-                        END IF
-                        IF counters[ri][LAST] < 0 THEN
-                            counters[ri].resize(counters[ri].size() - 1)
-                        END IF
-                    WHEN ISA Match.loopBeginNonGreedy DO
-                        IF Debug THEN
-                            print("  removing counter for non greedy loop")
-                        END IF
-                        counters[ri].resize(counters[ri].size() - 1)
-                    WHEN ISA Match.loopEndNonGreedy DO
-                        LET lbi := ri + bt.loopEndNonGreedy
-                        IF Debug THEN
-                            print("  loopEndNG counter=\(counters[lbi][LAST])")
-                        END IF
-                        LET lb := regex[lbi]
-                        CHECK lb ISA Match.loopBeginNonGreedy ELSE
-                            ASSERT FALSE -- Internal error.
-                            EXIT PROCESS FAILURE
-                        END CHECK
-                        IF lb.loopBeginNonGreedy.maximum < 0 OR counters[lbi][LAST] < lb.loopBeginNonGreedy.maximum THEN
-                            IF Debug THEN
-                                print("  counter still less than maximum, trying another iteration")
-                            END IF
-                            ri := lbi + 1
-                            NEXT main
-                        END IF
-                        DEC counters[lbi][LAST]
-                        IF Debug THEN
-                            print("  counter exceeds maximum so backtracking again")
-                        END IF
-                    WHEN ISA Match.altBegin DO
-                        INC counters[ri][LAST]
-                        IF Debug THEN
-                            print("  alt counter=\(counters[ri][LAST])")
-                        END IF
-                        IF counters[ri][LAST] < bt.altBegin.alternatives.size() THEN
-                            IF Debug THEN
-                                print("  trying next alternative")
-                            END IF
-                            context.append(BacktrackInfo(
-                                instruction WITH ri,
-                                index WITH i
-                            ))
-                            ri := ri + bt.altBegin.alternatives[counters[ri][LAST]]
-                            NEXT main
-                        END IF
-                        IF Debug THEN
-                            print("  out of alternatives, backtracking again")
-                        END IF
-                        counters[ri].resize(counters[ri].size() - 1)
-                    WHEN OTHERS DO
-                        ASSERT FALSE -- Internal error
-                END CASE
-            END WHILE
-            IF Debug THEN
-                print("  failed")
+FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number): Boolean
+    LET o := regex[ri]
+    CASE o
+        WHEN ISA Opcode.any DO
+            CHECK ti < target.length() ELSE
+                RETURN FALSE
+            END CHECK
+            RETURN matchPart(regex, ri+1, target, ti+1)
+        WHEN ISA Opcode.char DO
+            CHECK ti < target.length() ELSE
+                RETURN FALSE
+            END CHECK
+            IF o.char <> target[ti] THEN
+                RETURN FALSE
             END IF
+            RETURN matchPart(regex, ri+1, target, ti+1)
+        WHEN ISA Opcode.begin DO
+            IF ti > 0 THEN
+                RETURN FALSE
+            END IF
+            RETURN matchPart(regex, ri+1, target, ti)
+        WHEN ISA Opcode.end DO
+            CHECK ti >= target.length() ELSE
+                RETURN FALSE
+            END CHECK
+            RETURN matchPart(regex, ri+1, target, ti)
+        WHEN ISA Opcode.match DO
+            RETURN TRUE
+        WHEN ISA Opcode.jump DO
+            FOREACH j IN o.jump DO
+                IF matchPart(regex, j, target, ti) THEN
+                    RETURN TRUE
+                END IF
+            END FOREACH
             RETURN FALSE
-        END IF
-    END WHILE
-    RETURN TRUE
+    END CASE
 END FUNCTION
 
 FUNCTION match(regex: Regex, target: String): Boolean
-    VAR i := 0
-    RETURN matchPart(regex, target, INOUT i)
+    RETURN matchPart(regex, 0, target, 0)
 END FUNCTION
 
 FUNCTION search(pattern: String, target: String): Boolean
     LET r := parse(pattern)
-    RETURN match(r, target)
-END FUNCTION
-
-FUNCTION searchRegex(r: Regex, target: String): Boolean
-    IF Debug THEN
-        print("searchRegex \(target)")
-    END IF
-    FOR i := 0 TO target.length() DO
-        VAR j := i
-        IF matchPart(r, target, INOUT j) THEN
-            RETURN TRUE
-        END IF
-    END FOR
-    RETURN FALSE
+    LET x := compile(r)
+    RETURN match(x, target)
 END FUNCTION
 
 FUNCTION test(pattern: String, cases: Array<Array<Object>>)
     print(pattern)
     LET r := parse(pattern)
-    IF r.size() = 0 THEN
-        print("failed pattern parse: \(pattern)")
-        EXIT PROCESS FAILURE
-    END IF
+    --IF r.size() = 0 THEN
+    --    print("failed pattern parse: \(pattern)")
+    --    EXIT PROCESS FAILURE
+    --END IF
+    LET x := compile(r)
+    FOREACH e IN x INDEX i DO
+        print("\(i) \(e)")
+    END FOREACH
     FOREACH t IN cases DO
         IF Debug THEN
             print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
         END IF
-        IF t[0] <> searchRegex(r, t[1]) THEN
+        IF t[0] <> match(x, t[1]) THEN
             print("failed")
             EXIT PROCESS FAILURE
         END IF
@@ -691,6 +507,13 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
 END FUNCTION
 
 BEGIN MAIN
+    LET e := parse("a?b")
+    print(e->dump())
+    LET r := compile(e)
+    FOREACH x IN r INDEX i DO
+        print("\(i) \(x)")
+    END FOREACH
+    /*
     TESTCASE parse("a") = [
         Match.literal("a"),
     ]
@@ -858,7 +681,7 @@ BEGIN MAIN
         Match.loopEndGreedy(-7),
         Match.literal("d"),
     ]
-    /*
+    */
     test("abc", [
         [TRUE, "abc"],
         [FALSE, "axc"],
@@ -976,7 +799,6 @@ BEGIN MAIN
         [TRUE, "abbc"],
         [TRUE, "abbbc"],
     ])
-    */
     test("^(b+?|a){1,2}?c", [
         [TRUE, "bbac"],
     ])
