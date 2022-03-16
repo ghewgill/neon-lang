@@ -1,13 +1,14 @@
---IMPORT base
---IMPORT string
+IMPORT base
+IMPORT string
 
 --EXPORT Match
+EXPORT Opcode
 EXPORT Regex
 
 --EXPORT dump
-EXPORT parse
+EXPORT prepare
 EXPORT search
---EXPORT searchRegex
+EXPORT searchRegex
 
 CONSTANT Debug := TRUE
 
@@ -81,6 +82,41 @@ END FUNCTION
 
 FUNCTION ExprLiteral.compile(self: VALID POINTER TO ExprLiteral, INOUT regex: Regex)
     regex.append(Opcode.char(self->literal))
+END FUNCTION
+
+TYPE ExprClass IS CLASS IMPLEMENTS Expr
+    chars: Array<String>
+    complement: Boolean
+END CLASS
+
+FUNCTION ExprClass.dump(self: VALID POINTER TO ExprClass): String
+    RETURN "[" & (IF self->complement THEN "^" ELSE "") & string.join(self->chars, "") & "]"
+END FUNCTION
+
+FUNCTION ExprClass.reduce(self: VALID POINTER TO ExprClass): POINTER TO Expr
+    VAR a: Array<VALID POINTER TO Expr> := []
+    IF self->complement THEN
+        FOR x := 0 TO 255 DO
+            LET c := string.fromCodePoint(x)
+            IF c NOT IN self->chars THEN
+                a.append(NEW ExprLiteral(literal WITH c))
+            END IF
+        END FOR
+    ELSE
+        FOREACH c IN self->chars DO
+            a.append(NEW ExprLiteral(literal WITH c))
+        END FOREACH
+    END IF
+    RETURN NEW ExprAlternative(alternatives WITH a)
+END FUNCTION
+
+FUNCTION ExprClass.size(self: VALID POINTER TO ExprClass): Number
+    ASSERT FALSE
+    RETURN 0
+END FUNCTION
+
+FUNCTION ExprClass.compile(self: VALID POINTER TO ExprClass, INOUT regex: Regex)
+    ASSERT FALSE
 END FUNCTION
 
 TYPE ExprAny IS CLASS IMPLEMENTS Expr
@@ -285,7 +321,7 @@ FUNCTION ExprAlternative.compile(self: VALID POINTER TO ExprAlternative, INOUT r
     END FOREACH
 END FUNCTION
 
-FUNCTION parsePart(pattern: String, INOUT i: Number): VALID POINTER TO Expr
+FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID POINTER TO Expr
     VAR a: POINTER TO ExprAlternative := NIL
     VAR r: VALID POINTER TO ExprSequence := NEW ExprSequence
     WHILE i < pattern.length() DO
@@ -296,7 +332,49 @@ FUNCTION parsePart(pattern: String, INOUT i: Number): VALID POINTER TO Expr
                 r->exprs.append(NEW ExprEnd)
             WHEN "." DO
                 r->exprs.append(NEW ExprAny)
+            WHEN "[" DO
+                INC i
+                LET start := i
+                VAR s: Array<String> := []
+                VAR complement := FALSE
+                WHILE i < pattern.length() DO
+                    IF pattern[i] = "]" AND s.size() > 0 THEN
+                        EXIT WHILE
+                    ELSIF pattern[i] = "^" AND i = start THEN
+                        complement := TRUE
+                    ELSIF pattern[i] = "-" AND s.size() > 0 THEN
+                        INC i
+                        FOR x := string.toCodePoint(s[LAST]) + 1 TO string.toCodePoint(pattern[i]) DO
+                            s.append(string.fromCodePoint(x))
+                        END FOR
+                    ELSIF pattern[i] = "\\" THEN
+                        INC i
+                        CASE pattern[i]
+                            WHEN "d" DO
+                                s.extend(["0","1","2","3","4","5","6","7","8","9"])
+                            WHEN OTHERS DO
+                                s.append(pattern[i])
+                        END CASE
+                    ELSE
+                        s.append(pattern[i])
+                    END IF
+                    INC i
+                END WHILE
+                ASSERT pattern[i] = "]"
+                IF ignoreCase AND string.lower(string.join(s, "")) <> string.upper(string.join(s, "")) THEN
+                    VAR t: Array<String> := []
+                    FOREACH c IN s DO
+                        t.append(string.lower(c))
+                        t.append(string.upper(c))
+                    END FOREACH
+                    s := t
+                END IF
+                r->exprs.append(NEW ExprClass(chars WITH s, complement WITH complement))
             WHEN "?" DO
+                CHECK r->exprs.size() > 0 ELSE
+                    ASSERT FALSE
+                    EXIT PROCESS FAILURE
+                END CHECK
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
                     r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST])
@@ -346,7 +424,18 @@ FUNCTION parsePart(pattern: String, INOUT i: Number): VALID POINTER TO Expr
                 r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST])
             WHEN "(" DO
                 INC i
-                LET e := parsePart(pattern, INOUT i)
+                VAR nonCapture := FALSE
+                IF pattern[i] = "?" THEN
+                    INC i
+                    CASE pattern[i]
+                        WHEN ":" DO
+                            INC i
+                            nonCapture := TRUE
+                        WHEN OTHERS DO
+                            ASSERT FALSE
+                    END CASE
+                END IF
+                LET e := parsePart(pattern, ignoreCase, INOUT i)
                 ASSERT pattern[i] = ")"
                 r->exprs.append(NEW ExprGroup(expr WITH e))
             WHEN ")" DO
@@ -358,52 +447,42 @@ FUNCTION parsePart(pattern: String, INOUT i: Number): VALID POINTER TO Expr
                     a := NEW ExprAlternative(alternatives WITH [r])
                 END IF
                 r := NEW ExprSequence
-            WHEN OTHERS DO
-                r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
-        END CASE
-        INC i
-    END WHILE
-    IF VALID a THEN
-        a->alternatives.append(r)
-        RETURN a
-    ELSE
-        RETURN r
-    END IF
-END FUNCTION
-
-FUNCTION parse(pattern: String): VALID POINTER TO Expr
-    VAR i := 0
-    RETURN parsePart(pattern, INOUT i)
-END FUNCTION
-
-/*
             WHEN "\\" DO
                 INC i
                 CASE pattern[i]
+                    WHEN "d" DO
+                        r->exprs.append(NEW ExprClass(chars WITH ["0","1","2","3","4","5","6","7","8","9"]))
+                    WHEN "s" DO
+                        r->exprs.append(NEW ExprClass(chars WITH ["\f","\n","\r","\t"," "]))
+                    WHEN "S" DO
+                        r->exprs.append(NEW ExprClass(chars WITH ["\f","\n","\r","\t"," "], complement WITH TRUE))
+                    WHEN "w" DO
+                        VAR j := 0
+                        r->exprs.append(parsePart("[A-Z0-9_]", TRUE, INOUT j))
                     WHEN "t" DO
-                        r.append(NEW MatchLiteral(match WITH "\t"))
+                        r->exprs.append(NEW ExprLiteral(literal WITH "\t"))
                     WHEN "n" DO
-                        r.append(NEW MatchLiteral(match WITH "\n"))
+                        r->exprs.append(NEW ExprLiteral(literal WITH "\n"))
                     WHEN "r" DO
-                        r.append(NEW MatchLiteral(match WITH "\r"))
+                        r->exprs.append(NEW ExprLiteral(literal WITH "\r"))
                     WHEN "f" DO
-                        r.append(NEW MatchLiteral(match WITH "\f"))
+                        r->exprs.append(NEW ExprLiteral(literal WITH "\f"))
                     WHEN "a" DO
-                        r.append(NEW MatchLiteral(match WITH "\u0007"))
+                        r->exprs.append(NEW ExprLiteral(literal WITH "\u0007"))
                     WHEN "e" DO
-                        r.append(NEW MatchLiteral(match WITH "\u001b"))
+                        r->exprs.append(NEW ExprLiteral(literal WITH "\u001b"))
                     WHEN "c" DO
                         INC i
-                        r.append(NEW MatchLiteral(match WITH string.fromCodePoint(string.toCodePoint(string.upper(pattern[i])) - 64)))
+                        r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(string.toCodePoint(string.upper(pattern[i])) - 64)))
                     WHEN "x" DO
-                        r.append(NEW MatchLiteral(match WITH string.fromCodePoint(base.fromHex(pattern[i TO i+1]))))
+                        r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))))
                         i := i + 2
                     WHEN "N" DO
                         ASSERT FALSE
                     WHEN "o" DO
                         ASSERT FALSE
-                    WHEN "0", "1" DO
-                        r.append(NEW MatchLiteral(match WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
+                    WHEN "0" DO
+                        r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
                         i := i + 2
                     WHEN "l" DO
                         ASSERT FALSE
@@ -418,9 +497,29 @@ END FUNCTION
                     WHEN "E" DO
                         ASSERT FALSE
                     WHEN OTHERS DO
-                        r.append(NEW MatchLiteral(match WITH pattern[i]))
+                        r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
                 END CASE
-*/
+            WHEN OTHERS DO
+                IF ignoreCase AND string.lower(pattern[i]) <> string.upper(pattern[i]) THEN
+                    r->exprs.append(NEW ExprClass(chars WITH [string.lower(pattern[i]), string.upper(pattern[i])]))
+                ELSE
+                    r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
+                END IF
+        END CASE
+        INC i
+    END WHILE
+    IF VALID a THEN
+        a->alternatives.append(r)
+        RETURN a
+    ELSE
+        RETURN r
+    END IF
+END FUNCTION
+
+FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): VALID POINTER TO Expr
+    VAR i := 0
+    RETURN parsePart(pattern, ignoreCase, INOUT i)
+END FUNCTION
 
 FUNCTION compile(expr: VALID POINTER TO Expr): Regex
     VAR r: Regex := []
@@ -478,28 +577,32 @@ FUNCTION match(regex: Regex, target: String): Boolean
     RETURN matchPart(regex, 0, target, 0)
 END FUNCTION
 
+FUNCTION prepare(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
+    LET e := parse(pattern, ignoreCase)
+    LET r := compile(e)
+    RETURN r
+END FUNCTION
+
 FUNCTION search(pattern: String, target: String): Boolean
-    LET r := parse(pattern)
-    LET x := compile(r)
-    RETURN match(x, target)
+    LET r := prepare(pattern)
+    RETURN match(r, target)
+END FUNCTION
+
+FUNCTION searchRegex(regex: Regex, target: String): Boolean
+    RETURN match(regex, target)
 END FUNCTION
 
 FUNCTION test(pattern: String, cases: Array<Array<Object>>)
     print(pattern)
-    LET r := parse(pattern)
-    --IF r.size() = 0 THEN
-    --    print("failed pattern parse: \(pattern)")
-    --    EXIT PROCESS FAILURE
-    --END IF
-    LET x := compile(r)
-    FOREACH e IN x INDEX i DO
+    LET r := prepare(pattern)
+    FOREACH e IN r INDEX i DO
         print("\(i) \(e)")
     END FOREACH
     FOREACH t IN cases DO
         IF Debug THEN
             print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
         END IF
-        IF t[0] <> match(x, t[1]) THEN
+        IF t[0] <> match(r, t[1]) THEN
             print("failed")
             EXIT PROCESS FAILURE
         END IF
@@ -801,6 +904,10 @@ BEGIN MAIN
     ])
     test("^(b+?|a){1,2}?c", [
         [TRUE, "bbac"],
+    ])
+    test("^$", [
+        [TRUE, ""],
+        [FALSE, "a"],
     ])
     print("passed")
 END MAIN
