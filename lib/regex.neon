@@ -1,7 +1,7 @@
 IMPORT base
 IMPORT string
 
---EXPORT Match
+EXPORT Result
 EXPORT Opcode
 EXPORT Regex
 
@@ -11,6 +11,11 @@ EXPORT search
 EXPORT searchRegex
 
 CONSTANT Debug := TRUE
+
+TYPE Result IS CHOICE
+    noMatch
+    match: Array<String>
+END CHOICE
 
 TYPE Opcode IS CHOICE
     any
@@ -535,45 +540,46 @@ FUNCTION compile(expr: VALID POINTER TO Expr): Regex
     RETURN r
 END FUNCTION
 
-FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number): Boolean
+FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number): Result
     LET o := regex[ri]
     CASE o
         WHEN ISA Opcode.any DO
             CHECK ti < target.length() ELSE
-                RETURN FALSE
+                RETURN Result.noMatch
             END CHECK
             RETURN matchPart(regex, ri+1, target, ti+1)
         WHEN ISA Opcode.char DO
             CHECK ti < target.length() ELSE
-                RETURN FALSE
+                RETURN Result.noMatch
             END CHECK
             IF o.char <> target[ti] THEN
-                RETURN FALSE
+                RETURN Result.noMatch
             END IF
             RETURN matchPart(regex, ri+1, target, ti+1)
         WHEN ISA Opcode.begin DO
             IF ti > 0 THEN
-                RETURN FALSE
+                RETURN Result.noMatch
             END IF
             RETURN matchPart(regex, ri+1, target, ti)
         WHEN ISA Opcode.end DO
             CHECK ti >= target.length() ELSE
-                RETURN FALSE
+                RETURN Result.noMatch
             END CHECK
             RETURN matchPart(regex, ri+1, target, ti)
         WHEN ISA Opcode.match DO
-            RETURN TRUE
+            RETURN Result.match([])
         WHEN ISA Opcode.jump DO
             FOREACH j IN o.jump DO
-                IF matchPart(regex, j, target, ti) THEN
-                    RETURN TRUE
+                LET r := matchPart(regex, j, target, ti)
+                IF r ISA Result.match THEN
+                    RETURN r
                 END IF
             END FOREACH
-            RETURN FALSE
+            RETURN Result.noMatch
     END CASE
 END FUNCTION
 
-FUNCTION match(regex: Regex, target: String): Boolean
+FUNCTION match(regex: Regex, target: String): Result
     RETURN matchPart(regex, 0, target, 0)
 END FUNCTION
 
@@ -583,29 +589,38 @@ FUNCTION prepare(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
     RETURN r
 END FUNCTION
 
-FUNCTION search(pattern: String, target: String): Boolean
+FUNCTION search(pattern: String, target: String): Result
     LET r := prepare(pattern)
     RETURN match(r, target)
 END FUNCTION
 
-FUNCTION searchRegex(regex: Regex, target: String): Boolean
+FUNCTION searchRegex(regex: Regex, target: String): Result
     RETURN match(regex, target)
 END FUNCTION
 
 FUNCTION test(pattern: String, cases: Array<Array<Object>>)
     print(pattern)
-    LET r := prepare(pattern)
-    FOREACH e IN r INDEX i DO
+    LET re := prepare(pattern)
+    FOREACH e IN re INDEX i DO
         print("\(i) \(e)")
     END FOREACH
     FOREACH t IN cases DO
         IF Debug THEN
             print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
         END IF
-        IF t[0] <> match(r, t[1]) THEN
-            print("failed")
-            EXIT PROCESS FAILURE
-        END IF
+        LET r := match(re, t[1])
+        CASE r
+            WHEN ISA Result.noMatch DO
+                CHECK NOT t[0] ELSE
+                    print("failed")
+                    EXIT PROCESS FAILURE
+                END CHECK
+            WHEN ISA Result.match DO
+                CHECK t[0] ELSE
+                    print("failed")
+                    EXIT PROCESS FAILURE
+                END CHECK
+        END CASE
     END FOREACH
 END FUNCTION
 
@@ -739,6 +754,9 @@ BEGIN MAIN
     test("^$", [
         [TRUE, ""],
         [FALSE, "a"],
+    ])
+    test("ab(cd)", [
+        [TRUE, "abcd", ["abcd", "cd"]],
     ])
     print("passed")
 END MAIN
