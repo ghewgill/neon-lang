@@ -347,9 +347,14 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID
                         EXIT WHILE
                     ELSIF pattern[i] = "^" AND i = start THEN
                         complement := TRUE
-                    ELSIF pattern[i] = "-" AND s.size() > 0 THEN
+                    ELSIF pattern[i] = "-" AND pattern[i+1] <> "]" AND s.size() > 0 THEN
                         INC i
-                        FOR x := string.toCodePoint(s[LAST]) + 1 TO string.toCodePoint(pattern[i]) DO
+                        VAR c := pattern[i]
+                        IF c = "\\" AND pattern[i+1] = "x" THEN
+                            c := string.fromCodePoint(base.fromHex(pattern[i+2 TO i+3]))
+                            i := i + 2
+                        END IF
+                        FOR x := string.toCodePoint(s[LAST]) + 1 TO string.toCodePoint(c) DO
                             s.append(string.fromCodePoint(x))
                         END FOR
                     ELSIF pattern[i] = "\\" THEN
@@ -357,6 +362,9 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID
                         CASE pattern[i]
                             WHEN "d" DO
                                 s.extend(["0","1","2","3","4","5","6","7","8","9"])
+                            WHEN "x" DO
+                                s.append(string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2])))
+                                i := i + 2
                             WHEN OTHERS DO
                                 s.append(pattern[i])
                         END CASE

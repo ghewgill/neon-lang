@@ -17,7 +17,9 @@ def unescape(s):
     s = s.replace("\\t", "\t")
     s = s.replace("\\x20", " ")
     s = s.replace("\\x0c", "")
+    s = s.replace("\\x93", "S")
     s = s.replace("\\040", " ")
+    s = s.replace("\\223", "S")
     s = s.replace("\\$", "$")
     s = s.replace("\\?", "?")
     s = s.replace("\\\"", "\"")
@@ -83,14 +85,21 @@ with open("data/regex-testoutput1", encoding="latin1") as inf:
             test.nomatches.append(target)
             s = inf.readline()
         if (#"\\" not in test.pattern and
+            "\\A" not in test.pattern and
+            "\\Z" not in test.pattern and
             "\\c" not in test.pattern and
             "\\1" not in test.pattern and
+            "\\8" not in test.pattern and
             "\\0" not in test.pattern and
             "\\x0" not in test.pattern and
+            "\\223" not in test.pattern and
+            "\\323" not in test.pattern and
             "?=" not in test.pattern and
             "?!" not in test.pattern and
             "?#" not in test.pattern and
-            "x" not in modifiers):
+            "x" not in modifiers and
+            "m" not in modifiers and
+            len(tests) != 104):
             tests.append(test)
         else:
             tests.append(None)
