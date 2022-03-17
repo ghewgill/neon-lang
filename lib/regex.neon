@@ -22,6 +22,7 @@ TYPE Opcode IS CHOICE
     char: String
     begin
     end
+    save: Number
     match
     jump: Array<Number>
 END CHOICE
@@ -152,7 +153,8 @@ FUNCTION ExprOpt.dump(self: VALID POINTER TO ExprOpt): String
 END FUNCTION
 
 FUNCTION ExprOpt.reduce(self: VALID POINTER TO ExprOpt): POINTER TO Expr
-    RETURN NEW ExprOpt(expr WITH self->expr->reduce())
+    self->expr := self->expr->reduce()
+    RETURN self
 END FUNCTION
 
 FUNCTION ExprOpt.size(self: VALID POINTER TO ExprOpt): Number
@@ -173,7 +175,8 @@ FUNCTION ExprStar.dump(self: VALID POINTER TO ExprStar): String
 END FUNCTION
 
 FUNCTION ExprStar.reduce(self: VALID POINTER TO ExprStar): POINTER TO Expr
-    RETURN NEW ExprStar(expr WITH self->expr->reduce())
+    self->expr := self->expr->reduce()
+    RETURN self
 END FUNCTION
 
 FUNCTION ExprStar.size(self: VALID POINTER TO ExprStar): Number
@@ -261,6 +264,7 @@ FUNCTION ExprEnd.compile(self: VALID POINTER TO ExprEnd, INOUT regex: Regex)
 END FUNCTION
 
 TYPE ExprGroup IS CLASS IMPLEMENTS Expr
+    index: Number
     expr: POINTER TO Expr
 END CLASS
 
@@ -269,15 +273,18 @@ FUNCTION ExprGroup.dump(self: VALID POINTER TO ExprGroup): String
 END FUNCTION
 
 FUNCTION ExprGroup.reduce(self: VALID POINTER TO ExprGroup): POINTER TO Expr
-    RETURN NEW ExprGroup(expr WITH self->expr->reduce())
+    self->expr := self->expr->reduce()
+    RETURN self
 END FUNCTION
 
 FUNCTION ExprGroup.size(self: VALID POINTER TO ExprGroup): Number
-    RETURN self->expr->size()
+    RETURN 1 + self->expr->size() + 1
 END FUNCTION
 
 FUNCTION ExprGroup.compile(self: VALID POINTER TO ExprGroup, INOUT regex: Regex)
+    regex.append(Opcode.save(2*self->index))
     self->expr->compile(INOUT regex)
+    regex.append(Opcode.save(2*self->index+1))
 END FUNCTION
 
 TYPE ExprAlternative IS CLASS IMPLEMENTS Expr
@@ -296,11 +303,10 @@ FUNCTION ExprAlternative.dump(self: VALID POINTER TO ExprAlternative): String
 END FUNCTION
 
 FUNCTION ExprAlternative.reduce(self: VALID POINTER TO ExprAlternative): POINTER TO Expr
-    VAR e: Array<POINTER TO Expr> := []
-    FOREACH a IN self->alternatives DO
-        e.append(a->reduce())
-    END FOREACH
-    RETURN NEW ExprAlternative(alternatives WITH e)
+    FOR i := 0 TO self->alternatives.size()-1 DO
+        self->alternatives[i] := self->alternatives[i]->reduce()
+    END FOR
+    RETURN self
 END FUNCTION
 
 FUNCTION ExprAlternative.size(self: VALID POINTER TO ExprAlternative): Number
@@ -329,6 +335,7 @@ END FUNCTION
 FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID POINTER TO Expr
     VAR a: POINTER TO ExprAlternative := NIL
     VAR r: VALID POINTER TO ExprSequence := NEW ExprSequence
+    VAR groupIndex := 0
     WHILE i < pattern.length() DO
         CASE pattern[i]
             WHEN "^" DO
@@ -437,6 +444,8 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID
                 r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST])
             WHEN "(" DO
                 INC i
+                INC groupIndex
+                LET gi := groupIndex
                 VAR nonCapture := FALSE
                 IF pattern[i] = "?" THEN
                     INC i
@@ -450,7 +459,7 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID
                 END IF
                 LET e := parsePart(pattern, ignoreCase, INOUT i)
                 ASSERT pattern[i] = ")"
-                r->exprs.append(NEW ExprGroup(expr WITH e))
+                r->exprs.append(NEW ExprGroup(index WITH gi, expr WITH e))
             WHEN ")" DO
                 EXIT WHILE
             WHEN "|" DO
@@ -537,6 +546,7 @@ END FUNCTION
 FUNCTION compile(expr: VALID POINTER TO Expr): Regex
     VAR r: Regex := []
     VAR e := expr->reduce()
+    e := NEW ExprGroup(index WITH 0, expr WITH e)
     -- TODO: This should just be a literal array expression,
     --       but there is a segfault in the compiler for some reason.
     VAR a: Array<VALID POINTER TO Expr> := []
@@ -548,14 +558,14 @@ FUNCTION compile(expr: VALID POINTER TO Expr): Regex
     RETURN r
 END FUNCTION
 
-FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number): Result
+FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number, INOUT saved: Array<Number>): Result
     LET o := regex[ri]
     CASE o
         WHEN ISA Opcode.any DO
             CHECK ti < target.length() ELSE
                 RETURN Result.noMatch
             END CHECK
-            RETURN matchPart(regex, ri+1, target, ti+1)
+            RETURN matchPart(regex, ri+1, target, ti+1, INOUT saved)
         WHEN ISA Opcode.char DO
             CHECK ti < target.length() ELSE
                 RETURN Result.noMatch
@@ -563,22 +573,34 @@ FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number): Result
             IF o.char <> target[ti] THEN
                 RETURN Result.noMatch
             END IF
-            RETURN matchPart(regex, ri+1, target, ti+1)
+            RETURN matchPart(regex, ri+1, target, ti+1, INOUT saved)
         WHEN ISA Opcode.begin DO
             IF ti > 0 THEN
                 RETURN Result.noMatch
             END IF
-            RETURN matchPart(regex, ri+1, target, ti)
+            RETURN matchPart(regex, ri+1, target, ti, INOUT saved)
         WHEN ISA Opcode.end DO
             CHECK ti >= target.length() ELSE
                 RETURN Result.noMatch
             END CHECK
-            RETURN matchPart(regex, ri+1, target, ti)
+            RETURN matchPart(regex, ri+1, target, ti, INOUT saved)
+        WHEN ISA Opcode.save DO
+            IF o.save >= saved.size() THEN
+                saved.resize((o.save + 2) INTDIV 2 * 2)
+            END IF
+            LET prev := saved[o.save]
+            saved[o.save] := ti
+            LET r := matchPart(regex, ri+1, target, ti, INOUT saved)
+            IF r ISA Result.match THEN
+                RETURN r
+            END IF
+            saved[o.save] := prev
+            RETURN Result.noMatch
         WHEN ISA Opcode.match DO
             RETURN Result.match([])
         WHEN ISA Opcode.jump DO
             FOREACH j IN o.jump DO
-                LET r := matchPart(regex, j, target, ti)
+                LET r := matchPart(regex, j, target, ti, INOUT saved)
                 IF r ISA Result.match THEN
                     RETURN r
                 END IF
@@ -588,7 +610,15 @@ FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number): Result
 END FUNCTION
 
 FUNCTION match(regex: Regex, target: String): Result
-    RETURN matchPart(regex, 0, target, 0)
+    VAR saved: Array<Number> := []
+    LET r := matchPart(regex, 0, target, 0, INOUT saved)
+    IF r ISA Result.match THEN
+        ASSERT saved.size() MOD 2 = 0
+        FOR i := 0 TO saved.size()-1 STEP 2 DO
+            r.match[i/2] := target[saved[i] TO saved[i+1]-1]
+        END FOR
+    END IF
+    RETURN r
 END FUNCTION
 
 FUNCTION prepare(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
@@ -607,7 +637,7 @@ FUNCTION searchRegex(regex: Regex, target: String): Result
 END FUNCTION
 
 FUNCTION test(pattern: String, cases: Array<Array<Object>>)
-    print(pattern)
+    print("-- test: \(pattern)")
     LET re := prepare(pattern)
     FOREACH e IN re INDEX i DO
         print("\(i) \(e)")
@@ -628,6 +658,10 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
                     print("failed")
                     EXIT PROCESS FAILURE
                 END CHECK
+                TESTCASE r.match.size() = t[2].size()
+                FOREACH m IN r.match INDEX i DO
+                    TESTCASE m = t[2][i]
+                END FOREACH
         END CASE
     END FOREACH
 END FUNCTION
@@ -640,73 +674,73 @@ BEGIN MAIN
         print("\(i) \(x)")
     END FOREACH
     test("abc", [
-        [TRUE, "abc"],
+        [TRUE, "abc", ["abc"]],
         [FALSE, "axc"],
     ])
     test("a.c", [
-        [TRUE, "abc"],
+        [TRUE, "abc", ["abc"]],
         [FALSE, "acb"],
     ])
     test("ab?c", [
-        [TRUE, "ac"],
-        [TRUE, "abc"],
+        [TRUE, "ac", ["ac"]],
+        [TRUE, "abc", ["abc"]],
         [FALSE, "abbc"],
     ])
     test("ab*c", [
-        [TRUE, "ac"],
-        [TRUE, "abc"],
-        [TRUE, "abbc"],
+        [TRUE, "ac", ["ac"]],
+        [TRUE, "abc", ["abc"]],
+        [TRUE, "abbc", ["abbc"]],
     ])
     test("ab+c", [
         [FALSE, "ac"],
-        [TRUE, "abc"],
-        [TRUE, "abbc"],
+        [TRUE, "abc", ["abc"]],
+        [TRUE, "abbc", ["abbc"]],
     ])
     test("ab{2,3}c", [
         [FALSE, "ac"],
         [FALSE, "abc"],
-        [TRUE, "abbc"],
-        [TRUE, "abbbc"],
+        [TRUE, "abbc", ["abbc"]],
+        [TRUE, "abbbc", ["abbbc"]],
         [FALSE, "abbbbc"],
     ])
     test("^abc", [
-        [TRUE, "abc"],
+        [TRUE, "abc", ["abc"]],
         [FALSE, "xabc"],
     ])
     test("a(b)c", [
-        [TRUE, "abc"],
+        [TRUE, "abc", ["abc", "b"]],
     ])
     test("a(b){1,2}bc", [
         [FALSE, "ac"],
         [FALSE, "abc"],
-        [TRUE, "abbc"],
-        [TRUE, "abbbc"],
+        [TRUE, "abbc", ["abbc", "b"]],
+        [TRUE, "abbbc", ["abbbc", "b"]],
         [FALSE, "abbbbc"],
     ])
     test("a(b{1,2})bc", [
         [FALSE, "ac"],
         [FALSE, "abc"],
-        [TRUE, "abbc"],
-        [TRUE, "abbbc"],
+        [TRUE, "abbc", ["abbc", "b"]],
+        [TRUE, "abbbc", ["abbbc", "bb"]],
         [FALSE, "abbbbc"],
     ])
     test("a|bc", [
-        [TRUE, "a"],
-        [TRUE, "bc"],
-        [TRUE, "abc"],
-        [TRUE, "bbc"],
+        [TRUE, "a", ["a"]],
+        [TRUE, "bc", ["bc"]],
+        [TRUE, "abc", ["a"]],
+        [TRUE, "bbc", ["bc"]],
         [FALSE, "b"],
     ])
     test("a|bc|def", [
-        [TRUE, "a"],
-        [TRUE, "bc"],
-        [TRUE, "def"],
+        [TRUE, "a", ["a"]],
+        [TRUE, "bc", ["bc"]],
+        [TRUE, "def", ["def"]],
     ])
     test("a(bc)*d", [
-        [TRUE, "ad"],
+        [TRUE, "ad", ["ad"]],
         [FALSE, "abc"],
-        [TRUE, "abcd"],
-        [TRUE, "abcbcd"],
+        [TRUE, "abcd", ["abcd"]],
+        [TRUE, "abcbcd", ["abcbcd"]],
     ])
     test("a(b|c)*d", [
         [TRUE, "ad"],
