@@ -113,11 +113,14 @@ with open("t/regex-test.neon", "w") as outf:
             continue
         print("FUNCTION test{}()".format(i), file=outf)
         print("    print(\"test{} \" & {})".format(i, literal(t.pattern)), file=outf)
-        print("    LET r := regex.prepare({}{})".format(literal(t.pattern), ", ignoreCase WITH TRUE" if "i" in t.modifiers else ""), file=outf)
+        print("    LET re := regex.prepare({}{})".format(literal(t.pattern), ", ignoreCase WITH TRUE" if "i" in t.modifiers else ""), file=outf)
+        print("    VAR r: regex.Result", file=outf)
         for m in t.matches:
-            print("    TESTCASE regex.searchRegex(r, {})".format(literal(m[0])), file=outf)
+            print("    r := regex.searchRegex(re, {})".format(literal(m[0])), file=outf)
+            print("    TESTCASE r ISA regex.Result.match", file=outf)
         for m in t.nomatches:
-            print("    TESTCASE NOT regex.searchRegex(r, {})".format(literal(m)), file=outf)
+            print("    r := regex.searchRegex(re, {})".format(literal(m)), file=outf)
+            print("    TESTCASE r ISA regex.Result.noMatch", file=outf)
         print("END FUNCTION", file=outf)
     for i, t in enumerate(tests):
         if t is None:
