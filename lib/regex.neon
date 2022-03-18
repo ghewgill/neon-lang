@@ -11,7 +11,7 @@ EXPORT prepare
 EXPORT search
 EXPORT searchRegex
 
-CONSTANT Debug := TRUE
+CONSTANT Debug := FALSE
 
 TYPE MatchInfo IS RECORD
     first: Number
@@ -700,11 +700,15 @@ FUNCTION searchRegex(regex: Regex, target: String): Result
 END FUNCTION
 
 FUNCTION test(pattern: String, cases: Array<Array<Object>>)
-    print("-- test: \(pattern)")
+    IF Debug THEN
+        print("-- test: \(pattern)")
+    END IF
     LET re := prepare(pattern)
-    FOREACH e IN re INDEX i DO
-        print("\(i) \(e)")
-    END FOREACH
+    IF Debug THEN
+        FOREACH e IN re INDEX i DO
+            print("\(i) \(e)")
+        END FOREACH
+    END IF
     FOREACH t IN cases DO
         IF Debug THEN
             print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
@@ -734,12 +738,14 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
 END FUNCTION
 
 BEGIN MAIN
+    /*
     LET e := parse("a?b")
     print(e->dump())
     LET r := compile(e)
     FOREACH x IN r INDEX i DO
         print("\(i) \(x)")
     END FOREACH
+    */
     test("abc", [
         [TRUE, "abc", ["abc"]],
         [FALSE, "axc"],
