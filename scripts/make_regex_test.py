@@ -10,6 +10,17 @@ def literal(s):
     else:
         return "\"{}\"".format(s)
 
+def unescapex(s):
+    s = s.replace("\\x09", "\x09")
+    s = s.replace("\\x0a", "\x0a")
+    s = s.replace("\\x0c", "\x0c")
+    s = s.replace("\\x0d", "\x0d")
+    s = s.replace("\\x20", " ")
+    s = s.replace("\\x93", "S")
+    s = s.replace("\\x81", "\x81")
+    s = s.replace("\\xff", "\xff")
+    return s
+
 def unescape(s):
     s = s.replace("\\a", "\a")
     s = s.replace("\\e", "\x1b")
@@ -78,7 +89,7 @@ with open("data/regex-testoutput1", encoding="latin1") as inf:
                 if not s.strip() or s[2] != ":":
                     break
                 assert int(s[:2]) == len(match)
-                match.append(unescape(s[4:].rstrip("\n")))
+                match.append(unescapex(s[4:].rstrip("\n")))
             #print("  match", match)
             test.matches.append((target, match))
         while True:
@@ -105,11 +116,12 @@ with open("data/regex-testoutput1", encoding="latin1") as inf:
             "?!" not in test.pattern and
             "?#" not in test.pattern and
             "?s" not in test.pattern and
+            "?m" not in test.pattern and
             "(?)" not in test.pattern and
             "otherword" not in test.pattern and
             "x" not in modifiers and
             "m" not in modifiers and
-            len(tests) != 104):
+            len(tests) not in [104, 167, 168, 172, 176, 180, 186]):
             tests.append(test)
         else:
             tests.append(None)

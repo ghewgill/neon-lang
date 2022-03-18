@@ -437,8 +437,8 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                                 WHEN "x" DO
                                     c := string.fromCodePoint(base.fromHex(pattern[i+2 TO i+3]))
                                     i := i + 2
-                                WHEN "]" DO
-                                    c := "]"
+                                WHEN OTHERS DO
+                                    c := pattern[i+1]
                                     INC i
                             END CASE
                         END IF
@@ -900,6 +900,10 @@ BEGIN MAIN
     ])
     test("ab(cd)", [
         [TRUE, "abcd", ["abcd", "cd"]],
+    ])
+    test(@@""([^\\"]+|\\.)*""@@, [
+        [TRUE, "the \"quick\" brown fox", ["\"quick\"", "quick"]],
+        [TRUE, "\"the \\\"quick\\\" brown fox\"", ["\"the \\\"quick\\\" brown fox\"", " brown fox"]],
     ])
     print("passed")
 END MAIN
