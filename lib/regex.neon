@@ -1,6 +1,7 @@
 IMPORT base
 IMPORT string
 
+EXPORT Match
 EXPORT Result
 EXPORT Opcode
 EXPORT Regex
@@ -12,9 +13,20 @@ EXPORT searchRegex
 
 CONSTANT Debug := TRUE
 
+TYPE MatchInfo IS RECORD
+    first: Number
+    last: Number
+    string: String
+END RECORD
+
+TYPE Match IS CHOICE
+    notFound
+    found: MatchInfo
+END CHOICE
+
 TYPE Result IS CHOICE
     noMatch
-    match: Array<String>
+    match: Array<Match>
 END CHOICE
 
 TYPE Opcode IS CHOICE
@@ -146,10 +158,11 @@ END FUNCTION
 
 TYPE ExprOpt IS CLASS IMPLEMENTS Expr
     expr: VALID POINTER TO Expr
+    greedy: Boolean
 END CLASS
 
 FUNCTION ExprOpt.dump(self: VALID POINTER TO ExprOpt): String
-    RETURN self->expr->dump() & "?"
+    RETURN self->expr->dump() & "?" & (IF self->greedy THEN "" ELSE "?")
 END FUNCTION
 
 FUNCTION ExprOpt.reduce(self: VALID POINTER TO ExprOpt): POINTER TO Expr
@@ -162,16 +175,21 @@ FUNCTION ExprOpt.size(self: VALID POINTER TO ExprOpt): Number
 END FUNCTION
 
 FUNCTION ExprOpt.compile(self: VALID POINTER TO ExprOpt, INOUT regex: Regex)
-    regex.append(Opcode.jump([regex.size() + 1, regex.size() + 1 + self->expr->size()]))
+    IF self->greedy THEN
+        regex.append(Opcode.jump([regex.size() + 1, regex.size() + 1 + self->expr->size()]))
+    ELSE
+        regex.append(Opcode.jump([regex.size() + 1 + self->expr->size(), regex.size() + 1]))
+    END IF
     self->expr->compile(INOUT regex)
 END FUNCTION
 
 TYPE ExprStar IS CLASS IMPLEMENTS Expr
     expr: VALID POINTER TO Expr
+    greedy: Boolean
 END CLASS
 
 FUNCTION ExprStar.dump(self: VALID POINTER TO ExprStar): String
-    RETURN "\(self->expr->dump())*"
+    RETURN "\(self->expr->dump())*" & (IF self->greedy THEN "" ELSE "?")
 END FUNCTION
 
 FUNCTION ExprStar.reduce(self: VALID POINTER TO ExprStar): POINTER TO Expr
@@ -185,7 +203,11 @@ END FUNCTION
 
 FUNCTION ExprStar.compile(self: VALID POINTER TO ExprStar, INOUT regex: Regex)
     LET top := regex.size()
-    regex.append(Opcode.jump([regex.size() + 1, regex.size() + 1 + self->expr->size() + 1]))
+    IF self->greedy THEN
+        regex.append(Opcode.jump([regex.size() + 1, regex.size() + 1 + self->expr->size() + 1]))
+    ELSE
+        regex.append(Opcode.jump([regex.size() + 1 + self->expr->size() + 1, regex.size() + 1]))
+    END IF
     self->expr->compile(INOUT regex)
     regex.append(Opcode.jump([top]))
 END FUNCTION
@@ -194,10 +216,11 @@ TYPE ExprRepeat IS CLASS IMPLEMENTS Expr
     minimum: Number
     maximum: Number
     expr: VALID POINTER TO Expr
+    greedy: Boolean
 END CLASS
 
 FUNCTION ExprRepeat.dump(self: VALID POINTER TO ExprRepeat): String
-    RETURN "\(self->expr->dump()){\(self->minimum),\(self->maximum)}"
+    RETURN "\(self->expr->dump()){\(self->minimum),\(self->maximum)}" & (IF self->greedy THEN "" ELSE "?")
 END FUNCTION
 
 FUNCTION ExprRepeat.reduce(self: VALID POINTER TO ExprRepeat): POINTER TO Expr
@@ -207,10 +230,10 @@ FUNCTION ExprRepeat.reduce(self: VALID POINTER TO ExprRepeat): POINTER TO Expr
         r->exprs.append(rexpr)
     END FOR
     IF self->maximum < 0 THEN
-        r->exprs.append(NEW ExprStar(expr WITH rexpr))
+        r->exprs.append(NEW ExprStar(expr WITH rexpr, greedy WITH self->greedy))
     ELSE
         FOR i := self->minimum + 1 TO self->maximum DO
-            r->exprs.append(NEW ExprOpt(expr WITH rexpr))
+            r->exprs.append(NEW ExprOpt(expr WITH rexpr, greedy WITH self->greedy))
         END FOR
     END IF
     RETURN r
@@ -265,6 +288,7 @@ END FUNCTION
 
 TYPE ExprGroup IS CLASS IMPLEMENTS Expr
     index: Number
+    capture: Boolean
     expr: POINTER TO Expr
 END CLASS
 
@@ -278,13 +302,21 @@ FUNCTION ExprGroup.reduce(self: VALID POINTER TO ExprGroup): POINTER TO Expr
 END FUNCTION
 
 FUNCTION ExprGroup.size(self: VALID POINTER TO ExprGroup): Number
-    RETURN 1 + self->expr->size() + 1
+    IF self->capture THEN
+        RETURN 1 + self->expr->size() + 1
+    ELSE
+        RETURN self->expr->size()
+    END IF
 END FUNCTION
 
 FUNCTION ExprGroup.compile(self: VALID POINTER TO ExprGroup, INOUT regex: Regex)
-    regex.append(Opcode.save(2*self->index))
-    self->expr->compile(INOUT regex)
-    regex.append(Opcode.save(2*self->index+1))
+    IF self->capture THEN
+        regex.append(Opcode.save(2*self->index))
+        self->expr->compile(INOUT regex)
+        regex.append(Opcode.save(2*self->index+1))
+    ELSE
+        self->expr->compile(INOUT regex)
+    END IF
 END FUNCTION
 
 TYPE ExprAlternative IS CLASS IMPLEMENTS Expr
@@ -332,10 +364,9 @@ FUNCTION ExprAlternative.compile(self: VALID POINTER TO ExprAlternative, INOUT r
     END FOREACH
 END FUNCTION
 
-FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID POINTER TO Expr
+FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT groupIndex: Number): VALID POINTER TO Expr
     VAR a: POINTER TO ExprAlternative := NIL
     VAR r: VALID POINTER TO ExprSequence := NEW ExprSequence
-    VAR groupIndex := 0
     WHILE i < pattern.length() DO
         CASE pattern[i]
             WHEN "^" DO
@@ -357,9 +388,15 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID
                     ELSIF pattern[i] = "-" AND pattern[i+1] <> "]" AND s.size() > 0 THEN
                         INC i
                         VAR c := pattern[i]
-                        IF c = "\\" AND pattern[i+1] = "x" THEN
-                            c := string.fromCodePoint(base.fromHex(pattern[i+2 TO i+3]))
-                            i := i + 2
+                        IF c = "\\" THEN
+                            CASE pattern[i+1]
+                                WHEN "x" DO
+                                    c := string.fromCodePoint(base.fromHex(pattern[i+2 TO i+3]))
+                                    i := i + 2
+                                WHEN "]" DO
+                                    c := "]"
+                                    INC i
+                            END CASE
                         END IF
                         FOR x := string.toCodePoint(s[LAST]) + 1 TO string.toCodePoint(c) DO
                             s.append(string.fromCodePoint(x))
@@ -397,23 +434,23 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID
                 END CHECK
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
-                    r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST])
+                    r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST], greedy WITH FALSE)
                 ELSE
-                    r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST])
+                    r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST], greedy WITH TRUE)
                 END IF
             WHEN "*" DO
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
-                    r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST])
+                    r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST], greedy WITH FALSE)
                 ELSE
-                    r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST])
+                    r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST], greedy WITH TRUE)
                 END IF
             WHEN "+" DO
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
-                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST])
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST], greedy WITH FALSE)
                 ELSE
-                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST])
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST], greedy WITH TRUE)
                 END IF
             WHEN "{" DO
                 VAR min := 0
@@ -441,25 +478,33 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID
                     max := min
                 END IF
                 ASSERT pattern[i] = "}"
-                r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST])
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST], greedy WITH FALSE)
+                ELSE
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST], greedy WITH TRUE)
+                END IF
             WHEN "(" DO
                 INC i
-                INC groupIndex
-                LET gi := groupIndex
-                VAR nonCapture := FALSE
+                VAR capture := TRUE
                 IF pattern[i] = "?" THEN
                     INC i
                     CASE pattern[i]
                         WHEN ":" DO
                             INC i
-                            nonCapture := TRUE
+                            capture := FALSE
                         WHEN OTHERS DO
                             ASSERT FALSE
                     END CASE
                 END IF
-                LET e := parsePart(pattern, ignoreCase, INOUT i)
+                VAR gi := 0
+                IF capture THEN
+                    INC groupIndex
+                    gi := groupIndex
+                END IF
+                LET e := parsePart(pattern, ignoreCase, INOUT i, INOUT groupIndex)
                 ASSERT pattern[i] = ")"
-                r->exprs.append(NEW ExprGroup(index WITH gi, expr WITH e))
+                r->exprs.append(NEW ExprGroup(index WITH gi, capture WITH capture, expr WITH e))
             WHEN ")" DO
                 EXIT WHILE
             WHEN "|" DO
@@ -480,7 +525,7 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number): VALID
                         r->exprs.append(NEW ExprClass(chars WITH ["\f","\n","\r","\t"," "], complement WITH TRUE))
                     WHEN "w" DO
                         VAR j := 0
-                        r->exprs.append(parsePart("[A-Z0-9_]", TRUE, INOUT j))
+                        r->exprs.append(parsePart("[A-Z0-9_]", TRUE, INOUT j, INOUT groupIndex))
                     WHEN "t" DO
                         r->exprs.append(NEW ExprLiteral(literal WITH "\t"))
                     WHEN "n" DO
@@ -540,17 +585,18 @@ END FUNCTION
 
 FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): VALID POINTER TO Expr
     VAR i := 0
-    RETURN parsePart(pattern, ignoreCase, INOUT i)
+    VAR groupIndex := 0
+    RETURN parsePart(pattern, ignoreCase, INOUT i, INOUT groupIndex)
 END FUNCTION
 
 FUNCTION compile(expr: VALID POINTER TO Expr): Regex
     VAR r: Regex := []
     VAR e := expr->reduce()
-    e := NEW ExprGroup(index WITH 0, expr WITH e)
+    e := NEW ExprGroup(index WITH 0, capture WITH TRUE, expr WITH e)
     -- TODO: This should just be a literal array expression,
     --       but there is a segfault in the compiler for some reason.
     VAR a: Array<VALID POINTER TO Expr> := []
-    a.append(NEW ExprStar(expr WITH NEW ExprAny))
+    a.append(NEW ExprStar(expr WITH NEW ExprAny, greedy WITH FALSE))
     a.append(e)
     e := NEW ExprSequence(exprs WITH a)
     e->compile(INOUT r)
@@ -585,9 +631,6 @@ FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number, INOUT s
             END CHECK
             RETURN matchPart(regex, ri+1, target, ti, INOUT saved)
         WHEN ISA Opcode.save DO
-            IF o.save >= saved.size() THEN
-                saved.resize((o.save + 2) INTDIV 2 * 2)
-            END IF
             LET prev := saved[o.save]
             saved[o.save] := ti
             LET r := matchPart(regex, ri+1, target, ti, INOUT saved)
@@ -611,11 +654,31 @@ END FUNCTION
 
 FUNCTION match(regex: Regex, target: String): Result
     VAR saved: Array<Number> := []
+    VAR max := 0
+    FOREACH o IN regex DO
+        IF o ISA Opcode.save THEN
+            IF o.save > max THEN
+                max := o.save
+            END IF
+        END IF
+    END FOREACH
+    WHILE max >= 0 DO
+        saved.append(-1)
+        DEC max
+    END WHILE
     LET r := matchPart(regex, 0, target, 0, INOUT saved)
     IF r ISA Result.match THEN
         ASSERT saved.size() MOD 2 = 0
         FOR i := 0 TO saved.size()-1 STEP 2 DO
-            r.match[i/2] := target[saved[i] TO saved[i+1]-1]
+            IF saved[i] >= 0 THEN
+                r.match[i/2] := Match.found(MatchInfo(
+                    first WITH saved[i],
+                    last WITH saved[i+1]-1,
+                    string WITH target[saved[i] TO saved[i+1]-1]
+                ))
+            ELSE
+                r.match[i/2] := Match.notFound
+            END IF
         END FOR
     END IF
     RETURN r
@@ -660,7 +723,11 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
                 END CHECK
                 TESTCASE r.match.size() = t[2].size()
                 FOREACH m IN r.match INDEX i DO
-                    TESTCASE m = t[2][i]
+                    IF m ISA Match.found THEN
+                        TESTCASE m.found.string = t[2][i]
+                    ELSE
+                        TESTCASE t[2][i] = ""
+                    END IF
                 END FOREACH
         END CASE
     END FOREACH
@@ -737,64 +804,64 @@ BEGIN MAIN
         [TRUE, "def", ["def"]],
     ])
     test("a(bc)*d", [
-        [TRUE, "ad", ["ad"]],
+        [TRUE, "ad", ["ad", ""]],
         [FALSE, "abc"],
-        [TRUE, "abcd", ["abcd"]],
-        [TRUE, "abcbcd", ["abcbcd"]],
+        [TRUE, "abcd", ["abcd", "bc"]],
+        [TRUE, "abcbcd", ["abcbcd", "bc"]],
     ])
     test("a(b|c)*d", [
-        [TRUE, "ad"],
-        [TRUE, "abcd"],
-        [TRUE, "abbbbcbd"],
+        [TRUE, "ad", ["ad", ""]],
+        [TRUE, "abcd", ["abcd", "c"]],
+        [TRUE, "abbbbcbd", ["abbbbcbd", "b"]],
         [FALSE, "abc"],
     ])
     test("^(0|(1(01*0)*1))*$", [
-        [TRUE, ""],
-        [TRUE, "0"],
-        [TRUE, "00"],
+        [TRUE, "", ["", "", "", ""]],
+        [TRUE, "0", ["0", "0", "", ""]],
+        [TRUE, "00", ["00", "0", "", ""]],
         [FALSE, "01"],
         [FALSE, "10"],
-        [TRUE, "11"],
-        [TRUE, "000"],
+        [TRUE, "11", ["11", "11", "11", ""]],
+        [TRUE, "000", ["000", "0", "", ""]],
         [FALSE, "001"],
         [FALSE, "010"],
-        [TRUE, "011"],
+        [TRUE, "011", ["011", "11", "11", ""]],
         [FALSE, "100"],
         [FALSE, "101"],
-        [TRUE, "110"],
+        [TRUE, "110", ["110", "0", "11", ""]],
         [FALSE, "111"],
-        [TRUE, "0000"],
+        [TRUE, "0000", ["0000", "0", "", ""]],
         [FALSE, "0001"],
         [FALSE, "0010"],
-        [TRUE, "0011"],
+        [TRUE, "0011", ["0011", "11", "11", ""]],
         [FALSE, "0100"],
         [FALSE, "0101"],
-        [TRUE, "0110"],
+        [TRUE, "0110", ["0110", "0", "11", ""]],
         [FALSE, "0111"],
         [FALSE, "1000"],
-        [TRUE, "1001"],
+        [TRUE, "1001", ["1001", "1001", "1001", "00"]],
         [FALSE, "1010"],
         [FALSE, "1011"],
-        [TRUE, "1100"],
+        [TRUE, "1100", ["1100", "0", "11", ""]],
         [FALSE, "1101"],
         [FALSE, "1110"],
-        [TRUE, "1111"],
-        [TRUE, "00000"],
+        [TRUE, "1111", ["1111", "11", "11", ""]],
+        [TRUE, "00000", ["00000", "0", "", ""]],
     ])
     test("a*ab", [
-        [TRUE, "ab"],
+        [TRUE, "ab", ["ab"]],
     ])
     test("ab+?bc", [
         [FALSE, "ac"],
         [FALSE, "abc"],
-        [TRUE, "abbc"],
-        [TRUE, "abbbc"],
+        [TRUE, "abbc", ["abbc"]],
+        [TRUE, "abbbc", ["abbbc"]],
     ])
     test("^(b+?|a){1,2}?c", [
-        [TRUE, "bbac"],
+        [TRUE, "bbac", ["bbac", "a"]],
     ])
     test("^$", [
-        [TRUE, ""],
+        [TRUE, "", [""]],
         [FALSE, "a"],
     ])
     test("ab(cd)", [

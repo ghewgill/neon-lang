@@ -5,6 +5,8 @@ def literal(s):
         return "@@\"{}\"@@".format(s)
     elif "\\" in s:
         return "@\"{}\"".format(s)
+    elif "\t" in s:
+        return "\"{}\"".format(s.replace("\t", "\\t"))
     else:
         return "\"{}\"".format(s)
 
@@ -15,9 +17,14 @@ def unescape(s):
     s = s.replace("\\n", "\n")
     s = s.replace("\\r", "\r")
     s = s.replace("\\t", "\t")
+    s = s.replace("\\x09", "\x09")
+    s = s.replace("\\x0a", "\x0a")
+    s = s.replace("\\x0c", "\x0c")
+    s = s.replace("\\x0d", "\x0d")
     s = s.replace("\\x20", " ")
-    s = s.replace("\\x0c", "")
     s = s.replace("\\x93", "S")
+    s = s.replace("\\x81", "\x81")
+    s = s.replace("\\xff", "\xff")
     s = s.replace("\\040", " ")
     s = s.replace("\\223", "S")
     s = s.replace("\\$", "$")
@@ -71,7 +78,7 @@ with open("data/regex-testoutput1", encoding="latin1") as inf:
                 if not s.strip() or s[2] != ":":
                     break
                 assert int(s[:2]) == len(match)
-                match.append(s[4:].strip())
+                match.append(unescape(s[4:].rstrip("\n")))
             #print("  match", match)
             test.matches.append((target, match))
         while True:
@@ -97,6 +104,9 @@ with open("data/regex-testoutput1", encoding="latin1") as inf:
             "?=" not in test.pattern and
             "?!" not in test.pattern and
             "?#" not in test.pattern and
+            "?s" not in test.pattern and
+            "(?)" not in test.pattern and
+            "otherword" not in test.pattern and
             "x" not in modifiers and
             "m" not in modifiers and
             len(tests) != 104):
@@ -117,7 +127,17 @@ with open("t/regex-test.neon", "w") as outf:
         print("    VAR r: regex.Result", file=outf)
         for m in t.matches:
             print("    r := regex.searchRegex(re, {})".format(literal(m[0])), file=outf)
-            print("    TESTCASE r ISA regex.Result.match", file=outf)
+            print("    IF r ISA regex.Result.match THEN", file=outf)
+            print("        VAR m: regex.Match", file=outf)
+            for j, s in enumerate(m[1]):
+                print("        m := r.match[{}]".format(j), file=outf)
+                print("        IF m ISA regex.Match.found THEN", file=outf)
+                print("            TESTCASE m.found.string = {}".format(literal(s)), file=outf)
+                print("        ELSE", file=outf)
+                print("            TESTCASE m ISA regex.Match.found", file=outf)
+                print("        END IF", file=outf)
+            print("        TESTCASE r ISA regex.Result.match", file=outf)
+            print("    END IF", file=outf)
         for m in t.nomatches:
             print("    r := regex.searchRegex(re, {})".format(literal(m)), file=outf)
             print("    TESTCASE r ISA regex.Result.noMatch", file=outf)
