@@ -1,15 +1,59 @@
-IMPORT base
-IMPORT string
+/*  File: regex
+ *
+ *  Functions for searching text using regular expressions.
+ *
+ *  The following matching metacharacters are supported:
+ *
+ *      ^       Match beginning of string
+ *      $       Match end of string
+ *      .       Match any character
+ *      |       Alternation
+ *      ()      Grouping with capture
+ *      [...]   Character class
+ *
+ *  Character classes may contain ranges [a-z] or complement [^aeiou].
+ *
+ *  Supported repetition operators:
+ *
+ *      *       Match 0 or more times
+ *      +       Match 1 or more times
+ *      ?       Match 0 or 1 times
+ *      {n}     Match exactly n times
+ *      {n,}    Match at least n times
+ *      {,n}    Match at most n times
+ *      {n,m}   Match at least n and at most m times
+ *
+ *  The above repetition operators are greedy. Append a question mark for
+ *  the non greedy version:
+ *
+ *      *?  +?  ??  {...}?
+ *
+ *  The following extended modifiers are supported:
+ *
+ *      (?:...)     Non-capturing group
+ *
+ *  The following backslash escape sequences are supported:
+ *
+ *      \d      Digits [0-9]
+ *      \s      Whitespace [\f\n\r\t ]
+ *      \S      Non-whitespace [^\f\n\r\t ]
+ *      \w      Word character [A-Za-z0-9_]
+ *      \       Escape next character literally
+ *
+ */
 
+EXPORT MatchInfo
 EXPORT Match
 EXPORT Result
 EXPORT Opcode
 EXPORT Regex
 
---EXPORT dump
 EXPORT prepare
 EXPORT search
 EXPORT searchRegex
+
+IMPORT base
+IMPORT string
 
 CONSTANT Debug := FALSE
 
@@ -544,25 +588,9 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     WHEN "x" DO
                         r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))))
                         i := i + 2
-                    WHEN "N" DO
-                        ASSERT FALSE
-                    WHEN "o" DO
-                        ASSERT FALSE
                     WHEN "0" DO
                         r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
                         i := i + 2
-                    WHEN "l" DO
-                        ASSERT FALSE
-                    WHEN "u" DO
-                        ASSERT FALSE
-                    WHEN "L" DO
-                        ASSERT FALSE
-                    WHEN "U" DO
-                        ASSERT FALSE
-                    WHEN "Q" DO
-                        ASSERT FALSE
-                    WHEN "E" DO
-                        ASSERT FALSE
                     WHEN OTHERS DO
                         r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
                 END CASE
