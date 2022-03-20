@@ -73,6 +73,7 @@ predeclare1.neon           # something
 print-object.neon          # object
 random-test.neon           # module random
 recursion-limit.neon       # module runtime
+regex-test.neon            # interface
 repl_import.neon           # module random
 runtime-test.neon          # module runtime
 sql-connect.neon           # module sqlite
@@ -98,6 +99,5 @@ compress-test.neon         # compress.gzip
 extsample-test.neon        # extension functions
 hash-test.neon             # sha-3
 http-test.neon             # module os
-regex-test.neon            # module regex
 sodium-test.neon           # module sodium
 zeromq-test.neon           # module zeromq

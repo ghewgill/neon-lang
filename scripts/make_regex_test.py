@@ -110,6 +110,8 @@ with open("data/regex-testoutput1", encoding="latin1") as inf:
             "\\8" not in test.pattern and
             "\\0" not in test.pattern and
             "\\x0" not in test.pattern and
+            "\x81" not in test.pattern and
+            "\xff" not in test.pattern and
             "\\223" not in test.pattern and
             "\\323" not in test.pattern and
             "?=" not in test.pattern and
@@ -134,7 +136,7 @@ with open("t/regex-test.neon", "w") as outf:
         if t is None:
             continue
         print("FUNCTION test{}()".format(i), file=outf)
-        print("    print(\"test{} \" & {})".format(i, literal(t.pattern)), file=outf)
+        #print("    print(\"test{} \" & {})".format(i, literal(t.pattern)), file=outf)
         print("    LET re := regex.prepare({}{})".format(literal(t.pattern), ", ignoreCase WITH TRUE" if "i" in t.modifiers else ""), file=outf)
         print("    VAR r: regex.Result", file=outf)
         for m in t.matches:

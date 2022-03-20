@@ -5,6 +5,5 @@ compress-test.neon
 extsample-test.neon
 hash-test.neon
 http-test.neon
-regex-test.neon
 sodium-test.neon
 zeromq-test.neon

@@ -89,6 +89,7 @@ posix-symlink.neon         # posix
 process-test.neon          # process
 random-test.neon           # module random
 recursion-limit.neon       # runtime
+regex-test.neon            # interface
 repl_import.neon           # random
 sql-connect.neon           # file
 sql-cursor.neon            # sqlite
@@ -123,6 +124,5 @@ compress-test.neon
 extsample-test.neon
 hash-test.neon
 http-test.neon
-regex-test.neon
 sodium-test.neon
 zeromq-test.neon
