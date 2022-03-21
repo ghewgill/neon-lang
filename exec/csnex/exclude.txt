@@ -41,6 +41,7 @@ object-record.neon                              # EQA
 opcode-coverage.neon                            # Missing Opcodes
 posix-fork.neon                                 # posix module
 posix-symlink.neon                              # posix module
+regex-test.neon
 sql-connect.neon                                # SQLite / sql module
 sql-cursor.neon                                 # SQLite / sql module
 sql-embed.neon                                  # SQLite / sql module
