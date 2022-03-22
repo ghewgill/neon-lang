@@ -76,6 +76,7 @@ END CHOICE
 TYPE Opcode IS CHOICE
     any
     char: String
+    class: Array<Boolean>
     begin
     end
     save: Number
@@ -156,29 +157,31 @@ FUNCTION ExprClass.dump(self: VALID POINTER TO ExprClass): String
 END FUNCTION
 
 FUNCTION ExprClass.reduce(self: VALID POINTER TO ExprClass): POINTER TO Expr
-    VAR a: Array<VALID POINTER TO Expr> := []
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprClass.size(self: VALID POINTER TO ExprClass): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprClass.compile(self: VALID POINTER TO ExprClass, INOUT regex: Regex)
+    VAR class: Array<Boolean> := []
+    FOR x := 0 TO 255 DO
+        class[x] := FALSE
+    END FOR
     IF self->complement THEN
         FOR x := 0 TO 255 DO
             LET c := string.fromCodePoint(x)
             IF c NOT IN self->chars THEN
-                a.append(NEW ExprLiteral(literal WITH c))
+                class[x] := TRUE
             END IF
         END FOR
     ELSE
         FOREACH c IN self->chars DO
-            a.append(NEW ExprLiteral(literal WITH c))
+            class[string.toCodePoint(c)] := TRUE
         END FOREACH
     END IF
-    RETURN NEW ExprAlternative(alternatives WITH a)
-END FUNCTION
-
-FUNCTION ExprClass.size(self: VALID POINTER TO ExprClass): Number
-    ASSERT FALSE
-    RETURN 0
-END FUNCTION
-
-FUNCTION ExprClass.compile(self: VALID POINTER TO ExprClass, INOUT regex: Regex)
-    ASSERT FALSE
+    regex.append(Opcode.class(class))
 END FUNCTION
 
 TYPE ExprAny IS CLASS IMPLEMENTS Expr
@@ -645,6 +648,14 @@ FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number, INOUT s
                 RETURN Result.noMatch
             END CHECK
             IF o.char <> target[ti] THEN
+                RETURN Result.noMatch
+            END IF
+            RETURN matchPart(regex, ri+1, target, ti+1, INOUT saved)
+        WHEN ISA Opcode.class DO
+            CHECK ti < target.length() ELSE
+                RETURN Result.noMatch
+            END CHECK
+            IF NOT o.class[string.toCodePoint(target[ti])] THEN
                 RETURN Result.noMatch
             END IF
             RETURN matchPart(regex, ri+1, target, ti+1, INOUT saved)
