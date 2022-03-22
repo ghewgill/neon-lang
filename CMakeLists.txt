@@ -197,7 +197,7 @@ set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/os.neon
     ${CMAKE_SOURCE_DIR}/lib/process.neon
     ${CMAKE_SOURCE_DIR}/lib/random.neon
-    ${CMAKE_SOURCE_DIR}/lib/regex.neon
+    #${CMAKE_SOURCE_DIR}/lib/regex.neon -- TODO: add back in when jvm backend can build it
     ${CMAKE_SOURCE_DIR}/lib/runtime.neon
     ${CMAKE_SOURCE_DIR}/lib/sqlite.neon
     ${CMAKE_SOURCE_DIR}/lib/string.neon
