@@ -35,9 +35,11 @@
  *  The following backslash escape sequences are supported:
  *
  *      \d      Digits [0-9]
+ *      \D      Non-digits [^0-9]
  *      \s      Whitespace [\f\n\r\t ]
  *      \S      Non-whitespace [^\f\n\r\t ]
  *      \w      Word character [A-Za-z0-9_]
+ *      \W      Non-word character [^A-Za-z0-9_]
  *      \       Escape next character literally
  *
  */
@@ -406,6 +408,32 @@ FUNCTION ExprAlternative.compile(self: VALID POINTER TO ExprAlternative, INOUT r
     END FOREACH
 END FUNCTION
 
+FUNCTION range(first, last: String): Array<String>
+    VAR r: Array<String> := []
+    FOR i := string.toCodePoint(first) TO string.toCodePoint(last) DO
+        r.append(string.fromCodePoint(i))
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION complement(a: Array<String>): Array<String>
+    VAR r: Array<String> := []
+    FOR i := 0 TO 255 DO
+        LET c := string.fromCodePoint(i)
+        IF c NOT IN a THEN
+            r.append(c)
+        END IF
+    END FOR
+    RETURN r
+END FUNCTION
+
+LET DigitChars := range("0", "9")
+LET DigitCharsComplement := complement(DigitChars)
+LET SpaceChars := ["\f", "\n", "\r", "\t", " "]
+LET SpaceCharsComplement := complement(SpaceChars)
+LET WordChars := range("A", "Z") & range("a", "z") & DigitChars & ["_"]
+LET WordCharsComplement := complement(WordChars)
+
 FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT groupIndex: Number): VALID POINTER TO Expr
     VAR a: POINTER TO ExprAlternative := NIL
     VAR r: VALID POINTER TO ExprSequence := NEW ExprSequence
@@ -421,20 +449,37 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                 INC i
                 LET start := i
                 VAR s: Array<String> := []
-                VAR complement := FALSE
+                VAR comp := FALSE
                 WHILE i < pattern.length() DO
                     IF pattern[i] = "]" AND s.size() > 0 THEN
                         EXIT WHILE
                     ELSIF pattern[i] = "^" AND i = start THEN
-                        complement := TRUE
+                        comp := TRUE
                     ELSIF pattern[i] = "-" AND pattern[i+1] <> "]" AND s.size() > 0 THEN
                         INC i
                         VAR c := pattern[i]
                         IF c = "\\" THEN
                             CASE pattern[i+1]
-                                WHEN "x" DO
-                                    c := string.fromCodePoint(base.fromHex(pattern[i+2 TO i+3]))
-                                    i := i + 2
+                                WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
+                                    CASE pattern[i+1]
+                                        WHEN "b" DO
+                                            c := "\b"
+                                        WHEN "e" DO
+                                            c := "\u001b"
+                                        WHEN "f" DO
+                                            c := "\f"
+                                        WHEN "n" DO
+                                            c := "\n"
+                                        WHEN "r" DO
+                                            c := "\r"
+                                        WHEN "t" DO
+                                            c := "\t"
+                                        WHEN "x" DO
+                                            c := string.fromCodePoint(base.fromHex(pattern[i+2 TO i+3]))
+                                            i := i + 2
+                                        WHEN OTHERS DO
+                                            ASSERT FALSE
+                                    END CASE
                                 WHEN OTHERS DO
                                     c := pattern[i+1]
                                     INC i
@@ -446,11 +491,38 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     ELSIF pattern[i] = "\\" THEN
                         INC i
                         CASE pattern[i]
-                            WHEN "d" DO
-                                s.extend(["0","1","2","3","4","5","6","7","8","9"])
-                            WHEN "x" DO
-                                s.append(string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2])))
-                                i := i + 2
+                            WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
+                                CASE pattern[i]
+                                    WHEN "b" DO
+                                        s.append("\b")
+                                    WHEN "d" DO
+                                        s.extend(DigitChars)
+                                    WHEN "D" DO
+                                        s.extend(DigitCharsComplement)
+                                    WHEN "e" DO
+                                        s.append("\u001b")
+                                    WHEN "f" DO
+                                        s.append("\f")
+                                    WHEN "n" DO
+                                        s.append("\n")
+                                    WHEN "r" DO
+                                        s.append("\r")
+                                    WHEN "s" DO
+                                        s.extend(SpaceChars)
+                                    WHEN "S" DO
+                                        s.extend(SpaceCharsComplement)
+                                    WHEN "t" DO
+                                        s.append("\t")
+                                    WHEN "w" DO
+                                        s.extend(WordChars)
+                                    WHEN "W" DO
+                                        s.extend(WordCharsComplement)
+                                    WHEN "x" DO
+                                        s.append(string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2])))
+                                        i := i + 2
+                                    WHEN OTHERS DO
+                                        ASSERT FALSE
+                                END CASE
                             WHEN OTHERS DO
                                 s.append(pattern[i])
                         END CASE
@@ -468,7 +540,7 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     END FOREACH
                     s := t
                 END IF
-                r->exprs.append(NEW ExprClass(chars WITH s, complement WITH complement))
+                r->exprs.append(NEW ExprClass(chars WITH s, complement WITH comp))
             WHEN "?" DO
                 CHECK r->exprs.size() > 0 ELSE
                     ASSERT FALSE
@@ -559,38 +631,43 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
             WHEN "\\" DO
                 INC i
                 CASE pattern[i]
-                    WHEN "d" DO
-                        r->exprs.append(NEW ExprClass(chars WITH ["0","1","2","3","4","5","6","7","8","9"]))
-                    WHEN "D" DO
-                        r->exprs.append(NEW ExprClass(chars WITH ["0","1","2","3","4","5","6","7","8","9"], complement WITH TRUE))
-                    WHEN "s" DO
-                        r->exprs.append(NEW ExprClass(chars WITH ["\f","\n","\r","\t"," "]))
-                    WHEN "S" DO
-                        r->exprs.append(NEW ExprClass(chars WITH ["\f","\n","\r","\t"," "], complement WITH TRUE))
-                    WHEN "w" DO
-                        VAR j := 0
-                        r->exprs.append(parsePart("[A-Z0-9_]", TRUE, INOUT j, INOUT groupIndex))
-                    WHEN "t" DO
-                        r->exprs.append(NEW ExprLiteral(literal WITH "\t"))
-                    WHEN "n" DO
-                        r->exprs.append(NEW ExprLiteral(literal WITH "\n"))
-                    WHEN "r" DO
-                        r->exprs.append(NEW ExprLiteral(literal WITH "\r"))
-                    WHEN "f" DO
-                        r->exprs.append(NEW ExprLiteral(literal WITH "\f"))
-                    WHEN "a" DO
-                        r->exprs.append(NEW ExprLiteral(literal WITH "\u0007"))
-                    WHEN "e" DO
-                        r->exprs.append(NEW ExprLiteral(literal WITH "\u001b"))
-                    WHEN "c" DO
-                        INC i
-                        r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(string.toCodePoint(string.upper(pattern[i])) - 64)))
-                    WHEN "x" DO
-                        r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))))
-                        i := i + 2
-                    WHEN "0" DO
-                        r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
-                        i := i + 2
+                    WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
+                        CASE pattern[i]
+                            WHEN "0" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
+                                i := i + 2
+                            WHEN "1" TO "9" DO
+                                ASSERT FALSE
+                            WHEN "b" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\b"))
+                            WHEN "d" DO
+                                r->exprs.append(NEW ExprClass(chars WITH DigitChars))
+                            WHEN "D" DO
+                                r->exprs.append(NEW ExprClass(chars WITH DigitChars, complement WITH TRUE))
+                            WHEN "e" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\u001b"))
+                            WHEN "f" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\f"))
+                            WHEN "n" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\n"))
+                            WHEN "r" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\r"))
+                            WHEN "s" DO
+                                r->exprs.append(NEW ExprClass(chars WITH SpaceChars))
+                            WHEN "S" DO
+                                r->exprs.append(NEW ExprClass(chars WITH SpaceChars, complement WITH TRUE))
+                            WHEN "t" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\t"))
+                            WHEN "w" DO
+                                r->exprs.append(NEW ExprClass(chars WITH WordChars))
+                            WHEN "W" DO
+                                r->exprs.append(NEW ExprClass(chars WITH WordChars, complement WITH TRUE))
+                            WHEN "x" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))))
+                                i := i + 2
+                            WHEN OTHERS DO
+                                ASSERT FALSE
+                        END CASE
                     WHEN OTHERS DO
                         r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
                 END CASE
