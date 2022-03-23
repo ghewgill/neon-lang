@@ -911,9 +911,5 @@ BEGIN MAIN
     test("ab(cd)", [
         [TRUE, "abcd", ["abcd", "cd"]],
     ])
-    test(@@""([^\\"]+|\\.)*""@@, [
-        [TRUE, "the \"quick\" brown fox", ["\"quick\"", "quick"]],
-        [TRUE, "\"the \\\"quick\\\" brown fox\"", ["\"the \\\"quick\\\" brown fox\"", " brown fox"]],
-    ])
     print("passed")
 END MAIN
