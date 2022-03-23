@@ -15,7 +15,10 @@ FUNCTION highlight(s: String): String
     VAR r: String := string.repeat(".", s.length())
     VAR i: Number := 0
     WHILE i < s.length() DO
-        LET m := regex.search(@@"([A-Z]+(?!\w))|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@\5@)|(--.*)"@@, s[i TO LAST])
+        -- This is an abbreviated regex compared to the below, because the regex module
+        -- does not currently support negative lookahead or backreferences.
+        LET m := regex.search(@@"([A-Z]+)|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@(?:)@)|(--.*)"@@, s[i TO LAST])
+        -- LET m := regex.search(@@"([A-Z]+(?!\w))|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@\5@)|(--.*)"@@, s[i TO LAST])
         CHECK m ISA regex.Result.match ELSE
             EXIT WHILE
         END CHECK

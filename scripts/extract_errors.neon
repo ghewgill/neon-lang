@@ -20,7 +20,7 @@ FOREACH fn IN sources DO
         ELSIF string.hasPrefix(s, "#endif") THEN
             enable := TRUE
         ELSIF enable AND (string.find(s, " error(") >= 0 OR string.find(s, " error_a(") >= 0 OR string.find(s, " error2(") >= 0) THEN
-            LET r: regex.Result := regex.search("\\berror\\w*\\((\\d+),.*?\"(.*?)\"", s)
+            LET r: regex.Result := regex.search("error\\w*\\((\\d+),.*?\"(.*?)\"", s)
             CHECK r ISA regex.Result.match ELSE
                 EXIT PROCESS FAILURE
             END CHECK
