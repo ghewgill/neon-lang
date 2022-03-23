@@ -42,7 +42,6 @@
  *
  */
 
-EXPORT MatchInfo
 EXPORT Match
 EXPORT Result
 EXPORT Opcode
@@ -57,16 +56,12 @@ IMPORT string
 
 CONSTANT Debug := FALSE
 
-TYPE MatchInfo IS RECORD
+TYPE Match IS RECORD
+    found: Boolean
     first: Number
     last: Number
     string: String
 END RECORD
-
-TYPE Match IS CHOICE
-    notFound
-    found: MatchInfo
-END CHOICE
 
 TYPE Result IS CHOICE
     noMatch
@@ -566,6 +561,8 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                 CASE pattern[i]
                     WHEN "d" DO
                         r->exprs.append(NEW ExprClass(chars WITH ["0","1","2","3","4","5","6","7","8","9"]))
+                    WHEN "D" DO
+                        r->exprs.append(NEW ExprClass(chars WITH ["0","1","2","3","4","5","6","7","8","9"], complement WITH TRUE))
                     WHEN "s" DO
                         r->exprs.append(NEW ExprClass(chars WITH ["\f","\n","\r","\t"," "]))
                     WHEN "S" DO
@@ -710,13 +707,19 @@ FUNCTION match(regex: Regex, target: String): Result
         ASSERT saved.size() MOD 2 = 0
         FOR i := 0 TO saved.size()-1 STEP 2 DO
             IF saved[i] >= 0 THEN
-                r.match[i/2] := Match.found(MatchInfo(
+                r.match[i/2] := Match(
+                    found WITH TRUE,
                     first WITH saved[i],
                     last WITH saved[i+1]-1,
                     string WITH target[saved[i] TO saved[i+1]-1]
-                ))
+                )
             ELSE
-                r.match[i/2] := Match.notFound
+                r.match[i/2] := Match(
+                    found WITH FALSE,
+                    first WITH -1,
+                    last WITH -1,
+                    string WITH ""
+                )
             END IF
         END FOR
     END IF
@@ -766,11 +769,7 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
                 END CHECK
                 TESTCASE r.match.size() = t[2].size()
                 FOREACH m IN r.match INDEX i DO
-                    IF m ISA Match.found THEN
-                        TESTCASE m.found.string = t[2][i]
-                    ELSE
-                        TESTCASE t[2][i] = ""
-                    END IF
+                    TESTCASE m.string = t[2][i]
                 END FOREACH
         END CASE
     END FOREACH

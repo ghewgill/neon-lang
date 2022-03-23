@@ -38,6 +38,7 @@ def unescape(s):
     s = s.replace("\\xff", "\xff")
     s = s.replace("\\040", " ")
     s = s.replace("\\223", "S")
+    s = s.replace("\\@", "@")
     s = s.replace("\\$", "$")
     s = s.replace("\\?", "?")
     s = s.replace("\\\"", "\"")
@@ -105,6 +106,7 @@ with open("data/regex-testoutput1", encoding="latin1") as inf:
         if (#"\\" not in test.pattern and
             "\\A" not in test.pattern and
             "\\Z" not in test.pattern and
+            "\\b" not in test.pattern and
             "\\c" not in test.pattern and
             "\\1" not in test.pattern and
             "\\8" not in test.pattern and
@@ -143,15 +145,11 @@ with open("t/regex-test.neon", "w") as outf:
         for m in t.matches:
             print("    r := regex.searchRegex(re, {})".format(literal(m[0])), file=outf)
             print("    IF r ISA regex.Result.match THEN", file=outf)
-            print("        VAR m: regex.Match", file=outf)
+            #print("        print(r.match)", file=outf)
             for j, s in enumerate(m[1]):
-                print("        m := r.match[{}]".format(j), file=outf)
-                print("        IF m ISA regex.Match.found THEN", file=outf)
-                print("            TESTCASE m.found.string = {}".format(literal(s)), file=outf)
-                print("        ELSE", file=outf)
-                print("            TESTCASE m ISA regex.Match.found", file=outf)
-                print("        END IF", file=outf)
-            print("        TESTCASE r ISA regex.Result.match", file=outf)
+                print("        TESTCASE r.match[{}].string = {}".format(j, literal(s)), file=outf)
+            print("    ELSE", file=outf)
+            print("        TESTCASE FALSE", file=outf)
             print("    END IF", file=outf)
         for m in t.nomatches:
             print("    r := regex.searchRegex(re, {})".format(literal(m)), file=outf)

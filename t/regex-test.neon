@@ -7,25 +7,15 @@ FUNCTION test0()
     VAR r: regex.Result
     r := regex.searchRegex(re, "the quick brown fox")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "the quick brown fox"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "the quick brown fox"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "What do you know about the quick brown fox?")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "the quick brown fox"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "the quick brown fox"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "The quick brown FOX")
     TESTCASE r ISA regex.Result.noMatch
@@ -37,47 +27,27 @@ FUNCTION test1()
     VAR r: regex.Result
     r := regex.searchRegex(re, "the quick brown fox")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "the quick brown fox"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "the quick brown fox"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "The quick brown FOX")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "The quick brown FOX"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "The quick brown FOX"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "What do you know about the quick brown fox?")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "the quick brown fox"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "the quick brown fox"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "What do you know about THE QUICK BROWN FOX?")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "THE QUICK BROWN FOX"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "THE QUICK BROWN FOX"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test3()
@@ -85,333 +55,183 @@ FUNCTION test3()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aabxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aabxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaabxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaabxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aabcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aabcxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aabcxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypqqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypqqqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypqqqqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqqqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqqqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypqqqqqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqqqqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqqqqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypqqqqqqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqqqqqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaabcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaabcxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaabcxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abxyzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abxyzzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abxyzzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aabxyzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aabxyzzzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aabxyzzzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabxyzzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabxyzzzzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabxyzzzzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaabxyzzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaabxyzzzzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaabxyzzzzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abcxyzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcxyzzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcxyzzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aabcxyzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aabcxyzzzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aabcxyzzzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzzzzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzzzzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaabcxyzzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaabcxyzzzzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaabcxyzzzzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaabcxyzzzzpqrrrabbbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaabcxyzzzzpqrrrabbbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaabcxyzzzzpqrrrabbbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaabcxyzzzzpqrrrabbbxyyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaabcxyzzzzpqrrrabbbxyyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaabcxyzzzzpqrrrabbbxyyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypABzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypABzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypABzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypABBzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabcxyzpqrrrabbxyyyypABBzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypABBzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, ">>>aaabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaabxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaabxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, ">aaaabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaabxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaabxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, ">>>>abcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcxyzpqrrrabbxyyyypqAzz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcxyzpqrrrabbxyyyypqAzz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abxyzpqrrabbxyyyypqAzz")
     TESTCASE r ISA regex.Result.noMatch
@@ -431,37 +251,17 @@ FUNCTION test4()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abczz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abczz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abczz"
+        TESTCASE r.match[1].string = "abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abcabczz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcabczz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcabczz"
+        TESTCASE r.match[1].string = "abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "zz")
     TESTCASE r ISA regex.Result.noMatch
@@ -475,139 +275,59 @@ FUNCTION test5()
     VAR r: regex.Result
     r := regex.searchRegex(re, "bc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bc"
+        TESTCASE r.match[1].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbc"
+        TESTCASE r.match[1].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbbc"
+        TESTCASE r.match[1].string = "bb"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bac")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bac"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bac"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbac")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbac"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbac"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aac")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aac"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aac"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abbbbbbbbbbbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abbbbbbbbbbbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbbbbbbbbbb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abbbbbbbbbbbc"
+        TESTCASE r.match[1].string = "bbbbbbbbbbb"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbbbbbbbbbbac")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbbbbbbbbbbac"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbbbbbbbbbbac"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaac")
     TESTCASE r ISA regex.Result.noMatch
@@ -619,139 +339,59 @@ FUNCTION test6()
     VAR r: regex.Result
     r := regex.searchRegex(re, "bc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bc"
+        TESTCASE r.match[1].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbc"
+        TESTCASE r.match[1].string = "bb"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbbc"
+        TESTCASE r.match[1].string = "bbb"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bac")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bac"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bac"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbac")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbac"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbac"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aac")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aac"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aac"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abbbbbbbbbbbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abbbbbbbbbbbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbbbbbbbbbb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abbbbbbbbbbbc"
+        TESTCASE r.match[1].string = "bbbbbbbbbbb"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbbbbbbbbbbac")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbbbbbbbbbbac"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbbbbbbbbbbac"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaac")
     TESTCASE r ISA regex.Result.noMatch
@@ -763,54 +403,24 @@ FUNCTION test7()
     VAR r: regex.Result
     r := regex.searchRegex(re, "babc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "babc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ba"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "babc"
+        TESTCASE r.match[1].string = "ba"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbabc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbabc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ba"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bbabc"
+        TESTCASE r.match[1].string = "ba"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bababc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bababc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ba"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bababc"
+        TESTCASE r.match[1].string = "ba"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bababbc")
     TESTCASE r ISA regex.Result.noMatch
@@ -822,69 +432,39 @@ FUNCTION test9()
     VAR r: regex.Result
     r := regex.searchRegex(re, "athing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bthing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "]thing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "]"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "]"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "cthing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "c"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "dthing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "d"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "d"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "ething")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "e"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "e"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "fthing")
     TESTCASE r ISA regex.Result.noMatch
@@ -898,47 +478,27 @@ FUNCTION test10()
     VAR r: regex.Result
     r := regex.searchRegex(re, "]thing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "]"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "]"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "cthing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "c"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "dthing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "d"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "d"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "ething")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "e"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "e"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "athing")
     TESTCASE r ISA regex.Result.noMatch
@@ -950,36 +510,21 @@ FUNCTION test11()
     VAR r: regex.Result
     r := regex.searchRegex(re, "fthing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "f"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "f"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "[thing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "["
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "["
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @"\	hing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @"\"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = @"\"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "athing")
     TESTCASE r ISA regex.Result.noMatch
@@ -999,25 +544,15 @@ FUNCTION test12()
     VAR r: regex.Result
     r := regex.searchRegex(re, "athing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "fthing")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "f"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "f"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "]thing")
     TESTCASE r ISA regex.Result.noMatch
@@ -1033,135 +568,75 @@ FUNCTION test15()
     VAR r: regex.Result
     r := regex.searchRegex(re, "0")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "0"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "0"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "2")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "2"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "2"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "3")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "3"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "3"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "4")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "4"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "4"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "5")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "5"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "5"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "6")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "6"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "6"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "7")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "7"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "7"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "8")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "8"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "8"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "9")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "9"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "9"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "10")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "10"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "10"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "100")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "100"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "100"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     TESTCASE r ISA regex.Result.noMatch
@@ -1171,36 +646,21 @@ FUNCTION test16()
     VAR r: regex.Result
     r := regex.searchRegex(re, "enter")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "enter"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "enter"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "inter")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "inter"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "inter"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "uponter")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "uponter"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "uponter"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test17()
@@ -1208,25 +668,15 @@ FUNCTION test17()
     VAR r: regex.Result
     r := regex.searchRegex(re, "xxx0")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "xxx0"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "xxx0"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "xxx1234")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "xxx1234"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "xxx1234"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "xxx")
     TESTCASE r ISA regex.Result.noMatch
@@ -1236,47 +686,27 @@ FUNCTION test18()
     VAR r: regex.Result
     r := regex.searchRegex(re, "x123")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "x123"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "x123"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "x1234")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "x1234"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "x1234"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "xx123")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "xx123"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "xx123"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "123456")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "123456"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "123456"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "123")
     TESTCASE r ISA regex.Result.noMatch
@@ -1286,47 +716,27 @@ FUNCTION test19()
     VAR r: regex.Result
     r := regex.searchRegex(re, "x123")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "x123"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "x123"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "x1234")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "x1234"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "x1234"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "xx123")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "xx123"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "xx123"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "123456")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "123456"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "123456"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "123")
     TESTCASE r ISA regex.Result.noMatch
@@ -1336,26 +746,11 @@ FUNCTION test20()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abc!pqr=apquxz.ixr.zzz.ac.uk")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc!pqr=apquxz.ixr.zzz.ac.uk"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "pqr"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abc!pqr=apquxz.ixr.zzz.ac.uk"
+        TESTCASE r.match[1].string = "abc"
+        TESTCASE r.match[2].string = "pqr"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "!pqr=apquxz.ixr.zzz.ac.uk")
     TESTCASE r ISA regex.Result.noMatch
@@ -1371,14 +766,9 @@ FUNCTION test21()
     VAR r: regex.Result
     r := regex.searchRegex(re, "Well, we need a colon: somewhere")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ":"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ":"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "Fail without a colon")
     TESTCASE r ISA regex.Result.noMatch
@@ -1388,139 +778,59 @@ FUNCTION test22()
     VAR r: regex.Result
     r := regex.searchRegex(re, "0abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "0abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "0abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "0abc"
+        TESTCASE r.match[1].string = "0abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abc"
+        TESTCASE r.match[1].string = "abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "fed")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "fed"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "fed"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "fed"
+        TESTCASE r.match[1].string = "fed"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "E")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "E"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "E"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "E"
+        TESTCASE r.match[1].string = "E"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "::")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "::"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "::"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "::"
+        TESTCASE r.match[1].string = "::"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "5f03:12C0::932e")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "5f03:12C0::932e"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "5f03:12C0::932e"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "5f03:12C0::932e"
+        TESTCASE r.match[1].string = "5f03:12C0::932e"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "fed def")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "def"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "def"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "def"
+        TESTCASE r.match[1].string = "def"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "Any old stuff")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ff"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ff"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "ff"
+        TESTCASE r.match[1].string = "ff"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "0zzz")
     TESTCASE r ISA regex.Result.noMatch
@@ -1536,61 +846,21 @@ FUNCTION test23()
     VAR r: regex.Result
     r := regex.searchRegex(re, ".1.2.3")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".1.2.3"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "2"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "3"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ".1.2.3"
+        TESTCASE r.match[1].string = "1"
+        TESTCASE r.match[2].string = "2"
+        TESTCASE r.match[3].string = "3"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "A.12.123.0")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "A.12.123.0"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "12"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "123"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "0"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "A.12.123.0"
+        TESTCASE r.match[1].string = "12"
+        TESTCASE r.match[2].string = "123"
+        TESTCASE r.match[3].string = "0"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, ".1.2.3333")
     TESTCASE r ISA regex.Result.noMatch
@@ -1604,61 +874,21 @@ FUNCTION test24()
     VAR r: regex.Result
     r := regex.searchRegex(re, "1 IN SOA non-sp1 non-sp2(")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1 IN SOA non-sp1 non-sp2("
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "non-sp1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "non-sp2"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1 IN SOA non-sp1 non-sp2("
+        TESTCASE r.match[1].string = "1"
+        TESTCASE r.match[2].string = "non-sp1"
+        TESTCASE r.match[3].string = "non-sp2"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1    IN    SOA    non-sp1    non-sp2   (")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1    IN    SOA    non-sp1    non-sp2   ("
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "non-sp1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "non-sp2"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1    IN    SOA    non-sp1    non-sp2   ("
+        TESTCASE r.match[1].string = "1"
+        TESTCASE r.match[2].string = "non-sp1"
+        TESTCASE r.match[3].string = "non-sp2"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1IN SOA non-sp1 non-sp2(")
     TESTCASE r ISA regex.Result.noMatch
@@ -1668,87 +898,42 @@ FUNCTION test25()
     VAR r: regex.Result
     r := regex.searchRegex(re, "a.")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a."
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a."
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "Z.")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "Z."
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "Z."
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "2.")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "2."
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "2."
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "ab-c.pq-r.")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ab-c.pq-r."
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".pq-r"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "ab-c.pq-r."
+        TESTCASE r.match[1].string = ".pq-r"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "sxk.zzz.ac.uk.")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "sxk.zzz.ac.uk."
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".uk"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "sxk.zzz.ac.uk."
+        TESTCASE r.match[1].string = ".uk"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "x-.y-.")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "x-.y-."
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".y-"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "x-.y-."
+        TESTCASE r.match[1].string = ".y-"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "-abc.peq.")
     TESTCASE r ISA regex.Result.noMatch
@@ -1758,83 +943,33 @@ FUNCTION test26()
     VAR r: regex.Result
     r := regex.searchRegex(re, "*.a")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "*.a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "*.a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "*.b0-a")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "*.b0-a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "0-a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "*.b0-a"
+        TESTCASE r.match[1].string = "0-a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "*.c3-b.c")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "*.c3-b.c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "3-b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "*.c3-b.c"
+        TESTCASE r.match[1].string = "3-b"
+        TESTCASE r.match[2].string = ".c"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "*.c-a.b-c")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "*.c-a.b-c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "-a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".b-c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "-c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "*.c-a.b-c"
+        TESTCASE r.match[1].string = "-a"
+        TESTCASE r.match[2].string = ".b-c"
+        TESTCASE r.match[3].string = "-c"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "*.0")
     TESTCASE r ISA regex.Result.noMatch
@@ -1850,54 +985,24 @@ FUNCTION test30()
     VAR r: regex.Result
     r := regex.searchRegex(re, "a.b.c.d")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a.b.c.d"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".d"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a.b.c.d"
+        TESTCASE r.match[1].string = ".d"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "A.B.C.D")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "A.B.C.D"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".D"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "A.B.C.D"
+        TESTCASE r.match[1].string = ".D"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "a.b.c.1.2.3.C")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a.b.c.1.2.3.C"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".C"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a.b.c.1.2.3.C"
+        TESTCASE r.match[1].string = ".C"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test31()
@@ -1905,48 +1010,23 @@ FUNCTION test31()
     VAR r: regex.Result
     r := regex.searchRegex(re, @@""1234""@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@""1234""@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = @@""1234""@@
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @@""abcd" ;"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@""abcd" ;"@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ";"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = @@""abcd" ;"@@
+        TESTCASE r.match[1].string = ";"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @@""" ; rhubarb"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@""" ; rhubarb"@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "; rhubarb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = @@""" ; rhubarb"@@
+        TESTCASE r.match[1].string = "; rhubarb"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @@""1234" : things"@@)
     TESTCASE r ISA regex.Result.noMatch
@@ -1956,14 +1036,9 @@ FUNCTION test32()
     VAR r: regex.Result
     r := regex.searchRegex(re, "")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "A non-empty line")
     TESTCASE r ISA regex.Result.noMatch
@@ -1973,86 +1048,21 @@ FUNCTION test36()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abcdefhijklm")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcdefhijklm"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[4]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "def"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[5]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ef"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[6]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "f"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[7]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "hij"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[8]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ij"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[9]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "j"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[10]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "klm"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[11]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "lm"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[12]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "m"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcdefhijklm"
+        TESTCASE r.match[1].string = "abc"
+        TESTCASE r.match[2].string = "bc"
+        TESTCASE r.match[3].string = "c"
+        TESTCASE r.match[4].string = "def"
+        TESTCASE r.match[5].string = "ef"
+        TESTCASE r.match[6].string = "f"
+        TESTCASE r.match[7].string = "hij"
+        TESTCASE r.match[8].string = "ij"
+        TESTCASE r.match[9].string = "j"
+        TESTCASE r.match[10].string = "klm"
+        TESTCASE r.match[11].string = "lm"
+        TESTCASE r.match[12].string = "m"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test37()
@@ -2060,62 +1070,17 @@ FUNCTION test37()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abcdefhijklm")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcdefhijklm"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ef"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[4]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "f"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[5]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ij"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[6]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "j"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[7]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "lm"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[8]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "m"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcdefhijklm"
+        TESTCASE r.match[1].string = "bc"
+        TESTCASE r.match[2].string = "c"
+        TESTCASE r.match[3].string = "ef"
+        TESTCASE r.match[4].string = "f"
+        TESTCASE r.match[5].string = "ij"
+        TESTCASE r.match[6].string = "j"
+        TESTCASE r.match[7].string = "lm"
+        TESTCASE r.match[8].string = "m"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test39()
@@ -2123,14 +1088,9 @@ FUNCTION test39()
     VAR r: regex.Result
     r := regex.searchRegex(re, ".^$(*+)|{?,?}")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".^$(*+)|{?,?}"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ".^$(*+)|{?,?}"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test40()
@@ -2138,91 +1098,51 @@ FUNCTION test40()
     VAR r: regex.Result
     r := regex.searchRegex(re, "z")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "z"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "z"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "az")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "az"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "az"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "a")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "a+")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aa+")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test41()
@@ -2230,91 +1150,51 @@ FUNCTION test41()
     VAR r: regex.Result
     r := regex.searchRegex(re, "z")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "z"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "z"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "az")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "a")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "a+")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aa+")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test42()
@@ -2322,58 +1202,33 @@ FUNCTION test42()
     VAR r: regex.Result
     r := regex.searchRegex(re, "az")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "az"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "az"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaz"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aa+")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test43()
@@ -2381,58 +1236,33 @@ FUNCTION test43()
     VAR r: regex.Result
     r := regex.searchRegex(re, "az")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "az"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "az"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aa+")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test44()
@@ -2440,36 +1270,21 @@ FUNCTION test44()
     VAR r: regex.Result
     r := regex.searchRegex(re, "1234567890")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1234567890"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1234567890"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "12345678ab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "12345678ab"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "12345678ab"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "12345678__")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "12345678__"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "12345678__"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1234567")
     TESTCASE r ISA regex.Result.noMatch
@@ -2479,47 +1294,27 @@ FUNCTION test45()
     VAR r: regex.Result
     r := regex.searchRegex(re, "uoie")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "uoie"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "uoie"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1234")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1234"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1234"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "12345")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "12345"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "12345"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaaa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "123456")
     TESTCASE r ISA regex.Result.noMatch
@@ -2529,58 +1324,33 @@ FUNCTION test46()
     VAR r: regex.Result
     r := regex.searchRegex(re, "uoie")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "uoie"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "uoie"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1234")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1234"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1234"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "12345")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1234"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1234"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaa"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "123456")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1234"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1234"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test50()
@@ -2588,20 +1358,10 @@ FUNCTION test50()
     VAR r: regex.Result
     r := regex.searchRegex(re, "From abcd  Mon Sep 01 12:33:02 1997")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "From abcd  Mon Sep 01 12:33"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcd"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "From abcd  Mon Sep 01 12:33"
+        TESTCASE r.match[1].string = "abcd"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test51()
@@ -2609,37 +1369,17 @@ FUNCTION test51()
     VAR r: regex.Result
     r := regex.searchRegex(re, "From abcd  Mon Sep 01 12:33:02 1997")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "From abcd  Mon Sep 01 12:33"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "Sep "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "From abcd  Mon Sep 01 12:33"
+        TESTCASE r.match[1].string = "Sep "
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "From abcd  Mon Sep  1 12:33:02 1997")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "From abcd  Mon Sep  1 12:33"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "Sep  "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "From abcd  Mon Sep  1 12:33"
+        TESTCASE r.match[1].string = "Sep  "
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "From abcd  Sep 01 12:33:02 1997")
     TESTCASE r ISA regex.Result.noMatch
@@ -2650,26 +1390,16 @@ FUNCTION test52()
     r := regex.searchRegex(re, @@"12
 34"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@"12
+        TESTCASE r.match[0].string = @@"12
 34"@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1234")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "1234"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "1234"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test64()
@@ -2677,20 +1407,10 @@ FUNCTION test64()
     VAR r: regex.Result
     r := regex.searchRegex(re, "aabbbbb")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aabb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aabb"
+        TESTCASE r.match[1].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test65()
@@ -2698,20 +1418,10 @@ FUNCTION test65()
     VAR r: regex.Result
     r := regex.searchRegex(re, "aabbbbb")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aabbbbb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abbbbb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aabbbbb"
+        TESTCASE r.match[1].string = "abbbbb"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test66()
@@ -2719,20 +1429,10 @@ FUNCTION test66()
     VAR r: regex.Result
     r := regex.searchRegex(re, "aabbbbb")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test67()
@@ -2740,20 +1440,10 @@ FUNCTION test67()
     VAR r: regex.Result
     r := regex.searchRegex(re, "aabbbbb")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aabb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aabb"
+        TESTCASE r.match[1].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test76()
@@ -2761,60 +1451,35 @@ FUNCTION test76()
     VAR r: regex.Result
     r := regex.searchRegex(re, " abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = " "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = " "
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @@"
 abc"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@"
+        TESTCASE r.match[0].string = @@"
 "@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "\tabc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "\t"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "\t"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     TESTCASE r ISA regex.Result.noMatch
@@ -2824,36 +1489,21 @@ FUNCTION test83()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abbbbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abbbbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abbbbc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abbbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abbbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abbbc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abbc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abbc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     TESTCASE r ISA regex.Result.noMatch
@@ -2865,32 +1515,12 @@ FUNCTION test84()
     VAR r: regex.Result
     r := regex.searchRegex(re, "track1.title:TBlah blah blah")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "track1.title:TBlah blah blah"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "track1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "title"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "Blah blah blah"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "track1.title:TBlah blah blah"
+        TESTCASE r.match[1].string = "track1"
+        TESTCASE r.match[2].string = "title"
+        TESTCASE r.match[3].string = "Blah blah blah"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test85()
@@ -2898,32 +1528,12 @@ FUNCTION test85()
     VAR r: regex.Result
     r := regex.searchRegex(re, "track1.title:TBlah blah blah")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "track1.title:TBlah blah blah"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "track1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "title"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "Blah blah blah"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "track1.title:TBlah blah blah"
+        TESTCASE r.match[1].string = "track1"
+        TESTCASE r.match[2].string = "title"
+        TESTCASE r.match[3].string = "Blah blah blah"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test86()
@@ -2931,32 +1541,12 @@ FUNCTION test86()
     VAR r: regex.Result
     r := regex.searchRegex(re, "track1.title:TBlah blah blah")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "track1.title:TBlah blah blah"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "track1"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "title"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "Blah blah blah"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "track1.title:TBlah blah blah"
+        TESTCASE r.match[1].string = "track1"
+        TESTCASE r.match[2].string = "title"
+        TESTCASE r.match[3].string = "Blah blah blah"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test87()
@@ -2964,14 +1554,9 @@ FUNCTION test87()
     VAR r: regex.Result
     r := regex.searchRegex(re, "WXY_^abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "WXY_^abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "WXY_^abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "wxy")
     TESTCASE r ISA regex.Result.noMatch
@@ -2981,25 +1566,15 @@ FUNCTION test88()
     VAR r: regex.Result
     r := regex.searchRegex(re, "WXY_^abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "WXY_^abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "WXY_^abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "wxy_^ABC")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "wxy_^ABC"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "wxy_^ABC"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test89()
@@ -3007,25 +1582,15 @@ FUNCTION test89()
     VAR r: regex.Result
     r := regex.searchRegex(re, "WXY_^abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "WXY_^abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "WXY_^abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "wxy_^ABC")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "wxy_^ABC"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "wxy_^ABC"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test91()
@@ -3033,14 +1598,9 @@ FUNCTION test91()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @@"qqq
 abc"@@)
@@ -3058,25 +1618,15 @@ FUNCTION test95()
     VAR r: regex.Result
     r := regex.searchRegex(re, "b::c")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "c::b")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "::"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "::"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test96()
@@ -3084,14 +1634,9 @@ FUNCTION test96()
     VAR r: regex.Result
     r := regex.searchRegex(re, "az-")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "az-"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "az-"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "b")
     TESTCASE r ISA regex.Result.noMatch
@@ -3101,14 +1646,9 @@ FUNCTION test97()
     VAR r: regex.Result
     r := regex.searchRegex(re, "za-")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "za-"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "za-"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "b")
     TESTCASE r ISA regex.Result.noMatch
@@ -3118,14 +1658,9 @@ FUNCTION test98()
     VAR r: regex.Result
     r := regex.searchRegex(re, "a-z")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a-z"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a-z"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "b")
     TESTCASE r ISA regex.Result.noMatch
@@ -3135,14 +1670,9 @@ FUNCTION test99()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abcdxyz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcdxyz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcdxyz"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test100()
@@ -3150,14 +1680,9 @@ FUNCTION test100()
     VAR r: regex.Result
     r := regex.searchRegex(re, "12-34")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "12-34"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "12-34"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaa")
     TESTCASE r ISA regex.Result.noMatch
@@ -3167,14 +1692,9 @@ FUNCTION test101()
     VAR r: regex.Result
     r := regex.searchRegex(re, @"\")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @"\"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = @"\"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test102()
@@ -3182,14 +1702,9 @@ FUNCTION test102()
     VAR r: regex.Result
     r := regex.searchRegex(re, "the Zoo")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = " Z"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = " Z"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "Zulu")
     TESTCASE r ISA regex.Result.noMatch
@@ -3199,14 +1714,9 @@ FUNCTION test114()
     VAR r: regex.Result
     r := regex.searchRegex(re, "bc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bc"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test115()
@@ -3214,179 +1724,19 @@ FUNCTION test115()
     VAR r: regex.Result
     r := regex.searchRegex(re, "xyz")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "xyz"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "xyz"
+    ELSE
+        TESTCASE FALSE
     END IF
-END FUNCTION
-FUNCTION test120()
-    LET re := regex.prepare(@"^([^a])([^\b])([^c]*)([^d]{3,4})")
-    VAR r: regex.Result
-    r := regex.searchRegex(re, "baNOTccccd")
-    IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "baNOTcccc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "NOT"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[4]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "cccc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
-    END IF
-    r := regex.searchRegex(re, "baNOTcccd")
-    IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "baNOTccc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "NOT"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[4]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ccc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
-    END IF
-    r := regex.searchRegex(re, "baNOTccd")
-    IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "baNOTcc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "NO"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[4]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "Tcc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
-    END IF
-    r := regex.searchRegex(re, "bacccd")
-    IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "baccc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[3]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[4]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ccc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
-    END IF
-    r := regex.searchRegex(re, "anything")
-    TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, @"b\bc")
-    TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "baccd")
-    TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test121()
     LET re := regex.prepare("[^a]")
     VAR r: regex.Result
     r := regex.searchRegex(re, "Abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "A"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "A"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test122()
@@ -3394,14 +1744,9 @@ FUNCTION test122()
     VAR r: regex.Result
     r := regex.searchRegex(re, "Abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test123()
@@ -3409,14 +1754,9 @@ FUNCTION test123()
     VAR r: regex.Result
     r := regex.searchRegex(re, "AAAaAbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "AAA"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "AAA"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test124()
@@ -3424,14 +1764,9 @@ FUNCTION test124()
     VAR r: regex.Result
     r := regex.searchRegex(re, "AAAaAbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bc"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test125()
@@ -3440,15 +1775,10 @@ FUNCTION test125()
     r := regex.searchRegex(re, @@"bbb
 ccc"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@"bbb
+        TESTCASE r.match[0].string = @@"bbb
 ccc"@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test126()
@@ -3456,14 +1786,9 @@ FUNCTION test126()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "c"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abk")
     TESTCASE r ISA regex.Result.noMatch
@@ -3473,36 +1798,21 @@ FUNCTION test127()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "kbc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "bc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "kabc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abc"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abk")
     TESTCASE r ISA regex.Result.noMatch
@@ -3514,31 +1824,21 @@ END FUNCTION
 FUNCTION test128()
     LET re := regex.prepare(@"^\d{8,}\@.+[^k]$")
     VAR r: regex.Result
-    r := regex.searchRegex(re, @"12345678\@a.b.c.d")
+    r := regex.searchRegex(re, "12345678@a.b.c.d")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "12345678@a.b.c.d"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "12345678@a.b.c.d"
+    ELSE
+        TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @"123456789\@x.y.z")
+    r := regex.searchRegex(re, "123456789@x.y.z")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "123456789@x.y.z"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "123456789@x.y.z"
+    ELSE
+        TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @"12345678\@x.y.uk")
+    r := regex.searchRegex(re, "12345678@x.y.uk")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, @"1234567\@a.b.c.d")
+    r := regex.searchRegex(re, "1234567@a.b.c.d")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test130()
@@ -3546,25 +1846,15 @@ FUNCTION test130()
     VAR r: regex.Result
     r := regex.searchRegex(re, "aaaabcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaAabcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "A"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "A"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test131()
@@ -3572,25 +1862,15 @@ FUNCTION test131()
     VAR r: regex.Result
     r := regex.searchRegex(re, "aaaabcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaAabcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test132()
@@ -3598,25 +1878,15 @@ FUNCTION test132()
     VAR r: regex.Result
     r := regex.searchRegex(re, "aaaabcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaAabcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "A"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "A"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test133()
@@ -3624,25 +1894,15 @@ FUNCTION test133()
     VAR r: regex.Result
     r := regex.searchRegex(re, "aaaabcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaAabcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test135()
@@ -3650,14 +1910,9 @@ FUNCTION test135()
     VAR r: regex.Result
     r := regex.searchRegex(re, "xxxxxxxxxxxPSTAIREISLLxxxxxxxxx")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "PSTAIREISLL"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "PSTAIREISLL"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test136()
@@ -3665,14 +1920,9 @@ FUNCTION test136()
     VAR r: regex.Result
     r := regex.searchRegex(re, "xxxxxxxxxxxPSTAIREISLLxxxxxxxxx")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "PSTAIREISLL"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "PSTAIREISLL"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test137()
@@ -3680,81 +1930,24 @@ FUNCTION test137()
     VAR r: regex.Result
     r := regex.searchRegex(re, "1.230003938")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".230003938"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".23"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ".230003938"
+        TESTCASE r.match[1].string = ".23"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1.875000282")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".875000282"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".875"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ".875000282"
+        TESTCASE r.match[1].string = ".875"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "1.235")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".235"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ".23"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
-    END IF
-END FUNCTION
-FUNCTION test140()
-    LET re := regex.prepare(@"\b(foo)\s+(\w+)", ignoreCase WITH TRUE)
-    VAR r: regex.Result
-    r := regex.searchRegex(re, "Food is on the foo table")
-    IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "foo table"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "foo"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "table"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ".235"
+        TESTCASE r.match[1].string = ".23"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test141()
@@ -3762,20 +1955,10 @@ FUNCTION test141()
     VAR r: regex.Result
     r := regex.searchRegex(re, "The food is under the bar in the barn.")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "food is under the bar in the bar"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "d is under the bar in the "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "food is under the bar in the bar"
+        TESTCASE r.match[1].string = "d is under the bar in the "
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test142()
@@ -3783,20 +1966,10 @@ FUNCTION test142()
     VAR r: regex.Result
     r := regex.searchRegex(re, "The food is under the bar in the barn.")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "food is under the bar"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "d is under the "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "food is under the bar"
+        TESTCASE r.match[1].string = "d is under the "
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test143()
@@ -3804,26 +1977,11 @@ FUNCTION test143()
     VAR r: regex.Result
     r := regex.searchRegex(re, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "I have 2 numbers: 53147"
+        TESTCASE r.match[1].string = "I have 2 numbers: 53147"
+        TESTCASE r.match[2].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test144()
@@ -3831,26 +1989,11 @@ FUNCTION test144()
     VAR r: regex.Result
     r := regex.searchRegex(re, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 5314"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "7"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "I have 2 numbers: 53147"
+        TESTCASE r.match[1].string = "I have 2 numbers: 5314"
+        TESTCASE r.match[2].string = "7"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test145()
@@ -3858,26 +2001,11 @@ FUNCTION test145()
     VAR r: regex.Result
     r := regex.searchRegex(re, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+        TESTCASE r.match[1].string = ""
+        TESTCASE r.match[2].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test146()
@@ -3885,26 +2013,11 @@ FUNCTION test146()
     VAR r: regex.Result
     r := regex.searchRegex(re, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "2"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "I have 2"
+        TESTCASE r.match[1].string = "I have "
+        TESTCASE r.match[2].string = "2"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test147()
@@ -3912,26 +2025,11 @@ FUNCTION test147()
     VAR r: regex.Result
     r := regex.searchRegex(re, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 5314"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "7"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "I have 2 numbers: 53147"
+        TESTCASE r.match[1].string = "I have 2 numbers: 5314"
+        TESTCASE r.match[2].string = "7"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test148()
@@ -3939,53 +2037,11 @@ FUNCTION test148()
     VAR r: regex.Result
     r := regex.searchRegex(re, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
-    END IF
-END FUNCTION
-FUNCTION test149()
-    LET re := regex.prepare(@"(.*)\b(\d+)$")
-    VAR r: regex.Result
-    r := regex.searchRegex(re, "I have 2 numbers: 53147")
-    IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "I have 2 numbers: 53147"
+        TESTCASE r.match[1].string = "I have 2 numbers: "
+        TESTCASE r.match[2].string = "53147"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test150()
@@ -3993,26 +2049,11 @@ FUNCTION test150()
     VAR r: regex.Result
     r := regex.searchRegex(re, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: 53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "I have 2 numbers: "
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[2]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "53147"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "I have 2 numbers: 53147"
+        TESTCASE r.match[1].string = "I have 2 numbers: "
+        TESTCASE r.match[2].string = "53147"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test153()
@@ -4020,25 +2061,15 @@ FUNCTION test153()
     VAR r: regex.Result
     r := regex.searchRegex(re, "W46]789")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "W46]"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "W46]"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "-46]789")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "-46]"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "-46]"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "Wall")
     TESTCASE r ISA regex.Result.noMatch
@@ -4056,91 +2087,51 @@ FUNCTION test154()
     VAR r: regex.Result
     r := regex.searchRegex(re, "W46]789")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "W"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "W"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "Wall")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "W"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "W"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "Zebra")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "Z"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "Z"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "Xylophone")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "X"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "X"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "42")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "4"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "4"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "[abcd]")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "["
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "["
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "]abcd[")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "]"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "]"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @"\backslash")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @"\"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = @"\"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "-46]789")
     TESTCASE r ISA regex.Result.noMatch
@@ -4152,14 +2143,9 @@ FUNCTION test155()
     VAR r: regex.Result
     r := regex.searchRegex(re, "01/01/2000")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "01/01/2000"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "01/01/2000"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test158()
@@ -4167,36 +2153,21 @@ FUNCTION test158()
     VAR r: regex.Result
     r := regex.searchRegex(re, "bcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test159()
@@ -4204,48 +2175,23 @@ FUNCTION test159()
     VAR r: regex.Result
     r := regex.searchRegex(re, "bcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test160()
@@ -4253,48 +2199,23 @@ FUNCTION test160()
     VAR r: regex.Result
     r := regex.searchRegex(re, "bcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test161()
@@ -4302,65 +2223,30 @@ FUNCTION test161()
     VAR r: regex.Result
     r := regex.searchRegex(re, "bcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test162()
@@ -4368,82 +2254,37 @@ FUNCTION test162()
     VAR r: regex.Result
     r := regex.searchRegex(re, "bcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaaaaaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaaaaaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaaaaaa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test163()
@@ -4451,37 +2292,17 @@ FUNCTION test163()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bcd")
     TESTCASE r ISA regex.Result.noMatch
@@ -4491,37 +2312,17 @@ FUNCTION test164()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bcd")
     TESTCASE r ISA regex.Result.noMatch
@@ -4531,54 +2332,24 @@ FUNCTION test165()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bcd")
     TESTCASE r ISA regex.Result.noMatch
@@ -4588,71 +2359,31 @@ FUNCTION test166()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "aaaaaaaa")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "aaaaaaaa"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "aaaaaaaa"
+        TESTCASE r.match[1].string = "a"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bcd")
     TESTCASE r ISA regex.Result.noMatch
@@ -4664,15 +2395,10 @@ FUNCTION test170()
 bib.gif
 no"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@"borfle
+        TESTCASE r.match[0].string = @@"borfle
 bib.gif"@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test174()
@@ -4682,16 +2408,11 @@ FUNCTION test174()
 bib.gif
 no"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@"borfle
+        TESTCASE r.match[0].string = @@"borfle
 bib.gif
 no"@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test178()
@@ -4702,17 +2423,12 @@ bib.gif
 no
 "@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@"borfle
+        TESTCASE r.match[0].string = @@"borfle
 bib.gif
 no
 "@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test182()
@@ -4721,39 +2437,19 @@ FUNCTION test182()
     r := regex.searchRegex(re, @@"abcde
 1234Xyz"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@"abcde
+        TESTCASE r.match[0].string = @@"abcde
 1234X"@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@"abcde
+        TESTCASE r.match[1].string = @@"abcde
 1234X"@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "BarFoo")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "B"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "B"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "B"
+        TESTCASE r.match[1].string = "B"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @@"abcde
 Bar"@@)
@@ -4764,14 +2460,9 @@ FUNCTION test192()
     VAR r: regex.Result
     r := regex.searchRegex(re, "123456654321")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "123456654321"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "123456654321"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test193()
@@ -4779,14 +2470,9 @@ FUNCTION test193()
     VAR r: regex.Result
     r := regex.searchRegex(re, "123456654321")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "123456654321"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "123456654321"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test194()
@@ -4794,14 +2480,9 @@ FUNCTION test194()
     VAR r: regex.Result
     r := regex.searchRegex(re, "123456654321")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "123456654321"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "123456654321"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test195()
@@ -4809,14 +2490,9 @@ FUNCTION test195()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abcabcabcabc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcabcabcabc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcabcabcabc"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test196()
@@ -4824,14 +2500,9 @@ FUNCTION test196()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abcabcabcabc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcabcabcabc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcabcabcabc"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test197()
@@ -4839,20 +2510,10 @@ FUNCTION test197()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abcabcabcabc")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcabcabcabc"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "c"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcabcabcabc"
+        TESTCASE r.match[1].string = "c"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 FUNCTION test198()
@@ -4860,14 +2521,9 @@ FUNCTION test198()
     VAR r: regex.Result
     r := regex.searchRegex(re, "n")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "n"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "n"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "z")
     TESTCASE r ISA regex.Result.noMatch
@@ -4877,14 +2533,9 @@ FUNCTION test199()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abcd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abcd"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abcd"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abce")
     TESTCASE r ISA regex.Result.noMatch
@@ -4894,14 +2545,9 @@ FUNCTION test200()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abe")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abe"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abe"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abcde")
     TESTCASE r ISA regex.Result.noMatch
@@ -4911,14 +2557,9 @@ FUNCTION test201()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abd")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abd"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abd"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abcd")
     TESTCASE r ISA regex.Result.noMatch
@@ -4928,54 +2569,24 @@ FUNCTION test202()
     VAR r: regex.Result
     r := regex.searchRegex(re, "a")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "a"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = ""
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "a"
+        TESTCASE r.match[1].string = ""
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "ab")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "ab"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "b"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "ab"
+        TESTCASE r.match[1].string = "b"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "abbbb")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abbbb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "bbbb"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abbbb"
+        TESTCASE r.match[1].string = "bbbb"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "bbbbb")
     TESTCASE r ISA regex.Result.noMatch
@@ -4985,14 +2596,9 @@ FUNCTION test203()
     VAR r: regex.Result
     r := regex.searchRegex(re, "abe")
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "abe"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = "abe"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, "ab1e")
     TESTCASE r ISA regex.Result.noMatch
@@ -5002,37 +2608,17 @@ FUNCTION test204()
     VAR r: regex.Result
     r := regex.searchRegex(re, @@"the "quick" brown fox"@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@""quick""@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = "quick"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = @@""quick""@@
+        TESTCASE r.match[1].string = "quick"
+    ELSE
+        TESTCASE FALSE
     END IF
     r := regex.searchRegex(re, @@""the \"quick\" brown fox""@@)
     IF r ISA regex.Result.match THEN
-        VAR m: regex.Match
-        m := r.match[0]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = @@""the \"quick\" brown fox""@@
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        m := r.match[1]
-        IF m ISA regex.Match.found THEN
-            TESTCASE m.found.string = " brown fox"
-        ELSE
-            TESTCASE m ISA regex.Match.found
-        END IF
-        TESTCASE r ISA regex.Result.match
+        TESTCASE r.match[0].string = @@""the \"quick\" brown fox""@@
+        TESTCASE r.match[1].string = " brown fox"
+    ELSE
+        TESTCASE FALSE
     END IF
 END FUNCTION
 test0()
@@ -5097,7 +2683,6 @@ test101()
 test102()
 test114()
 test115()
-test120()
 test121()
 test122()
 test123()
@@ -5113,7 +2698,6 @@ test133()
 test135()
 test136()
 test137()
-test140()
 test141()
 test142()
 test143()
@@ -5122,7 +2706,6 @@ test145()
 test146()
 test147()
 test148()
-test149()
 test150()
 test153()
 test154()
