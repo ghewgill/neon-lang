@@ -2397,7 +2397,7 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
     return r;
 }
 
-static std::pair<bool, std::pair<int, std::string>> validate_regex(const utf8string &pattern)
+static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_regex(const utf8string &pattern)
 {
     int depth = 0;
     std::string::size_type i = 0;
