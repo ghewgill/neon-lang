@@ -2528,6 +2528,17 @@ static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_
                  || (pattern.at(i) >= 'a' && pattern.at(i) <= 'z')
                  || (pattern.at(i) >= '0' && pattern.at(i) <= '9')) {
                     switch (pattern.at(i)) {
+                        case '0':
+                        case '1':
+                        case '2':
+                        case '3':
+                        case '4':
+                        case '5':
+                        case '6':
+                        case '7':
+                        case '8':
+                        case '9':
+                            return std::make_pair(false, std::make_pair(i, "backreferences not supported"));
                         case 'd':
                         case 'D':
                         case 'e':

@@ -45,6 +45,7 @@
  */
 
 EXPORT Match
+EXPORT PrepareResult
 EXPORT Result
 EXPORT Opcode
 EXPORT Regex
@@ -58,18 +59,6 @@ IMPORT string
 
 CONSTANT Debug := FALSE
 
-TYPE Match IS RECORD
-    found: Boolean
-    first: Number
-    last: Number
-    string: String
-END RECORD
-
-TYPE Result IS CHOICE
-    noMatch
-    match: Array<Match>
-END CHOICE
-
 TYPE Opcode IS CHOICE
     any
     char: String
@@ -82,6 +71,29 @@ TYPE Opcode IS CHOICE
 END CHOICE
 
 TYPE Regex IS Array<Opcode>
+
+TYPE Match IS RECORD
+    found: Boolean
+    first: Number
+    last: Number
+    string: String
+END RECORD
+
+TYPE ErrorInfo IS RECORD
+    index: Number
+    message: String
+END RECORD
+
+TYPE PrepareResult IS CHOICE
+    error: ErrorInfo
+    regex: Regex
+END CHOICE
+
+TYPE Result IS CHOICE
+    error: ErrorInfo
+    noMatch
+    match: Array<Match>
+END CHOICE
 
 INTERFACE Expr
     FUNCTION dump(self: Expr): String
@@ -434,7 +446,12 @@ LET SpaceCharsComplement := complement(SpaceChars)
 LET WordChars := range("A", "Z") & range("a", "z") & DigitChars & ["_"]
 LET WordCharsComplement := complement(WordChars)
 
-FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT groupIndex: Number): VALID POINTER TO Expr
+TYPE ParseResult IS CHOICE
+    error: ErrorInfo
+    expr: VALID POINTER TO Expr
+END CHOICE
+
+FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT groupIndex: Number): ParseResult
     VAR a: POINTER TO ExprAlternative := NIL
     VAR r: VALID POINTER TO ExprSequence := NEW ExprSequence
     WHILE i < pattern.length() DO
@@ -459,9 +476,10 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                         INC i
                         VAR c := pattern[i]
                         IF c = "\\" THEN
-                            CASE pattern[i+1]
+                            INC i
+                            CASE pattern[i]
                                 WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
-                                    CASE pattern[i+1]
+                                    CASE pattern[i]
                                         WHEN "b" DO
                                             c := "\b"
                                         WHEN "e" DO
@@ -475,14 +493,13 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                                         WHEN "t" DO
                                             c := "\t"
                                         WHEN "x" DO
-                                            c := string.fromCodePoint(base.fromHex(pattern[i+2 TO i+3]))
+                                            c := string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))
                                             i := i + 2
                                         WHEN OTHERS DO
-                                            ASSERT FALSE
+                                            RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))
                                     END CASE
                                 WHEN OTHERS DO
-                                    c := pattern[i+1]
-                                    INC i
+                                    c := pattern[i]
                             END CASE
                         END IF
                         FOR x := string.toCodePoint(s[LAST]) + 1 TO string.toCodePoint(c) DO
@@ -521,7 +538,7 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                                         s.append(string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2])))
                                         i := i + 2
                                     WHEN OTHERS DO
-                                        ASSERT FALSE
+                                        RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))
                                 END CASE
                             WHEN OTHERS DO
                                 s.append(pattern[i])
@@ -531,7 +548,9 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     END IF
                     INC i
                 END WHILE
-                ASSERT pattern[i] = "]"
+                CHECK i < pattern.length() AND pattern[i] = "]" ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unterminated character class"))
+                END CHECK
                 IF ignoreCase AND string.lower(string.join(s, "")) <> string.upper(string.join(s, "")) THEN
                     VAR t: Array<String> := []
                     FOREACH c IN s DO
@@ -543,8 +562,7 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                 r->exprs.append(NEW ExprClass(chars WITH s, complement WITH comp))
             WHEN "?" DO
                 CHECK r->exprs.size() > 0 ELSE
-                    ASSERT FALSE
-                    EXIT PROCESS FAILURE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "quantifier must follow repeatable element"))
                 END CHECK
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
@@ -553,6 +571,9 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST], greedy WITH TRUE)
                 END IF
             WHEN "*" DO
+                CHECK r->exprs.size() > 0 ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "quantifier must follow repeatable element"))
+                END CHECK
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
                     r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST], greedy WITH FALSE)
@@ -560,6 +581,9 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST], greedy WITH TRUE)
                 END IF
             WHEN "+" DO
+                CHECK r->exprs.size() > 0 ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "quantifier must follow repeatable element"))
+                END CHECK
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
                     r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST], greedy WITH FALSE)
@@ -567,6 +591,9 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST], greedy WITH TRUE)
                 END IF
             WHEN "{" DO
+                CHECK r->exprs.size() > 0 ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "quantifier must follow repeatable element"))
+                END CHECK
                 VAR min := 0
                 VAR max := -1
                 INC i
@@ -578,7 +605,7 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     min := num(pattern[i TO j-1])
                     i := j
                 END IF
-                IF pattern[i] = "," THEN
+                IF i < pattern.length() AND pattern[i] = "," THEN
                     INC i
                     j := i
                     WHILE j < pattern.length() AND "0" <= pattern[j] <= "9" DO
@@ -591,7 +618,9 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                 ELSE
                     max := min
                 END IF
-                ASSERT pattern[i] = "}"
+                CHECK i < pattern.length() AND pattern[i] = "}" ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "} expected"))
+                END CHECK
                 IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
                     INC i
                     r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST], greedy WITH FALSE)
@@ -600,15 +629,21 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                 END IF
             WHEN "(" DO
                 INC i
+                CHECK i < pattern.length() ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unterminated parenthesis"))
+                END CHECK
                 VAR capture := TRUE
                 IF pattern[i] = "?" THEN
                     INC i
+                    CHECK i < pattern.length() ELSE
+                        RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "expected character after (?"))
+                    END CHECK
                     CASE pattern[i]
                         WHEN ":" DO
                             INC i
                             capture := FALSE
                         WHEN OTHERS DO
-                            ASSERT FALSE
+                            RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown extended modifier"))
                     END CASE
                 END IF
                 VAR gi := 0
@@ -616,9 +651,14 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     INC groupIndex
                     gi := groupIndex
                 END IF
-                LET e := parsePart(pattern, ignoreCase, INOUT i, INOUT groupIndex)
-                ASSERT pattern[i] = ")"
-                r->exprs.append(NEW ExprGroup(index WITH gi, capture WITH capture, expr WITH e))
+                LET pr := parsePart(pattern, ignoreCase, INOUT i, INOUT groupIndex)
+                CHECK pr ISA ParseResult.expr ELSE
+                    RETURN pr
+                END CHECK
+                CHECK i < pattern.length() AND pattern[i] = ")" ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unterminated parenthesis"))
+                END CHECK
+                r->exprs.append(NEW ExprGroup(index WITH gi, capture WITH capture, expr WITH pr.expr))
             WHEN ")" DO
                 EXIT WHILE
             WHEN "|" DO
@@ -630,6 +670,9 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                 r := NEW ExprSequence
             WHEN "\\" DO
                 INC i
+                CHECK i < pattern.length() ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "expected character after backslash"))
+                END CHECK
                 CASE pattern[i]
                     WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
                         CASE pattern[i]
@@ -637,7 +680,7 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                                 r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
                                 i := i + 2
                             WHEN "1" TO "9" DO
-                                ASSERT FALSE
+                                RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "backreferences not supported"))
                             WHEN "b" DO
                                 r->exprs.append(NEW ExprLiteral(literal WITH "\b"))
                             WHEN "d" DO
@@ -666,7 +709,7 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                                 r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))))
                                 i := i + 2
                             WHEN OTHERS DO
-                                ASSERT FALSE
+                                RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))
                         END CASE
                     WHEN OTHERS DO
                         r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
@@ -682,16 +725,23 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
     END WHILE
     IF VALID a THEN
         a->alternatives.append(r)
-        RETURN a
+        RETURN ParseResult.expr(a)
     ELSE
-        RETURN r
+        RETURN ParseResult.expr(r)
     END IF
 END FUNCTION
 
-FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): VALID POINTER TO Expr
+FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): ParseResult
     VAR i := 0
     VAR groupIndex := 0
-    RETURN parsePart(pattern, ignoreCase, INOUT i, INOUT groupIndex)
+    LET r := parsePart(pattern, ignoreCase, INOUT i, INOUT groupIndex)
+    CHECK r ISA ParseResult.expr ELSE
+        RETURN r
+    END CHECK
+    IF i < pattern.length() THEN
+        RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unexpected )"))
+    END IF
+    RETURN r
 END FUNCTION
 
 FUNCTION compile(expr: VALID POINTER TO Expr): Regex
@@ -803,15 +853,21 @@ FUNCTION match(regex: Regex, target: String): Result
     RETURN r
 END FUNCTION
 
-FUNCTION prepare(pattern: String, ignoreCase: Boolean DEFAULT FALSE): Regex
+FUNCTION prepare(pattern: String, ignoreCase: Boolean DEFAULT FALSE): PrepareResult
     LET e := parse(pattern, ignoreCase)
-    LET r := compile(e)
-    RETURN r
+    CHECK e ISA ParseResult.expr ELSE
+        RETURN PrepareResult.error(e.error)
+    END CHECK
+    LET r := compile(e.expr)
+    RETURN PrepareResult.regex(r)
 END FUNCTION
 
 FUNCTION search(pattern: String, target: String): Result
     LET r := prepare(pattern)
-    RETURN match(r, target)
+    CHECK r ISA PrepareResult.regex ELSE
+        RETURN Result.error(r.error)
+    END CHECK
+    RETURN match(r.regex, target)
 END FUNCTION
 
 FUNCTION searchRegex(regex: Regex, target: String): Result
@@ -822,9 +878,17 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
     IF Debug THEN
         print("-- test: \(pattern)")
     END IF
-    LET re := prepare(pattern)
+    LET pr := prepare(pattern)
+    CHECK pr ISA PrepareResult.regex ELSE
+        LET expected: String := cases[0][1]
+        CHECK cases[0][0] = NIL AND expected IN pr.error.message ELSE
+            print("failed: message=\(pr.error.message) expected=\(expected)")
+            EXIT PROCESS FAILURE
+        END CHECK
+        EXIT FUNCTION
+    END CHECK
     IF Debug THEN
-        FOREACH e IN re INDEX i DO
+        FOREACH e IN pr.regex INDEX i DO
             print("\(i) \(e)")
         END FOREACH
     END IF
@@ -832,8 +896,14 @@ FUNCTION test(pattern: String, cases: Array<Array<Object>>)
         IF Debug THEN
             print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
         END IF
-        LET r := match(re, t[1])
+        LET r := match(pr.regex, t[1])
         CASE r
+            WHEN ISA Result.error DO
+                LET expected: String := t[1]
+                CHECK t[0] = NIL AND expected IN r.error.message ELSE
+                    print("failed")
+                    EXIT PROCESS FAILURE
+                END CHECK
             WHEN ISA Result.noMatch DO
                 CHECK NOT t[0] ELSE
                     print("failed")
@@ -987,6 +1057,57 @@ BEGIN MAIN
     ])
     test("ab(cd)", [
         [TRUE, "abcd", ["abcd", "cd"]],
+    ])
+    test("?", [
+        [NIL, "quantifier must follow repeatable element"],
+    ])
+    test("*", [
+        [NIL, "quantifier must follow repeatable element"],
+    ])
+    test("+", [
+        [NIL, "quantifier must follow repeatable element"],
+    ])
+    test("{1}", [
+        [NIL, "quantifier must follow repeatable element"],
+    ])
+    test("a{a}", [
+        [NIL, "} expected"],
+    ])
+    test("a{", [
+        [NIL, "} expected"],
+    ])
+    test("\\", [
+        [NIL, "expected character after backslash"],
+    ])
+    test("\\a", [
+        [NIL, "unknown escape character"],
+    ])
+    test("[\\a]", [
+        [NIL, "unknown escape character"],
+    ])
+    test("[a-\\a]", [
+        [NIL, "unknown escape character"],
+    ])
+    test("[a", [
+        [NIL, "unterminated character class"],
+    ])
+    test("(?", [
+        [NIL, "expected character after (?"],
+    ])
+    test("(?%", [
+        [NIL, "unknown extended modifier"],
+    ])
+    test(")", [
+        [NIL, "unexpected )"],
+    ])
+    test("(", [
+        [NIL, "unterminated parenthesis"],
+    ])
+    test("(a", [
+        [NIL, "unterminated parenthesis"],
+    ])
+    test("\\1", [
+        [NIL, "backreferences not supported"],
     ])
     print("passed")
 END MAIN

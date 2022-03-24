@@ -3,47 +3,55 @@
 IMPORT regex
 
 FUNCTION test0()
-    LET re := regex.prepare("the quick brown fox")
+    LET pr := regex.prepare("the quick brown fox")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "the quick brown fox")
+    r := regex.searchRegex(pr.regex, "the quick brown fox")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "the quick brown fox"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "What do you know about the quick brown fox?")
+    r := regex.searchRegex(pr.regex, "What do you know about the quick brown fox?")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "the quick brown fox"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "The quick brown FOX")
+    r := regex.searchRegex(pr.regex, "The quick brown FOX")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "What do you know about THE QUICK BROWN FOX?")
+    r := regex.searchRegex(pr.regex, "What do you know about THE QUICK BROWN FOX?")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test1()
-    LET re := regex.prepare("The quick brown fox", ignoreCase WITH TRUE)
+    LET pr := regex.prepare("The quick brown fox", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "the quick brown fox")
+    r := regex.searchRegex(pr.regex, "the quick brown fox")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "the quick brown fox"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "The quick brown FOX")
+    r := regex.searchRegex(pr.regex, "The quick brown FOX")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "The quick brown FOX"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "What do you know about the quick brown fox?")
+    r := regex.searchRegex(pr.regex, "What do you know about the quick brown fox?")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "the quick brown fox"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "What do you know about THE QUICK BROWN FOX?")
+    r := regex.searchRegex(pr.regex, "What do you know about THE QUICK BROWN FOX?")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "THE QUICK BROWN FOX"
     ELSE
@@ -51,612 +59,656 @@ FUNCTION test1()
     END IF
 END FUNCTION
 FUNCTION test3()
-    LET re := regex.prepare("a*abc?xyz+pqr{3}ab{2,}xy{4,5}pq{0,6}AB{0,}zz")
+    LET pr := regex.prepare("a*abc?xyz+pqr{3}ab{2,}xy{4,5}pq{0,6}AB{0,}zz")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "abxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "abxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aabxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aabxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaabxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaaabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaabxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abcxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "abcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aabcxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aabcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aabcxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypqqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypqqqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqqAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypqqqqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqqqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqqqAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypqqqqqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqqqqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqqqqAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypqqqqqqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypqqqqqqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaabcxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaaabcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaabcxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abxyzzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "abxyzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abxyzzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aabxyzzzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aabxyzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aabxyzzzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabxyzzzzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaabxyzzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabxyzzzzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaabxyzzzzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaaabxyzzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaabxyzzzzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abcxyzzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "abcxyzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcxyzzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aabcxyzzzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aabcxyzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aabcxyzzzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzzzzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzzzzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaabcxyzzzzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaaabcxyzzzzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaabcxyzzzzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaabcxyzzzzpqrrrabbbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaaabcxyzzzzpqrrrabbbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaabcxyzzzzpqrrrabbbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaabcxyzzzzpqrrrabbbxyyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaaabcxyzzzzpqrrrabbbxyyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaabcxyzzzzpqrrrabbbxyyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypABzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypABzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypABzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypABBzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypABBzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabcxyzpqrrrabbxyyyypABBzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, ">>>aaabxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, ">>>aaabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaabxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, ">aaaabxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, ">aaaabxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaabxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, ">>>>abcxyzpqrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, ">>>>abcxyzpqrrrabbxyyyypqAzz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcxyzpqrrrabbxyyyypqAzz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abxyzpqrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "abxyzpqrrabbxyyyypqAzz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abxyzpqrrrrabbxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "abxyzpqrrrrabbxyyyypqAzz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abxyzpqrrrabxyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "abxyzpqrrrabxyyyypqAzz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "aaaabcxyzzzzpqrrrabbbxyyyyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaaabcxyzzzzpqrrrabbbxyyyyyypqAzz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "aaaabcxyzzzzpqrrrabbbxyyypqAzz")
+    r := regex.searchRegex(pr.regex, "aaaabcxyzzzzpqrrrabbbxyyypqAzz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "aaabcxyzpqrrrabbxyyyypqqqqqqqAzz")
+    r := regex.searchRegex(pr.regex, "aaabcxyzpqrrrabbxyyyypqqqqqqqAzz")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test4()
-    LET re := regex.prepare("^(abc){1,2}zz")
+    LET pr := regex.prepare("^(abc){1,2}zz")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abczz")
+    r := regex.searchRegex(pr.regex, "abczz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abczz"
         TESTCASE r.match[1].string = "abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abcabczz")
+    r := regex.searchRegex(pr.regex, "abcabczz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcabczz"
         TESTCASE r.match[1].string = "abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "zz")
+    r := regex.searchRegex(pr.regex, "zz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abcabcabczz")
+    r := regex.searchRegex(pr.regex, "abcabcabczz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, ">>abczz")
+    r := regex.searchRegex(pr.regex, ">>abczz")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test5()
-    LET re := regex.prepare("^(b+?|a){1,2}?c")
+    LET pr := regex.prepare("^(b+?|a){1,2}?c")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "bc")
+    r := regex.searchRegex(pr.regex, "bc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bc"
         TESTCASE r.match[1].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbc")
+    r := regex.searchRegex(pr.regex, "bbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbc"
         TESTCASE r.match[1].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbbc")
+    r := regex.searchRegex(pr.regex, "bbbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbbc"
         TESTCASE r.match[1].string = "bb"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bac")
+    r := regex.searchRegex(pr.regex, "bac")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bac"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbac")
+    r := regex.searchRegex(pr.regex, "bbac")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbac"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aac")
+    r := regex.searchRegex(pr.regex, "aac")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aac"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abbbbbbbbbbbc")
+    r := regex.searchRegex(pr.regex, "abbbbbbbbbbbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abbbbbbbbbbbc"
         TESTCASE r.match[1].string = "bbbbbbbbbbb"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbbbbbbbbbbac")
+    r := regex.searchRegex(pr.regex, "bbbbbbbbbbbac")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbbbbbbbbbbac"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaac")
+    r := regex.searchRegex(pr.regex, "aaac")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abbbbbbbbbbbac")
+    r := regex.searchRegex(pr.regex, "abbbbbbbbbbbac")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test6()
-    LET re := regex.prepare("^(b+|a){1,2}c")
+    LET pr := regex.prepare("^(b+|a){1,2}c")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "bc")
+    r := regex.searchRegex(pr.regex, "bc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bc"
         TESTCASE r.match[1].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbc")
+    r := regex.searchRegex(pr.regex, "bbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbc"
         TESTCASE r.match[1].string = "bb"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbbc")
+    r := regex.searchRegex(pr.regex, "bbbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbbc"
         TESTCASE r.match[1].string = "bbb"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bac")
+    r := regex.searchRegex(pr.regex, "bac")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bac"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbac")
+    r := regex.searchRegex(pr.regex, "bbac")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbac"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aac")
+    r := regex.searchRegex(pr.regex, "aac")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aac"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abbbbbbbbbbbc")
+    r := regex.searchRegex(pr.regex, "abbbbbbbbbbbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abbbbbbbbbbbc"
         TESTCASE r.match[1].string = "bbbbbbbbbbb"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbbbbbbbbbbac")
+    r := regex.searchRegex(pr.regex, "bbbbbbbbbbbac")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbbbbbbbbbbac"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaac")
+    r := regex.searchRegex(pr.regex, "aaac")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abbbbbbbbbbbac")
+    r := regex.searchRegex(pr.regex, "abbbbbbbbbbbac")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test7()
-    LET re := regex.prepare("^(ba|b*){1,2}?bc")
+    LET pr := regex.prepare("^(ba|b*){1,2}?bc")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "babc")
+    r := regex.searchRegex(pr.regex, "babc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "babc"
         TESTCASE r.match[1].string = "ba"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbabc")
+    r := regex.searchRegex(pr.regex, "bbabc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bbabc"
         TESTCASE r.match[1].string = "ba"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bababc")
+    r := regex.searchRegex(pr.regex, "bababc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bababc"
         TESTCASE r.match[1].string = "ba"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bababbc")
+    r := regex.searchRegex(pr.regex, "bababbc")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "babababc")
+    r := regex.searchRegex(pr.regex, "babababc")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test9()
-    LET re := regex.prepare(@"^[ab\]cde]")
+    LET pr := regex.prepare(@"^[ab\]cde]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "athing")
+    r := regex.searchRegex(pr.regex, "athing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bthing")
+    r := regex.searchRegex(pr.regex, "bthing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "]thing")
+    r := regex.searchRegex(pr.regex, "]thing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "]"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "cthing")
+    r := regex.searchRegex(pr.regex, "cthing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "c"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "dthing")
+    r := regex.searchRegex(pr.regex, "dthing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "d"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "ething")
+    r := regex.searchRegex(pr.regex, "ething")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "e"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "fthing")
+    r := regex.searchRegex(pr.regex, "fthing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "[thing")
+    r := regex.searchRegex(pr.regex, "[thing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, @"\	hing")
+    r := regex.searchRegex(pr.regex, @"\	hing")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test10()
-    LET re := regex.prepare("^[]cde]")
+    LET pr := regex.prepare("^[]cde]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "]thing")
+    r := regex.searchRegex(pr.regex, "]thing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "]"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "cthing")
+    r := regex.searchRegex(pr.regex, "cthing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "c"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "dthing")
+    r := regex.searchRegex(pr.regex, "dthing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "d"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "ething")
+    r := regex.searchRegex(pr.regex, "ething")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "e"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "athing")
+    r := regex.searchRegex(pr.regex, "athing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "fthing")
+    r := regex.searchRegex(pr.regex, "fthing")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test11()
-    LET re := regex.prepare(@"^[^ab\]cde]")
+    LET pr := regex.prepare(@"^[^ab\]cde]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "fthing")
+    r := regex.searchRegex(pr.regex, "fthing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "f"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "[thing")
+    r := regex.searchRegex(pr.regex, "[thing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "["
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @"\	hing")
+    r := regex.searchRegex(pr.regex, @"\	hing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @"\"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "athing")
+    r := regex.searchRegex(pr.regex, "athing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "bthing")
+    r := regex.searchRegex(pr.regex, "bthing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "]thing")
+    r := regex.searchRegex(pr.regex, "]thing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "cthing")
+    r := regex.searchRegex(pr.regex, "cthing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "dthing")
+    r := regex.searchRegex(pr.regex, "dthing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "ething")
+    r := regex.searchRegex(pr.regex, "ething")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test12()
-    LET re := regex.prepare("^[^]cde]")
+    LET pr := regex.prepare("^[^]cde]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "athing")
+    r := regex.searchRegex(pr.regex, "athing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "fthing")
+    r := regex.searchRegex(pr.regex, "fthing")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "f"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "]thing")
+    r := regex.searchRegex(pr.regex, "]thing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "cthing")
+    r := regex.searchRegex(pr.regex, "cthing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "dthing")
+    r := regex.searchRegex(pr.regex, "dthing")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "ething")
+    r := regex.searchRegex(pr.regex, "ething")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test15()
-    LET re := regex.prepare("^[0-9]+$")
+    LET pr := regex.prepare("^[0-9]+$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "0")
+    r := regex.searchRegex(pr.regex, "0")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "0"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1")
+    r := regex.searchRegex(pr.regex, "1")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "2")
+    r := regex.searchRegex(pr.regex, "2")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "2"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "3")
+    r := regex.searchRegex(pr.regex, "3")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "3"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "4")
+    r := regex.searchRegex(pr.regex, "4")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "4"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "5")
+    r := regex.searchRegex(pr.regex, "5")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "5"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "6")
+    r := regex.searchRegex(pr.regex, "6")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "6"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "7")
+    r := regex.searchRegex(pr.regex, "7")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "7"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "8")
+    r := regex.searchRegex(pr.regex, "8")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "8"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "9")
+    r := regex.searchRegex(pr.regex, "9")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "9"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "10")
+    r := regex.searchRegex(pr.regex, "10")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "10"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "100")
+    r := regex.searchRegex(pr.regex, "100")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "100"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test16()
-    LET re := regex.prepare("^.*nter")
+    LET pr := regex.prepare("^.*nter")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "enter")
+    r := regex.searchRegex(pr.regex, "enter")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "enter"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "inter")
+    r := regex.searchRegex(pr.regex, "inter")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "inter"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "uponter")
+    r := regex.searchRegex(pr.regex, "uponter")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "uponter"
     ELSE
@@ -664,87 +716,103 @@ FUNCTION test16()
     END IF
 END FUNCTION
 FUNCTION test17()
-    LET re := regex.prepare("^xxx[0-9]+$")
+    LET pr := regex.prepare("^xxx[0-9]+$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "xxx0")
+    r := regex.searchRegex(pr.regex, "xxx0")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "xxx0"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "xxx1234")
+    r := regex.searchRegex(pr.regex, "xxx1234")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "xxx1234"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "xxx")
+    r := regex.searchRegex(pr.regex, "xxx")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test18()
-    LET re := regex.prepare("^.+[0-9][0-9][0-9]$")
+    LET pr := regex.prepare("^.+[0-9][0-9][0-9]$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "x123")
+    r := regex.searchRegex(pr.regex, "x123")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "x123"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "x1234")
+    r := regex.searchRegex(pr.regex, "x1234")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "x1234"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "xx123")
+    r := regex.searchRegex(pr.regex, "xx123")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "xx123"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "123456")
+    r := regex.searchRegex(pr.regex, "123456")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "123456"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "123")
+    r := regex.searchRegex(pr.regex, "123")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test19()
-    LET re := regex.prepare("^.+?[0-9][0-9][0-9]$")
+    LET pr := regex.prepare("^.+?[0-9][0-9][0-9]$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "x123")
+    r := regex.searchRegex(pr.regex, "x123")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "x123"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "x1234")
+    r := regex.searchRegex(pr.regex, "x1234")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "x1234"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "xx123")
+    r := regex.searchRegex(pr.regex, "xx123")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "xx123"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "123456")
+    r := regex.searchRegex(pr.regex, "123456")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "123456"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "123")
+    r := regex.searchRegex(pr.regex, "123")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test20()
-    LET re := regex.prepare(@"^([^!]+)!(.+)=apquxz\.ixr\.zzz\.ac\.uk$")
+    LET pr := regex.prepare(@"^([^!]+)!(.+)=apquxz\.ixr\.zzz\.ac\.uk$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abc!pqr=apquxz.ixr.zzz.ac.uk")
+    r := regex.searchRegex(pr.regex, "abc!pqr=apquxz.ixr.zzz.ac.uk")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abc!pqr=apquxz.ixr.zzz.ac.uk"
         TESTCASE r.match[1].string = "abc"
@@ -752,99 +820,111 @@ FUNCTION test20()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "!pqr=apquxz.ixr.zzz.ac.uk")
+    r := regex.searchRegex(pr.regex, "!pqr=apquxz.ixr.zzz.ac.uk")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abc!=apquxz.ixr.zzz.ac.uk")
+    r := regex.searchRegex(pr.regex, "abc!=apquxz.ixr.zzz.ac.uk")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abc!pqr=apquxz:ixr.zzz.ac.uk")
+    r := regex.searchRegex(pr.regex, "abc!pqr=apquxz:ixr.zzz.ac.uk")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abc!pqr=apquxz.ixr.zzz.ac.ukk")
+    r := regex.searchRegex(pr.regex, "abc!pqr=apquxz.ixr.zzz.ac.ukk")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test21()
-    LET re := regex.prepare(":")
+    LET pr := regex.prepare(":")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "Well, we need a colon: somewhere")
+    r := regex.searchRegex(pr.regex, "Well, we need a colon: somewhere")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ":"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "Fail without a colon")
+    r := regex.searchRegex(pr.regex, "Fail without a colon")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test22()
-    LET re := regex.prepare(@"([\da-f:]+)$", ignoreCase WITH TRUE)
+    LET pr := regex.prepare(@"([\da-f:]+)$", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "0abc")
+    r := regex.searchRegex(pr.regex, "0abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "0abc"
         TESTCASE r.match[1].string = "0abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abc"
         TESTCASE r.match[1].string = "abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "fed")
+    r := regex.searchRegex(pr.regex, "fed")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "fed"
         TESTCASE r.match[1].string = "fed"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "E")
+    r := regex.searchRegex(pr.regex, "E")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "E"
         TESTCASE r.match[1].string = "E"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "::")
+    r := regex.searchRegex(pr.regex, "::")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "::"
         TESTCASE r.match[1].string = "::"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "5f03:12C0::932e")
+    r := regex.searchRegex(pr.regex, "5f03:12C0::932e")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "5f03:12C0::932e"
         TESTCASE r.match[1].string = "5f03:12C0::932e"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "fed def")
+    r := regex.searchRegex(pr.regex, "fed def")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "def"
         TESTCASE r.match[1].string = "def"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "Any old stuff")
+    r := regex.searchRegex(pr.regex, "Any old stuff")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "ff"
         TESTCASE r.match[1].string = "ff"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "0zzz")
+    r := regex.searchRegex(pr.regex, "0zzz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "gzzz")
+    r := regex.searchRegex(pr.regex, "gzzz")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "fed ")
+    r := regex.searchRegex(pr.regex, "fed ")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "Any old rubbish")
+    r := regex.searchRegex(pr.regex, "Any old rubbish")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test23()
-    LET re := regex.prepare(@"^.*\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$")
+    LET pr := regex.prepare(@"^.*\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, ".1.2.3")
+    r := regex.searchRegex(pr.regex, ".1.2.3")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ".1.2.3"
         TESTCASE r.match[1].string = "1"
@@ -853,7 +933,7 @@ FUNCTION test23()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "A.12.123.0")
+    r := regex.searchRegex(pr.regex, "A.12.123.0")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "A.12.123.0"
         TESTCASE r.match[1].string = "12"
@@ -862,17 +942,21 @@ FUNCTION test23()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, ".1.2.3333")
+    r := regex.searchRegex(pr.regex, ".1.2.3333")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "1.2.3")
+    r := regex.searchRegex(pr.regex, "1.2.3")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "1234.2.3")
+    r := regex.searchRegex(pr.regex, "1234.2.3")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test24()
-    LET re := regex.prepare(@"^(\d+)\s+IN\s+SOA\s+(\S+)\s+(\S+)\s*\(\s*$")
+    LET pr := regex.prepare(@"^(\d+)\s+IN\s+SOA\s+(\S+)\s+(\S+)\s*\(\s*$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "1 IN SOA non-sp1 non-sp2(")
+    r := regex.searchRegex(pr.regex, "1 IN SOA non-sp1 non-sp2(")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1 IN SOA non-sp1 non-sp2("
         TESTCASE r.match[1].string = "1"
@@ -881,7 +965,7 @@ FUNCTION test24()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1    IN    SOA    non-sp1    non-sp2   (")
+    r := regex.searchRegex(pr.regex, "1    IN    SOA    non-sp1    non-sp2   (")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1    IN    SOA    non-sp1    non-sp2   ("
         TESTCASE r.match[1].string = "1"
@@ -890,71 +974,79 @@ FUNCTION test24()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1IN SOA non-sp1 non-sp2(")
+    r := regex.searchRegex(pr.regex, "1IN SOA non-sp1 non-sp2(")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test25()
-    LET re := regex.prepare(@"^[a-zA-Z\d][a-zA-Z\d\-]*(\.[a-zA-Z\d][a-zA-z\d\-]*)*\.$")
+    LET pr := regex.prepare(@"^[a-zA-Z\d][a-zA-Z\d\-]*(\.[a-zA-Z\d][a-zA-z\d\-]*)*\.$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "a.")
+    r := regex.searchRegex(pr.regex, "a.")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a."
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "Z.")
+    r := regex.searchRegex(pr.regex, "Z.")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "Z."
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "2.")
+    r := regex.searchRegex(pr.regex, "2.")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "2."
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "ab-c.pq-r.")
+    r := regex.searchRegex(pr.regex, "ab-c.pq-r.")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "ab-c.pq-r."
         TESTCASE r.match[1].string = ".pq-r"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "sxk.zzz.ac.uk.")
+    r := regex.searchRegex(pr.regex, "sxk.zzz.ac.uk.")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "sxk.zzz.ac.uk."
         TESTCASE r.match[1].string = ".uk"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "x-.y-.")
+    r := regex.searchRegex(pr.regex, "x-.y-.")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "x-.y-."
         TESTCASE r.match[1].string = ".y-"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "-abc.peq.")
+    r := regex.searchRegex(pr.regex, "-abc.peq.")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test26()
-    LET re := regex.prepare(@"^\*\.[a-z]([a-z\-\d]*[a-z\d]+)?(\.[a-z]([a-z\-\d]*[a-z\d]+)?)*$")
+    LET pr := regex.prepare(@"^\*\.[a-z]([a-z\-\d]*[a-z\d]+)?(\.[a-z]([a-z\-\d]*[a-z\d]+)?)*$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "*.a")
+    r := regex.searchRegex(pr.regex, "*.a")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "*.a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "*.b0-a")
+    r := regex.searchRegex(pr.regex, "*.b0-a")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "*.b0-a"
         TESTCASE r.match[1].string = "0-a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "*.c3-b.c")
+    r := regex.searchRegex(pr.regex, "*.c3-b.c")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "*.c3-b.c"
         TESTCASE r.match[1].string = "3-b"
@@ -962,7 +1054,7 @@ FUNCTION test26()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "*.c-a.b-c")
+    r := regex.searchRegex(pr.regex, "*.c-a.b-c")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "*.c-a.b-c"
         TESTCASE r.match[1].string = "-a"
@@ -971,33 +1063,37 @@ FUNCTION test26()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "*.0")
+    r := regex.searchRegex(pr.regex, "*.0")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "*.a-")
+    r := regex.searchRegex(pr.regex, "*.a-")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "*.a-b.c-")
+    r := regex.searchRegex(pr.regex, "*.a-b.c-")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "*.c-a.0-c")
+    r := regex.searchRegex(pr.regex, "*.c-a.0-c")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test30()
-    LET re := regex.prepare(@"^[\da-f](\.[\da-f])*$", ignoreCase WITH TRUE)
+    LET pr := regex.prepare(@"^[\da-f](\.[\da-f])*$", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "a.b.c.d")
+    r := regex.searchRegex(pr.regex, "a.b.c.d")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a.b.c.d"
         TESTCASE r.match[1].string = ".d"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "A.B.C.D")
+    r := regex.searchRegex(pr.regex, "A.B.C.D")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "A.B.C.D"
         TESTCASE r.match[1].string = ".D"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "a.b.c.1.2.3.C")
+    r := regex.searchRegex(pr.regex, "a.b.c.1.2.3.C")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a.b.c.1.2.3.C"
         TESTCASE r.match[1].string = ".C"
@@ -1006,47 +1102,59 @@ FUNCTION test30()
     END IF
 END FUNCTION
 FUNCTION test31()
-    LET re := regex.prepare(@@"^\".*\"\s*(;.*)?$"@@)
+    LET pr := regex.prepare(@@"^\".*\"\s*(;.*)?$"@@)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @@""1234""@@)
+    r := regex.searchRegex(pr.regex, @@""1234""@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@""1234""@@
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @@""abcd" ;"@@)
+    r := regex.searchRegex(pr.regex, @@""abcd" ;"@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@""abcd" ;"@@
         TESTCASE r.match[1].string = ";"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @@""" ; rhubarb"@@)
+    r := regex.searchRegex(pr.regex, @@""" ; rhubarb"@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@""" ; rhubarb"@@
         TESTCASE r.match[1].string = "; rhubarb"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @@""1234" : things"@@)
+    r := regex.searchRegex(pr.regex, @@""1234" : things"@@)
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test32()
-    LET re := regex.prepare("^$")
+    LET pr := regex.prepare("^$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "")
+    r := regex.searchRegex(pr.regex, "")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "A non-empty line")
+    r := regex.searchRegex(pr.regex, "A non-empty line")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test36()
-    LET re := regex.prepare("^(a(b(c)))(d(e(f)))(h(i(j)))(k(l(m)))$")
+    LET pr := regex.prepare("^(a(b(c)))(d(e(f)))(h(i(j)))(k(l(m)))$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abcdefhijklm")
+    r := regex.searchRegex(pr.regex, "abcdefhijklm")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcdefhijklm"
         TESTCASE r.match[1].string = "abc"
@@ -1066,9 +1174,13 @@ FUNCTION test36()
     END IF
 END FUNCTION
 FUNCTION test37()
-    LET re := regex.prepare("^(?:a(b(c)))(?:d(e(f)))(?:h(i(j)))(?:k(l(m)))$")
+    LET pr := regex.prepare("^(?:a(b(c)))(?:d(e(f)))(?:h(i(j)))(?:k(l(m)))$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abcdefhijklm")
+    r := regex.searchRegex(pr.regex, "abcdefhijklm")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcdefhijklm"
         TESTCASE r.match[1].string = "bc"
@@ -1084,9 +1196,13 @@ FUNCTION test37()
     END IF
 END FUNCTION
 FUNCTION test39()
-    LET re := regex.prepare("^[.^$|()*+?{,}]+")
+    LET pr := regex.prepare("^[.^$|()*+?{,}]+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, ".^$(*+)|{?,?}")
+    r := regex.searchRegex(pr.regex, ".^$(*+)|{?,?}")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ".^$(*+)|{?,?}"
     ELSE
@@ -1094,51 +1210,55 @@ FUNCTION test39()
     END IF
 END FUNCTION
 FUNCTION test40()
-    LET re := regex.prepare(@"^a*\w")
+    LET pr := regex.prepare(@"^a*\w")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "z")
+    r := regex.searchRegex(pr.regex, "z")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "z"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "az")
+    r := regex.searchRegex(pr.regex, "az")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "az"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaz")
+    r := regex.searchRegex(pr.regex, "aaaz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "a")
+    r := regex.searchRegex(pr.regex, "a")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aa")
+    r := regex.searchRegex(pr.regex, "aa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaa")
+    r := regex.searchRegex(pr.regex, "aaaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "a+")
+    r := regex.searchRegex(pr.regex, "a+")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aa+")
+    r := regex.searchRegex(pr.regex, "aa+")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
     ELSE
@@ -1146,51 +1266,55 @@ FUNCTION test40()
     END IF
 END FUNCTION
 FUNCTION test41()
-    LET re := regex.prepare(@"^a*?\w")
+    LET pr := regex.prepare(@"^a*?\w")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "z")
+    r := regex.searchRegex(pr.regex, "z")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "z"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "az")
+    r := regex.searchRegex(pr.regex, "az")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaz")
+    r := regex.searchRegex(pr.regex, "aaaz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "a")
+    r := regex.searchRegex(pr.regex, "a")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aa")
+    r := regex.searchRegex(pr.regex, "aa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaa")
+    r := regex.searchRegex(pr.regex, "aaaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "a+")
+    r := regex.searchRegex(pr.regex, "a+")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aa+")
+    r := regex.searchRegex(pr.regex, "aa+")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
     ELSE
@@ -1198,33 +1322,37 @@ FUNCTION test41()
     END IF
 END FUNCTION
 FUNCTION test42()
-    LET re := regex.prepare(@"^a+\w")
+    LET pr := regex.prepare(@"^a+\w")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "az")
+    r := regex.searchRegex(pr.regex, "az")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "az"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaz")
+    r := regex.searchRegex(pr.regex, "aaaz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaz"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aa")
+    r := regex.searchRegex(pr.regex, "aa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaa")
+    r := regex.searchRegex(pr.regex, "aaaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aa+")
+    r := regex.searchRegex(pr.regex, "aa+")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
     ELSE
@@ -1232,33 +1360,37 @@ FUNCTION test42()
     END IF
 END FUNCTION
 FUNCTION test43()
-    LET re := regex.prepare(@"^a+?\w")
+    LET pr := regex.prepare(@"^a+?\w")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "az")
+    r := regex.searchRegex(pr.regex, "az")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "az"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaz")
+    r := regex.searchRegex(pr.regex, "aaaz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aa")
+    r := regex.searchRegex(pr.regex, "aa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaa")
+    r := regex.searchRegex(pr.regex, "aaaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aa+")
+    r := regex.searchRegex(pr.regex, "aa+")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
     ELSE
@@ -1266,87 +1398,99 @@ FUNCTION test43()
     END IF
 END FUNCTION
 FUNCTION test44()
-    LET re := regex.prepare(@"^\d{8}\w{2,}")
+    LET pr := regex.prepare(@"^\d{8}\w{2,}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "1234567890")
+    r := regex.searchRegex(pr.regex, "1234567890")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1234567890"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "12345678ab")
+    r := regex.searchRegex(pr.regex, "12345678ab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "12345678ab"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "12345678__")
+    r := regex.searchRegex(pr.regex, "12345678__")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "12345678__"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1234567")
+    r := regex.searchRegex(pr.regex, "1234567")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test45()
-    LET re := regex.prepare(@"^[aeiou\d]{4,5}$")
+    LET pr := regex.prepare(@"^[aeiou\d]{4,5}$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "uoie")
+    r := regex.searchRegex(pr.regex, "uoie")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "uoie"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1234")
+    r := regex.searchRegex(pr.regex, "1234")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1234"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "12345")
+    r := regex.searchRegex(pr.regex, "12345")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "12345"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaaa")
+    r := regex.searchRegex(pr.regex, "aaaaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaaa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "123456")
+    r := regex.searchRegex(pr.regex, "123456")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test46()
-    LET re := regex.prepare(@"^[aeiou\d]{4,5}?")
+    LET pr := regex.prepare(@"^[aeiou\d]{4,5}?")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "uoie")
+    r := regex.searchRegex(pr.regex, "uoie")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "uoie"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1234")
+    r := regex.searchRegex(pr.regex, "1234")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1234"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "12345")
+    r := regex.searchRegex(pr.regex, "12345")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1234"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaaa")
+    r := regex.searchRegex(pr.regex, "aaaaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaa"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "123456")
+    r := regex.searchRegex(pr.regex, "123456")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1234"
     ELSE
@@ -1354,9 +1498,13 @@ FUNCTION test46()
     END IF
 END FUNCTION
 FUNCTION test50()
-    LET re := regex.prepare("^From +([^ ]+) +[a-zA-Z][a-zA-Z][a-zA-Z] +[a-zA-Z][a-zA-Z][a-zA-Z] +[0-9]?[0-9] +[0-9][0-9]:[0-9][0-9]")
+    LET pr := regex.prepare("^From +([^ ]+) +[a-zA-Z][a-zA-Z][a-zA-Z] +[a-zA-Z][a-zA-Z][a-zA-Z] +[0-9]?[0-9] +[0-9][0-9]:[0-9][0-9]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "From abcd  Mon Sep 01 12:33:02 1997")
+    r := regex.searchRegex(pr.regex, "From abcd  Mon Sep 01 12:33:02 1997")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "From abcd  Mon Sep 01 12:33"
         TESTCASE r.match[1].string = "abcd"
@@ -1365,29 +1513,37 @@ FUNCTION test50()
     END IF
 END FUNCTION
 FUNCTION test51()
-    LET re := regex.prepare(@"^From\s+\S+\s+([a-zA-Z]{3}\s+){2}\d{1,2}\s+\d\d:\d\d")
+    LET pr := regex.prepare(@"^From\s+\S+\s+([a-zA-Z]{3}\s+){2}\d{1,2}\s+\d\d:\d\d")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "From abcd  Mon Sep 01 12:33:02 1997")
+    r := regex.searchRegex(pr.regex, "From abcd  Mon Sep 01 12:33:02 1997")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "From abcd  Mon Sep 01 12:33"
         TESTCASE r.match[1].string = "Sep "
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "From abcd  Mon Sep  1 12:33:02 1997")
+    r := regex.searchRegex(pr.regex, "From abcd  Mon Sep  1 12:33:02 1997")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "From abcd  Mon Sep  1 12:33"
         TESTCASE r.match[1].string = "Sep  "
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "From abcd  Sep 01 12:33:02 1997")
+    r := regex.searchRegex(pr.regex, "From abcd  Sep 01 12:33:02 1997")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test52()
-    LET re := regex.prepare("^12.34")
+    LET pr := regex.prepare("^12.34")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @@"12
+    r := regex.searchRegex(pr.regex, @@"12
 34"@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@"12
@@ -1395,7 +1551,7 @@ FUNCTION test52()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1234")
+    r := regex.searchRegex(pr.regex, "1234")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "1234"
     ELSE
@@ -1403,9 +1559,13 @@ FUNCTION test52()
     END IF
 END FUNCTION
 FUNCTION test64()
-    LET re := regex.prepare("^[ab]{1,3}(ab*|b)")
+    LET pr := regex.prepare("^[ab]{1,3}(ab*|b)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "aabbbbb")
+    r := regex.searchRegex(pr.regex, "aabbbbb")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aabb"
         TESTCASE r.match[1].string = "b"
@@ -1414,9 +1574,13 @@ FUNCTION test64()
     END IF
 END FUNCTION
 FUNCTION test65()
-    LET re := regex.prepare("^[ab]{1,3}?(ab*|b)")
+    LET pr := regex.prepare("^[ab]{1,3}?(ab*|b)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "aabbbbb")
+    r := regex.searchRegex(pr.regex, "aabbbbb")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aabbbbb"
         TESTCASE r.match[1].string = "abbbbb"
@@ -1425,9 +1589,13 @@ FUNCTION test65()
     END IF
 END FUNCTION
 FUNCTION test66()
-    LET re := regex.prepare("^[ab]{1,3}?(ab*?|b)")
+    LET pr := regex.prepare("^[ab]{1,3}?(ab*?|b)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "aabbbbb")
+    r := regex.searchRegex(pr.regex, "aabbbbb")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
         TESTCASE r.match[1].string = "a"
@@ -1436,9 +1604,13 @@ FUNCTION test66()
     END IF
 END FUNCTION
 FUNCTION test67()
-    LET re := regex.prepare("^[ab]{1,3}(ab*?|b)")
+    LET pr := regex.prepare("^[ab]{1,3}(ab*?|b)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "aabbbbb")
+    r := regex.searchRegex(pr.regex, "aabbbbb")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aabb"
         TESTCASE r.match[1].string = "b"
@@ -1447,21 +1619,25 @@ FUNCTION test67()
     END IF
 END FUNCTION
 FUNCTION test76()
-    LET re := regex.prepare(@"^\s")
+    LET pr := regex.prepare(@"^\s")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, " abc")
+    r := regex.searchRegex(pr.regex, " abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = " "
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @@"
+    r := regex.searchRegex(pr.regex, @@"
 abc"@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@"
@@ -1469,51 +1645,59 @@ abc"@@)
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "\tabc")
+    r := regex.searchRegex(pr.regex, "\tabc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "\t"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test83()
-    LET re := regex.prepare("ab{1,3}bc")
+    LET pr := regex.prepare("ab{1,3}bc")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abbbbc")
+    r := regex.searchRegex(pr.regex, "abbbbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abbbbc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abbbc")
+    r := regex.searchRegex(pr.regex, "abbbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abbbc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abbc")
+    r := regex.searchRegex(pr.regex, "abbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abbc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "abbbbbc")
+    r := regex.searchRegex(pr.regex, "abbbbbc")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test84()
-    LET re := regex.prepare(@"([^.]*)\.([^:]*):[T ]+(.*)")
+    LET pr := regex.prepare(@"([^.]*)\.([^:]*):[T ]+(.*)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "track1.title:TBlah blah blah")
+    r := regex.searchRegex(pr.regex, "track1.title:TBlah blah blah")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "track1.title:TBlah blah blah"
         TESTCASE r.match[1].string = "track1"
@@ -1524,9 +1708,13 @@ FUNCTION test84()
     END IF
 END FUNCTION
 FUNCTION test85()
-    LET re := regex.prepare(@"([^.]*)\.([^:]*):[T ]+(.*)", ignoreCase WITH TRUE)
+    LET pr := regex.prepare(@"([^.]*)\.([^:]*):[T ]+(.*)", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "track1.title:TBlah blah blah")
+    r := regex.searchRegex(pr.regex, "track1.title:TBlah blah blah")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "track1.title:TBlah blah blah"
         TESTCASE r.match[1].string = "track1"
@@ -1537,9 +1725,13 @@ FUNCTION test85()
     END IF
 END FUNCTION
 FUNCTION test86()
-    LET re := regex.prepare(@"([^.]*)\.([^:]*):[t ]+(.*)", ignoreCase WITH TRUE)
+    LET pr := regex.prepare(@"([^.]*)\.([^:]*):[t ]+(.*)", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "track1.title:TBlah blah blah")
+    r := regex.searchRegex(pr.regex, "track1.title:TBlah blah blah")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "track1.title:TBlah blah blah"
         TESTCASE r.match[1].string = "track1"
@@ -1550,27 +1742,35 @@ FUNCTION test86()
     END IF
 END FUNCTION
 FUNCTION test87()
-    LET re := regex.prepare("^[W-c]+$")
+    LET pr := regex.prepare("^[W-c]+$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "WXY_^abc")
+    r := regex.searchRegex(pr.regex, "WXY_^abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "WXY_^abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "wxy")
+    r := regex.searchRegex(pr.regex, "wxy")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test88()
-    LET re := regex.prepare("^[W-c]+$", ignoreCase WITH TRUE)
+    LET pr := regex.prepare("^[W-c]+$", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "WXY_^abc")
+    r := regex.searchRegex(pr.regex, "WXY_^abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "WXY_^abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "wxy_^ABC")
+    r := regex.searchRegex(pr.regex, "wxy_^ABC")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "wxy_^ABC"
     ELSE
@@ -1578,15 +1778,19 @@ FUNCTION test88()
     END IF
 END FUNCTION
 FUNCTION test89()
-    LET re := regex.prepare(@"^[\x3f-\x5F]+$", ignoreCase WITH TRUE)
+    LET pr := regex.prepare(@"^[\x3f-\x5F]+$", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "WXY_^abc")
+    r := regex.searchRegex(pr.regex, "WXY_^abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "WXY_^abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "wxy_^ABC")
+    r := regex.searchRegex(pr.regex, "wxy_^ABC")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "wxy_^ABC"
     ELSE
@@ -1594,35 +1798,43 @@ FUNCTION test89()
     END IF
 END FUNCTION
 FUNCTION test91()
-    LET re := regex.prepare("^abc$")
+    LET pr := regex.prepare("^abc$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @@"qqq
+    r := regex.searchRegex(pr.regex, @@"qqq
 abc"@@)
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, @@"abc
+    r := regex.searchRegex(pr.regex, @@"abc
 zzz"@@)
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, @@"qqq
+    r := regex.searchRegex(pr.regex, @@"qqq
 abc
 zzz"@@)
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test95()
-    LET re := regex.prepare("(?:b)|(?::+)")
+    LET pr := regex.prepare("(?:b)|(?::+)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "b::c")
+    r := regex.searchRegex(pr.regex, "b::c")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "c::b")
+    r := regex.searchRegex(pr.regex, "c::b")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "::"
     ELSE
@@ -1630,45 +1842,61 @@ FUNCTION test95()
     END IF
 END FUNCTION
 FUNCTION test96()
-    LET re := regex.prepare("[-az]+")
+    LET pr := regex.prepare("[-az]+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "az-")
+    r := regex.searchRegex(pr.regex, "az-")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "az-"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "b")
+    r := regex.searchRegex(pr.regex, "b")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test97()
-    LET re := regex.prepare("[az-]+")
+    LET pr := regex.prepare("[az-]+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "za-")
+    r := regex.searchRegex(pr.regex, "za-")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "za-"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "b")
+    r := regex.searchRegex(pr.regex, "b")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test98()
-    LET re := regex.prepare(@"[a\-z]+")
+    LET pr := regex.prepare(@"[a\-z]+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "a-z")
+    r := regex.searchRegex(pr.regex, "a-z")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a-z"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "b")
+    r := regex.searchRegex(pr.regex, "b")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test99()
-    LET re := regex.prepare("[a-z]+")
+    LET pr := regex.prepare("[a-z]+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abcdxyz")
+    r := regex.searchRegex(pr.regex, "abcdxyz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcdxyz"
     ELSE
@@ -1676,21 +1904,29 @@ FUNCTION test99()
     END IF
 END FUNCTION
 FUNCTION test100()
-    LET re := regex.prepare(@"[\d-]+")
+    LET pr := regex.prepare(@"[\d-]+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "12-34")
+    r := regex.searchRegex(pr.regex, "12-34")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "12-34"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaa")
+    r := regex.searchRegex(pr.regex, "aaa")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test101()
-    LET re := regex.prepare(@"\x5c")
+    LET pr := regex.prepare(@"\x5c")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @"\")
+    r := regex.searchRegex(pr.regex, @"\")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @"\"
     ELSE
@@ -1698,21 +1934,29 @@ FUNCTION test101()
     END IF
 END FUNCTION
 FUNCTION test102()
-    LET re := regex.prepare(@"\x20Z")
+    LET pr := regex.prepare(@"\x20Z")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "the Zoo")
+    r := regex.searchRegex(pr.regex, "the Zoo")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = " Z"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "Zulu")
+    r := regex.searchRegex(pr.regex, "Zulu")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test114()
-    LET re := regex.prepare("a{0}bc")
+    LET pr := regex.prepare("a{0}bc")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "bc")
+    r := regex.searchRegex(pr.regex, "bc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bc"
     ELSE
@@ -1720,9 +1964,13 @@ FUNCTION test114()
     END IF
 END FUNCTION
 FUNCTION test115()
-    LET re := regex.prepare("(a|(bc)){0,0}?xyz")
+    LET pr := regex.prepare("(a|(bc)){0,0}?xyz")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "xyz")
+    r := regex.searchRegex(pr.regex, "xyz")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "xyz"
     ELSE
@@ -1730,9 +1978,13 @@ FUNCTION test115()
     END IF
 END FUNCTION
 FUNCTION test121()
-    LET re := regex.prepare("[^a]")
+    LET pr := regex.prepare("[^a]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "Abc")
+    r := regex.searchRegex(pr.regex, "Abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "A"
     ELSE
@@ -1740,9 +1992,13 @@ FUNCTION test121()
     END IF
 END FUNCTION
 FUNCTION test122()
-    LET re := regex.prepare("[^a]", ignoreCase WITH TRUE)
+    LET pr := regex.prepare("[^a]", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "Abc")
+    r := regex.searchRegex(pr.regex, "Abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
@@ -1750,9 +2006,13 @@ FUNCTION test122()
     END IF
 END FUNCTION
 FUNCTION test123()
-    LET re := regex.prepare("[^a]+")
+    LET pr := regex.prepare("[^a]+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "AAAaAbc")
+    r := regex.searchRegex(pr.regex, "AAAaAbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "AAA"
     ELSE
@@ -1760,9 +2020,13 @@ FUNCTION test123()
     END IF
 END FUNCTION
 FUNCTION test124()
-    LET re := regex.prepare("[^a]+", ignoreCase WITH TRUE)
+    LET pr := regex.prepare("[^a]+", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "AAAaAbc")
+    r := regex.searchRegex(pr.regex, "AAAaAbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bc"
     ELSE
@@ -1770,9 +2034,13 @@ FUNCTION test124()
     END IF
 END FUNCTION
 FUNCTION test125()
-    LET re := regex.prepare("[^a]+")
+    LET pr := regex.prepare("[^a]+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @@"bbb
+    r := regex.searchRegex(pr.regex, @@"bbb
 ccc"@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@"bbb
@@ -1782,75 +2050,91 @@ ccc"@@
     END IF
 END FUNCTION
 FUNCTION test126()
-    LET re := regex.prepare("[^k]$")
+    LET pr := regex.prepare("[^k]$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "c"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abk")
+    r := regex.searchRegex(pr.regex, "abk")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test127()
-    LET re := regex.prepare("[^k]{2,3}$")
+    LET pr := regex.prepare("[^k]{2,3}$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "kbc")
+    r := regex.searchRegex(pr.regex, "kbc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "bc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "kabc")
+    r := regex.searchRegex(pr.regex, "kabc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abc"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abk")
+    r := regex.searchRegex(pr.regex, "abk")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "akb")
+    r := regex.searchRegex(pr.regex, "akb")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "akk")
+    r := regex.searchRegex(pr.regex, "akk")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test128()
-    LET re := regex.prepare(@"^\d{8,}\@.+[^k]$")
+    LET pr := regex.prepare(@"^\d{8,}\@.+[^k]$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "12345678@a.b.c.d")
+    r := regex.searchRegex(pr.regex, "12345678@a.b.c.d")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "12345678@a.b.c.d"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "123456789@x.y.z")
+    r := regex.searchRegex(pr.regex, "123456789@x.y.z")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "123456789@x.y.z"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "12345678@x.y.uk")
+    r := regex.searchRegex(pr.regex, "12345678@x.y.uk")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "1234567@a.b.c.d")
+    r := regex.searchRegex(pr.regex, "1234567@a.b.c.d")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test130()
-    LET re := regex.prepare("[^a]")
+    LET pr := regex.prepare("[^a]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "aaaabcd")
+    r := regex.searchRegex(pr.regex, "aaaabcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaAabcd")
+    r := regex.searchRegex(pr.regex, "aaAabcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "A"
     ELSE
@@ -1858,15 +2142,19 @@ FUNCTION test130()
     END IF
 END FUNCTION
 FUNCTION test131()
-    LET re := regex.prepare("[^a]", ignoreCase WITH TRUE)
+    LET pr := regex.prepare("[^a]", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "aaaabcd")
+    r := regex.searchRegex(pr.regex, "aaaabcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaAabcd")
+    r := regex.searchRegex(pr.regex, "aaAabcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
@@ -1874,15 +2162,19 @@ FUNCTION test131()
     END IF
 END FUNCTION
 FUNCTION test132()
-    LET re := regex.prepare("[^az]")
+    LET pr := regex.prepare("[^az]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "aaaabcd")
+    r := regex.searchRegex(pr.regex, "aaaabcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaAabcd")
+    r := regex.searchRegex(pr.regex, "aaAabcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "A"
     ELSE
@@ -1890,15 +2182,19 @@ FUNCTION test132()
     END IF
 END FUNCTION
 FUNCTION test133()
-    LET re := regex.prepare("[^az]", ignoreCase WITH TRUE)
+    LET pr := regex.prepare("[^az]", ignoreCase WITH TRUE)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "aaaabcd")
+    r := regex.searchRegex(pr.regex, "aaaabcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaAabcd")
+    r := regex.searchRegex(pr.regex, "aaAabcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "b"
     ELSE
@@ -1906,9 +2202,13 @@ FUNCTION test133()
     END IF
 END FUNCTION
 FUNCTION test135()
-    LET re := regex.prepare("P[^*]TAIRE[^*]{1,6}?LL")
+    LET pr := regex.prepare("P[^*]TAIRE[^*]{1,6}?LL")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "xxxxxxxxxxxPSTAIREISLLxxxxxxxxx")
+    r := regex.searchRegex(pr.regex, "xxxxxxxxxxxPSTAIREISLLxxxxxxxxx")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "PSTAIREISLL"
     ELSE
@@ -1916,9 +2216,13 @@ FUNCTION test135()
     END IF
 END FUNCTION
 FUNCTION test136()
-    LET re := regex.prepare("P[^*]TAIRE[^*]{1,}?LL")
+    LET pr := regex.prepare("P[^*]TAIRE[^*]{1,}?LL")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "xxxxxxxxxxxPSTAIREISLLxxxxxxxxx")
+    r := regex.searchRegex(pr.regex, "xxxxxxxxxxxPSTAIREISLLxxxxxxxxx")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "PSTAIREISLL"
     ELSE
@@ -1926,23 +2230,27 @@ FUNCTION test136()
     END IF
 END FUNCTION
 FUNCTION test137()
-    LET re := regex.prepare(@"(\.\d\d[1-9]?)\d+")
+    LET pr := regex.prepare(@"(\.\d\d[1-9]?)\d+")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "1.230003938")
+    r := regex.searchRegex(pr.regex, "1.230003938")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ".230003938"
         TESTCASE r.match[1].string = ".23"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1.875000282")
+    r := regex.searchRegex(pr.regex, "1.875000282")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ".875000282"
         TESTCASE r.match[1].string = ".875"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "1.235")
+    r := regex.searchRegex(pr.regex, "1.235")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ".235"
         TESTCASE r.match[1].string = ".23"
@@ -1951,9 +2259,13 @@ FUNCTION test137()
     END IF
 END FUNCTION
 FUNCTION test141()
-    LET re := regex.prepare("foo(.*)bar")
+    LET pr := regex.prepare("foo(.*)bar")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "The food is under the bar in the barn.")
+    r := regex.searchRegex(pr.regex, "The food is under the bar in the barn.")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "food is under the bar in the bar"
         TESTCASE r.match[1].string = "d is under the bar in the "
@@ -1962,9 +2274,13 @@ FUNCTION test141()
     END IF
 END FUNCTION
 FUNCTION test142()
-    LET re := regex.prepare("foo(.*?)bar")
+    LET pr := regex.prepare("foo(.*?)bar")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "The food is under the bar in the barn.")
+    r := regex.searchRegex(pr.regex, "The food is under the bar in the barn.")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "food is under the bar"
         TESTCASE r.match[1].string = "d is under the "
@@ -1973,9 +2289,13 @@ FUNCTION test142()
     END IF
 END FUNCTION
 FUNCTION test143()
-    LET re := regex.prepare(@"(.*)(\d*)")
+    LET pr := regex.prepare(@"(.*)(\d*)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "I have 2 numbers: 53147")
+    r := regex.searchRegex(pr.regex, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "I have 2 numbers: 53147"
         TESTCASE r.match[1].string = "I have 2 numbers: 53147"
@@ -1985,9 +2305,13 @@ FUNCTION test143()
     END IF
 END FUNCTION
 FUNCTION test144()
-    LET re := regex.prepare(@"(.*)(\d+)")
+    LET pr := regex.prepare(@"(.*)(\d+)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "I have 2 numbers: 53147")
+    r := regex.searchRegex(pr.regex, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "I have 2 numbers: 53147"
         TESTCASE r.match[1].string = "I have 2 numbers: 5314"
@@ -1997,9 +2321,13 @@ FUNCTION test144()
     END IF
 END FUNCTION
 FUNCTION test145()
-    LET re := regex.prepare(@"(.*?)(\d*)")
+    LET pr := regex.prepare(@"(.*?)(\d*)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "I have 2 numbers: 53147")
+    r := regex.searchRegex(pr.regex, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
         TESTCASE r.match[1].string = ""
@@ -2009,9 +2337,13 @@ FUNCTION test145()
     END IF
 END FUNCTION
 FUNCTION test146()
-    LET re := regex.prepare(@"(.*?)(\d+)")
+    LET pr := regex.prepare(@"(.*?)(\d+)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "I have 2 numbers: 53147")
+    r := regex.searchRegex(pr.regex, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "I have 2"
         TESTCASE r.match[1].string = "I have "
@@ -2021,9 +2353,13 @@ FUNCTION test146()
     END IF
 END FUNCTION
 FUNCTION test147()
-    LET re := regex.prepare(@"(.*)(\d+)$")
+    LET pr := regex.prepare(@"(.*)(\d+)$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "I have 2 numbers: 53147")
+    r := regex.searchRegex(pr.regex, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "I have 2 numbers: 53147"
         TESTCASE r.match[1].string = "I have 2 numbers: 5314"
@@ -2033,9 +2369,13 @@ FUNCTION test147()
     END IF
 END FUNCTION
 FUNCTION test148()
-    LET re := regex.prepare(@"(.*?)(\d+)$")
+    LET pr := regex.prepare(@"(.*?)(\d+)$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "I have 2 numbers: 53147")
+    r := regex.searchRegex(pr.regex, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "I have 2 numbers: 53147"
         TESTCASE r.match[1].string = "I have 2 numbers: "
@@ -2045,9 +2385,13 @@ FUNCTION test148()
     END IF
 END FUNCTION
 FUNCTION test150()
-    LET re := regex.prepare(@"(.*\D)(\d+)$")
+    LET pr := regex.prepare(@"(.*\D)(\d+)$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "I have 2 numbers: 53147")
+    r := regex.searchRegex(pr.regex, "I have 2 numbers: 53147")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "I have 2 numbers: 53147"
         TESTCASE r.match[1].string = "I have 2 numbers: "
@@ -2057,91 +2401,103 @@ FUNCTION test150()
     END IF
 END FUNCTION
 FUNCTION test153()
-    LET re := regex.prepare("^[W-]46]")
+    LET pr := regex.prepare("^[W-]46]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "W46]789")
+    r := regex.searchRegex(pr.regex, "W46]789")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "W46]"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "-46]789")
+    r := regex.searchRegex(pr.regex, "-46]789")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "-46]"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "Wall")
+    r := regex.searchRegex(pr.regex, "Wall")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "Zebra")
+    r := regex.searchRegex(pr.regex, "Zebra")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "42")
+    r := regex.searchRegex(pr.regex, "42")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "[abcd]")
+    r := regex.searchRegex(pr.regex, "[abcd]")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "]abcd[")
+    r := regex.searchRegex(pr.regex, "]abcd[")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test154()
-    LET re := regex.prepare(@"^[W-\]46]")
+    LET pr := regex.prepare(@"^[W-\]46]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "W46]789")
+    r := regex.searchRegex(pr.regex, "W46]789")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "W"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "Wall")
+    r := regex.searchRegex(pr.regex, "Wall")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "W"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "Zebra")
+    r := regex.searchRegex(pr.regex, "Zebra")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "Z"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "Xylophone")
+    r := regex.searchRegex(pr.regex, "Xylophone")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "X"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "42")
+    r := regex.searchRegex(pr.regex, "42")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "4"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "[abcd]")
+    r := regex.searchRegex(pr.regex, "[abcd]")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "["
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "]abcd[")
+    r := regex.searchRegex(pr.regex, "]abcd[")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "]"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @"\backslash")
+    r := regex.searchRegex(pr.regex, @"\backslash")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @"\"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "-46]789")
+    r := regex.searchRegex(pr.regex, "-46]789")
     TESTCASE r ISA regex.Result.noMatch
-    r := regex.searchRegex(re, "well")
+    r := regex.searchRegex(pr.regex, "well")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test155()
-    LET re := regex.prepare(@"\d\d\/\d\d\/\d\d\d\d")
+    LET pr := regex.prepare(@"\d\d\/\d\d\/\d\d\d\d")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "01/01/2000")
+    r := regex.searchRegex(pr.regex, "01/01/2000")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "01/01/2000"
     ELSE
@@ -2149,21 +2505,25 @@ FUNCTION test155()
     END IF
 END FUNCTION
 FUNCTION test158()
-    LET re := regex.prepare("^(a){0,0}")
+    LET pr := regex.prepare("^(a){0,0}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
@@ -2171,22 +2531,26 @@ FUNCTION test158()
     END IF
 END FUNCTION
 FUNCTION test159()
-    LET re := regex.prepare("^(a){0,1}")
+    LET pr := regex.prepare("^(a){0,1}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
@@ -2195,22 +2559,26 @@ FUNCTION test159()
     END IF
 END FUNCTION
 FUNCTION test160()
-    LET re := regex.prepare("^(a){0,2}")
+    LET pr := regex.prepare("^(a){0,2}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
         TESTCASE r.match[1].string = "a"
@@ -2219,29 +2587,33 @@ FUNCTION test160()
     END IF
 END FUNCTION
 FUNCTION test161()
-    LET re := regex.prepare("^(a){0,3}")
+    LET pr := regex.prepare("^(a){0,3}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaa")
+    r := regex.searchRegex(pr.regex, "aaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaa"
         TESTCASE r.match[1].string = "a"
@@ -2250,36 +2622,40 @@ FUNCTION test161()
     END IF
 END FUNCTION
 FUNCTION test162()
-    LET re := regex.prepare("^(a){0,}")
+    LET pr := regex.prepare("^(a){0,}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaa")
+    r := regex.searchRegex(pr.regex, "aaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaaaaaa")
+    r := regex.searchRegex(pr.regex, "aaaaaaaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaaaaaa"
         TESTCASE r.match[1].string = "a"
@@ -2288,110 +2664,130 @@ FUNCTION test162()
     END IF
 END FUNCTION
 FUNCTION test163()
-    LET re := regex.prepare("^(a){1,1}")
+    LET pr := regex.prepare("^(a){1,1}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test164()
-    LET re := regex.prepare("^(a){1,2}")
+    LET pr := regex.prepare("^(a){1,2}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test165()
-    LET re := regex.prepare("^(a){1,3}")
+    LET pr := regex.prepare("^(a){1,3}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaa")
+    r := regex.searchRegex(pr.regex, "aaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test166()
-    LET re := regex.prepare("^(a){1,}")
+    LET pr := regex.prepare("^(a){1,}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abc")
+    r := regex.searchRegex(pr.regex, "abc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aab")
+    r := regex.searchRegex(pr.regex, "aab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaa")
+    r := regex.searchRegex(pr.regex, "aaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "aaaaaaaa")
+    r := regex.searchRegex(pr.regex, "aaaaaaaa")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "aaaaaaaa"
         TESTCASE r.match[1].string = "a"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bcd")
+    r := regex.searchRegex(pr.regex, "bcd")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test170()
-    LET re := regex.prepare(@".*\.gif")
+    LET pr := regex.prepare(@".*\.gif")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @@"borfle
+    r := regex.searchRegex(pr.regex, @@"borfle
 bib.gif
 no"@@)
     IF r ISA regex.Result.match THEN
@@ -2402,9 +2798,13 @@ bib.gif"@@
     END IF
 END FUNCTION
 FUNCTION test174()
-    LET re := regex.prepare(".*$")
+    LET pr := regex.prepare(".*$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @@"borfle
+    r := regex.searchRegex(pr.regex, @@"borfle
 bib.gif
 no"@@)
     IF r ISA regex.Result.match THEN
@@ -2416,9 +2816,13 @@ no"@@
     END IF
 END FUNCTION
 FUNCTION test178()
-    LET re := regex.prepare(".*$")
+    LET pr := regex.prepare(".*$")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @@"borfle
+    r := regex.searchRegex(pr.regex, @@"borfle
 bib.gif
 no
 "@@)
@@ -2432,9 +2836,13 @@ no
     END IF
 END FUNCTION
 FUNCTION test182()
-    LET re := regex.prepare("(.*X|^B)")
+    LET pr := regex.prepare("(.*X|^B)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @@"abcde
+    r := regex.searchRegex(pr.regex, @@"abcde
 1234Xyz"@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@"abcde
@@ -2444,21 +2852,25 @@ FUNCTION test182()
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "BarFoo")
+    r := regex.searchRegex(pr.regex, "BarFoo")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "B"
         TESTCASE r.match[1].string = "B"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @@"abcde
+    r := regex.searchRegex(pr.regex, @@"abcde
 Bar"@@)
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test192()
-    LET re := regex.prepare("^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")
+    LET pr := regex.prepare("^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "123456654321")
+    r := regex.searchRegex(pr.regex, "123456654321")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "123456654321"
     ELSE
@@ -2466,9 +2878,13 @@ FUNCTION test192()
     END IF
 END FUNCTION
 FUNCTION test193()
-    LET re := regex.prepare(@"^\d\d\d\d\d\d\d\d\d\d\d\d")
+    LET pr := regex.prepare(@"^\d\d\d\d\d\d\d\d\d\d\d\d")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "123456654321")
+    r := regex.searchRegex(pr.regex, "123456654321")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "123456654321"
     ELSE
@@ -2476,9 +2892,13 @@ FUNCTION test193()
     END IF
 END FUNCTION
 FUNCTION test194()
-    LET re := regex.prepare(@"^[\d][\d][\d][\d][\d][\d][\d][\d][\d][\d][\d][\d]")
+    LET pr := regex.prepare(@"^[\d][\d][\d][\d][\d][\d][\d][\d][\d][\d][\d][\d]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "123456654321")
+    r := regex.searchRegex(pr.regex, "123456654321")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "123456654321"
     ELSE
@@ -2486,9 +2906,13 @@ FUNCTION test194()
     END IF
 END FUNCTION
 FUNCTION test195()
-    LET re := regex.prepare("^[abc]{12}")
+    LET pr := regex.prepare("^[abc]{12}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abcabcabcabc")
+    r := regex.searchRegex(pr.regex, "abcabcabcabc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcabcabcabc"
     ELSE
@@ -2496,9 +2920,13 @@ FUNCTION test195()
     END IF
 END FUNCTION
 FUNCTION test196()
-    LET re := regex.prepare("^[a-c]{12}")
+    LET pr := regex.prepare("^[a-c]{12}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abcabcabcabc")
+    r := regex.searchRegex(pr.regex, "abcabcabcabc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcabcabcabc"
     ELSE
@@ -2506,9 +2934,13 @@ FUNCTION test196()
     END IF
 END FUNCTION
 FUNCTION test197()
-    LET re := regex.prepare("^(a|b|c){12}")
+    LET pr := regex.prepare("^(a|b|c){12}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abcabcabcabc")
+    r := regex.searchRegex(pr.regex, "abcabcabcabc")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcabcabcabc"
         TESTCASE r.match[1].string = "c"
@@ -2517,103 +2949,131 @@ FUNCTION test197()
     END IF
 END FUNCTION
 FUNCTION test198()
-    LET re := regex.prepare("^[abcdefghijklmnopqrstuvwxy0123456789]")
+    LET pr := regex.prepare("^[abcdefghijklmnopqrstuvwxy0123456789]")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "n")
+    r := regex.searchRegex(pr.regex, "n")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "n"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "z")
+    r := regex.searchRegex(pr.regex, "z")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test199()
-    LET re := regex.prepare("abcde{0,0}")
+    LET pr := regex.prepare("abcde{0,0}")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abcd")
+    r := regex.searchRegex(pr.regex, "abcd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abcd"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abce")
+    r := regex.searchRegex(pr.regex, "abce")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test200()
-    LET re := regex.prepare("ab[cd]{0,0}e")
+    LET pr := regex.prepare("ab[cd]{0,0}e")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abe")
+    r := regex.searchRegex(pr.regex, "abe")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abe"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abcde")
+    r := regex.searchRegex(pr.regex, "abcde")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test201()
-    LET re := regex.prepare("ab(c){0,0}d")
+    LET pr := regex.prepare("ab(c){0,0}d")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abd")
+    r := regex.searchRegex(pr.regex, "abd")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abd"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abcd")
+    r := regex.searchRegex(pr.regex, "abcd")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test202()
-    LET re := regex.prepare("a(b*)")
+    LET pr := regex.prepare("a(b*)")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "a")
+    r := regex.searchRegex(pr.regex, "a")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "a"
         TESTCASE r.match[1].string = ""
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "ab")
+    r := regex.searchRegex(pr.regex, "ab")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "ab"
         TESTCASE r.match[1].string = "b"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "abbbb")
+    r := regex.searchRegex(pr.regex, "abbbb")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abbbb"
         TESTCASE r.match[1].string = "bbbb"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "bbbbb")
+    r := regex.searchRegex(pr.regex, "bbbbb")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test203()
-    LET re := regex.prepare(@"ab\d{0}e")
+    LET pr := regex.prepare(@"ab\d{0}e")
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, "abe")
+    r := regex.searchRegex(pr.regex, "abe")
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = "abe"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, "ab1e")
+    r := regex.searchRegex(pr.regex, "ab1e")
     TESTCASE r ISA regex.Result.noMatch
 END FUNCTION
 FUNCTION test204()
-    LET re := regex.prepare(@@""([^\\"]+|\\.)*""@@)
+    LET pr := regex.prepare(@@""([^\\"]+|\\.)*""@@)
+    CHECK pr ISA regex.PrepareResult.regex ELSE
+        TESTCASE FALSE
+        EXIT PROCESS FAILURE
+    END CHECK
     VAR r: regex.Result
-    r := regex.searchRegex(re, @@"the "quick" brown fox"@@)
+    r := regex.searchRegex(pr.regex, @@"the "quick" brown fox"@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@""quick""@@
         TESTCASE r.match[1].string = "quick"
     ELSE
         TESTCASE FALSE
     END IF
-    r := regex.searchRegex(re, @@""the \"quick\" brown fox""@@)
+    r := regex.searchRegex(pr.regex, @@""the \"quick\" brown fox""@@)
     IF r ISA regex.Result.match THEN
         TESTCASE r.match[0].string = @@""the \"quick\" brown fox""@@
         TESTCASE r.match[1].string = " brown fox"

@@ -140,10 +140,14 @@ with open("t/regex-test.neon", "w") as outf:
             continue
         print("FUNCTION test{}()".format(i), file=outf)
         #print("    print(\"test{} \" & {})".format(i, literal(t.pattern)), file=outf)
-        print("    LET re := regex.prepare({}{})".format(literal(t.pattern), ", ignoreCase WITH TRUE" if "i" in t.modifiers else ""), file=outf)
+        print("    LET pr := regex.prepare({}{})".format(literal(t.pattern), ", ignoreCase WITH TRUE" if "i" in t.modifiers else ""), file=outf)
+        print("    CHECK pr ISA regex.PrepareResult.regex ELSE", file=outf)
+        print("        TESTCASE FALSE", file=outf)
+        print("        EXIT PROCESS FAILURE", file=outf)
+        print("    END CHECK", file=outf)
         print("    VAR r: regex.Result", file=outf)
         for m in t.matches:
-            print("    r := regex.searchRegex(re, {})".format(literal(m[0])), file=outf)
+            print("    r := regex.searchRegex(pr.regex, {})".format(literal(m[0])), file=outf)
             print("    IF r ISA regex.Result.match THEN", file=outf)
             #print("        print(r.match)", file=outf)
             for j, s in enumerate(m[1]):
@@ -152,7 +156,7 @@ with open("t/regex-test.neon", "w") as outf:
             print("        TESTCASE FALSE", file=outf)
             print("    END IF", file=outf)
         for m in t.nomatches:
-            print("    r := regex.searchRegex(re, {})".format(literal(m)), file=outf)
+            print("    r := regex.searchRegex(pr.regex, {})".format(literal(m)), file=outf)
             print("    TESTCASE r ISA regex.Result.noMatch", file=outf)
         print("END FUNCTION", file=outf)
     for i, t in enumerate(tests):
