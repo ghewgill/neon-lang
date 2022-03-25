@@ -52,7 +52,7 @@ EXPORT Regex
 
 EXPORT prepare
 EXPORT search
-EXPORT searchRegex
+EXPORT searchPrepared
 
 IMPORT base
 IMPORT string
@@ -868,7 +868,7 @@ FUNCTION search(pattern: String, target: String): Result
     RETURN match(r.regex, target)
 END FUNCTION
 
-FUNCTION searchRegex(regex: Regex, target: String): Result
+FUNCTION searchPrepared(regex: Regex, target: String): Result
     RETURN match(regex, target)
 END FUNCTION
 
