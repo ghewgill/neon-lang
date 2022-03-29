@@ -2478,7 +2478,7 @@ static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_
                                     case 'x':
                                         break;
                                     default:
-                                        return std::make_pair(false, std::make_pair(i, "unknown escape character"));
+                                        return std::make_pair(false, std::make_pair(i, "unknown escape character: " + pattern.substr(i-1, 2)));
                                 }
                             }
                             break;
@@ -2505,7 +2505,7 @@ static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_
                         case ':':
                             break;
                         default:
-                            return std::make_pair(false, std::make_pair(i, "unknown extended modifier"));
+                            return std::make_pair(false, std::make_pair(i, "unknown extended modifier: " + pattern.substr(i-2, 3)));
                     }
                 }
                 break;
@@ -2538,7 +2538,7 @@ static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_
                         case '7':
                         case '8':
                         case '9':
-                            return std::make_pair(false, std::make_pair(i, "backreferences not supported"));
+                            return std::make_pair(false, std::make_pair(i, "backreferences not supported: " + pattern.substr(i-1, 2)));
                         case 'd':
                         case 'D':
                         case 'e':
@@ -2553,7 +2553,7 @@ static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_
                         case 'x':
                             break;
                         default:
-                            return std::make_pair(false, std::make_pair(i, "unknown escape character"));
+                            return std::make_pair(false, std::make_pair(i, "unknown escape character: " + pattern.substr(i-1, 2)));
                     }
                 }
                 repeatable = true;
@@ -2890,8 +2890,21 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 auto r = validate_regex(s->value);
                 if (not r.first) {
                     Token t = expr->args[0]->expr->token;
-                    t.column += r.second.first;
-                    t.text = s->value.substr(r.second.first, 1);
+                    /*
+                    // Debugging for error reporting alignment.
+                    printf("err=%zd t.column=%zd size=%zd\n", r.second.first, t.column, t.text_source_offset.size());
+                    for (size_t j = 0; j < t.text_source_offset.size(); j++) {
+                        printf("%d ", t.text_source_offset[j]);
+                    }
+                    puts("");
+                    */
+                    if (r.second.first < t.text_source_offset.size()) {
+                        t.column += t.text_source_offset[r.second.first] + 1;
+                        t.text = s->value.substr(r.second.first, t.text_source_offset[r.second.first+1] - t.text_source_offset[r.second.first]);
+                    } else {
+                        t.column += r.second.first;
+                        t.text = s->value.substr(r.second.first, 1);
+                    }
                     error(3326, t, "error in regex: " + r.second.second);
                 }
             }
