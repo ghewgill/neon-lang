@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include <string>
+#include <vector>
 
 #include "number.h"
 
