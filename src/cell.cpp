@@ -297,6 +297,15 @@ std::shared_ptr<Object> Cell::object()
     return object_ptr;
 }
 
+std::shared_ptr<Object> &Cell::object_for_write()
+{
+    if (type == Type::None) {
+        type = Type::Object;
+    }
+    assert(type == Type::Object);
+    return object_ptr;
+}
+
 const std::vector<Cell> &Cell::array()
 {
     if (type == Type::None) {

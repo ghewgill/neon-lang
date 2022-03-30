@@ -51,6 +51,7 @@ public:
     const std::vector<unsigned char> &bytes();
     void set_bytes(const std::vector<unsigned char> &bytes);
     std::shared_ptr<Object> object();
+    std::shared_ptr<Object> &object_for_write();
     const std::vector<Cell> &array();
     std::vector<Cell> &array_for_write();
     Cell &array_index_for_read(size_t i);

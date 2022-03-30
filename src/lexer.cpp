@@ -537,6 +537,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             t.type = STRING;
             t.text = "";
             while (i != source.end()) {
+                const auto charstartindex = i;
                 c = utf8::next(i, source.end());
                 if (c == '"') {
                     break;
@@ -657,8 +658,10 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                             error(1009, t, "invalid escape character");
                     }
                 }
+                t.text_source_offset.push_back(charstartindex - startindex - 1);
                 utf8::append(c, std::back_inserter(t.text));
             }
+            t.text_source_offset.push_back(i - startindex - 2);
         } else if (c == '@') {
             utf8::advance(i, 1, source.end());
             t.type = STRING;
@@ -680,8 +683,10 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                     if (c == '\n') {
                         error(1022, t, "unterminated raw string (must be single line)");
                     }
+                    t.text_source_offset.push_back(i - startindex - 2);
                     utf8::append(c, std::back_inserter(t.text));
                 }
+                t.text_source_offset.push_back(i - startindex - 2);
             } else {
                 std::string delimiter;
                 while (i != source.end()) {
@@ -726,8 +731,10 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         linestart = i+1;
                         lineend = std::find(i+1, source.end(), '\n');
                     }
+                    t.text_source_offset.push_back(i - startindex - 2);
                     utf8::append(c, std::back_inserter(t.text));
                 }
+                t.text_source_offset.push_back(i - startindex - 2);
             }
         } else if (space(c)) {
             while (i != source.end() && space(*i)) {

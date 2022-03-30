@@ -1286,15 +1286,15 @@ FUNCTION execute(word: String)
     ELSE
         VAR n: Number := 0
         LET base: Number := storage[cell_base]
-        IF regex.search("^-?[\(Digits[0 TO base-1])]+$", word, OUT _) THEN
+        IF regex.search("^-?[\(Digits[0 TO base-1])]+$", word) ISA regex.Result.match THEN
             n := convert(word, base)
-        ELSIF regex.search(@"^#-?[0-9]+$", word, OUT _) THEN
+        ELSIF regex.search(@"^#-?[0-9]+$", word) ISA regex.Result.match THEN
             n := convert(word[1 TO LAST], 10)
-        ELSIF regex.search(@"^\$-?[0-9A-F]+$", word, OUT _) THEN
+        ELSIF regex.search(@"^\$-?[0-9A-F]+$", word) ISA regex.Result.match THEN
             n := convert(word[1 TO LAST], 0x10)
-        ELSIF regex.search(@"^%-?[01]+$", word, OUT _) THEN
+        ELSIF regex.search(@"^%-?[01]+$", word) ISA regex.Result.match THEN
             n := convert(word[1 TO LAST], 0b10)
-        ELSIF regex.search(@"'.'?$", word, OUT _) THEN
+        ELSIF regex.search(@"^'.'?$", word) ISA regex.Result.match THEN
             n := string.toCodePoint(word[1])
         ELSE
             print("Unknown word: \(word)")

@@ -45,6 +45,7 @@ import.neon                     # InterfacePointerConstructor
 import-optional.neon            # import optional
 import-string.neon              # segfault
 interface.neon                  # InterfaceMethodExpression
+interface-compare.neon          # InterfacePointerConstructor
 interface-multiple.neon         # InterfacePointerConstructor
 interface-parameter-export2.neon # InterfaceMethodExpression
 interface-parameter-export.neon # InterfaceMethodExpression
@@ -103,6 +104,7 @@ posix-symlink.neon              # module posix
 predeclare1.neon                # Ne_Array_mtable
 print-object.neon               # Ne_object__makeBytes
 recursion-limit.neon            # module runtime
+regex-test.neon                 # InterfaceMethodExpression
 rtl.neon                        # Ne_num
 runtime-test.neon               # module runtime
 sql-connect.neon                # module sql
@@ -140,6 +142,5 @@ compress-test.neon
 extsample-test.neon
 hash-test.neon
 http-test.neon
-regex-test.neon
 sodium-test.neon
 zeromq-test.neon

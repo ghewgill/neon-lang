@@ -1,0 +1,8 @@
+TYPE Cls IS CLASS END CLASS
+VAR p: POINTER TO Cls := NIL
+IF VALID p THEN
+    -- No action.
+ELSE
+    -- Make sure that we can assign to p in the else clause.
+    p := NIL
+END IF

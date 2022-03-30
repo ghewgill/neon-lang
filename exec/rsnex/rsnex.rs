@@ -23,7 +23,6 @@ enum Opcode {
     LOADD,      // load dictionary
     LOADP,      // load pointer
     LOADJ,      // load object
-    LOADV,      // load voidptr
     STOREB,     // store boolean
     STOREN,     // store number
     STORES,     // store string
@@ -32,7 +31,6 @@ enum Opcode {
     STORED,     // store dictionary
     STOREP,     // store pointer
     STOREJ,     // store object
-    STOREV,     // store voidptr
     NEGN,       // negate number
     ADDN,       // add number
     SUBN,       // subtract number
@@ -66,8 +64,6 @@ enum Opcode {
     NED,        // compare unequal dictionary
     EQP,        // compare equal pointer
     NEP,        // compare unequal pointer
-    EQV,        // compare equal voidptr
-    NEV,        // compare unequal voidptr
     ANDB,       // and boolean
     ORB,        // or boolean
     NOTB,       // not boolean
@@ -291,7 +287,6 @@ impl Executor {
                 x if x == Opcode::LOADD as u8 => self.op_loadd(),
                 x if x == Opcode::LOADP as u8 => self.op_loadp(),
                 x if x == Opcode::LOADJ as u8 => self.op_loadj(),
-                x if x == Opcode::LOADV as u8 => self.op_loadv(),
                 x if x == Opcode::STOREB as u8 => self.op_storeb(),
                 x if x == Opcode::STOREN as u8 => self.op_storen(),
                 x if x == Opcode::STORES as u8 => self.op_stores(),
@@ -300,7 +295,6 @@ impl Executor {
                 x if x == Opcode::STORED as u8 => self.op_stored(),
                 x if x == Opcode::STOREP as u8 => self.op_storep(),
                 x if x == Opcode::STOREJ as u8 => self.op_storej(),
-                x if x == Opcode::STOREV as u8 => self.op_storev(),
                 x if x == Opcode::NEGN as u8 => self.op_negn(),
                 x if x == Opcode::ADDN as u8 => self.op_addn(),
                 x if x == Opcode::SUBN as u8 => self.op_subn(),
@@ -334,8 +328,6 @@ impl Executor {
                 x if x == Opcode::NED as u8 => self.op_ned(),
                 x if x == Opcode::EQP as u8 => self.op_eqp(),
                 x if x == Opcode::NEP as u8 => self.op_nep(),
-                x if x == Opcode::EQV as u8 => self.op_eqv(),
-                x if x == Opcode::NEV as u8 => self.op_nev(),
                 x if x == Opcode::ANDB as u8 => self.op_andb(),
                 x if x == Opcode::ORB as u8 => self.op_orb(),
                 x if x == Opcode::NOTB as u8 => self.op_notb(),
@@ -452,10 +444,6 @@ impl Executor {
         assert!(false, "unimplemented");
     }
 
-    fn op_loadv(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
     fn op_storeb(&mut self) {
         assert!(false, "unimplemented");
     }
@@ -485,10 +473,6 @@ impl Executor {
     }
 
     fn op_storej(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
-    fn op_storev(&mut self) {
         assert!(false, "unimplemented");
     }
 
@@ -621,14 +605,6 @@ impl Executor {
     }
 
     fn op_nep(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
-    fn op_eqv(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
-    fn op_nev(&mut self) {
         assert!(false, "unimplemented");
     }
 

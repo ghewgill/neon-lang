@@ -1,4 +1,4 @@
-LET p: POINTER := NIL
+LET p: FUNCTION() := NOWHERE
 LET x: Object := []
 print(x[p])
         --<

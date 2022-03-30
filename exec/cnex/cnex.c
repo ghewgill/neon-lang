@@ -755,14 +755,6 @@ void exec_LOADJ(TExecutor *self)
     push(self->stack, cell_fromCell(addr));
 }
 
-void exec_LOADV(TExecutor *self)
-{
-    self->ip++;
-    Cell *addr = top(self->stack)->address; pop(self->stack);
-    cell_ensureOther(addr);
-    push(self->stack, cell_fromCell(addr));
-}
-
 void exec_STOREB(TExecutor *self)
 {
     self->ip++;
@@ -813,13 +805,6 @@ void exec_STOREP(TExecutor *self)
 }
 
 void exec_STOREJ(TExecutor *self)
-{
-    self->ip++;
-    Cell *addr = top(self->stack)->address; pop(self->stack);
-    cell_copyCell(addr, top(self->stack)); pop(self->stack);
-}
-
-void exec_STOREV(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
@@ -1158,28 +1143,6 @@ void exec_NEP(TExecutor *self)
     self->ip++;
     Cell *b = peek(self->stack, 0)->address;
     Cell *a = peek(self->stack, 1)->address;
-    Cell *r = cell_fromBoolean(a != b);
-    pop(self->stack);
-    pop(self->stack);
-    push(self->stack, r);
-}
-
-void exec_EQV(TExecutor *self)
-{
-    self->ip++;
-    Cell *b = peek(self->stack, 0)->other;
-    Cell *a = peek(self->stack, 1)->other;
-    Cell *r = cell_fromBoolean(a == b);
-    pop(self->stack);
-    pop(self->stack);
-    push(self->stack, r);
-}
-
-void exec_NEV(TExecutor *self)
-{
-    self->ip++;
-    Cell *b = peek(self->stack, 0)->other;
-    Cell *a = peek(self->stack, 1)->other;
     Cell *r = cell_fromBoolean(a != b);
     pop(self->stack);
     pop(self->stack);
@@ -1826,7 +1789,6 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case LOADD:   exec_LOADD(self); break;
             case LOADP:   exec_LOADP(self); break;
             case LOADJ:   exec_LOADJ(self); break;
-            case LOADV:   exec_LOADV(self); break;
             case STOREB:  exec_STOREB(self); break;
             case STOREN:  exec_STOREN(self); break;
             case STORES:  exec_STORES(self); break;
@@ -1835,7 +1797,6 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case STORED:  exec_STORED(self); break;
             case STOREP:  exec_STOREP(self); break;
             case STOREJ:  exec_STOREJ(self); break;
-            case STOREV:  exec_STOREV(self); break;
             case NEGN:    exec_NEGN(self); break;
             case ADDN:    exec_ADDN(self); break;
             case SUBN:    exec_SUBN(self); break;
@@ -1869,8 +1830,6 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case NED:     exec_NED(self); break;
             case EQP:     exec_EQP(self); break;
             case NEP:     exec_NEP(self); break;
-            case EQV:     exec_EQV(self); break;
-            case NEV:     exec_NEV(self); break;
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(self); break;

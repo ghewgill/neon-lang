@@ -91,7 +91,7 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     VAR response: Response := Response()
     VAR found: Boolean := FALSE
     FOREACH h IN self.handlers DO
-        IF regex.search(h.path, path, OUT _) THEN
+        IF regex.search(h.path, path) ISA regex.Result.match THEN
             -- TODO: Should be able to do h.callback(path, params),
             -- but that syntax seems to be handled only as a method
             LET rh: RequestHandler := h.callback

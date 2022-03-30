@@ -167,6 +167,7 @@ in.neon
 input.neon
 intdiv.neon
 interface.neon
+interface-compare.neon
 interface-multiple.neon
 interface-parameter-export2.neon
 interface-parameter-export.neon
@@ -288,6 +289,7 @@ record-init.neon
 record-private.neon
 recursion-limit.neon
 recursion.neon
+regex-test.neon
 repeat.neon
 repeat-next.neon
 repl_assign2.neon
@@ -393,6 +395,5 @@ compress-test.neon
 extsample-test.neon
 hash-test.neon
 http-test.neon
-regex-test.neon
 sodium-test.neon
 zeromq-test.neon

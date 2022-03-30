@@ -71,7 +71,7 @@ EnumType = 'ENUM', {Identifier}, 'END', 'ENUM';
 
 ChoiceType = 'CHOICE', {Identifier, [':', Type] }, 'END', 'CHOICE';
 
-PointerType = 'POINTER' | (['VALID'], 'POINTER', 'TO', Type);
+PointerType = ['VALID'], 'POINTER', 'TO', Type;
 
 FunctionPointerType = 'FUNCTION', FunctionParameterList;
 

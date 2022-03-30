@@ -64,6 +64,7 @@ in.neon                    # ArrayInExpression
 inc-reference.neon         # actually works here so avoid the TODO
 index.neon                 # copy semantics
 interface.neon             # methods
+interface-compare.neon     # interface
 interface-multiple.neon    # method
 interface-parameter-export.neon # method
 interface-parameter-export2.neon # method
@@ -120,6 +121,7 @@ process-test.neon          # module process
 random-test.neon           # module random
 record-private.neon        # methods
 recursion-limit.neon       # module runtime
+regex-test.neon            # interface
 repl_import.neon           # module random
 retval-index.neon          # StringValueIndexExpression
 runtime-test.neon          # module runtime
@@ -168,7 +170,6 @@ compress-test.neon         # module compress
 extsample-test.neon        # extension functions
 hash-test.neon             # bytes
 http-test.neon             # StringReferenceIndexExpression
-regex-test.neon            # module regex
 sodium-test.neon           # module sodium
 zeromq-test.neon           # module zeromq
 

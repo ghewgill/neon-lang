@@ -1,0 +1,7 @@
+INTERFACE Foo
+END INTERFACE
+
+LET p: POINTER TO Foo := NIL
+LET q: POINTER TO Foo := NIL
+TESTCASE p < q
+           --<

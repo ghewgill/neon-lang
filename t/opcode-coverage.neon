@@ -8,8 +8,6 @@ LET Global: Number := 0x4E656F6E
 VAR array: Array<Number> := [ 42 ]
 VAR dictionary: Dictionary<Number> := {"One": 1 }
 
-TYPE Handle IS POINTER
-
 DECLARE EXTENSION FUNCTION extFunction(OUT a: Number)
 
 TYPE Rec IS RECORD
@@ -130,13 +128,6 @@ FUNCTION loadj(): Object
     RETURN r
 END FUNCTION
 
---    LOADV,      // load voidptr
-FUNCTION loadv()
-    VAR p1: Handle := NIL
-    VAR p2: Handle
-    p2 := p1
-END FUNCTION
-
 --    STOREB,     // store boolean
 FUNCTION storeb(): Boolean
     LET r: Boolean := TRUE
@@ -183,12 +174,6 @@ END FUNCTION
 FUNCTION storej(): Object
     LET o: Object := "object"
     RETURN o
-END FUNCTION
-
---    STOREV,     // store voidptr
-FUNCTION storev()
-    VAR p: Handle
-    p := NIL
 END FUNCTION
 
 --    NEGN,       // negate number
@@ -355,18 +340,6 @@ END FUNCTION
 --    NEP,        // compare unequal pointer
 FUNCTION nep(): Boolean
     LET p: POINTER TO Class := NEW Class()
-    RETURN p <> NIL
-END FUNCTION
-
---    EQV,        // compare equal voidptr
-FUNCTION eqv(): Boolean
-    LET p: POINTER := NIL
-    RETURN p = NIL
-END FUNCTION
-
---    NEV,        // compare unequal voidptr
-FUNCTION nev(): Boolean
-    LET p: POINTER := NIL
     RETURN p <> NIL
 END FUNCTION
 
@@ -610,7 +583,6 @@ BEGIN MAIN
     _ := loadd()
     _ := loadp()
     _ := loadj()
-    loadv()
     _ := storeb()
     _ := storen()
     _ := stores()
@@ -619,7 +591,6 @@ BEGIN MAIN
     _ := stored()
     storep()
     _ := storej()
-    storev()
     _ := negn()
     _ := addn()
     _ := subn()
@@ -653,8 +624,6 @@ BEGIN MAIN
     _ := ned()
     _ := eqp()
     _ := nep()
-    _ := eqv()
-    _ := nev()
     _ := andb()
     _ := orb()
     _ := notb()

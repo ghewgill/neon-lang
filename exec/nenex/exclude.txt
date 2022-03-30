@@ -50,6 +50,7 @@ in.neon                     # ina
 inc-reference.neon          # array__toString__number
 index.neon                  # value semantics
 intdiv.neon                 # math$intdiv
+interface-compare.neon      # pushi
 interface-multiple.neon     # pushi
 interface-parameter-export.neon  # typesize
 interface-parameter-export2.neon # exportfunctionsize
@@ -101,6 +102,7 @@ random-test.neon            # module random
 record-empty.neon           # indexan
 record-private.neon         # storep
 recursion-limit.neon        # runtime$setRecursionLimit
+regex-test.neon             # interface
 repl_import.neon            # random$uint32
 runtime-test.neon           # runtime$executorName
 sql-connect.neon            # file$delete
@@ -137,6 +139,5 @@ compress-test.neon
 extsample-test.neon
 hash-test.neon
 http-test.neon
-regex-test.neon
 sodium-test.neon
 zeromq-test.neon

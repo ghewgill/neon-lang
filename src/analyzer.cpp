@@ -2218,7 +2218,7 @@ const ast::Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
     }
     const ast::TypeRecord *recordtype = pointertype->reftype;
     if (recordtype == nullptr) {
-        error(3117, expr->base->token, "pointer must not be a generic pointer");
+        internal_error("pointer does not have a referred type");
     }
     if (dynamic_cast<const ast::TypeForwardClass *>(recordtype) != nullptr) {
         error2(3104, expr->base->token, "class not defined yet", recordtype->declaration, "forward declaration here");
@@ -2395,6 +2395,180 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
         }
     }
     return r;
+}
+
+static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_regex(const utf8string &pattern)
+{
+    int depth = 0;
+    std::string::size_type i = 0;
+    bool lastrepeatable = false;
+    while (i < pattern.length()) {
+        bool repeatable = false;
+        switch (pattern.at(i)) {
+            case '^':
+            case '$':
+                // not repeatable
+                break;
+            case '?':
+            case '*':
+            case '+':
+                if (not lastrepeatable) {
+                    return std::make_pair(false, std::make_pair(i, "quantifier must follow repeatable element"));
+                }
+                if (i+1 < pattern.length() && pattern.at(i+1) == '?') {
+                    i++;
+                }
+                break;
+            case '{':
+                if (not lastrepeatable) {
+                    return std::make_pair(false, std::make_pair(i, "quantifier must follow repeatable element"));
+                }
+                i++;
+                while (i < pattern.length() && isdigit(pattern.at(i))) {
+                    i++;
+                }
+                if (i < pattern.length() && pattern.at(i) == ',') {
+                    i++;
+                    while (i < pattern.length() && isdigit(pattern.at(i))) {
+                        i++;
+                    }
+                }
+                if (i >= pattern.length() || pattern.at(i) != '}') {
+                    return std::make_pair(false, std::make_pair(i, "} expected"));
+                }
+                if (i+1 < pattern.length() && pattern.at(i+1) == '?') {
+                    i++;
+                }
+                break;
+            case '[': {
+                i++;
+                int j = 0;
+                bool terminated = false;
+                while (i < pattern.length() && not terminated) {
+                    switch (pattern.at(i)) {
+                        case ']':
+                            if (j > 0) {
+                                // Need to use a flag variable and 'continue' here
+                                // because 'break' would only break out of the switch.
+                                terminated = true;
+                                continue;
+                            }
+                            break;
+                        case '\\':
+                            i++;
+                            if (i >= pattern.length()) {
+                                return std::make_pair(false, std::make_pair(i, "expected character after backslash"));
+                            }
+                            if ((pattern.at(i) >= 'A' && pattern.at(i) <= 'Z')
+                             || (pattern.at(i) >= 'a' && pattern.at(i) <= 'z')
+                             || (pattern.at(i) >= '0' && pattern.at(i) <= '9')) {
+                                switch (pattern.at(i)) {
+                                    case 'b':
+                                    case 'd':
+                                    case 'D':
+                                    case 'e':
+                                    case 'f':
+                                    case 'n':
+                                    case 'r':
+                                    case 's':
+                                    case 'S':
+                                    case 't':
+                                    case 'w':
+                                    case 'W':
+                                    case 'x':
+                                        break;
+                                    default:
+                                        return std::make_pair(false, std::make_pair(i, "unknown escape character: " + pattern.substr(i-1, 2)));
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    j++;
+                    i++;
+                }
+                if (not terminated) {
+                    return std::make_pair(false, std::make_pair(i, "unterminated character class"));
+                }
+                repeatable = true;
+                break;
+            }
+            case '(':
+                depth++;
+                if (i+1 < pattern.length() && pattern.at(i+1) == '?') {
+                    i += 2;
+                    if (i >= pattern.length()) {
+                        return std::make_pair(false, std::make_pair(i, "expected character after (?"));
+                    }
+                    switch (pattern.at(i)) {
+                        case ':':
+                            break;
+                        default:
+                            return std::make_pair(false, std::make_pair(i, "unknown extended modifier: " + pattern.substr(i-2, 3)));
+                    }
+                }
+                break;
+            case ')':
+                if (depth == 0) {
+                    return std::make_pair(false, std::make_pair(i, "unexpected )"));
+                }
+                depth--;
+                repeatable = true;
+                break;
+            case '|':
+                // not repeatable
+                break;
+            case '\\':
+                i++;
+                if (i >= pattern.length()) {
+                    return std::make_pair(false, std::make_pair(i, "expected character after backslash"));
+                }
+                if ((pattern.at(i) >= 'A' && pattern.at(i) <= 'Z')
+                 || (pattern.at(i) >= 'a' && pattern.at(i) <= 'z')
+                 || (pattern.at(i) >= '0' && pattern.at(i) <= '9')) {
+                    switch (pattern.at(i)) {
+                        case '0':
+                        case '1':
+                        case '2':
+                        case '3':
+                        case '4':
+                        case '5':
+                        case '6':
+                        case '7':
+                        case '8':
+                        case '9':
+                            return std::make_pair(false, std::make_pair(i, "backreferences not supported: " + pattern.substr(i-1, 2)));
+                        case 'd':
+                        case 'D':
+                        case 'e':
+                        case 'f':
+                        case 'n':
+                        case 'r':
+                        case 's':
+                        case 'S':
+                        case 't':
+                        case 'w':
+                        case 'W':
+                        case 'x':
+                            break;
+                        default:
+                            return std::make_pair(false, std::make_pair(i, "unknown escape character: " + pattern.substr(i-1, 2)));
+                    }
+                }
+                repeatable = true;
+                break;
+            default:
+                repeatable = true;
+                break;
+        }
+        i++;
+        lastrepeatable = repeatable;
+    }
+    if (depth > 0) {
+        return std::make_pair(false, std::make_pair(i, "unterminated parentheses"));
+    }
+    return std::make_pair(true, std::make_pair(0, ""));
 }
 
 const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
@@ -2707,6 +2881,35 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         p++;
     }
+    auto *v = dynamic_cast<const ast::VariableExpression *>(func);
+    if (v != nullptr) {
+        auto *mf = dynamic_cast<const ast::ModuleFunction *>(v->var);
+        if (mf != nullptr && mf->module->name == "regex" && (mf->name == "prepare" || mf->name == "search")) {
+            auto *s = dynamic_cast<const ast::ConstantStringExpression *>(args[0]);
+            if (s != nullptr) {
+                auto r = validate_regex(s->value);
+                if (not r.first) {
+                    Token t = expr->args[0]->expr->token;
+                    /*
+                    // Debugging for error reporting alignment.
+                    printf("err=%zd t.column=%zd size=%zd\n", r.second.first, t.column, t.text_source_offset.size());
+                    for (size_t j = 0; j < t.text_source_offset.size(); j++) {
+                        printf("%d ", t.text_source_offset[j]);
+                    }
+                    puts("");
+                    */
+                    if (r.second.first < t.text_source_offset.size()) {
+                        t.column += t.text_source_offset[r.second.first] + 1;
+                        t.text = s->value.substr(r.second.first, t.text_source_offset[r.second.first+1] - t.text_source_offset[r.second.first]);
+                    } else {
+                        t.column += r.second.first;
+                        t.text = s->value.substr(r.second.first, 1);
+                    }
+                    error(3326, t, "error in regex: " + r.second.second);
+                }
+            }
+        }
+    }
     return new ast::FunctionCall(func, args, dispatch, allow_ignore_result);
 }
 
@@ -2973,6 +3176,21 @@ const ast::Expression *Analyzer::analyze_comparison(const Token &token, const as
             if (tf1->functype == nullptr || tf2->functype == nullptr) {
                 return new ast::FunctionPointerComparisonExpression(left, right, comp);
             }
+        }
+    }
+    {
+        const ast::TypeInterfacePointer *ti1 = dynamic_cast<const ast::TypeInterfacePointer *>(left->type);
+        const ast::TypeInterfacePointer *ti2 = dynamic_cast<const ast::TypeInterfacePointer *>(right->type);
+        if (ti1 != nullptr && ti2 != nullptr) {
+            if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
+                error(3325, token, "comparison not available for interface pointers");
+            }
+            return new ast::PointerComparisonExpression(new ast::InterfacePointerDeconstructor(left), new ast::InterfacePointerDeconstructor(right), comp);
+        }
+        if (ti1 != nullptr && dynamic_cast<const ast::ConstantNilExpression *>(right) != nullptr) {
+            return new ast::PointerComparisonExpression(new ast::InterfacePointerDeconstructor(left), right, comp);
+        } else if (ti2 != nullptr && dynamic_cast<const ast::ConstantNilExpression *>(left) != nullptr) {
+            return new ast::PointerComparisonExpression(left, new ast::InterfacePointerDeconstructor(right), comp);
         }
     }
     if (comp == ast::ComparisonExpression::Comparison::EQ || comp == ast::ComparisonExpression::Comparison::NE) {
@@ -4234,7 +4452,16 @@ const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declarat
         method_names[methodname] = x.first;
     }
     scope.pop();
-    scope.top()->addName(declaration->token, name, new ast::Interface(declaration->token, name, methods));
+    ast::Interface *interface = new ast::Interface(declaration->token, name, methods);
+    scope.top()->addName(declaration->token, name, interface);
+    // This hack fixes up declared return types in interface function definitions
+    // so that they can return pointers to the interface we are currently declaring.
+    for (auto &x: interface->methods) {
+        if (x.second->returntype == ast::TYPE_INTERFACE) {
+            // TODO: This really should not be a valid pointer type, I don't think.
+            const_cast<ast::TypeFunction *>(x.second)->returntype = new ast::TypeValidInterfacePointer(Token(), interface);
+        }
+    }
     return new ast::NullStatement(declaration->token);
 }
 
@@ -5737,7 +5964,12 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
         }
         else_checks = checks_conjunction(else_checks, checks_complement(checks));
     }
-    checked_choice_variables.push(else_checks);
+    // Pop the scope containing any read-only copy of a valid pointer here,
+    // so it isn't also read-only in the else clause. A better way might be to
+    // only add the read-only copy to the scope inside the if valid clause.
+    scope.pop();
+    scope.push(new ast::Scope(scope.top(), frame.top()));
+    checked_choice_variables.push(checks_conjunction(checked_choice_variables.top(), else_checks));
     std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
     checked_choice_variables.pop();
     scope.pop();

@@ -16,6 +16,7 @@ KnownParseFailures = [          # Reason:
     "lexer-raw.neon",           # unicode
     "lexer-unicode.neon",       # unicode
     "os-test.neon",             # double-at raw string with embedded quote at end
+    "regex-test.neon",          # double-at raw string with embedded ^M
     "unicode-source.neon",      # unicode
     "utf8-invalid.neon",        # invalid utf-8
     "N3060.neon",               #

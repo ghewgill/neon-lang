@@ -197,6 +197,7 @@ set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/os.neon
     ${CMAKE_SOURCE_DIR}/lib/process.neon
     ${CMAKE_SOURCE_DIR}/lib/random.neon
+    #${CMAKE_SOURCE_DIR}/lib/regex.neon -- TODO: add back in when jvm backend can build it
     ${CMAKE_SOURCE_DIR}/lib/runtime.neon
     ${CMAKE_SOURCE_DIR}/lib/sqlite.neon
     ${CMAKE_SOURCE_DIR}/lib/string.neon
@@ -212,7 +213,7 @@ else (WIN32)
 endif (WIN32)
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/gen/thunks.inc ${CMAKE_BINARY_DIR}/gen/functions_compile.inc ${CMAKE_BINARY_DIR}/gen/functions_exec.inc ${CMAKE_BINARY_DIR}/gen/enums.inc ${CMAKE_BINARY_DIR}/gen/choices.in ${CMAKE_BINARY_DIR}/gen/exceptions.inc
+    OUTPUT ${CMAKE_BINARY_DIR}/gen/thunks.inc ${CMAKE_BINARY_DIR}/gen/functions_compile.inc ${CMAKE_BINARY_DIR}/gen/functions_exec.inc ${CMAKE_BINARY_DIR}/gen/enums.inc ${CMAKE_BINARY_DIR}/gen/choices.inc ${CMAKE_BINARY_DIR}/gen/exceptions.inc
     COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/make_thunks.py ${RTL_NEON}
     DEPENDS scripts/make_thunks.py
     DEPENDS ${RTL_NEON}
@@ -690,6 +691,10 @@ endfunction(add_tests)
 
 file(GLOB COMPILE_TESTS t/compile-only/*.neon)
 add_tests("${COMPILE_TESTS}" "compile" "$<TARGET_FILE:neonc> -q" "")
+
+execute_process(
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/make_regex_test.py
+)
 
 file(GLOB RUN_TESTS t/*.neon)
 foreach (extension_dir ${EXTENSION_DIRS})
