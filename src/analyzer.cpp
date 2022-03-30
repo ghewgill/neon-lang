@@ -2397,6 +2397,180 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
     return r;
 }
 
+static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_regex(const utf8string &pattern)
+{
+    int depth = 0;
+    std::string::size_type i = 0;
+    bool lastrepeatable = false;
+    while (i < pattern.length()) {
+        bool repeatable = false;
+        switch (pattern.at(i)) {
+            case '^':
+            case '$':
+                // not repeatable
+                break;
+            case '?':
+            case '*':
+            case '+':
+                if (not lastrepeatable) {
+                    return std::make_pair(false, std::make_pair(i, "quantifier must follow repeatable element"));
+                }
+                if (i+1 < pattern.length() && pattern.at(i+1) == '?') {
+                    i++;
+                }
+                break;
+            case '{':
+                if (not lastrepeatable) {
+                    return std::make_pair(false, std::make_pair(i, "quantifier must follow repeatable element"));
+                }
+                i++;
+                while (i < pattern.length() && isdigit(pattern.at(i))) {
+                    i++;
+                }
+                if (i < pattern.length() && pattern.at(i) == ',') {
+                    i++;
+                    while (i < pattern.length() && isdigit(pattern.at(i))) {
+                        i++;
+                    }
+                }
+                if (i >= pattern.length() || pattern.at(i) != '}') {
+                    return std::make_pair(false, std::make_pair(i, "} expected"));
+                }
+                if (i+1 < pattern.length() && pattern.at(i+1) == '?') {
+                    i++;
+                }
+                break;
+            case '[': {
+                i++;
+                int j = 0;
+                bool terminated = false;
+                while (i < pattern.length() && not terminated) {
+                    switch (pattern.at(i)) {
+                        case ']':
+                            if (j > 0) {
+                                // Need to use a flag variable and 'continue' here
+                                // because 'break' would only break out of the switch.
+                                terminated = true;
+                                continue;
+                            }
+                            break;
+                        case '\\':
+                            i++;
+                            if (i >= pattern.length()) {
+                                return std::make_pair(false, std::make_pair(i, "expected character after backslash"));
+                            }
+                            if ((pattern.at(i) >= 'A' && pattern.at(i) <= 'Z')
+                             || (pattern.at(i) >= 'a' && pattern.at(i) <= 'z')
+                             || (pattern.at(i) >= '0' && pattern.at(i) <= '9')) {
+                                switch (pattern.at(i)) {
+                                    case 'b':
+                                    case 'd':
+                                    case 'D':
+                                    case 'e':
+                                    case 'f':
+                                    case 'n':
+                                    case 'r':
+                                    case 's':
+                                    case 'S':
+                                    case 't':
+                                    case 'w':
+                                    case 'W':
+                                    case 'x':
+                                        break;
+                                    default:
+                                        return std::make_pair(false, std::make_pair(i, "unknown escape character: " + pattern.substr(i-1, 2)));
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    j++;
+                    i++;
+                }
+                if (not terminated) {
+                    return std::make_pair(false, std::make_pair(i, "unterminated character class"));
+                }
+                repeatable = true;
+                break;
+            }
+            case '(':
+                depth++;
+                if (i+1 < pattern.length() && pattern.at(i+1) == '?') {
+                    i += 2;
+                    if (i >= pattern.length()) {
+                        return std::make_pair(false, std::make_pair(i, "expected character after (?"));
+                    }
+                    switch (pattern.at(i)) {
+                        case ':':
+                            break;
+                        default:
+                            return std::make_pair(false, std::make_pair(i, "unknown extended modifier: " + pattern.substr(i-2, 3)));
+                    }
+                }
+                break;
+            case ')':
+                if (depth == 0) {
+                    return std::make_pair(false, std::make_pair(i, "unexpected )"));
+                }
+                depth--;
+                repeatable = true;
+                break;
+            case '|':
+                // not repeatable
+                break;
+            case '\\':
+                i++;
+                if (i >= pattern.length()) {
+                    return std::make_pair(false, std::make_pair(i, "expected character after backslash"));
+                }
+                if ((pattern.at(i) >= 'A' && pattern.at(i) <= 'Z')
+                 || (pattern.at(i) >= 'a' && pattern.at(i) <= 'z')
+                 || (pattern.at(i) >= '0' && pattern.at(i) <= '9')) {
+                    switch (pattern.at(i)) {
+                        case '0':
+                        case '1':
+                        case '2':
+                        case '3':
+                        case '4':
+                        case '5':
+                        case '6':
+                        case '7':
+                        case '8':
+                        case '9':
+                            return std::make_pair(false, std::make_pair(i, "backreferences not supported: " + pattern.substr(i-1, 2)));
+                        case 'd':
+                        case 'D':
+                        case 'e':
+                        case 'f':
+                        case 'n':
+                        case 'r':
+                        case 's':
+                        case 'S':
+                        case 't':
+                        case 'w':
+                        case 'W':
+                        case 'x':
+                            break;
+                        default:
+                            return std::make_pair(false, std::make_pair(i, "unknown escape character: " + pattern.substr(i-1, 2)));
+                    }
+                }
+                repeatable = true;
+                break;
+            default:
+                repeatable = true;
+                break;
+        }
+        i++;
+        lastrepeatable = repeatable;
+    }
+    if (depth > 0) {
+        return std::make_pair(false, std::make_pair(i, "unterminated parentheses"));
+    }
+    return std::make_pair(true, std::make_pair(0, ""));
+}
+
 const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
 {
     // TODO: This stuff works, but it's increasingly becoming a mess. There seem
@@ -2706,6 +2880,35 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             }
         }
         p++;
+    }
+    auto *v = dynamic_cast<const ast::VariableExpression *>(func);
+    if (v != nullptr) {
+        auto *mf = dynamic_cast<const ast::ModuleFunction *>(v->var);
+        if (mf != nullptr && mf->module->name == "regex" && (mf->name == "prepare" || mf->name == "search")) {
+            auto *s = dynamic_cast<const ast::ConstantStringExpression *>(args[0]);
+            if (s != nullptr) {
+                auto r = validate_regex(s->value);
+                if (not r.first) {
+                    Token t = expr->args[0]->expr->token;
+                    /*
+                    // Debugging for error reporting alignment.
+                    printf("err=%zd t.column=%zd size=%zd\n", r.second.first, t.column, t.text_source_offset.size());
+                    for (size_t j = 0; j < t.text_source_offset.size(); j++) {
+                        printf("%d ", t.text_source_offset[j]);
+                    }
+                    puts("");
+                    */
+                    if (r.second.first < t.text_source_offset.size()) {
+                        t.column += t.text_source_offset[r.second.first] + 1;
+                        t.text = s->value.substr(r.second.first, t.text_source_offset[r.second.first+1] - t.text_source_offset[r.second.first]);
+                    } else {
+                        t.column += r.second.first;
+                        t.text = s->value.substr(r.second.first, 1);
+                    }
+                    error(3326, t, "error in regex: " + r.second.second);
+                }
+            }
+        }
     }
     return new ast::FunctionCall(func, args, dispatch, allow_ignore_result);
 }

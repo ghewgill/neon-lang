@@ -1,0 +1,1111 @@
+/*  File: regex
+ *
+ *  Functions for searching text using regular expressions.
+ *
+ *  The following matching metacharacters are supported:
+ *
+ *      ^       Match beginning of string
+ *      $       Match end of string
+ *      .       Match any character
+ *      |       Alternation
+ *      ()      Grouping with capture
+ *      [...]   Character class
+ *
+ *  Character classes may contain ranges [a-z] or complement [^aeiou].
+ *
+ *  Supported repetition operators:
+ *
+ *      *       Match 0 or more times
+ *      +       Match 1 or more times
+ *      ?       Match 0 or 1 times
+ *      {n}     Match exactly n times
+ *      {n,}    Match at least n times
+ *      {,n}    Match at most n times
+ *      {n,m}   Match at least n and at most m times
+ *
+ *  The above repetition operators are greedy. Append a question mark for
+ *  the non greedy version:
+ *
+ *      *?  +?  ??  {...}?
+ *
+ *  The following extended modifiers are supported:
+ *
+ *      (?:...)     Non-capturing group
+ *
+ *  The following backslash escape sequences are supported:
+ *
+ *      \d      Digits [0-9]
+ *      \D      Non-digits [^0-9]
+ *      \s      Whitespace [\f\n\r\t ]
+ *      \S      Non-whitespace [^\f\n\r\t ]
+ *      \w      Word character [A-Za-z0-9_]
+ *      \W      Non-word character [^A-Za-z0-9_]
+ *      \       Escape next character literally
+ *
+ */
+
+EXPORT Match
+EXPORT PrepareResult
+EXPORT Result
+EXPORT Opcode
+EXPORT Regex
+
+EXPORT prepare
+EXPORT search
+EXPORT searchPrepared
+
+IMPORT base
+IMPORT string
+
+CONSTANT Debug := FALSE
+
+TYPE Opcode IS CHOICE
+    any
+    char: String
+    class: Array<Boolean>
+    begin
+    end
+    save: Number
+    match
+    jump: Array<Number>
+END CHOICE
+
+TYPE Regex IS Array<Opcode>
+
+TYPE Match IS RECORD
+    found: Boolean
+    first: Number
+    last: Number
+    string: String
+END RECORD
+
+TYPE ErrorInfo IS RECORD
+    index: Number
+    message: String
+END RECORD
+
+TYPE PrepareResult IS CHOICE
+    error: ErrorInfo
+    regex: Regex
+END CHOICE
+
+TYPE Result IS CHOICE
+    error: ErrorInfo
+    noMatch
+    match: Array<Match>
+END CHOICE
+
+INTERFACE Expr
+    FUNCTION dump(self: Expr): String
+    FUNCTION reduce(self: Expr): Expr
+    FUNCTION size(self: Expr): Number
+    FUNCTION compile(self: Expr, INOUT regex: Regex)
+END INTERFACE
+
+TYPE ExprSequence IS CLASS IMPLEMENTS Expr
+    exprs: Array<VALID POINTER TO Expr>
+END CLASS
+
+FUNCTION ExprSequence.dump(self: VALID POINTER TO ExprSequence): String
+    VAR r := ""
+    FOREACH e IN self->exprs DO
+        r.append(e->dump())
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION ExprSequence.reduce(self: VALID POINTER TO ExprSequence): POINTER TO Expr
+    VAR a: Array<VALID POINTER TO Expr> := []
+    FOREACH e IN self->exprs DO
+        a.append(e->reduce())
+    END FOREACH
+    RETURN NEW ExprSequence(exprs WITH a)
+END FUNCTION
+
+FUNCTION ExprSequence.size(self: VALID POINTER TO ExprSequence): Number
+    VAR r := 0
+    FOREACH e IN self->exprs DO
+        r := r + e->size()
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION ExprSequence.compile(self: VALID POINTER TO ExprSequence, INOUT regex: Regex)
+    FOREACH e IN self->exprs DO
+        e->compile(INOUT regex)
+    END FOREACH
+END FUNCTION
+
+TYPE ExprLiteral IS CLASS IMPLEMENTS Expr
+    literal: String
+END CLASS
+
+FUNCTION ExprLiteral.dump(self: VALID POINTER TO ExprLiteral): String
+    RETURN self->literal
+END FUNCTION
+
+FUNCTION ExprLiteral.reduce(self: VALID POINTER TO ExprLiteral): POINTER TO Expr
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprLiteral.size(self: VALID POINTER TO ExprLiteral): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprLiteral.compile(self: VALID POINTER TO ExprLiteral, INOUT regex: Regex)
+    regex.append(Opcode.char(self->literal))
+END FUNCTION
+
+TYPE ExprClass IS CLASS IMPLEMENTS Expr
+    chars: Array<String>
+    complement: Boolean
+END CLASS
+
+FUNCTION ExprClass.dump(self: VALID POINTER TO ExprClass): String
+    RETURN "[" & (IF self->complement THEN "^" ELSE "") & string.join(self->chars, "") & "]"
+END FUNCTION
+
+FUNCTION ExprClass.reduce(self: VALID POINTER TO ExprClass): POINTER TO Expr
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprClass.size(self: VALID POINTER TO ExprClass): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprClass.compile(self: VALID POINTER TO ExprClass, INOUT regex: Regex)
+    VAR class: Array<Boolean> := []
+    FOR x := 0 TO 255 DO
+        class[x] := FALSE
+    END FOR
+    IF self->complement THEN
+        FOR x := 0 TO 255 DO
+            LET c := string.fromCodePoint(x)
+            IF c NOT IN self->chars THEN
+                class[x] := TRUE
+            END IF
+        END FOR
+    ELSE
+        FOREACH c IN self->chars DO
+            class[string.toCodePoint(c)] := TRUE
+        END FOREACH
+    END IF
+    regex.append(Opcode.class(class))
+END FUNCTION
+
+TYPE ExprAny IS CLASS IMPLEMENTS Expr
+END CLASS
+
+FUNCTION ExprAny.dump(self: VALID POINTER TO ExprAny): String
+    RETURN "."
+END FUNCTION
+
+FUNCTION ExprAny.reduce(self: VALID POINTER TO ExprAny): POINTER TO Expr
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprAny.size(self: VALID POINTER TO ExprAny): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprAny.compile(self: VALID POINTER TO ExprAny, INOUT regex: Regex)
+    regex.append(Opcode.any)
+END FUNCTION
+
+TYPE ExprOpt IS CLASS IMPLEMENTS Expr
+    expr: VALID POINTER TO Expr
+    greedy: Boolean
+END CLASS
+
+FUNCTION ExprOpt.dump(self: VALID POINTER TO ExprOpt): String
+    RETURN self->expr->dump() & "?" & (IF self->greedy THEN "" ELSE "?")
+END FUNCTION
+
+FUNCTION ExprOpt.reduce(self: VALID POINTER TO ExprOpt): POINTER TO Expr
+    self->expr := self->expr->reduce()
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprOpt.size(self: VALID POINTER TO ExprOpt): Number
+    RETURN 1 + self->expr->size()
+END FUNCTION
+
+FUNCTION ExprOpt.compile(self: VALID POINTER TO ExprOpt, INOUT regex: Regex)
+    IF self->greedy THEN
+        regex.append(Opcode.jump([regex.size() + 1, regex.size() + 1 + self->expr->size()]))
+    ELSE
+        regex.append(Opcode.jump([regex.size() + 1 + self->expr->size(), regex.size() + 1]))
+    END IF
+    self->expr->compile(INOUT regex)
+END FUNCTION
+
+TYPE ExprStar IS CLASS IMPLEMENTS Expr
+    expr: VALID POINTER TO Expr
+    greedy: Boolean
+END CLASS
+
+FUNCTION ExprStar.dump(self: VALID POINTER TO ExprStar): String
+    RETURN "\(self->expr->dump())*" & (IF self->greedy THEN "" ELSE "?")
+END FUNCTION
+
+FUNCTION ExprStar.reduce(self: VALID POINTER TO ExprStar): POINTER TO Expr
+    self->expr := self->expr->reduce()
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprStar.size(self: VALID POINTER TO ExprStar): Number
+    RETURN 1 + self->expr->size() + 1
+END FUNCTION
+
+FUNCTION ExprStar.compile(self: VALID POINTER TO ExprStar, INOUT regex: Regex)
+    LET top := regex.size()
+    IF self->greedy THEN
+        regex.append(Opcode.jump([regex.size() + 1, regex.size() + 1 + self->expr->size() + 1]))
+    ELSE
+        regex.append(Opcode.jump([regex.size() + 1 + self->expr->size() + 1, regex.size() + 1]))
+    END IF
+    self->expr->compile(INOUT regex)
+    regex.append(Opcode.jump([top]))
+END FUNCTION
+
+TYPE ExprRepeat IS CLASS IMPLEMENTS Expr
+    minimum: Number
+    maximum: Number
+    expr: VALID POINTER TO Expr
+    greedy: Boolean
+END CLASS
+
+FUNCTION ExprRepeat.dump(self: VALID POINTER TO ExprRepeat): String
+    RETURN "\(self->expr->dump()){\(self->minimum),\(self->maximum)}" & (IF self->greedy THEN "" ELSE "?")
+END FUNCTION
+
+FUNCTION ExprRepeat.reduce(self: VALID POINTER TO ExprRepeat): POINTER TO Expr
+    LET r := NEW ExprSequence(exprs WITH [])
+    LET rexpr := self->expr->reduce()
+    FOR i := 1 TO self->minimum DO
+        r->exprs.append(rexpr)
+    END FOR
+    IF self->maximum < 0 THEN
+        r->exprs.append(NEW ExprStar(expr WITH rexpr, greedy WITH self->greedy))
+    ELSE
+        FOR i := self->minimum + 1 TO self->maximum DO
+            r->exprs.append(NEW ExprOpt(expr WITH rexpr, greedy WITH self->greedy))
+        END FOR
+    END IF
+    RETURN r
+END FUNCTION
+
+FUNCTION ExprRepeat.size(self: VALID POINTER TO ExprRepeat): Number
+    ASSERT FALSE
+    RETURN 0
+END FUNCTION
+
+FUNCTION ExprRepeat.compile(self: VALID POINTER TO ExprRepeat, INOUT regex: Regex)
+    ASSERT FALSE
+END FUNCTION
+
+TYPE ExprBegin IS CLASS IMPLEMENTS Expr
+END CLASS
+
+FUNCTION ExprBegin.dump(self: VALID POINTER TO ExprBegin): String
+    RETURN "^"
+END FUNCTION
+
+FUNCTION ExprBegin.reduce(self: VALID POINTER TO ExprBegin): POINTER TO Expr
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprBegin.size(self: VALID POINTER TO ExprBegin): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprBegin.compile(self: VALID POINTER TO ExprBegin, INOUT regex: Regex)
+    regex.append(Opcode.begin)
+END FUNCTION
+
+TYPE ExprEnd IS CLASS IMPLEMENTS Expr
+END CLASS
+
+FUNCTION ExprEnd.dump(self: VALID POINTER TO ExprEnd): String
+    RETURN "$"
+END FUNCTION
+
+FUNCTION ExprEnd.reduce(self: VALID POINTER TO ExprEnd): POINTER TO Expr
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprEnd.size(self: VALID POINTER TO ExprEnd): Number
+    RETURN 1
+END FUNCTION
+
+FUNCTION ExprEnd.compile(self: VALID POINTER TO ExprEnd, INOUT regex: Regex)
+    regex.append(Opcode.end)
+END FUNCTION
+
+TYPE ExprGroup IS CLASS IMPLEMENTS Expr
+    index: Number
+    capture: Boolean
+    expr: POINTER TO Expr
+END CLASS
+
+FUNCTION ExprGroup.dump(self: VALID POINTER TO ExprGroup): String
+    RETURN self->expr->dump()
+END FUNCTION
+
+FUNCTION ExprGroup.reduce(self: VALID POINTER TO ExprGroup): POINTER TO Expr
+    self->expr := self->expr->reduce()
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprGroup.size(self: VALID POINTER TO ExprGroup): Number
+    IF self->capture THEN
+        RETURN 1 + self->expr->size() + 1
+    ELSE
+        RETURN self->expr->size()
+    END IF
+END FUNCTION
+
+FUNCTION ExprGroup.compile(self: VALID POINTER TO ExprGroup, INOUT regex: Regex)
+    IF self->capture THEN
+        regex.append(Opcode.save(2*self->index))
+        self->expr->compile(INOUT regex)
+        regex.append(Opcode.save(2*self->index+1))
+    ELSE
+        self->expr->compile(INOUT regex)
+    END IF
+END FUNCTION
+
+TYPE ExprAlternative IS CLASS IMPLEMENTS Expr
+    alternatives: Array<POINTER TO Expr>
+END CLASS
+
+FUNCTION ExprAlternative.dump(self: VALID POINTER TO ExprAlternative): String
+    VAR r := ""
+    FOREACH a IN self->alternatives DO
+        IF r.length() > 0 THEN
+            r.append("|")
+        END IF
+        r.append(a->dump())
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION ExprAlternative.reduce(self: VALID POINTER TO ExprAlternative): POINTER TO Expr
+    FOR i := 0 TO self->alternatives.size()-1 DO
+        self->alternatives[i] := self->alternatives[i]->reduce()
+    END FOR
+    RETURN self
+END FUNCTION
+
+FUNCTION ExprAlternative.size(self: VALID POINTER TO ExprAlternative): Number
+    VAR r := 0
+    FOREACH a IN self->alternatives DO
+        r := r + 1 + a->size()
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION ExprAlternative.compile(self: VALID POINTER TO ExprAlternative, INOUT regex: Regex)
+    LET out := regex.size() + self->size()
+    VAR jumps := [regex.size() + 1]
+    FOREACH a IN self->alternatives[0 TO LAST-1] DO
+        jumps.append(jumps[LAST] + a->size() + 1)
+    END FOREACH
+    regex.append(Opcode.jump(jumps))
+    FOREACH a IN self->alternatives INDEX i DO
+        a->compile(INOUT regex)
+        IF i + 1 < self->alternatives.size() THEN
+            regex.append(Opcode.jump([out]))
+        END IF
+    END FOREACH
+END FUNCTION
+
+FUNCTION range(first, last: String): Array<String>
+    VAR r: Array<String> := []
+    FOR i := string.toCodePoint(first) TO string.toCodePoint(last) DO
+        r.append(string.fromCodePoint(i))
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION complement(a: Array<String>): Array<String>
+    VAR r: Array<String> := []
+    FOR i := 0 TO 255 DO
+        LET c := string.fromCodePoint(i)
+        IF c NOT IN a THEN
+            r.append(c)
+        END IF
+    END FOR
+    RETURN r
+END FUNCTION
+
+LET DigitChars := range("0", "9")
+LET DigitCharsComplement := complement(DigitChars)
+LET SpaceChars := ["\f", "\n", "\r", "\t", " "]
+LET SpaceCharsComplement := complement(SpaceChars)
+LET WordChars := range("A", "Z") & range("a", "z") & DigitChars & ["_"]
+LET WordCharsComplement := complement(WordChars)
+
+TYPE ParseResult IS CHOICE
+    error: ErrorInfo
+    expr: VALID POINTER TO Expr
+END CHOICE
+
+FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT groupIndex: Number): ParseResult
+    VAR a: POINTER TO ExprAlternative := NIL
+    VAR r: VALID POINTER TO ExprSequence := NEW ExprSequence
+    WHILE i < pattern.length() DO
+        CASE pattern[i]
+            WHEN "^" DO
+                r->exprs.append(NEW ExprBegin)
+            WHEN "$" DO
+                r->exprs.append(NEW ExprEnd)
+            WHEN "." DO
+                r->exprs.append(NEW ExprAny)
+            WHEN "[" DO
+                INC i
+                LET start := i
+                VAR s: Array<String> := []
+                VAR comp := FALSE
+                WHILE i < pattern.length() DO
+                    IF pattern[i] = "]" AND s.size() > 0 THEN
+                        EXIT WHILE
+                    ELSIF pattern[i] = "^" AND i = start THEN
+                        comp := TRUE
+                    ELSIF pattern[i] = "-" AND pattern[i+1] <> "]" AND s.size() > 0 THEN
+                        INC i
+                        VAR c := pattern[i]
+                        IF c = "\\" THEN
+                            INC i
+                            CASE pattern[i]
+                                WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
+                                    CASE pattern[i]
+                                        WHEN "b" DO
+                                            c := "\b"
+                                        WHEN "e" DO
+                                            c := "\u001b"
+                                        WHEN "f" DO
+                                            c := "\f"
+                                        WHEN "n" DO
+                                            c := "\n"
+                                        WHEN "r" DO
+                                            c := "\r"
+                                        WHEN "t" DO
+                                            c := "\t"
+                                        WHEN "x" DO
+                                            c := string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))
+                                            i := i + 2
+                                        WHEN OTHERS DO
+                                            RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))
+                                    END CASE
+                                WHEN OTHERS DO
+                                    c := pattern[i]
+                            END CASE
+                        END IF
+                        FOR x := string.toCodePoint(s[LAST]) + 1 TO string.toCodePoint(c) DO
+                            s.append(string.fromCodePoint(x))
+                        END FOR
+                    ELSIF pattern[i] = "\\" THEN
+                        INC i
+                        CASE pattern[i]
+                            WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
+                                CASE pattern[i]
+                                    WHEN "b" DO
+                                        s.append("\b")
+                                    WHEN "d" DO
+                                        s.extend(DigitChars)
+                                    WHEN "D" DO
+                                        s.extend(DigitCharsComplement)
+                                    WHEN "e" DO
+                                        s.append("\u001b")
+                                    WHEN "f" DO
+                                        s.append("\f")
+                                    WHEN "n" DO
+                                        s.append("\n")
+                                    WHEN "r" DO
+                                        s.append("\r")
+                                    WHEN "s" DO
+                                        s.extend(SpaceChars)
+                                    WHEN "S" DO
+                                        s.extend(SpaceCharsComplement)
+                                    WHEN "t" DO
+                                        s.append("\t")
+                                    WHEN "w" DO
+                                        s.extend(WordChars)
+                                    WHEN "W" DO
+                                        s.extend(WordCharsComplement)
+                                    WHEN "x" DO
+                                        s.append(string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2])))
+                                        i := i + 2
+                                    WHEN OTHERS DO
+                                        RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))
+                                END CASE
+                            WHEN OTHERS DO
+                                s.append(pattern[i])
+                        END CASE
+                    ELSE
+                        s.append(pattern[i])
+                    END IF
+                    INC i
+                END WHILE
+                CHECK i < pattern.length() AND pattern[i] = "]" ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unterminated character class"))
+                END CHECK
+                IF ignoreCase AND string.lower(string.join(s, "")) <> string.upper(string.join(s, "")) THEN
+                    VAR t: Array<String> := []
+                    FOREACH c IN s DO
+                        t.append(string.lower(c))
+                        t.append(string.upper(c))
+                    END FOREACH
+                    s := t
+                END IF
+                r->exprs.append(NEW ExprClass(chars WITH s, complement WITH comp))
+            WHEN "?" DO
+                CHECK r->exprs.size() > 0 ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "quantifier must follow repeatable element"))
+                END CHECK
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST], greedy WITH FALSE)
+                ELSE
+                    r->exprs[LAST] := NEW ExprOpt(expr WITH r->exprs[LAST], greedy WITH TRUE)
+                END IF
+            WHEN "*" DO
+                CHECK r->exprs.size() > 0 ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "quantifier must follow repeatable element"))
+                END CHECK
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST], greedy WITH FALSE)
+                ELSE
+                    r->exprs[LAST] := NEW ExprStar(expr WITH r->exprs[LAST], greedy WITH TRUE)
+                END IF
+            WHEN "+" DO
+                CHECK r->exprs.size() > 0 ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "quantifier must follow repeatable element"))
+                END CHECK
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST], greedy WITH FALSE)
+                ELSE
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH 1, maximum WITH -1, expr WITH r->exprs[LAST], greedy WITH TRUE)
+                END IF
+            WHEN "{" DO
+                CHECK r->exprs.size() > 0 ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "quantifier must follow repeatable element"))
+                END CHECK
+                VAR min := 0
+                VAR max := -1
+                INC i
+                VAR j := i
+                WHILE j < pattern.length() AND "0" <= pattern[j] <= "9" DO
+                    INC j
+                END WHILE
+                IF j > i THEN
+                    min := num(pattern[i TO j-1])
+                    i := j
+                END IF
+                IF i < pattern.length() AND pattern[i] = "," THEN
+                    INC i
+                    j := i
+                    WHILE j < pattern.length() AND "0" <= pattern[j] <= "9" DO
+                        INC j
+                    END WHILE
+                    IF j > i THEN
+                        max := num(pattern[i TO j-1])
+                        i := j
+                    END IF
+                ELSE
+                    max := min
+                END IF
+                CHECK i < pattern.length() AND pattern[i] = "}" ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "} expected"))
+                END CHECK
+                IF i+1 < pattern.length() AND pattern[i+1] = "?" THEN
+                    INC i
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST], greedy WITH FALSE)
+                ELSE
+                    r->exprs[LAST] := NEW ExprRepeat(minimum WITH min, maximum WITH max, expr WITH r->exprs[LAST], greedy WITH TRUE)
+                END IF
+            WHEN "(" DO
+                INC i
+                CHECK i < pattern.length() ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unterminated parenthesis"))
+                END CHECK
+                VAR capture := TRUE
+                IF pattern[i] = "?" THEN
+                    INC i
+                    CHECK i < pattern.length() ELSE
+                        RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "expected character after (?"))
+                    END CHECK
+                    CASE pattern[i]
+                        WHEN ":" DO
+                            INC i
+                            capture := FALSE
+                        WHEN OTHERS DO
+                            RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown extended modifier"))
+                    END CASE
+                END IF
+                VAR gi := 0
+                IF capture THEN
+                    INC groupIndex
+                    gi := groupIndex
+                END IF
+                LET pr := parsePart(pattern, ignoreCase, INOUT i, INOUT groupIndex)
+                CHECK pr ISA ParseResult.expr ELSE
+                    RETURN pr
+                END CHECK
+                CHECK i < pattern.length() AND pattern[i] = ")" ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unterminated parenthesis"))
+                END CHECK
+                r->exprs.append(NEW ExprGroup(index WITH gi, capture WITH capture, expr WITH pr.expr))
+            WHEN ")" DO
+                EXIT WHILE
+            WHEN "|" DO
+                IF VALID a THEN
+                    a->alternatives.append(r)
+                ELSE
+                    a := NEW ExprAlternative(alternatives WITH [r])
+                END IF
+                r := NEW ExprSequence
+            WHEN "\\" DO
+                INC i
+                CHECK i < pattern.length() ELSE
+                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "expected character after backslash"))
+                END CHECK
+                CASE pattern[i]
+                    WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
+                        CASE pattern[i]
+                            WHEN "0" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
+                                i := i + 2
+                            WHEN "1" TO "9" DO
+                                RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "backreferences not supported"))
+                            WHEN "d" DO
+                                r->exprs.append(NEW ExprClass(chars WITH DigitChars))
+                            WHEN "D" DO
+                                r->exprs.append(NEW ExprClass(chars WITH DigitChars, complement WITH TRUE))
+                            WHEN "e" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\u001b"))
+                            WHEN "f" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\f"))
+                            WHEN "n" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\n"))
+                            WHEN "r" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\r"))
+                            WHEN "s" DO
+                                r->exprs.append(NEW ExprClass(chars WITH SpaceChars))
+                            WHEN "S" DO
+                                r->exprs.append(NEW ExprClass(chars WITH SpaceChars, complement WITH TRUE))
+                            WHEN "t" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH "\t"))
+                            WHEN "w" DO
+                                r->exprs.append(NEW ExprClass(chars WITH WordChars))
+                            WHEN "W" DO
+                                r->exprs.append(NEW ExprClass(chars WITH WordChars, complement WITH TRUE))
+                            WHEN "x" DO
+                                r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))))
+                                i := i + 2
+                            WHEN OTHERS DO
+                                RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))
+                        END CASE
+                    WHEN OTHERS DO
+                        r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
+                END CASE
+            WHEN OTHERS DO
+                IF ignoreCase AND string.lower(pattern[i]) <> string.upper(pattern[i]) THEN
+                    r->exprs.append(NEW ExprClass(chars WITH [string.lower(pattern[i]), string.upper(pattern[i])]))
+                ELSE
+                    r->exprs.append(NEW ExprLiteral(literal WITH pattern[i]))
+                END IF
+        END CASE
+        INC i
+    END WHILE
+    IF VALID a THEN
+        a->alternatives.append(r)
+        RETURN ParseResult.expr(a)
+    ELSE
+        RETURN ParseResult.expr(r)
+    END IF
+END FUNCTION
+
+FUNCTION parse(pattern: String, ignoreCase: Boolean DEFAULT FALSE): ParseResult
+    VAR i := 0
+    VAR groupIndex := 0
+    LET r := parsePart(pattern, ignoreCase, INOUT i, INOUT groupIndex)
+    CHECK r ISA ParseResult.expr ELSE
+        RETURN r
+    END CHECK
+    IF i < pattern.length() THEN
+        RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unexpected )"))
+    END IF
+    RETURN r
+END FUNCTION
+
+FUNCTION compile(expr: VALID POINTER TO Expr): Regex
+    VAR r: Regex := []
+    VAR e := expr->reduce()
+    e := NEW ExprGroup(index WITH 0, capture WITH TRUE, expr WITH e)
+    -- TODO: This should just be a literal array expression,
+    --       but there is a segfault in the compiler for some reason.
+    VAR a: Array<VALID POINTER TO Expr> := []
+    a.append(NEW ExprStar(expr WITH NEW ExprAny, greedy WITH FALSE))
+    a.append(e)
+    e := NEW ExprSequence(exprs WITH a)
+    e->compile(INOUT r)
+    r.append(Opcode.match)
+    RETURN r
+END FUNCTION
+
+FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number, INOUT saved: Array<Number>): Result
+    LET o := regex[ri]
+    CASE o
+        WHEN ISA Opcode.any DO
+            CHECK ti < target.length() ELSE
+                RETURN Result.noMatch
+            END CHECK
+            RETURN matchPart(regex, ri+1, target, ti+1, INOUT saved)
+        WHEN ISA Opcode.char DO
+            CHECK ti < target.length() ELSE
+                RETURN Result.noMatch
+            END CHECK
+            IF o.char <> target[ti] THEN
+                RETURN Result.noMatch
+            END IF
+            RETURN matchPart(regex, ri+1, target, ti+1, INOUT saved)
+        WHEN ISA Opcode.class DO
+            CHECK ti < target.length() ELSE
+                RETURN Result.noMatch
+            END CHECK
+            IF NOT o.class[string.toCodePoint(target[ti])] THEN
+                RETURN Result.noMatch
+            END IF
+            RETURN matchPart(regex, ri+1, target, ti+1, INOUT saved)
+        WHEN ISA Opcode.begin DO
+            IF ti > 0 THEN
+                RETURN Result.noMatch
+            END IF
+            RETURN matchPart(regex, ri+1, target, ti, INOUT saved)
+        WHEN ISA Opcode.end DO
+            CHECK ti >= target.length() ELSE
+                RETURN Result.noMatch
+            END CHECK
+            RETURN matchPart(regex, ri+1, target, ti, INOUT saved)
+        WHEN ISA Opcode.save DO
+            LET prev := saved[o.save]
+            saved[o.save] := ti
+            LET r := matchPart(regex, ri+1, target, ti, INOUT saved)
+            IF r ISA Result.match THEN
+                RETURN r
+            END IF
+            saved[o.save] := prev
+            RETURN Result.noMatch
+        WHEN ISA Opcode.match DO
+            RETURN Result.match([])
+        WHEN ISA Opcode.jump DO
+            FOREACH j IN o.jump DO
+                LET r := matchPart(regex, j, target, ti, INOUT saved)
+                IF r ISA Result.match THEN
+                    RETURN r
+                END IF
+            END FOREACH
+            RETURN Result.noMatch
+    END CASE
+END FUNCTION
+
+FUNCTION match(regex: Regex, target: String): Result
+    VAR saved: Array<Number> := []
+    VAR max := 0
+    FOREACH o IN regex DO
+        IF o ISA Opcode.save THEN
+            IF o.save > max THEN
+                max := o.save
+            END IF
+        END IF
+    END FOREACH
+    WHILE max >= 0 DO
+        saved.append(-1)
+        DEC max
+    END WHILE
+    LET r := matchPart(regex, 0, target, 0, INOUT saved)
+    IF r ISA Result.match THEN
+        ASSERT saved.size() MOD 2 = 0
+        FOR i := 0 TO saved.size()-1 STEP 2 DO
+            IF saved[i] >= 0 THEN
+                r.match[i/2] := Match(
+                    found WITH TRUE,
+                    first WITH saved[i],
+                    last WITH saved[i+1]-1,
+                    string WITH target[saved[i] TO saved[i+1]-1]
+                )
+            ELSE
+                r.match[i/2] := Match(
+                    found WITH FALSE,
+                    first WITH -1,
+                    last WITH -1,
+                    string WITH ""
+                )
+            END IF
+        END FOR
+    END IF
+    RETURN r
+END FUNCTION
+
+FUNCTION prepare(pattern: String, ignoreCase: Boolean DEFAULT FALSE): PrepareResult
+    LET e := parse(pattern, ignoreCase)
+    CHECK e ISA ParseResult.expr ELSE
+        RETURN PrepareResult.error(e.error)
+    END CHECK
+    LET r := compile(e.expr)
+    RETURN PrepareResult.regex(r)
+END FUNCTION
+
+FUNCTION search(pattern: String, target: String): Result
+    LET r := prepare(pattern)
+    CHECK r ISA PrepareResult.regex ELSE
+        RETURN Result.error(r.error)
+    END CHECK
+    RETURN match(r.regex, target)
+END FUNCTION
+
+FUNCTION searchPrepared(regex: Regex, target: String): Result
+    RETURN match(regex, target)
+END FUNCTION
+
+FUNCTION test(pattern: String, cases: Array<Array<Object>>)
+    IF Debug THEN
+        print("-- test: \(pattern)")
+    END IF
+    LET pr := prepare(pattern)
+    CHECK pr ISA PrepareResult.regex ELSE
+        LET expected: String := cases[0][1]
+        CHECK cases[0][0] = NIL AND expected IN pr.error.message ELSE
+            print("failed: message=\(pr.error.message) expected=\(expected)")
+            EXIT PROCESS FAILURE
+        END CHECK
+        EXIT FUNCTION
+    END CHECK
+    IF Debug THEN
+        FOREACH e IN pr.regex INDEX i DO
+            print("\(i) \(e)")
+        END FOREACH
+    END IF
+    FOREACH t IN cases DO
+        IF Debug THEN
+            print("pattern=\(pattern) target=\(t[1]) expect \(t[0])")
+        END IF
+        LET r := match(pr.regex, t[1])
+        CASE r
+            WHEN ISA Result.error DO
+                LET expected: String := t[1]
+                CHECK t[0] = NIL AND expected IN r.error.message ELSE
+                    print("failed")
+                    EXIT PROCESS FAILURE
+                END CHECK
+            WHEN ISA Result.noMatch DO
+                CHECK NOT t[0] ELSE
+                    print("failed")
+                    EXIT PROCESS FAILURE
+                END CHECK
+            WHEN ISA Result.match DO
+                CHECK t[0] ELSE
+                    print("failed")
+                    EXIT PROCESS FAILURE
+                END CHECK
+                TESTCASE r.match.size() = t[2].size()
+                FOREACH m IN r.match INDEX i DO
+                    TESTCASE m.string = t[2][i]
+                END FOREACH
+        END CASE
+    END FOREACH
+END FUNCTION
+
+BEGIN MAIN
+    /*
+    LET e := parse("a?b")
+    print(e->dump())
+    LET r := compile(e)
+    FOREACH x IN r INDEX i DO
+        print("\(i) \(x)")
+    END FOREACH
+    */
+    test("abc", [
+        [TRUE, "abc", ["abc"]],
+        [FALSE, "axc"],
+    ])
+    test("a.c", [
+        [TRUE, "abc", ["abc"]],
+        [FALSE, "acb"],
+    ])
+    test("ab?c", [
+        [TRUE, "ac", ["ac"]],
+        [TRUE, "abc", ["abc"]],
+        [FALSE, "abbc"],
+    ])
+    test("ab*c", [
+        [TRUE, "ac", ["ac"]],
+        [TRUE, "abc", ["abc"]],
+        [TRUE, "abbc", ["abbc"]],
+    ])
+    test("ab+c", [
+        [FALSE, "ac"],
+        [TRUE, "abc", ["abc"]],
+        [TRUE, "abbc", ["abbc"]],
+    ])
+    test("ab{2,3}c", [
+        [FALSE, "ac"],
+        [FALSE, "abc"],
+        [TRUE, "abbc", ["abbc"]],
+        [TRUE, "abbbc", ["abbbc"]],
+        [FALSE, "abbbbc"],
+    ])
+    test("^abc", [
+        [TRUE, "abc", ["abc"]],
+        [FALSE, "xabc"],
+    ])
+    test("a(b)c", [
+        [TRUE, "abc", ["abc", "b"]],
+    ])
+    test("a(b){1,2}bc", [
+        [FALSE, "ac"],
+        [FALSE, "abc"],
+        [TRUE, "abbc", ["abbc", "b"]],
+        [TRUE, "abbbc", ["abbbc", "b"]],
+        [FALSE, "abbbbc"],
+    ])
+    test("a(b{1,2})bc", [
+        [FALSE, "ac"],
+        [FALSE, "abc"],
+        [TRUE, "abbc", ["abbc", "b"]],
+        [TRUE, "abbbc", ["abbbc", "bb"]],
+        [FALSE, "abbbbc"],
+    ])
+    test("a|bc", [
+        [TRUE, "a", ["a"]],
+        [TRUE, "bc", ["bc"]],
+        [TRUE, "abc", ["a"]],
+        [TRUE, "bbc", ["bc"]],
+        [FALSE, "b"],
+    ])
+    test("a|bc|def", [
+        [TRUE, "a", ["a"]],
+        [TRUE, "bc", ["bc"]],
+        [TRUE, "def", ["def"]],
+    ])
+    test("a(bc)*d", [
+        [TRUE, "ad", ["ad", ""]],
+        [FALSE, "abc"],
+        [TRUE, "abcd", ["abcd", "bc"]],
+        [TRUE, "abcbcd", ["abcbcd", "bc"]],
+    ])
+    test("a(b|c)*d", [
+        [TRUE, "ad", ["ad", ""]],
+        [TRUE, "abcd", ["abcd", "c"]],
+        [TRUE, "abbbbcbd", ["abbbbcbd", "b"]],
+        [FALSE, "abc"],
+    ])
+    test("^(0|(1(01*0)*1))*$", [
+        [TRUE, "", ["", "", "", ""]],
+        [TRUE, "0", ["0", "0", "", ""]],
+        [TRUE, "00", ["00", "0", "", ""]],
+        [FALSE, "01"],
+        [FALSE, "10"],
+        [TRUE, "11", ["11", "11", "11", ""]],
+        [TRUE, "000", ["000", "0", "", ""]],
+        [FALSE, "001"],
+        [FALSE, "010"],
+        [TRUE, "011", ["011", "11", "11", ""]],
+        [FALSE, "100"],
+        [FALSE, "101"],
+        [TRUE, "110", ["110", "0", "11", ""]],
+        [FALSE, "111"],
+        [TRUE, "0000", ["0000", "0", "", ""]],
+        [FALSE, "0001"],
+        [FALSE, "0010"],
+        [TRUE, "0011", ["0011", "11", "11", ""]],
+        [FALSE, "0100"],
+        [FALSE, "0101"],
+        [TRUE, "0110", ["0110", "0", "11", ""]],
+        [FALSE, "0111"],
+        [FALSE, "1000"],
+        [TRUE, "1001", ["1001", "1001", "1001", "00"]],
+        [FALSE, "1010"],
+        [FALSE, "1011"],
+        [TRUE, "1100", ["1100", "0", "11", ""]],
+        [FALSE, "1101"],
+        [FALSE, "1110"],
+        [TRUE, "1111", ["1111", "11", "11", ""]],
+        [TRUE, "00000", ["00000", "0", "", ""]],
+    ])
+    test("a*ab", [
+        [TRUE, "ab", ["ab"]],
+    ])
+    test("ab+?bc", [
+        [FALSE, "ac"],
+        [FALSE, "abc"],
+        [TRUE, "abbc", ["abbc"]],
+        [TRUE, "abbbc", ["abbbc"]],
+    ])
+    test("^(b+?|a){1,2}?c", [
+        [TRUE, "bbac", ["bbac", "a"]],
+    ])
+    test("^$", [
+        [TRUE, "", [""]],
+        [FALSE, "a"],
+    ])
+    test("ab(cd)", [
+        [TRUE, "abcd", ["abcd", "cd"]],
+    ])
+    test("?", [
+        [NIL, "quantifier must follow repeatable element"],
+    ])
+    test("*", [
+        [NIL, "quantifier must follow repeatable element"],
+    ])
+    test("+", [
+        [NIL, "quantifier must follow repeatable element"],
+    ])
+    test("{1}", [
+        [NIL, "quantifier must follow repeatable element"],
+    ])
+    test("a{a}", [
+        [NIL, "} expected"],
+    ])
+    test("a{", [
+        [NIL, "} expected"],
+    ])
+    test("\\", [
+        [NIL, "expected character after backslash"],
+    ])
+    test("\\a", [
+        [NIL, "unknown escape character"],
+    ])
+    test("[\\a]", [
+        [NIL, "unknown escape character"],
+    ])
+    test("[a-\\a]", [
+        [NIL, "unknown escape character"],
+    ])
+    test("[a", [
+        [NIL, "unterminated character class"],
+    ])
+    test("(?", [
+        [NIL, "expected character after (?"],
+    ])
+    test("(?%", [
+        [NIL, "unknown extended modifier"],
+    ])
+    test(")", [
+        [NIL, "unexpected )"],
+    ])
+    test("(", [
+        [NIL, "unterminated parenthesis"],
+    ])
+    test("(a", [
+        [NIL, "unterminated parenthesis"],
+    ])
+    test("\\1", [
+        [NIL, "backreferences not supported"],
+    ])
+    print("passed")
+END MAIN

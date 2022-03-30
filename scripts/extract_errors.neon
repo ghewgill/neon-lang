@@ -20,13 +20,13 @@ FOREACH fn IN sources DO
         ELSIF string.hasPrefix(s, "#endif") THEN
             enable := TRUE
         ELSIF enable AND (string.find(s, " error(") >= 0 OR string.find(s, " error_a(") >= 0 OR string.find(s, " error2(") >= 0) THEN
-            VAR m: regex.Match
-            IF NOT regex.search("\\berror\\w*\\((\\d+),.*?\"(.*?)\"", s, OUT m) THEN
-                sys.exit(1)
-            END IF
-            LET number: String := m[1].group
+            LET r: regex.Result := regex.search("error\\w*\\((\\d+),.*?\"(.*?)\"", s)
+            CHECK r ISA regex.Result.match ELSE
+                EXIT PROCESS FAILURE
+            END CHECK
+            LET number: String := r.match[1].string
             ASSERT number.length() = 4
-            LET message: String := m[2].group
+            LET message: String := r.match[2].string
             IF number IN errors THEN
                 print("Duplicate error number: \(number)")
                 sys.exit(1)

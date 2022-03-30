@@ -197,6 +197,7 @@ set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/os.neon
     ${CMAKE_SOURCE_DIR}/lib/process.neon
     ${CMAKE_SOURCE_DIR}/lib/random.neon
+    #${CMAKE_SOURCE_DIR}/lib/regex.neon -- TODO: add back in when jvm backend can build it
     ${CMAKE_SOURCE_DIR}/lib/runtime.neon
     ${CMAKE_SOURCE_DIR}/lib/sqlite.neon
     ${CMAKE_SOURCE_DIR}/lib/string.neon
@@ -690,6 +691,10 @@ endfunction(add_tests)
 
 file(GLOB COMPILE_TESTS t/compile-only/*.neon)
 add_tests("${COMPILE_TESTS}" "compile" "$<TARGET_FILE:neonc> -q" "")
+
+execute_process(
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/make_regex_test.py
+)
 
 file(GLOB RUN_TESTS t/*.neon)
 foreach (extension_dir ${EXTENSION_DIRS})

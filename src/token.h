@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include <string>
+#include <vector>
 
 #include "number.h"
 
@@ -141,33 +142,12 @@ public:
     size_t column;
     TokenType type;
     std::string text;
+    std::vector<int> text_source_offset;
     Number value;
 
     std::string file() const;
     std::string source_line() const;
     std::string tostring() const;
-
-    Token(const Token &rhs)
-      : source(rhs.source),
-        line(rhs.line),
-        column(rhs.column),
-        type(rhs.type),
-        text(rhs.text),
-        value(rhs.value)
-    {}
-
-    Token &operator=(const Token &rhs) {
-        if (this == &rhs) {
-            return *this;
-        }
-        source = rhs.source;
-        line = rhs.line;
-        column = rhs.column;
-        type = rhs.type;
-        text = rhs.text;
-        value = rhs.value;
-        return *this;
-    }
 };
 
 #endif
