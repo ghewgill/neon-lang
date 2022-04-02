@@ -62,7 +62,7 @@ Number number_modulo(Number x, Number y)
     BID_UINT128 m = bid128_abs(y.get_bid());
     if (bid128_isSigned(x.get_bid())) {
         Number q = number_ceil(bid128_div(bid128_abs(x.get_bid()), m));
-        x.get_bid() = bid128_add(x.get_bid(), bid128_mul(m, q.get_bid()));
+        x = bid128_add(x.get_bid(), bid128_mul(m, q.get_bid()));
     }
     BID_UINT128 r = bid128_fmod(x.get_bid(), m);
     if (bid128_isSigned(y.get_bid()) && not bid128_isZero(r)) {
