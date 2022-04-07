@@ -676,6 +676,14 @@ std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeE
     return nullptr;
 }
 
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeChoice::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    return nullptr;
+}
+
 std::string TypeEnum::serialize(const Expression *value) const
 {
     Number x = value->eval_number();

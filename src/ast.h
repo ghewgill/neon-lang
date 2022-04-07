@@ -803,6 +803,7 @@ public:
     void replace_choices(const std::map<std::string, std::pair<int, const Type *>> &choices);
 
     virtual const Expression *make_default_value() const override;
+    virtual std::function<const Expression *(Analyzer *analyzer, const Expression *from)> make_converter(const Type *from) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
