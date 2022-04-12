@@ -736,17 +736,19 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 }
                 t.text_source_offset.push_back(i - startindex - 2);
             }
+        } else if (c == '\t') {
+            column += 8 - ((column - 1) % 8);
+            utf8::advance(i, 1, source.end());
+            continue;
         } else if (space(c)) {
-            while (i != source.end() && space(*i)) {
-                if (*i == '\n') {
-                    line++;
-                    startindex = i+1;
-                    column = 1;
-                    linestart = i+1;
-                    lineend = std::find(i+1, source.end(), '\n');
-                }
-                utf8::advance(i, 1, source.end());
+            if (*i == '\n') {
+                line++;
+                startindex = i+1;
+                column = 1;
+                linestart = i+1;
+                lineend = std::find(i+1, source.end(), '\n');
             }
+            utf8::advance(i, 1, source.end());
         } else {
             error(1007, t, "Unexpected character");
         }
@@ -783,40 +785,18 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
     return tokens;
 }
 
-std::string expand_tabs(const std::string &s)
+std::unique_ptr<TokenizedSource> tokenize(const std::string &source_path, const std::string &source)
 {
-    std::string r;
-    int column = 0;
-    for (auto c: s) {
-        switch (c) {
-        case '\n':
-            r.push_back(c);
-            column = 0;
-            break;
-        case '\t':
-            r.append(std::string(8 - (column % 8), ' '));
-            column = (column + 8) - (column % 8);
-            break;
-        default:
-            r.push_back(c);
-            break;
-        }
-    }
-    return r;
-}
-
-std::unique_ptr<TokenizedSource> tokenize(const std::string &source_path, const std::string &orig_source)
-{
-    auto inv = utf8::find_invalid(orig_source.begin(), orig_source.end());
-    if (inv != orig_source.end()) {
-        int line = static_cast<int>(1 + std::count(orig_source.begin(), inv, '\n'));
-        auto bol = orig_source.rfind('\n', inv-orig_source.begin());
+    auto inv = utf8::find_invalid(source.begin(), source.end());
+    if (inv != source.end()) {
+        int line = static_cast<int>(1 + std::count(source.begin(), inv, '\n'));
+        auto bol = source.rfind('\n', inv-source.begin());
         if (bol != std::string::npos) {
             bol++;
         } else {
             bol = 0;
         }
-        size_t column = (1 + inv - (orig_source.begin() + bol));
+        size_t column = (1 + inv - (source.begin() + bol));
         Token t;
         t.line = line;
         t.column = column;
@@ -824,11 +804,9 @@ std::unique_ptr<TokenizedSource> tokenize(const std::string &source_path, const 
     }
 
     SHA256 sha256;
-    sha256(orig_source);
+    sha256(source);
     unsigned char h[SHA256::HashBytes];
     sha256.getHash(h);
-
-    const std::string source = expand_tabs(orig_source);
 
     int line = 1;
     std::string::const_iterator i = source.begin();

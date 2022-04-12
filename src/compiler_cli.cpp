@@ -4027,7 +4027,7 @@ public:
     virtual void visit(const ast::InterfacePointerConstructor *) { internal_error("InterfacePointerConstructor"); }
     virtual void visit(const ast::InterfacePointerDeconstructor *) { internal_error("InterfacePointerDeconstructor"); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
-    virtual void visit(const ast::StatementExpression *) {}
+    virtual void visit(const ast::StatementExpression *) { internal_error("StatementExpression"); }
     virtual void visit(const ast::NullStatement *) {}
     virtual void visit(const ast::TypeDeclarationStatement *) {}
     virtual void visit(const ast::DeclarationStatement *) {}
