@@ -52,7 +52,12 @@ END IF
 
 LET source: String := sys.args[1]
 
-LET target: os.Process := os.spawn("bin/neon -d \(Port) " & string.join(sys.args[1 TO LAST], " "))
+LET sr: os.SpawnResult := os.spawn("bin/neon -d \(Port) " & string.join(sys.args[1 TO LAST], " "))
+CHECK sr ISA os.SpawnResult.process ELSE
+    print("Error spawning program to run")
+    EXIT PROCESS FAILURE
+END CHECK
+LET target: os.Process := sr.process
 time.sleep(1)
 
 LET debug: Object := get("/module/-/debuginfo")

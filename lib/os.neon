@@ -6,6 +6,8 @@
 EXPORT Platform
 EXPORT Process
 EXPORT OsException
+EXPORT Result
+EXPORT SpawnResult
 
 EXPORT chdir
 EXPORT getcwd
@@ -59,11 +61,21 @@ END ENUM
  */
 TYPE Process IS Object
 
+TYPE Result IS CHOICE
+    ok
+    error: Number
+END CHOICE
+
+TYPE SpawnResult IS CHOICE
+    process: Process
+    error: Number
+END CHOICE
+
 /*  Function: chdir
  *
  *  Change the current process working directory to the given path.
  */
-DECLARE NATIVE FUNCTION chdir(path: String)
+DECLARE NATIVE FUNCTION chdir(path: String): Result
 
 /*  Function: getcwd
  *
@@ -99,7 +111,7 @@ DECLARE NATIVE FUNCTION kill(process: Process)
  *
  *  Create a new process with the given command line.
  */
-DECLARE NATIVE FUNCTION spawn(command: String): Process
+DECLARE NATIVE FUNCTION spawn(command: String): SpawnResult
 
 /*  Function: wait
  *

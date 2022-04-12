@@ -6,6 +6,7 @@
 #include "rtl_exec.h"
 
 #include "enums.inc"
+#include "choices.inc"
 
 class ProcessObject: public Object {
 public:
@@ -29,12 +30,14 @@ namespace rtl {
 
 namespace ne_os {
 
-void chdir(const utf8string &path)
+Cell chdir(const utf8string &path)
 {
     BOOL r = SetCurrentDirectory(path.c_str());
     if (not r) {
-        throw RtlException(Exception_OsException_PathNotFound, path);
+        DWORD le = GetLastError();
+        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_Result_error)), Cell(number_from_uint32(le))});
     }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_Result_ok))});
 }
 
 utf8string getcwd()
@@ -57,7 +60,7 @@ void kill(const std::shared_ptr<Object> &process)
     p->process = INVALID_HANDLE_VALUE;
 }
 
-std::shared_ptr<Object> spawn(const utf8string &command)
+Cell spawn(const utf8string &command)
 {
     static HANDLE job = INVALID_HANDLE_VALUE;
     if (job == INVALID_HANDLE_VALUE) {
@@ -84,11 +87,13 @@ std::shared_ptr<Object> spawn(const utf8string &command)
         &si,
         &pi);
     if (not r) {
-        throw RtlException(Exception_OsException_Spawn, command);
+        DWORD le = GetLastError();
+        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_SpawnResult_error)), Cell(le)});
     }
     AssignProcessToJobObject(job, pi.hProcess);
     CloseHandle(pi.hThread);
-    return std::shared_ptr<Object> { new ProcessObject(pi.hProcess) };
+    std::shared_ptr<ProcessObject> p = std::shared_ptr<ProcessObject> { new ProcessObject(pi.hProcess) };
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_SpawnResult_process)), Cell(p)});
 }
 
 Number system(const utf8string &command)

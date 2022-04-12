@@ -11,6 +11,7 @@
 #include "rtl_exec.h"
 
 #include "enums.inc"
+#include "choices.inc"
 
 class ProcessObject: public Object {
 public:
@@ -43,12 +44,13 @@ namespace rtl {
 
 namespace ne_os {
 
-void chdir(const utf8string &path)
+Cell chdir(const utf8string &path)
 {
     int r = ::chdir(path.c_str());
     if (r != 0) {
-        throw RtlException(Exception_OsException_PathNotFound, path);
+        return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_Result_error)), Cell(number_from_uint32(errno))});
     }
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_Result_ok))});
 }
 
 utf8string getcwd()
@@ -76,7 +78,7 @@ void kill(const std::shared_ptr<Object> &process)
     delete p;
 }
 
-std::shared_ptr<Object> spawn(const utf8string &command)
+Cell spawn(const utf8string &command)
 {
     static bool init_closer = false;
     if (not init_closer) {
@@ -96,7 +98,7 @@ std::shared_ptr<Object> spawn(const utf8string &command)
     }
     std::shared_ptr<ProcessObject> p = std::shared_ptr<ProcessObject> { new ProcessObject(pid) };
     g_children.push_back(p);
-    return p;
+    return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_SpawnResult_process)), Cell(p)});
 }
 
 Number system(const utf8string &command)

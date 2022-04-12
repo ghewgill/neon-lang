@@ -37,7 +37,12 @@ FUNCTION post(url: String, post_data: String): Object
     RETURN d.data
 END FUNCTION
 
-VAR p: os.Process := os.spawn("bin/neon -d \(Port) t/debug-example.neon")
+LET sr: os.SpawnResult := os.spawn("bin/neon -d \(Port) t/debug-example.neon")
+CHECK sr ISA os.SpawnResult.process ELSE
+    print("error executing debug-example")
+    EXIT PROCESS FAILURE
+END CHECK
+VAR p: os.Process := sr.process
 time.sleep(1)
 VAR r: Object
 
