@@ -4263,6 +4263,9 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
                                 first = false;
                                 continue;
                             }
+                            if (args[a]->name != m.second->params[a]->declaration.text) {
+                                error(3327, args[a]->declaration, "parameter names must match interface");
+                            }
                             if (args[a]->type != m.second->params[a]->type) {
                                 error(3256, args[a]->declaration, "parameter types must match interface");
                             }
