@@ -129,6 +129,7 @@ public:
     const ast::Statement *analyze(const pt::IncrementStatement *statement);
     const ast::Statement *analyze(const pt::LoopStatement *statement);
     const ast::Statement *analyze(const pt::NextStatement *statement);
+    const ast::Statement *analyze(const pt::PanicStatement *statement);
     const ast::Statement *analyze(const pt::RaiseStatement *statement);
     const ast::Statement *analyze(const pt::RepeatStatement *statement);
     const ast::Statement *analyze(const pt::ReturnStatement *statement);
@@ -236,6 +237,7 @@ public:
     virtual void visit(const pt::IncrementStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::PanicStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
@@ -334,6 +336,7 @@ public:
     virtual void visit(const pt::IncrementStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::PanicStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
@@ -431,6 +434,7 @@ public:
     virtual void visit(const pt::IncrementStatement *) override {}
     virtual void visit(const pt::LoopStatement *) override {}
     virtual void visit(const pt::NextStatement *) override {}
+    virtual void visit(const pt::PanicStatement *) override {}
     virtual void visit(const pt::RaiseStatement *) override {}
     virtual void visit(const pt::RepeatStatement *) override {}
     virtual void visit(const pt::ReturnStatement *) override {}
@@ -528,6 +532,7 @@ public:
     virtual void visit(const pt::IncrementStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::LoopStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::NextStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::PanicStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::RaiseStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::RepeatStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ReturnStatement *p) override { v.push_back(a->analyze(p)); }
@@ -4513,6 +4518,7 @@ std::vector<const ast::Statement *> Analyzer::analyze(const std::vector<std::uni
         s->accept(&sa);
         if (dynamic_cast<const pt::ExitStatement *>(s.get()) != nullptr
          || dynamic_cast<const pt::NextStatement *>(s.get()) != nullptr
+         || dynamic_cast<const pt::PanicStatement *>(s.get()) != nullptr
          || dynamic_cast<const pt::RaiseStatement *>(s.get()) != nullptr
          || dynamic_cast<const pt::ReturnStatement *>(s.get()) != nullptr) {
             lastexit = true;
@@ -6004,6 +6010,15 @@ const ast::Statement *Analyzer::analyze(const pt::NextStatement *statement)
     error(3084, statement->token, "no matching loop found in current scope");
 }
 
+const ast::Statement *Analyzer::analyze(const pt::PanicStatement *statement)
+{
+    const ast::Expression *expr = analyze(statement->expr.get());
+    if (expr->type != ast::TYPE_STRING) {
+        error(3328, statement->expr->token, "string expected");
+    }
+    return new ast::RaiseStatement(statement->token, new ast::Exception(Token(), "PANIC"), convert(ast::TYPE_OBJECT, expr));
+}
+
 const ast::Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
 {
     ast::Scope *s = scope.top();
@@ -6777,6 +6792,7 @@ public:
         leave();
     }
     virtual void visit(const pt::NextStatement *) {}
+    virtual void visit(const pt::PanicStatement *) {}
     virtual void visit(const pt::RaiseStatement *) {}
     virtual void visit(const pt::RepeatStatement *node) {
         enter(false);

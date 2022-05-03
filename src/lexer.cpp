@@ -157,6 +157,7 @@ std::string Token::tostring() const
         case PROCESS:     s << "PROCESS"; break;
         case SUCCESS:     s << "SUCCESS"; break;
         case FAILURE:     s << "FAILURE"; break;
+        case PANIC:       s << "PANIC"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -438,6 +439,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "PROCESS") t.type = PROCESS;
             else if (t.text == "SUCCESS") t.type = SUCCESS;
             else if (t.text == "FAILURE") t.type = FAILURE;
+            else if (t.text == "PANIC") t.type = PANIC;
             else if (all_upper(t.text)) {
                 t.type = UNKNOWN;
             } else if (t.text.find("__") != std::string::npos) {

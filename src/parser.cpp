@@ -76,6 +76,7 @@ public:
     std::unique_ptr<Statement> parseExitStatement();
     std::unique_ptr<Statement> parseNextStatement();
     std::unique_ptr<Statement> parseTryStatement();
+    std::unique_ptr<Statement> parsePanicStatement();
     std::unique_ptr<Statement> parseRaiseStatement();
     std::unique_ptr<Statement> parseExecStatement();
     std::unique_ptr<Statement> parseUnusedStatement();
@@ -1991,6 +1992,14 @@ std::unique_ptr<Statement> Parser::parseTryStatement()
     return std::unique_ptr<Statement> { new TryStatement(tok_try, std::move(statements), std::move(catches)) };
 }
 
+std::unique_ptr<Statement> Parser::parsePanicStatement()
+{
+    auto &tok_panic = tokens[i];
+    ++i;
+    std::unique_ptr<Expression> expr = parseExpression();
+    return std::unique_ptr<Statement> { new PanicStatement(tok_panic, std::move(expr)) };
+}
+
 std::unique_ptr<Statement> Parser::parseRaiseStatement()
 {
     auto &tok_raise = tokens[i];
@@ -2203,6 +2212,8 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseNextStatement();
     } else if (tokens[i].type == TRY) {
         return parseTryStatement();
+    } else if (tokens[i].type == PANIC) {
+        return parsePanicStatement();
     } else if (tokens[i].type == RAISE) {
         return parseRaiseStatement();
     } else if (tokens[i].type == ASSERT) {

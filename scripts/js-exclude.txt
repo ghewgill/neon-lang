@@ -107,6 +107,7 @@ object-record-default.neon # object
 object-subscript.neon      # object
 opcode-coverage.neon       # InterfacePointerConstructor
 os-test.neon               # module os
+panic.neon                 # exception message
 parameter-out-array.neon   # out parameters
 parameter-out-string.neon  # StringReferenceIndexExpression
 parameters-ignore.neon     # DummyExpression
