@@ -47,6 +47,7 @@ Statement =
     IncrementStatement |
     LoopStatement |
     NextStatement |
+    PanicStatement |
     RaiseStatement |
     RepeatStatement |
     ReturnStatement |
@@ -134,6 +135,8 @@ IncrementStatement = ('INC' | 'DEC'), Expression;
 LoopStatement = 'LOOP', ['LABEL', Identifier], {Statement}, 'END', 'LOOP';
 
 NextStatement = 'NEXT', ('WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT' | Identifier);
+
+PanicStatement = 'PANIC', Expression;
 
 RaiseStatement = 'RAISE', Identifier, {'.', Identifier}, ['(', Expression, ')'];
 
