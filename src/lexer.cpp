@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iso646.h>
+#include <map>
 #include <sstream>
 #include <string.h>
 
@@ -233,6 +234,97 @@ uint32_t unicode_lookup(const Token &t, const std::string &name)
     error(1027, t, "unicode character name not found");
 }
 
+static const std::map<std::string, TokenType> TokenNames = {
+    {"IF", IF},
+    {"THEN", THEN},
+    {"ELSE", ELSE},
+    {"END", END},
+    {"WHILE", WHILE},
+    {"DO", DO},
+    {"VAR", VAR},
+    {"FUNCTION", FUNCTION},
+    {"RETURN", RETURN},
+    {"FALSE", FALSE},
+    {"TRUE", TRUE},
+    {"MOD", MOD},
+    {"AND", AND},
+    {"OR", OR},
+    {"NOT", NOT},
+    {"FOR", FOR},
+    {"TO", TO},
+    {"STEP", STEP},
+    {"Array", ARRAY},
+    {"Dictionary", DICTIONARY},
+    {"TYPE", TYPE},
+    {"RECORD", RECORD},
+    {"ENUM", ENUM},
+    {"CONSTANT", CONSTANT},
+    {"IMPORT", IMPORT},
+    {"IN", IN},
+    {"OUT", OUT},
+    {"INOUT", INOUT},
+    {"ELSIF", ELSIF},
+    {"CASE", CASE},
+    {"WHEN", WHEN},
+    {"EXIT", EXIT},
+    {"NEXT", NEXT},
+    {"LOOP", LOOP},
+    {"REPEAT", REPEAT},
+    {"UNTIL", UNTIL},
+    {"DECLARE", DECLARE},
+    {"EXCEPTION", EXCEPTION},
+    {"TRY", TRY},
+    {"RAISE", RAISE},
+    {"POINTER", POINTER},
+    {"NEW", NEW},
+    {"NIL", NIL},
+    {"VALID", VALID},
+    {"LET", LET},
+    {"FIRST", FIRST},
+    {"LAST", LAST},
+    {"AS", AS},
+    {"DEFAULT", DEFAULT},
+    {"EXPORT", EXPORT},
+    {"PRIVATE", PRIVATE},
+    {"NATIVE", NATIVE},
+    {"FOREACH", FOREACH},
+    {"INDEX", INDEX},
+    {"ASSERT", ASSERT},
+    {"EMBED", EMBED},
+    {"ALIAS", ALIAS},
+    {"IS", IS},
+    {"BEGIN", BEGIN},
+    {"MAIN", MAIN},
+    {"HEXBYTES", HEXBYTES},
+    {"INC", INC},
+    {"DEC", DEC},
+    {"_", UNDERSCORE},
+    {"OTHERS", OTHERS},
+    {"WITH", WITH},
+    {"CHECK", CHECK},
+    {"GIVES", GIVES},
+    {"NOWHERE", NOWHERE},
+    {"INTDIV", INTDIV},
+    {"EXEC", EXEC},
+    {"LABEL", LABEL},
+    {"CLASS", CLASS},
+    {"TRAP", TRAP},
+    {"EXTENSION", EXTENSION},
+    {"INTERFACE", INTERFACE},
+    {"IMPLEMENTS", IMPLEMENTS},
+    {"UNUSED", UNUSED},
+    {"ISA", ISA},
+    {"OPTIONAL", OPTIONAL},
+    {"IMPORTED", IMPORTED},
+    {"TESTCASE", TESTCASE},
+    {"EXPECT", EXPECT},
+    {"CHOICE", CHOICE},
+    {"PROCESS", PROCESS},
+    {"SUCCESS", SUCCESS},
+    {"FAILURE", FAILURE},
+    {"PANIC", PANIC},
+};
+
 static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std::string &source_path, int &line, size_t column, const std::string &source)
 {
     std::vector<Token> tokens;
@@ -352,95 +444,10 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 utf8::advance(i, 1, source.end());
             }
             t.text = std::string(start, i);
-                 if (t.text == "IF") t.type = IF;
-            else if (t.text == "THEN") t.type = THEN;
-            else if (t.text == "ELSE") t.type = ELSE;
-            else if (t.text == "END") t.type = END;
-            else if (t.text == "WHILE") t.type = WHILE;
-            else if (t.text == "DO") t.type = DO;
-            else if (t.text == "VAR") t.type = VAR;
-            else if (t.text == "FUNCTION") t.type = FUNCTION;
-            else if (t.text == "RETURN") t.type = RETURN;
-            else if (t.text == "FALSE") t.type = FALSE;
-            else if (t.text == "TRUE") t.type = TRUE;
-            else if (t.text == "MOD") t.type = MOD;
-            else if (t.text == "AND") t.type = AND;
-            else if (t.text == "OR") t.type = OR;
-            else if (t.text == "NOT") t.type = NOT;
-            else if (t.text == "FOR") t.type = FOR;
-            else if (t.text == "TO") t.type = TO;
-            else if (t.text == "STEP") t.type = STEP;
-            else if (t.text == "Array") t.type = ARRAY;
-            else if (t.text == "Dictionary") t.type = DICTIONARY;
-            else if (t.text == "TYPE") t.type = TYPE;
-            else if (t.text == "RECORD") t.type = RECORD;
-            else if (t.text == "ENUM") t.type = ENUM;
-            else if (t.text == "CONSTANT") t.type = CONSTANT;
-            else if (t.text == "IMPORT") t.type = IMPORT;
-            else if (t.text == "IN") t.type = IN;
-            else if (t.text == "OUT") t.type = OUT;
-            else if (t.text == "INOUT") t.type = INOUT;
-            else if (t.text == "ELSIF") t.type = ELSIF;
-            else if (t.text == "CASE") t.type = CASE;
-            else if (t.text == "WHEN") t.type = WHEN;
-            else if (t.text == "EXIT") t.type = EXIT;
-            else if (t.text == "NEXT") t.type = NEXT;
-            else if (t.text == "LOOP") t.type = LOOP;
-            else if (t.text == "REPEAT") t.type = REPEAT;
-            else if (t.text == "UNTIL") t.type = UNTIL;
-            else if (t.text == "DECLARE") t.type = DECLARE;
-            else if (t.text == "EXCEPTION") t.type = EXCEPTION;
-            else if (t.text == "TRY") t.type = TRY;
-            else if (t.text == "RAISE") t.type = RAISE;
-            else if (t.text == "POINTER") t.type = POINTER;
-            else if (t.text == "NEW") t.type = NEW;
-            else if (t.text == "NIL") t.type = NIL;
-            else if (t.text == "VALID") t.type = VALID;
-            else if (t.text == "LET") t.type = LET;
-            else if (t.text == "FIRST") t.type = FIRST;
-            else if (t.text == "LAST") t.type = LAST;
-            else if (t.text == "AS") t.type = AS;
-            else if (t.text == "DEFAULT") t.type = DEFAULT;
-            else if (t.text == "EXPORT") t.type = EXPORT;
-            else if (t.text == "PRIVATE") t.type = PRIVATE;
-            else if (t.text == "NATIVE") t.type = NATIVE;
-            else if (t.text == "FOREACH") t.type = FOREACH;
-            else if (t.text == "INDEX") t.type = INDEX;
-            else if (t.text == "ASSERT") t.type = ASSERT;
-            else if (t.text == "EMBED") t.type = EMBED;
-            else if (t.text == "ALIAS") t.type = ALIAS;
-            else if (t.text == "IS") t.type = IS;
-            else if (t.text == "BEGIN") t.type = BEGIN;
-            else if (t.text == "MAIN") t.type = MAIN;
-            else if (t.text == "HEXBYTES") t.type = HEXBYTES;
-            else if (t.text == "INC") t.type = INC;
-            else if (t.text == "DEC") t.type = DEC;
-            else if (t.text == "_") t.type = UNDERSCORE;
-            else if (t.text == "OTHERS") t.type = OTHERS;
-            else if (t.text == "WITH") t.type = WITH;
-            else if (t.text == "CHECK") t.type = CHECK;
-            else if (t.text == "GIVES") t.type = GIVES;
-            else if (t.text == "NOWHERE") t.type = NOWHERE;
-            else if (t.text == "INTDIV") t.type = INTDIV;
-            else if (t.text == "EXEC") t.type = EXEC;
-            else if (t.text == "LABEL") t.type = LABEL;
-            else if (t.text == "CLASS") t.type = CLASS;
-            else if (t.text == "TRAP") t.type = TRAP;
-            else if (t.text == "EXTENSION") t.type = EXTENSION;
-            else if (t.text == "INTERFACE") t.type = INTERFACE;
-            else if (t.text == "IMPLEMENTS") t.type = IMPLEMENTS;
-            else if (t.text == "UNUSED") t.type = UNUSED;
-            else if (t.text == "ISA") t.type = ISA;
-            else if (t.text == "OPTIONAL") t.type = OPTIONAL;
-            else if (t.text == "IMPORTED") t.type = IMPORTED;
-            else if (t.text == "TESTCASE") t.type = TESTCASE;
-            else if (t.text == "EXPECT") t.type = EXPECT;
-            else if (t.text == "CHOICE") t.type = CHOICE;
-            else if (t.text == "PROCESS") t.type = PROCESS;
-            else if (t.text == "SUCCESS") t.type = SUCCESS;
-            else if (t.text == "FAILURE") t.type = FAILURE;
-            else if (t.text == "PANIC") t.type = PANIC;
-            else if (all_upper(t.text)) {
+            auto i = TokenNames.find(t.text);
+            if (i != TokenNames.end()) {
+                t.type = i->second;
+            } else if (all_upper(t.text)) {
                 t.type = UNKNOWN;
             } else if (t.text.find("__") != std::string::npos) {
                 error(1024, t, "identifier cannot contain double underscore (reserved)");
