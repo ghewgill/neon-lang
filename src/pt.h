@@ -94,6 +94,7 @@ class IfStatement;
 class IncrementStatement;
 class LoopStatement;
 class NextStatement;
+class PanicStatement;
 class RaiseStatement;
 class RepeatStatement;
 class ReturnStatement;
@@ -190,6 +191,7 @@ public:
     virtual void visit(const IncrementStatement *) = 0;
     virtual void visit(const LoopStatement *) = 0;
     virtual void visit(const NextStatement *) = 0;
+    virtual void visit(const PanicStatement *) = 0;
     virtual void visit(const RaiseStatement *) = 0;
     virtual void visit(const RepeatStatement *) = 0;
     virtual void visit(const ReturnStatement *) = 0;
@@ -952,6 +954,13 @@ public:
     NextStatement(const Token &token, const Token &type): Statement(token), type(type) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token type;
+};
+
+class PanicStatement: public Statement {
+public:
+    PanicStatement(const Token &token, std::unique_ptr<Expression> &&expr): Statement(token), expr(std::move(expr)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    std::unique_ptr<Expression> expr;
 };
 
 class RaiseStatement: public Statement {

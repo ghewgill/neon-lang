@@ -125,6 +125,7 @@ TYPE Type IS ENUM
     process
     success
     failure
+    panic
     unknown
     max_token
 END ENUM
@@ -432,6 +433,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "PROCESS" THEN t.type := Type.process
             ELSIF t.text = "SUCCESS" THEN t.type := Type.success
             ELSIF t.text = "FAILURE" THEN t.type := Type.failure
+            ELSIF t.text = "PANIC" THEN t.type := Type.panic
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN

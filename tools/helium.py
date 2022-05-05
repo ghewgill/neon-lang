@@ -158,6 +158,7 @@ CHOICE = Keyword("CHOICE")
 PROCESS = Keyword("PROCESS")
 SUCCESS = Keyword("SUCCESS")
 FAILURE = Keyword("FAILURE")
+PANIC = Keyword("PANIC")
 
 class bytes:
     def __init__(self, a):
@@ -1320,6 +1321,15 @@ class NextStatement:
     def run(self, env):
         raise NextException(self.label)
 
+class PanicStatement:
+    def __init__(self, message):
+        self.message = message
+    def declare(self, env):
+        pass
+    def run(self, env):
+        print("panic: {}".format(self.message.eval(env)), file=sys.stderr)
+        sys.exit(1)
+
 class RaiseStatement:
     def __init__(self, name, info):
         self.name = name
@@ -2359,6 +2369,11 @@ class Parser:
         self.i += 1
         return NextStatement(label)
 
+    def parse_panic_statement(self):
+        self.expect(PANIC)
+        message = self.parse_expression()
+        return PanicStatement(message)
+
     def parse_raise_statement(self):
         self.expect(RAISE)
         name = []
@@ -2532,6 +2547,7 @@ class Parser:
         if self.tokens[self.i] is UNUSED:   return self.parse_unused_statement()
         if self.tokens[self.i] is BEGIN:    return self.parse_main_statement()
         if self.tokens[self.i] is TESTCASE: return self.parse_testcase_statement()
+        if self.tokens[self.i] is PANIC:    return self.parse_panic_statement()
         if isinstance(self.tokens[self.i], Identifier):
             expr = self.parse_expression()
             if self.tokens[self.i] is ASSIGN:

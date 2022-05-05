@@ -261,6 +261,7 @@ outer-issue192.neon
 outer.neon
 outer-parameter.neon
 outer-tail.neon
+panic.neon
 parameter-inout-array.neon
 parameter-inout-string.neon
 parameter-out-array.neon
