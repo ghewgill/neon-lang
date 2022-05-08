@@ -83,6 +83,7 @@ public:
     std::unique_ptr<Statement> parseImport();
     std::unique_ptr<Statement> parseAssert();
     std::unique_ptr<Statement> parseTestCase();
+    std::unique_ptr<Statement> parseDebug();
     std::unique_ptr<Statement> parseBegin();
     std::unique_ptr<Statement> parseStatement();
     std::unique_ptr<Program> parse();
@@ -2135,6 +2136,22 @@ std::unique_ptr<Statement> Parser::parseTestCase()
     return std::unique_ptr<Statement> { new TestCaseStatement(tok_testcase, std::move(e), expected_exception) };
 }
 
+std::unique_ptr<Statement> Parser::parseDebug()
+{
+    auto &tok_debug = tokens[i];
+    ++i;
+    std::vector<std::unique_ptr<Expression>> values;
+    for (;;) {
+        std::unique_ptr<Expression> e = parseExpression();
+        values.push_back(std::move(e));
+        if (tokens[i].type != COMMA) {
+            break;
+        }
+        ++i;
+    }
+    return std::unique_ptr<Statement> { new DebugStatement(tok_debug, std::move(values)) };
+}
+
 std::unique_ptr<Statement> Parser::parseBegin()
 {
     auto &tok_begin = tokens[i];
@@ -2220,6 +2237,8 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseAssert();
     } else if (tokens[i].type == TESTCASE) {
         return parseTestCase();
+    } else if (tokens[i].type == DEBUG) {
+        return parseDebug();
     } else if (tokens[i].type == BEGIN) {
         return parseBegin();
     } else if (tokens[i].type == CHECK) {
