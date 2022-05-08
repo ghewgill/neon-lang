@@ -1303,6 +1303,8 @@ bool PredefinedFunction::is_pure(std::set<const ast::Function *> &) const
         "sys",
         "textio",
         "time",
+
+        "print",
     };
     auto sep = name.find('$');
     auto mod = name.substr(0, sep);
