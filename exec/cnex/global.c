@@ -850,7 +850,9 @@ void boolean__toString(TExecutor *exec)
 void bytes__concat(TExecutor *exec)
 {
     Cell *b = peek(exec->stack, 0);
+    cell_ensureBytes(b);
     Cell *a = peek(exec->stack, 1);
+    cell_ensureBytes(a);
     Cell *r = cell_createStringCell(b->string->length + a->string->length);
     r->type = cBytes;
 
@@ -886,6 +888,7 @@ void bytes__index(TExecutor *exec)
 {
     Number index = top(exec->stack)->number;          pop(exec->stack);
     Cell *t = top(exec->stack);
+    cell_ensureBytes(t);
 
     if (!number_is_integer(index)) {
         exec->rtl_raise(exec, "BytesIndexException", number_to_string(index));
@@ -912,6 +915,7 @@ void bytes__range(TExecutor *exec)
     BOOL first_from_end  = top(exec->stack)->boolean; pop(exec->stack);
     Number first = top(exec->stack)->number;          pop(exec->stack);
     Cell *t = top(exec->stack);
+    cell_ensureBytes(t);
 
     if (!number_is_integer(first)) {
         exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
@@ -978,7 +982,9 @@ void bytes__splice(TExecutor *exec)
     BOOL first_from_end  = top(exec->stack)->boolean; pop(exec->stack);
     Number first = top(exec->stack)->number;          pop(exec->stack);
     Cell *s = cell_fromCell(top(exec->stack));        pop(exec->stack);
+    cell_ensureBytes(s);
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
+    cell_ensureBytes(t);
 
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
@@ -1007,6 +1013,7 @@ void bytes__toArray(TExecutor *exec)
 {
     size_t i, e;
     Cell *s = top(exec->stack);
+    cell_ensureBytes(s);
     Cell *a = cell_createArrayCell(s->string->length);
 
     for (i = 0, e = 0; i < s->string->length; i++) {
@@ -1023,6 +1030,7 @@ void bytes__toString(TExecutor *exec)
     BOOL first;
     size_t i;
     Cell *s = cell_fromCell(top(exec->stack)); pop(exec->stack);
+    cell_ensureBytes(s);
     TString *r = string_createCString("HEXBYTES \"");
 
     first = TRUE;

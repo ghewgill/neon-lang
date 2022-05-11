@@ -570,7 +570,7 @@ void binary_andBytes(TExecutor *exec)
     for (size_t i = 0; i < x->length; i++) {
         r->data[i] = x->data[i] & y->data[i];
     }
-    push(exec->stack, cell_fromString(r));
+    push(exec->stack, cell_fromBytes(r));
     string_freeString(r);
     string_freeString(y);
     string_freeString(x);
@@ -598,7 +598,7 @@ void binary_notBytes(TExecutor *exec)
         r->data[i] = ~x->data[i];
     }
     pop(exec->stack);
-    push(exec->stack, cell_fromString(r));
+    push(exec->stack, cell_fromBytes(r));
     string_freeString(r);
 }
 
@@ -617,7 +617,7 @@ void binary_orBytes(TExecutor *exec)
     for (size_t i = 0; i < x->length; i++) {
         r->data[i] = x->data[i] | y->data[i];
     }
-    push(exec->stack, cell_fromString(r));
+    push(exec->stack, cell_fromBytes(r));
     string_freeString(r);
     string_freeString(y);
     string_freeString(x);
@@ -638,7 +638,7 @@ void binary_xorBytes(TExecutor *exec)
     for (size_t i = 0; i < x->length; i++) {
         r->data[i] = x->data[i] ^ y->data[i];
     }
-    push(exec->stack, cell_fromString(r));
+    push(exec->stack, cell_fromBytes(r));
     string_freeString(r);
     string_freeString(y);
     string_freeString(x);
