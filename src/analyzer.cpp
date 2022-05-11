@@ -1381,10 +1381,7 @@ ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const Referenc
         std::vector<const Expression *> args;
         args.push_back(ref);
         args.push_back(index);
-        args.push_back(new ConstantBooleanExpression(false));
-        args.push_back(index);
-        args.push_back(new ConstantBooleanExpression(false));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__splice"))), args);
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__store"))), args);
     }
 }
 

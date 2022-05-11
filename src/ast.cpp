@@ -1366,6 +1366,12 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
     }
     {
         std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, TYPE_BYTES, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
+        TYPE_BYTES->methods["append"] = new PredefinedFunction("bytes__append", new TypeFunction(TYPE_NOTHING, params, false));
+    }
+    {
+        std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["size"] = new PredefinedFunction("bytes__size", new TypeFunction(TYPE_NUMBER, params, false));
     }

@@ -48,6 +48,7 @@ public:
     const utf8string &string();
     utf8string &string_for_write();
     const std::vector<unsigned char> &bytes();
+    std::vector<unsigned char> &bytes_for_write();
     void set_bytes(const std::vector<unsigned char> &bytes);
     std::shared_ptr<Object> object();
     std::shared_ptr<Object> &object_for_write();
