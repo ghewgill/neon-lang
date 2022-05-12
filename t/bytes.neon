@@ -7,13 +7,14 @@ TESTCASE s[1 TO LAST] = HEXBYTES "01 02"
 
 t[1] := 6
 TESTCASE t = HEXBYTES "03 06 05"
+TESTCASE t[1] = 6
 
 VAR q: Bytes := s
-s.append(t)
-TESTCASE q = HEXBYTES "01 02 03 04 06 05"
+q.append(t)
+TESTCASE q = HEXBYTES "00 01 02 03 06 05"
 
 q[1 TO LAST-1] := HEXBYTES "03"
-TESTCASE q = HEXBYTES "01 03 05"
+TESTCASE q = HEXBYTES "00 03 05"
 
 LET n: Array<Number> := [1, 2, 3, 0, 4]
 LET buf: Bytes := n.toBytes()

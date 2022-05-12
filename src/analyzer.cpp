@@ -1368,20 +1368,13 @@ ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const Referenc
   : ReferenceExpression(TYPE_NUMBER, ref->is_readonly),
     ref(ref),
     index(index),
-    load(nullptr),
-    store(nullptr)
+    load(nullptr)
 {
     {
         std::vector<const Expression *> args;
         args.push_back(ref);
         args.push_back(index);
         load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__index"))), args);
-    }
-    {
-        std::vector<const Expression *> args;
-        args.push_back(ref);
-        args.push_back(index);
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__store"))), args);
     }
 }
 
