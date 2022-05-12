@@ -2232,6 +2232,13 @@ func (self *executor) op_callp() {
 			last += len(b) - 1
 		}
 		self.push(make_cell_bytes(append(b[:first], append(t, b[last+1:]...)...)))
+        case "bytes__store":
+                index := int(self.pop().num)
+                r := self.pop().ref
+                b := r.load()
+                c := int(self.pop().num)
+                b.bytes[index] = byte(c)
+                r.store(b)
 	case "bytes__toArray":
 		b := self.pop().bytes
 		a := make([]cell, len(b))
