@@ -436,7 +436,9 @@ Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number 
         l = b->len - 1;
     }
     int new_len = b->len - (l - f + 1) + src->len;
-    b->data = realloc(b->data, new_len);
+    if (new_len > b->len) {
+        b->data = realloc(b->data, new_len);
+    }
     memmove(&b->data[f + src->len], &b->data[l + 1], (b->len - l - 1));
     memcpy(&b->data[f], src->data, src->len);
     b->len = new_len;
