@@ -142,6 +142,7 @@ JvmFromAst = {
     ("TYPE_STRING", REF): "Ljava/lang/String;",
     ("TYPE_STRING", OUT): "Ljava/lang/String;", # TODO
     ("TYPE_BYTES", VALUE): "[B",
+    ("TYPE_BYTES", REF): "[B",
     ("TYPE_BYTES", OUT): "Ljava/lang/Object;", # TODO
     ("TYPE_OBJECT", VALUE): "Ljava/lang/Object;",
     ("TYPE_ARRAY", VALUE): "Lneon/type/Array;",
@@ -168,7 +169,7 @@ CellField = {
     ("TYPE_STRING", REF): "address()->string_for_write()",
     ("TYPE_STRING", OUT): "address()->string_for_write()",
     ("TYPE_BYTES", VALUE): "bytes()",
-    ("TYPE_BYTES", REF): "address()->bytes()",
+    ("TYPE_BYTES", REF): "address()->bytes_for_write()",
     ("TYPE_BYTES", OUT): "address()->bytes()",
     ("TYPE_OBJECT", VALUE): "object()",
     ("TYPE_ARRAY_NUMBER", VALUE): "array()",

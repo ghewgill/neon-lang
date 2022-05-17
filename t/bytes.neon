@@ -1,13 +1,29 @@
+VAR s: Bytes := HEXBYTES "00 01 02"
+VAR t: Bytes := HEXBYTES "03 04 05"
+
+TESTCASE s[1] = 1
+TESTCASE s & t = HEXBYTES "00 01 02 03 04 05"
+TESTCASE s[1 TO LAST] = HEXBYTES "01 02"
+
+t[1] := 6
+TESTCASE t = HEXBYTES "03 06 05"
+TESTCASE t[1] = 6
+
+VAR q: Bytes := s
+q.append(t)
+TESTCASE q = HEXBYTES "00 01 02 03 06 05"
+
+q[1 TO LAST-1] := HEXBYTES "03"
+TESTCASE q = HEXBYTES "00 03 05"
+
 LET n: Array<Number> := [1, 2, 3, 0, 4]
 LET buf: Bytes := n.toBytes()
-print("\(buf.size())")
---= 5
+TESTCASE buf.size() = 5
 
 VAR a: Array<Number> := buf.toArray()
-print("\(a.size())")
---= 5
-print("\(a[0]), \(a[4])")
---= 1, 4
+TESTCASE a.size() = 5
+TESTCASE a[0] = 1
+TESTCASE a[4] = 4
 
 LET n0: Array<Number> := [0, 1, 2, 253, 254, 255]
 TESTCASE n0.toBytes() = HEXBYTES "00 01 02 fd fe ff"

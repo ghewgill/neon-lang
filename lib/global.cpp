@@ -390,6 +390,11 @@ utf8string string__toString(const utf8string &self)
     return self;
 }
 
+void bytes__append(std::vector<unsigned char> *self, const std::vector<unsigned char> &t)
+{
+    std::copy(std::begin(t), std::end(t), std::back_inserter(*self));
+}
+
 Number bytes__index(const std::vector<unsigned char> &t, Number index)
 {
     if (not number_is_integer(index)) {
@@ -458,6 +463,22 @@ std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, co
     std::copy(t.begin(), t.end(), std::back_inserter(r));
     std::copy(s.begin()+l+1, s.end(), std::back_inserter(r));
     return r;
+}
+
+void bytes__store(Number b, std::vector<unsigned char> *s, Number index)
+{
+    if (not number_is_integer(index)) {
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(index)));
+    }
+    int64_t i = number_to_sint64(index);
+    if (i < 0 || i >= static_cast<int64_t>(s->size())) {
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(index)));
+    }
+    int64_t bb = number_to_sint64(b);
+    if (bb < 0 || bb >= 256) {
+        throw RtlException(Exception_ByteOutOfRangeException, utf8string(number_to_string(b)));
+    }
+    s->at(i) = bb;
 }
 
 utf8string bytes__decodeToString(const std::vector<unsigned char> &self)

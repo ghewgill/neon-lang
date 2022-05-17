@@ -383,7 +383,7 @@ Ne_Exception *Ne_Bytes_index(Ne_Number *dest, const Ne_Bytes *b, const Ne_Number
     return NULL;
 }
 
-Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number *first, const Ne_Number *last)
+Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
     dest->len = 0;
     dest->data = NULL;
@@ -392,6 +392,12 @@ Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number 
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
+    if (first_from_end) {
+        f += b->len - 1;
+    }
+    if (last_from_end) {
+        l += b->len - 1;
+    }
     if (l < 0 || f >= b->len || f > l) {
         return NULL;
     }
@@ -407,13 +413,19 @@ Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number 
     return NULL;
 }
 
-Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number *first, const Ne_Number *last)
+Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
     if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
         return Ne_Exception_raise("BytesIndexException");
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
+    if (first_from_end) {
+        f += b->len - 1;
+    }
+    if (last_from_end) {
+        l += b->len - 1;
+    }
     if (l < 0 || f >= b->len || f > l) {
         return NULL;
     }
@@ -424,10 +436,33 @@ Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number 
         l = b->len - 1;
     }
     int new_len = b->len - (l - f + 1) + src->len;
-    b->data = realloc(b->data, new_len);
+    if (new_len > b->len) {
+        b->data = realloc(b->data, new_len);
+    }
     memmove(&b->data[f + src->len], &b->data[l + 1], (b->len - l - 1));
     memcpy(&b->data[f], src->data, src->len);
     b->len = new_len;
+    return NULL;
+}
+
+Ne_Exception *Ne_Bytes_store(const Ne_Number *b, Ne_Bytes *s, const Ne_Number *index)
+{
+    if (index->dval != trunc(index->dval)) {
+        return Ne_Exception_raise("BytesIndexException");
+    }
+    int i = (int)index->dval;
+    if (i < 0 || i >= s->len) {
+        return Ne_Exception_raise("BytesIndexException");
+    }
+    s->data[i] = (unsigned char)b->dval;
+    return NULL;
+}
+
+Ne_Exception *Ne_bytes__append(Ne_Bytes *r, const Ne_Bytes *b)
+{
+    r->data = realloc(r->data, r->len + b->len);
+    memcpy(&r->data[r->len], b->data, b->len);
+    r->len += b->len;
     return NULL;
 }
 

@@ -216,11 +216,13 @@ DECLARE NATIVE FUNCTION string__splice(t: String, s: String, first: Number, firs
 DECLARE NATIVE FUNCTION string__substring(s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
 DECLARE NATIVE FUNCTION string__toBytes(self: String): Bytes
 DECLARE NATIVE FUNCTION string__toString(self: String): String
+DECLARE NATIVE FUNCTION bytes__append(INOUT self: Bytes, t: Bytes)
 DECLARE NATIVE FUNCTION bytes__concat(a: Bytes, b: Bytes): Bytes
 DECLARE NATIVE FUNCTION bytes__index(s: Bytes, index: Number): Number
 DECLARE NATIVE FUNCTION bytes__range(s: Bytes, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Bytes
 DECLARE NATIVE FUNCTION bytes__size(self: Bytes): Number
 DECLARE NATIVE FUNCTION bytes__splice(t: Bytes, s: Bytes, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Bytes
+DECLARE NATIVE FUNCTION bytes__store(b: Number, INOUT s: Bytes, index: Number)
 DECLARE NATIVE FUNCTION bytes__decodeToString(self: Bytes): String
 DECLARE NATIVE FUNCTION bytes__toArray(self: Bytes): Array<Number>
 DECLARE NATIVE FUNCTION bytes__toString(self: Bytes): String

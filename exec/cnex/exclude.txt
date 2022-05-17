@@ -1,4 +1,5 @@
 bigint.neon                # gmp
+bytes.neon                 # bytes__splice
 file-linelength.neon       # buffer size
 gc-array.neon              # Object Count
 gc-long-chain.neon         # Object Count
