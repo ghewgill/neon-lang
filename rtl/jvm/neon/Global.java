@@ -272,6 +272,13 @@ public class Global {
         return r;
     }
 
+    public static void bytes__store(neon.type.Number b, byte[] s, neon.type.Number index) {
+        assert(b.isInteger());
+        assert(index.isInteger());
+        int i = index.intValue();
+        s[i] = (byte)b.intValue();
+    }
+
     public static java.lang.String bytes__toString(byte[] self) {
         StringBuilder r = new StringBuilder("HEXBYTES \"");
         boolean first = true;

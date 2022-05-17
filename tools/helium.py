@@ -164,8 +164,15 @@ class bytes:
         self.a = a
     def __eq__(self, rhs):
         return self.a == rhs.a
+    def __add__(self, rhs):
+        return bytes(self.a + rhs.a)
+    def __len__(self):
+        return len(self.a)
     def __getitem__(self, key):
-        return bytes(self.a.__getitem__(key))
+        if isinstance(key, slice):
+            return bytes(self.a.__getitem__(key))
+        else:
+            return self.a.__getitem__(key)
     def __str__(self):
         return "HEXBYTES \"" + " ".join("{:02x}".format(b) for b in self.a) + "\""
 
@@ -643,6 +650,8 @@ class SubscriptExpression:
                 i += len(a) - 1
         if isinstance(a, str):
             self.expr.set(env, a[:i] + value + a[i+1:])
+        elif isinstance(a, bytes):
+            self.expr.set(env, bytes(a.a[:i] + [value] + a.a[i+1:]))
         else:
             a[i] = value
 
@@ -690,7 +699,10 @@ class RangeSubscriptExpression:
             l = l if l < 0 else None
         else:
             l = max(0, l+1)
-        a[f:l] = value
+        if isinstance(a, bytes):
+            a.a[f:l] = value
+        else:
+            a[f:l] = value
 
 class DotExpression:
     def __init__(self, expr, field):
@@ -784,6 +796,8 @@ class AppendExpression:
         right = self.right.eval(env)
         if isinstance(left, str):
             return left + right
+        elif isinstance(left, bytes):
+            return bytes(left.a + right.a)
         elif isinstance(left, list):
             return left + [right]
         else:

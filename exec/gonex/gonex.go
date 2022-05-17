@@ -2160,10 +2160,23 @@ func (self *executor) op_callp() {
 			r[i] = a[i] ^ b[i]
 		}
 		self.push(make_cell_bytes(r))
+        case "bytes__append":
+                b := self.pop().bytes
+                ar := self.pop().ref
+                a := ar.load()
+                a.bytes = append(a.bytes, b...)
+                ar.store(a)
 	case "bytes__concat":
 		b := self.pop().bytes
 		a := self.pop().bytes
-		self.push(make_cell_bytes(append(a, b...)))
+                r := make([]byte, len(a) + len(b))
+                for i := range a {
+                    r[i] = a[i]
+                }
+                for i := range b {
+                    r[len(a)+i] = b[i]
+                }
+		self.push(make_cell_bytes(r))
 	case "bytes__decodeToString":
 		b := self.pop().bytes
 		self.push(make_cell_str(string(b)))

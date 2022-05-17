@@ -1774,6 +1774,13 @@ public:
         context.pop_scope();
         return result;
     }
+    virtual void generate_store(Context &context, std::string src) const override {
+        context.push_scope();
+        std::string refname = ref->generate(context);
+        std::string indexname = index->generate(context);
+        context.out << "if (Ne_Bytes_store(&" << src << ",&" << refname << ",&" << indexname << ")) goto " << context.handler_label() << ";\n";
+        context.pop_scope();
+    }
 };
 
 class BytesValueIndexExpression: public Expression {
@@ -1806,7 +1813,7 @@ public:
         std::string refname = ref->generate(context);
         std::string firstname = first->generate(context);
         std::string lastname = last->generate(context);
-        context.out << "if (Ne_Bytes_range(&" << result << ",&" << refname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Bytes_range(&" << result << ",&" << refname << ",&" << firstname << "," << brie->first_from_end << ",&" << lastname << "," << brie->last_from_end << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }
@@ -1815,7 +1822,7 @@ public:
         std::string refname = ref->generate(context);
         std::string firstname = first->generate(context);
         std::string lastname = last->generate(context);
-        context.out << "if (Ne_Bytes_splice(&" << src << ",&" << refname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Bytes_splice(&" << src << ",&" << refname << ",&" << firstname << "," << brie->first_from_end << ",&" << lastname << "," << brie->last_from_end << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
     }
 };
@@ -1836,7 +1843,7 @@ public:
         std::string dataname = data->generate(context);
         std::string firstname = first->generate(context);
         std::string lastname = last->generate(context);
-        context.out << "if (Ne_Bytes_range(&" << result << ",&" << dataname << ",&" << firstname << ",&" << lastname << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Bytes_range(&" << result << ",&" << dataname << ",&" << firstname << "," << bvie->first_from_end << ",&" << lastname << "," << bvie->last_from_end << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
         return result;
     }

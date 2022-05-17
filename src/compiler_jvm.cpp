@@ -2405,11 +2405,7 @@ public:
     virtual void generate_store(Context &context) const override {
         ref->generate(context);
         index->generate(context);
-        context.push_integer(false);
-        index->generate(context);
-        context.push_integer(false);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__splice", "([B[BLneon/type/Number;ZLneon/type/Number;Z)[B");
-        ref->generate_store(context);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__store", "(Lneon/type/Number;[BLneon/type/Number;)V");
     }
 };
 

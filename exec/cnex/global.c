@@ -342,12 +342,14 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("boolean__toString",         boolean__toString),
 
+    PDFUNC("bytes__append",             bytes__append),
     PDFUNC("bytes__concat",             bytes__concat),
     PDFUNC("bytes__decodeToString",     bytes__decodeToString),
     PDFUNC("bytes__index",              bytes__index),
     PDFUNC("bytes__range",              bytes__range),
     PDFUNC("bytes__size",               bytes__size),
     PDFUNC("bytes__splice",             bytes__splice),
+    PDFUNC("bytes__store",              bytes__store),
     PDFUNC("bytes__toArray",            bytes__toArray),
     PDFUNC("bytes__toString",           bytes__toString),
 
@@ -847,6 +849,19 @@ void boolean__toString(TExecutor *exec)
 
 
 
+void bytes__append(TExecutor *exec)
+{
+    Cell *b = peek(exec->stack, 0);
+    Cell *a = peek(exec->stack, 1)->address;
+
+    a->string->data = realloc(a->string->data, a->string->length + b->string->length);
+    memcpy(&a->string->data[a->string->length], b->string->data, b->string->length);
+    a->string->length += b->string->length;
+
+    pop(exec->stack);
+    pop(exec->stack);
+}
+
 void bytes__concat(TExecutor *exec)
 {
     Cell *b = peek(exec->stack, 0);
@@ -1001,6 +1016,17 @@ void bytes__splice(TExecutor *exec)
     cell_freeCell(t);
 
     push(exec->stack, sub);
+}
+
+void bytes__store(TExecutor *exec)
+{
+    Number index = top(exec->stack)->number;          pop(exec->stack);
+    Cell *s = top(exec->stack)->address;              pop(exec->stack);
+    Number b = top(exec->stack)->number;              pop(exec->stack);
+
+    int64_t idx = number_to_sint64(index);
+    // TODO: range checking
+    s->string->data[idx] = number_to_uint32(b);
 }
 
 void bytes__toArray(TExecutor *exec)

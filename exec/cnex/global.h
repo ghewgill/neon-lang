@@ -37,12 +37,14 @@ void array__toString__string(struct tagTExecutor *exec);
 
 void boolean__toString(struct tagTExecutor *exec);
 
+void bytes__append(struct tagTExecutor *exec);
 void bytes__concat(struct tagTExecutor *exec);
 void bytes__decodeToString(struct tagTExecutor *exec);
 void bytes__index(struct tagTExecutor *exec);
 void bytes__range(struct tagTExecutor *exec);
 void bytes__size(struct tagTExecutor *exec);
 void bytes__splice(struct tagTExecutor *exec);
+void bytes__store(struct tagTExecutor *exec);
 void bytes__toArray(struct tagTExecutor *exec);
 void bytes__toString(struct tagTExecutor *exec);
 

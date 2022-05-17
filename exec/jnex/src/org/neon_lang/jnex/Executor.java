@@ -52,11 +52,14 @@ class Executor {
         predefined.put("array__toString__string", this::array__toString__string);
         predefined.put("array__toString__object", this::array__toString__object);
         predefined.put("boolean__toString", this::boolean__toString);
+        predefined.put("bytes__append", this::bytes__append);
+        predefined.put("bytes__concat", this::bytes__concat);
         predefined.put("bytes__decodeToString", this::bytes__decodeToString);
         predefined.put("bytes__index", this::bytes__index);
         predefined.put("bytes__range", this::bytes__range);
         predefined.put("bytes__size", this::bytes__size);
         predefined.put("bytes__splice", this::bytes__splice);
+        predefined.put("bytes__store", this::bytes__store);
         predefined.put("bytes__toArray", this::bytes__toArray);
         predefined.put("bytes__toString", this::bytes__toString);
         predefined.put("dictionary__keys", this::dictionary__keys);
@@ -1456,6 +1459,27 @@ class Executor {
         stack.addFirst(new Cell(b ? "TRUE" : "FALSE"));
     }
 
+    private void bytes__append()
+    {
+        byte[] b = stack.removeFirst().getBytes();
+        Cell ac = stack.removeFirst().getAddress();
+        byte[] a = ac.getBytes();
+        byte[] t = new byte[a.length + b.length];
+        System.arraycopy(a, 0, t, 0, a.length);
+        System.arraycopy(b, 0, t, a.length, b.length);
+        ac.set(t);
+    }
+
+    private void bytes__concat()
+    {
+        byte[] b = stack.removeFirst().getBytes();
+        byte[] a = stack.removeFirst().getBytes();
+        byte[] r = new byte[a.length + b.length];
+        System.arraycopy(a, 0, r, 0, a.length);
+        System.arraycopy(b, 0, r, a.length, b.length);
+        stack.addFirst(new Cell(r));
+    }
+
     private void bytes__decodeToString()
     {
         byte[] b = stack.removeFirst().getBytes();
@@ -1510,6 +1534,14 @@ class Executor {
         System.arraycopy(b, 0, r, first, b.length);
         System.arraycopy(a, last+1, r, first+b.length, a.length-(last+1));
         stack.addFirst(new Cell(r));
+    }
+
+    private void bytes__store()
+    {
+        int index = stack.removeFirst().getNumber().intValueExact();
+        byte[] s = stack.removeFirst().getAddress().getBytes();
+        int b = stack.removeFirst().getNumber().intValueExact();
+        s[index] = (byte)b;
     }
 
     private void bytes__toArray()
