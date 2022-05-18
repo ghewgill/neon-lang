@@ -6227,7 +6227,7 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
         const ast::Expression *e = analyze(v.get());
         std::set<const ast::Function *> context;
         if (not e->is_pure(context)) {
-            error(9999, v->token, "must be pure expression");
+            error(3329, v->token, "must be pure expression");
         }
         if (dynamic_cast<const ast::ConstantStringExpression *>(e) != nullptr) {
             s = concat(s, e);
@@ -6236,11 +6236,11 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
             auto et = v->get_end_token();
             s = concat(s, new ast::ConstantStringExpression(utf8string(st.source_line().substr(st.column-1, et.column + et.text.length() - st.column))));
             s = concat(s, new ast::ConstantStringExpression(utf8string(" (")));
-            s = concat(s, new ast::ConstantStringExpression(utf8string(e->type->text().c_str())));
+            s = concat(s, new ast::ConstantStringExpression(utf8string(e->type->name.c_str())));
             s = concat(s, new ast::ConstantStringExpression(utf8string(") = ")));
             auto toString = e->type->methods.find("toString");
             if (toString == e->type->methods.end()) {
-                error(9999, v->token, "no toString() method found for type");
+                error(3330, v->token, "no toString() method found for type");
             }
             s = concat(s, new ast::FunctionCall(new ast::VariableExpression(toString->second), {e}));
         }

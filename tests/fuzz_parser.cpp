@@ -128,6 +128,7 @@ std::string reconstitute(const Token &t)
         case SUCCESS:     return "SUCCESS";
         case FAILURE:     return "FAILURE";
         case PANIC:       return "PANIC";
+        case DEBUG:       return "DEBUG";
         case UNKNOWN:     return "UNKNOWN";
         case MAX_TOKEN:   return "";
     }

@@ -266,6 +266,11 @@ Program
     ValidPointerExpression
       IdentifierExpression(expr)
       IdentifierExpression(expr)
+  DebugStatement
+    IdentifierExpression(expr)
+  DebugStatement
+    IdentifierExpression(expr)
+    IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
     ComparisonWhenCondition(EQ)
