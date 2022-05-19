@@ -19,7 +19,7 @@ FUNCTION post(url: String, post_data: String): Object
     RETURN json.decode(data)
 END FUNCTION
 
-VAR p: os.Process := os.spawn("bin/neon -d \(Port) t/debug-example.neon")
+VAR p: os.Process := os.spawn("bin/neon --debug-port \(Port) t/debug-example.neon")
 time.sleep(1)
 VAR r: Object
 

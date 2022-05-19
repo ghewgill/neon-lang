@@ -34,7 +34,7 @@ END IF
 
 LET source: String := sys.args[1]
 
-LET target: os.Process := os.spawn("bin/neon -d \(Port) " & string.join(sys.args[1 TO LAST], " "))
+LET target: os.Process := os.spawn("bin/neon --debug-port \(Port) " & string.join(sys.args[1 TO LAST], " "))
 time.sleep(1)
 
 LET debug: Object := get("/module/-/debuginfo")
