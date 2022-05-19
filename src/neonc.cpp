@@ -46,8 +46,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "\n");
         fprintf(stderr, "    Options:\n");
         fprintf(stderr, "        -i          Ignore any errors, compile all named source files\n");
-        fprintf(stderr, "        -d          Print disassembly listing\n");
         fprintf(stderr, "        --json      Print error messages in JSON form\n");
+        fprintf(stderr, "        -l          Print disassembly listing\n");
         fprintf(stderr, "        --neonpath  Append given path to library search path\n");
         fprintf(stderr, "        -o filename Output file name\n");
         fprintf(stderr, "        -q          Quiet, print messages only in case of errors\n");
@@ -67,10 +67,10 @@ int main(int argc, char *argv[])
         std::string arg = argv[a];
         if (arg == "-i") {
             ignore_errors = true;
-        } else if (arg == "-d") {
-            listing = true;
         } else if (arg == "--json") {
             error_json = true;
+        } else if (arg == "-l") {
+            listing = true;
         } else if (arg == "--neonpath") {
             a++;
             if (a >= argc) {
