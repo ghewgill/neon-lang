@@ -32,6 +32,7 @@ struct {
 
 int main(int argc, char *argv[])
 {
+    bool enable_debug = true;
     bool ignore_errors = false;
     bool listing = false;
     std::string output;
@@ -46,9 +47,10 @@ int main(int argc, char *argv[])
         fprintf(stderr, "\n");
         fprintf(stderr, "    Options:\n");
         fprintf(stderr, "        -i          Ignore any errors, compile all named source files\n");
-        fprintf(stderr, "        -d          Print disassembly listing\n");
         fprintf(stderr, "        --json      Print error messages in JSON form\n");
+        fprintf(stderr, "        -l          Print disassembly listing\n");
         fprintf(stderr, "        --neonpath  Append given path to library search path\n");
+        fprintf(stderr, "        --no-debug  Disable compilation of DEBUG statements\n");
         fprintf(stderr, "        -o filename Output file name\n");
         fprintf(stderr, "        -q          Quiet, print messages only in case of errors\n");
         fprintf(stderr, "        -t target   Compilation target, see list below\n");
@@ -78,6 +80,8 @@ int main(int argc, char *argv[])
                 exit(1);
             }
             neonpath.push_back(argv[a]);
+        } else if (arg == "--no-debug") {
+            enable_debug = false;
         } else if (arg == "-o") {
             a++;
             if (a >= argc) {
@@ -153,7 +157,7 @@ int main(int argc, char *argv[])
             std::cout << "...\n";
         }
 
-        CompilerSupport compiler_support(source_path, neonpath, target_proc);
+        CompilerSupport compiler_support(source_path, neonpath, target_proc, enable_debug);
 
         const std::string objname = output.empty() ? std::string(argv[a]) + "x" : output;
         if (target_proc == nullptr) {

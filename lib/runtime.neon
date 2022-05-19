@@ -7,6 +7,7 @@ EXPORT NativeObjectException
 
 EXPORT assertionsEnabled
 EXPORT createObject
+EXPORT debugEnabled
 EXPORT executorName
 EXPORT garbageCollect
 EXPORT getAllocatedObjectCount
@@ -28,6 +29,12 @@ EXCEPTION NativeObjectException
 DECLARE NATIVE FUNCTION assertionsEnabled(): Boolean
 
 DECLARE NATIVE FUNCTION createObject(name: String): Object
+
+/*  Function: debugEnabled
+ *
+ *  Return TRUE if DEBUG statements are currently enabled.
+ */
+DECLARE NATIVE FUNCTION debugEnabled(): Boolean
 
 /*  Function: executorName
  *

@@ -9,6 +9,7 @@
 #include "support.h"
 
 bool g_enable_assert = true;
+bool g_enable_debug = false;
 bool g_enable_trace = false;
 unsigned short g_debug_port = 0;
 
@@ -38,6 +39,7 @@ void run_from_neonx(const std::vector<std::string> &neonpath, const std::string 
     // TODO: Implement reading DebugInfo from another file.
     struct ExecOptions options;
     options.enable_assert = g_enable_assert;
+    options.enable_debug = g_enable_debug;
     options.enable_trace = g_enable_trace;
     exit(exec(name, bytecode, nullptr, &runtime_support, &options, g_debug_port, argc, argv));
 }
@@ -53,7 +55,9 @@ int main(int argc, char *argv[])
     int a = 1;
     while (a < argc && argv[a][0] == '-' && argv[a][1] != '\0') {
         std::string arg = argv[a];
-        if (arg == "--debug-port") {
+        if (arg == "-d") {
+            g_enable_debug = true;
+        } else if (arg == "--debug-port") {
             a++;
             g_debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
         } else if (arg == "-n") {

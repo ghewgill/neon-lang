@@ -6203,11 +6203,7 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
     }
     const ast::Variable *string_concat = dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat"));
     auto concat = [string_concat](const ast::Expression *s, const ast::Expression *t){ return new ast::FunctionCall(new ast::VariableExpression(string_concat), {s, t}); };
-    const ast::Expression *s = new ast::ConstantStringExpression(utf8string("DEBUG ("));
-    s = concat(s, new ast::ConstantStringExpression(utf8string(statement->token.source->source_path)));
-    s = concat(s, new ast::ConstantStringExpression(utf8string(":")));
-    s = concat(s, new ast::ConstantStringExpression(utf8string(std::to_string(statement->token.line))));
-    s = concat(s, new ast::ConstantStringExpression(utf8string(") ")));
+    const ast::Expression *s = new ast::ConstantStringExpression(utf8string("DEBUG (" + statement->token.source->source_path + ":" + std::to_string(statement->token.line) + ") "));
     bool first = true;
     for (auto &v: statement->values) {
         if (not first) {
@@ -6224,10 +6220,7 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
         } else {
             auto st = v->get_start_token();
             auto et = v->get_end_token();
-            s = concat(s, new ast::ConstantStringExpression(utf8string(st.source_line().substr(st.column-1, et.column + et.text.length() - st.column))));
-            s = concat(s, new ast::ConstantStringExpression(utf8string(" (")));
-            s = concat(s, new ast::ConstantStringExpression(utf8string(e->type->name.c_str())));
-            s = concat(s, new ast::ConstantStringExpression(utf8string(") = ")));
+            s = concat(s, new ast::ConstantStringExpression(utf8string(st.source_line().substr(st.column-1, et.column + et.text.length() - st.column) + " (" + e->type->name.c_str() + ") = ")));
             auto toString = e->type->methods.find("toString");
             if (toString == e->type->methods.end()) {
                 error(3330, v->token, "no toString() method found for type");
@@ -6235,11 +6228,30 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
             s = concat(s, new ast::FunctionCall(new ast::VariableExpression(toString->second), {e}));
         }
     }
-    return new ast::ExpressionStatement(
+    if (not support->enableDebug()) {
+        return new ast::NullStatement(statement->token);
+    }
+    const ast::Module *runtime = import_module(Token(), "runtime", false);
+    if (runtime == nullptr) {
+        internal_error("need module runtime");
+    }
+    return new ast::IfStatement(
         statement->token,
-        new ast::FunctionCall(
-            new ast::VariableExpression(print), { convert(ast::TYPE_OBJECT, s) }
-        )
+        std::vector<ast::IfStatement::ConditionBlock> {
+            ast::IfStatement::ConditionBlock(
+                statement->token.line,
+                new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::PredefinedFunction *>(runtime->scope->lookupName("debugEnabled"))), {}),
+                std::vector<const ast::Statement *> {
+                    new ast::ExpressionStatement(
+                        statement->token,
+                        new ast::FunctionCall(
+                            new ast::VariableExpression(print), { convert(ast::TYPE_OBJECT, s) }
+                        )
+                    )
+                }
+            )
+        },
+        std::vector<const ast::Statement *>()
     );
 }
 

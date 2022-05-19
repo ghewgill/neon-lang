@@ -18,6 +18,7 @@ void executor_interrupt();
 
 // Module: runtime
 bool executor_assertions_enabled();
+bool executor_debug_enabled();
 void executor_garbage_collect();
 size_t executor_get_allocated_object_count();
 bool executor_is_module_imported(const std::string &module);
@@ -26,8 +27,9 @@ void executor_set_garbage_collection_interval(size_t count);
 void executor_set_recursion_limit(size_t depth);
 
 struct ExecOptions {
-    bool enable_assert;
-    bool enable_trace;
+    bool enable_assert = false;
+    bool enable_debug = false;
+    bool enable_trace = false;
 };
 
 int exec(const std::string &source_path, const std::vector<unsigned char> &obj, const DebugInfo *debug, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals = nullptr);

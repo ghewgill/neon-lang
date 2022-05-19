@@ -20,6 +20,7 @@ bool dump_parse = false;
 bool dump_ast = false;
 bool dump_listing = false;
 bool enable_assert = true;
+bool enable_debug = false;
 bool enable_trace = false;
 bool error_json = false;
 unsigned short debug_port = 0;
@@ -98,6 +99,8 @@ int main(int argc, char *argv[])
                 exit(1);
             }
             break;
+        } else if (arg == "-d") {
+            enable_debug = true;
         } else if (arg == "--debug-port") {
             a++;
             try {
@@ -141,6 +144,7 @@ int main(int argc, char *argv[])
 
     struct ExecOptions options;
     options.enable_assert = enable_assert;
+    options.enable_debug = enable_debug;
     options.enable_trace = enable_trace;
 
     if (a >= argc) {
@@ -151,7 +155,7 @@ int main(int argc, char *argv[])
     auto i = name.find_last_of("/:\\");
     const std::string source_path { i != std::string::npos ? name.substr(0, i+1) : "" };
 
-    CompilerSupport compiler_support(source_path, neonpath, nullptr);
+    CompilerSupport compiler_support(source_path, neonpath, nullptr, enable_debug);
     RuntimeSupport runtime_support(source_path, neonpath);
     std::unique_ptr<DebugInfo> debug;
 
