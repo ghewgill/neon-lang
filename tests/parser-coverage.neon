@@ -211,6 +211,9 @@ NEXT LOOP
 NEXT REPEAT
 NEXT label
 
+-- PanicStatement
+PANIC "text"
+
 -- RaiseStatement
 RAISE name
 RAISE name.name

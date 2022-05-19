@@ -67,10 +67,10 @@ int main(int argc, char *argv[])
         std::string arg = argv[a];
         if (arg == "-i") {
             ignore_errors = true;
-        } else if (arg == "-d") {
-            listing = true;
         } else if (arg == "--json") {
             error_json = true;
+        } else if (arg == "-l") {
+            listing = true;
         } else if (arg == "--neonpath") {
             a++;
             if (a >= argc) {

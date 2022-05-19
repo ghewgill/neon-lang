@@ -178,6 +178,7 @@ TYPE Type IS ENUM
     IncrementStatement
     LoopStatement
     NextStatement
+    PanicStatement
     RaiseStatement
     RepeatStatement
     ReturnStatement
@@ -545,6 +546,10 @@ TYPE NextStatement IS RECORD
     label: lexer.Token
 END RECORD
 
+TYPE PanicStatement IS RECORD
+    message: POINTER TO ParseTreeNode
+END RECORD
+
 TYPE RaiseStatement IS RECORD
     name: Array<lexer.Token>
     info: POINTER TO ParseTreeNode
@@ -655,6 +660,7 @@ TYPE ParseTreeNode IS CLASS
     incrementstatement: IncrementStatement
     loopstatement: LoopStatement
     nextstatement: NextStatement
+    panicstatement: PanicStatement
     raisestatement: RaiseStatement
     repeatstatement: RepeatStatement
     returnstatement: ReturnStatement
@@ -3266,6 +3272,20 @@ FUNCTION Parser.parseNextStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     )
 END FUNCTION
 
+FUNCTION Parser.parsePanicStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.panic
+    LET tokPanic: lexer.Token := self.token
+    self.nextToken()
+    LET message: POINTER TO ParseTreeNode := self.parseExpression()
+    RETURN NEW ParseTreeNode(
+        type WITH Type.PanicStatement,
+        token WITH tokPanic,
+        panicstatement WITH PanicStatement(
+            message WITH message
+        )
+    )
+END FUNCTION
+
 FUNCTION Parser.parseRaiseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.raise
     LET tokRaise: lexer.Token := self.token
@@ -3621,6 +3641,8 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseLoopStatement()
         WHEN TokenType.next DO
             RETURN self.parseNextStatement()
+        WHEN TokenType.panic DO
+            RETURN self.parsePanicStatement()
         WHEN TokenType.raise DO
             RETURN self.parseRaiseStatement()
         WHEN TokenType.repeat DO
@@ -4260,6 +4282,11 @@ FUNCTION dumpNextStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "NextStatement(\(node->nextstatement.label.text))")
 END FUNCTION
 
+FUNCTION dumpPanicStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "PanicStatement")
+    dumpParseTree(node->panicstatement.message, depth+1)
+END FUNCTION
+
 FUNCTION dumpRaiseStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH n IN node->raisestatement.name DO
@@ -4399,6 +4426,7 @@ LET Dumper: IParseTreeVisitor := {
     "IncrementStatement":                   dumpIncrementStatement,
     "LoopStatement":                        dumpLoopStatement,
     "NextStatement":                        dumpNextStatement,
+    "PanicStatement":                       dumpPanicStatement,
     "RaiseStatement":                       dumpRaiseStatement,
     "RepeatStatement":                      dumpRepeatStatement,
     "ReturnStatement":                      dumpReturnStatement,

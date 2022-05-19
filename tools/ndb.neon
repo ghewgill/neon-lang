@@ -48,7 +48,7 @@ VAR Globals: Dictionary<Global> := {}
 
 print("Neon debugger. Type 'help' for help.")
 
-LET target: os.Process := os.spawn("bin/neon -d \(Port) \(sys.args[1])")
+LET target: os.Process := os.spawn("bin/neon --debug-port \(Port) \(sys.args[1])")
 time.sleep(0.1)
 VAR r: Object
 

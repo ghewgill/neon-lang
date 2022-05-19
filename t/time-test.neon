@@ -4,10 +4,13 @@ VAR a, b, i: Number
 
 a := time.now()
 i := 0
-WHILE i < 100000 DO
+LOOP
+    b := time.now()
+    IF b > a THEN
+        EXIT LOOP
+    END IF
     i := i + 1
-END WHILE
-b := time.now()
+END LOOP
 --print(str(a))
 --print(str(b))
 print("\(a < b)")

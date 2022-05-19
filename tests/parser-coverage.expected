@@ -475,6 +475,8 @@ Program
   NextStatement(LOOP)
   NextStatement(REPEAT)
   NextStatement(label)
+  PanicStatement
+    StringLiteralExpression(text)
   RaiseStatement(name)
     nullptr
   RaiseStatement(name,name)

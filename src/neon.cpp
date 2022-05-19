@@ -98,12 +98,12 @@ int main(int argc, char *argv[])
                 exit(1);
             }
             break;
-        } else if (arg == "-d") {
+        } else if (arg == "--debug-port") {
             a++;
             try {
                 debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
             } catch (std::invalid_argument &) {
-                fprintf(stderr, "%s: -d requires integer argument\n", argv[0]);
+                fprintf(stderr, "%s: --debug-port requires integer argument\n", argv[0]);
                 exit(1);
             }
         } else if (arg == "--json") {
