@@ -6213,7 +6213,7 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
     }
     const ast::Variable *string_concat = dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat"));
     auto concat = [string_concat](const ast::Expression *s, const ast::Expression *t){ return new ast::FunctionCall(new ast::VariableExpression(string_concat), {s, t}); };
-    const ast::Expression *s = new ast::ConstantStringExpression(utf8string("("));
+    const ast::Expression *s = new ast::ConstantStringExpression(utf8string("DEBUG ("));
     s = concat(s, new ast::ConstantStringExpression(utf8string(statement->token.source->source_path)));
     s = concat(s, new ast::ConstantStringExpression(utf8string(":")));
     s = concat(s, new ast::ConstantStringExpression(utf8string(std::to_string(statement->token.line))));
