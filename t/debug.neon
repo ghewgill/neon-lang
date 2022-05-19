@@ -1,0 +1,2 @@
+LET x: Number := 5
+DEBUG "test", x

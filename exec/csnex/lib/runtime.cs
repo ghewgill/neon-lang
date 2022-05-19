@@ -14,6 +14,11 @@
             exec.stack.Push(Cell.CreateBooleanCell(exec.enable_assert));
         }
 
+        public void debugEnabled()
+        {
+            exec.stack.Push(Cell.CreateBooleanCell(exec.enable_debug));
+        }
+
         public void executorName()
         {
             exec.stack.Push(Cell.CreateStringCell("csnex"));

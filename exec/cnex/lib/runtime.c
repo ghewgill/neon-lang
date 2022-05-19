@@ -11,6 +11,11 @@ void runtime_assertionsEnabled(TExecutor *exec)
     push(exec->stack, cell_fromBoolean(exec->enable_assert));
 }
 
+void runtime_debugEnabled(struct tagTExecutor *exec)
+{
+    push(exec->stack, cell_fromBoolean(exec->enable_debug));
+}
+
 void runtime_executorName(TExecutor *exec)
 {
     push(exec->stack, cell_fromCString("cnex"));

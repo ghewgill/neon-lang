@@ -29,6 +29,7 @@ typedef struct tagTExecutor {
     int32_t param_recursion_limit;
     struct tagTFrameStack *framestack;
     BOOL enable_assert;
+    BOOL enable_debug;
     BOOL debug;
     BOOL disassemble;
     void (*rtl_raise)(struct tagTExecutor *, const char *, const char *);
@@ -62,7 +63,7 @@ typedef struct tagTExecutor {
 } TExecutor;
 
 int exec_loop(TExecutor *self, int64_t min_callstack_depth);
-int exec_run(struct tagTExecutor *self, BOOL enable_assert);
+int exec_run(struct tagTExecutor *self, BOOL enable_assert, BOOL enable_debug);
 
 void invoke(struct tagTExecutor *self, struct tagTModule *m, int index);
 

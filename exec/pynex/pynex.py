@@ -32,6 +32,7 @@ else:
     LIBRARY_NAME_EXTENSION = ""
 
 enable_assert = True
+enable_debug = False
 
 g_ExtensionModules = {}
 
@@ -2754,6 +2755,9 @@ def neon_runtime_createObject(self):
     constructor = getattr(sys.modules[mod], cls)
     obj = constructor()
     self.stack.append(obj)
+
+def neon_runtime_debugEnabled(self):
+    self.stack.append(enable_debug)
 
 def neon_runtime_executorName(self):
     self.stack.append("pynex")

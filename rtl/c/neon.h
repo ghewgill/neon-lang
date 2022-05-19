@@ -277,6 +277,7 @@ Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_random_bytes(Ne_Bytes *result, const Ne_Number *n);
 Ne_Exception *Ne_random_uint32(Ne_Number *result);
 
+Ne_Exception *Ne_runtime_debugEnabled(Ne_Boolean *r);
 Ne_Exception *Ne_runtime_isModuleImported(Ne_Boolean *r, Ne_String *module);
 
 Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t);

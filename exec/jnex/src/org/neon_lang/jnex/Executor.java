@@ -16,6 +16,7 @@ import org.nevec.rjm.BigDecimalMath;
 
 class Executor {
     private final boolean enable_assert = true;
+    private final boolean enable_debug = false;
 
     private class ActivationFrame {
         int nesting_depth;
@@ -110,6 +111,7 @@ class Executor {
         predefined.put("math$trunc", this::math$trunc);
         predefined.put("random$uint32", this::random$uint32);
         predefined.put("runtime$assertionsEnabled", this::runtime$assertionsEnabled);
+        predefined.put("runtime$debugEnabled", this::runtime$debugEnabled);
         predefined.put("runtime$createObject", this::runtime$createObject);
         predefined.put("runtime$executorName", this::runtime$executorName);
         predefined.put("runtime$moduleIsMain", this::runtime$moduleIsMain);
@@ -2035,6 +2037,11 @@ class Executor {
         } catch (IllegalAccessException iae) {
             stack.addFirst(new Cell(new NeObjectNative(null))); // TODO: exception
         }
+    }
+
+    private void runtime$debugEnabled()
+    {
+        stack.addFirst(new Cell(enable_debug));
     }
 
     private void runtime$executorName()
