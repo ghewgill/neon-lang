@@ -129,7 +129,7 @@ void showUsage(void)
     fprintf(stderr, "   %s [options] program.neonx\n", gOptions.pszExecutableName);
     fprintf(stderr, "\n Where [options] is one or more of the following:\n");
     fprintf(stderr, "     -D       Display executor debug stats.\n");
-    fprintf(stderr, "     -d port  Use debug [port] for interactive debugger.\n");
+    fprintf(stderr, "     --debug-port port  Use debug [port] for interactive debugger.\n");
     fprintf(stderr, "     -t       Trace execution disassembly during run.\n");
     fprintf(stderr, "     -h       Display this help screen.\n");
     fprintf(stderr, "     -n       No Assertions\n");
@@ -147,16 +147,16 @@ BOOL ParseOptions(int argc, char* argv[])
                 gOptions.ExecutorDisassembly = TRUE;
             } else if (argv[nIndex][1] == 'D') {
                 gOptions.ExecutorDebugStats = TRUE;
-            } else if (argv[nIndex][1] == 'd') {
+            } else if (strcmp(argv[nIndex], "--debug-port") == 0) {
                 nIndex++;
                 if (argv[nIndex]) {
                     gOptions.DebugPort = atoi(argv[nIndex]);
                     if (gOptions.DebugPort <= 0 || gOptions.DebugPort > 65535) {
-                        printf("-d requires a valid debug port between 1 and 65535.\n");
+                        printf("--debug-port requires a valid debug port between 1 and 65535.\n");
                         return FALSE;
                     }
                 } else {
-                    printf("A debug port is required after the -d parameter.\n");
+                    printf("A debug port is required after the --debug-port parameter.\n");
                     return FALSE;
                 }
             } else if (argv[nIndex][1] == 'n') {

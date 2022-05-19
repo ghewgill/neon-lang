@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     int a = 1;
     while (a < argc && argv[a][0] == '-' && argv[a][1] != '\0') {
         std::string arg = argv[a];
-        if (arg == "-d") {
+        if (arg == "--debug-port") {
             a++;
             g_debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
         } else if (arg == "-n") {
