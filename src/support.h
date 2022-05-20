@@ -16,6 +16,7 @@ public:
     virtual ~ICompilerSupport() {}
     virtual void loadBytecode(const std::string &module, Bytecode &bytecode) = 0;
     virtual void writeOutput(const std::string &name, const std::vector<unsigned char> &content) = 0;
+    virtual bool enableDebug() { return false; }
 };
 
 class PathSupport: public ICompilerSupport {
@@ -28,11 +29,13 @@ private:
 
 class CompilerSupport: public PathSupport {
 public:
-    CompilerSupport(const std::string &source_path, const std::vector<std::string> &libpath, CompileProc cproc): PathSupport(source_path, libpath), cproc(cproc) {}
+    CompilerSupport(const std::string &source_path, const std::vector<std::string> &libpath, CompileProc cproc, bool enabledebug): PathSupport(source_path, libpath), cproc(cproc), enabledebug(enabledebug) {}
     virtual void loadBytecode(const std::string &name, Bytecode &object) override;
     virtual void writeOutput(const std::string &name, const std::vector<unsigned char> &content) override;
+    virtual bool enableDebug() override { return enabledebug; }
 private:
     CompileProc cproc;
+    bool enabledebug;
 };
 
 class RuntimeSupport: public PathSupport {

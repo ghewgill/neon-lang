@@ -169,6 +169,7 @@ TYPE Type IS ENUM
     AssignmentStatement
     CaseStatement
     CheckStatement
+    DebugStatement
     ExitStatement
     ExpressionStatement
     ForStatement
@@ -496,6 +497,10 @@ TYPE CheckStatement IS RECORD
     statements: Array<POINTER TO ParseTreeNode>
 END RECORD
 
+TYPE DebugStatement IS RECORD
+    values: Array<POINTER TO ParseTreeNode>
+END RECORD
+
 TYPE ExitStatement IS RECORD
     label: lexer.Token
     arg: lexer.Token
@@ -646,6 +651,7 @@ TYPE ParseTreeNode IS CLASS
     assignmentstatement: AssignmentStatement
     casestatement: CaseStatement
     checkstatement: CheckStatement
+    debugstatement: DebugStatement
     exitstatement: ExitStatement
     expressionstatement: ExpressionStatement
     forstatement: ForStatement
@@ -2898,6 +2904,28 @@ FUNCTION Parser.parseCheckStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     )
 END FUNCTION
 
+FUNCTION Parser.parseDebugStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.debug
+    LET tokDebug: lexer.Token := self.token
+    self.nextToken()
+    VAR values: Array<POINTER TO ParseTreeNode> := []
+    LOOP
+        LET expr: POINTER TO ParseTreeNode := self.parseExpression()
+        values.append(expr)
+        IF self.token.type <> TokenType.comma THEN
+            EXIT LOOP
+        END IF
+        self.nextToken()
+    END LOOP
+    RETURN NEW ParseTreeNode(
+        type WITH Type.DebugStatement,
+        token WITH tokDebug,
+        debugstatement WITH DebugStatement(
+            values WITH values
+        )
+    )
+END FUNCTION
+
 FUNCTION Parser.parseExitStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.exit
     LET tokExit: lexer.Token := self.token
@@ -3597,6 +3625,8 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseCaseStatement()
         WHEN TokenType.check DO
             RETURN self.parseCheckStatement()
+        WHEN TokenType.debug DO
+            RETURN self.parseDebugStatement()
         WHEN TokenType.exit DO
             RETURN self.parseExitStatement()
         WHEN TokenType.for DO
@@ -4182,6 +4212,13 @@ FUNCTION dumpCheckStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     END FOREACH
 END FUNCTION
 
+FUNCTION dumpDebugStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "DebugStatement")
+    FOREACH v IN node->debugstatement.values DO
+        dumpParseTree(v, depth+1)
+    END FOREACH
+END FUNCTION
+
 FUNCTION dumpExitStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     IF node->exitstatement.label.type = TokenType.process THEN
         dumpNode(depth, "ExitStatement(\(node->exitstatement.label.text), \(node->exitstatement.arg.text))")
@@ -4380,6 +4417,7 @@ LET Dumper: IParseTreeVisitor := {
     "AssignmentStatement":                  dumpAssignmentStatement,
     "CaseStatement":                        dumpCaseStatement,
     "CheckStatement":                       dumpCheckStatement,
+    "DebugStatement":                       dumpDebugStatement,
     "ExitStatement":                        dumpExitStatement,
     "ExpressionStatement":                  dumpExpressionStatement,
     "ForStatement":                         dumpForStatement,

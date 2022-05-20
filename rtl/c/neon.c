@@ -1517,6 +1517,12 @@ Ne_Exception *Ne_random_uint32(Ne_Number *result)
     return NULL;
 }
 
+Ne_Exception *Ne_runtime_debugEnabled(Ne_Boolean *r)
+{
+    *r = 0;
+    return NULL;
+}
+
 Ne_Exception *Ne_runtime_isModuleImported(Ne_Boolean *r, Ne_String *module)
 {
     *r = 1;

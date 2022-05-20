@@ -38,6 +38,7 @@ Statement =
     AssignmentStatement |
     CaseStatement |
     CheckStatement |
+    DebugStatement |
     ExecStatement |
     ExitStatement |
     ExpressionStatement |
@@ -115,6 +116,8 @@ AssignmentStatement = (Identifier, {CompoundExpressionTail} | '_'), ':=', Expres
 CaseStatement = 'CASE', Expression, {'WHEN', WhenCondition, {',', WhenCondition}, 'DO', {Statement}}, ['WHEN', 'OTHERS', 'DO', {Statement}], 'END', 'CASE';
 
 CheckStatement = 'CHECK', ExpressionOrValid, 'ELSE', {Statement}, 'END', 'CHECK';
+
+DebugStatement = 'DEBUG', Expression, {',', Expression};
 
 ExecStatement = 'EXEC', ExecBody;
 

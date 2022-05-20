@@ -84,6 +84,7 @@ const.neon
 const-notconst.neon
 const-string.neon
 datetime-test.neon
+debug.neon
 debug-example.neon
 debug-server.neon
 decimal.neon

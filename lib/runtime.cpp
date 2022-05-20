@@ -11,6 +11,11 @@ bool assertionsEnabled()
     return executor_assertions_enabled();
 }
 
+bool debugEnabled()
+{
+    return executor_debug_enabled();
+}
+
 utf8string executorName()
 {
     return utf8string("neonx");

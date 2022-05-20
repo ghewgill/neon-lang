@@ -159,6 +159,7 @@ PROCESS = Keyword("PROCESS")
 SUCCESS = Keyword("SUCCESS")
 FAILURE = Keyword("FAILURE")
 PANIC = Keyword("PANIC")
+DEBUG = Keyword("DEBUG")
 
 class bytes:
     def __init__(self, a):
@@ -1191,6 +1192,15 @@ class CaseStatement:
                     s.run(env)
                 break
 
+class DebugStatement:
+    def __init__(self, values):
+        self.values = values
+    def declare(self, env):
+        pass
+    def run(self, env):
+        if neon_runtime_debugEnabled(env):
+            print("DEBUG (:) {}".format([x.eval(env) for x in self.values]))
+
 class ExitStatement:
     def __init__(self, label, arg):
         self.label = label
@@ -2212,6 +2222,17 @@ class Parser:
         self.expect(END)
         self.expect(INTERFACE)
 
+    def parse_debug_statement(self):
+        self.expect(DEBUG)
+        values = []
+        while True:
+            e = self.parse_expression()
+            values.append(e)
+            if self.tokens[self.i] is not COMMA:
+                break
+            self.i += 1
+        return DebugStatement(values)
+
     def parse_exit_statement(self):
         self.expect(EXIT)
         label = self.tokens[self.i].name
@@ -2562,6 +2583,7 @@ class Parser:
         if self.tokens[self.i] is BEGIN:    return self.parse_main_statement()
         if self.tokens[self.i] is TESTCASE: return self.parse_testcase_statement()
         if self.tokens[self.i] is PANIC:    return self.parse_panic_statement()
+        if self.tokens[self.i] is DEBUG:    return self.parse_debug_statement()
         if isinstance(self.tokens[self.i], Identifier):
             expr = self.parse_expression()
             if self.tokens[self.i] is ASSIGN:
@@ -3210,6 +3232,9 @@ def neon_runtime_createObject(env, name):
     constructor = getattr(sys.modules[mod], cls)
     obj = constructor()
     return obj
+
+def neon_runtime_debugEnabled(env):
+    return False
 
 def neon_runtime_executorName(env):
     return "helium"

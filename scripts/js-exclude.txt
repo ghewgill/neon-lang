@@ -31,6 +31,7 @@ cmdline.neon               # command line format
 complex-test.neon          # module
 concat-bytes.neon          # bytes
 datetime-test.neon         # module
+debug.neon                 # module runtime
 debug-example.neon         # keyword in
 debug-server.neon          # StringReferenceIndexExpression
 decimal.neon               # Inf

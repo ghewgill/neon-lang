@@ -159,6 +159,7 @@ std::string Token::tostring() const
         case SUCCESS:     s << "SUCCESS"; break;
         case FAILURE:     s << "FAILURE"; break;
         case PANIC:       s << "PANIC"; break;
+        case DEBUG:       s << "DEBUG"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -323,6 +324,7 @@ static const std::map<std::string, TokenType> TokenNames = {
     {"SUCCESS", SUCCESS},
     {"FAILURE", FAILURE},
     {"PANIC", PANIC},
+    {"DEBUG", DEBUG},
 };
 
 static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std::string &source_path, int &line, size_t column, const std::string &source)

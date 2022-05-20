@@ -2831,6 +2831,8 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(float64(rand.Uint32())))
 	case "runtime$assertionsEnabled":
 		self.push(make_cell_bool(true)) // TODO: enable_assertions
+	case "runtime$debugEnabled":
+		self.push(make_cell_bool(false)) // TODO: enable_debug
 	case "runtime$executorName":
 		self.push(make_cell_str("gonex"))
 	case "runtime$isModuleImported":

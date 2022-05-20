@@ -10,6 +10,7 @@ cformat-test.neon          # object
 cmdline.neon               # PredefinedVariable sys$args
 complex-test.neon          # Math.atan2
 datetime-test.neon         # verifier
+debug.neon                 # module runtime
 debug-example.neon         # debugger.log
 decimal.neon               # exception
 encoding-base64.neon       # verifier - incompatible object for function call
