@@ -78,7 +78,7 @@ Although this is well-defined, it is often counterintuitive for beginners. Consi
 False
 ```
 
-This happens because `0.2` cannot be repesented exactly in binary floating point. 
+This happens because `0.3` cannot be repesented exactly in binary floating point.
 
 To resolve this problem, Neon uses the [decimal128](https://en.wikipedia.org/wiki/Decimal128_floating-point_format) floating point type, which matches the base 10 that humans use to read and write numbers.
 
