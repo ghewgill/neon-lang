@@ -33,6 +33,7 @@ else:
     LIBRARY_NAME_EXTENSION = ""
 
 enable_assert = True
+enable_debug = False
 
 g_ExtensionModules = {}
 
@@ -1862,6 +1863,11 @@ def neon_boolean__toString(self):
     x = self.stack.pop()
     self.stack.append("TRUE" if x else "FALSE")
 
+def neon_bytes__append(self):
+    b = self.stack.pop()
+    ac = self.stack.pop()
+    ac.value = ac.value + b
+
 def neon_bytes__concat(self):
     b = self.stack.pop()
     a = self.stack.pop()
@@ -1928,6 +1934,12 @@ def neon_bytes__splice(self):
         last += len(a) - 1
     r = a[:first] + b + a[last+1:]
     self.stack.append(r)
+
+def neon_bytes__store(self):
+    index = int(self.stack.pop())
+    sc = self.stack.pop()
+    b = int(self.stack.pop())
+    sc.value = sc.value[:index] + bytes([b]) + sc.value[index+1:]
 
 def neon_bytes__toArray(self):
     b = self.stack.pop()
@@ -2785,6 +2797,9 @@ def neon_runtime_createObject(self):
     constructor = getattr(sys.modules[mod], cls)
     obj = constructor()
     self.stack.append(obj)
+
+def neon_runtime_debugEnabled(self):
+    self.stack.append(enable_debug)
 
 def neon_runtime_executorName(self):
     self.stack.append("pynex")

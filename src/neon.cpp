@@ -20,6 +20,7 @@ bool dump_parse = false;
 bool dump_ast = false;
 bool dump_listing = false;
 bool enable_assert = true;
+bool enable_debug = false;
 bool enable_trace = false;
 bool error_json = false;
 unsigned short debug_port = 0;
@@ -99,11 +100,13 @@ int main(int argc, char *argv[])
             }
             break;
         } else if (arg == "-d") {
+            enable_debug = true;
+        } else if (arg == "--debug-port") {
             a++;
             try {
                 debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
             } catch (std::invalid_argument &) {
-                fprintf(stderr, "%s: -d requires integer argument\n", argv[0]);
+                fprintf(stderr, "%s: --debug-port requires integer argument\n", argv[0]);
                 exit(1);
             }
         } else if (arg == "--json") {
@@ -141,6 +144,7 @@ int main(int argc, char *argv[])
 
     struct ExecOptions options;
     options.enable_assert = enable_assert;
+    options.enable_debug = enable_debug;
     options.enable_trace = enable_trace;
 
     if (a >= argc) {
@@ -151,7 +155,7 @@ int main(int argc, char *argv[])
     auto i = name.find_last_of("/:\\");
     const std::string source_path { i != std::string::npos ? name.substr(0, i+1) : "" };
 
-    CompilerSupport compiler_support(source_path, neonpath, nullptr);
+    CompilerSupport compiler_support(source_path, neonpath, nullptr, enable_debug);
     RuntimeSupport runtime_support(source_path, neonpath);
     std::unique_ptr<DebugInfo> debug;
 

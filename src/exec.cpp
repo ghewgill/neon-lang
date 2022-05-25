@@ -2293,6 +2293,11 @@ bool executor_assertions_enabled()
     return g_executor->options->enable_assert;
 }
 
+bool executor_debug_enabled()
+{
+    return g_executor->options->enable_debug;
+}
+
 void executor_garbage_collect()
 {
     g_executor->garbage_collect();

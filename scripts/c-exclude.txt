@@ -90,6 +90,7 @@ outer-issue192.neon             # outer
 outer.neon                      # outer
 outer-parameter.neon            # outer
 outer-tail.neon                 # outer
+panic.neon                      # exception message
 parameter-out-array.neon        # OUT
 parameter-out-string.neon       # OUT
 parameters-ignore.neon          # OUT

@@ -430,6 +430,10 @@ public:
     virtual void visit(const NextStatement *node) override {
         write("NextStatement(" + node->type.text + ")");
     }
+    virtual void visit(const PanicStatement *node) override {
+        write("PanicStatement");
+        child(node->expr.get());
+    }
     virtual void visit(const RaiseStatement *node) override {
         write("RaiseStatement(" + join(node->name) + ")");
         child(node->info.get());
@@ -449,6 +453,12 @@ public:
     virtual void visit(const TestCaseStatement *node) override {
         write("TestCaseStatement");
         child(node->expr.get());
+    }
+    virtual void visit(const DebugStatement *node) override {
+        write("DebugStatement");
+        for (auto &v: node->values) {
+            child(v.get());
+        }
     }
     virtual void visit(const TryStatement *node) override {
         write("TryStatement");

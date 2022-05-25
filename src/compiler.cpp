@@ -1877,8 +1877,10 @@ void ast::BytesReferenceIndexExpression::generate_load(Emitter &emitter) const
 
 void ast::BytesReferenceIndexExpression::generate_store(Emitter &emitter) const
 {
-    store->generate(emitter);
-    ref->generate_store(emitter);
+    ref->generate_address_write(emitter);
+    index->generate(emitter);
+    emitter.emit(Opcode::CALLP, emitter.str("bytes__store"));
+    emitter.adjust_stack_depth(-3);
 }
 
 void ast::BytesValueIndexExpression::generate_expr(Emitter &emitter) const

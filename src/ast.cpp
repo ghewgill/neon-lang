@@ -1303,6 +1303,8 @@ bool PredefinedFunction::is_pure(std::set<const ast::Function *> &) const
         "sys",
         "textio",
         "time",
+
+        "print",
     };
     auto sep = name.find('$');
     auto mod = name.substr(0, sep);
@@ -1363,6 +1365,12 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, TYPE_BYTES, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_ARRAY_NUMBER, nullptr));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, TYPE_BYTES, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
+        TYPE_BYTES->methods["append"] = new PredefinedFunction("bytes__append", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {
         std::vector<const ParameterType *> params;

@@ -1,0 +1,10 @@
+INTERFACE Int
+    FUNCTION foo(self: Int, x: Number)
+END INTERFACE
+
+TYPE Cls IS CLASS IMPLEMENTS Int
+END CLASS
+
+FUNCTION Cls.foo(self: VALID POINTER TO Cls, y: Number)
+                                             --<
+END FUNCTION

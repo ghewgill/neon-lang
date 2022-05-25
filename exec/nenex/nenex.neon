@@ -1116,6 +1116,13 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "boolean__toString" DO
             LET b: Boolean := self.pop()->b
             self.stack.append(makeValueString(b.toString()))
+        WHEN "bytes__append" DO
+            LET b: Bytes := self.pop()->y
+            LET a: POINTER TO Value := self.pop()->p
+            CHECK VALID a ELSE
+                RAISE InternalException
+            END CHECK
+            a->y.append(b)
         WHEN "bytes__concat" DO
             LET b: Bytes := self.pop()->y
             LET a: Bytes := self.pop()->y
@@ -1172,6 +1179,14 @@ FUNCTION f_callp(INOUT self: Executor)
             END IF
             LET r: Bytes := a[0 TO first-1] & b & a[last+1 TO LAST]
             self.stack.append(makeValueBytes(r))
+        WHEN "bytes__store" DO
+            LET index: Number := self.pop()->n
+            LET a: POINTER TO Value := self.pop()->p
+            CHECK VALID a ELSE
+                RAISE InternalException
+            END CHECK
+            LET b: Number := self.pop()->n
+            a->y[index] := b
         WHEN "bytes__toArray" DO
             LET y: Bytes := self.pop()->y
             LET a: Array<Number> := y.toArray()
@@ -1337,6 +1352,8 @@ FUNCTION f_callp(INOUT self: Executor)
             print(self.pop()->o)
         WHEN "runtime$assertionsEnabled" DO
             self.stack.append(makeValueBoolean(TRUE))
+        WHEN "runtime$debugEnabled" DO
+            self.stack.append(makeValueBoolean(FALSE))
         WHEN "runtime$executorName" DO
             self.stack.append(makeValueString("nenex"))
         WHEN "str", "number__toString" DO

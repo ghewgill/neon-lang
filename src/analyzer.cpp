@@ -129,10 +129,12 @@ public:
     const ast::Statement *analyze(const pt::IncrementStatement *statement);
     const ast::Statement *analyze(const pt::LoopStatement *statement);
     const ast::Statement *analyze(const pt::NextStatement *statement);
+    const ast::Statement *analyze(const pt::PanicStatement *statement);
     const ast::Statement *analyze(const pt::RaiseStatement *statement);
     const ast::Statement *analyze(const pt::RepeatStatement *statement);
     const ast::Statement *analyze(const pt::ReturnStatement *statement);
     const ast::Statement *analyze(const pt::TestCaseStatement *statement);
+    const ast::Statement *analyze(const pt::DebugStatement *statement);
     const ast::Statement *analyze(const pt::TryStatement *statement);
     const ast::Statement *analyze(const pt::TryHandlerStatement *statement);
     const ast::Statement *analyze(const pt::UnusedStatement *statement);
@@ -236,10 +238,12 @@ public:
     virtual void visit(const pt::IncrementStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::PanicStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TestCaseStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::DebugStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::UnusedStatement *) override { internal_error("pt::Statement"); }
@@ -334,10 +338,12 @@ public:
     virtual void visit(const pt::IncrementStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::PanicStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TestCaseStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::DebugStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::UnusedStatement *) override { internal_error("pt::Statement"); }
@@ -431,10 +437,12 @@ public:
     virtual void visit(const pt::IncrementStatement *) override {}
     virtual void visit(const pt::LoopStatement *) override {}
     virtual void visit(const pt::NextStatement *) override {}
+    virtual void visit(const pt::PanicStatement *) override {}
     virtual void visit(const pt::RaiseStatement *) override {}
     virtual void visit(const pt::RepeatStatement *) override {}
     virtual void visit(const pt::ReturnStatement *) override {}
     virtual void visit(const pt::TestCaseStatement *) override {}
+    virtual void visit(const pt::DebugStatement *) override {}
     virtual void visit(const pt::TryStatement *) override {}
     virtual void visit(const pt::TryHandlerStatement *) override {}
     virtual void visit(const pt::UnusedStatement *) override {}
@@ -528,10 +536,12 @@ public:
     virtual void visit(const pt::IncrementStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::LoopStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::NextStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::PanicStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::RaiseStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::RepeatStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ReturnStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TestCaseStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::DebugStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TryStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TryHandlerStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::UnusedStatement *p) override { v.push_back(a->analyze(p)); }
@@ -1368,23 +1378,13 @@ ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const Referenc
   : ReferenceExpression(TYPE_NUMBER, ref->is_readonly),
     ref(ref),
     index(index),
-    load(nullptr),
-    store(nullptr)
+    load(nullptr)
 {
     {
         std::vector<const Expression *> args;
         args.push_back(ref);
         args.push_back(index);
         load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__index"))), args);
-    }
-    {
-        std::vector<const Expression *> args;
-        args.push_back(ref);
-        args.push_back(index);
-        args.push_back(new ConstantBooleanExpression(false));
-        args.push_back(index);
-        args.push_back(new ConstantBooleanExpression(false));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__splice"))), args);
     }
 }
 
@@ -4263,6 +4263,9 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
                                 first = false;
                                 continue;
                             }
+                            if (args[a]->name != m.second->params[a]->declaration.text) {
+                                error(3327, args[a]->declaration, "parameter names must match interface");
+                            }
                             if (args[a]->type != m.second->params[a]->type) {
                                 error(3256, args[a]->declaration, "parameter types must match interface");
                             }
@@ -4510,6 +4513,7 @@ std::vector<const ast::Statement *> Analyzer::analyze(const std::vector<std::uni
         s->accept(&sa);
         if (dynamic_cast<const pt::ExitStatement *>(s.get()) != nullptr
          || dynamic_cast<const pt::NextStatement *>(s.get()) != nullptr
+         || dynamic_cast<const pt::PanicStatement *>(s.get()) != nullptr
          || dynamic_cast<const pt::RaiseStatement *>(s.get()) != nullptr
          || dynamic_cast<const pt::ReturnStatement *>(s.get()) != nullptr) {
             lastexit = true;
@@ -6023,6 +6027,15 @@ const ast::Statement *Analyzer::analyze(const pt::NextStatement *statement)
     error(3084, statement->token, "no matching loop found in current scope");
 }
 
+const ast::Statement *Analyzer::analyze(const pt::PanicStatement *statement)
+{
+    const ast::Expression *expr = analyze(statement->expr.get());
+    if (expr->type != ast::TYPE_STRING) {
+        error(3328, statement->expr->token, "string expected");
+    }
+    return new ast::RaiseStatement(statement->token, new ast::Exception(Token(), "PANIC"), convert(ast::TYPE_OBJECT, expr));
+}
+
 const ast::Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
 {
     ast::Scope *s = scope.top();
@@ -6202,6 +6215,66 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
             {ast::TryTrap({exception}, nullptr, new ast::ExceptionHandlerStatement(statement->token, {}))}
         );
     }
+}
+
+const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
+{
+    const ast::PredefinedFunction *print = dynamic_cast<const ast::PredefinedFunction *>(scope.top()->lookupName("print"));
+    if (print == nullptr) {
+        internal_error("where's the print function");
+    }
+    const ast::Variable *string_concat = dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat"));
+    auto concat = [string_concat](const ast::Expression *s, const ast::Expression *t){ return new ast::FunctionCall(new ast::VariableExpression(string_concat), {s, t}); };
+    const ast::Expression *s = new ast::ConstantStringExpression(utf8string("DEBUG (" + statement->token.source->source_path + ":" + std::to_string(statement->token.line) + ") "));
+    bool first = true;
+    for (auto &v: statement->values) {
+        if (not first) {
+            s = concat(s, new ast::ConstantStringExpression(utf8string(", ")));
+        }
+        first = false;
+        const ast::Expression *e = analyze(v.get());
+        std::set<const ast::Function *> context;
+        if (not e->is_pure(context)) {
+            error(3329, v->token, "must be pure expression");
+        }
+        if (dynamic_cast<const ast::ConstantStringExpression *>(e) != nullptr) {
+            s = concat(s, e);
+        } else {
+            auto st = v->get_start_token();
+            auto et = v->get_end_token();
+            s = concat(s, new ast::ConstantStringExpression(utf8string(st.source_line().substr(st.column-1, et.column + et.text.length() - st.column) + " (" + e->type->name.c_str() + ") = ")));
+            auto toString = e->type->methods.find("toString");
+            if (toString == e->type->methods.end()) {
+                error(3330, v->token, "no toString() method found for type");
+            }
+            s = concat(s, new ast::FunctionCall(new ast::VariableExpression(toString->second), {e}));
+        }
+    }
+    if (not support->enableDebug()) {
+        return new ast::NullStatement(statement->token);
+    }
+    const ast::Module *runtime = import_module(Token(), "runtime", false);
+    if (runtime == nullptr) {
+        internal_error("need module runtime");
+    }
+    return new ast::IfStatement(
+        statement->token,
+        std::vector<ast::IfStatement::ConditionBlock> {
+            ast::IfStatement::ConditionBlock(
+                statement->token.line,
+                new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::PredefinedFunction *>(runtime->scope->lookupName("debugEnabled"))), {}),
+                std::vector<const ast::Statement *> {
+                    new ast::ExpressionStatement(
+                        statement->token,
+                        new ast::FunctionCall(
+                            new ast::VariableExpression(print), { convert(ast::TYPE_OBJECT, s) }
+                        )
+                    )
+                }
+            )
+        },
+        std::vector<const ast::Statement *>()
+    );
 }
 
 const ast::Exception *Analyzer::resolve_exception(const std::vector<Token> &names)
@@ -6796,6 +6869,7 @@ public:
         leave();
     }
     virtual void visit(const pt::NextStatement *) {}
+    virtual void visit(const pt::PanicStatement *) {}
     virtual void visit(const pt::RaiseStatement *) {}
     virtual void visit(const pt::RepeatStatement *node) {
         enter(false);
@@ -6810,6 +6884,13 @@ public:
         check_out_parameters(node->token);
     }
     virtual void visit(const pt::TestCaseStatement *node) { node->expr->accept(this); }
+    virtual void visit(const pt::DebugStatement *node) {
+        enter(false);
+        for (auto &v: node->values) {
+            v->accept(this);
+        }
+        leave();
+    }
     virtual void visit(const pt::TryStatement *node) {
         enter(false);
         for (auto &s: node->body) {

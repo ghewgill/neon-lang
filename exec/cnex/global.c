@@ -271,6 +271,7 @@ TDispatch gfuncDispatch[] = {
     // runtime - runtime support services
     PDFUNC("runtime$assertionsEnabled", runtime_assertionsEnabled),
     PDFUNC("runtime$createObject",      runtime_createObject),
+    PDFUNC("runtime$debugEnabled",      runtime_debugEnabled),
     PDFUNC("runtime$executorName",      runtime_executorName),
     PDFUNC("runtime$isModuleImported",  runtime_isModuleImported),
     PDFUNC("runtime$moduleIsMain",      runtime_moduleIsMain),
@@ -342,12 +343,14 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("boolean__toString",         boolean__toString),
 
+    PDFUNC("bytes__append",             bytes__append),
     PDFUNC("bytes__concat",             bytes__concat),
     PDFUNC("bytes__decodeToString",     bytes__decodeToString),
     PDFUNC("bytes__index",              bytes__index),
     PDFUNC("bytes__range",              bytes__range),
     PDFUNC("bytes__size",               bytes__size),
     PDFUNC("bytes__splice",             bytes__splice),
+    PDFUNC("bytes__store",              bytes__store),
     PDFUNC("bytes__toArray",            bytes__toArray),
     PDFUNC("bytes__toString",           bytes__toString),
 
@@ -847,10 +850,25 @@ void boolean__toString(TExecutor *exec)
 
 
 
+void bytes__append(TExecutor *exec)
+{
+    Cell *b = peek(exec->stack, 0);
+    Cell *a = peek(exec->stack, 1)->address;
+
+    a->string->data = realloc(a->string->data, a->string->length + b->string->length);
+    memcpy(&a->string->data[a->string->length], b->string->data, b->string->length);
+    a->string->length += b->string->length;
+
+    pop(exec->stack);
+    pop(exec->stack);
+}
+
 void bytes__concat(TExecutor *exec)
 {
     Cell *b = peek(exec->stack, 0);
+    cell_ensureBytes(b);
     Cell *a = peek(exec->stack, 1);
+    cell_ensureBytes(a);
     Cell *r = cell_createStringCell(b->string->length + a->string->length);
     r->type = cBytes;
 
@@ -886,6 +904,7 @@ void bytes__index(TExecutor *exec)
 {
     Number index = top(exec->stack)->number;          pop(exec->stack);
     Cell *t = top(exec->stack);
+    cell_ensureBytes(t);
 
     if (!number_is_integer(index)) {
         exec->rtl_raise(exec, "BytesIndexException", number_to_string(index));
@@ -912,6 +931,7 @@ void bytes__range(TExecutor *exec)
     BOOL first_from_end  = top(exec->stack)->boolean; pop(exec->stack);
     Number first = top(exec->stack)->number;          pop(exec->stack);
     Cell *t = top(exec->stack);
+    cell_ensureBytes(t);
 
     if (!number_is_integer(first)) {
         exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
@@ -978,7 +998,9 @@ void bytes__splice(TExecutor *exec)
     BOOL first_from_end  = top(exec->stack)->boolean; pop(exec->stack);
     Number first = top(exec->stack)->number;          pop(exec->stack);
     Cell *s = cell_fromCell(top(exec->stack));        pop(exec->stack);
+    cell_ensureBytes(s);
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
+    cell_ensureBytes(t);
 
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
@@ -1003,10 +1025,22 @@ void bytes__splice(TExecutor *exec)
     push(exec->stack, sub);
 }
 
+void bytes__store(TExecutor *exec)
+{
+    Number index = top(exec->stack)->number;          pop(exec->stack);
+    Cell *s = top(exec->stack)->address;              pop(exec->stack);
+    Number b = top(exec->stack)->number;              pop(exec->stack);
+
+    int64_t idx = number_to_sint64(index);
+    // TODO: range checking
+    s->string->data[idx] = number_to_uint32(b);
+}
+
 void bytes__toArray(TExecutor *exec)
 {
     size_t i, e;
     Cell *s = top(exec->stack);
+    cell_ensureBytes(s);
     Cell *a = cell_createArrayCell(s->string->length);
 
     for (i = 0, e = 0; i < s->string->length; i++) {
@@ -1023,6 +1057,7 @@ void bytes__toString(TExecutor *exec)
     BOOL first;
     size_t i;
     Cell *s = cell_fromCell(top(exec->stack)); pop(exec->stack);
+    cell_ensureBytes(s);
     TString *r = string_createCString("HEXBYTES \"");
 
     first = TRUE;

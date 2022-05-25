@@ -37,7 +37,7 @@ FUNCTION post(url: String, post_data: String): Object
     RETURN d.data
 END FUNCTION
 
-LET sr: os.SpawnResult := os.spawn("bin/neon -d \(Port) t/debug-example.neon")
+LET sr: os.SpawnResult := os.spawn("bin/neon --debug-port \(Port) t/debug-example.neon")
 CHECK sr ISA os.SpawnResult.process ELSE
     print("error executing debug-example")
     EXIT PROCESS FAILURE

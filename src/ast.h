@@ -2168,7 +2168,6 @@ public:
     const Expression *index;
 
     const FunctionCall *load;
-    const FunctionCall *store;
 
     virtual bool is_pure(std::set<const ast::Function *> &context) const override { return ref->is_pure(context) && index->is_pure(context); }
     virtual bool eval_boolean() const override { internal_error("BytesReferenceIndexExpression"); }

@@ -158,14 +158,23 @@ CHOICE = Keyword("CHOICE")
 PROCESS = Keyword("PROCESS")
 SUCCESS = Keyword("SUCCESS")
 FAILURE = Keyword("FAILURE")
+PANIC = Keyword("PANIC")
+DEBUG = Keyword("DEBUG")
 
 class bytes:
     def __init__(self, a):
         self.a = a
     def __eq__(self, rhs):
         return self.a == rhs.a
+    def __add__(self, rhs):
+        return bytes(self.a + rhs.a)
+    def __len__(self):
+        return len(self.a)
     def __getitem__(self, key):
-        return bytes(self.a.__getitem__(key))
+        if isinstance(key, slice):
+            return bytes(self.a.__getitem__(key))
+        else:
+            return self.a.__getitem__(key)
     def __str__(self):
         return "HEXBYTES \"" + " ".join("{:02x}".format(b) for b in self.a) + "\""
 
@@ -645,6 +654,8 @@ class SubscriptExpression:
                 i += len(a) - 1
         if isinstance(a, str):
             self.expr.set(env, a[:i] + value + a[i+1:])
+        elif isinstance(a, bytes):
+            self.expr.set(env, bytes(a.a[:i] + [value] + a.a[i+1:]))
         else:
             a[i] = value
 
@@ -692,7 +703,10 @@ class RangeSubscriptExpression:
             l = l if l < 0 else None
         else:
             l = max(0, l+1)
-        a[f:l] = value
+        if isinstance(a, bytes):
+            a.a[f:l] = value
+        else:
+            a[f:l] = value
 
 class DotExpression:
     def __init__(self, expr, field):
@@ -786,6 +800,8 @@ class AppendExpression:
         right = self.right.eval(env)
         if isinstance(left, str):
             return left + right
+        elif isinstance(left, bytes):
+            return bytes(left.a + right.a)
         elif isinstance(left, list):
             return left + [right]
         else:
@@ -1181,6 +1197,15 @@ class CaseStatement:
                     s.run(env)
                 break
 
+class DebugStatement:
+    def __init__(self, values):
+        self.values = values
+    def declare(self, env):
+        pass
+    def run(self, env):
+        if neon_runtime_debugEnabled(env):
+            print("DEBUG (:) {}".format([x.eval(env) for x in self.values]))
+
 class ExitStatement:
     def __init__(self, label, arg):
         self.label = label
@@ -1324,6 +1349,15 @@ class NextStatement:
         pass
     def run(self, env):
         raise NextException(self.label)
+
+class PanicStatement:
+    def __init__(self, message):
+        self.message = message
+    def declare(self, env):
+        pass
+    def run(self, env):
+        print("panic: {}".format(self.message.eval(env)), file=sys.stderr)
+        sys.exit(1)
 
 class RaiseStatement:
     def __init__(self, name, info):
@@ -2193,6 +2227,17 @@ class Parser:
         self.expect(END)
         self.expect(INTERFACE)
 
+    def parse_debug_statement(self):
+        self.expect(DEBUG)
+        values = []
+        while True:
+            e = self.parse_expression()
+            values.append(e)
+            if self.tokens[self.i] is not COMMA:
+                break
+            self.i += 1
+        return DebugStatement(values)
+
     def parse_exit_statement(self):
         self.expect(EXIT)
         label = self.tokens[self.i].name
@@ -2363,6 +2408,11 @@ class Parser:
         label = self.tokens[self.i].name
         self.i += 1
         return NextStatement(label)
+
+    def parse_panic_statement(self):
+        self.expect(PANIC)
+        message = self.parse_expression()
+        return PanicStatement(message)
 
     def parse_raise_statement(self):
         self.expect(RAISE)
@@ -2537,6 +2587,8 @@ class Parser:
         if self.tokens[self.i] is UNUSED:   return self.parse_unused_statement()
         if self.tokens[self.i] is BEGIN:    return self.parse_main_statement()
         if self.tokens[self.i] is TESTCASE: return self.parse_testcase_statement()
+        if self.tokens[self.i] is PANIC:    return self.parse_panic_statement()
+        if self.tokens[self.i] is DEBUG:    return self.parse_debug_statement()
         if isinstance(self.tokens[self.i], Identifier):
             expr = self.parse_expression()
             if self.tokens[self.i] is ASSIGN:
@@ -3198,6 +3250,9 @@ def neon_runtime_createObject(env, name):
     constructor = getattr(sys.modules[mod], cls)
     obj = constructor()
     return obj
+
+def neon_runtime_debugEnabled(env):
+    return False
 
 def neon_runtime_executorName(env):
     return "helium"

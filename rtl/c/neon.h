@@ -112,8 +112,10 @@ void Ne_Bytes_deinit(Ne_Bytes *bytes);
 void Ne_Bytes_copy(Ne_Bytes *dest, const Ne_Bytes *src);
 int Ne_Bytes_compare(const Ne_Bytes *a, const Ne_Bytes *b);
 Ne_Exception *Ne_Bytes_index(Ne_Number *dest, const Ne_Bytes *b, const Ne_Number *index);
-Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number *first, const Ne_Number *last);
-Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number *first, const Ne_Number *last);
+Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end);
+Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end);
+Ne_Exception *Ne_Bytes_store(const Ne_Number *b, Ne_Bytes *s, const Ne_Number *index);
+Ne_Exception *Ne_bytes__append(Ne_Bytes *r, const Ne_Bytes *b);
 Ne_Exception *Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b);
 Ne_Exception *Ne_bytes__decodeToString(Ne_String *r, const Ne_Bytes *bytes);
 Ne_Exception *Ne_bytes__size(Ne_Number *r, const Ne_Bytes *bytes);
@@ -275,6 +277,7 @@ Ne_Exception *Ne_math_trunc(Ne_Number *result, const Ne_Number *x);
 Ne_Exception *Ne_random_bytes(Ne_Bytes *result, const Ne_Number *n);
 Ne_Exception *Ne_random_uint32(Ne_Number *result);
 
+Ne_Exception *Ne_runtime_debugEnabled(Ne_Boolean *r);
 Ne_Exception *Ne_runtime_isModuleImported(Ne_Boolean *r, Ne_String *module);
 
 Ne_Exception *Ne_string_find(Ne_Number *result, const Ne_String *s, const Ne_String *t);

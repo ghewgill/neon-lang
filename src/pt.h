@@ -94,10 +94,12 @@ class IfStatement;
 class IncrementStatement;
 class LoopStatement;
 class NextStatement;
+class PanicStatement;
 class RaiseStatement;
 class RepeatStatement;
 class ReturnStatement;
 class TestCaseStatement;
+class DebugStatement;
 class TryStatement;
 class TryHandlerStatement;
 class UnusedStatement;
@@ -190,10 +192,12 @@ public:
     virtual void visit(const IncrementStatement *) = 0;
     virtual void visit(const LoopStatement *) = 0;
     virtual void visit(const NextStatement *) = 0;
+    virtual void visit(const PanicStatement *) = 0;
     virtual void visit(const RaiseStatement *) = 0;
     virtual void visit(const RepeatStatement *) = 0;
     virtual void visit(const ReturnStatement *) = 0;
     virtual void visit(const TestCaseStatement *) = 0;
+    virtual void visit(const DebugStatement *) = 0;
     virtual void visit(const TryStatement *) = 0;
     virtual void visit(const TryHandlerStatement *) = 0;
     virtual void visit(const UnusedStatement *) = 0;
@@ -954,6 +958,13 @@ public:
     const Token type;
 };
 
+class PanicStatement: public Statement {
+public:
+    PanicStatement(const Token &token, std::unique_ptr<Expression> &&expr): Statement(token), expr(std::move(expr)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    std::unique_ptr<Expression> expr;
+};
+
 class RaiseStatement: public Statement {
 public:
     RaiseStatement(const Token &token, const std::vector<Token> &name, std::unique_ptr<Expression> &&info): Statement(token), name(name), info(std::move(info)) {}
@@ -982,6 +993,13 @@ public:
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
     const std::vector<Token> expected_exception;
+};
+
+class DebugStatement: public Statement {
+public:
+    explicit DebugStatement(const Token &token, std::vector<std::unique_ptr<Expression>> &&values): Statement(token), values(std::move(values)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    std::vector<std::unique_ptr<Expression>> values;
 };
 
 class TryStatement: public BlockStatement {

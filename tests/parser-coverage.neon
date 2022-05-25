@@ -139,6 +139,10 @@ CHECK VALID name ELSE END CHECK
 CHECK VALID expr AS name ELSE END CHECK
 CHECK VALID expr AS name, expr AS name ELSE END CHECK
 
+-- DebugStatement
+DEBUG expr
+DEBUG expr, expr
+
 -- WhenCondition
 CASE expr WHEN = expr DO END CASE
 CASE expr WHEN <> expr DO END CASE
@@ -206,6 +210,9 @@ NEXT FOREACH
 NEXT LOOP
 NEXT REPEAT
 NEXT label
+
+-- PanicStatement
+PANIC "text"
 
 -- RaiseStatement
 RAISE name

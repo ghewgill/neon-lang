@@ -266,6 +266,11 @@ Program
     ValidPointerExpression
       IdentifierExpression(expr)
       IdentifierExpression(expr)
+  DebugStatement
+    IdentifierExpression(expr)
+  DebugStatement
+    IdentifierExpression(expr)
+    IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
     ComparisonWhenCondition(EQ)
@@ -470,6 +475,8 @@ Program
   NextStatement(LOOP)
   NextStatement(REPEAT)
   NextStatement(label)
+  PanicStatement
+    StringLiteralExpression(text)
   RaiseStatement(name)
     nullptr
   RaiseStatement(name,name)

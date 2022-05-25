@@ -71,6 +71,7 @@ typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
     BOOL ExecutorDisassembly;
     BOOL EnableAssertions;
+    BOOL EnableDebug;
     int  ArgStart;
     int  DebugPort;
     char *pszFilename;
@@ -78,7 +79,7 @@ typedef struct tagTCommandLineOptions {
     char *pszExecutablePath;
 } TOptions;
 
-static TOptions gOptions = { FALSE, FALSE, TRUE, 0, 0, NULL, NULL, NULL };
+static TOptions gOptions = { FALSE, FALSE, TRUE, FALSE, 0, 0, NULL, NULL, NULL };
 
 void exec_freeExecutor(TExecutor *e)
 {
@@ -129,7 +130,7 @@ void showUsage(void)
     fprintf(stderr, "   %s [options] program.neonx\n", gOptions.pszExecutableName);
     fprintf(stderr, "\n Where [options] is one or more of the following:\n");
     fprintf(stderr, "     -D       Display executor debug stats.\n");
-    fprintf(stderr, "     -d port  Use debug [port] for interactive debugger.\n");
+    fprintf(stderr, "     --debug-port port  Use debug [port] for interactive debugger.\n");
     fprintf(stderr, "     -t       Trace execution disassembly during run.\n");
     fprintf(stderr, "     -h       Display this help screen.\n");
     fprintf(stderr, "     -n       No Assertions\n");
@@ -148,15 +149,17 @@ BOOL ParseOptions(int argc, char* argv[])
             } else if (argv[nIndex][1] == 'D') {
                 gOptions.ExecutorDebugStats = TRUE;
             } else if (argv[nIndex][1] == 'd') {
+                gOptions.EnableDebug = TRUE;
+            } else if (strcmp(argv[nIndex], "--debug-port") == 0) {
                 nIndex++;
                 if (argv[nIndex]) {
                     gOptions.DebugPort = atoi(argv[nIndex]);
                     if (gOptions.DebugPort <= 0 || gOptions.DebugPort > 65535) {
-                        printf("-d requires a valid debug port between 1 and 65535.\n");
+                        printf("--debug-port requires a valid debug port between 1 and 65535.\n");
                         return FALSE;
                     }
                 } else {
-                    printf("A debug port is required after the -d parameter.\n");
+                    printf("A debug port is required after the --debug-port parameter.\n");
                     return FALSE;
                 }
             } else if (argv[nIndex][1] == 'n') {
@@ -206,7 +209,7 @@ int main(int argc, char* argv[])
     g_executor = exec_newExecutor(pModule);
 
     g_executor->diagnostics.time_start = clock();
-    ret = exec_run(g_executor, gOptions.EnableAssertions);
+    ret = exec_run(g_executor, gOptions.EnableAssertions, gOptions.EnableDebug);
     g_executor->diagnostics.time_end = clock();
 
     if (gOptions.ExecutorDebugStats) {
@@ -254,9 +257,10 @@ shutdown:
     return ret;
 }
 
-int exec_run(TExecutor *self, BOOL enable_assert)
+int exec_run(TExecutor *self, BOOL enable_assert, BOOL enable_debug)
 {
     self->enable_assert = enable_assert;
+    self->enable_debug = enable_debug;
     self->ip = (uint32_t)self->module->bytecode->codelen;
     invoke(self, self->modules[0], 0);
 
@@ -302,6 +306,7 @@ TExecutor *exec_newExecutor(TModule *object)
         fatal_error("Failed to allocate Call stack memory.");
     }
     r->enable_assert = TRUE;
+    r->enable_debug = FALSE;
     r->debug = gOptions.ExecutorDebugStats;
     r->disassemble = gOptions.ExecutorDisassembly;
     r->framestack = framestack_createFrameStack(r->param_recursion_limit);

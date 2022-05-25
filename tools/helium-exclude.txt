@@ -49,6 +49,7 @@ outer2.neon            # Feature not required
 outer-issue192.neon    # Feature not required
 outer-parameter.neon   # Feature not required
 outer-tail.neon        # Feature not required
+panic.neon             # Feature not required
 parameter-out-array.neon # Feature not required
 parameter-out-string.neon # Feature not required
 posix-fork.neon        # fork not required

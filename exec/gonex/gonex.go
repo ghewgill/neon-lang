@@ -2160,10 +2160,23 @@ func (self *executor) op_callp() {
 			r[i] = a[i] ^ b[i]
 		}
 		self.push(make_cell_bytes(r))
+	case "bytes__append":
+		b := self.pop().bytes
+		ar := self.pop().ref
+		a := ar.load()
+		a.bytes = append(a.bytes, b...)
+		ar.store(a)
 	case "bytes__concat":
 		b := self.pop().bytes
 		a := self.pop().bytes
-		self.push(make_cell_bytes(append(a, b...)))
+		r := make([]byte, len(a)+len(b))
+		for i := range a {
+			r[i] = a[i]
+		}
+		for i := range b {
+			r[len(a)+i] = b[i]
+		}
+		self.push(make_cell_bytes(r))
 	case "bytes__decodeToString":
 		b := self.pop().bytes
 		self.push(make_cell_str(string(b)))
@@ -2232,6 +2245,13 @@ func (self *executor) op_callp() {
 			last += len(b) - 1
 		}
 		self.push(make_cell_bytes(append(b[:first], append(t, b[last+1:]...)...)))
+	case "bytes__store":
+		index := int(self.pop().num)
+		r := self.pop().ref
+		b := r.load()
+		c := int(self.pop().num)
+		b.bytes[index] = byte(c)
+		r.store(b)
 	case "bytes__toArray":
 		b := self.pop().bytes
 		a := make([]cell, len(b))
@@ -2823,6 +2843,8 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(float64(rand.Uint32())))
 	case "runtime$assertionsEnabled":
 		self.push(make_cell_bool(true)) // TODO: enable_assertions
+	case "runtime$debugEnabled":
+		self.push(make_cell_bool(false)) // TODO: enable_debug
 	case "runtime$executorName":
 		self.push(make_cell_str("gonex"))
 	case "runtime$isModuleImported":

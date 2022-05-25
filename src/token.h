@@ -126,6 +126,8 @@ enum TokenType {
     PROCESS,
     SUCCESS,
     FAILURE,
+    PANIC,
+    DEBUG,
     UNKNOWN,
     MAX_TOKEN
 };

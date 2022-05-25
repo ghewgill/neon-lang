@@ -84,6 +84,7 @@ namespace csnex
         public Stack<Cell> stack;
         private Stack<CallStack> callstack;
         public bool enable_assert;
+        public bool enable_debug;
         private int ip;
         private Global global;
         public Int32 param_recursion_limit;
