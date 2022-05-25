@@ -401,7 +401,7 @@ bool number_is_nan(Number x)
     return bid128_isNaN(x.get_bid()) != 0;
 }
 
-std::string number_to_string(Number x)
+std::string number_to_string(Number x, Format format)
 {
     if (x.rep == Rep::MPZ) {
         return x.get_mpz().get_str();
@@ -427,13 +427,13 @@ std::string number_to_string(Number x)
     exponent += trailing_zeros;
     sbuf = sbuf.substr(0, last_significant_digit + 1);
     if (exponent != 0) {
-        if (exponent > 0 && sbuf.length() + exponent <= PRECISION+1) {
+        if (exponent > 0 && (format == Format::full || sbuf.length() + exponent <= PRECISION+1)) {
             sbuf.append(exponent, '0');
         } else if (exponent < 0 && -exponent < static_cast<int>(sbuf.length()-1)) {
             sbuf = sbuf.substr(0, sbuf.length()+exponent) + "." + sbuf.substr(sbuf.length()+exponent);
         } else if (exponent < 0 && -exponent == static_cast<int>(sbuf.length()-1)) {
             sbuf = sbuf.substr(0, 1) + "0." + sbuf.substr(1);
-        } else if (exponent < 0 && sbuf.length() - exponent <= PRECISION+2) {
+        } else if (exponent < 0 && (format == Format::full || sbuf.length() - exponent <= PRECISION+2)) {
             sbuf.insert(1, "0." + std::string(-exponent-(sbuf.length()-1), '0'));
         } else {
             exponent += static_cast<int>(sbuf.length() - 2);

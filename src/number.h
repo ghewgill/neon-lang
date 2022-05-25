@@ -34,6 +34,13 @@
 #pragma warning(pop)
 #endif
 
+enum class Format {
+    full,
+    scientific,
+};
+
+const Format DefaultFormat = Format::full;
+
 enum class Rep {
     MPZ,
     BID
@@ -106,7 +113,7 @@ bool number_is_integer(Number x);
 bool number_is_odd(Number x);
 bool number_is_finite(Number x);
 bool number_is_nan(Number x);
-std::string number_to_string(Number x);
+std::string number_to_string(Number x, Format format = DefaultFormat);
 uint8_t number_to_uint8(Number x);
 int8_t number_to_sint8(Number x);
 uint16_t number_to_uint16(Number x);
