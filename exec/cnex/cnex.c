@@ -193,6 +193,7 @@ int main(int argc, char* argv[])
     }
 #endif
     int ret = 0;
+    NumberDisplayMode = nfFull;
     gOptions.pszExecutableName = path_getFileNameOnly(argv[0]);
 
     if (!ParseOptions(argc, argv)) {
@@ -243,6 +244,7 @@ shutdown:
     global_shutdown();
     path_freePaths();
     ext_cleanup();
+    number_cleanup();
 
     free(gOptions.pszExecutablePath);
 #ifdef __MS_HEAP_DBG
