@@ -2,6 +2,7 @@ array2d.neon               # copy semantics
 assert-multiline.neon      # stderr
 bigint.neon                # bigint
 binary-test.neon           # bigint
+bytes-splice.neon          # bytes__splice
 complex-test.neon          # precision
 datetime-test.neon         # gmtime
 debug-example.neon         # debugger

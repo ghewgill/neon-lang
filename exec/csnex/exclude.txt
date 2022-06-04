@@ -4,6 +4,7 @@ base-test.neon                                  # math$trunc
 bigint.neon                                     # bigint
 binary-test.neon                                # binary module
 bytes.neon                                      # ByteOutOfRangeException
+bytes-splice.neon                               # bytes__splice
 complex-test.neon                               # math$log
 datetime-test.neon                              # date module
 debug-example.neon                              # debugger$log

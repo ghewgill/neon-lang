@@ -1,5 +1,6 @@
 bigint.neon                # gmp
 bytes.neon                 # bytes__splice
+bytes-splice.neon          # bytes__splice
 decimal.neon               # arbitrary length number formatting
 file-linelength.neon       # buffer size
 gc-array.neon              # Object Count

@@ -1,6 +1,7 @@
 bases.neon             # Won't need different base literals
 binary-test.neon       # Module not required
 bytes-embed.neon       # Feature not required
+bytes-splice.neon      # Feature not required
 cal-test.neon          # Sample not required
 cformat-test.neon      # Module not required
 comments.neon          # Nested comments not required

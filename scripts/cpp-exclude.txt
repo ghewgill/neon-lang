@@ -46,6 +46,7 @@ bytes-index.neon
 bytes-literal.neon
 bytes.neon
 bytes-slice.neon
+bytes-splice.neon
 bytes-tostring.neon
 bytes-value-index.neon
 cal-test.neon

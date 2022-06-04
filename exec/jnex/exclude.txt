@@ -11,6 +11,7 @@ base-test.neon             # import
 binary-test.neon           # binary
 bytes-index.neon           # index
 bytes-literal.neon         # array
+bytes-splice.neon          # bytes__splice
 cal-test.neon              # import
 cformat-test.neon          # import
 complex-test.neon          # import

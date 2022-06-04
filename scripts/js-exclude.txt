@@ -20,6 +20,7 @@ bytes-embed.neon           # bytes
 bytes-index.neon           # index
 bytes-literal.neon         # bytes
 bytes-slice.neon           # bytes
+bytes-splice.neon          # bytes splice
 bytes-tostring.neon        # bytes
 bytes-value-index.neon     # bytes
 bytes.neon                 # bytes

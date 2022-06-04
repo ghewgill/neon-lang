@@ -16,6 +16,7 @@ base-test.neon              # callmf
 bigint.neon                 # math$abs
 binary-test.neon            # exception Utf8DecodingException
 bytes-index.neon            # bytes__range
+bytes-splice.neon           # bytes__splice
 cal-test.neon               # os$system
 cformat-test.neon           # object__makeString
 cmdline.neon                # pushppg

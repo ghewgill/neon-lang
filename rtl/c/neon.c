@@ -426,21 +426,27 @@ Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number 
     if (last_from_end) {
         l += b->len - 1;
     }
-    if (l < 0 || f >= b->len || f > l) {
-        return NULL;
-    }
     if (f < 0) {
-        f = 0;
+        return Ne_Exception_raise("BytesIndexException");
     }
-    if (l >= b->len) {
-        l = b->len - 1;
+    if (l < f-1) {
+        return Ne_Exception_raise("BytesIndexException");
     }
-    int new_len = b->len - (l - f + 1) + src->len;
+    int new_len = b->len - (f < b->len ? (l < b->len ? l - f + 1 : b->len - f) : 0) + src->len;
+    int padding = 0;
+    if (f > b->len) {
+        padding = f - b->len;
+        new_len += padding;
+    }
     if (new_len > b->len) {
         b->data = realloc(b->data, new_len);
     }
-    memmove(&b->data[f + src->len], &b->data[l + 1], (b->len - l - 1));
+    memmove(&b->data[f + padding + src->len], &b->data[l + 1], (l < b->len ? b->len - l - 1 : 0));
+    memset(&b->data[b->len], 0, padding);
     memcpy(&b->data[f], src->data, src->len);
+    if (new_len < b->len) {
+        b->data = realloc(b->data, new_len);
+    }
     b->len = new_len;
     return NULL;
 }
