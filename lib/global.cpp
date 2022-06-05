@@ -479,7 +479,7 @@ std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, co
     }
     std::copy(t.begin(), t.end(), std::back_inserter(r));
     if (l < slen) {
-        std::copy(s.begin()+l+1, s.end(), std::back_inserter(r));
+        std::copy(s.begin()+(l+1), s.end(), std::back_inserter(r));
     }
     return r;
 }
