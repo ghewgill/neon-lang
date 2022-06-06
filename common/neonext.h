@@ -75,6 +75,7 @@ typedef int (*Ne_ExtensionFunction)(struct Ne_Cell *retval, struct Ne_ParameterL
 
 #define Ne_FUNC(name) Ne_EXPORT int name(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
 
+#define Ne_UNUSED(x) (void)(x)
 #define Ne_IN_PARAM(i) Ne->parameterlist_get_cell(in_params, (i))
 #define Ne_OUT_PARAM(i) Ne->parameterlist_set_cell(out_params, (i))
 
@@ -94,7 +95,7 @@ typedef int (*Ne_ExtensionFunction)(struct Ne_Cell *retval, struct Ne_ParameterL
 
 #define Ne_RAISE_EXCEPTION(e, i, c) do { Ne->raise_exception(retval, (e), (i), (c)); return Ne_EXCEPTION; } while (0)
 
-#define Ne_CONST_INT(name, value) Ne_FUNC(name) { Ne_RETURN_INT(value); }
+#define Ne_CONST_INT(name, value) Ne_FUNC(name) { Ne_UNUSED(in_params); Ne_UNUSED(out_params); Ne_RETURN_INT(value); }
 
 #ifdef __cplusplus
 } // extern "C"
