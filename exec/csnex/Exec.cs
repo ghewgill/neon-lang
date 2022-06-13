@@ -924,7 +924,7 @@ namespace csnex
             ip++;
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             if (callstack.Count >= param_recursion_limit) {
-                Raise("StackOverflowException", "");
+                Raise("PANIC", "StackOverflow: Stack depth exceeds recursion limit of " + param_recursion_limit);
                 return;
             }
             Invoke(module, val);
@@ -937,7 +937,7 @@ namespace csnex
             int fun = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             int efi = 0;
             if (callstack.Count >= param_recursion_limit) {
-                Raise("StackOverflowException", "");
+                Raise("PANIC", "StackOverflow: Stack depth exceeds recursion limit of " + param_recursion_limit);
                 return;
             }
 
@@ -959,7 +959,7 @@ namespace csnex
         {
             ip++;
             if (callstack.Count >= param_recursion_limit) {
-                Raise("StackOverflowException", "");
+                Raise("PANIC", "StackOverflow: Stack depth exceeds recursion limit of " + param_recursion_limit);
                 return;
             }
 
@@ -989,7 +989,7 @@ namespace csnex
             ip++;
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             if (callstack.Count >= param_recursion_limit) {
-                Raise("StackOverflowException", "");
+                Raise("PANIC", "StackOverflow: Stack depth exceeds recursion limit of " + param_recursion_limit);
                 return;
             }
 

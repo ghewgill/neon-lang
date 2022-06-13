@@ -1351,7 +1351,9 @@ void exec_CALLF(TExecutor *self)
     self->ip++;
     unsigned int val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", self->param_recursion_limit);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     invoke(self, self->module, val);
@@ -1364,7 +1366,9 @@ void exec_CALLMF(TExecutor *self)
     unsigned int fun = exec_getOperand(self);
     unsigned int efi = 0;
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", self->param_recursion_limit);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
 
@@ -1390,7 +1394,9 @@ void exec_CALLI(TExecutor *self)
 {
     self->ip++;
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", self->param_recursion_limit);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
 
@@ -1650,7 +1656,9 @@ void exec_CALLV(TExecutor *self)
     self->ip++;
     uint32_t val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", self->param_recursion_limit);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
 

@@ -1244,7 +1244,7 @@ class Executor:
 
     def invoke(self, module, index):
         if len(self.callstack) >= self.param_recursion_limit:
-            self.raise_literal("StackOverflowException", "")
+            self.raise_literal("PANIC", "StackOverflow: Stack depth exceeds recursion limit of {}".format(self.param_recursion_limit))
             return
         self.callstack.append((self.module, self.ip))
         outer = None

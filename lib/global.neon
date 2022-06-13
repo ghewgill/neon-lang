@@ -155,12 +155,6 @@ EXCEPTION ObjectSubscriptException
  */
 EXCEPTION SqlException
 
-/*  Exception: StackOverflowException
- *
- *  Call stack exceeded limit.
- */
-EXCEPTION StackOverflowException
-
 /*  Exception: StringIndexException
  *
  *  An string index is not valid or out of range.

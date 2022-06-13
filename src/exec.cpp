@@ -477,7 +477,7 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
 {
     // TODO: move this into a method in Executor that's called by exec_CALLI too
     if (g_executor->callstack.size() >= g_executor->param_recursion_limit) {
-        g_executor->raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        g_executor->raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(g_executor->param_recursion_limit))));
         return;
     }
     std::vector<Cell> a = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(callback))->array();
@@ -1329,7 +1329,7 @@ void Executor::exec_CALLF()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(param_recursion_limit))));
         return;
     }
     invoke(module, val);
@@ -1341,7 +1341,7 @@ void Executor::exec_CALLMF()
     uint32_t mod = Bytecode::get_vint(module->object.code, ip);
     uint32_t func = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(param_recursion_limit))));
         return;
     }
     auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
@@ -1369,7 +1369,7 @@ void Executor::exec_CALLI()
 {
     ip++;
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(param_recursion_limit))));
         return;
     }
     std::vector<Cell> a = stack.top().array(); stack.pop();
@@ -1633,7 +1633,7 @@ void Executor::exec_CALLV()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(param_recursion_limit))));
         return;
     }
     std::vector<Cell> &pi = stack.top().array_for_write();

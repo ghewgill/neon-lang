@@ -3037,7 +3037,7 @@ func (self *executor) op_callf() {
 	self.ip++
 	val := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", objectString{""})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("StackOverflow: Stack depth exceeds recursion limit of %d", self.param_recursion_limit)})
 		return
 	}
 	self.invoke(self.module, val)
@@ -3048,7 +3048,7 @@ func (self *executor) op_callmf() {
 	mod := get_vint(self.module.object.code, &self.ip)
 	fun := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", objectString{""})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("StackOverflow: Stack depth exceeds recursion limit of %d", self.param_recursion_limit)})
 		return
 	}
 	m, found := self.modules[string(self.module.object.strtable[mod])]
@@ -3067,7 +3067,7 @@ func (self *executor) op_callmf() {
 func (self *executor) op_calli() {
 	self.ip++
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", objectString{""})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("StackOverflow: Stack depth exceeds recursion limit of %d", self.param_recursion_limit)})
 		return
 	}
 	a := self.pop().array
@@ -3223,7 +3223,7 @@ func (self *executor) op_callv() {
 	self.ip++
 	val := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", objectString{""})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("StackOverflow: Stack depth exceeds recursion limit of %d", self.param_recursion_limit)})
 		return
 	}
 	pi := self.pop().array

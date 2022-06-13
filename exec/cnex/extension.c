@@ -202,7 +202,9 @@ struct Ne_Cell *cell_set_dictionary_cell(struct Ne_Cell *cell, const char *key)
 void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList *params, struct Ne_Cell *retval)
 {
     if (g_executor->callstacktop >= g_executor->param_recursion_limit) {
-        exec_rtl_raiseException(g_executor, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", g_executor->param_recursion_limit);
+        exec_rtl_raiseException(g_executor, "PANIC", buf);
         return;
     }
     Array *a = ((Cell*)callback)->array;
