@@ -53,12 +53,6 @@ END RECORD
  */
 EXCEPTION ArrayIndexException
 
-/*  Exception: AssertFailedException
- *
- *  Assert failed.
- */
-EXCEPTION AssertFailedException
-
 /*  Exception: ByteOutOfRangeException
  *
  *  A byte is out of range in toBytes().

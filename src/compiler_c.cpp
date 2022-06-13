@@ -2118,7 +2118,7 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
-        context.out << "if (Ne_Exception_raise_info_literal(" << quoted("AssertFailedException") << "," << quoted(as->source) << ")) goto " << context.handler_label() << ";\n";
+        context.out << "if (Ne_Exception_raise_info_literal(" << quoted("PANIC") << "," << quoted(as->source) << ")) goto " << context.handler_label() << ";\n";
         context.pop_scope();
     }
 };

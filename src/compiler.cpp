@@ -2214,7 +2214,7 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
     }
     emitter.emit(Opcode::PUSHS, emitter.str(source));
     emitter.emit(Opcode::CALLP, emitter.str("object__makeString"));
-    emitter.emit(Opcode::EXCEPT, emitter.str("AssertFailedException"));
+    emitter.emit(Opcode::EXCEPT, emitter.str("PANIC"));
     emitter.jump_target(skip_label);
 }
 

@@ -1473,7 +1473,7 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
-        context.out << "throw new neon.NeonException(\"AssertFailedException\", " << quoted(as->source) << ");";
+        context.out << "throw new neon.NeonException(\"PANIC\", " << quoted(as->source) << ");";
         context.out << "}";
     }
 };
