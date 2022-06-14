@@ -95,7 +95,11 @@ LOOP
         print("ip \(ip)")
     END IF
 
-    VAR s: String := console.input("ndb> ")
+    VAR ir: console.InputResult := console.input("ndb> ")
+    CHECK ir ISA console.InputResult.line ELSE
+        EXIT LOOP
+    END CHECK
+    VAR s: String := ir.line
     IF s = "" THEN
         s := last
     ELSE

@@ -7,61 +7,60 @@ IMPORT console
 IMPORT string
 
 LOOP
-    VAR s: String
-    TRY
-        s := console.input("")
-
-        -- Skip over comment block at top.
-        IF s.length() >= 2 AND s[1] = "*" THEN
-            NEXT LOOP
-        END IF
-
-        -- Remove semicolons from the end of each production.
-        IF s[LAST] = ";" THEN
-            s := s[FIRST TO LAST-1]
-        END IF
-
-        -- Convert = to ::=.
-        LET equals: Number := string.find(s, " =")
-        IF equals >= 0 THEN
-            s[equals+1] := "::="
-        END IF
-
-        -- Remove commas separating items.
-        LOOP
-            LET comma: Number := string.find(s, ", ")
-            IF comma < 0 THEN
-                EXIT LOOP
-            END IF
-            s[comma] := ""
-        END LOOP
-
-        -- Convert [...] to (...)?.
-        LOOP
-            LET bracket: Number := string.find(s, " [")
-            IF bracket < 0 THEN
-                EXIT LOOP
-            END IF
-            LET rbracket: Number := string.find(s, "]")
-            ASSERT rbracket > bracket
-            s[bracket+1] := "("
-            s[rbracket] := ")?"
-        END LOOP
-
-        -- Convert {...} to (...)*.
-        LOOP
-            LET brace: Number := string.find(s, " {")
-            IF brace < 0 THEN
-                EXIT LOOP
-            END IF
-            LET rbrace: Number := string.find(s, "}")
-            ASSERT rbrace > brace
-            s[brace+1] := "("
-            s[rbrace] := ")*"
-        END LOOP
-
-    TRAP EndOfFileException DO
+    LET r: console.InputResult := console.input("")
+    CHECK r ISA console.InputResult.line ELSE
         EXIT LOOP
-    END TRY
+    END CHECK
+    LET s: String := r.line
+
+    -- Skip over comment block at top.
+    IF s.length() >= 2 AND s[1] = "*" THEN
+        NEXT LOOP
+    END IF
+
+    -- Remove semicolons from the end of each production.
+    IF s[LAST] = ";" THEN
+        s := s[FIRST TO LAST-1]
+    END IF
+
+    -- Convert = to ::=.
+    LET equals: Number := string.find(s, " =")
+    IF equals >= 0 THEN
+        s[equals+1] := "::="
+    END IF
+
+    -- Remove commas separating items.
+    LOOP
+        LET comma: Number := string.find(s, ", ")
+        IF comma < 0 THEN
+            EXIT LOOP
+        END IF
+        s[comma] := ""
+    END LOOP
+
+    -- Convert [...] to (...)?.
+    LOOP
+        LET bracket: Number := string.find(s, " [")
+        IF bracket < 0 THEN
+            EXIT LOOP
+        END IF
+        LET rbracket: Number := string.find(s, "]")
+        ASSERT rbracket > bracket
+        s[bracket+1] := "("
+        s[rbracket] := ")?"
+    END LOOP
+
+    -- Convert {...} to (...)*.
+    LOOP
+        LET brace: Number := string.find(s, " {")
+        IF brace < 0 THEN
+            EXIT LOOP
+        END IF
+        LET rbrace: Number := string.find(s, "}")
+        ASSERT rbrace > brace
+        s[brace+1] := "("
+        s[rbrace] := ")*"
+    END LOOP
+
     print(s)
 END LOOP

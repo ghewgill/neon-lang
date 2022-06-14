@@ -1176,7 +1176,7 @@ class CaseStatement:
                 if self.target.elementtype.name == "Object":
                     return True
             if isinstance(self.target, TypeCompound):
-                return x._choice == self.target.name[1]
+                return x._choice == self.target.name[-1]
     def __init__(self, expr, clauses):
         self.expr = expr
         self.clauses = clauses
@@ -2945,11 +2945,11 @@ def neon_str(env, x):
             r = re.sub(r"\.0+$", "", r)
     return r
 
-def neon_console_input(env, prompt):
+def neon_console_input_internal(env, prompt, r):
     try:
-        return input(prompt)
+        return True, input(prompt)
     except EOFError:
-        raise NeonException(["EndOfFileException"])
+        return False, None
 
 def neon_file_copy(env, src, dest):
     if neon_file_exists(env, dest):

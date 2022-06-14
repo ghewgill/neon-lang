@@ -284,7 +284,11 @@ BEGIN MAIN
     print("Calculator")
     VAR vars: Dictionary<Number> := {}
     LOOP
-        LET s: String := (TRY console.input("> ") TRAP EndOfFileException DO EXIT LOOP)
+        LET sr: console.InputResult := console.input("> ")
+        CHECK sr ISA console.InputResult.line ELSE
+            EXIT LOOP
+        END CHECK
+        LET s: String := sr.line
         TRY
             LET tokens: Array<Token> := tokenise(s)
             IF tokens.size() = 0 THEN
@@ -311,7 +315,11 @@ BEGIN MAIN
             FOREACH var IN expr.vars DO
                 IF var NOT IN vars THEN
                     LOOP
-                        LET v: String := (TRY console.input("... \(var) := ") TRAP EndOfFileException DO EXIT FUNCTION)
+                        LET vr: console.InputResult := console.input("... \(var) := ")
+                        CHECK vr ISA console.InputResult.line ELSE
+                            EXIT FUNCTION
+                        END CHECK
+                        LET v: String := vr.line
                         TRY
                             vars[var] := num(v)
                         TRAP ValueRangeException AS e DO

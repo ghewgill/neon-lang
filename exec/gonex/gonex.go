@@ -2270,16 +2270,18 @@ func (self *executor) op_callp() {
 		}
 		s += "\""
 		self.push(make_cell_str(s))
-	case "console$input":
+	case "console$input_internal":
 		prompt := self.pop().str
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print(prompt)
 		r, err := reader.ReadString('\n')
 		if err == nil {
 			r = strings.TrimRight(r, "\n")
+			self.push(make_cell_bool(true))
 			self.push(make_cell_str(r))
 		} else {
-			self.raise_literal("EndOfFileException", objectString{err.Error()})
+			self.push(make_cell_bool(false))
+			self.push(make_cell_none())
 		}
 	case "dictionary__keys":
 		d := self.pop().dict

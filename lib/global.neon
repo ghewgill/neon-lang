@@ -101,12 +101,6 @@ EXCEPTION NumberException.Overflow
  */
 EXCEPTION DynamicConversionException
 
-/*  Exception: EndOfFileException
- *
- *  End of input file.
- */
-EXCEPTION EndOfFileException
-
 /*  Exception: FormatException
  *
  *  Format specifier not valid.

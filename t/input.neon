@@ -1,7 +1,12 @@
 -- SKIP (requires stdin)
 IMPORT console
 
-VAR s: String
+VAR r: console.InputResult
 
-s := console.input("Enter your name: ")
-print(s)
+r := console.input("Enter your name: ")
+CASE r
+    WHEN ISA console.InputResult.eof DO
+        print("<eof>")
+    WHEN ISA console.InputResult.line DO
+        print(r.line)
+END CASE

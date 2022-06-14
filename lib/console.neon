@@ -5,12 +5,28 @@
 
 EXPORT input
 EXPORT output
+EXPORT InputResult
+
+TYPE InputResult IS CHOICE
+    eof
+    line: String
+END CHOICE
 
 /*  Function: input
  *
  *  Read a line of input from the terminal after printing a prompt.
  */
-DECLARE NATIVE FUNCTION input(prompt: String): String
+FUNCTION input(prompt: String): InputResult
+    VAR s: String
+    LET r: Boolean := input_internal(prompt, OUT s)
+    IF r THEN
+        RETURN InputResult.line(s)
+    ELSE
+        RETURN InputResult.eof
+    END IF
+END FUNCTION
+
+DECLARE NATIVE FUNCTION input_internal(prompt: String, OUT line: String): Boolean
 
 /*  Function: output
  *
