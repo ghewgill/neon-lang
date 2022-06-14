@@ -1002,27 +1002,56 @@ void bytes__splice(TExecutor *exec)
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
     cell_ensureBytes(t);
 
-    int64_t fst = number_to_sint64(first);
-    int64_t lst = number_to_sint64(last);
+    if (!number_is_integer(first)) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
+        goto cleanup;
+    }
+    if (!number_is_integer(last)) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
+        goto cleanup;
+    }
+    int64_t f = number_to_sint64(first);
+    int64_t l = number_to_sint64(last);
     if (first_from_end) {
-        fst += s->string->length - 1;
+        f += s->string->length - 1;
     }
     if (last_from_end) {
-        lst += s->string->length - 1;
+        l += s->string->length - 1;
+    }
+    if (f < 0) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(number_from_sint64(f)));
+        goto cleanup;
+    }
+    if (l< f-1) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(number_from_sint64(l)));
+        goto cleanup;
     }
 
-    Cell *sub = cell_newCellType(cBytes);
-    sub->string = string_newString();
-    sub->string->length = t->string->length + (((fst - 1) + s->string->length) - lst);
-    sub->string->data = malloc(sub->string->length);
-    memcpy(sub->string->data, s->string->data, fst);
-    memcpy(&sub->string->data[fst], t->string->data, (t->string->length - fst));
-    memcpy(&sub->string->data[t->string->length], &s->string->data[lst + 1], s->string->length - (lst + 1));
+    int64_t new_len = (int64_t)s->string->length - (f < (int64_t)s->string->length ? (l < (int64_t)s->string->length ? l - f + 1 : (int64_t)s->string->length - f) : 0) + (int64_t)t->string->length;
+    int64_t padding = 0;
+    if (f > (int64_t)s->string->length) {
+        padding = f - s->string->length;
+        new_len += padding;
+    }
+    if (new_len > (int64_t)s->string->length) {
+        s->string->data = realloc(s->string->data, new_len);
+    }
+    memmove(&s->string->data[f + padding + t->string->length], &s->string->data[l + 1], (l < (int64_t)s->string->length ? (int64_t)s->string->length - l - 1 : 0));
+    memset(&s->string->data[s->string->length], '\0', padding);
+    memcpy(&s->string->data[f], t->string->data, t->string->length);
+    if (new_len < (int64_t)s->string->length) {
+        s->string->data = realloc(s->string->data, new_len);
+    }
+    s->string->length = new_len;
 
-    cell_freeCell(s);
-    cell_freeCell(t);
+    Cell *sub = cell_newCellType(cBytes);
+    sub->string = string_copyString(s->string);
 
     push(exec->stack, sub);
+
+cleanup:
+    cell_freeCell(s);
+    cell_freeCell(t);
 }
 
 void bytes__store(TExecutor *exec)
