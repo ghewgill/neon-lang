@@ -1551,13 +1551,7 @@ void Executor::exec_CALLX()
             void_function_t init = rtl_foreign_function(modlib, "Ne_INIT");
             reinterpret_cast<int (*)(const Ne_MethodTable *)>(init)(&ExtensionMethodTable);
         } catch (RtlException &e) {
-            if (e.name == rtl::ne_global::Exception_LibraryNotFoundException.name) {
-                fprintf(stderr, "neon_exec: library %s not found\n", modlib.c_str());
-            } else if (e.name == rtl::ne_global::Exception_FunctionNotFoundException.name) {
-                fprintf(stderr, "neon_exec: function Ne_INIT not found in %s\n", modlib.c_str());
-            } else {
-                fprintf(stderr, "neon_exec: unknown exception %s while finding Ne_INIT in %s\n", e.name.c_str(), modlib.c_str());
-            }
+            fprintf(stderr, "%s\n", e.info.c_str());
             exit(1);
         }
         g_ExtensionModules.insert(modname);

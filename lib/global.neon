@@ -113,18 +113,6 @@ EXCEPTION InterruptedException
  */
 EXCEPTION InvalidValueException
 
-/*  Exception: FunctionNotFoundException
- *
- *  Function not found.
- */
-EXCEPTION FunctionNotFoundException
-
-/*  Exception: LibraryNotFoundException
- *
- *  Library not found.
- */
-EXCEPTION LibraryNotFoundException
-
 /*  Exception: ObjectSubscriptException
  *
  *  Object subscript exception.
