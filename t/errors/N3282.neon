@@ -1,2 +1,2 @@
-LET x: Number := (TRY 5 TRAP InvalidValueException GIVES "five")
-                                                         --<
+LET x: Number := (TRY 5 TRAP ValueRangeException GIVES "five")
+                                                       --<

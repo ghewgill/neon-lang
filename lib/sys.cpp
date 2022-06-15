@@ -16,11 +16,11 @@ Cell VAR_args;
 void exit(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(ne_global::Exception_InvalidValueException, utf8string("sys.exit invalid parameter: " + number_to_string(x)));
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string("sys.exit invalid parameter: " + number_to_string(x)));
     }
     int r = number_to_sint32(x);
     if (r < 0 || r > 255) {
-        throw RtlException(ne_global::Exception_InvalidValueException, utf8string("sys.exit invalid parameter: " + number_to_string(x)));
+        throw RtlException(ne_global::Exception_ValueRangeException, utf8string("sys.exit invalid parameter: " + number_to_string(x)));
     }
     ::exit(r);
 }

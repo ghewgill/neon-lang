@@ -3326,7 +3326,7 @@ def neon_string_upper(env, s):
 
 def neon_sys_exit(env, n):
     if n != int(n) or n < 0 or n > 255:
-        raise NeonException("InvalidValueException", "sys.exit invalid parameter: {}".format(n))
+        raise NeonException("ValueRangeException", "sys.exit invalid parameter: {}".format(n))
     sys.exit(n)
 
 def neon_textio_close(env, f):

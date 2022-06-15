@@ -204,7 +204,7 @@ DECLARE NATIVE FUNCTION quoted(s: String): String
  */
 FUNCTION repeat(s: String, n: Number): String
     CHECK n >= 0 ELSE
-        RAISE InvalidValueException
+        RAISE ValueRangeException
     END CHECK
     VAR r: String := ""
     VAR t: String := s

@@ -1609,12 +1609,12 @@ Ne_Exception *Ne_sys_exit(const Ne_Number *n)
     if (i != n->dval) {
         char buf[50];
         snprintf(buf, sizeof(buf), "sys.exit invalid parameter: %g", n->dval);
-        return Ne_Exception_raise_info_literal("InvalidValueException", buf);
+        return Ne_Exception_raise_info_literal("ValueRangeException", buf);
     }
     if (i < 0 || i > 255) {
         char buf[50];
         snprintf(buf, sizeof(buf), "sys.exit invalid parameter: %g", n->dval);
-        return Ne_Exception_raise_info_literal("InvalidValueException", buf);
+        return Ne_Exception_raise_info_literal("ValueRangeException", buf);
     }
     exit(i);
 }

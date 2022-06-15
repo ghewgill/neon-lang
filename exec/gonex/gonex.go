@@ -3018,9 +3018,9 @@ func (self *executor) op_callp() {
 	case "sys$exit":
 		n := self.pop().num
 		if n != math.Trunc(n) {
-			self.raise_literal("InvalidValueException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
+			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else if n < 0 || n > 255 {
-			self.raise_literal("InvalidValueException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
+			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else {
 			os.Exit(int(n))
 		}

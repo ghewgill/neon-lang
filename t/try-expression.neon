@@ -2,12 +2,12 @@ FUNCTION bar(n: Number): Number
     IF n > 0 THEN
         RETURN n
     ELSE
-        RAISE InvalidValueException
+        RAISE ValueRangeException
     END IF
 END FUNCTION
 
 FUNCTION foo1(n: Number)
-    LET x: Number := (TRY bar(n) TRAP InvalidValueException DO
+    LET x: Number := (TRY bar(n) TRAP ValueRangeException DO
         print("exception")
         EXIT FUNCTION
     )
@@ -15,7 +15,7 @@ FUNCTION foo1(n: Number)
 END FUNCTION
 
 --FUNCTION foo2(n: Number): Number
---    LET x: Number := (TRY bar(n) TRAP InvalidValueException GIVES 0)
+--    LET x: Number := (TRY bar(n) TRAP ValueRangeException GIVES 0)
 --    RETURN x
 --END FUNCTION
 

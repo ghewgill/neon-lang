@@ -2935,7 +2935,7 @@ def neon_string_upper(self):
 def neon_sys_exit(self):
     x = self.stack.pop()
     if not is_integer(x) or x < 0 or x > 255:
-        self.raise_literal("InvalidValueException", "sys.exit invalid parameter: {}".format(x))
+        self.raise_literal("ValueRangeException", "sys.exit invalid parameter: {}".format(x))
         return
     sys.exit(int(x))
 
