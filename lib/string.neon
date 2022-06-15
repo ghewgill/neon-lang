@@ -86,12 +86,12 @@ FUNCTION format(s: String, fmt: String): String
     CASE type
         WHEN "", "s" DO
             IF sign <> "" OR align = "=" THEN
-                RAISE FormatException
+                PANIC "Invalid format specifier"
             END IF
         WHEN "d", "x" DO
             -- pass
         WHEN OTHERS DO
-            RAISE FormatException
+            PANIC "Invalid format specifier"
     END CASE
 
     VAR r: String := s

@@ -101,12 +101,6 @@ EXCEPTION NumberException.Overflow
  */
 EXCEPTION DynamicConversionException
 
-/*  Exception: FormatException
- *
- *  Format specifier not valid.
- */
-EXCEPTION FormatException
-
 /*  Exception: InterruptedException
  *
  *  Execution interrupted with Ctrl+C.
