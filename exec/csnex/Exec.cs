@@ -967,7 +967,7 @@ namespace csnex
             Module mod = (Module)a.Array[0].Other;
             Number nindex = a.Array[1].Number;
             if (nindex.IsZero() || !nindex.IsInteger()) {
-                Raise("InvalidFunctionException", "");
+                Raise("PANIC", "Invalid function pointer");
                 return;
             }
             int index = Number.number_to_int32(nindex);

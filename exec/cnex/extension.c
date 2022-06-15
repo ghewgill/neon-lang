@@ -212,7 +212,7 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
     TModule *mod = (TModule*)a->data[0].other;
     Number nindex = a->data[1].number;
     if (mod == NULL || number_is_zero(nindex) || !number_is_integer(nindex)) {
-        exec_rtl_raiseException(g_executor, "InvalidFunctionException", "");
+        exec_rtl_raiseException(g_executor, "PANIC", "Invalid function pointer");
         return;
     }
     if (params != NULL) {

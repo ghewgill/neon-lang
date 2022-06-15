@@ -484,7 +484,7 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
     Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (mod == nullptr || number_is_zero(nindex) || not number_is_integer(nindex)) {
-        g_executor->raise(rtl::ne_global::Exception_InvalidFunctionException, std::make_shared<ObjectString>(utf8string("")));
+        g_executor->raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Invalid function pointer")));
         return;
     }
     if (params != NULL) {
@@ -1376,7 +1376,7 @@ void Executor::exec_CALLI()
     Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (number_is_zero(nindex) || not number_is_integer(nindex)) {
-        raise(rtl::ne_global::Exception_InvalidFunctionException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Invalid function pointer")));
         return;
     }
     uint32_t index = number_to_uint32(nindex);

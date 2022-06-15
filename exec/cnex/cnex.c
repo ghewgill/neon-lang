@@ -1405,7 +1405,7 @@ void exec_CALLI(TExecutor *self)
     Number nindex = a->array->data[1].number;
     pop(self->stack);
     if (number_is_zero(nindex) || !number_is_integer(nindex)) {
-        self->rtl_raise(self, "InvalidFunctionException", "");
+        self->rtl_raise(self, "PANIC", "Invalid function pointer");
         return;
     }
     uint32_t index = number_to_uint32(nindex);

@@ -107,12 +107,6 @@ EXCEPTION DynamicConversionException
  */
 EXCEPTION InterruptedException
 
-/*  Exception: InvalidFunctionException
- *
- *  An invalid function pointer was called.
- */
-EXCEPTION InvalidFunctionException
-
 /*  Exception: InvalidValueException
  *
  *  An invalid value was passed to a library function.
