@@ -525,6 +525,20 @@ TString *string_toUpperCase(TString *s)
     return r;
 }
 
+// Note: This function will append quotes to an existing string, then return it.
+// It is important to note that you do not want to call this function unless you
+// intend to modify the underlying string object!  This is useful for avoiding
+// a lot of string management in certain cases.
+TString *string_quoteInPlace(TString *s)
+{
+    TString *r = string_quote(s);
+    free(s->data);
+    s->data = r->data;
+    s->length = r->length;
+    free(r);
+    return s;
+}
+
 // This may not be the best place for this, because it is not part of
 // the implementation of TString, but is just a specific string utility
 // function. But there wasn't an obviously better place to put it.
