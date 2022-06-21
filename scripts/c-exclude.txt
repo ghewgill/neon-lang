@@ -121,6 +121,7 @@ string-in.neon                  # TryExpression
 string-index.neon               # memory leak
 string-test.neon                # module string
 struct-test.neon                # bignum
+testcase.neon                   # DynamicConversionException
 textio-random.neon              # module textio
 textio-seek.neon                # module textio
 textio-test.neon                # module textio

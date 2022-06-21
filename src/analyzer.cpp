@@ -6167,6 +6167,68 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
             },
             {}
         );
+    } else if (statement->expected_exception[0].type == PANIC) {
+        static const ast::Exception panic_exception { Token(), "PANIC" };
+        const ast::TypeRecord *vtype = dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionType"));
+        if (vtype == nullptr) {
+            internal_error("could not find ExceptionType");
+        }
+        ast::Variable *var = scope.top()->makeTemporary(vtype);
+        std::vector<const ast::Statement *> statements;
+        if (expr->type == ast::TYPE_NOTHING) {
+            statements.push_back(
+                new ast::ExpressionStatement(
+                    statement->token,
+                    expr
+                )
+            );
+        } else {
+            statements.push_back(
+                new ast::AssignmentStatement(
+                    statement->token,
+                    {new ast::DummyExpression()},
+                    expr
+                )
+            );
+        }
+        std::copy(fail_statements.begin(), fail_statements.end(), std::back_inserter(statements));
+        return new ast::TryStatement(
+            statement->token,
+            statements,
+            {
+                ast::TryTrap(
+                    {&panic_exception},
+                    var,
+                    new ast::ExceptionHandlerStatement(
+                        statement->token, {
+                            new ast::IfStatement(
+                                statement->token,
+                                {
+                                    ast::IfStatement::ConditionBlock(
+                                        statement->token.line,
+                                        new ast::StringComparisonExpression(
+                                            convert(
+                                                ast::TYPE_STRING,
+                                                new ast::RecordReferenceFieldExpression(
+                                                    ast::TYPE_OBJECT,
+                                                    new ast::VariableExpression(var),
+                                                    "info",
+                                                    false
+                                                )
+                                            ),
+                                            new ast::ConstantStringExpression(utf8string(statement->expected_exception[1].text)),
+                                            ast::ComparisonExpression::Comparison::NE
+                                        ),
+                                        fail_statements
+                                    )
+                                },
+                                {}
+                            )
+                        }
+                    )
+                )
+            }
+        );
     } else {
         const ast::Exception *exception = resolve_exception(statement->expected_exception);
         std::vector<const ast::Statement *> statements;

@@ -2121,10 +2121,18 @@ std::unique_ptr<Statement> Parser::parseTestCase()
         ++i;
         std::vector<Token> name;
         for (;;) {
-            if (tokens[i].type != IDENTIFIER) {
+            if (tokens[i].type == IDENTIFIER) {
+                name.push_back(tokens[i]);
+            } else if (tokens[i].type == PANIC) {
+                name.push_back(tokens[i]);
+                ++i;
+                if (tokens[i].type != STRING) {
+                    error(2144, tokens[i], "string expected");
+                }
+                name.push_back(tokens[i]);
+            } else {
                 error(2139, tokens[i], "exception identifier expected");
             }
-            name.push_back(tokens[i]);
             ++i;
             if (tokens[i].type != DOT) {
                 break;

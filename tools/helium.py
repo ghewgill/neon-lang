@@ -1351,8 +1351,7 @@ class PanicStatement:
     def declare(self, env):
         pass
     def run(self, env):
-        print("panic: {}".format(self.message.eval(env)), file=sys.stderr)
-        sys.exit(1)
+        raise NeonException(("PANIC",), self.message.eval(env))
 
 class RaiseStatement:
     def __init__(self, name, info):
@@ -1415,10 +1414,16 @@ class TestCaseStatement:
                 print("TESTCASE failed", file=sys.stderr)
                 sys.exit(1)
             except NeonException as x:
-                if x.name[:len(self.expected_exception)] == self.expected_exception or x.name[:len(self.expected_exception)-1] == self.expected_exception[1:]:
-                    pass
+                if self.expected_exception[0] is PANIC:
+                    if x.name[0] == "PANIC" and x.info == self.expected_exception[1].value:
+                        pass
+                    else:
+                        raise
                 else:
-                    raise
+                    if x.name[:len(self.expected_exception)] == self.expected_exception or x.name[:len(self.expected_exception)-1] == self.expected_exception[1:]:
+                        pass
+                    else:
+                        raise
         else:
             assert self.expr.eval(env)
 
@@ -2461,11 +2466,18 @@ class Parser:
         if self.tokens[self.i] is EXPECT:
             self.i += 1
             expected_exception = []
-            while True:
-                expected_exception.append(self.identifier())
-                if self.tokens[self.i] is not DOT:
-                    break
+            if self.tokens[self.i] is PANIC:
+                expected_exception.append(self.tokens[self.i])
                 self.i += 1
+                assert isinstance(self.tokens[self.i], String)
+                expected_exception.append(self.tokens[self.i])
+                self.i += 1
+            else:
+                while True:
+                    expected_exception.append(self.identifier())
+                    if self.tokens[self.i] is not DOT:
+                        break
+                    self.i += 1
         return TestCaseStatement(expr, expected_exception)
 
     def parse_try_statement(self):

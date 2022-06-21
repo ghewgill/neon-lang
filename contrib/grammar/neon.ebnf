@@ -147,7 +147,7 @@ RepeatStatement = 'REPEAT', ['LABEL', Identifier], {Statement}, 'UNTIL', Express
 
 ReturnStatement = 'RETURN', Expression;
 
-TestCaseStatement = 'TESTCASE', Expression, ['EXPECT', Identifier, {'.', Identifier}];
+TestCaseStatement = 'TESTCASE', Expression, ['EXPECT', ((Identifier, {'.', Identifier}) | ('PANIC', StringLiteral))];
 
 TryStatement = 'TRY', {Statement}, {'TRAP', Identifier, {'.', Identifier}, ['AS', Identifier], 'DO', {Statement}}, 'END', 'TRY';
 
