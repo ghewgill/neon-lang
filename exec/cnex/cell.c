@@ -476,7 +476,9 @@ TString *cell_toString(Cell *c)
             break;
         case cObject:
         {
-            r = string_appendString(r, object_toString(c->object)->string);
+            Cell *os = object_toString(c->object);
+            r = string_appendString(r, os->string);
+            cell_freeCell(os);
             break;
         }
         case cString:
