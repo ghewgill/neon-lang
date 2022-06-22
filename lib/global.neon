@@ -53,12 +53,6 @@ END RECORD
  */
 EXCEPTION ArrayIndexException
 
-/*  Exception: ByteOutOfRangeException
- *
- *  A byte is out of range in toBytes().
- */
-EXCEPTION ByteOutOfRangeException
-
 /*  Exception: BytesIndexException
  *
  *  A byte index is not valid or out of range.

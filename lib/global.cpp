@@ -165,7 +165,7 @@ std::vector<unsigned char> array__toBytes__number(const std::vector<Number> &a)
     for (auto x: a) {
         int64_t b = number_to_sint64(x);
         if (b < 0 || b >= 256) {
-            throw RtlException(Exception_ByteOutOfRangeException, utf8string(number_to_string(x)));
+            throw PanicException(utf8string("Byte value out of range at offset " + std::to_string(r.size()) + ": " + number_to_string(x)));
         }
         r.push_back(static_cast<unsigned char>(b));
     }
@@ -495,7 +495,7 @@ void bytes__store(Number b, std::vector<unsigned char> *s, Number index)
     }
     int64_t bb = number_to_sint64(b);
     if (bb < 0 || bb >= 256) {
-        throw RtlException(Exception_ByteOutOfRangeException, utf8string(number_to_string(b)));
+        throw PanicException(utf8string("Byte value out of range: " + number_to_string(b)));
     }
     s->at(i) = bb;
 }

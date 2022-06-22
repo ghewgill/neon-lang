@@ -2918,9 +2918,9 @@ def neon_array_reversed(a):
     return list(reversed(a))
 
 def neon_array_toBytes(a):
-    for x in a:
+    for i, x in enumerate(a):
         if not (0 <= x < 256):
-            raise NeonException("ByteOutOfRangeException")
+            raise NeonException("PANIC", "Byte value out of range at offset {}: {}".format(i, x))
     return bytes(a)
 
 def neon_dictionary_remove(d, k):

@@ -952,7 +952,9 @@ Ne_Exception *Ne_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a)
             r->data[i] = (int)val;
         } else {
             free(r->data);
-            return Ne_Exception_raise("ByteOutOfRangeException");
+            char msg[100];
+            snprintf(msg, sizeof(msg), "Byte value out of range at offset %d: %g", i, val);
+            return Ne_Exception_raise_info_literal("PANIC", msg);
         }
     }
     r->len = a->size;

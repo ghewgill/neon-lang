@@ -793,7 +793,9 @@ void array__toBytes__number(TExecutor *exec)
     for (x = 0, i = 0; x < a->array->size; x++) {
         uint32_t b = number_to_uint32(a->array->data[x].number);
         if (b >= 256) {
-            exec->rtl_raise(exec, "ByteOutOfRangeException", TO_STRING(b));
+            char msg[100];
+            snprintf(msg, sizeof(msg), "Byte value out of range at offset %zd: %s", i, number_to_string(a->array->data[x].number));
+            exec->rtl_raise(exec, "PANIC", msg);
             cell_freeCell(a);
             cell_freeCell(r);
             return;

@@ -166,7 +166,7 @@ public class Global {
         for (int i = 0; i < self.size(); i++) {
             int x = ((neon.type.Number)self.get(i)).intValue();
             if (x < 0 || x >= 256) {
-                throw new neon.type.NeonException("ByteOutOfRangeException");
+                throw new neon.type.NeonException("PANIC", "Byte value out of range at offset " + i + ": " + x);
             }
             r[i] = (byte)x;
         }

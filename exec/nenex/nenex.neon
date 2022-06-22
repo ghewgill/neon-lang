@@ -1062,10 +1062,10 @@ FUNCTION f_callp(INOUT self: Executor)
         WHEN "array__toBytes__number" DO
             LET a: Array<POINTER TO Value> := self.pop()->a
             VAR an: Array<Number> := []
-            FOREACH p IN a DO
+            FOREACH p IN a INDEX i DO
                 IF VALID p THEN
                     IF NOT (0 <= p->n < 256) THEN
-                        self.raise_literal("ByteOutOfRangeException", str(p->n))
+                        self.raise_literal("PANIC", "Byte value out of range at offset \(i): \(p->n)")
                         EXIT FUNCTION
                     END IF
                     an.append(p->n)

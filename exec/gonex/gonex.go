@@ -2024,13 +2024,19 @@ func (self *executor) op_callp() {
 	case "array__toBytes__number":
 		a := self.pop().array
 		b := make([]byte, len(a))
+		failed := false
 		for i, x := range a {
 			if x.num < 0 || x.num >= 256 {
-				self.raise_literal("ByteOutOfRangeException", objectString{fmt.Sprintf("%g", x.num)})
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("Byte value out of range at offset %d: %g", i, x.num)})
+				failed = true
+				break
 			}
 			b[i] = byte(x.num)
 		}
-		self.push(make_cell_bytes(b))
+		// Only push the result if there was no exception.
+		if !failed {
+			self.push(make_cell_bytes(b))
+		}
 	case "array__toString__number":
 		a := self.pop().array
 		r := "["
