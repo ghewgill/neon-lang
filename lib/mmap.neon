@@ -3,6 +3,7 @@
  *  Memory mapped file access.
  */
 
+EXPORT MmapException
 EXPORT MemoryFile
 EXPORT Mode
 
