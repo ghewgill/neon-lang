@@ -1,0 +1,255 @@
+EXPORT Type
+EXPORT Class
+EXPORT Question
+EXPORT ResourceData
+EXPORT Resource
+EXPORT Message
+EXPORT Result
+EXPORT makeQuery
+EXPORT execQuery
+
+IMPORT binary
+IMPORT net
+IMPORT string
+IMPORT struct
+
+TYPE Type IS ENUM
+    a
+    ns
+    cname
+    soa
+    wks
+    ptr
+    mx
+    txt
+END ENUM
+
+TYPE Class IS ENUM
+    in
+END ENUM
+
+TYPE Question IS RECORD
+    name: String
+    type: Type
+    class: Class
+END RECORD
+
+TYPE ResourceData IS CHOICE
+    address: String
+    --wks: WellKnownService
+    unknown: Bytes
+END CHOICE
+
+TYPE Resource IS RECORD
+    name: String
+    type: Type
+    class: Class
+    ttl: Number
+    rdata: ResourceData
+END RECORD
+
+TYPE Message IS RECORD
+    id: Number
+    qr: Boolean
+    opcode: Number
+    aa: Boolean
+    tc: Boolean
+    rd: Boolean
+    ra: Boolean
+    rcode: Number
+    questions: Array<Question>
+    answers: Array<Resource>
+    authorities: Array<Resource>
+    additionals: Array<Resource>
+END RECORD
+
+TYPE Result IS CHOICE
+    error: String
+    timeout
+    response: Message
+END CHOICE
+
+LET Header := struct.make([
+    struct.field("id", struct.Type.uint16BE),
+    struct.field("flags", struct.Type.uint16BE),
+    struct.field("qdcount", struct.Type.uint16BE),
+    struct.field("ancount", struct.Type.uint16BE),
+    struct.field("nscount", struct.Type.uint16BE),
+    struct.field("arcount", struct.Type.uint16BE)
+])
+
+LET ResourceRecord := struct.make([
+    struct.field("type", struct.Type.uint16BE),
+    struct.field("class", struct.Type.uint16BE),
+    struct.field("ttl", struct.Type.uint32BE),
+    struct.field("rdlength", struct.Type.uint16BE)
+])
+
+FUNCTION packQuestion(q: Question): Bytes
+    VAR r: Bytes := HEXBYTES ""
+    LET parts: Array<String> := string.split(q.name, ".")
+    FOREACH part IN parts DO
+        CHECK part.length() > 0 ELSE
+            PANIC "zero length name component"
+        END CHECK
+        r.append([part.length()].toBytes())
+        r.append(part.toBytes())
+    END FOREACH
+    r.append(HEXBYTES "00")
+    r.append(struct.packUInt16BE(15)) -- TODO: MX
+    r.append(struct.packUInt16BE(1)) -- TODO: IN
+    RETURN r
+END FUNCTION
+
+FUNCTION packResource(x: Resource): Bytes
+    RETURN HEXBYTES "" -- TODO
+END FUNCTION
+
+FUNCTION packMessage(msg: Message): Bytes
+    LET header: Bytes := Header.pack({
+        "id": msg.id,
+        "flags": binary.shiftLeft32((IF msg.qr THEN 1 ELSE 0), 15)
+               -- TODO: opcode
+               + binary.shiftLeft32((IF msg.aa THEN 1 ELSE 0), 10)
+               + binary.shiftLeft32((IF msg.tc THEN 1 ELSE 0), 9)
+               + binary.shiftLeft32((IF msg.rd THEN 1 ELSE 0), 8)
+               + binary.shiftLeft32((IF msg.ra THEN 1 ELSE 0), 7)
+               + msg.rcode,
+        "qdcount": msg.questions.size(),
+        "ancount": msg.answers.size(),
+        "nscount": msg.authorities.size(),
+        "arcount": msg.additionals.size()
+    })
+    VAR questions: Bytes := HEXBYTES ""
+    FOREACH x IN msg.questions DO
+        questions.append(packQuestion(x))
+    END FOREACH
+    VAR answers: Bytes := HEXBYTES ""
+    FOREACH x IN msg.answers DO
+        answers.append(packResource(x))
+    END FOREACH
+    VAR authorities: Bytes := HEXBYTES ""
+    FOREACH x IN msg.authorities DO
+        authorities.append(packResource(x))
+    END FOREACH
+    VAR additionals: Bytes := HEXBYTES ""
+    FOREACH x IN msg.additionals DO
+        additionals.append(packResource(x))
+    END FOREACH
+    RETURN header & questions & answers & authorities & additionals
+END FUNCTION
+
+FUNCTION unpackName(data: Bytes, INOUT i: Number): String
+    VAR r := ""
+    WHILE i < data.size() DO
+        LET len: Number := data[i]
+        INC i
+        CHECK len > 0 ELSE
+            EXIT WHILE
+        END CHECK
+        IF r.length() > 0 THEN
+            r.append(".")
+        END IF
+        IF binary.and32(len, 0xC0) = 0 THEN
+            r.append(data[i TO i+len-1].decodeToString())
+            i := i + len
+        ELSE
+            DEBUG i
+            DEBUG data[i-1 TO i]
+            VAR ptr: Number := binary.and32(struct.unpackUInt16BE(data[i-1 TO i]), 0x3FFF)
+            INC i
+            CHECK ptr < i-2 ELSE
+                PANIC "packet format error"
+            END CHECK
+            r.append(unpackName(data, INOUT ptr))
+            EXIT WHILE
+        END IF
+    END WHILE
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackQuestion(data: Bytes, INOUT i: Number): Question
+    VAR r: Question := Question()
+    r.name := unpackName(data, INOUT i)
+    -- TODO: type, class
+    i := i + 4
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackResource(data: Bytes, INOUT i: Number): Resource
+    VAR r: Resource := Resource()
+    DEBUG "before name", i
+    r.name := unpackName(data, INOUT i)
+    DEBUG "after name", i
+    LET rr: Dictionary<Object> := ResourceRecord.unpack(data[i TO LAST])
+    i := i + ResourceRecord.sizeof()
+    DEBUG "after rr", i
+    DEBUG rr
+    r.type := Type.mx -- TODO: rr["type"]
+    r.class := Class.in -- TODO: rr["class"]
+    r.ttl := rr["ttl"]
+    LET rdlength: Number := rr["rdlength"]
+    r.rdata := ResourceData.unknown(data[i TO i+rdlength-1])
+    i := i + rdlength
+    DEBUG "after rdata", i, rdlength
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackMessage(data: Bytes): Message
+    VAR r: Message := Message()
+    LET header: Dictionary<Object> := Header.unpack(data)
+    r.id := header["id"]
+    r.qr := binary.get32(header["flags"], 15)
+    r.opcode := binary.extract32(header["flags"], 11, 4)
+    r.aa := binary.get32(header["flags"], 10)
+    r.tc := binary.get32(header["flags"], 9)
+    r.rd := binary.get32(header["flags"], 8)
+    r.ra := binary.get32(header["flags"], 7)
+    r.rcode := binary.extract32(header["flags"], 0, 4)
+    VAR i: Number := Header.sizeof()
+    FOR x := 1 TO header["qdcount"] DO
+        DEBUG "question", i
+        r.questions.append(unpackQuestion(data, INOUT i))
+    END FOR
+    FOR x := 1 TO header["ancount"] DO
+        DEBUG "answer", i
+        r.answers.append(unpackResource(data, INOUT i))
+    END FOR
+    FOR x := 1 TO header["nscount"] DO
+        DEBUG "authority", i
+        r.authorities.append(unpackResource(data, INOUT i))
+    END FOR
+    FOR x := 1 TO header["arcount"] DO
+        DEBUG "additional", i
+        r.additionals.append(unpackResource(data, INOUT i))
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION makeQuery(name: String, type: Type): Message
+    RETURN Message(
+        rd WITH TRUE,
+        questions WITH [Question(name WITH name, type WITH type, class WITH Class.in)]
+    )
+END FUNCTION
+
+FUNCTION execQuery(server: String, msg: Message): Result
+    LET packet: Bytes := packMessage(msg)
+    VAR s: net.Socket := net.udpSocket()
+    s.connect(server, 53)
+    s.send(packet)
+    VAR rs: Array<net.Socket> := [s]
+    VAR ws: Array<net.Socket> := []
+    VAR es: Array<net.Socket> := []
+    CHECK net.select(INOUT rs, INOUT ws, INOUT es, 30) ELSE
+        RETURN Result.timeout
+    END CHECK
+    VAR remote_address: String
+    VAR remote_port: Number
+    VAR buf: Bytes
+    CHECK s.recvfrom(512, OUT remote_address, OUT remote_port, OUT buf) ELSE
+        RETURN Result.timeout
+    END CHECK
+    DEBUG buf
+    RETURN Result.response(unpackMessage(buf))
+END FUNCTION

@@ -1,0 +1,19 @@
+IMPORT dns
+
+LET q := dns.makeQuery("google.com", dns.Type.mx)
+LET r := dns.execQuery("10.57.218.35", q)
+CHECK r ISA dns.Result.response ELSE
+    PANIC "no response"
+END CHECK
+FOREACH x IN r.response.questions DO
+    print("question: " & x.name)
+END FOREACH
+FOREACH x IN r.response.answers DO
+    print("answer: " & x.name)
+END FOREACH
+FOREACH x IN r.response.authorities DO
+    print("authority: " & x.name)
+END FOREACH
+FOREACH x IN r.response.additionals DO
+    print("additional: " & x.name)
+END FOREACH
