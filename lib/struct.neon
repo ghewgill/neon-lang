@@ -124,8 +124,47 @@ END FUNCTION
  *
  *  Helper function to create <Field> records.
  */
-FUNCTION field(name: String, type: Type, width: Number): Field
-    RETURN Field(name WITH name, type WITH type, width WITH width)
+FUNCTION field(name: String, type: Type, width: Number DEFAULT 0): Field
+    VAR w: Number := width
+    CASE type
+        WHEN Type.bool DO
+            w := 1
+        WHEN Type.ieee32 DO
+            w := 4
+        WHEN Type.ieee64 DO
+            w := 8
+        WHEN Type.int8 DO
+            w := 1
+        WHEN Type.int16BE DO
+            w := 2
+        WHEN Type.int16LE DO
+            w := 2
+        WHEN Type.int32BE DO
+            w := 4
+        WHEN Type.int32LE DO
+            w := 4
+        WHEN Type.int64BE DO
+            w := 8
+        WHEN Type.int64LE DO
+            w := 8
+        WHEN Type.uint8 DO
+            w := 1
+        WHEN Type.uint16BE DO
+            w := 2
+        WHEN Type.uint16LE DO
+            w := 2
+        WHEN Type.uint32BE DO
+            w := 4
+        WHEN Type.uint32LE DO
+            w := 4
+        WHEN Type.uint64BE DO
+            w := 8
+        WHEN Type.uint64LE DO
+            w := 8
+        WHEN Type.string, Type.bytes DO
+            w := width
+    END CASE
+    RETURN Field(name WITH name, type WITH type, width WITH w)
 END FUNCTION
 
 /*  Function: packBool
