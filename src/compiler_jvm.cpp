@@ -2665,6 +2665,24 @@ public:
     virtual void generate_store(Context &) const override { internal_error("FunctionCall"); }
 };
 
+class StatementExpression: public Expression {
+public:
+    explicit StatementExpression(const ast::StatementExpression *se): Expression(se), se(se), stmt(transform(se->stmt)), expr(transform(se->expr)) {}
+    StatementExpression(const StatementExpression &) = delete;
+    StatementExpression &operator=(const StatementExpression &) = delete;
+    const ast::StatementExpression *se;
+    const Statement *stmt;
+    const Expression *expr;
+
+    virtual void generate(Context &context) const override {
+        stmt->generate(context);
+        expr->generate(context);
+    }
+
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("StatementExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("StatementExpression"); }
+};
+
 class NullStatement: public Statement {
 public:
     explicit NullStatement(const ast::NullStatement *ns): Statement(ns), ns(ns) {}
@@ -3866,7 +3884,7 @@ public:
     virtual void visit(const ast::InterfacePointerConstructor *) { internal_error("InterfacePointerConstructor"); }
     virtual void visit(const ast::InterfacePointerDeconstructor *) { internal_error("InterfacePointerDeconstructor"); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
-    virtual void visit(const ast::StatementExpression *) { internal_error("StatementExpression"); }
+    virtual void visit(const ast::StatementExpression *node) { r = new StatementExpression(node); }
     virtual void visit(const ast::NullStatement *) {}
     virtual void visit(const ast::TypeDeclarationStatement *) {}
     virtual void visit(const ast::DeclarationStatement *) {}
