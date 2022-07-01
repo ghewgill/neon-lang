@@ -1,7 +1,7 @@
 IMPORT dns
 
 LET q := dns.makeQuery("google.com", dns.Type.mx)
-LET r := dns.execQuery("10.57.218.35", q)
+LET r := dns.execQuery("8.8.8.8", q)
 CHECK r ISA dns.Result.response ELSE
     PANIC "no response"
 END CHECK
