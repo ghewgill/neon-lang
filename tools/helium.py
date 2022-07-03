@@ -188,7 +188,7 @@ def number_start(c):
     return c.isdigit()
 
 def number_body(c):
-    return c.isdigit() or c == "." or c == "x"
+    return c.isdigit() or c == "."
 
 def space(c):
     return c.isspace()
@@ -271,8 +271,14 @@ def tokenize_fragment(source):
                 r.append(Identifier(text))
         elif number_start(source[i]):
             start = i
-            while i < len(source) and number_body(source[i]):
+            i += 1
+            if i < len(source) and source[i] == "x":
                 i += 1
+                while i < len(source) and source[i].lower() in "0123456789abcdef":
+                    i += 1
+            else:
+                while i < len(source) and number_body(source[i]):
+                    i += 1
             t = source[start:i]
             try:
                 num = int(t, base=0)
@@ -710,6 +716,8 @@ class DotExpression:
     def __init__(self, expr, field):
         self.expr = expr
         self.field = field
+    def __repr__(self):
+        return "<DotExpression:{}.{}>".format(self.expr, self.field)
     def eval(self, env):
         obj = self.expr.eval(env)
         return self.eval_obj(env, obj)
@@ -1072,6 +1080,8 @@ class FunctionCallExpression:
     def __init__(self, func, args):
         self.func = func
         self.args = args
+    def __repr__(self):
+        return "<FunctionCallExpression:{}({})>".format(self.func, self.args)
     def eval(self, env):
         args = [a[1].eval(env) for a in self.args]
         if self.args and self.args[-1][2]: # spread
