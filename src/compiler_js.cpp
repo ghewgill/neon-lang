@@ -2094,6 +2094,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
@@ -2228,6 +2229,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
@@ -2361,7 +2363,8 @@ public:
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
-    virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceReferenceExpression *) { internal_error("ChoiceReferenceExpression"); }
+    virtual void visit(const ast::ChoiceValueExpression *) { internal_error("ChoiceValueExpression"); }
     virtual void visit(const ast::PointerDereferenceExpression *node) { r =  new PointerDereferenceExpression(node); }
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
@@ -2496,6 +2499,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
