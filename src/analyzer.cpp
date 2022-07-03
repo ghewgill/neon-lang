@@ -847,6 +847,44 @@ static const ast::Expression *make_object_conversion_from_record(Analyzer *analy
     );
 }
 
+static const ast::Expression *make_object_conversion_from_choice(Analyzer *analyzer, const ast::TypeChoice *ctype, const ast::Expression *e)
+{
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(ast::TYPE_DICTIONARY_OBJECT);
+    std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> clauses;
+    for (auto &c: ctype->choices) {
+        auto converter = ast::TYPE_OBJECT->make_converter(c.second.second);
+        clauses.push_back(std::make_pair(
+            std::vector<const ast::CaseStatement::WhenCondition *>{new ast::CaseStatement::ChoiceTestWhenCondition(Token(), c.second.first)},
+            std::vector<const ast::Statement *>{
+                new ast::AssignmentStatement(
+                    Token(),
+                    {new ast::DictionaryReferenceIndexExpression(
+                        ast::TYPE_OBJECT,
+                        new ast::VariableExpression(result),
+                        new ast::ConstantStringExpression(utf8string(c.first))
+                    )},
+                    converter(
+                        analyzer,
+                        new ast::ChoiceValueExpression(
+                            c.second.second,
+                            e,
+                            ctype,
+                            c.second.first
+                        )
+                    )
+                )
+            }
+        ));
+    }
+    return new ast::StatementExpression(
+        new ast::CaseStatement(Token(), e, clauses),
+        new ast::FunctionCall(
+            new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+            {new ast::VariableExpression(result)}
+        )
+    );
+}
+
 static const ast::Expression *make_record_conversion_from_object(Analyzer *analyzer, const ast::TypeRecord *rtype, const ast::Expression *e)
 {
     ast::Variable *result = analyzer->scope.top()->makeTemporary(rtype);
@@ -1065,6 +1103,31 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         }
         return [rtype](Analyzer *analyzer, const Expression *e) {
             return make_object_conversion_from_record(analyzer, rtype, e);
+        };
+    }
+    const TypeChoice *ctype = dynamic_cast<const TypeChoice *>(from);
+    if (ctype != nullptr) {
+        for (auto &c: ctype->choices) {
+            if (make_converter(c.second.second) == nullptr) {
+                return nullptr;
+            }
+        }
+        return [ctype](Analyzer *analyzer, const Expression *e) {
+            return make_object_conversion_from_choice(analyzer, ctype, e);
+        };
+    }
+    const TypeEnum *etype = dynamic_cast<const TypeEnum *>(from);
+    if (etype != nullptr) {
+        return [etype](Analyzer *analyzer, const Expression *e) {
+            return new ast::FunctionCall(
+                new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                {
+                    new FunctionCall(
+                        new VariableExpression(etype->methods.at("toString")),
+                        {e}
+                    )
+                }
+            );
         };
     }
     return nullptr;

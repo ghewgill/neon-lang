@@ -1,0 +1,16 @@
+TYPE Choice IS CHOICE
+    str: String
+    num: Number
+END CHOICE
+
+VAR c: Choice := Choice.str("test")
+VAR x: Object := c
+TESTCASE x["str"] = "test"
+TESTCASE x["num"] EXPECT ObjectSubscriptException
+
+c := Choice.num(5)
+x := c
+TESTCASE x["str"] EXPECT ObjectSubscriptException
+TESTCASE x["num"] = 5
+
+-- Need to implement conversion going the other way too.
