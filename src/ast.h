@@ -123,6 +123,7 @@ public:
     virtual void visit(const class ArrayReferenceRangeExpression *node) = 0;
     virtual void visit(const class ArrayValueRangeExpression *node) = 0;
     virtual void visit(const class ChoiceReferenceExpression *node) = 0;
+    virtual void visit(const class ChoiceValueExpression *node) = 0;
     virtual void visit(const class PointerDereferenceExpression *node) = 0;
     virtual void visit(const class ConstantExpression *node) = 0;
     virtual void visit(const class VariableExpression *node) = 0;
@@ -2393,6 +2394,26 @@ public:
     virtual void generate_address_write(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ChoiceReferenceExpression (" + expr->text() + ", " + choice_type->text() + ", " + std::to_string(choice) + ")"; }
+};
+
+class ChoiceValueExpression: public Expression {
+public:
+    ChoiceValueExpression(const Type *type, const Expression *expr, const TypeChoice *choice_type, int choice): Expression(type, expr->is_constant), expr(expr), choice_type(choice_type), choice(choice) {}
+    ChoiceValueExpression(const ChoiceValueExpression &) = delete;
+    ChoiceValueExpression &operator=(const ChoiceValueExpression &) = delete;
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *expr;
+    const TypeChoice *choice_type;
+    const int choice;
+
+    virtual bool is_pure(std::set<const ast::Function *> &context) const override { return expr->is_pure(context); }
+    virtual bool eval_boolean() const override { internal_error("ChoiceValueExpression"); }
+    virtual Number eval_number() const override { internal_error("ChoiceValueExpression"); }
+    virtual utf8string eval_string() const override { internal_error("ChoiceValueExpression"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "ChoiceValueExpression (" + expr->text() + ", " + choice_type->text() + ", " + std::to_string(choice) + ")"; }
 };
 
 class PointerDereferenceExpression: public ReferenceExpression {

@@ -2027,6 +2027,24 @@ void ast::ChoiceReferenceExpression::generate_address_write(Emitter &emitter) co
     emitter.emit(Opcode::INDEXAW);
 }
 
+void ast::ChoiceValueExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate_expr(emitter);
+    emitter.emit(Opcode::DUP);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAV);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::EQN);
+    auto skip_label = emitter.create_label();
+    emitter.emit_jump(Opcode::JT, skip_label);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
+    emitter.jump_target(skip_label);
+    emitter.emit(Opcode::PUSHI, 1);
+    emitter.emit(Opcode::INDEXAV);
+}
+
 void ast::PointerDereferenceExpression::generate_address_read(Emitter &emitter) const
 {
     ptr->generate(emitter);
