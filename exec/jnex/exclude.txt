@@ -21,6 +21,7 @@ debug-example.neon         # debug module
 debug-server.neon          # import
 decimal.neon               # number format
 dictionary-sorted.neon     # import
+dns-test.neon              # file
 encoding-base64.neon       # import
 equality.neon              # PUSHFP
 exception-opstack.neon     # exception

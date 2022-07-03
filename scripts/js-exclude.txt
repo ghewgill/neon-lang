@@ -36,6 +36,7 @@ debug.neon                 # module runtime
 debug-example.neon         # keyword in
 debug-server.neon          # StringReferenceIndexExpression
 decimal.neon               # Inf
+dns-test.neon              # ?
 dictionary.neon            # exception on dictionary index not existing
 encoding-base64.neon       # module
 enum.neon                  # keyword enum

@@ -9,6 +9,7 @@ complex-test.neon                               # math$log
 datetime-test.neon                              # date module
 debug-example.neon                              # debugger$log
 decimal.neon                                    # Value was either too large or too small for a Decimal.
+dns-test.neon                                   # file module
 encoding-base64.neon                            # binary module
 file-exists.neon                                # file module
 file-filecopied.neon                            # file module

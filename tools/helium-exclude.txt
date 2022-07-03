@@ -11,6 +11,7 @@ datetime-test.neon     # Module not required
 debug-example.neon     # Feature not required
 debug-server.neon      # Feature not required
 decimal.neon           # Module not required
+dns-test.neon          # Module not required
 encoding-base64.neon   # Module not required
 exception-as.neon      # Exception offset not supported
 export-inline.neon     # Native mul not required

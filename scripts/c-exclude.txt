@@ -15,6 +15,7 @@ datetime-test.neon              # module datetime
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 dictionary.neon                 # memory leak
+dns-test.neon                   # module file
 encoding-base64.neon            # module binary
 enum.neon                       # enum.toString
 equality.neon                   # pointers

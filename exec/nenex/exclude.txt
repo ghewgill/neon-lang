@@ -25,6 +25,7 @@ complex-test.neon           # callmf
 datetime-test.neon          # callmf
 debug-example.neon          # debugger$log
 debug-server.neon           # os$spawn
+dns-test.neon               # file$readLines
 encoding-base64.neon        # exception Utf8DecodingException
 enum.neon                   # unknown enum
 equality.neon               # pushy

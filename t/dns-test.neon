@@ -1,0 +1,30 @@
+IMPORT dns
+IMPORT file
+IMPORT string
+
+VAR nameserver: String := "1.1.1.1"
+
+TRY
+    LET resolv: Array<String> := file.readLines("/etc/resolv.conf")
+    FOREACH s IN resolv DO
+        LET a: Array<String> := string.split(s, " ")
+        IF a.size() >= 1 AND a[0] = "nameserver" THEN
+            nameserver := a[1]
+            EXIT FOREACH
+        END IF
+    END FOREACH
+TRAP file.FileException DO
+    -- pass
+END TRY
+
+LET q: dns.Message := dns.makeQuery("example.com", dns.Type.soa)
+LET r: dns.Result := dns.execQuery(nameserver, q)
+CHECK r ISA dns.Result.response ELSE
+    PANIC "no response"
+END CHECK
+DEBUG r.response.rcode
+TESTCASE r.response.rcode = dns.ResponseCode.ok
+TESTCASE r.response.answers[0].class = dns.Class.in
+TESTCASE r.response.answers[0].name = "example.com"
+TESTCASE r.response.answers[0].type = dns.Type.soa
+TESTCASE r.response.answers[0].rdata ISA dns.ResourceData.soa

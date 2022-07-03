@@ -8,6 +8,7 @@ datetime-test.neon         # gmtime
 debug-example.neon         # debugger
 debug-server.neon          # net$tcpSocket
 decimal.neon               # decimal
+dns-test.neon              # rray_size?
 file-filecopied2.neon      # copy
 for.neon                   # decimal
 index.neon                 # copy semantics

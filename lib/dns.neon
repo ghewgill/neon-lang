@@ -1,0 +1,469 @@
+EXPORT Type
+EXPORT Class
+EXPORT ResponseCode
+EXPORT Question
+EXPORT ResourceData
+EXPORT Resource
+EXPORT Message
+EXPORT Result
+EXPORT makeQuery
+EXPORT execQuery
+
+IMPORT binary
+IMPORT net
+IMPORT string
+IMPORT struct
+
+TYPE Type IS ENUM
+    a
+    ns
+    cname
+    soa
+    ptr
+    mx
+    txt
+    aaaa
+    unknown
+END ENUM
+
+TYPE Class IS ENUM
+    in
+    ch
+    hs
+    unknown
+END ENUM
+
+TYPE ResponseCode IS ENUM
+    ok
+    formatError
+    serverFailure
+    nameError
+    notImplemented
+    refused
+END ENUM
+
+TYPE Question IS RECORD
+    name: String
+    type: Type
+    class: Class
+END RECORD
+
+TYPE MXRecord IS RECORD
+    preference: Number
+    exchange: String
+END RECORD
+
+TYPE SOARecord IS RECORD
+    mname: String
+    rname: String
+    serial: Number
+    refresh: Number
+    retry: Number
+    expire: Number
+    minimum: Number
+END RECORD
+
+TYPE ResourceData IS CHOICE
+    address: String
+    address6: String
+    name: String
+    mx: MXRecord
+    soa: SOARecord
+    text: String
+    unknown: Bytes
+END CHOICE
+
+TYPE Resource IS RECORD
+    name: String
+    type: Type
+    class: Class
+    ttl: Number
+    rdata: ResourceData
+END RECORD
+
+TYPE Message IS RECORD
+    id: Number
+    qr: Boolean
+    opcode: Number
+    aa: Boolean
+    tc: Boolean
+    rd: Boolean
+    ra: Boolean
+    rcode: ResponseCode
+    questions: Array<Question>
+    answers: Array<Resource>
+    authorities: Array<Resource>
+    additionals: Array<Resource>
+END RECORD
+
+TYPE Result IS CHOICE
+    error: String
+    timeout
+    response: Message
+END CHOICE
+
+LET Header: struct.Struct := struct.make([
+    struct.field("id", struct.Type.uint16BE),
+    struct.field("flags", struct.Type.uint16BE),
+    struct.field("qdcount", struct.Type.uint16BE),
+    struct.field("ancount", struct.Type.uint16BE),
+    struct.field("nscount", struct.Type.uint16BE),
+    struct.field("arcount", struct.Type.uint16BE)
+])
+
+LET ResourceRecord: struct.Struct := struct.make([
+    struct.field("type", struct.Type.uint16BE),
+    struct.field("class", struct.Type.uint16BE),
+    struct.field("ttl", struct.Type.uint32BE),
+    struct.field("rdlength", struct.Type.uint16BE)
+])
+
+FUNCTION getTypeFromValue(x: Number): Type
+    CASE x
+        WHEN 1 DO RETURN Type.a
+        WHEN 2 DO RETURN Type.ns
+        WHEN 5 DO RETURN Type.cname
+        WHEN 6 DO RETURN Type.soa
+        WHEN 12 DO RETURN Type.ptr
+        WHEN 15 DO RETURN Type.mx
+        WHEN 16 DO RETURN Type.txt
+        WHEN 28 DO RETURN Type.aaaa
+    END CASE
+    RETURN Type.unknown
+END FUNCTION
+
+FUNCTION getValueFromType(t: Type): Number
+    CASE t
+        WHEN Type.a DO RETURN 1
+        WHEN Type.ns DO RETURN 2
+        WHEN Type.cname DO RETURN 5
+        WHEN Type.soa DO RETURN 6
+        WHEN Type.ptr DO RETURN 12
+        WHEN Type.mx DO RETURN 15
+        WHEN Type.txt DO RETURN 16
+        WHEN Type.aaaa DO RETURN 28
+        WHEN Type.unknown DO RETURN 0
+    END CASE
+END FUNCTION
+
+FUNCTION getClassFromValue(x: Number): Class
+    CASE x
+        WHEN 1 DO RETURN Class.in
+        WHEN 3 DO RETURN Class.ch
+        WHEN 4 DO RETURN Class.hs
+    END CASE
+    RETURN Class.unknown
+END FUNCTION
+
+FUNCTION getValueFromClass(c: Class): Number
+    CASE c
+        WHEN Class.in DO RETURN 1
+        WHEN Class.ch DO RETURN 3
+        WHEN Class.hs DO RETURN 4
+        WHEN Class.unknown DO RETURN 0
+    END CASE
+END FUNCTION
+
+FUNCTION getResponseCodeFromValue(x: Number): ResponseCode
+    CASE x
+        WHEN 0 DO RETURN ResponseCode.ok
+        WHEN 1 DO RETURN ResponseCode.formatError
+        WHEN 2 DO RETURN ResponseCode.serverFailure
+        WHEN 3 DO RETURN ResponseCode.nameError
+        WHEN 4 DO RETURN ResponseCode.notImplemented
+        WHEN 5 DO RETURN ResponseCode.refused
+    END CASE
+END FUNCTION
+
+FUNCTION getValueFromResponseCode(r: ResponseCode): Number
+    CASE r
+        WHEN ResponseCode.ok DO RETURN 0
+        WHEN ResponseCode.formatError DO RETURN 1
+        WHEN ResponseCode.serverFailure DO RETURN 2
+        WHEN ResponseCode.nameError DO RETURN 3
+        WHEN ResponseCode.notImplemented DO RETURN 4
+        WHEN ResponseCode.refused DO RETURN 5
+    END CASE
+END FUNCTION
+
+FUNCTION packQuestion(q: Question): Bytes
+    VAR r: Bytes := HEXBYTES ""
+    LET parts: Array<String> := string.split(q.name, ".")
+    FOREACH part IN parts DO
+        CHECK part.length() > 0 ELSE
+            PANIC "zero length name component"
+        END CHECK
+        r.append([part.length()].toBytes())
+        r.append(part.toBytes())
+    END FOREACH
+    r.append(HEXBYTES "00")
+    r.append(struct.packUInt16BE(getValueFromType(q.type)))
+    r.append(struct.packUInt16BE(getValueFromClass(q.class)))
+    RETURN r
+END FUNCTION
+
+FUNCTION packResource(x: Resource): Bytes
+    PANIC "unimplemented"
+END FUNCTION
+
+FUNCTION packMessage(msg: Message): Bytes
+    LET header: Bytes := Header.pack({
+        "id": msg.id,
+        "flags": binary.shiftLeft32((IF msg.qr THEN 1 ELSE 0), 15)
+               + binary.shiftLeft32(msg.opcode, 11)
+               + binary.shiftLeft32((IF msg.aa THEN 1 ELSE 0), 10)
+               + binary.shiftLeft32((IF msg.tc THEN 1 ELSE 0), 9)
+               + binary.shiftLeft32((IF msg.rd THEN 1 ELSE 0), 8)
+               + binary.shiftLeft32((IF msg.ra THEN 1 ELSE 0), 7)
+               + getValueFromResponseCode(msg.rcode),
+        "qdcount": msg.questions.size(),
+        "ancount": msg.answers.size(),
+        "nscount": msg.authorities.size(),
+        "arcount": msg.additionals.size()
+    })
+    VAR questions: Bytes := HEXBYTES ""
+    FOREACH x IN msg.questions DO
+        questions.append(packQuestion(x))
+    END FOREACH
+    VAR answers: Bytes := HEXBYTES ""
+    FOREACH x IN msg.answers DO
+        answers.append(packResource(x))
+    END FOREACH
+    VAR authorities: Bytes := HEXBYTES ""
+    FOREACH x IN msg.authorities DO
+        authorities.append(packResource(x))
+    END FOREACH
+    VAR additionals: Bytes := HEXBYTES ""
+    FOREACH x IN msg.additionals DO
+        additionals.append(packResource(x))
+    END FOREACH
+    RETURN header & questions & answers & authorities & additionals
+END FUNCTION
+
+FUNCTION unpackType(data: Bytes, INOUT i: Number): Type
+    LET x: Number := struct.unpackUInt16BE(data[i TO i+1])
+    i := i + 2
+    RETURN getTypeFromValue(x)
+END FUNCTION
+
+FUNCTION unpackClass(data: Bytes, INOUT i: Number): Class
+    LET x: Number := struct.unpackUInt16BE(data[i TO i+1])
+    i := i + 2
+    RETURN getClassFromValue(x)
+END FUNCTION
+
+FUNCTION unpackName(data: Bytes, INOUT i: Number): String
+    VAR r: String := ""
+    WHILE i < data.size() DO
+        LET len: Number := data[i]
+        INC i
+        CHECK len > 0 ELSE
+            EXIT WHILE
+        END CHECK
+        IF r.length() > 0 THEN
+            r.append(".")
+        END IF
+        IF binary.and32(len, 0xC0) = 0 THEN
+            r.append(data[i TO i+len-1].decodeToString())
+            i := i + len
+        ELSE
+            DEBUG i
+            DEBUG data[i-1 TO i]
+            VAR ptr: Number := binary.and32(struct.unpackUInt16BE(data[i-1 TO i]), 0x3FFF)
+            INC i
+            CHECK ptr < i-2 ELSE
+                PANIC "packet format error"
+            END CHECK
+            r.append(unpackName(data, INOUT ptr))
+            EXIT WHILE
+        END IF
+    END WHILE
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackMX(data: Bytes, INOUT i: Number): MXRecord
+    VAR r: MXRecord := MXRecord()
+    r.preference := struct.unpackUInt16BE(data[i TO i+1])
+    i := i + 2
+    r.exchange := unpackName(data, INOUT i)
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackSOA(data: Bytes, INOUT i: Number): SOARecord
+    VAR r: SOARecord := SOARecord()
+    r.mname := unpackName(data, INOUT i)
+    r.rname := unpackName(data, INOUT i)
+    r.serial := struct.unpackUInt32BE(data[i TO i+3])
+    i := i + 4
+    r.refresh := struct.unpackUInt32BE(data[i TO i+3])
+    i := i + 4
+    r.retry := struct.unpackUInt32BE(data[i TO i+3])
+    i := i + 4
+    r.expire := struct.unpackUInt32BE(data[i TO i+3])
+    i := i + 4
+    r.minimum := struct.unpackUInt32BE(data[i TO i+3])
+    i := i + 4
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackText(data: Bytes, INOUT i: Number): String
+    LET len: Number := data[i]
+    INC i
+    LET r: String := data[i TO i+len-1].decodeToString()
+    i := i + len
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackAddress(data: Bytes, INOUT i: Number): String
+    LET x: Number := struct.unpackUInt32BE(data[i TO i+3])
+    i := i + 4
+    LET a: Number := binary.extract32(x, 24, 8)
+    LET b: Number := binary.extract32(x, 16, 8)
+    LET c: Number := binary.extract32(x, 8, 8)
+    LET d: Number := binary.extract32(x, 0, 8)
+    RETURN "\(a).\(b).\(c).\(d)"
+END FUNCTION
+
+FUNCTION unpackAddress6(data: Bytes, INOUT i: Number): String
+    VAR a: Array<Number> := []
+    FOR j := 0 TO 15 STEP 2 DO
+        a.append(struct.unpackUInt16BE(data[i+j TO i+j+1]))
+    END FOR
+    i := i + 16
+    VAR s: Array<String> := []
+    FOREACH x IN a DO
+        s.append("\(x:x)")
+    END FOREACH
+    VAR j: Number := s.size() - 1
+    WHILE j > 0 AND s[j] <> "0" DO
+        DEC j
+    END WHILE
+    IF j > 0 THEN
+        s[j] := ""
+        WHILE j > 1 AND s[j-1] = "0" DO
+            DEC j
+            s[j TO j] := []
+        END WHILE
+    END IF
+    RETURN string.join(s, ":")
+END FUNCTION
+
+FUNCTION unpackQuestion(data: Bytes, INOUT i: Number): Question
+    VAR r: Question := Question()
+    DEBUG i
+    r.name := unpackName(data, INOUT i)
+    DEBUG i
+    r.type := unpackType(data, INOUT i)
+    DEBUG i
+    r.class := unpackClass(data, INOUT i)
+    DEBUG i
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackResource(data: Bytes, INOUT i: Number): Resource
+    VAR r: Resource := Resource()
+    DEBUG "before name", i
+    r.name := unpackName(data, INOUT i)
+    DEBUG "after name", i
+    LET rr: Dictionary<Object> := ResourceRecord.unpack(data[i TO LAST])
+    i := i + ResourceRecord.sizeof()
+    DEBUG "after rr", i
+    DEBUG rr
+    r.type := getTypeFromValue(rr["type"])
+    r.class := getClassFromValue(rr["class"])
+    r.ttl := rr["ttl"]
+    LET rdlength: Number := rr["rdlength"]
+    LET rdstart: Number := i
+    CASE r.type
+        WHEN Type.cname DO
+            r.rdata := ResourceData.name(unpackName(data, INOUT i))
+        WHEN Type.mx DO
+            r.rdata := ResourceData.mx(unpackMX(data, INOUT i))
+        WHEN Type.ns DO
+            r.rdata := ResourceData.name(unpackName(data, INOUT i))
+        WHEN Type.ptr DO
+            r.rdata := ResourceData.name(unpackName(data, INOUT i))
+        WHEN Type.soa DO
+            r.rdata := ResourceData.soa(unpackSOA(data, INOUT i))
+        WHEN Type.txt DO
+            r.rdata := ResourceData.text(unpackText(data, INOUT i))
+        WHEN OTHERS DO
+            CASE r.class
+                WHEN Class.in DO
+                    CASE r.type
+                        WHEN Type.a DO
+                            r.rdata := ResourceData.address(unpackAddress(data, INOUT i))
+                        WHEN Type.aaaa DO
+                            r.rdata := ResourceData.address6(unpackAddress6(data, INOUT i))
+                        WHEN OTHERS DO
+                            r.rdata := ResourceData.unknown(data[i TO i+rdlength-1])
+                            i := i + rdlength
+                    END CASE
+                WHEN OTHERS DO
+                    r.rdata := ResourceData.unknown(data[i TO i+rdlength-1])
+                    i := i + rdlength
+            END CASE
+    END CASE
+    ASSERT i = rdstart + rdlength
+    DEBUG "after rdata", i, rdlength
+    RETURN r
+END FUNCTION
+
+FUNCTION unpackMessage(data: Bytes): Message
+    VAR r: Message := Message()
+    LET header: Dictionary<Object> := Header.unpack(data)
+    r.id := header["id"]
+    r.qr := binary.get32(header["flags"], 15)
+    r.opcode := binary.extract32(header["flags"], 11, 4)
+    r.aa := binary.get32(header["flags"], 10)
+    r.tc := binary.get32(header["flags"], 9)
+    r.rd := binary.get32(header["flags"], 8)
+    r.ra := binary.get32(header["flags"], 7)
+    r.rcode := getResponseCodeFromValue(binary.extract32(header["flags"], 0, 4))
+    VAR i: Number := Header.sizeof()
+    FOR x := 1 TO header["qdcount"] DO
+        DEBUG "question", i
+        r.questions.append(unpackQuestion(data, INOUT i))
+    END FOR
+    FOR x := 1 TO header["ancount"] DO
+        DEBUG "answer", i
+        r.answers.append(unpackResource(data, INOUT i))
+    END FOR
+    FOR x := 1 TO header["nscount"] DO
+        DEBUG "authority", i
+        r.authorities.append(unpackResource(data, INOUT i))
+    END FOR
+    FOR x := 1 TO header["arcount"] DO
+        DEBUG "additional", i
+        r.additionals.append(unpackResource(data, INOUT i))
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION makeQuery(name: String, type: Type): Message
+    RETURN Message(
+        rd WITH TRUE,
+        questions WITH [Question(name WITH name, type WITH type, class WITH Class.in)]
+    )
+END FUNCTION
+
+FUNCTION execQuery(server: String, msg: Message): Result
+    LET packet: Bytes := packMessage(msg)
+    VAR s: net.Socket := net.udpSocket()
+    s.connect(server, 53)
+    s.send(packet)
+    VAR rs: Array<net.Socket> := [s]
+    VAR ws: Array<net.Socket> := []
+    VAR es: Array<net.Socket> := []
+    CHECK net.select(INOUT rs, INOUT ws, INOUT es, 30) ELSE
+        RETURN Result.timeout
+    END CHECK
+    VAR remote_address: String
+    VAR remote_port: Number
+    VAR buf: Bytes
+    CHECK s.recvfrom(512, OUT remote_address, OUT remote_port, OUT buf) ELSE
+        RETURN Result.timeout
+    END CHECK
+    DEBUG buf
+    RETURN Result.response(unpackMessage(buf))
+END FUNCTION
