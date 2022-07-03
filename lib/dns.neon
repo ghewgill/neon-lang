@@ -35,10 +35,10 @@ END ENUM
 
 TYPE ResponseCode IS ENUM
     ok
-    format_error
-    server_failure
-    name_error
-    not_implemented
+    formatError
+    serverFailure
+    nameError
+    notImplemented
     refused
 END ENUM
 
@@ -167,10 +167,10 @@ END FUNCTION
 FUNCTION getResponseCodeFromValue(x: Number): ResponseCode
     CASE x
         WHEN 0 DO RETURN ResponseCode.ok
-        WHEN 1 DO RETURN ResponseCode.format_error
-        WHEN 2 DO RETURN ResponseCode.server_failure
-        WHEN 3 DO RETURN ResponseCode.name_error
-        WHEN 4 DO RETURN ResponseCode.not_implemented
+        WHEN 1 DO RETURN ResponseCode.formatError
+        WHEN 2 DO RETURN ResponseCode.serverFailure
+        WHEN 3 DO RETURN ResponseCode.nameError
+        WHEN 4 DO RETURN ResponseCode.notImplemented
         WHEN 5 DO RETURN ResponseCode.refused
     END CASE
 END FUNCTION
@@ -178,10 +178,10 @@ END FUNCTION
 FUNCTION getValueFromResponseCode(r: ResponseCode): Number
     CASE r
         WHEN ResponseCode.ok DO RETURN 0
-        WHEN ResponseCode.format_error DO RETURN 1
-        WHEN ResponseCode.server_failure DO RETURN 2
-        WHEN ResponseCode.name_error DO RETURN 3
-        WHEN ResponseCode.not_implemented DO RETURN 4
+        WHEN ResponseCode.formatError DO RETURN 1
+        WHEN ResponseCode.serverFailure DO RETURN 2
+        WHEN ResponseCode.nameError DO RETURN 3
+        WHEN ResponseCode.notImplemented DO RETURN 4
         WHEN ResponseCode.refused DO RETURN 5
     END CASE
 END FUNCTION
