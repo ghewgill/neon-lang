@@ -1,19 +1,24 @@
 IMPORT dns
 
-LET q := dns.makeQuery("google.com", dns.Type.mx)
-LET r := dns.execQuery("8.8.8.8", q)
+LET q := dns.makeQuery("example.com", dns.Type.soa)
+LET r := dns.execQuery("1.1.1.1", q)
 CHECK r ISA dns.Result.response ELSE
     PANIC "no response"
 END CHECK
+print(r.response.rcode)
+print("-- questions")
 FOREACH x IN r.response.questions DO
-    print("question: " & x.name)
+    print(x)
 END FOREACH
+print("-- answers")
 FOREACH x IN r.response.answers DO
-    print("answer: " & x.name)
+    print(x)
 END FOREACH
+print("-- authorities")
 FOREACH x IN r.response.authorities DO
-    print("authority: " & x.name)
+    print(x)
 END FOREACH
+print("-- additional")
 FOREACH x IN r.response.additionals DO
-    print("additional: " & x.name)
+    print(x)
 END FOREACH
