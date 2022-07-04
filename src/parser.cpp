@@ -244,6 +244,14 @@ std::unique_ptr<Type> Parser::parseEnumType()
         }
         const Token &name = tokens[i];
         i++;
+        if (tokens[i].type == ASSIGN) {
+            i++;
+            if (tokens[i].type != NUMBER) {
+                error(9999, tokens[i], "number expected");
+            }
+            index = number_to_sint32(tokens[i].value);
+            i++;
+        }
         names.push_back(std::make_pair(name, index));
         index++;
     }
