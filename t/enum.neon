@@ -30,3 +30,6 @@ TESTCASE c = Command.status
 
 c := Command(name WITH "query")
 TESTCASE c = Command.query
+
+TESTCASE Command(value WITH 5) EXPECT PANIC "unknown enum value: 5"
+TESTCASE Command(name WITH "xyz") EXPECT PANIC "unknown enum name: xyz"
