@@ -1240,6 +1240,32 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
         methods["toString"] = f;
     }
     {
+        std::vector<FunctionParameter *> params;
+        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
+        params.push_back(fp);
+        Function *f = new Function(Token(), "enum.name", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, false, 1);
+        std::vector<const Expression *> values;
+        for (auto n: names) {
+            if (n.second < 0) {
+                internal_error("TypeEnum");
+            }
+            if (values.size() < static_cast<size_t>(n.second)+1) {
+                values.resize(n.second+1);
+            }
+            if (values[n.second] != nullptr) {
+                internal_error("TypeEnum");
+            }
+            values[n.second] = new ConstantStringExpression(utf8string(n.first));
+        }
+        for (auto &v: values) {
+            if (v == nullptr) {
+                v = new ConstantStringExpression(utf8string());
+            }
+        }
+        f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp))));
+        methods["name"] = f;
+    }
+    {
         FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
         Function *f = new Function(Token(), "enum.value", TYPE_NUMBER, analyzer->global_scope->frame, analyzer->global_scope, {fp}, false, 1);
         f->statements.push_back(new ReturnStatement(Token(), new VariableExpression(fp)));

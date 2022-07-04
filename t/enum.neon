@@ -22,6 +22,7 @@ END ENUM
 
 VAR c: Command := Command.response
 TESTCASE c.value() = 2
+TESTCASE c.name() = "response"
 
 TESTCASE Command.response.value() = 2
 
