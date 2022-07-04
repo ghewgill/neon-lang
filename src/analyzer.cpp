@@ -1248,7 +1248,20 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
     {
         FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "value"), "value", TYPE_NUMBER, 1, ParameterType::Mode::IN, nullptr);
         Function *f = new Function(Token(), "enum.CREATE.value", this, analyzer->global_scope->frame, analyzer->global_scope, {fp}, false, 1);
-        f->statements.push_back(new ReturnStatement(Token(), new VariableExpression(fp)));
+        std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> cases;
+        for (auto n: names) {
+            cases.push_back(std::make_pair(
+                std::vector<const ast::CaseStatement::WhenCondition *>{new ast::CaseStatement::ComparisonWhenCondition(Token(), ast::ComparisonExpression::Comparison::EQ, new ast::ConstantNumberExpression(number_from_sint32(n.second)))},
+                std::vector<const ast::Statement *>{new ast::ReturnStatement(Token(), new ConstantNumberExpression(number_from_sint32(n.second)))}
+            ));
+        }
+        f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(fp), cases));
+        const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("string__concat")));
+        const ast::Expression *str = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("str")));
+        f->statements.push_back(new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
+            new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum value: ")), new ast::FunctionCall(str, {new ast::VariableExpression(fp)})})}
+        )));
         methods["CREATE.value"] = f;
     }
     {
@@ -1262,7 +1275,11 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             ));
         }
         f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(fp), cases));
-        ... panic f->statements.push_back(new ReturnStatement(Token(), new VariableExpression(fp)));
+        const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("string__concat")));
+        f->statements.push_back(new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
+            new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum name: ")), new ast::VariableExpression(fp)})}
+        )));
         methods["CREATE.name"] = f;
     }
 }
