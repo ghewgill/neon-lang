@@ -1,5 +1,7 @@
+FUNCTION foo(): Number RETURN 2 END FUNCTION
+
 TYPE Colour IS ENUM
     red := 1
-    blue := 1.5
+    blue := foo()
             --<
 END ENUM

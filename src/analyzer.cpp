@@ -1748,12 +1748,15 @@ const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::str
         }
         if (x.second) {
             const ast::Expression *value = analyze(x.second.get());
+            if (value->type != ast::TYPE_NUMBER) {
+                error(3332, x.second.get()->token, "number required");
+            }
             if (not value->is_constant) {
-                error(3332, x.second.get()->token, "constant value required");
+                error(3333, x.second.get()->token, "constant value required");
             }
             Number val = value->eval_number(x.second.get()->token);
             if (not number_is_integer(val)) {
-                error(3333, x.second.get()->token, "constant integer required");
+                error(3334, x.second.get()->token, "constant integer required");
             }
             index = number_to_sint32(val);
         }
@@ -2824,11 +2827,11 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             } else if (a->name.text == "name") {
                 func = new ast::VariableExpression(enumtype->methods.at("CREATE.name"));
             } else {
-                error(3334, a->name, "unknown parameter");
+                error(3335, a->name, "unknown parameter");
             }
         }
         if (func == nullptr) {
-            error(3335, expr->token, "need value or name");
+            error(3336, expr->token, "need value or name");
         }
     }
     if (ftype == nullptr) {
