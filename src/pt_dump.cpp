@@ -530,17 +530,9 @@ private:
         return r;
     }
 
-    static std::string join(const std::vector<std::pair<Token, int>> &a) {
+    template<typename T> static std::string join(const std::vector<std::pair<Token, T>> &a) {
         std::vector<std::string> b;
-        for (auto x: a) {
-            b.push_back(x.first.text);
-        }
-        return join(b);
-    }
-
-    static std::string join(const std::vector<std::pair<Token, const Type *>> &a) {
-        std::vector<std::string> b;
-        for (auto x: a) {
+        for (auto &x: a) {
             b.push_back(x.first.text);
         }
         return join(b);

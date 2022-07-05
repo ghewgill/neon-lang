@@ -1737,13 +1737,33 @@ const ast::Type *Analyzer::analyze(const pt::TypeSimple *type, const std::string
 const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &name)
 {
     std::map<std::string, int> names;
-    for (auto x: type->names) {
+    std::map<std::string, Token> name_tokens;
+    std::map<int, Token> value_tokens;
+    int index = 0;
+    for (auto &x: type->names) {
         std::string enumname = x.first.text;
         auto t = names.find(enumname);
         if (t != names.end()) {
-            error2(3010, x.first, "duplicate enum name: " + enumname, type->names[t->second].first, "first declaration here");
+            error2(3010, x.first, "duplicate enum name: " + enumname, name_tokens.at(enumname), "first declaration here");
         }
-        names[enumname] = x.second;
+        if (x.second) {
+            const ast::Expression *value = analyze(x.second.get());
+            if (not value->is_constant) {
+                error(3332, x.second.get()->token, "constant value required");
+            }
+            Number val = value->eval_number(x.second.get()->token);
+            if (not number_is_integer(val)) {
+                error(3333, x.second.get()->token, "constant integer required");
+            }
+            index = number_to_sint32(val);
+        }
+        if (value_tokens.find(index) != value_tokens.end()) {
+            error2(3331, x.first, "duplicate enum value: " + std::to_string(index), value_tokens.at(index), "first declaration here");
+        }
+        names[enumname] = index;
+        name_tokens[enumname] = x.first;
+        value_tokens[index] = x.first;
+        index++;
     }
     return new ast::TypeEnum(type->token, module_name, name, names, this);
 }
@@ -2756,7 +2776,10 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         } else {
             error(3218, arrowmethod->base->token, "pointer type expected");
         }
-    } else if (recordtype != nullptr) {
+    } else if (recordtype == nullptr && enumtype == nullptr) {
+        func = analyze(expr->base.get());
+    }
+    if (recordtype != nullptr) {
         std::vector<const ast::Expression *> elements(recordtype->fields.size());
         for (auto &x: expr->args) {
             if (x->name.text.empty()) {
@@ -2801,14 +2824,12 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             } else if (a->name.text == "name") {
                 func = new ast::VariableExpression(enumtype->methods.at("CREATE.name"));
             } else {
-                error(9999, a->name, "unknown parameter");
+                error(3334, a->name, "unknown parameter");
             }
         }
         if (func == nullptr) {
-            error(9999, expr->token, "need value or name");
+            error(3335, expr->token, "need value or name");
         }
-    } else {
-        func = analyze(expr->base.get());
     }
     if (ftype == nullptr) {
         ftype = dynamic_cast<const ast::TypeFunction *>(func->type);
@@ -3751,9 +3772,18 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
             int value = 0;
             for (;;) {
                 std::string name;
-                while (descriptor.at(i) != ',' && descriptor.at(i) != ']') {
+                while (descriptor.at(i) != ',' && descriptor.at(i) != '=' && descriptor.at(i) != ']') {
                     name.push_back(descriptor.at(i));
                     i++;
+                }
+                if (descriptor.at(i) == '=') {
+                    i++;
+                    std::size_t next = 0;
+                    value = std::stoi(descriptor.substr(i), &next);
+                    if (next == 0) {
+                        internal_error("deserialize_type enum");
+                    }
+                    i += next;
                 }
                 names[name] = value;
                 value++;

@@ -1,0 +1,6 @@
+TYPE Colour IS ENUM
+    red := 1
+    --<2
+    blue := 1
+    --<
+END ENUM

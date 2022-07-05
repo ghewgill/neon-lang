@@ -194,8 +194,13 @@ TYPE TypeSimple IS RECORD
     name: String
 END RECORD
 
+TYPE EnumValue IS RECORD
+    name: lexer.Token
+    value: POINTER TO ParseTreeNode
+END RECORD
+
 TYPE TypeEnum IS RECORD
-    names: Array<lexer.Token>
+    names: Array<EnumValue>
 END RECORD
 
 TYPE Choice IS RECORD
@@ -2046,14 +2051,19 @@ FUNCTION Parser.parseEnumType(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.enum
     LET tokEnum: lexer.Token := self.token
     self.nextToken()
-    VAR names: Array<lexer.Token> := []
+    VAR names: Array<EnumValue> := []
     WHILE self.token.type <> TokenType.end DO
         IF self.token.type <> TokenType.identifier THEN
             error(2006, self.token, "identifier expected")
         END IF
         LET name: lexer.Token := self.token
         self.nextToken()
-        names.append(name)
+        VAR value: POINTER TO ParseTreeNode := NIL
+        IF self.token.type = TokenType.assign THEN
+            self.nextToken()
+            value := self.parseExpression()
+        END IF
+        names.append(EnumValue(name WITH name, value WITH value))
     END WHILE
     self.nextToken()
     IF self.token.type <> TokenType.enum THEN
@@ -3763,7 +3773,7 @@ FUNCTION dumpTypeEnum(node: VALID POINTER TO ParseTreeNode, depth: Number)
         IF names <> "" THEN
             names.append(",")
         END IF
-        names.append(n.text)
+        names.append(n.name.text)
     END FOREACH
     dumpNode(depth, "TypeEnum(\(names))")
 END FUNCTION
