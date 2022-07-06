@@ -2854,13 +2854,15 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         for (auto &a: expr->args) {
             if (a->name.text == "value") {
                 value_or_name = analyze(a->expr.get());
-                if (value_or_name->type != ast::TYPE_NUMBER) {
+                value_or_name = convert(ast::TYPE_NUMBER, value_or_name);
+                if (value_or_name->type == nullptr) {
                     error(3337, a->expr.get()->token, "number required");
                 }
                 func = new ast::VariableExpression(enumtype->methods.at("CREATE.value"));
             } else if (a->name.text == "name") {
                 value_or_name = analyze(a->expr.get());
-                if (value_or_name->type != ast::TYPE_STRING) {
+                value_or_name = convert(ast::TYPE_STRING, value_or_name);
+                if (value_or_name->type == nullptr) {
                     error(3338, a->expr.get()->token, "string required");
                 }
                 func = new ast::VariableExpression(enumtype->methods.at("CREATE.name"));
