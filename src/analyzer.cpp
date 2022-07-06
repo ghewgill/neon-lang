@@ -1272,8 +1272,10 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
         methods["value"] = f;
     }
     {
-        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "value"), "value", TYPE_NUMBER, 1, ParameterType::Mode::IN, nullptr);
-        Function *f = new Function(Token(), "enum.CREATE.value", this, analyzer->global_scope->frame, analyzer->global_scope, {fp}, false, 1);
+        FunctionParameter *p_value = new FunctionParameter(Token(IDENTIFIER, "value"), "value", TYPE_NUMBER, 1, ParameterType::Mode::IN, nullptr);
+        FunctionParameter *p_hasdefault = new FunctionParameter(Token(IDENTIFIER, "hasdefault"), "hasdefault", TYPE_BOOLEAN, 1, ParameterType::Mode::IN, nullptr);
+        FunctionParameter *p_default = new FunctionParameter(Token(IDENTIFIER, "default"), "default", this, 1, ParameterType::Mode::IN, nullptr);
+        Function *f = new Function(Token(), "enum.CREATE.value", this, analyzer->global_scope->frame, analyzer->global_scope, {p_value, p_hasdefault, p_default}, false, 1);
         std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> cases;
         for (auto n: names) {
             cases.push_back(std::make_pair(
@@ -1281,18 +1283,32 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
                 std::vector<const ast::Statement *>{new ast::ReturnStatement(Token(), new ConstantNumberExpression(number_from_sint32(n.second)))}
             ));
         }
-        f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(fp), cases));
+        f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(p_value), cases));
         const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("string__concat")));
         const ast::Expression *str = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("str")));
-        f->statements.push_back(new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
-            new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
-                {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum value: ")), new ast::FunctionCall(str, {new ast::VariableExpression(fp)})})}
-        )));
+        f->statements.push_back(new ast::IfStatement(
+            Token(),
+            {ast::IfStatement::ConditionBlock(
+                0,
+                new ast::VariableExpression(p_hasdefault),
+                {
+                    new ast::ReturnStatement(Token(), new ast::VariableExpression(p_default))
+                }
+            )},
+            {
+                new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                        {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum value: ")), new ast::FunctionCall(str, {new ast::VariableExpression(p_value)})})}
+                ))
+            }
+        ));
         methods["CREATE.value"] = f;
     }
     {
-        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "name"), "name", TYPE_STRING, 1, ParameterType::Mode::IN, nullptr);
-        Function *f = new Function(Token(), "enum.CREATE.name", this, analyzer->global_scope->frame, analyzer->global_scope, {fp}, false, 1);
+        FunctionParameter *p_name = new FunctionParameter(Token(IDENTIFIER, "name"), "name", TYPE_STRING, 1, ParameterType::Mode::IN, nullptr);
+        FunctionParameter *p_hasdefault = new FunctionParameter(Token(IDENTIFIER, "hasdefault"), "hasdefault", TYPE_BOOLEAN, 1, ParameterType::Mode::IN, nullptr);
+        FunctionParameter *p_default = new FunctionParameter(Token(IDENTIFIER, "default"), "default", this, 1, ParameterType::Mode::IN, nullptr);
+        Function *f = new Function(Token(), "enum.CREATE.name", this, analyzer->global_scope->frame, analyzer->global_scope, {p_name, p_hasdefault, p_default}, false, 1);
         std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> cases;
         for (auto n: names) {
             cases.push_back(std::make_pair(
@@ -1300,12 +1316,24 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
                 std::vector<const ast::Statement *>{new ast::ReturnStatement(Token(), new ConstantNumberExpression(number_from_sint32(n.second)))}
             ));
         }
-        f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(fp), cases));
+        f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(p_name), cases));
         const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("string__concat")));
-        f->statements.push_back(new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
-            new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
-                {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum name: ")), new ast::VariableExpression(fp)})}
-        )));
+        f->statements.push_back(new ast::IfStatement(
+            Token(),
+            {ast::IfStatement::ConditionBlock(
+                0,
+                new ast::VariableExpression(p_hasdefault),
+                {
+                    new ast::ReturnStatement(Token(), new ast::VariableExpression(p_default))
+                }
+            )},
+            {
+                new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                        {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum name: ")), new ast::VariableExpression(p_name)})}
+                ))
+            }
+        ));
         methods["CREATE.name"] = f;
     }
 }
@@ -2821,11 +2849,26 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             return new ast::RecordLiteralExpression(recordtype, elements);
         }
     } else if (enumtype != nullptr) {
+        const ast::Expression *value_or_name = nullptr;
+        const ast::Expression *default_value = nullptr;
         for (auto &a: expr->args) {
             if (a->name.text == "value") {
+                value_or_name = analyze(a->expr.get());
+                if (value_or_name->type != ast::TYPE_NUMBER) {
+                    error(3337, a->expr.get()->token, "number required");
+                }
                 func = new ast::VariableExpression(enumtype->methods.at("CREATE.value"));
             } else if (a->name.text == "name") {
+                value_or_name = analyze(a->expr.get());
+                if (value_or_name->type != ast::TYPE_STRING) {
+                    error(3338, a->expr.get()->token, "string required");
+                }
                 func = new ast::VariableExpression(enumtype->methods.at("CREATE.name"));
+            } else if (a->name.text == "default") {
+                default_value = analyze(a->expr.get());
+                if (default_value->type != enumtype) {
+                    error(3339, a->expr.get()->token, "type mismatch");
+                }
             } else {
                 error(3335, a->name, "unknown parameter");
             }
@@ -2833,6 +2876,11 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         if (func == nullptr) {
             error(3336, expr->token, "need value or name");
         }
+        return new ast::FunctionCall(func, {
+            value_or_name,
+            new ast::ConstantBooleanExpression(default_value != nullptr),
+            default_value != nullptr ? default_value : new ast::ConstantNumberExpression(number_from_sint32(0))
+        }, nullptr, false);
     }
     if (ftype == nullptr) {
         ftype = dynamic_cast<const ast::TypeFunction *>(func->type);

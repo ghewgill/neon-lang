@@ -34,3 +34,6 @@ TESTCASE c = Command.query
 
 TESTCASE Command(value WITH 5) EXPECT PANIC "unknown enum value: 5"
 TESTCASE Command(name WITH "xyz") EXPECT PANIC "unknown enum name: xyz"
+
+TESTCASE Command(value WITH 5, default WITH Command.query) = Command.query
+TESTCASE Command(name WITH "xyz", default WITH Command.response) = Command.response
