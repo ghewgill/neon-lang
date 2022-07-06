@@ -1127,12 +1127,16 @@ class FunctionCallExpression:
                     a = getattr(f, x[0])
                     if a.value == v:
                         return a
+                if len(self.args) >= 2 and self.args[1][0] == "default":
+                    return self.args[1][1].eval(env)
                 raise NeonException(("PANIC",), "unknown enum value: {}".format(v))
             elif self.args[0][0] == "name":
                 n = self.args[0][1].eval(env)
                 try:
                     return getattr(f, n)
                 except AttributeError:
+                    if len(self.args) >= 2 and self.args[1][0] == "default":
+                        return self.args[1][1].eval(env)
                     raise NeonException(("PANIC",), "unknown enum name: {}".format(n))
         elif isinstance(f, ClassRecord):
             return f.make(env, [x[0] for x in self.args], args)
