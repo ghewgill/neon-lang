@@ -15,31 +15,32 @@ IMPORT string
 IMPORT struct
 
 TYPE Type IS ENUM
-    a
-    ns
-    cname
-    soa
-    ptr
-    mx
-    txt
-    aaaa
-    unknown
+    a := 1
+    ns := 2
+    cname := 5
+    soa := 6
+    ptr := 12
+    mx := 15
+    txt := 16
+    aaaa := 28
+    unknown := 0
 END ENUM
 
 TYPE Class IS ENUM
-    in
-    ch
-    hs
-    unknown
+    in := 1
+    ch := 3
+    hs := 4
+    unknown := 0
 END ENUM
 
 TYPE ResponseCode IS ENUM
-    ok
-    formatError
-    serverFailure
-    nameError
-    notImplemented
-    refused
+    ok := 0
+    formatError := 1
+    serverFailure := 2
+    nameError := 3
+    notImplemented := 4
+    refused := 5
+    unknown
 END ENUM
 
 TYPE Question IS RECORD
@@ -118,74 +119,6 @@ LET ResourceRecord: struct.Struct := struct.make([
     struct.field("rdlength", struct.Type.uint16BE)
 ])
 
-FUNCTION getTypeFromValue(x: Number): Type
-    CASE x
-        WHEN 1 DO RETURN Type.a
-        WHEN 2 DO RETURN Type.ns
-        WHEN 5 DO RETURN Type.cname
-        WHEN 6 DO RETURN Type.soa
-        WHEN 12 DO RETURN Type.ptr
-        WHEN 15 DO RETURN Type.mx
-        WHEN 16 DO RETURN Type.txt
-        WHEN 28 DO RETURN Type.aaaa
-    END CASE
-    RETURN Type.unknown
-END FUNCTION
-
-FUNCTION getValueFromType(t: Type): Number
-    CASE t
-        WHEN Type.a DO RETURN 1
-        WHEN Type.ns DO RETURN 2
-        WHEN Type.cname DO RETURN 5
-        WHEN Type.soa DO RETURN 6
-        WHEN Type.ptr DO RETURN 12
-        WHEN Type.mx DO RETURN 15
-        WHEN Type.txt DO RETURN 16
-        WHEN Type.aaaa DO RETURN 28
-        WHEN Type.unknown DO RETURN 0
-    END CASE
-END FUNCTION
-
-FUNCTION getClassFromValue(x: Number): Class
-    CASE x
-        WHEN 1 DO RETURN Class.in
-        WHEN 3 DO RETURN Class.ch
-        WHEN 4 DO RETURN Class.hs
-    END CASE
-    RETURN Class.unknown
-END FUNCTION
-
-FUNCTION getValueFromClass(c: Class): Number
-    CASE c
-        WHEN Class.in DO RETURN 1
-        WHEN Class.ch DO RETURN 3
-        WHEN Class.hs DO RETURN 4
-        WHEN Class.unknown DO RETURN 0
-    END CASE
-END FUNCTION
-
-FUNCTION getResponseCodeFromValue(x: Number): ResponseCode
-    CASE x
-        WHEN 0 DO RETURN ResponseCode.ok
-        WHEN 1 DO RETURN ResponseCode.formatError
-        WHEN 2 DO RETURN ResponseCode.serverFailure
-        WHEN 3 DO RETURN ResponseCode.nameError
-        WHEN 4 DO RETURN ResponseCode.notImplemented
-        WHEN 5 DO RETURN ResponseCode.refused
-    END CASE
-END FUNCTION
-
-FUNCTION getValueFromResponseCode(r: ResponseCode): Number
-    CASE r
-        WHEN ResponseCode.ok DO RETURN 0
-        WHEN ResponseCode.formatError DO RETURN 1
-        WHEN ResponseCode.serverFailure DO RETURN 2
-        WHEN ResponseCode.nameError DO RETURN 3
-        WHEN ResponseCode.notImplemented DO RETURN 4
-        WHEN ResponseCode.refused DO RETURN 5
-    END CASE
-END FUNCTION
-
 FUNCTION packQuestion(q: Question): Bytes
     VAR r: Bytes := HEXBYTES ""
     LET parts: Array<String> := string.split(q.name, ".")
@@ -197,8 +130,8 @@ FUNCTION packQuestion(q: Question): Bytes
         r.append(part.toBytes())
     END FOREACH
     r.append(HEXBYTES "00")
-    r.append(struct.packUInt16BE(getValueFromType(q.type)))
-    r.append(struct.packUInt16BE(getValueFromClass(q.class)))
+    r.append(struct.packUInt16BE(q.type.value()))
+    r.append(struct.packUInt16BE(q.class.value()))
     RETURN r
 END FUNCTION
 
@@ -215,7 +148,7 @@ FUNCTION packMessage(msg: Message): Bytes
                + binary.shiftLeft32((IF msg.tc THEN 1 ELSE 0), 9)
                + binary.shiftLeft32((IF msg.rd THEN 1 ELSE 0), 8)
                + binary.shiftLeft32((IF msg.ra THEN 1 ELSE 0), 7)
-               + getValueFromResponseCode(msg.rcode),
+               + msg.rcode.value(),
         "qdcount": msg.questions.size(),
         "ancount": msg.answers.size(),
         "nscount": msg.authorities.size(),
@@ -243,13 +176,13 @@ END FUNCTION
 FUNCTION unpackType(data: Bytes, INOUT i: Number): Type
     LET x: Number := struct.unpackUInt16BE(data[i TO i+1])
     i := i + 2
-    RETURN getTypeFromValue(x)
+    RETURN Type(value WITH x, default WITH Type.unknown)
 END FUNCTION
 
 FUNCTION unpackClass(data: Bytes, INOUT i: Number): Class
     LET x: Number := struct.unpackUInt16BE(data[i TO i+1])
     i := i + 2
-    RETURN getClassFromValue(x)
+    RETURN Class(value WITH x, default WITH Class.unknown)
 END FUNCTION
 
 FUNCTION unpackName(data: Bytes, INOUT i: Number): String
@@ -369,8 +302,8 @@ FUNCTION unpackResource(data: Bytes, INOUT i: Number): Resource
     i := i + ResourceRecord.sizeof()
     DEBUG "after rr", i
     DEBUG rr
-    r.type := getTypeFromValue(rr["type"])
-    r.class := getClassFromValue(rr["class"])
+    r.type := Type(value WITH rr["type"], default WITH Type.unknown)
+    r.class := Class(value WITH rr["class"], default WITH Class.unknown)
     r.ttl := rr["ttl"]
     LET rdlength: Number := rr["rdlength"]
     LET rdstart: Number := i
@@ -419,7 +352,7 @@ FUNCTION unpackMessage(data: Bytes): Message
     r.tc := binary.get32(header["flags"], 9)
     r.rd := binary.get32(header["flags"], 8)
     r.ra := binary.get32(header["flags"], 7)
-    r.rcode := getResponseCodeFromValue(binary.extract32(header["flags"], 0, 4))
+    r.rcode := ResponseCode(value WITH binary.extract32(header["flags"], 0, 4), default WITH ResponseCode.unknown)
     VAR i: Number := Header.sizeof()
     FOR x := 1 TO header["qdcount"] DO
         DEBUG "question", i
