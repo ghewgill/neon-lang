@@ -952,18 +952,11 @@ void ast::TypeEnum::generate_call(Emitter &) const
 std::string ast::TypeEnum::get_type_descriptor(Emitter &) const
 {
     std::string r = "E[";
-    std::vector<std::string> namevector(names.size());
     for (auto n: names) {
-        if (not namevector[n.second].empty()) {
-            internal_error("duplicate enum value");
-        }
-        namevector[n.second] = n.first;
-    }
-    for (auto n: namevector) {
         if (r.length() > 2) {
-            r += ",";
+            r += ',';
         }
-        r += n;
+        r += n.first + '=' + std::to_string(n.second);
     }
     r += "]";
     return r;

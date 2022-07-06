@@ -23,6 +23,7 @@ class TypeFunctionPointer;
 class TypeParameterised;
 class TypeQualified;
 
+class Expression;
 class DummyExpression;
 class IdentityExpression;
 class BooleanLiteralExpression;
@@ -231,9 +232,9 @@ public:
 
 class TypeEnum: public Type {
 public:
-    TypeEnum(const Token &token, const std::vector<std::pair<Token, int>> &names): Type(token), names(names) {}
+    TypeEnum(const Token &token, std::vector<std::pair<Token, std::unique_ptr<Expression>>> &names): Type(token), names(std::move(names)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::vector<std::pair<Token, int>> names;
+    const std::vector<std::pair<Token, std::unique_ptr<Expression>>> names;
 };
 
 class TypeChoice: public Type {

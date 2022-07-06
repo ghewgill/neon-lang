@@ -388,7 +388,7 @@ class TypeEnum:
     def __init__(self, names):
         self.names = names
     def resolve(self, env):
-        return ClassEnum(self.names)
+        return ClassEnum(env, self.names)
 
 class TypeChoice:
     def __init__(self, choices):
@@ -753,6 +753,9 @@ class DotExpression:
             if self.field == "size": return lambda env, self: len(obj)
             if self.field == "toString": return lambda env, self: "{{{}}}".format(", ".join("{}: {}".format(neon_string_quoted(env, k), neon_string_quoted(env, v) if isinstance(v, str) else str(v)) for k, v in sorted(obj.items())))
             return obj[self.field] # Support a.b syntax where a is an object.
+        elif isinstance(obj, ClassEnum.Instance):
+            if self.field in ("name", "toString"): return lambda env, self: self.name
+            if self.field == "value": return lambda env, self: self.value
         elif isinstance(obj, ClassChoice):
             return ClassChoice.Instance(self.field, None)
         elif isinstance(obj, Program):
@@ -1117,6 +1120,24 @@ class FunctionCallExpression:
                         j += 1
                 r = r[0]
             return r
+        elif isinstance(f, ClassEnum):
+            if self.args[0][0] == "value":
+                v = self.args[0][1].eval(env)
+                for x in f.names:
+                    a = getattr(f, x[0])
+                    if a.value == v:
+                        return a
+                if len(self.args) >= 2 and self.args[1][0] == "default":
+                    return self.args[1][1].eval(env)
+                raise NeonException(("PANIC",), "unknown enum value: {}".format(v))
+            elif self.args[0][0] == "name":
+                n = self.args[0][1].eval(env)
+                try:
+                    return getattr(f, n)
+                except AttributeError:
+                    if len(self.args) >= 2 and self.args[1][0] == "default":
+                        return self.args[1][1].eval(env)
+                    raise NeonException(("PANIC",), "unknown enum name: {}".format(n))
         elif isinstance(f, ClassRecord):
             return f.make(env, [x[0] for x in self.args], args)
         assert False, (self.func, f)
@@ -1569,9 +1590,17 @@ class Parser:
     def parse_enum_type(self):
         self.expect(ENUM)
         names = []
+        index = 0
         while self.tokens[self.i] is not END:
             name = self.identifier()
-            names.append(name)
+            value = None
+            if self.tokens[self.i] is ASSIGN:
+                self.i += 1
+                value = self.parse_expression()
+            else:
+                value = NumberLiteralExpression(index)
+            names.append((name, value))
+            index += 1
         self.expect(END)
         self.expect(ENUM)
         return TypeEnum(names)
@@ -2707,20 +2736,21 @@ class ClassRecord(Class):
 
 class ClassEnum(Class):
     class Instance:
-        def __init__(self, name):
+        def __init__(self, name, value):
             self.name = name
+            self.value = value
         def __call__(self, env):
             return self
         def __eq__(self, rhs):
-            return self.name == rhs.name
+            return (self.name, self.value) == (rhs.name, rhs.value)
         def toString(self, env, obj):
             return self.name
-    def __init__(self, names):
+    def __init__(self, env, names):
         self.names = names
         for name in self.names:
-            setattr(self, name, ClassEnum.Instance(name))
+            setattr(self, name[0], ClassEnum.Instance(name[0], name[1].eval(env)))
     def default(self, env):
-        return getattr(self, self.names[0])
+        return getattr(self, self.names[0][0])
 
 class ClassChoice(Class):
     class Instance:

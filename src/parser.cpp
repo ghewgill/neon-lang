@@ -236,16 +236,19 @@ std::unique_ptr<Type> Parser::parseEnumType()
     }
     auto &tok_enum = tokens[i];
     i++;
-    std::vector<std::pair<Token, int>> names;
-    int index = 0;
+    std::vector<std::pair<Token, std::unique_ptr<Expression>>> names;
     while (tokens[i].type != END) {
         if (tokens[i].type != IDENTIFIER) {
             error(2006, tokens[i], "identifier expected");
         }
         const Token &name = tokens[i];
         i++;
-        names.push_back(std::make_pair(name, index));
-        index++;
+        std::unique_ptr<Expression> index = nullptr;
+        if (tokens[i].type == ASSIGN) {
+            i++;
+            index = parseExpression();
+        }
+        names.emplace_back(name, std::move(index));
     }
     i++;
     if (tokens[i].type != ENUM) {
