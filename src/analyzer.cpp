@@ -153,6 +153,7 @@ private:
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, std::string tname, bool for_class);
     const ast::Expression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
+    void dump_expression_parts(const Token &token, const std::vector<const pt::Expression *> &parts, std::vector<const ast::Statement *> &statements);
 };
 
 class TypeAnalyzer: public pt::IParseTreeVisitor {
@@ -4752,6 +4753,76 @@ static void deconstruct(const pt::Expression *expr, std::vector<const pt::Expres
     parts.push_back(expr);
 }
 
+void Analyzer::dump_expression_parts(const Token &token, const std::vector<const pt::Expression *> &parts, std::vector<const ast::Statement *> &statements)
+{
+    const ast::Module *textio = import_module(Token(), "textio", false);
+    if (textio == nullptr) {
+        internal_error("need module textio");
+    }
+    const ast::Variable *textio_stderr = dynamic_cast<const ast::Variable *>(textio->scope->lookupName("stderr"));
+    if (textio_stderr == nullptr) {
+        internal_error("need textio.stderr");
+    }
+    const ast::PredefinedFunction *writeLine = dynamic_cast<const ast::PredefinedFunction *>(textio->scope->lookupName("writeLine"));
+    if (writeLine == nullptr) {
+        internal_error("need textio.writeLine");
+    }
+    std::set<std::string> seen;
+    for (auto part: parts) {
+        const Token &start = part->get_start_token();
+        const Token &end = part->get_end_token();
+        std::string str;
+        if (start.line == end.line) {
+            str = start.source_line().substr(start.column-1, end.column + end.text.length() - start.column);
+        } else {
+            str = start.source_line().substr(start.column-1);
+            for (int line = start.line + 1; line < end.line; line++) {
+                str += start.source->source_line(line);
+            }
+            str += end.source_line().substr(0, end.column + end.text.length());
+        }
+        if (seen.find(str) != seen.end()) {
+            continue;
+        }
+        seen.insert(str);
+
+        // Instead of directly constructing an AST fragment here, construct a temporary
+        // parse tree so we can leverage the analyze step for InterpolatedStringExpression
+        // (this takes care of the call to .toString()).
+        std::vector<std::pair<std::unique_ptr<pt::Expression>, Token>> iparts;
+        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), Token(), utf8string("  " + str + " is ")) }, Token()));
+        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(part) }, Token()));
+        std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
+        try {
+            statements.push_back(
+                new ast::ExpressionStatement(
+                    token,
+                    new ast::FunctionCall(
+                        new ast::VariableExpression(writeLine),
+                        {
+                            new ast::VariableExpression(textio_stderr),
+                            analyze(ie.get())
+                        }
+                    )
+                )
+            );
+            // These pointers are borrowed from the real parse tree,
+            // so release them here before the above temporary tree
+            // fragment tries to delete them itself.
+            ie->parts[1].first.release();
+        } catch (...) {
+            // And also do this if the above call to analyze() throws
+            // any exception.
+            ie->parts[1].first.release();
+            // There used to be a throw statement here to re-throw the exception,
+            // but a more robust approach is to just skip printing the output
+            // for an expression that doesn't have a viable .toString().
+            // TODO: Note that this hides all other kinds of unintended semantic
+            // errors in the expression.
+        }
+    }
+}
+
 const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
 {
     const pt::Expression *e = statement->exprs[0].get();
@@ -4820,60 +4891,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             )
         )
     );
-    std::set<std::string> seen;
-    for (auto part: parts) {
-        const Token &start = part->get_start_token();
-        const Token &end = part->get_end_token();
-        std::string str;
-        if (start.line == end.line) {
-            str = start.source_line().substr(start.column-1, end.column + end.text.length() - start.column);
-        } else {
-            str = start.source_line().substr(start.column-1);
-            for (int line = start.line + 1; line < end.line; line++) {
-                str += start.source->source_line(line);
-            }
-            str += end.source_line().substr(0, end.column + end.text.length());
-        }
-        if (seen.find(str) != seen.end()) {
-            continue;
-        }
-        seen.insert(str);
-
-        // Instead of directly constructing an AST fragment here, construct a temporary
-        // parse tree so we can leverage the analyze step for InterpolatedStringExpression
-        // (this takes care of the call to .toString()).
-        std::vector<std::pair<std::unique_ptr<pt::Expression>, Token>> iparts;
-        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), Token(), utf8string("  " + str + " is ")) }, Token()));
-        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(part) }, Token()));
-        std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
-        try {
-            statements.push_back(
-                new ast::ExpressionStatement(
-                    statement->token,
-                    new ast::FunctionCall(
-                        new ast::VariableExpression(writeLine),
-                        {
-                            new ast::VariableExpression(textio_stderr),
-                            analyze(ie.get())
-                        }
-                    )
-                )
-            );
-            // These pointers are borrowed from the real parse tree,
-            // so release them here before the above temporary tree
-            // fragment tries to delete them itself.
-            ie->parts[1].first.release();
-        } catch (...) {
-            // And also do this if the above call to analyze() throws
-            // any exception.
-            ie->parts[1].first.release();
-            // There used to be a throw statement here to re-throw the exception,
-            // but a more robust approach is to just skip printing the output
-            // for an expression that doesn't have a viable .toString().
-            // TODO: Note that this hides all other kinds of unintended semantic
-            // errors in the expression.
-        }
-    }
+    dump_expression_parts(statement->token, parts, statements);
     return new ast::AssertStatement(statement->token, statements, expr, statement->source);
 }
 
@@ -6301,6 +6319,11 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
     if (sys_exit == nullptr) {
         internal_error("need sys.exit");
     }
+    std::vector<const pt::Expression *> parts;
+    std::set<const ast::Function *> context;
+    if (expr->is_pure(context)) {
+        deconstruct(statement->expr.get(), parts);
+    }
     std::vector<const ast::Statement *> fail_statements {
         new ast::ExpressionStatement(
             statement->token,
@@ -6311,7 +6334,37 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
                     new ast::ConstantStringExpression(utf8string("TESTCASE failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "): " + statement->token.source->source_line(statement->token.line)))
                 }
             )
-        ),
+        )
+    };
+    if (not parts.empty()) {
+        fail_statements.push_back(
+            new ast::ExpressionStatement(
+                statement->token,
+                new ast::FunctionCall(
+                    new ast::VariableExpression(writeLine),
+                    {
+                        new ast::VariableExpression(textio_stderr),
+                        new ast::ConstantStringExpression(utf8string("Test case expression dump:"))
+                    }
+                )
+            )
+        );
+        dump_expression_parts(statement->token, parts, fail_statements);
+    } else {
+        fail_statements.push_back(
+            new ast::ExpressionStatement(
+                statement->token,
+                new ast::FunctionCall(
+                    new ast::VariableExpression(writeLine),
+                    {
+                        new ast::VariableExpression(textio_stderr),
+                        new ast::ConstantStringExpression(utf8string("Test case expression dump not available due to possible side effects"))
+                    }
+                )
+            )
+        );
+    }
+    fail_statements.push_back(
         new ast::ExpressionStatement(
             statement->token,
             new ast::FunctionCall(
@@ -6321,7 +6374,7 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
                 }
             )
         )
-    };
+    );
     if (statement->expected_exception.empty()) {
         expr = convert(ast::TYPE_BOOLEAN, expr);
         if (expr == nullptr) {

@@ -87,6 +87,7 @@ sql-execute.neon           # module sqlite
 sql-query.neon             # module sqlite
 sql-whenever.neon          # module sqlite
 sqlite-test.neon           # verifier
+string-in.neon             # verifier
 string-index.neon          # index
 string-test.neon           # utf-16 surrogates
 struct-test.neon           # ExpressionTransformer
@@ -97,6 +98,7 @@ textio-seek.neon           # PredefinedVariable textio$stdout
 textio-test.neon           # PredefinedVariable textio$stdout
 tostring.neon              # enum tostring
 tostring-quotes.neon
+unicode-length.neon        # verifier
 unicode-string.neon        # UTF-8
 value-copy.neon            # value copy
 

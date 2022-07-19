@@ -134,6 +134,7 @@ unicode-char.neon               # utf8
 unicode-length.neon             # utf8
 uninitialised-out.neon          # OUT
 valid-pointer.neon              # memory leak
+value-copy.neon                 # choice tostring
 varargs.neon                    # memory leak
 varargs-functionpointer.neon    # memory leak
 while-valid.neon                # pointers
