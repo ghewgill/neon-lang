@@ -1957,6 +1957,28 @@ public:
     }
 };
 
+class ChoiceValueExpression: public Expression {
+public:
+    explicit ChoiceValueExpression(const ast::ChoiceValueExpression *cve): Expression(cve), cve(cve), expr(transform(cve->expr)), choice_type(dynamic_cast<const TypeChoice *>(transform(cve->choice_type))) {}
+    ChoiceValueExpression(const ChoiceValueExpression &) = delete;
+    ChoiceValueExpression &operator=(const ChoiceValueExpression &) = delete;
+    const ast::ChoiceValueExpression *cve;
+    const Expression *expr;
+    const TypeChoice *choice_type;
+
+    virtual std::string generate(Context &context) const override {
+        context.push_scope();
+        std::string name = expr->generate(context);
+        context.pop_scope();
+        for (auto c: choice_type->choices) {
+            if (c.second.first == cve->choice) {
+                return name + ".u." + c.first;
+            }
+        }
+        internal_error("ChoiceValueExpression");
+    }
+};
+
 class PointerDereferenceExpression: public Expression {
 public:
     explicit PointerDereferenceExpression(const ast::PointerDereferenceExpression *pde): Expression(pde), pde(pde), ptr(transform(pde->ptr)) {}
@@ -2935,6 +2957,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
@@ -3069,6 +3092,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
@@ -3203,6 +3227,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
     virtual void visit(const ast::ChoiceReferenceExpression *node) { r = new ChoiceReferenceExpression(node); }
+    virtual void visit(const ast::ChoiceValueExpression *node) { r = new ChoiceValueExpression(node); }
     virtual void visit(const ast::PointerDereferenceExpression *node) { r =  new PointerDereferenceExpression(node); }
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
@@ -3337,6 +3362,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}

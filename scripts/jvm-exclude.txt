@@ -54,6 +54,7 @@ new-init-module.neon       # NoClassDefFoundError
 number-ceil.neon           # module math
 number-exception.neon
 object.neon                # object
+object-choice.neon         # object
 object-isa.neon            # object
 object-isa-case.neon       # object
 object-isa-inconvertible.neon

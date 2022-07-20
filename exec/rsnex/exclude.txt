@@ -241,6 +241,7 @@ next-while.neon
 number-ceil.neon
 number-exception.neon
 number-underscore.neon
+object-choice.neon
 object-isa-case.neon
 object-isa-inconvertible.neon
 object-isa.neon
