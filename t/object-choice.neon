@@ -1,6 +1,7 @@
 TYPE Choice IS CHOICE
     str: String
     num: Number
+    err
 END CHOICE
 
 VAR c: Choice := Choice.str("test")
@@ -13,4 +14,14 @@ x := c
 TESTCASE x["str"] EXPECT ObjectSubscriptException
 TESTCASE x["num"] = 5
 
--- Need to implement conversion going the other way too.
+x := {"num": 7}
+c := x
+CHECK c ISA Choice.num ELSE
+    PANIC "not a num"
+END CHECK
+TESTCASE c.num = 7
+
+c := Choice.err
+x := c
+c := x
+TESTCASE c ISA Choice.err

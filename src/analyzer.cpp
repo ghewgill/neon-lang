@@ -858,19 +858,25 @@ static const ast::Expression *make_object_conversion_from_choice(Analyzer *analy
             std::vector<const ast::Statement *>{
                 new ast::AssignmentStatement(
                     Token(),
-                    {new ast::DictionaryReferenceIndexExpression(
+                    {new ast::VariableExpression(result)},
+                    new ast::DictionaryLiteralExpression(
                         ast::TYPE_OBJECT,
-                        new ast::VariableExpression(result),
-                        new ast::ConstantStringExpression(utf8string(c.first))
-                    )},
-                    converter(
-                        analyzer,
-                        new ast::ChoiceValueExpression(
-                            c.second.second,
-                            e,
-                            ctype,
-                            c.second.first
-                        )
+                        {{
+                            utf8string(c.first),
+                            c.second.second != nullptr ?
+                                converter(
+                                    analyzer,
+                                    new ast::ChoiceValueExpression(
+                                        c.second.second,
+                                        e,
+                                        ctype,
+                                        c.second.first
+                                    )
+                                )
+                            :
+                                new ast::ConstantNilExpression()
+                        }},
+                        {Token()}
                     )
                 )
             }
@@ -922,6 +928,77 @@ static const ast::Expression *make_record_conversion_from_object(Analyzer *analy
     }
     return new ast::StatementExpression(
         new ast::CompoundStatement(Token(), field_statements),
+        new ast::VariableExpression(result)
+    );
+}
+
+static const ast::Expression *make_enum_conversion_from_object(Analyzer *analyzer, const ast::TypeEnum *etype, const ast::Expression *e)
+{
+    auto converter = ast::TYPE_STRING->make_converter(ast::TYPE_OBJECT);
+    return new ast::FunctionCall(
+        new ast::VariableExpression(etype->methods.at("CREATE.name")),
+        {
+            converter(analyzer, e),
+            new ast::ConstantBooleanExpression(false),
+            new ast::ConstantNumberExpression(number_from_sint32(0))
+        }
+    );
+}
+
+static const ast::Expression *make_choice_conversion_from_object(Analyzer *analyzer, const ast::TypeChoice *ctype, const ast::Expression *e)
+{
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(ctype);
+    std::vector<const ast::Statement *> choice_statements;
+    // This creates a bunch of statements in sequence that try to extract the choice
+    // value from the object.So if the object contains more than one thing, then
+    // the last one wins. When this gets refactored into making individual functions,
+    // then the assignment should be changed to ReturnStatement.
+    for (auto &c: ctype->choices) {
+        if (c.second.second != nullptr) {
+            auto converter = c.second.second->make_converter(ast::TYPE_OBJECT);
+            choice_statements.push_back(
+                new ast::TryStatement(
+                    Token(),
+                    {new ast::AssignmentStatement(
+                        Token(),
+                        {new ast::VariableExpression(result)},
+                        new ast::ConstantChoiceExpression(
+                            ctype,
+                            c.second.first,
+                            converter(
+                                analyzer,
+                                new ast::ObjectSubscriptExpression(
+                                    e,
+                                    ast::TYPE_OBJECT->make_converter(ast::TYPE_STRING)(analyzer, new ast::ConstantStringExpression(utf8string(c.first)))
+                                )
+                            )
+                        )
+                    )},
+                    {
+                        ast::TryTrap(
+                            {dynamic_cast<const ast::Exception *>(analyzer->global_scope->lookupName("ObjectSubscriptException"))},
+                            nullptr,
+                            new ast::ExceptionHandlerStatement(Token(), {new ast::NullStatement(Token())})
+                        )
+                    }
+                )
+            );
+        } else {
+            choice_statements.push_back(
+                new ast::AssignmentStatement(
+                    Token(),
+                    {new ast::VariableExpression(result)},
+                    new ast::ConstantChoiceExpression(
+                        ctype,
+                        c.second.first,
+                        nullptr
+                    )
+                )
+            );
+        }
+    }
+    return new ast::StatementExpression(
+        new ast::CompoundStatement(Token(), choice_statements),
         new ast::VariableExpression(result)
     );
 }
@@ -1108,7 +1185,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     const TypeChoice *ctype = dynamic_cast<const TypeChoice *>(from);
     if (ctype != nullptr) {
         for (auto &c: ctype->choices) {
-            if (make_converter(c.second.second) == nullptr) {
+            if (c.second.second != nullptr && make_converter(c.second.second) == nullptr) {
                 return nullptr;
             }
         }
@@ -1235,6 +1312,40 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         }
         return [this](Analyzer *analyzer, const Expression *e) {
             return make_record_conversion_from_object(analyzer, this, e);
+        };
+    }
+    return nullptr;
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeEnum::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        return [this](Analyzer *analyzer, const Expression *e) {
+            return make_enum_conversion_from_object(analyzer, this, e);
+        };
+    }
+    return nullptr;
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeChoice::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        for (auto &c: choices) {
+            if (c.second.second != nullptr) {
+                auto conv = c.second.second->make_converter(ast::TYPE_OBJECT);
+                if (conv == nullptr) {
+                    return nullptr;
+                }
+            }
+        }
+        return [this](Analyzer *analyzer, const Expression *e) {
+            return make_choice_conversion_from_object(analyzer, this, e);
         };
     }
     return nullptr;

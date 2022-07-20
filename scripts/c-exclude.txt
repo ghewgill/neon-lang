@@ -74,6 +74,7 @@ new-init.neon                   # memory leak
 next-for.neon                   # FOR statement
 number-ceil.neon                # number
 number-exception.neon           # number
+object-choice.neon              # ObjectSubscriptExpression
 object-isa-case.neon            # ISA
 object-isa-inconvertible.neon   # TypeTestExpression
 object-isa.neon                 # TypeTestExpression
