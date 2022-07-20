@@ -123,6 +123,9 @@ class Cell {
 
     public Cell getAddress()
     {
+        if (type == Type.NONE) {
+            type = Type.ADDRESS;
+        }
         assert type == Type.ADDRESS : type;
         return addr;
     }
@@ -153,6 +156,9 @@ class Cell {
 
     public NeObject getObject()
     {
+        if (type == Type.NONE) {
+            type = Type.OBJECT;
+        }
         assert type == Type.OBJECT : type;
         return object;
     }

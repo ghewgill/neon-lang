@@ -1016,7 +1016,7 @@ class Executor {
     private void doPUSHNIL()
     {
         ip++;
-        stack.addFirst(new Cell((Cell)null));
+        stack.addFirst(new Cell());
     }
 
     private void doRESETC()
