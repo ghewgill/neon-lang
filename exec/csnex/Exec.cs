@@ -286,7 +286,7 @@ namespace csnex
         void PUSHNIL()
         {
             ip++;
-            stack.Push(Cell.CreateAddressCell(null));
+            stack.Push(new Cell());
         }
 
         void PUSHFP()
