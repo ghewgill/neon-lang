@@ -154,6 +154,8 @@ private:
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, std::string tname, bool for_class);
     const ast::Expression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
     void dump_expression_parts(const Token &token, const std::vector<const pt::Expression *> &parts, std::vector<const ast::Statement *> &statements);
+    const ast::Expression *analyze_enum_call(const pt::FunctionCallExpression *expr, const ast::TypeEnum *enumtype);
+    const ast::Expression *analyze_choice_call(const pt::FunctionCallExpression *expr, const pt::DotExpression *dotexpr, const ast::TypeChoice *choice_type);
 };
 
 class TypeAnalyzer: public pt::IParseTreeVisitor {
@@ -2869,8 +2871,86 @@ static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_
     return std::make_pair(true, std::make_pair(0, ""));
 }
 
+const ast::Expression *Analyzer::analyze_enum_call(const pt::FunctionCallExpression *expr, const ast::TypeEnum *enumtype)
+{
+    const ast::Expression *value_or_name = nullptr;
+    const ast::Expression *default_value = nullptr;
+    const ast::Expression *func = nullptr;
+    for (auto &a: expr->args) {
+        if (a->name.text == "value") {
+            value_or_name = analyze(a->expr.get());
+            value_or_name = convert(ast::TYPE_NUMBER, value_or_name);
+            if (value_or_name == nullptr) {
+                error(3337, a->expr.get()->token, "number required");
+            }
+            func = new ast::VariableExpression(enumtype->methods.at("CREATE.value"));
+        } else if (a->name.text == "name") {
+            value_or_name = analyze(a->expr.get());
+            value_or_name = convert(ast::TYPE_STRING, value_or_name);
+            if (value_or_name == nullptr) {
+                error(3338, a->expr.get()->token, "string required");
+            }
+            func = new ast::VariableExpression(enumtype->methods.at("CREATE.name"));
+        } else if (a->name.text == "default") {
+            default_value = analyze(a->expr.get());
+            if (default_value->type != enumtype) {
+                error(3339, a->expr.get()->token, "type mismatch");
+            }
+        } else {
+            error(3335, a->name, "unknown parameter");
+        }
+    }
+    if (func == nullptr) {
+        error(3336, expr->token, "need value or name");
+    }
+    return new ast::FunctionCall(func, {
+        value_or_name,
+        new ast::ConstantBooleanExpression(default_value != nullptr),
+        default_value != nullptr ? default_value : new ast::ConstantNumberExpression(number_from_sint32(0))
+    }, nullptr, false);
+}
+
+const ast::Expression *Analyzer::analyze_choice_call(const pt::FunctionCallExpression *expr, const pt::DotExpression *dotexpr, const ast::TypeChoice *choice_type)
+{
+    auto choice = choice_type->choices.find(dotexpr->name.text);
+    if (choice == choice_type->choices.end()) {
+        error(3309, dotexpr->name, "choice not found");
+    }
+    if (choice->second.second == nullptr) {
+        error(3319, dotexpr->name, "choice does not take data");
+    }
+    if (expr->args.size() != 1) {
+        error(3310, expr->rparen, "expected 1 argument");
+    }
+    const ast::Expression *arg = analyze(expr->args[0]->expr.get());
+    arg = convert(choice->second.second, arg);
+    if (arg == nullptr) {
+        error(3311, expr->args[0]->expr->token, "type mismatch");
+    }
+    return new ast::ConstantChoiceExpression(choice_type, choice->second.first, arg);
+}
+
 const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
 {
+    {
+        if (auto dotexpr = dynamic_cast<const pt::DotExpression *>(expr->base.get())) {
+            const ast::Name *name = analyze_qualified_name(dotexpr->base.get());
+            if (auto enumtype = dynamic_cast<const ast::TypeEnum *>(name)) {
+                return analyze_enum_call(expr, enumtype);
+            } else if (auto choicetype = dynamic_cast<const ast::TypeChoice *>(name)) {
+                return analyze_choice_call(expr, dotexpr, choicetype);
+            } else {
+                name = analyze_qualified_name(dotexpr);
+                if (auto enumtype = dynamic_cast<const ast::TypeEnum *>(name)) {
+                    return analyze_enum_call(expr, enumtype);
+                }
+            }
+        } else if (auto enumtype = dynamic_cast<const ast::TypeEnum *>(expr->base.get())) {
+            return analyze_enum_call(expr, enumtype);
+        }
+    }
+    abort();
+
     // TODO: This stuff works, but it's increasingly becoming a mess. There seem
     // to be quite a few cases of x.y(), and this function tries to handle them all
     // in a haphazard fashion.
