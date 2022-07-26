@@ -193,6 +193,7 @@ int main(int argc, char* argv[])
     }
 #endif
     int ret = 0;
+    NumberDisplayMode = nfFull;
     gOptions.pszExecutableName = path_getFileNameOnly(argv[0]);
 
     if (!ParseOptions(argc, argv)) {
@@ -243,6 +244,7 @@ shutdown:
     global_shutdown();
     path_freePaths();
     ext_cleanup();
+    number_cleanup();
 
     free(gOptions.pszExecutablePath);
 #ifdef __MS_HEAP_DBG
@@ -1351,7 +1353,9 @@ void exec_CALLF(TExecutor *self)
     self->ip++;
     unsigned int val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", self->param_recursion_limit);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     invoke(self, self->module, val);
@@ -1364,7 +1368,9 @@ void exec_CALLMF(TExecutor *self)
     unsigned int fun = exec_getOperand(self);
     unsigned int efi = 0;
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", self->param_recursion_limit);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
 
@@ -1390,7 +1396,9 @@ void exec_CALLI(TExecutor *self)
 {
     self->ip++;
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", self->param_recursion_limit);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
 
@@ -1399,7 +1407,7 @@ void exec_CALLI(TExecutor *self)
     Number nindex = a->array->data[1].number;
     pop(self->stack);
     if (number_is_zero(nindex) || !number_is_integer(nindex)) {
-        self->rtl_raise(self, "InvalidFunctionException", "");
+        self->rtl_raise(self, "PANIC", "Invalid function pointer");
         return;
     }
     uint32_t index = number_to_uint32(nindex);
@@ -1650,7 +1658,9 @@ void exec_CALLV(TExecutor *self)
     self->ip++;
     uint32_t val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
-        self->rtl_raise(self, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", self->param_recursion_limit);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
 

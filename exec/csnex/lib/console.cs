@@ -13,7 +13,7 @@ namespace csnex.rtl
             Exec = exe;
         }
 
-        public void input()
+        public void input_internal()
         {
             string prompt = Exec.stack.Pop().String;
             string r;
@@ -22,11 +22,12 @@ namespace csnex.rtl
                 Console.OutputEncoding = Encoding.UTF8;
                 Console.Out.Write(prompt);
                 r = Console.In.ReadLine();
+                Exec.stack.Push(Cell.CreateBooleanCell(true));
+                Exec.stack.Push(Cell.CreateStringCell(r));
             } catch (EndOfStreamException) {
-                throw new NeonRuntimeException("EndOfFileException", "");
+                Exec.stack.Push(Cell.CreateBooleanCell(false));
+                Exec.stack.Push(Cell.CreateStringCell(""));
             }
-
-            Exec.stack.Push(Cell.CreateStringCell(r));
         }
 
         public void output()

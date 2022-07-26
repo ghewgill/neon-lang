@@ -15,6 +15,7 @@ datetime-test.neon              # module datetime
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 dictionary.neon                 # memory leak
+dns-test.neon                   # module file
 encoding-base64.neon            # module binary
 enum.neon                       # enum.toString
 equality.neon                   # pointers
@@ -75,6 +76,7 @@ new-init.neon                   # memory leak
 next-for.neon                   # FOR statement
 number-ceil.neon                # number
 number-exception.neon           # number
+object-choice.neon              # ObjectSubscriptExpression
 object-isa-case.neon            # ISA
 object-isa-inconvertible.neon   # TypeTestExpression
 object-isa.neon                 # TypeTestExpression
@@ -124,6 +126,7 @@ string-index.neon               # memory leak
 string-multiline.neon           # string.find
 string-test.neon                # module string
 struct-test.neon                # bignum
+testcase.neon                   # DynamicConversionException
 textio-random.neon              # module textio
 textio-seek.neon                # module textio
 textio-test.neon                # module textio
@@ -135,6 +138,7 @@ unicode-char.neon               # utf8
 unicode-length.neon             # utf8
 uninitialised-out.neon          # OUT
 valid-pointer.neon              # memory leak
+value-copy.neon                 # choice tostring
 varargs.neon                    # memory leak
 varargs-functionpointer.neon    # memory leak
 while-valid.neon                # pointers

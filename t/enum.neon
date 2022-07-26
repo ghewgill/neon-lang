@@ -13,3 +13,27 @@ VAR a: Colour
 a := Colour.red
 print(a.toString())
 --= red
+
+TYPE Command IS ENUM
+    query := 1
+    response := 2
+    status := 9
+END ENUM
+
+VAR c: Command := Command.response
+TESTCASE c.value() = 2
+TESTCASE c.name() = "response"
+
+TESTCASE Command.response.value() = 2
+
+c := Command(value WITH 9)
+TESTCASE c = Command.status
+
+c := Command(name WITH "query")
+TESTCASE c = Command.query
+
+TESTCASE Command(value WITH 5) EXPECT PANIC "unknown enum value: 5"
+TESTCASE Command(name WITH "xyz") EXPECT PANIC "unknown enum name: xyz"
+
+TESTCASE Command(value WITH 5, default WITH Command.query) = Command.query
+TESTCASE Command(name WITH "xyz", default WITH Command.response) = Command.response

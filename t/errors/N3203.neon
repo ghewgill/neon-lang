@@ -1,2 +1,2 @@
-LET n: Number := (TRY 1 TRAP InvalidValueException DO print("hello"))
-                                                      --<
+LET n: Number := (TRY 1 TRAP ValueRangeException DO print("hello"))
+                                                    --<

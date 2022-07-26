@@ -20,6 +20,7 @@ bytes-embed.neon           # bytes
 bytes-index.neon           # index
 bytes-literal.neon         # bytes
 bytes-slice.neon           # bytes
+bytes-splice.neon          # bytes splice
 bytes-tostring.neon        # bytes
 bytes-value-index.neon     # bytes
 bytes.neon                 # bytes
@@ -35,6 +36,7 @@ debug.neon                 # module runtime
 debug-example.neon         # keyword in
 debug-server.neon          # StringReferenceIndexExpression
 decimal.neon               # Inf
+dns-test.neon              # ?
 dictionary.neon            # exception on dictionary index not existing
 encoding-base64.neon       # module
 enum.neon                  # keyword enum
@@ -96,6 +98,7 @@ net-test.neon              # module net
 net-test-udp.neon          # module net
 number-ceil.neon           # number formatting
 object.neon                # object
+object-choice.neon         # object
 object-isa.neon            # object
 object-isa-case.neon       # object
 object-isa-inconvertible.neon
@@ -149,6 +152,7 @@ struct-test.neon           # DictionaryInExpression
 sudoku-test.neon           # ArrayReferenceRangeExpression
 sys-exit.neon              # module sys
 tail-call.neon             # recursion limit
+testcase.neon              # object__getString
 textio-random.neon         # module textio
 textio-seek.neon           # module textio
 textio-test.neon           # module textio

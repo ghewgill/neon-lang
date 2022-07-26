@@ -477,14 +477,14 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
 {
     // TODO: move this into a method in Executor that's called by exec_CALLI too
     if (g_executor->callstack.size() >= g_executor->param_recursion_limit) {
-        g_executor->raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        g_executor->raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(g_executor->param_recursion_limit))));
         return;
     }
     std::vector<Cell> a = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(callback))->array();
     Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (mod == nullptr || number_is_zero(nindex) || not number_is_integer(nindex)) {
-        g_executor->raise(rtl::ne_global::Exception_InvalidFunctionException, std::make_shared<ObjectString>(utf8string("")));
+        g_executor->raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Invalid function pointer")));
         return;
     }
     if (params != NULL) {
@@ -1329,7 +1329,7 @@ void Executor::exec_CALLF()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(param_recursion_limit))));
         return;
     }
     invoke(module, val);
@@ -1341,7 +1341,7 @@ void Executor::exec_CALLMF()
     uint32_t mod = Bytecode::get_vint(module->object.code, ip);
     uint32_t func = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(param_recursion_limit))));
         return;
     }
     auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
@@ -1369,14 +1369,14 @@ void Executor::exec_CALLI()
 {
     ip++;
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(param_recursion_limit))));
         return;
     }
     std::vector<Cell> a = stack.top().array(); stack.pop();
     Module *mod = reinterpret_cast<Module *>(a[0].other());
     Number nindex = a[1].number();
     if (number_is_zero(nindex) || not number_is_integer(nindex)) {
-        raise(rtl::ne_global::Exception_InvalidFunctionException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Invalid function pointer")));
         return;
     }
     uint32_t index = number_to_uint32(nindex);
@@ -1551,13 +1551,7 @@ void Executor::exec_CALLX()
             void_function_t init = rtl_foreign_function(modlib, "Ne_INIT");
             reinterpret_cast<int (*)(const Ne_MethodTable *)>(init)(&ExtensionMethodTable);
         } catch (RtlException &e) {
-            if (e.name == rtl::ne_global::Exception_LibraryNotFoundException.name) {
-                fprintf(stderr, "neon_exec: library %s not found\n", modlib.c_str());
-            } else if (e.name == rtl::ne_global::Exception_FunctionNotFoundException.name) {
-                fprintf(stderr, "neon_exec: function Ne_INIT not found in %s\n", modlib.c_str());
-            } else {
-                fprintf(stderr, "neon_exec: unknown exception %s while finding Ne_INIT in %s\n", e.name.c_str(), modlib.c_str());
-            }
+            fprintf(stderr, "%s\n", e.info.c_str());
             exit(1);
         }
         g_ExtensionModules.insert(modname);
@@ -1633,7 +1627,7 @@ void Executor::exec_CALLV()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
-        raise(rtl::ne_global::Exception_StackOverflowException, std::make_shared<ObjectString>(utf8string("")));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("StackOverflow: Stack depth exceeds recursion limit of " + std::to_string(param_recursion_limit))));
         return;
     }
     std::vector<Cell> &pi = stack.top().array_for_write();

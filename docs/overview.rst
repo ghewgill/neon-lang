@@ -15,7 +15,11 @@ Program structure and modules are influenced by Python.
     IMPORT console
 
     LOOP
-        LET name: String := console.input("What is your name? ")
+        LET ir: console.InputResult := console.input("What is your name? ")
+        CHECK ir ISA console.InputResult.line ELSE
+            EXIT LOOP
+        END CHECK
+        LET name: String := ir.line
         IF name = "" THEN
             EXIT LOOP
         END IF

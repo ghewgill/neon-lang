@@ -23,7 +23,7 @@ END FUNCTION
 FUNCTION testRaise(x: Number)
     CHECK x > 0 ELSE
         print("check raise")
-        RAISE InvalidValueException
+        RAISE ValueRangeException
     END CHECK
     print("ok raise")
 END FUNCTION
@@ -43,7 +43,7 @@ testNext(0)
 --= check next
 TRY
     testRaise(0)
-TRAP InvalidValueException DO
+TRAP ValueRangeException DO
 END TRY
 --= check raise
 _ := testReturn(0)

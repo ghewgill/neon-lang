@@ -93,12 +93,12 @@ FUNCTION format(s: String, fmt: String): String
     CASE type
         WHEN "", "s" DO
             IF sign <> "" OR align = "=" THEN
-                RAISE FormatException
+                PANIC "Invalid format specifier"
             END IF
         WHEN "d", "x" DO
             -- pass
         WHEN OTHERS DO
-            RAISE FormatException
+            PANIC "Invalid format specifier"
     END CASE
 
     VAR r: String := s
@@ -211,7 +211,7 @@ DECLARE NATIVE FUNCTION quoted(s: String): String
  */
 FUNCTION repeat(s: String, n: Number): String
     CHECK n >= 0 ELSE
-        RAISE InvalidValueException
+        RAISE ValueRangeException
     END CHECK
     VAR r: String := ""
     VAR t: String := s

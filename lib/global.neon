@@ -53,18 +53,6 @@ END RECORD
  */
 EXCEPTION ArrayIndexException
 
-/*  Exception: AssertFailedException
- *
- *  Assert failed.
- */
-EXCEPTION AssertFailedException
-
-/*  Exception: ByteOutOfRangeException
- *
- *  A byte is out of range in toBytes().
- */
-EXCEPTION ByteOutOfRangeException
-
 /*  Exception: BytesIndexException
  *
  *  A byte index is not valid or out of range.
@@ -107,47 +95,11 @@ EXCEPTION NumberException.Overflow
  */
 EXCEPTION DynamicConversionException
 
-/*  Exception: EndOfFileException
- *
- *  End of input file.
- */
-EXCEPTION EndOfFileException
-
-/*  Exception: FormatException
- *
- *  Format specifier not valid.
- */
-EXCEPTION FormatException
-
 /*  Exception: InterruptedException
  *
  *  Execution interrupted with Ctrl+C.
  */
 EXCEPTION InterruptedException
-
-/*  Exception: InvalidFunctionException
- *
- *  An invalid function pointer was called.
- */
-EXCEPTION InvalidFunctionException
-
-/*  Exception: InvalidValueException
- *
- *  An invalid value was passed to a library function.
- */
-EXCEPTION InvalidValueException
-
-/*  Exception: FunctionNotFoundException
- *
- *  Function not found.
- */
-EXCEPTION FunctionNotFoundException
-
-/*  Exception: LibraryNotFoundException
- *
- *  Library not found.
- */
-EXCEPTION LibraryNotFoundException
 
 /*  Exception: ObjectSubscriptException
  *
@@ -160,12 +112,6 @@ EXCEPTION ObjectSubscriptException
  *  SQL exception.
  */
 EXCEPTION SqlException
-
-/*  Exception: StackOverflowException
- *
- *  Call stack exceeded limit.
- */
-EXCEPTION StackOverflowException
 
 /*  Exception: StringIndexException
  *

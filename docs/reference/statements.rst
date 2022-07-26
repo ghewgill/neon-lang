@@ -83,7 +83,7 @@ The ``CHECK`` statement evaluates a boolean expression and, if it is ``FALSE``, 
 
     FUNCTION foo(n: Number)
         CHECK n >= 0 ELSE
-            RAISE InvalidValueException
+            RAISE ValueRangeException
         END CHECK
         print("\(n)")
     END FUNCTION

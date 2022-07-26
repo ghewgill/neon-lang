@@ -1245,7 +1245,7 @@ class Executor:
 
     def invoke(self, module, index):
         if len(self.callstack) >= self.param_recursion_limit:
-            self.raise_literal("StackOverflowException", "")
+            self.raise_literal("PANIC", "StackOverflow: Stack depth exceeds recursion limit of {}".format(self.param_recursion_limit))
             return
         self.callstack.append((self.module, self.ip))
         outer = None
@@ -1508,9 +1508,9 @@ def neon_array__splice(self):
 
 def neon_array__toBytes__number(self):
     a = self.stack.pop()
-    for x in a:
+    for i, x in enumerate(a):
         if x.value is not None and not (0 <= x.value < 256):
-            self.raise_literal("ByteOutOfRangeException", x.value)
+            self.raise_literal("PANIC", "Byte value out of range at offset {}: {}".format(i, x.value))
             return
     self.stack.append(bytearray(int(x.value) if x.value is not None else 0 for x in a))
 
@@ -1932,7 +1932,16 @@ def neon_bytes__splice(self):
         first += len(a) - 1
     if last_from_end:
         last += len(a) - 1
-    r = a[:first] + b + a[last+1:]
+    if first < 0:
+        self.raise_literal("BytesIndexException", (str(first), 0))
+        return
+    if last < first-1:
+        self.raise_literal("BytesIndexException", (str(last), 0))
+        return
+    padding = b""
+    if first > len(a):
+        padding = b"\0" * (first - len(a))
+    r = a[:first] + padding + b + a[last+1:]
     self.stack.append(r)
 
 def neon_bytes__store(self):
@@ -2986,7 +2995,7 @@ def neon_string_upper(self):
 def neon_sys_exit(self):
     x = self.stack.pop()
     if not is_integer(x) or x < 0 or x > 255:
-        self.raise_literal("InvalidValueException", "sys.exit invalid parameter: {}".format(x))
+        self.raise_literal("ValueRangeException", "sys.exit invalid parameter: {}".format(x))
         return
     sys.exit(int(x))
 

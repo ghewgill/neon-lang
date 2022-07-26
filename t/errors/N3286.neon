@@ -1,4 +1,4 @@
 IMPORT console
 
-ASSERT console.input(">") = ""
+ASSERT console.input(">") ISA console.InputResult.line
                           --<

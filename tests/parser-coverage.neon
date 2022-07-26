@@ -31,6 +31,7 @@ TYPE name IS CLASS IMPLEMENTS module.name1, module.name2 END CLASS
 TYPE name IS ENUM END ENUM
 TYPE name IS ENUM one END ENUM
 TYPE name IS ENUM one two END ENUM
+TYPE name IS ENUM one := 1 two END ENUM
 
 -- Type, ChoiceType
 TYPE name IS CHOICE one END CHOICE

@@ -668,22 +668,6 @@ const Expression *TypeEnum::make_default_value() const
     return new ConstantEnumExpression(this, 0);
 }
 
-std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeEnum::make_converter(const Type *from) const
-{
-    if (from == this) {
-        return identity_conversion;
-    }
-    return nullptr;
-}
-
-std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeChoice::make_converter(const Type *from) const
-{
-    if (from == this) {
-        return identity_conversion;
-    }
-    return nullptr;
-}
-
 std::string TypeEnum::serialize(const Expression *value) const
 {
     Number x = value->eval_number();

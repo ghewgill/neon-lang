@@ -14,12 +14,9 @@
 Cell *object_toLiteralString(Object *obj)
 {
     if (obj->type == oString) {
-        Cell *cell = cell_fromCString("\"");
         Cell *str = object_toString(obj);
-        cell->string = string_appendString(cell->string, str->string);
-        cell_freeCell(str);
-        cell->string = string_appendCString(cell->string, "\"");
-        return cell;
+        str->string = string_quoteInPlace(str->string);
+        return str;
     } else {
         return object_toString(obj);
     }
@@ -78,12 +75,11 @@ Cell *object_toString(Object *obj)
             if (r->length > 1) {
                 r = string_appendCString(r, ", ");
             }
-            r = string_appendCString(r, "\"");
-            r = string_appendString(r, keys->array->data[x].string);
-            r = string_appendCString(r, "\": ");
-            Cell *de = object_toLiteralString(dictionary_findDictionaryEntry(d, keys->array->data[x].string)->object);
-            r = string_appendString(r, de->string);
-            cell_freeCell(de);
+            Cell *quotedData = object_toLiteralString(dictionary_findDictionaryEntry(d, keys->array->data[x].string)->object);
+            r = string_appendString(r, string_quoteInPlace(keys->array->data[x].string));
+            r = string_appendCString(r, ": ");
+            r = string_appendString(r, quotedData->string);
+            cell_freeCell(quotedData);
         }
         r = string_appendCString(r, "}");
         cell_freeCell(keys);

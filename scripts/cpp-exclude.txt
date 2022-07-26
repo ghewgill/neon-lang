@@ -46,6 +46,7 @@ bytes-index.neon
 bytes-literal.neon
 bytes.neon
 bytes-slice.neon
+bytes-splice.neon
 bytes-tostring.neon
 bytes-value-index.neon
 cal-test.neon
@@ -93,6 +94,7 @@ dictionary-keys-tostring.neon
 dictionary.neon
 dictionary-sorted.neon
 divide-by-zero.neon
+dns-test.neon
 duplicate.neon
 empty.neon
 encoding-base64.neon
@@ -244,6 +246,7 @@ next-while.neon
 number-ceil.neon
 number-exception.neon
 number-underscore.neon
+object-choice.neon
 object-isa-case.neon
 object-isa-inconvertible.neon
 object-isa.neon

@@ -188,7 +188,7 @@ def number_start(c):
     return c.isdigit()
 
 def number_body(c):
-    return c.isdigit() or c == "." or c == "x"
+    return c.isdigit() or c == "."
 
 def space(c):
     return c.isspace()
@@ -271,8 +271,14 @@ def tokenize_fragment(source):
                 r.append(Identifier(text))
         elif number_start(source[i]):
             start = i
-            while i < len(source) and number_body(source[i]):
+            i += 1
+            if i < len(source) and source[i] == "x":
                 i += 1
+                while i < len(source) and source[i].lower() in "0123456789abcdef":
+                    i += 1
+            else:
+                while i < len(source) and number_body(source[i]):
+                    i += 1
             t = source[start:i]
             try:
                 num = int(t, base=0)
@@ -384,7 +390,7 @@ class TypeEnum:
     def __init__(self, names):
         self.names = names
     def resolve(self, env):
-        return ClassEnum(self.names)
+        return ClassEnum(env, self.names)
 
 class TypeChoice:
     def __init__(self, choices):
@@ -712,6 +718,8 @@ class DotExpression:
     def __init__(self, expr, field):
         self.expr = expr
         self.field = field
+    def __repr__(self):
+        return "<DotExpression:{}.{}>".format(self.expr, self.field)
     def eval(self, env):
         obj = self.expr.eval(env)
         return self.eval_obj(env, obj)
@@ -747,6 +755,9 @@ class DotExpression:
             if self.field == "size": return lambda env, self: len(obj)
             if self.field == "toString": return lambda env, self: "{{{}}}".format(", ".join("{}: {}".format(neon_string_quoted(env, k), neon_string_quoted(env, v) if isinstance(v, str) else str(v)) for k, v in sorted(obj.items())))
             return obj[self.field] # Support a.b syntax where a is an object.
+        elif isinstance(obj, ClassEnum.Instance):
+            if self.field in ("name", "toString"): return lambda env, self: self.name
+            if self.field == "value": return lambda env, self: self.value
         elif isinstance(obj, ClassChoice):
             return ClassChoice.Instance(self.field, None)
         elif isinstance(obj, Program):
@@ -1074,6 +1085,8 @@ class FunctionCallExpression:
     def __init__(self, func, args):
         self.func = func
         self.args = args
+    def __repr__(self):
+        return "<FunctionCallExpression:{}({})>".format(self.func, self.args)
     def eval(self, env):
         args = [a[1].eval(env) for a in self.args]
         if self.args and self.args[-1][2]: # spread
@@ -1109,6 +1122,24 @@ class FunctionCallExpression:
                         j += 1
                 r = r[0]
             return r
+        elif isinstance(f, ClassEnum):
+            if self.args[0][0] == "value":
+                v = self.args[0][1].eval(env)
+                for x in f.names:
+                    a = getattr(f, x[0])
+                    if a.value == v:
+                        return a
+                if len(self.args) >= 2 and self.args[1][0] == "default":
+                    return self.args[1][1].eval(env)
+                raise NeonException(("PANIC",), "unknown enum value: {}".format(v))
+            elif self.args[0][0] == "name":
+                n = self.args[0][1].eval(env)
+                try:
+                    return getattr(f, n)
+                except AttributeError:
+                    if len(self.args) >= 2 and self.args[1][0] == "default":
+                        return self.args[1][1].eval(env)
+                    raise NeonException(("PANIC",), "unknown enum name: {}".format(n))
         elif isinstance(f, ClassRecord):
             return f.make(env, [x[0] for x in self.args], args)
         assert False, (self.func, f)
@@ -1181,7 +1212,7 @@ class CaseStatement:
                 if self.target.elementtype.name == "Object":
                     return True
             if isinstance(self.target, TypeCompound):
-                return x._choice == self.target.name[1]
+                return x._choice == self.target.name[-1]
     def __init__(self, expr, clauses):
         self.expr = expr
         self.clauses = clauses
@@ -1356,8 +1387,7 @@ class PanicStatement:
     def declare(self, env):
         pass
     def run(self, env):
-        print("panic: {}".format(self.message.eval(env)), file=sys.stderr)
-        sys.exit(1)
+        raise NeonException(("PANIC",), self.message.eval(env))
 
 class RaiseStatement:
     def __init__(self, name, info):
@@ -1420,10 +1450,16 @@ class TestCaseStatement:
                 print("TESTCASE failed", file=sys.stderr)
                 sys.exit(1)
             except NeonException as x:
-                if x.name[:len(self.expected_exception)] == self.expected_exception or x.name[:len(self.expected_exception)-1] == self.expected_exception[1:]:
-                    pass
+                if self.expected_exception[0] is PANIC:
+                    if x.name[0] == "PANIC" and x.info == self.expected_exception[1].value:
+                        pass
+                    else:
+                        raise
                 else:
-                    raise
+                    if x.name[:len(self.expected_exception)] == self.expected_exception or x.name[:len(self.expected_exception)-1] == self.expected_exception[1:]:
+                        pass
+                    else:
+                        raise
         else:
             assert self.expr.eval(env)
 
@@ -1559,9 +1595,17 @@ class Parser:
     def parse_enum_type(self):
         self.expect(ENUM)
         names = []
+        index = 0
         while self.tokens[self.i] is not END:
             name = self.identifier()
-            names.append(name)
+            value = None
+            if self.tokens[self.i] is ASSIGN:
+                self.i += 1
+                value = self.parse_expression()
+            else:
+                value = NumberLiteralExpression(index)
+            names.append((name, value))
+            index += 1
         self.expect(END)
         self.expect(ENUM)
         return TypeEnum(names)
@@ -2466,11 +2510,18 @@ class Parser:
         if self.tokens[self.i] is EXPECT:
             self.i += 1
             expected_exception = []
-            while True:
-                expected_exception.append(self.identifier())
-                if self.tokens[self.i] is not DOT:
-                    break
+            if self.tokens[self.i] is PANIC:
+                expected_exception.append(self.tokens[self.i])
                 self.i += 1
+                assert isinstance(self.tokens[self.i], String)
+                expected_exception.append(self.tokens[self.i])
+                self.i += 1
+            else:
+                while True:
+                    expected_exception.append(self.identifier())
+                    if self.tokens[self.i] is not DOT:
+                        break
+                    self.i += 1
         return TestCaseStatement(expr, expected_exception)
 
     def parse_try_statement(self):
@@ -2690,20 +2741,21 @@ class ClassRecord(Class):
 
 class ClassEnum(Class):
     class Instance:
-        def __init__(self, name):
+        def __init__(self, name, value):
             self.name = name
+            self.value = value
         def __call__(self, env):
             return self
         def __eq__(self, rhs):
-            return self.name == rhs.name
+            return (self.name, self.value) == (rhs.name, rhs.value)
         def toString(self, env, obj):
             return self.name
-    def __init__(self, names):
+    def __init__(self, env, names):
         self.names = names
         for name in self.names:
-            setattr(self, name, ClassEnum.Instance(name))
+            setattr(self, name[0], ClassEnum.Instance(name[0], name[1].eval(env)))
     def default(self, env):
-        return getattr(self, self.names[0])
+        return getattr(self, self.names[0][0])
 
 class ClassChoice(Class):
     class Instance:
@@ -2911,9 +2963,9 @@ def neon_array_reversed(a):
     return list(reversed(a))
 
 def neon_array_toBytes(a):
-    for x in a:
+    for i, x in enumerate(a):
         if not (0 <= x < 256):
-            raise NeonException("ByteOutOfRangeException")
+            raise NeonException("PANIC", "Byte value out of range at offset {}: {}".format(i, x))
     return bytes(a)
 
 def neon_dictionary_remove(d, k):
@@ -2950,11 +3002,11 @@ def neon_str(env, x):
             r = re.sub(r"\.0+$", "", r)
     return r
 
-def neon_console_input(env, prompt):
+def neon_console_input_internal(env, prompt, r):
     try:
-        return input(prompt)
+        return True, input(prompt)
     except EOFError:
-        raise NeonException(["EndOfFileException"])
+        return False, None
 
 def neon_file_copy(env, src, dest):
     if neon_file_exists(env, dest):
@@ -3347,7 +3399,7 @@ def neon_string_upper(env, s):
 
 def neon_sys_exit(env, n):
     if n != int(n) or n < 0 or n > 255:
-        raise NeonException("InvalidValueException", "sys.exit invalid parameter: {}".format(n))
+        raise NeonException("ValueRangeException", "sys.exit invalid parameter: {}".format(n))
     sys.exit(n)
 
 def neon_textio_close(env, f):

@@ -78,6 +78,7 @@ BOOL string_isValidUtf8(TString *s, size_t *error_offset);
 const char *string_ensureNullTerminated(TString *s);
 
 TString *string_quote(TString *s);
+TString *string_quoteInPlace(TString *s);
 
 TStringArray *string_createStringArray();
 void string_freeStringArray(TStringArray *self);

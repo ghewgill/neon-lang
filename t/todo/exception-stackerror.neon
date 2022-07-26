@@ -1,14 +1,14 @@
 -- SKIP
 
 FUNCTION foo()
-    RAISE InvalidValueException
+    RAISE ValueRangeException
 END FUNCTION
 
 FUNCTION bar()
     VAR x: Number := 0
     TRY
         foo()
-    TRAP InvalidValueException DO
+    TRAP ValueRangeException DO
         x := 5
     END TRY
 END FUNCTION

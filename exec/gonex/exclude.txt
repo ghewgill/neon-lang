@@ -2,11 +2,13 @@ array2d.neon               # copy semantics
 assert-multiline.neon      # stderr
 bigint.neon                # bigint
 binary-test.neon           # bigint
+bytes-splice.neon          # bytes__splice
 complex-test.neon          # precision
 datetime-test.neon         # gmtime
 debug-example.neon         # debugger
 debug-server.neon          # net$tcpSocket
 decimal.neon               # decimal
+dns-test.neon              # rray_size?
 file-filecopied2.neon      # copy
 for.neon                   # decimal
 index.neon                 # copy semantics

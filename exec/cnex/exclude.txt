@@ -1,6 +1,5 @@
 bigint.neon                # gmp
-bytes.neon                 # bytes__splice
-decimal.neon               # arbitrary length number formatting
+dns-test.neon              # invalid socket?
 file-linelength.neon       # buffer size
 gc-array.neon              # Object Count
 gc-long-chain.neon         # Object Count
@@ -9,8 +8,6 @@ gc2.neon                   # Object Count
 gc3.neon                   # Object Count
 gc-two-pointers.neon       # garbage collection
 math-test.neon             # math.powmod()
-tostring.neon              # dictionary__toString__string
-tostring-quotes.neon       # dictionary__toString__object
 
 extsample-test.neon        # cell_set_pointer
 http-test.neon             # string$split

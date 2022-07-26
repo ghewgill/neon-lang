@@ -286,7 +286,7 @@ namespace csnex
         void PUSHNIL()
         {
             ip++;
-            stack.Push(Cell.CreateAddressCell(null));
+            stack.Push(new Cell());
         }
 
         void PUSHFP()
@@ -924,7 +924,7 @@ namespace csnex
             ip++;
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             if (callstack.Count >= param_recursion_limit) {
-                Raise("StackOverflowException", "");
+                Raise("PANIC", "StackOverflow: Stack depth exceeds recursion limit of " + param_recursion_limit);
                 return;
             }
             Invoke(module, val);
@@ -937,7 +937,7 @@ namespace csnex
             int fun = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             int efi = 0;
             if (callstack.Count >= param_recursion_limit) {
-                Raise("StackOverflowException", "");
+                Raise("PANIC", "StackOverflow: Stack depth exceeds recursion limit of " + param_recursion_limit);
                 return;
             }
 
@@ -959,7 +959,7 @@ namespace csnex
         {
             ip++;
             if (callstack.Count >= param_recursion_limit) {
-                Raise("StackOverflowException", "");
+                Raise("PANIC", "StackOverflow: Stack depth exceeds recursion limit of " + param_recursion_limit);
                 return;
             }
 
@@ -967,7 +967,7 @@ namespace csnex
             Module mod = (Module)a.Array[0].Other;
             Number nindex = a.Array[1].Number;
             if (nindex.IsZero() || !nindex.IsInteger()) {
-                Raise("InvalidFunctionException", "");
+                Raise("PANIC", "Invalid function pointer");
                 return;
             }
             int index = Number.number_to_int32(nindex);
@@ -989,7 +989,7 @@ namespace csnex
             ip++;
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             if (callstack.Count >= param_recursion_limit) {
-                Raise("StackOverflowException", "");
+                Raise("PANIC", "StackOverflow: Stack depth exceeds recursion limit of " + param_recursion_limit);
                 return;
             }
 

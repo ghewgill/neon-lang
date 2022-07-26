@@ -29,7 +29,7 @@ LET n0: Array<Number> := [0, 1, 2, 253, 254, 255]
 TESTCASE n0.toBytes() = HEXBYTES "00 01 02 fd fe ff"
 
 LET n1: Array<Number> := [-1]
-TESTCASE n1.toBytes() EXPECT ByteOutOfRangeException
+TESTCASE n1.toBytes() EXPECT PANIC "Byte value out of range at offset 0: -1"
 
 LET n2: Array<Number> := [256]
-TESTCASE n2.toBytes() EXPECT ByteOutOfRangeException
+TESTCASE n2.toBytes() EXPECT PANIC "Byte value out of range at offset 0: 256"

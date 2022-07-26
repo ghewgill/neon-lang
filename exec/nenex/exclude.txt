@@ -16,6 +16,7 @@ base-test.neon              # callmf
 bigint.neon                 # math$abs
 binary-test.neon            # exception Utf8DecodingException
 bytes-index.neon            # bytes__range
+bytes-splice.neon           # bytes__splice
 cal-test.neon               # os$system
 cformat-test.neon           # object__makeString
 cmdline.neon                # pushppg
@@ -24,6 +25,7 @@ complex-test.neon           # callmf
 datetime-test.neon          # callmf
 debug-example.neon          # debugger$log
 debug-server.neon           # os$spawn
+dns-test.neon               # file$readLines
 encoding-base64.neon        # exception Utf8DecodingException
 enum.neon                   # unknown enum
 equality.neon               # pushy

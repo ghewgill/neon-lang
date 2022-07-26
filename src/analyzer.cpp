@@ -153,6 +153,7 @@ private:
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, std::string tname, bool for_class);
     const ast::Expression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
+    void dump_expression_parts(const Token &token, const std::vector<const pt::Expression *> &parts, std::vector<const ast::Statement *> &statements);
 };
 
 class TypeAnalyzer: public pt::IParseTreeVisitor {
@@ -846,6 +847,50 @@ static const ast::Expression *make_object_conversion_from_record(Analyzer *analy
     );
 }
 
+static const ast::Expression *make_object_conversion_from_choice(Analyzer *analyzer, const ast::TypeChoice *ctype, const ast::Expression *e)
+{
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(ast::TYPE_DICTIONARY_OBJECT);
+    std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> clauses;
+    for (auto &c: ctype->choices) {
+        auto converter = ast::TYPE_OBJECT->make_converter(c.second.second);
+        clauses.push_back(std::make_pair(
+            std::vector<const ast::CaseStatement::WhenCondition *>{new ast::CaseStatement::ChoiceTestWhenCondition(Token(), c.second.first)},
+            std::vector<const ast::Statement *>{
+                new ast::AssignmentStatement(
+                    Token(),
+                    {new ast::VariableExpression(result)},
+                    new ast::DictionaryLiteralExpression(
+                        ast::TYPE_OBJECT,
+                        {{
+                            utf8string(c.first),
+                            c.second.second != nullptr ?
+                                converter(
+                                    analyzer,
+                                    new ast::ChoiceValueExpression(
+                                        c.second.second,
+                                        e,
+                                        ctype,
+                                        c.second.first
+                                    )
+                                )
+                            :
+                                new ast::ConstantNilExpression()
+                        }},
+                        {Token()}
+                    )
+                )
+            }
+        ));
+    }
+    return new ast::StatementExpression(
+        new ast::CaseStatement(Token(), e, clauses),
+        new ast::FunctionCall(
+            new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+            {new ast::VariableExpression(result)}
+        )
+    );
+}
+
 static const ast::Expression *make_record_conversion_from_object(Analyzer *analyzer, const ast::TypeRecord *rtype, const ast::Expression *e)
 {
     ast::Variable *result = analyzer->scope.top()->makeTemporary(rtype);
@@ -883,6 +928,77 @@ static const ast::Expression *make_record_conversion_from_object(Analyzer *analy
     }
     return new ast::StatementExpression(
         new ast::CompoundStatement(Token(), field_statements),
+        new ast::VariableExpression(result)
+    );
+}
+
+static const ast::Expression *make_enum_conversion_from_object(Analyzer *analyzer, const ast::TypeEnum *etype, const ast::Expression *e)
+{
+    auto converter = ast::TYPE_STRING->make_converter(ast::TYPE_OBJECT);
+    return new ast::FunctionCall(
+        new ast::VariableExpression(etype->methods.at("CREATE.name")),
+        {
+            converter(analyzer, e),
+            new ast::ConstantBooleanExpression(false),
+            new ast::ConstantNumberExpression(number_from_sint32(0))
+        }
+    );
+}
+
+static const ast::Expression *make_choice_conversion_from_object(Analyzer *analyzer, const ast::TypeChoice *ctype, const ast::Expression *e)
+{
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(ctype);
+    std::vector<const ast::Statement *> choice_statements;
+    // This creates a bunch of statements in sequence that try to extract the choice
+    // value from the object.So if the object contains more than one thing, then
+    // the last one wins. When this gets refactored into making individual functions,
+    // then the assignment should be changed to ReturnStatement.
+    for (auto &c: ctype->choices) {
+        if (c.second.second != nullptr) {
+            auto converter = c.second.second->make_converter(ast::TYPE_OBJECT);
+            choice_statements.push_back(
+                new ast::TryStatement(
+                    Token(),
+                    {new ast::AssignmentStatement(
+                        Token(),
+                        {new ast::VariableExpression(result)},
+                        new ast::ConstantChoiceExpression(
+                            ctype,
+                            c.second.first,
+                            converter(
+                                analyzer,
+                                new ast::ObjectSubscriptExpression(
+                                    e,
+                                    ast::TYPE_OBJECT->make_converter(ast::TYPE_STRING)(analyzer, new ast::ConstantStringExpression(utf8string(c.first)))
+                                )
+                            )
+                        )
+                    )},
+                    {
+                        ast::TryTrap(
+                            {dynamic_cast<const ast::Exception *>(analyzer->global_scope->lookupName("ObjectSubscriptException"))},
+                            nullptr,
+                            new ast::ExceptionHandlerStatement(Token(), {new ast::NullStatement(Token())})
+                        )
+                    }
+                )
+            );
+        } else {
+            choice_statements.push_back(
+                new ast::AssignmentStatement(
+                    Token(),
+                    {new ast::VariableExpression(result)},
+                    new ast::ConstantChoiceExpression(
+                        ctype,
+                        c.second.first,
+                        nullptr
+                    )
+                )
+            );
+        }
+    }
+    return new ast::StatementExpression(
+        new ast::CompoundStatement(Token(), choice_statements),
         new ast::VariableExpression(result)
     );
 }
@@ -1066,6 +1182,31 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
             return make_object_conversion_from_record(analyzer, rtype, e);
         };
     }
+    const TypeChoice *ctype = dynamic_cast<const TypeChoice *>(from);
+    if (ctype != nullptr) {
+        for (auto &c: ctype->choices) {
+            if (c.second.second != nullptr && make_converter(c.second.second) == nullptr) {
+                return nullptr;
+            }
+        }
+        return [ctype](Analyzer *analyzer, const Expression *e) {
+            return make_object_conversion_from_choice(analyzer, ctype, e);
+        };
+    }
+    const TypeEnum *etype = dynamic_cast<const TypeEnum *>(from);
+    if (etype != nullptr) {
+        return [etype](Analyzer *analyzer, const Expression *e) {
+            return new ast::FunctionCall(
+                new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                {
+                    new FunctionCall(
+                        new VariableExpression(etype->methods.at("toString")),
+                        {e}
+                    )
+                }
+            );
+        };
+    }
     return nullptr;
 }
 
@@ -1176,6 +1317,40 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     return nullptr;
 }
 
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeEnum::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        return [this](Analyzer *analyzer, const Expression *e) {
+            return make_enum_conversion_from_object(analyzer, this, e);
+        };
+    }
+    return nullptr;
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeChoice::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        for (auto &c: choices) {
+            if (c.second.second != nullptr) {
+                auto conv = c.second.second->make_converter(ast::TYPE_OBJECT);
+                if (conv == nullptr) {
+                    return nullptr;
+                }
+            }
+        }
+        return [this](Analyzer *analyzer, const Expression *e) {
+            return make_choice_conversion_from_object(analyzer, this, e);
+        };
+    }
+    return nullptr;
+}
+
 class GlobalScope: public ast::Scope {
 public:
     GlobalScope(): Scope(nullptr, nullptr) {}
@@ -1231,8 +1406,110 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             }
             values[n.second] = new ConstantStringExpression(utf8string(n.first));
         }
+        for (auto &v: values) {
+            if (v == nullptr) {
+                v = new ConstantStringExpression(utf8string());
+            }
+        }
         f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp))));
         methods["toString"] = f;
+    }
+    {
+        std::vector<FunctionParameter *> params;
+        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
+        params.push_back(fp);
+        Function *f = new Function(Token(), "enum.name", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, false, 1);
+        std::vector<const Expression *> values;
+        for (auto n: names) {
+            if (n.second < 0) {
+                internal_error("TypeEnum");
+            }
+            if (values.size() < static_cast<size_t>(n.second)+1) {
+                values.resize(n.second+1);
+            }
+            if (values[n.second] != nullptr) {
+                internal_error("TypeEnum");
+            }
+            values[n.second] = new ConstantStringExpression(utf8string(n.first));
+        }
+        for (auto &v: values) {
+            if (v == nullptr) {
+                v = new ConstantStringExpression(utf8string());
+            }
+        }
+        f->statements.push_back(new ReturnStatement(Token(), new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp))));
+        methods["name"] = f;
+    }
+    {
+        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
+        Function *f = new Function(Token(), "enum.value", TYPE_NUMBER, analyzer->global_scope->frame, analyzer->global_scope, {fp}, false, 1);
+        f->statements.push_back(new ReturnStatement(Token(), new VariableExpression(fp)));
+        methods["value"] = f;
+    }
+    {
+        FunctionParameter *p_value = new FunctionParameter(Token(IDENTIFIER, "value"), "value", TYPE_NUMBER, 1, ParameterType::Mode::IN, nullptr);
+        FunctionParameter *p_hasdefault = new FunctionParameter(Token(IDENTIFIER, "hasdefault"), "hasdefault", TYPE_BOOLEAN, 1, ParameterType::Mode::IN, nullptr);
+        FunctionParameter *p_default = new FunctionParameter(Token(IDENTIFIER, "default"), "default", this, 1, ParameterType::Mode::IN, nullptr);
+        Function *f = new Function(Token(), "enum.CREATE.value", this, analyzer->global_scope->frame, analyzer->global_scope, {p_value, p_hasdefault, p_default}, false, 1);
+        std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> cases;
+        for (auto n: names) {
+            cases.push_back(std::make_pair(
+                std::vector<const ast::CaseStatement::WhenCondition *>{new ast::CaseStatement::ComparisonWhenCondition(Token(), ast::ComparisonExpression::Comparison::EQ, new ast::ConstantNumberExpression(number_from_sint32(n.second)))},
+                std::vector<const ast::Statement *>{new ast::ReturnStatement(Token(), new ConstantNumberExpression(number_from_sint32(n.second)))}
+            ));
+        }
+        f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(p_value), cases));
+        const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("string__concat")));
+        const ast::Expression *str = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("str")));
+        f->statements.push_back(new ast::IfStatement(
+            Token(),
+            {ast::IfStatement::ConditionBlock(
+                0,
+                new ast::VariableExpression(p_hasdefault),
+                {
+                    new ast::ReturnStatement(Token(), new ast::VariableExpression(p_default))
+                }
+            )},
+            {
+                new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                        {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum value: ")), new ast::FunctionCall(str, {new ast::VariableExpression(p_value)})})}
+                ))
+            }
+        ));
+        methods["CREATE.value"] = f;
+    }
+    {
+        FunctionParameter *p_name = new FunctionParameter(Token(IDENTIFIER, "name"), "name", TYPE_STRING, 1, ParameterType::Mode::IN, nullptr);
+        FunctionParameter *p_hasdefault = new FunctionParameter(Token(IDENTIFIER, "hasdefault"), "hasdefault", TYPE_BOOLEAN, 1, ParameterType::Mode::IN, nullptr);
+        FunctionParameter *p_default = new FunctionParameter(Token(IDENTIFIER, "default"), "default", this, 1, ParameterType::Mode::IN, nullptr);
+        Function *f = new Function(Token(), "enum.CREATE.name", this, analyzer->global_scope->frame, analyzer->global_scope, {p_name, p_hasdefault, p_default}, false, 1);
+        std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> cases;
+        for (auto n: names) {
+            cases.push_back(std::make_pair(
+                std::vector<const ast::CaseStatement::WhenCondition *>{new ast::CaseStatement::ComparisonWhenCondition(Token(), ast::ComparisonExpression::Comparison::EQ, new ast::ConstantStringExpression(utf8string(n.first)))},
+                std::vector<const ast::Statement *>{new ast::ReturnStatement(Token(), new ConstantNumberExpression(number_from_sint32(n.second)))}
+            ));
+        }
+        f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(p_name), cases));
+        const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("string__concat")));
+        f->statements.push_back(new ast::IfStatement(
+            Token(),
+            {ast::IfStatement::ConditionBlock(
+                0,
+                new ast::VariableExpression(p_hasdefault),
+                {
+                    new ast::ReturnStatement(Token(), new ast::VariableExpression(p_default))
+                }
+            )},
+            {
+                new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                        {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum name: ")), new ast::VariableExpression(p_name)})}
+                ))
+            }
+        ));
+        methods["CREATE.name"] = f;
     }
 }
 
@@ -1663,14 +1940,35 @@ const ast::Type *Analyzer::analyze(const pt::TypeSimple *type, const std::string
 const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &name)
 {
     std::map<std::string, int> names;
+    std::map<std::string, Token> name_tokens;
+    std::map<int, Token> value_tokens;
     int index = 0;
-    for (auto x: type->names) {
+    for (auto &x: type->names) {
         std::string enumname = x.first.text;
         auto t = names.find(enumname);
         if (t != names.end()) {
-            error2(3010, x.first, "duplicate enum: " + enumname, type->names[t->second].first, "first declaration here");
+            error2(3010, x.first, "duplicate enum name: " + enumname, name_tokens.at(enumname), "first declaration here");
+        }
+        if (x.second) {
+            const ast::Expression *value = analyze(x.second.get());
+            if (value->type != ast::TYPE_NUMBER) {
+                error(3332, x.second.get()->token, "number required");
+            }
+            if (not value->is_constant) {
+                error(3333, x.second.get()->token, "constant value required");
+            }
+            Number val = value->eval_number(x.second.get()->token);
+            if (not number_is_integer(val)) {
+                error(3334, x.second.get()->token, "constant integer required");
+            }
+            index = number_to_sint32(val);
+        }
+        if (value_tokens.find(index) != value_tokens.end()) {
+            error2(3331, x.first, "duplicate enum value: " + std::to_string(index), value_tokens.at(index), "first declaration here");
         }
         names[enumname] = index;
+        name_tokens[enumname] = x.first;
+        value_tokens[index] = x.first;
         index++;
     }
     return new ast::TypeEnum(type->token, module_name, name, names, this);
@@ -2577,9 +2875,13 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     // to be quite a few cases of x.y(), and this function tries to handle them all
     // in a haphazard fashion.
     const ast::TypeRecord *recordtype = nullptr;
+    const ast::TypeEnum *enumtype = nullptr;
     const pt::IdentifierExpression *fname = dynamic_cast<const pt::IdentifierExpression *>(expr->base.get());
     if (fname != nullptr) {
         recordtype = dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName(fname->name));
+    }
+    if (fname != nullptr) {
+        enumtype = dynamic_cast<const ast::TypeEnum *>(scope.top()->lookupName(fname->name));
     }
     const pt::DotExpression *dotmethod = dynamic_cast<const pt::DotExpression *>(expr->base.get());
     const pt::ArrowExpression *arrowmethod = dynamic_cast<const pt::ArrowExpression *>(expr->base.get());
@@ -2680,7 +2982,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         } else {
             error(3218, arrowmethod->base->token, "pointer type expected");
         }
-    } else if (recordtype == nullptr) {
+    } else if (recordtype == nullptr && enumtype == nullptr) {
         func = analyze(expr->base.get());
     }
     if (recordtype != nullptr) {
@@ -2721,6 +3023,41 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         } else {
             return new ast::RecordLiteralExpression(recordtype, elements);
         }
+    } else if (enumtype != nullptr) {
+        const ast::Expression *value_or_name = nullptr;
+        const ast::Expression *default_value = nullptr;
+        for (auto &a: expr->args) {
+            if (a->name.text == "value") {
+                value_or_name = analyze(a->expr.get());
+                value_or_name = convert(ast::TYPE_NUMBER, value_or_name);
+                if (value_or_name == nullptr) {
+                    error(3337, a->expr.get()->token, "number required");
+                }
+                func = new ast::VariableExpression(enumtype->methods.at("CREATE.value"));
+            } else if (a->name.text == "name") {
+                value_or_name = analyze(a->expr.get());
+                value_or_name = convert(ast::TYPE_STRING, value_or_name);
+                if (value_or_name == nullptr) {
+                    error(3338, a->expr.get()->token, "string required");
+                }
+                func = new ast::VariableExpression(enumtype->methods.at("CREATE.name"));
+            } else if (a->name.text == "default") {
+                default_value = analyze(a->expr.get());
+                if (default_value->type != enumtype) {
+                    error(3339, a->expr.get()->token, "type mismatch");
+                }
+            } else {
+                error(3335, a->name, "unknown parameter");
+            }
+        }
+        if (func == nullptr) {
+            error(3336, expr->token, "need value or name");
+        }
+        return new ast::FunctionCall(func, {
+            value_or_name,
+            new ast::ConstantBooleanExpression(default_value != nullptr),
+            default_value != nullptr ? default_value : new ast::ConstantNumberExpression(number_from_sint32(0))
+        }, nullptr, false);
     }
     if (ftype == nullptr) {
         ftype = dynamic_cast<const ast::TypeFunction *>(func->type);
@@ -3663,9 +4000,18 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
             int value = 0;
             for (;;) {
                 std::string name;
-                while (descriptor.at(i) != ',' && descriptor.at(i) != ']') {
+                while (descriptor.at(i) != ',' && descriptor.at(i) != '=' && descriptor.at(i) != ']') {
                     name.push_back(descriptor.at(i));
                     i++;
+                }
+                if (descriptor.at(i) == '=') {
+                    i++;
+                    std::size_t next = 0;
+                    value = std::stoi(descriptor.substr(i), &next);
+                    if (next == 0) {
+                        internal_error("deserialize_type enum");
+                    }
+                    i += next;
                 }
                 names[name] = value;
                 value++;
@@ -4581,6 +4927,76 @@ static void deconstruct(const pt::Expression *expr, std::vector<const pt::Expres
     parts.push_back(expr);
 }
 
+void Analyzer::dump_expression_parts(const Token &token, const std::vector<const pt::Expression *> &parts, std::vector<const ast::Statement *> &statements)
+{
+    const ast::Module *textio = import_module(Token(), "textio", false);
+    if (textio == nullptr) {
+        internal_error("need module textio");
+    }
+    const ast::Variable *textio_stderr = dynamic_cast<const ast::Variable *>(textio->scope->lookupName("stderr"));
+    if (textio_stderr == nullptr) {
+        internal_error("need textio.stderr");
+    }
+    const ast::PredefinedFunction *writeLine = dynamic_cast<const ast::PredefinedFunction *>(textio->scope->lookupName("writeLine"));
+    if (writeLine == nullptr) {
+        internal_error("need textio.writeLine");
+    }
+    std::set<std::string> seen;
+    for (auto part: parts) {
+        const Token &start = part->get_start_token();
+        const Token &end = part->get_end_token();
+        std::string str;
+        if (start.line == end.line) {
+            str = start.source_line().substr(start.column-1, end.column + end.text.length() - start.column);
+        } else {
+            str = start.source_line().substr(start.column-1);
+            for (int line = start.line + 1; line < end.line; line++) {
+                str += start.source->source_line(line);
+            }
+            str += end.source_line().substr(0, end.column + end.text.length());
+        }
+        if (seen.find(str) != seen.end()) {
+            continue;
+        }
+        seen.insert(str);
+
+        // Instead of directly constructing an AST fragment here, construct a temporary
+        // parse tree so we can leverage the analyze step for InterpolatedStringExpression
+        // (this takes care of the call to .toString()).
+        std::vector<std::pair<std::unique_ptr<pt::Expression>, Token>> iparts;
+        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), Token(), utf8string("  " + str + " is ")) }, Token()));
+        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(part) }, Token()));
+        std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
+        try {
+            statements.push_back(
+                new ast::ExpressionStatement(
+                    token,
+                    new ast::FunctionCall(
+                        new ast::VariableExpression(writeLine),
+                        {
+                            new ast::VariableExpression(textio_stderr),
+                            analyze(ie.get())
+                        }
+                    )
+                )
+            );
+            // These pointers are borrowed from the real parse tree,
+            // so release them here before the above temporary tree
+            // fragment tries to delete them itself.
+            ie->parts[1].first.release();
+        } catch (...) {
+            // And also do this if the above call to analyze() throws
+            // any exception.
+            ie->parts[1].first.release();
+            // There used to be a throw statement here to re-throw the exception,
+            // but a more robust approach is to just skip printing the output
+            // for an expression that doesn't have a viable .toString().
+            // TODO: Note that this hides all other kinds of unintended semantic
+            // errors in the expression.
+        }
+    }
+}
+
 const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
 {
     const pt::Expression *e = statement->exprs[0].get();
@@ -4649,60 +5065,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             )
         )
     );
-    std::set<std::string> seen;
-    for (auto part: parts) {
-        const Token &start = part->get_start_token();
-        const Token &end = part->get_end_token();
-        std::string str;
-        if (start.line == end.line) {
-            str = start.source_line().substr(start.column-1, end.column + end.text.length() - start.column);
-        } else {
-            str = start.source_line().substr(start.column-1);
-            for (int line = start.line + 1; line < end.line; line++) {
-                str += start.source->source_line(line);
-            }
-            str += end.source_line().substr(0, end.column + end.text.length());
-        }
-        if (seen.find(str) != seen.end()) {
-            continue;
-        }
-        seen.insert(str);
-
-        // Instead of directly constructing an AST fragment here, construct a temporary
-        // parse tree so we can leverage the analyze step for InterpolatedStringExpression
-        // (this takes care of the call to .toString()).
-        std::vector<std::pair<std::unique_ptr<pt::Expression>, Token>> iparts;
-        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), Token(), utf8string("  " + str + " is ")) }, Token()));
-        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(part) }, Token()));
-        std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
-        try {
-            statements.push_back(
-                new ast::ExpressionStatement(
-                    statement->token,
-                    new ast::FunctionCall(
-                        new ast::VariableExpression(writeLine),
-                        {
-                            new ast::VariableExpression(textio_stderr),
-                            analyze(ie.get())
-                        }
-                    )
-                )
-            );
-            // These pointers are borrowed from the real parse tree,
-            // so release them here before the above temporary tree
-            // fragment tries to delete them itself.
-            ie->parts[1].first.release();
-        } catch (...) {
-            // And also do this if the above call to analyze() throws
-            // any exception.
-            ie->parts[1].first.release();
-            // There used to be a throw statement here to re-throw the exception,
-            // but a more robust approach is to just skip printing the output
-            // for an expression that doesn't have a viable .toString().
-            // TODO: Note that this hides all other kinds of unintended semantic
-            // errors in the expression.
-        }
-    }
+    dump_expression_parts(statement->token, parts, statements);
     return new ast::AssertStatement(statement->token, statements, expr, statement->source);
 }
 
@@ -6152,6 +6515,11 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
     if (sys_exit == nullptr) {
         internal_error("need sys.exit");
     }
+    std::vector<const pt::Expression *> parts;
+    std::set<const ast::Function *> context;
+    if (expr->is_pure(context)) {
+        deconstruct(statement->expr.get(), parts);
+    }
     std::vector<const ast::Statement *> fail_statements {
         new ast::ExpressionStatement(
             statement->token,
@@ -6162,7 +6530,37 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
                     new ast::ConstantStringExpression(utf8string("TESTCASE failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "): " + statement->token.source->source_line(statement->token.line)))
                 }
             )
-        ),
+        )
+    };
+    if (not parts.empty()) {
+        fail_statements.push_back(
+            new ast::ExpressionStatement(
+                statement->token,
+                new ast::FunctionCall(
+                    new ast::VariableExpression(writeLine),
+                    {
+                        new ast::VariableExpression(textio_stderr),
+                        new ast::ConstantStringExpression(utf8string("Test case expression dump:"))
+                    }
+                )
+            )
+        );
+        dump_expression_parts(statement->token, parts, fail_statements);
+    } else {
+        fail_statements.push_back(
+            new ast::ExpressionStatement(
+                statement->token,
+                new ast::FunctionCall(
+                    new ast::VariableExpression(writeLine),
+                    {
+                        new ast::VariableExpression(textio_stderr),
+                        new ast::ConstantStringExpression(utf8string("Test case expression dump not available due to possible side effects"))
+                    }
+                )
+            )
+        );
+    }
+    fail_statements.push_back(
         new ast::ExpressionStatement(
             statement->token,
             new ast::FunctionCall(
@@ -6172,7 +6570,7 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
                 }
             )
         )
-    };
+    );
     if (statement->expected_exception.empty()) {
         expr = convert(ast::TYPE_BOOLEAN, expr);
         if (expr == nullptr) {
@@ -6188,6 +6586,68 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
                 )
             },
             {}
+        );
+    } else if (statement->expected_exception[0].type == PANIC) {
+        static const ast::Exception panic_exception { Token(), "PANIC" };
+        const ast::TypeRecord *vtype = dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionType"));
+        if (vtype == nullptr) {
+            internal_error("could not find ExceptionType");
+        }
+        ast::Variable *var = scope.top()->makeTemporary(vtype);
+        std::vector<const ast::Statement *> statements;
+        if (expr->type == ast::TYPE_NOTHING) {
+            statements.push_back(
+                new ast::ExpressionStatement(
+                    statement->token,
+                    expr
+                )
+            );
+        } else {
+            statements.push_back(
+                new ast::AssignmentStatement(
+                    statement->token,
+                    {new ast::DummyExpression()},
+                    expr
+                )
+            );
+        }
+        std::copy(fail_statements.begin(), fail_statements.end(), std::back_inserter(statements));
+        return new ast::TryStatement(
+            statement->token,
+            statements,
+            {
+                ast::TryTrap(
+                    {&panic_exception},
+                    var,
+                    new ast::ExceptionHandlerStatement(
+                        statement->token, {
+                            new ast::IfStatement(
+                                statement->token,
+                                {
+                                    ast::IfStatement::ConditionBlock(
+                                        statement->token.line,
+                                        new ast::StringComparisonExpression(
+                                            convert(
+                                                ast::TYPE_STRING,
+                                                new ast::RecordReferenceFieldExpression(
+                                                    ast::TYPE_OBJECT,
+                                                    new ast::VariableExpression(var),
+                                                    "info",
+                                                    false
+                                                )
+                                            ),
+                                            new ast::ConstantStringExpression(utf8string(statement->expected_exception[1].text)),
+                                            ast::ComparisonExpression::Comparison::NE
+                                        ),
+                                        fail_statements
+                                    )
+                                },
+                                {}
+                            )
+                        }
+                    )
+                )
+            }
         );
     } else {
         const ast::Exception *exception = resolve_exception(statement->expected_exception);

@@ -15,7 +15,7 @@ FUNCTION b32decode(s: String): Bytes
         ELSIF "0" <= s[i] <= "7" THEN
             x := string.toCodePoint(s[i]) - string.toCodePoint("2") + 26
         ELSE
-            RAISE InvalidValueException
+            RAISE ValueRangeException
         END IF
         b[5*i INTDIV 8] := binary.and32(0xff, binary.or32(b[5*i INTDIV 8], binary.shiftRight32(binary.shiftLeft32(x, 3), 5*i MOD 8)))
         IF 5*i MOD 8 >= 4 THEN

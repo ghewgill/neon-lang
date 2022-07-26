@@ -1,6 +1,6 @@
 VAR x: Number := 0
     --<2
 TRY
-TRAP InvalidValueException AS x DO
-                              --<1
+TRAP ValueRangeException AS x DO
+                            --<1
 END TRY

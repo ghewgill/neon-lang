@@ -2594,6 +2594,29 @@ public:
     virtual void generate_store(Context &) const override { internal_error("ChoiceReferenceExpression"); }
 };
 
+class ChoiceValueExpression: public Expression {
+public:
+    explicit ChoiceValueExpression(const ast::ChoiceValueExpression *cve): Expression(cve), cve(cve), expr(transform(cve->expr)), choice_type(dynamic_cast<const TypeChoice *>(transform(cve->choice_type))) {}
+    ChoiceValueExpression(const ChoiceValueExpression &) = delete;
+    ChoiceValueExpression &operator=(const ChoiceValueExpression &) = delete;
+    const ast::ChoiceValueExpression *cve;
+    const Expression *expr;
+    const TypeChoice *choice_type;
+
+    virtual void generate(Context &context) const override {
+        expr->generate(context);
+        for (auto c: choice_type->choices) {
+            if (c.second.first == cve->choice) {
+                context.ca.code << OP_getfield << context.cf.Field(choice_type->classname, c.first, c.second.second->jtype);
+                return;
+            }
+        }
+        internal_error("ChoiceValueExpression");
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ChoiceValueExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ChoiceValueExpression"); }
+};
+
 class PointerDereferenceExpression: public Expression {
 public:
     explicit PointerDereferenceExpression(const ast::PointerDereferenceExpression *pde): Expression(pde), pde(pde), ptr(transform(pde->ptr)) {}
@@ -2663,6 +2686,24 @@ public:
 
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("FunctionCall"); }
     virtual void generate_store(Context &) const override { internal_error("FunctionCall"); }
+};
+
+class StatementExpression: public Expression {
+public:
+    explicit StatementExpression(const ast::StatementExpression *se): Expression(se), se(se), stmt(transform(se->stmt)), expr(transform(se->expr)) {}
+    StatementExpression(const StatementExpression &) = delete;
+    StatementExpression &operator=(const StatementExpression &) = delete;
+    const ast::StatementExpression *se;
+    const Statement *stmt;
+    const Expression *expr;
+
+    virtual void generate(Context &context) const override {
+        stmt->generate(context);
+        expr->generate(context);
+    }
+
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("StatementExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("StatementExpression"); }
 };
 
 class NullStatement: public Statement {
@@ -3591,6 +3632,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
@@ -3725,6 +3767,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
@@ -3859,6 +3902,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
     virtual void visit(const ast::ChoiceReferenceExpression *node) { r = new ChoiceReferenceExpression(node); }
+    virtual void visit(const ast::ChoiceValueExpression *node) { r = new ChoiceValueExpression(node); }
     virtual void visit(const ast::PointerDereferenceExpression *node) { r =  new PointerDereferenceExpression(node); }
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
@@ -3866,7 +3910,7 @@ public:
     virtual void visit(const ast::InterfacePointerConstructor *) { internal_error("InterfacePointerConstructor"); }
     virtual void visit(const ast::InterfacePointerDeconstructor *) { internal_error("InterfacePointerDeconstructor"); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
-    virtual void visit(const ast::StatementExpression *) { internal_error("StatementExpression"); }
+    virtual void visit(const ast::StatementExpression *node) { r = new StatementExpression(node); }
     virtual void visit(const ast::NullStatement *) {}
     virtual void visit(const ast::TypeDeclarationStatement *) {}
     virtual void visit(const ast::DeclarationStatement *) {}
@@ -3993,6 +4037,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::ChoiceReferenceExpression *) {}
+    virtual void visit(const ast::ChoiceValueExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}

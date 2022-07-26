@@ -952,18 +952,11 @@ void ast::TypeEnum::generate_call(Emitter &) const
 std::string ast::TypeEnum::get_type_descriptor(Emitter &) const
 {
     std::string r = "E[";
-    std::vector<std::string> namevector(names.size());
     for (auto n: names) {
-        if (not namevector[n.second].empty()) {
-            internal_error("duplicate enum value");
-        }
-        namevector[n.second] = n.first;
-    }
-    for (auto n: namevector) {
         if (r.length() > 2) {
-            r += ",";
+            r += ',';
         }
-        r += n;
+        r += n.first + '=' + std::to_string(n.second);
     }
     r += "]";
     return r;
@@ -2027,6 +2020,24 @@ void ast::ChoiceReferenceExpression::generate_address_write(Emitter &emitter) co
     emitter.emit(Opcode::INDEXAW);
 }
 
+void ast::ChoiceValueExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate_expr(emitter);
+    emitter.emit(Opcode::DUP);
+    emitter.emit(Opcode::PUSHI, 0);
+    emitter.emit(Opcode::INDEXAV);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::EQN);
+    auto skip_label = emitter.create_label();
+    emitter.emit_jump(Opcode::JT, skip_label);
+    emitter.emit(Opcode::PUSHI, choice);
+    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
+    emitter.jump_target(skip_label);
+    emitter.emit(Opcode::PUSHI, 1);
+    emitter.emit(Opcode::INDEXAV);
+}
+
 void ast::PointerDereferenceExpression::generate_address_read(Emitter &emitter) const
 {
     ptr->generate(emitter);
@@ -2214,7 +2225,7 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
     }
     emitter.emit(Opcode::PUSHS, emitter.str(source));
     emitter.emit(Opcode::CALLP, emitter.str("object__makeString"));
-    emitter.emit(Opcode::EXCEPT, emitter.str("AssertFailedException"));
+    emitter.emit(Opcode::EXCEPT, emitter.str("PANIC"));
     emitter.jump_target(skip_label);
 }
 

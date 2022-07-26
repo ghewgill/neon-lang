@@ -1,8 +1,8 @@
 IMPORT struct
 VAR s: struct.Struct := struct.make([
-    struct.field("field1", struct.Type.int32BE, 4),
+    struct.field("field1", struct.Type.int32BE),
     struct.field("field2", struct.Type.string, 20),
-    struct.field("field3", struct.Type.ieee64, 8),
+    struct.field("field3", struct.Type.ieee64),
 ])
 
 print("\(s.sizeof())")
@@ -53,13 +53,13 @@ print("\(a.size())")
 --= 32
 
 LET range: struct.Struct := struct.make([
-    struct.field("FE", struct.Type.uint8, 1),
-    struct.field("FFFE", struct.Type.uint16BE, 2),
-    struct.field("FEFF", struct.Type.uint16LE, 2),
-    struct.field("FFFFFFFE", struct.Type.uint32BE, 4),
-    struct.field("FEFFFFFF", struct.Type.uint32LE, 4),
-    struct.field("FFFFFFFFFFFFFFFE", struct.Type.uint64BE, 8),
-    struct.field("FEFFFFFFFFFFFFFF", struct.Type.uint64LE, 8),
+    struct.field("FE", struct.Type.uint8),
+    struct.field("FFFE", struct.Type.uint16BE),
+    struct.field("FEFF", struct.Type.uint16LE),
+    struct.field("FFFFFFFE", struct.Type.uint32BE),
+    struct.field("FEFFFFFF", struct.Type.uint32LE),
+    struct.field("FFFFFFFFFFFFFFFE", struct.Type.uint64BE),
+    struct.field("FEFFFFFFFFFFFFFF", struct.Type.uint64LE),
 ])
 
 LET buf: Bytes := range.pack({

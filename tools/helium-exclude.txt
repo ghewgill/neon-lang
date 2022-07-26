@@ -1,6 +1,7 @@
 bases.neon             # Won't need different base literals
 binary-test.neon       # Module not required
 bytes-embed.neon       # Feature not required
+bytes-splice.neon      # Feature not required
 cal-test.neon          # Sample not required
 cformat-test.neon      # Module not required
 comments.neon          # Nested comments not required
@@ -10,6 +11,7 @@ datetime-test.neon     # Module not required
 debug-example.neon     # Feature not required
 debug-server.neon      # Feature not required
 decimal.neon           # Module not required
+dns-test.neon          # Module not required
 encoding-base64.neon   # Module not required
 exception-as.neon      # Exception offset not supported
 export-inline.neon     # Native mul not required
@@ -39,6 +41,7 @@ net-test.neon          # Module not required
 net-test-udp.neon      # Module not required
 number-ceil.neon       # Feature not required
 number-underscore.neon # Feature not required
+object-choice.neon     # Feature not required
 object-isa-inconvertible.neon
 object-native.neon     # Feature not required
 object-record.neon     # Feature not required

@@ -184,6 +184,7 @@ set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/console.neon
     ${CMAKE_SOURCE_DIR}/lib/datetime.neon
     ${CMAKE_SOURCE_DIR}/lib/debugger.neon
+    ${CMAKE_SOURCE_DIR}/lib/dns.neon
     ${CMAKE_SOURCE_DIR}/lib/encoding.neon
     ${CMAKE_SOURCE_DIR}/lib/file.neon
     ${CMAKE_SOURCE_DIR}/lib/global.neon

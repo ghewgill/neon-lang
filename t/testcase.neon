@@ -1,0 +1,12 @@
+EXCEPTION TestException
+
+FUNCTION raise()
+    RAISE TestException
+END FUNCTION
+
+FUNCTION panic()
+    PANIC "test"
+END FUNCTION
+
+TESTCASE raise() EXPECT TestException
+TESTCASE panic() EXPECT PANIC "test"

@@ -1,0 +1,7 @@
+TYPE Colour IS ENUM
+    red
+    blue
+END ENUM
+
+_ := Colour(foo WITH 5)
+            --<

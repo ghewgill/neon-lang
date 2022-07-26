@@ -202,7 +202,9 @@ struct Ne_Cell *cell_set_dictionary_cell(struct Ne_Cell *cell, const char *key)
 void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList *params, struct Ne_Cell *retval)
 {
     if (g_executor->callstacktop >= g_executor->param_recursion_limit) {
-        exec_rtl_raiseException(g_executor, "StackOverflowException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "StackOverflow: Stack depth exceeds recursion limit of %u", g_executor->param_recursion_limit);
+        exec_rtl_raiseException(g_executor, "PANIC", buf);
         return;
     }
     Array *a = ((Cell*)callback)->array;
@@ -210,7 +212,7 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
     TModule *mod = (TModule*)a->data[0].other;
     Number nindex = a->data[1].number;
     if (mod == NULL || number_is_zero(nindex) || !number_is_integer(nindex)) {
-        exec_rtl_raiseException(g_executor, "InvalidFunctionException", "");
+        exec_rtl_raiseException(g_executor, "PANIC", "Invalid function pointer");
         return;
     }
     if (params != NULL) {

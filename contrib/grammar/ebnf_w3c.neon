@@ -7,65 +7,64 @@ IMPORT console
 IMPORT string
 
 LOOP
-    VAR s: String
-    TRY
-        s := console.input("")
-
-        -- Skip over comment block at top.
-        IF s.length() >= 2 AND s[1] = "*" THEN
-            NEXT LOOP
-        END IF
-
-        -- Remove semicolons from the end of each production.
-        IF s[LAST] = ";" THEN
-            s := s[FIRST TO LAST-1]
-        END IF
-
-        -- Convert = to ::=.
-        LET equals: string.FindResult := string.find(s, " =")
-        IF equals ISA string.FindResult.index THEN
-            s[equals.index+1] := "::="
-        END IF
-
-        -- Remove commas separating items.
-        LOOP
-            LET comma: string.FindResult := string.find(s, ", ")
-            CHECK comma ISA string.FindResult.index ELSE
-                EXIT LOOP
-            END CHECK
-            s[comma.index] := ""
-        END LOOP
-
-        -- Convert [...] to (...)?.
-        LOOP
-            LET bracket: string.FindResult := string.find(s, " [")
-            CHECK bracket ISA string.FindResult.index ELSE
-                EXIT LOOP
-            END CHECK
-            LET rbracket: string.FindResult := string.find(s, "]")
-            CHECK rbracket ISA string.FindResult.index ELSE
-                ASSERT FALSE
-            END CHECK
-            s[bracket.index+1] := "("
-            s[rbracket.index] := ")?"
-        END LOOP
-
-        -- Convert {...} to (...)*.
-        LOOP
-            LET brace: string.FindResult := string.find(s, " {")
-            CHECK brace ISA string.FindResult.index ELSE
-                EXIT LOOP
-            END CHECK
-            LET rbrace: string.FindResult := string.find(s, "}")
-            CHECK rbrace ISA string.FindResult.index ELSE
-                ASSERT FALSE
-            END CHECK
-            s[brace.index+1] := "("
-            s[rbrace.index] := ")*"
-        END LOOP
-
-    TRAP EndOfFileException DO
+    LET r: console.InputResult := console.input("")
+    CHECK r ISA console.InputResult.line ELSE
         EXIT LOOP
-    END TRY
+    END CHECK
+    LET s: String := r.line
+
+    -- Skip over comment block at top.
+    IF s.length() >= 2 AND s[1] = "*" THEN
+        NEXT LOOP
+    END IF
+
+    -- Remove semicolons from the end of each production.
+    IF s[LAST] = ";" THEN
+        s := s[FIRST TO LAST-1]
+    END IF
+
+    -- Convert = to ::=.
+    LET equals: string.FindResult := string.find(s, " =")
+    IF equals ISA string.FindResult.index THEN
+        s[equals.index+1] := "::="
+    END IF
+
+    -- Remove commas separating items.
+    LOOP
+        LET comma: string.FindResult := string.find(s, ", ")
+        CHECK comma ISA string.FindResult.index ELSE
+            EXIT LOOP
+        END CHECK
+        s[comma.index] := ""
+    END LOOP
+
+    -- Convert [...] to (...)?.
+    LOOP
+        LET bracket: string.FindResult := string.find(s, " [")
+        CHECK bracket ISA string.FindResult.index ELSE
+            EXIT LOOP
+        END CHECK
+        LET rbracket: string.FindResult := string.find(s, "]")
+        CHECK rbracket ISA string.FindResult.index ELSE
+            ASSERT FALSE
+        END CHECK
+        s[bracket.index+1] := "("
+        s[rbracket.index] := ")?"
+    END LOOP
+
+    -- Convert {...} to (...)*.
+    LOOP
+        LET brace: string.FindResult := string.find(s, " {")
+        CHECK brace ISA string.FindResult.index ELSE
+            EXIT LOOP
+        END CHECK
+        LET rbrace: string.FindResult := string.find(s, "}")
+        CHECK rbrace ISA string.FindResult.index ELSE
+            ASSERT FALSE
+        END CHECK
+        s[brace.index+1] := "("
+        s[rbrace.index] := ")*"
+    END LOOP
+
     print(s)
 END LOOP

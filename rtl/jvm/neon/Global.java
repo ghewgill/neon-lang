@@ -166,7 +166,7 @@ public class Global {
         for (int i = 0; i < self.size(); i++) {
             int x = ((neon.type.Number)self.get(i)).intValue();
             if (x < 0 || x >= 256) {
-                throw new neon.type.NeonException("ByteOutOfRangeException");
+                throw new neon.type.NeonException("PANIC", "Byte value out of range at offset " + i + ": " + x);
             }
             r[i] = (byte)x;
         }
@@ -265,10 +265,18 @@ public class Global {
         if (last_from_end) {
             l += a.length - 1;
         }
-        byte[] r = new byte[f + b.length + a.length - (l + 1)];
-        System.arraycopy(a, 0, r, 0, f);
+        if (f < 0) {
+            throw new neon.type.NeonException("BytesIndexException", Integer.toString(f));
+        }
+        if (l < f-1) {
+            throw new neon.type.NeonException("BytesIndexException", Integer.toString(l));
+        }
+        byte[] r = new byte[f + b.length + java.lang.Math.max(0, a.length - (l + 1))];
+        System.arraycopy(a, 0, r, 0, java.lang.Math.min(f, a.length));
         System.arraycopy(b, 0, r, f, b.length);
-        System.arraycopy(a, l + 1, r, f + b.length, a.length - (l + 1));
+        if (l+1 < a.length) {
+            System.arraycopy(a, l + 1, r, f + b.length, a.length - (l + 1));
+        }
         return r;
     }
 

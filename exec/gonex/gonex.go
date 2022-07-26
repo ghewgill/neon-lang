@@ -2024,13 +2024,19 @@ func (self *executor) op_callp() {
 	case "array__toBytes__number":
 		a := self.pop().array
 		b := make([]byte, len(a))
+		failed := false
 		for i, x := range a {
 			if x.num < 0 || x.num >= 256 {
-				self.raise_literal("ByteOutOfRangeException", objectString{fmt.Sprintf("%g", x.num)})
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("Byte value out of range at offset %d: %g", i, x.num)})
+				failed = true
+				break
 			}
 			b[i] = byte(x.num)
 		}
-		self.push(make_cell_bytes(b))
+		// Only push the result if there was no exception.
+		if !failed {
+			self.push(make_cell_bytes(b))
+		}
 	case "array__toString__number":
 		a := self.pop().array
 		r := "["
@@ -2270,16 +2276,18 @@ func (self *executor) op_callp() {
 		}
 		s += "\""
 		self.push(make_cell_str(s))
-	case "console$input":
+	case "console$input_internal":
 		prompt := self.pop().str
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print(prompt)
 		r, err := reader.ReadString('\n')
 		if err == nil {
 			r = strings.TrimRight(r, "\n")
+			self.push(make_cell_bool(true))
 			self.push(make_cell_str(r))
 		} else {
-			self.raise_literal("EndOfFileException", objectString{err.Error()})
+			self.push(make_cell_bool(false))
+			self.push(make_cell_none())
 		}
 	case "dictionary__keys":
 		d := self.pop().dict
@@ -3033,9 +3041,9 @@ func (self *executor) op_callp() {
 	case "sys$exit":
 		n := self.pop().num
 		if n != math.Trunc(n) {
-			self.raise_literal("InvalidValueException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
+			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else if n < 0 || n > 255 {
-			self.raise_literal("InvalidValueException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
+			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else {
 			os.Exit(int(n))
 		}
@@ -3054,7 +3062,7 @@ func (self *executor) op_callf() {
 	self.ip++
 	val := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", objectString{""})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("StackOverflow: Stack depth exceeds recursion limit of %d", self.param_recursion_limit)})
 		return
 	}
 	self.invoke(self.module, val)
@@ -3065,7 +3073,7 @@ func (self *executor) op_callmf() {
 	mod := get_vint(self.module.object.code, &self.ip)
 	fun := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", objectString{""})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("StackOverflow: Stack depth exceeds recursion limit of %d", self.param_recursion_limit)})
 		return
 	}
 	m, found := self.modules[string(self.module.object.strtable[mod])]
@@ -3084,7 +3092,7 @@ func (self *executor) op_callmf() {
 func (self *executor) op_calli() {
 	self.ip++
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", objectString{""})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("StackOverflow: Stack depth exceeds recursion limit of %d", self.param_recursion_limit)})
 		return
 	}
 	a := self.pop().array
@@ -3240,7 +3248,7 @@ func (self *executor) op_callv() {
 	self.ip++
 	val := get_vint(self.module.object.code, &self.ip)
 	if len(self.callstack) >= self.param_recursion_limit {
-		self.raise_literal("StackOverflowException", objectString{""})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("StackOverflow: Stack depth exceeds recursion limit of %d", self.param_recursion_limit)})
 		return
 	}
 	pi := self.pop().array

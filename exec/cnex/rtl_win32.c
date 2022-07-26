@@ -25,12 +25,16 @@ void_function_t rtl_foreign_function(TExecutor *exec, const char *library, const
 {
     HMODULE lib = get_library_handle(library);
     if (lib == NULL) {
-        exec->rtl_raise(exec, "LibraryNotFoundException", library);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "neon_exec: Library not found: %s", library);
+        exec->rtl_raise(exec, "PANIC", buf);
         return NULL;
     }
     void_function_t fp = (void_function_t)(GetProcAddress(lib, function));
     if (fp == NULL) {
-        exec->rtl_raise(exec, "FunctionNotFoundException", function);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "neon_exec: Function not found: %s (in %s)", function, library);
+        exec->rtl_raise(exec, "PANIC", buf);
         return NULL;
     }
     return fp;

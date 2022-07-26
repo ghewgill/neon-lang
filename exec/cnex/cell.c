@@ -461,12 +461,14 @@ TString *cell_toString(Cell *c)
                 if (r->length > 1) {
                     r = string_appendCString(r, ", ");
                 }
-                // ToDo: Properly escape quotes in keys
-                r = string_appendString(r, string_quote(keys->array->data[x].string));
+                TString *quotedData = cell_toString(dictionary_findDictionaryEntry(c->dictionary, keys->array->data[x].string));
+                r = string_appendString(r, string_quoteInPlace(keys->array->data[x].string));
                 r = string_appendCString(r, ": ");
-                r = string_appendString(r, cell_toString(dictionary_findDictionaryEntry(c->dictionary, keys->array->data[x].string)));
+                r = string_appendString(r, string_quoteInPlace(quotedData));
+                string_freeString(quotedData);
             }
             r = string_appendCString(r, "}");
+            cell_freeCell(keys);
             break;
         }
         case cNumber:
@@ -474,7 +476,9 @@ TString *cell_toString(Cell *c)
             break;
         case cObject:
         {
-            r = string_appendString(r, object_toString(c->object)->string);
+            Cell *os = object_toString(c->object);
+            r = string_appendString(r, os->string);
+            cell_freeCell(os);
             break;
         }
         case cString:

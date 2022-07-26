@@ -1016,7 +1016,7 @@ class Executor {
     private void doPUSHNIL()
     {
         ip++;
-        stack.addFirst(new Cell((Cell)null));
+        stack.addFirst(new Cell());
     }
 
     private void doRESETC()
@@ -1395,7 +1395,7 @@ class Executor {
         for (Cell c: a) {
             int x = c.getNumber().intValue();
             if (x < 0 || x >= 256) {
-                raiseLiteral("ByteOutOfRangeException");
+                raiseLiteral("PANIC", "Byte value out of range at offset " + i + ": " + x);
                 return;
             }
             r[i] = (byte) c.getNumber().intValue();

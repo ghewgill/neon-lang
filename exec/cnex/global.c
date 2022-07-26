@@ -356,6 +356,7 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("dictionary__keys",          dictionary__keys),
     PDFUNC("dictionary__remove",        dictionary__remove),
+    PDFUNC("dictionary__toString__object", dictionary__toString__object),
     PDFUNC("dictionary__toString__string", dictionary__toString__string),
 
     PDFUNC("exceptiontype__toString",   exceptiontype__toString),
@@ -793,7 +794,9 @@ void array__toBytes__number(TExecutor *exec)
     for (x = 0, i = 0; x < a->array->size; x++) {
         uint32_t b = number_to_uint32(a->array->data[x].number);
         if (b >= 256) {
-            exec->rtl_raise(exec, "ByteOutOfRangeException", TO_STRING(b));
+            char msg[100];
+            snprintf(msg, sizeof(msg), "Byte value out of range at offset %zd: %s", i, number_to_string(a->array->data[x].number));
+            exec->rtl_raise(exec, "PANIC", msg);
             cell_freeCell(a);
             cell_freeCell(r);
             return;
@@ -821,9 +824,9 @@ void array__toString__object(TExecutor *exec)
         if (r->string->length > 1) {
             r->string = string_appendCString(r->string, ", ");
         }
-        TString *es = cell_toString(a->array->data[i].object->ptr);
-        r->string = string_appendString(r->string, es);
-        string_freeString(es);
+        Cell *es = object_toLiteralString(a->array->data[i].object);
+        r->string = string_appendString(r->string, es->string);
+        cell_freeCell(es);
     }
     r->string = string_appendCString(r->string, "]");
 
@@ -1002,27 +1005,56 @@ void bytes__splice(TExecutor *exec)
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
     cell_ensureBytes(t);
 
-    int64_t fst = number_to_sint64(first);
-    int64_t lst = number_to_sint64(last);
+    if (!number_is_integer(first)) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
+        goto cleanup;
+    }
+    if (!number_is_integer(last)) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
+        goto cleanup;
+    }
+    int64_t f = number_to_sint64(first);
+    int64_t l = number_to_sint64(last);
     if (first_from_end) {
-        fst += s->string->length - 1;
+        f += s->string->length - 1;
     }
     if (last_from_end) {
-        lst += s->string->length - 1;
+        l += s->string->length - 1;
+    }
+    if (f < 0) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(number_from_sint64(f)));
+        goto cleanup;
+    }
+    if (l< f-1) {
+        exec->rtl_raise(exec, "BytesIndexException", number_to_string(number_from_sint64(l)));
+        goto cleanup;
     }
 
-    Cell *sub = cell_newCellType(cBytes);
-    sub->string = string_newString();
-    sub->string->length = t->string->length + (((fst - 1) + s->string->length) - lst);
-    sub->string->data = malloc(sub->string->length);
-    memcpy(sub->string->data, s->string->data, fst);
-    memcpy(&sub->string->data[fst], t->string->data, (t->string->length - fst));
-    memcpy(&sub->string->data[t->string->length], &s->string->data[lst + 1], s->string->length - (lst + 1));
+    int64_t new_len = (int64_t)s->string->length - (f < (int64_t)s->string->length ? (l < (int64_t)s->string->length ? l - f + 1 : (int64_t)s->string->length - f) : 0) + (int64_t)t->string->length;
+    int64_t padding = 0;
+    if (f > (int64_t)s->string->length) {
+        padding = f - s->string->length;
+        new_len += padding;
+    }
+    if (new_len > (int64_t)s->string->length) {
+        s->string->data = realloc(s->string->data, new_len);
+    }
+    memmove(&s->string->data[f + padding + t->string->length], &s->string->data[l + 1], (l < (int64_t)s->string->length ? (int64_t)s->string->length - l - 1 : 0));
+    memset(&s->string->data[s->string->length], '\0', padding);
+    memcpy(&s->string->data[f], t->string->data, t->string->length);
+    if (new_len < (int64_t)s->string->length) {
+        s->string->data = realloc(s->string->data, new_len);
+    }
+    s->string->length = new_len;
 
-    cell_freeCell(s);
-    cell_freeCell(t);
+    Cell *sub = cell_newCellType(cBytes);
+    sub->string = string_copyString(s->string);
 
     push(exec->stack, sub);
+
+cleanup:
+    cell_freeCell(s);
+    cell_freeCell(t);
 }
 
 void bytes__store(TExecutor *exec)
@@ -1103,6 +1135,13 @@ void dictionary__remove(TExecutor *exec)
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
     dictionary_removeDictionaryEntry(addr->dictionary, key);
     string_freeString(key);
+}
+
+void dictionary__toString__object(TExecutor *exec)
+{
+    TString *s = cell_toString(top(exec->stack)); pop(exec->stack);
+    push(exec->stack, cell_fromString(s));
+    string_freeString(s);
 }
 
 void dictionary__toString__string(TExecutor *exec)

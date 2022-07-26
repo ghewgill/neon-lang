@@ -11,20 +11,31 @@
 /*
  * Number / string functions
  */
+NumberFormat NumberDisplayMode;
+static char *num_buf = NULL;
+static size_t buf_len = 50;
+
 
 char *number_to_string(Number x)
 {
-    static char buf[50];
-    number_toString(x, buf, sizeof(buf));
-    return buf;
+    if (num_buf == NULL) {
+        num_buf = malloc(buf_len);
+    }
+    for (;;) {
+        size_t len = number_toString(x, num_buf, buf_len, NumberDisplayMode);
+        if (len > 0) {
+            buf_len = len;
+            num_buf = realloc(num_buf, buf_len);
+            continue;
+        }
+        break;
+    }
+    return num_buf;
 }
 
-void number_toString(Number x, char *buf, size_t len)
+size_t number_toString(Number x, char *buf, size_t len, NumberFormat format)
 {
-    memset(buf, 0x00, len);
-    const int PRECISION = 34;
-
-    assert(len != 0);
+    const size_t PRECISION = 34;
 
     char val[50] = { 0 };
     bid128_to_string(val, x);
@@ -32,7 +43,7 @@ void number_toString(Number x, char *buf, size_t len)
     char *v, *s = v = &val[1];
 
     // Calculate the length of the string, locating the exponent value at the same time.
-    int slen = 0;
+    size_t slen = 0;
     while (*s != '\0' && (*s != 'E')) {
         s++;
         slen++;
@@ -43,10 +54,14 @@ void number_toString(Number x, char *buf, size_t len)
 
     // If we didn't find an exponent marker, then just return the buffer that it is.
     if (*s != 'E') {
-        // Number is possibly +Nan, or +Inf.
-        strncpy(buf, val, len);
-        buf[len-1] = '\0';
-        return;
+        // Number is possibly +NaN, or +Inf.
+        size_t val_len = strlen(val);
+        // Check that the user supplied buffer is at least large enough to store the value.
+        if (len <= val_len) {
+            return val_len + 1;
+        }
+        strcpy(buf, val);
+        return 0;
     }
 
     // Get the actual exponent, by walking past the eponent marker, then converting to decimal value.
@@ -66,9 +81,13 @@ void number_toString(Number x, char *buf, size_t len)
     const int last_significant_digit = (int)(p - v);
 
     if (last_significant_digit == -1) {
+        // Ensure that the user supplied buffer can hold at least 2 bytes.
+        if (len < 2) {
+            return 2;
+        }
         buf[0] = '0';
         buf[1] = '\0';
-        return;
+        return 0;
     }
 
     // Once we know the last siginificant digit, we can calculate how many trailing zero existed.
@@ -77,79 +96,110 @@ void number_toString(Number x, char *buf, size_t len)
     slen -= trailing_zeros;
     exponent += trailing_zeros;
     char mantissa[50] = { 0 };
-    char r[50] = { 0 };
     // Copy the mantissa out to the last significant digit.
     memcpy(mantissa, v, last_significant_digit+1);
     // Guarantee the string is null terminated, despite the buffer starting off NULL.
     mantissa[last_significant_digit+1] = '\0';
 
     if (exponent != 0) {
-        if (exponent > 0 && slen + exponent <= PRECISION) {
-            // We have an exponent value we need to deal with, but the length combined with the exponent
-            // is less than our desired max precision, so we move the mantissa value into (r)esult, the length
-            // of the significant mantissa, adding zeros as necessary.
-            memcpy(r, mantissa, last_significant_digit+1);
-            for (int i = last_significant_digit+1; i < ((last_significant_digit+1) + exponent); i++, slen++) {
-                r[i] = '0';
+        if (exponent > 0 && (format == nfFull || slen + exponent <= PRECISION)) {
+            if (((last_significant_digit+1) + exponent) >= (int)len) {
+                // The caller didn't supply us with enough buffer space to hold the resulting number.
+                return last_significant_digit+1 + exponent + 1;
             }
-        } else if (exponent < 0 && -exponent < slen) {
+            // We have an exponent value we need to deal with, but the length combined with the exponent
+            // is less than our desired max precision, so we move the mantissa value into buf, for the length
+            // of the significant mantissa, adding zeros as necessary.
+            memcpy(buf, mantissa, last_significant_digit+1);
+            for (int i = last_significant_digit+1; i < ((last_significant_digit+1) + exponent); i++, slen++) {
+                buf[i] = '0';
+            }
+            buf[slen] = '\0';
+        } else if (exponent < 0 && -exponent < (int)slen) {
             // Our exponent is negative, and is less than the length of the mantissa, so we're
             // going to insert the decimal into slen+exponent location.
-            memcpy(r, mantissa, slen+exponent);
-            r[slen+exponent] = '.';
-            memcpy(&r[slen+exponent+1], &mantissa[slen+exponent], slen - (slen+exponent));
-        } else if (exponent < 0 && -exponent == slen) {
+            if (slen + 2 > len) {
+                // User did not provide us with enough buffer space.  This was tested by starting buf_len at 0.
+                return slen + 2; // Include space for the decimal, and the NULL.
+            }
+            memcpy(buf, mantissa, slen+exponent);
+            buf[slen+exponent] = '.';
+            memcpy(&buf[slen+exponent+1], &mantissa[slen+exponent], -exponent);
+            slen++;
+            buf[slen] = '\0';
+        } else if (exponent < 0 && -exponent == (int)slen) {
             // Our exponent is negative, and is the length of the mantissa, so we're going to start
             // the number with "0.", and then add the rest of the mantissa on the right side of the decimal.
-            memcpy(r, "0.", 2);
-            memcpy(&r[2], mantissa, slen+=2);
-        } else if (exponent < 0 && slen - exponent <= PRECISION + 1) {
+            if (slen + 2 >= len) {
+                return slen + 3; // Need room for the "0.", and the NULL.
+            }
+            memcpy(buf, "0.", 2);
+            memcpy(&buf[2], mantissa, slen);
+            slen += 2;
+            buf[slen] = '\0';
+        } else if (exponent < 0 && (format == nfFull || slen - exponent <= PRECISION + 1)) {
+            if (((-exponent-slen) + 2 + slen) >= len) {
+                // The caller didn't supply us with enough buffer space to hold the resulting number.
+                return (-exponent-slen) + 2 + slen + 1; // Plus 1.  Don't every forget the +1!  We need that NULL char!
+            }
             // Our exponent is negative, and the mantissa length, minus the exponent less or equal to our max PRECISION
             // then we need to insert zero's to the right of the decimal.
             int count = 2;
-            // Start out by setting [r]esult to "0."
-            memcpy(r, "0.", count);
+            // Start out by setting buf to "0."
+            memcpy(buf, "0.", count);
             // Now, we copy the necessary number of zeros after the decimal point...
-            for (int i = 0; i < -exponent-slen;i++, count++) {
-                r[count] = '0';
+            for (size_t i = 0; i < -exponent-slen;i++, count++) {
+                buf[count] = '0';
             }
-            // Then copy the remainder of the mantissa to our [r]esult.
-            memcpy(&r[count], mantissa, slen);
-            // Ensure that [r]esult is null terminated.  I'm not 100% convinced this is necessary.
+            // Then copy the remainder of the mantissa to the supplied buf
+            memcpy(&buf[count], mantissa, slen);
+            // Ensure that buf is null terminated.
             slen += count;
-            r[slen] = '\0';
+            buf[slen] = '\0';
         } else {
             // Our exponent is positive, therefore we need to add the decimal point on the right of the number.
             exponent += last_significant_digit;
+            char exp[36];
+            int explen = sprintf(exp, "e%d", exponent);
+            if (slen + explen + 2 > len) {
+                return slen + explen + 2;
+            }
             if (last_significant_digit >= 1) {
-                // Our mantissa is at least 2 digits long, so copy the first digit to [r]esult
-                r[0] = mantissa[0];
+                // Our mantissa is at least 2 digits long, so copy the first digit to buf
+                buf[0] = mantissa[0];
                 // add the decimal point
-                r[1] = '.';
-                // copy the remainder of the mantissa to [r]esult
-                memcpy(&r[2], &mantissa[1], last_significant_digit);
+                buf[1] = '.';
+                // copy the remainder of the mantissa to buf
+                memcpy(&buf[2], &mantissa[1], last_significant_digit);
                 slen++;
             } else {
                 // The mantissa is only one significant digit, so copy that to the output, then apply the exponent value.
-                memcpy(r, mantissa, last_significant_digit+1);
+                memcpy(buf, mantissa, last_significant_digit+1);
             }
             // Now, create the actual exponent value.
-            char exp[36];
-            int explen = sprintf(exp, "e%d", exponent);
-            memcpy(&r[slen], exp, explen+1); // Include the terminating NULL char given to us by sprintf()
+            memcpy(&buf[slen], exp, explen+1); // Include the terminating NULL char given to us by sprintf()
             slen += explen;
         }
     } else {
         // Exponent is zero, or just copy the mantissa, up to the last significant digit.
-        memcpy(r, mantissa, last_significant_digit+1); // Include terminating NULL char.
+        if ((slen + 1) > len) {
+            // The caller didn't supply us with enough buffer space to hold the resulting number.
+            return slen + 1; // +1 because we want room for the NULL.
+        }
+        memcpy(buf, mantissa, last_significant_digit+1);
+        buf[last_significant_digit+1] = '\0';
     }
     if (val[0] == '-') {
-        // The number is a negative number, so include the sign on the end of it.
-        memcpy(&buf[1], r, slen+1); // Be sure to include the terminating NULL char.
+        // The number is a negative number, so add the sign to it.
+        if ((slen + 1) >= len) {
+            // The caller didn't supply us with enough buffer space to hold the resulting number and the sign.
+            return slen + 2;
+        }
+        memmove(&buf[1], buf, slen);
         buf[0] = '-';
-        return;
+        buf[slen+1] = '\0';  // Add the terminating NULL char here.
     }
-    memcpy(buf, r, slen+1); // Be sure to include the terminating NULL char.
+    return 0;
 }
 
 Number number_from_string(const char *s)
@@ -205,6 +255,12 @@ Number number_from_string(const char *s)
     }
     // Note: bid128_from_string() takes a char*, not a const char*.
     return bid128_from_string((char*)s);
+}
+
+void number_cleanup(void)
+{
+    free(num_buf);
+    num_buf = NULL;
 }
 
 

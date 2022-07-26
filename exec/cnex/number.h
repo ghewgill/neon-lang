@@ -34,8 +34,16 @@
 
 typedef BID_UINT128 Number;
 
-void number_toString(Number x, char *buf, size_t len);
+typedef enum enNumberFormat {
+    nfFull,
+    nfScientific,
+} NumberFormat;
+
+extern NumberFormat NumberDisplayMode;
+
+size_t number_toString(Number x, char *buf, size_t len, NumberFormat format);
 char *number_to_string(Number x);
+void number_cleanup(void);
 
 Number number_from_string(const char *s);
 

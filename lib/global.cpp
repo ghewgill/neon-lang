@@ -165,7 +165,7 @@ std::vector<unsigned char> array__toBytes__number(const std::vector<Number> &a)
     for (auto x: a) {
         int64_t b = number_to_sint64(x);
         if (b < 0 || b >= 256) {
-            throw RtlException(Exception_ByteOutOfRangeException, utf8string(number_to_string(x)));
+            throw PanicException(utf8string("Byte value out of range at offset " + std::to_string(r.size()) + ": " + number_to_string(x)));
         }
         r.push_back(static_cast<unsigned char>(b));
     }
@@ -450,6 +450,12 @@ Number bytes__size(const std::vector<unsigned char> &self)
 
 std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, const std::vector<unsigned char> &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
+    if (not number_is_integer(first)) {
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(first)));
+    }
+    if (not number_is_integer(last)) {
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(last)));
+    }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
     if (first_from_end) {
@@ -458,10 +464,23 @@ std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, co
     if (last_from_end) {
         l += s.size() - 1;
     }
+    if (f < 0) {
+        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(f)));
+    }
+    if (l < f-1) {
+        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(l)));
+    }
+    int64_t slen = static_cast<int64_t>(s.size());
     std::vector<unsigned char> r;
-    std::copy(s.begin(), s.begin()+f, std::back_inserter(r));
+    std::copy(s.begin(), s.begin()+std::min(f, slen), std::back_inserter(r));
+    if (f > slen) {
+        std::vector<unsigned char> padding(f - slen, 0);
+        std::copy(padding.begin(), padding.end(), std::back_inserter(r));
+    }
     std::copy(t.begin(), t.end(), std::back_inserter(r));
-    std::copy(s.begin()+l+1, s.end(), std::back_inserter(r));
+    if (l < slen) {
+        std::copy(s.begin()+(l+1), s.end(), std::back_inserter(r));
+    }
     return r;
 }
 
@@ -476,7 +495,7 @@ void bytes__store(Number b, std::vector<unsigned char> *s, Number index)
     }
     int64_t bb = number_to_sint64(b);
     if (bb < 0 || bb >= 256) {
-        throw RtlException(Exception_ByteOutOfRangeException, utf8string(number_to_string(b)));
+        throw PanicException(utf8string("Byte value out of range: " + number_to_string(b)));
     }
     s->at(i) = bb;
 }
