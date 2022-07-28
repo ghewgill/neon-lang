@@ -45,7 +45,7 @@ Number array__find(Cell &self, Cell &element)
     auto &a = self.array();
     auto i = std::find(a.begin(), a.end(), element);
     if (i == a.end()) {
-        throw RtlException(Exception_ArrayIndexException, utf8string("value not found in array"));
+        throw PanicException(utf8string("value not found in array"));
     }
     return number_from_uint64(std::distance(a.begin(), i));
 }
@@ -71,12 +71,12 @@ std::vector<Number> array__range(Number first, Number last, Number step)
 void array__remove(Cell *self, Number index)
 {
     if (not number_is_integer(index) || number_is_negative(index)) {
-        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(index)));
+        throw PanicException(utf8string("Invalid array index: " + number_to_string(index)));
     }
     size_t i = number_to_uint64(index);
     auto &a = self->array_for_write();
     if (i >= a.size()) {
-        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(index)));
+        throw PanicException(utf8string("Array index exceeds size " + std::to_string(a.size()) + ": " + number_to_string(index)));
     }
     a.erase(a.begin() + i);
 }
@@ -84,7 +84,7 @@ void array__remove(Cell *self, Number index)
 void array__resize(Cell *self, Number new_size)
 {
     if (not number_is_integer(new_size)) {
-        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(new_size)));
+        throw PanicException(utf8string("Invalid array size: " + number_to_string(new_size)));
     }
     self->array_for_write().resize(number_to_sint64(new_size));
 }
@@ -107,10 +107,10 @@ Number array__size(Cell &self)
 Cell array__slice(Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {
-        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(first)));
+        throw PanicException(utf8string("First index not an integer: " + number_to_string(first)));
     }
     if (not number_is_integer(last)) {
-        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(last)));
+        throw PanicException(utf8string("Last index not an integer: " + number_to_string(last)));
     }
     const std::vector<Cell> &array = a.array();
     int64_t fst = number_to_sint64(first);

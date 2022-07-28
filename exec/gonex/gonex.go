@@ -366,7 +366,7 @@ func (obj objectArray) subscript(index object) (object, error) {
 		if int(i) < len(obj.array) {
 			return obj.array[int(i)], nil
 		} else {
-			return nil, &neonexception{"ArrayIndexException", objectString{fmt.Sprintf("%g", i)}}
+			return nil, &neonexception{"PANIC", objectString{fmt.Sprintf("Array index exceeds size %d: %g", len(obj.array), i)}}
 		}
 	} else {
 		return nil, &neonexception{"DynamicConversionException", objectString{"to Number"}}
@@ -1062,6 +1062,7 @@ func (self *executor) run() {
 		self.invoke(m, 0)
 	}
 	for self.ip < len(self.module.object.code) {
+		//fmt.Fprintf(os.Stderr, "ip %d\n", self.ip)
 		switch self.module.object.code[self.ip] {
 		case PUSHB:
 			self.op_pushb()
@@ -1308,8 +1309,14 @@ func (self *executor) op_pushpg() {
 
 func (self *executor) op_pushppg() {
 	self.ip++
-	name := get_vint(self.module.object.code, &self.ip)
-	self.push(make_cell_addr(self.predefined_globals[string(self.module.object.strtable[name])]))
+	index := get_vint(self.module.object.code, &self.ip)
+	name := string(self.module.object.strtable[index])
+	value, exists := self.predefined_globals[name]
+	if exists {
+		self.push(make_cell_addr(value))
+	} else {
+		panic("predefined global not found: " + name)
+	}
 }
 
 func (self *executor) op_pushpmg() {
@@ -1754,16 +1761,16 @@ func (self *executor) op_indexar() {
 	ref := self.pop().ref
 	a := ref.load().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index not an integer: %g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index is negative: %g", nindex)})
 		return
 	}
 	index := int(nindex)
 	if index >= len(a) {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index exceeds size %d: %g", len(a), nindex)})
 		return
 	}
 	self.push(make_cell_addr(&a[index]))
@@ -1775,11 +1782,11 @@ func (self *executor) op_indexaw() {
 	ref := self.pop().ref
 	a := ref.load().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index not an integer: %g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index is negative: %g", nindex)})
 		return
 	}
 	index := int(nindex)
@@ -1795,11 +1802,11 @@ func (self *executor) op_indexav() {
 	nindex := self.pop().num
 	a := self.pop().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index not an integer: %g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index is negative: %g", nindex)})
 		return
 	}
 	index := int(nindex)
@@ -1896,7 +1903,7 @@ func (self *executor) op_callp() {
 			}
 		}
 		if !found {
-			self.raise_literal("ArrayIndexException", objectString{"value not found in array"})
+			self.raise_literal("PANIC", objectString{"value not found in array"})
 		}
 	case "array__range":
 		step := self.pop().num
@@ -1920,7 +1927,7 @@ func (self *executor) op_callp() {
 	case "array__remove":
 		index := self.pop().num
 		if index != math.Trunc(index) || index < 0 {
-			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", index)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Invalid array index: %g", index)})
 		} else {
 			index := int(index)
 			r := self.pop().ref
@@ -1931,7 +1938,7 @@ func (self *executor) op_callp() {
 	case "array__resize":
 		size := self.pop().num
 		if size != math.Trunc(size) || size < 0 {
-			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", size)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Invalid array size: %g", size)})
 		} else {
 			size := int(size)
 			r := self.pop().ref
@@ -1962,9 +1969,9 @@ func (self *executor) op_callp() {
 		nfirst := self.pop().num
 		a := self.pop().array
 		if nfirst != math.Trunc(nfirst) {
-			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("First index not an integer: %g", nfirst)})
 		} else if nlast != math.Trunc(nlast) {
-			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nlast)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Last index not an integer: %g", nlast)})
 		} else {
 			first := int(nfirst)
 			last := int(nlast)

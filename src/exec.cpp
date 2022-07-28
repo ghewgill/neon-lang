@@ -1171,17 +1171,17 @@ void Executor::exec_INDEXAR()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index not an integer: " + number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index is negative: " + number_to_string(index))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= addr->array().size()) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index exceeds size " + std::to_string(addr->array().size()) + ": " + number_to_string(index))));
         return;
     }
     stack.push(Cell(&addr->array_index_for_read(j)));
@@ -1193,12 +1193,12 @@ void Executor::exec_INDEXAW()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index not an integer: " + number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index is negative: " + number_to_string(index))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
@@ -1211,17 +1211,17 @@ void Executor::exec_INDEXAV()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index not an integer: " + number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index is negative: " + number_to_string(index))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= array.size()) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index exceeds size " + std::to_string(array.size()) + ": " + number_to_string(index))));
         return;
     }
     assert(j < array.size());
@@ -1236,12 +1236,12 @@ void Executor::exec_INDEXAN()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index not an integer: " + number_to_string(index))));
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(rtl::ne_global::Exception_ArrayIndexException, std::make_shared<ObjectString>(utf8string(number_to_string(index))));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index is negative: " + number_to_string(index))));
         return;
     }
     uint64_t j = static_cast<uint64_t>(i);

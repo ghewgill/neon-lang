@@ -1,3 +1,8 @@
+array.neon                 # exception
+array-find.neon            # exception
+array-fraction.neon        # exception
+array-index.neon           # exception
+array-negative.neon        # exception
 array-resize.neon          # array default item
 array-sparse.neon          # array default item
 array2d.neon               # array copying semantics

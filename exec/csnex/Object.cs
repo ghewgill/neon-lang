@@ -70,7 +70,7 @@ namespace csnex
             }
             int ii = Number.number_to_int32(i);
             if (ii >= Value.Count || i.IsNegative()) {
-                throw new NeonRuntimeException("ArrayIndexException", i.ToString());
+                throw new NeonRuntimeException("PANIC", "Array index exceeds size " + Value.Count + ": " + i.ToString());
             }
             r = Value[ii];
             return true;

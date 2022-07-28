@@ -1180,17 +1180,23 @@ void exec_INDEXAR(TExecutor *self)
     Cell *addr = top(self->stack)->address; pop(self->stack);
 
     if (!number_is_integer(index)) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index not an integer: %s", number_to_string(index));
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is negative: %"PRId64, i);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     uint64_t j = (uint64_t)i;
     if (j >= addr->array->size) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index exceeds size %zd: %"PRIu64, addr->array->size, j);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     push(self->stack, cell_fromAddress(cell_arrayIndexForRead(addr, j)));
@@ -1203,12 +1209,16 @@ void exec_INDEXAW(TExecutor *self)
     Cell *addr = top(self->stack)->address; pop(self->stack);
 
     if (!number_is_integer(index)) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is not an integer: %s", number_to_string(index));
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is negative: %"PRId64, i);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     uint64_t j = (uint64_t)i;
@@ -1222,17 +1232,23 @@ void exec_INDEXAV(TExecutor *self)
     Cell *array = top(self->stack);
 
     if (!number_is_integer(index)) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index not an integer: %s", number_to_string(index));
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is negative: %"PRId64, i);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     uint64_t j = (uint64_t)i;
     if (j >= array->array->size) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index exceeds size %zd: %"PRIu64, array->array->size, j);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     assert(j < array->array->size);
@@ -1248,12 +1264,16 @@ void exec_INDEXAN(TExecutor *self)
     Cell *array = top(self->stack);
 
     if (!number_is_integer(index)) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index not an integer: %s", number_to_string(index));
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is negative: %"PRId64, i);
+        self->rtl_raise(self, "PANIC", buf);
         return;
     }
     uint64_t j = (uint64_t)i;

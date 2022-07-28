@@ -758,17 +758,17 @@ namespace csnex
             Cell addr = stack.Pop().Address;
 
             if (!index.IsInteger()) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index not an integer: " + index.ToString());
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index is negative: " + index.ToString());
                 return;
             }
 
             if (i >= addr.Array.Count) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index exceeds size " + addr.Array.Count.ToString() + ": " + index.ToString());
                 return;
             }
             stack.Push(Cell.CreateAddressCell(addr.ArrayIndexForRead(i)));
@@ -781,12 +781,12 @@ namespace csnex
             Cell addr = stack.Pop().Address;
 
             if (!index.IsInteger()) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index not an integer: " + index.ToString());
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index is negative: " + index.ToString());
                 return;
             }
             stack.Push(Cell.CreateAddressCell(addr.ArrayIndexForWrite(i)));
@@ -799,17 +799,17 @@ namespace csnex
             Cell array = stack.Pop();
 
             if (!index.IsInteger()) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(index.ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index not an integer: " + index.ToString()));
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(i).ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index is negative: " + new Number(i).ToString()));
                 return;
             }
             uint j = (uint)i;
             if (j >= array.Array.Count) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(j).ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index exceeds size " + array.Array.Count.ToString() + ": " + new Number(j).ToString()));
                 return;
             }
             Debug.Assert(j < array.Array.Count);
@@ -823,12 +823,12 @@ namespace csnex
             Cell array = stack.Pop();
 
             if (!index.IsInteger()) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(index.ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index not an integer: " + index.ToString()));
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0 || i >= array.Array.Count) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(i).ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index exceeds size " + array.Array.Count.ToString() + ": " + new Number(i).ToString()));
                 return;
             }
 

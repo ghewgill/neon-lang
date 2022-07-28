@@ -956,8 +956,14 @@ class Executor:
         if addr.value is None:
             addr.value = []
         a = addr.value
-        if not is_integer(index) or is_signed(index) or int(index) >= len(a):
-            self.raise_literal("ArrayIndexException", str(index))
+        if not is_integer(index):
+            self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
+            return
+        if is_signed(index):
+            self.raise_literal("PANIC", "Array index is negative: {}".format(index))
+            return
+        if int(index) >= len(a):
+            self.raise_literal("PANIC", "Array index exceeds size {}: {}".format(len(a), index))
             return
         self.stack.append(a[int(index)])
 
@@ -967,8 +973,11 @@ class Executor:
         addr = self.stack.pop()
         if addr.value is None:
             addr.value = []
-        if not is_integer(index) or is_signed(index):
-            self.raise_literal("ArrayIndexException", str(index))
+        if not is_integer(index):
+            self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
+            return
+        if is_signed(index):
+            self.raise_literal("PANIC", "Array index is negative: {}".format(index))
             return
         a = addr.value
         i = int(index)
@@ -980,8 +989,11 @@ class Executor:
         self.ip += 1
         index = self.stack.pop()
         addr = self.stack.pop()
-        if not is_integer(index) or is_signed(index):
-            self.raise_literal("ArrayIndexException", str(index))
+        if not is_integer(index):
+            self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
+            return
+        if is_signed(index):
+            self.raise_literal("PANIC", "Array index is negative: {}".format(index))
             return
         self.stack.append(addr[int(index)].value)
 
@@ -989,8 +1001,11 @@ class Executor:
         self.ip += 1
         index = self.stack.pop()
         addr = self.stack.pop()
-        if not is_integer(index) or is_signed(index):
-            self.raise_literal("ArrayIndexException", str(index))
+        if not is_integer(index):
+            self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
+            return
+        if is_signed(index):
+            self.raise_literal("PANIC", "Array index is negative: {}".format(index))
             return
         self.stack.append(addr[int(index)].value)
 
@@ -1416,7 +1431,7 @@ def neon_array__find(self):
         i = next(i for i, x in enumerate(a) if equals(x.value, e))
         self.stack.append(i)
     except StopIteration:
-        self.raise_literal("ArrayIndexException", "value not found in array")
+        self.raise_literal("PANIC", "value not found in array")
 
 def neon_array__range(self):
     step = self.stack.pop()
@@ -1439,7 +1454,7 @@ def neon_array__remove(self):
     index = self.stack.pop()
     a = self.stack.pop().value
     if not is_integer(index):
-        self.raise_literal("ArrayIndexException", str(index))
+        self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
         return
     del a[int(index)]
 
@@ -1450,7 +1465,7 @@ def neon_array__resize(self):
         a.value = []
     a = a.value
     if not is_integer(size):
-        self.raise_literal("ArrayIndexException", str(size))
+        self.raise_literal("PANIC", "Invalid array size: {}".format(size))
         return
     size = int(size)
     if size < len(a):
@@ -1474,10 +1489,10 @@ def neon_array__slice(self):
     first = self.stack.pop()
     a = self.stack.pop()
     if first != int(first):
-        self.raise_literal("ArrayIndexException", first)
+        self.raise_literal("PANIC", "First index not an integer: {}".format(first))
         return
     if last != int(last):
-        self.raise_literal("ArrayIndexException", last)
+        self.raise_literal("PANIC", "Last index not an integer: {}".format(last))
         return
     first = int(first)
     last = int(last)
@@ -2136,7 +2151,7 @@ def neon_object__subscript(self):
         try:
             self.stack.append(o[ii].value)
         except IndexError:
-            self.raise_literal("ArrayIndexException", str(ii))
+            self.raise_literal("PANIC", "Array index exceeds size {}: {}".format(len(o), str(ii)))
             return
     elif isinstance(o, dict):
         if not isinstance(i, str):
@@ -2168,7 +2183,7 @@ def neon_object__setProperty(self):
         try:
             o[ii].value = v
         except IndexError:
-            self.raise_literal("ArrayIndexException", str(ii))
+            self.raise_literal("PANIC", "Array index exceeds size {}: {}".format(len(o), str(ii)))
             return
     elif isinstance(o, dict):
         if not isinstance(i, str):

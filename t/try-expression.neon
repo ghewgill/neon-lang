@@ -24,9 +24,9 @@ foo1(5)
 foo1(-1)
 --= exception
 
-LET a: Array<Number> := [1]
-LET b: Number := (TRY a[1.5] TRAP ArrayIndexException GIVES 9999)
-TESTCASE b = 9999
+--LET a: Array<Number> := [1]
+--LET b: Number := (TRY a[1.5] TRAP ArrayIndexException GIVES 9999)
+--TESTCASE b = 9999
 
 --print(str(foo2(5)))
 --#= 5

@@ -761,11 +761,15 @@ class Executor {
         try {
             index.intValueExact();
         } catch (ArithmeticException x) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index not an integer: " + index.toString());
             return;
         }
-        if (index.signum() < 0 || index.intValue() >= array.size()) {
-            raiseLiteral("ArrayIndexException", index.toString());
+        if (index.signum() < 0) {
+            raiseLiteral("PANIC", "Array index is negative: " + index.toString());
+            return;
+        }
+        if (index.intValue() >= array.size()) {
+            raiseLiteral("PANIC", "Array index exceeds size " + array.size() + ": " + index.toString());
             return;
         }
         stack.addFirst(new Cell(array.get(index.intValue())));
@@ -779,11 +783,11 @@ class Executor {
         try {
             index.intValueExact();
         } catch (ArithmeticException x) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index not an integer: " + index.toString());
             return;
         }
         if (index.signum() < 0) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index is negative: " + index.toString());
             return;
         }
         int i = index.intValue();
@@ -801,11 +805,15 @@ class Executor {
         try {
             index.intValueExact();
         } catch (ArithmeticException x) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index not an integer: " + index.toString());
             return;
         }
-        if (index.signum() < 0 || index.intValue() >= array.size()) {
-            raiseLiteral("ArrayIndexException", index.toString());
+        if (index.signum() < 0) {
+            raiseLiteral("PANIC", "Array index is negative: " + index.toString());
+            return;
+        }
+        if (index.intValue() >= array.size()) {
+            raiseLiteral("PANIC", "Array index exceeds size " + array.size() + ": " + index.toString());
             return;
         }
         stack.addFirst(array.get(index.intValue()));
@@ -819,11 +827,11 @@ class Executor {
         try {
             index.intValueExact();
         } catch (ArithmeticException x) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index not an integer: " + index.toString());
             return;
         }
         if (index.signum() < 0) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index is negative: " + index.toString());
             return;
         }
         int i = index.intValue();
@@ -1301,7 +1309,7 @@ class Executor {
                 return;
             }
         }
-        raiseLiteral("ArrayIndexException", "value not found in array");
+        raiseLiteral("PANIC", "value not found in array");
     }
 
     private void array__remove()
@@ -1336,11 +1344,11 @@ class Executor {
         BigDecimal nfirst = stack.removeFirst().getNumber();
         List<Cell> a = stack.removeFirst().getArray();
         if (nfirst.stripTrailingZeros().scale() > 0) {
-            raiseLiteral("ArrayIndexException", nfirst.toString());
+            raiseLiteral("PANIC", "First index not an integer: " + nfirst.toString());
             return;
         }
         if (nlast.stripTrailingZeros().scale() > 0) {
-            raiseLiteral("ArrayIndexException", nlast.toString());
+            raiseLiteral("PANIC", "Last index not an integer: " + nlast.toString());
             return;
         }
         int first = nfirst.intValue();

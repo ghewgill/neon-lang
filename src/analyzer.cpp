@@ -3704,7 +3704,7 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
             ),
             {
                 ast::TryTrap(
-                    {dynamic_cast<const ast::Exception *>(scope.top()->lookupName("ArrayIndexException"))},
+                    {new ast::Exception(Token(), "PANIC")}, // Not found produces a panic. Change this to a choice result.
                     nullptr,
                     new ast::ConstantBooleanExpression(false)
                 )
