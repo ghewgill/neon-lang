@@ -47,12 +47,6 @@ TYPE ExceptionType IS RECORD
     offset: Number
 END RECORD
 
-/*  Exception: ArrayIndexException
- *
- *  An array index is not valid or out of range.
- */
-EXCEPTION ArrayIndexException
-
 /*  Exception: BytesIndexException
  *
  *  A byte index is not valid or out of range.

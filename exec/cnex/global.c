@@ -593,7 +593,7 @@ void array__find(TExecutor *exec)
     }
 
     if (number_is_negative(r)) {
-        exec->rtl_raise(exec, "ArrayIndexException", "value not found in array");
+        exec->rtl_raise(exec, "PANIC", "value not found in array");
         return;
     }
 
@@ -634,7 +634,9 @@ void array__remove(TExecutor *exec)
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
 
     if (!number_is_integer(index)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index not an integer: %s", number_to_string(index));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -650,7 +652,9 @@ void array__resize(TExecutor *exec)
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
 
     if (!number_is_integer(new_size)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(new_size));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Invalid array size: %s", number_to_string(new_size));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -694,11 +698,15 @@ void array__slice(TExecutor *exec)
     const Cell *array = top(exec->stack);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -1450,7 +1458,9 @@ void object__subscript(struct tagTExecutor *exec)
         Number i = ((Cell*)index->object->ptr)->number;
         uint64_t ii = number_to_uint64(i);
         if (ii >= ((Cell*)o->object->ptr)->array->size) {
-            exec->rtl_raise(exec, "ArrayIndexException", number_to_string(i));
+            char buf[100];
+            snprintf(buf, sizeof(buf), "Array index exceeds size %"PRIu64": %"PRIu64, ((Cell*)o->object->ptr)->array->size, ii);
+            exec->rtl_raise(exec, "PANIC", buf);
             cell_freeCell(index);
             cell_freeCell(o);
             cell_freeCell(r);

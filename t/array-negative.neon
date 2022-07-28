@@ -1,4 +1,2 @@
 VAR a: Array<Number> := []
-print(a[-1].toString())
-
---! ArrayIndexException (-1)
+TESTCASE a[-1].toString() EXPECT PANIC "Array index is negative: -1"

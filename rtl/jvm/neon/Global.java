@@ -67,7 +67,7 @@ public class Global {
     public static neon.type.Number array__find(neon.type.Array self, Object e) {
         int i = self.indexOf(e);
         if (i < 0) {
-            throw new neon.type.NeonException("ArrayIndexException", "value not found in array");
+            throw new neon.type.NeonException("PANIC", "value not found in array");
         }
         return new neon.type.Number(i);
     }
@@ -109,10 +109,10 @@ public class Global {
 
     public static neon.type.Array array__slice(neon.type.Array a, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
         if (!first.isInteger()) {
-            throw new neon.type.NeonException("ArrayIndexException", first.toString());
+            throw new neon.type.NeonException("PANIC", "First index not an integer: " + first.toString());
         }
         if (!last.isInteger()) {
-            throw new neon.type.NeonException("ArrayIndexException", last.toString());
+            throw new neon.type.NeonException("PANIC", "Last index not an integer: " + last.toString());
         }
         int f = first.intValue();
         int l = last.intValue();

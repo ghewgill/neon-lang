@@ -1,3 +1,6 @@
+array.neon                 # stderr
+array-index.neon           # stderr
+array-resize.neon          # stderr
 array2d.neon               # copy semantics
 assert-multiline.neon      # stderr
 bigint.neon                # bigint
@@ -21,6 +24,7 @@ net-test.neon              # net$tcpSocket
 net-test-udp.neon          # net$udpSocket
 number-ceil.neon           # number formatting
 number-exception.neon
+object-subscript.neon      # stderr
 opcode-coverage.neon       # segfault
 os-test.neon               # precision
 posix-fork.neon            # posix$fork

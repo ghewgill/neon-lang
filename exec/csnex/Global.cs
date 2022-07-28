@@ -104,7 +104,7 @@ namespace csnex
             }
 
             if (r.IsNegative()) {
-                Exec.Raise("ArrayIndexException", "value not found in array");
+                Exec.Raise("PANIC", "value not found in array");
                 return;
             }
 
@@ -142,11 +142,11 @@ namespace csnex
             List<Cell> array = Exec.stack.Pop().Address.Array;
 
             if (!index.IsInteger() || index.IsNegative()) {
-                Exec.Raise("ArrayIndexException", index.ToString());
+                Exec.Raise("PANIC", "Invalid array index: " + index.ToString());
                 return;
             }
             if (Number.number_to_int32(index) > array.Count) {
-                Exec.Raise("ArrayIndexException", index.ToString());
+                Exec.Raise("PANIC", "Array index exceeds size " + array.Count.ToString() + ": " + index.ToString());
                 return;
             }
 
@@ -160,7 +160,7 @@ namespace csnex
             List<Cell> array = Exec.stack.Pop().Address.Array;
 
             if (!new_size.IsInteger()) {
-                Exec.Raise("ArrayIndexException", new_size.ToString());
+                Exec.Raise("PANIC", "Invalid array size: " + new_size.ToString());
                 return;
             }
 
@@ -197,11 +197,11 @@ namespace csnex
             Cell array = Exec.stack.Pop();
 
             if (!first.IsInteger()) {
-                Exec.Raise("ArrayIndexException", first.ToString());
+                Exec.Raise("PANIC", "First index not an integer: " + first.ToString());
                 return;
             }
             if (!last.IsInteger()) {
-                Exec.Raise("ArrayIndexException", last.ToString());
+                Exec.Raise("PANIC", "Last index not an integer: " + last.ToString());
                 return;
             }
 

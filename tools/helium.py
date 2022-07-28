@@ -626,7 +626,7 @@ class SubscriptExpression:
                     if isinstance(a, bytes):
                         raise NeonException("BytesIndexException", i)
                     if isinstance(a, list):
-                        raise NeonException("ArrayIndexException", i)
+                        raise NeonException(("PANIC",), "Array index not an integer: {}".format(i))
                     assert False
             if isinstance(a, (list, str)):
                 if self.from_end:
@@ -637,14 +637,14 @@ class SubscriptExpression:
                             return []
                         if isinstance(a, str):
                             return ""
-                    raise IndexError
+                    raise NeonException(("PANIC",), "Array index is negative: {}".format(i))
             return a[i]
         except TypeError:
             if i != int(i):
-                raise NeonException("ArrayIndexException")
+                raise NeonException(("PANIC",), "Array index not an integer: {}".format(i))
             assert False
         except IndexError:
-            raise NeonException("ArrayIndexException")
+            raise NeonException(("PANIC",), "Array index exceeds size {}: {}".format(len(a), i))
         except KeyError:
             raise NeonException("DictionaryIndexException")
     def set(self, env, value):
@@ -674,18 +674,18 @@ class RangeSubscriptExpression:
         a = self.expr.eval(env)
         f = self.first.eval(env)
         l = self.last.eval(env)
-        def check_index_integer(i):
+        def check_index_integer(i, which):
             if i != int(i):
                 if isinstance(a, str):
                     raise NeonException("StringIndexException", i)
                 if isinstance(a, bytes):
                     raise NeonException("BytesIndexException", i)
                 if isinstance(a, list):
-                    raise NeonException("ArrayIndexException", i)
+                    raise NeonException(("PANIC",), "{} index not an integer: {}".format(which, i))
                 assert False
         if isinstance(a, (str, bytes, list)):
-            check_index_integer(f)
-            check_index_integer(l)
+            check_index_integer(f, "First")
+            check_index_integer(l, "Last")
         if self.first_from_end:
             f += len(a) - 1
         else:
@@ -1449,6 +1449,9 @@ class TestCaseStatement:
                     if x.name[0] == "PANIC" and x.info == self.expected_exception[1].value:
                         pass
                     else:
+                        print("EXPECT PANIC mismatch:", file=sys.stderr)
+                        print("    info: " + x.info, file=sys.stderr)
+                        print("    expected: " + self.expected_exception[1].value, file=sys.stderr)
                         raise
                 else:
                     if x.name[:len(self.expected_exception)] == self.expected_exception or x.name[:len(self.expected_exception)-1] == self.expected_exception[1:]:
@@ -2937,18 +2940,20 @@ def neon_array_find(a, x):
     try:
         return a.index(x)
     except ValueError:
-        raise NeonException("ArrayIndexException")
+        raise NeonException(("PANIC",), "value not found in array")
 
 def neon_array_remove(a, n):
     if n != int(n):
-        raise NeonException("ArrayIndexException")
-    if not (0 <= n < len(a)):
-        raise NeonException("ArrayIndexException")
+        raise NeonException(("PANIC",), "Array index not an integer: {}".format(n))
+    if n < 0:
+        raise NeonException(("PANIC",), "Array index is negative: {}".format(n))
+    if n >= len(a):
+        raise NeonException(("PANIC",), "Array index exceeds size {}: {}".format(len(a), n))
     del a[n]
 
 def neon_array_resize(a, n):
     if n != int(n):
-        raise NeonException("ArrayIndexException")
+        raise NeonException(("PANIC",), "Invalid array size: {}".format(n))
     if n < len(a):
         del a[int(n):]
     elif n > len(a):
@@ -2960,7 +2965,7 @@ def neon_array_reversed(a):
 def neon_array_toBytes(a):
     for i, x in enumerate(a):
         if not (0 <= x < 256):
-            raise NeonException("PANIC", "Byte value out of range at offset {}: {}".format(i, x))
+            raise NeonException(("PANIC",), "Byte value out of range at offset {}: {}".format(i, x))
     return bytes(a)
 
 def neon_dictionary_remove(d, k):
@@ -3367,7 +3372,7 @@ def neon_string_splitLines(env, s):
 
 def neon_string_toCodePoint(env, x):
     if len(x) != 1:
-        raise NeonException("ArrayIndexException", "toCodePoint() requires string of length 1")
+        raise NeonException("PANIC", "toCodePoint() requires string of length 1")
     return ord(x)
 
 def neon_string_trimCharacters(env, s, leading, trailing):

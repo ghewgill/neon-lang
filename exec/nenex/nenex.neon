@@ -941,8 +941,16 @@ FUNCTION f_indexar(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
-    CHECK index = math.trunc(index) AND 0 <= index < addr->a.size() ELSE
-        self.raise_literal("ArrayIndexException", index)
+    CHECK index = math.trunc(index) ELSE
+        self.raise_literal("PANIC", "Array index not an integer: \(index)")
+        EXIT FUNCTION
+    END CHECK
+    CHECK index >= 0 ELSE
+        self.raise_literal("PANIC", "Array index is negative: \(index)")
+        EXIT FUNCTION
+    END CHECK
+    CHECK index < addr->a.size() ELSE
+        self.raise_literal("PANIC", "Array index exceeds size \(addr->a.size()): \(index)")
         EXIT FUNCTION
     END CHECK
     self.stack.append(makeValuePointer(addr->a[index]))
@@ -955,8 +963,12 @@ FUNCTION f_indexaw(INOUT self: Executor)
     CHECK VALID addr ELSE
         RAISE InternalException
     END CHECK
-    CHECK index = math.trunc(index) AND 0 <= index ELSE
-        self.raise_literal("ArrayIndexException", index)
+    CHECK index = math.trunc(index) ELSE
+        self.raise_literal("PANIC", "Array index not an integer: \(index)")
+        EXIT FUNCTION
+    END CHECK
+    CHECK index >= 0 ELSE
+        self.raise_literal("PANIC", "Array index is negative: \(index)")
         EXIT FUNCTION
     END CHECK
     WHILE index >= addr->a.size() DO
@@ -969,8 +981,16 @@ FUNCTION f_indexav(INOUT self: Executor)
     INC self.ip
     LET index: Number := self.pop()->n
     LET array: Array<POINTER TO Value> := self.pop()->a
-    CHECK index = math.trunc(index) AND 0 <= index < array.size() ELSE
-        self.raise_literal("ArrayIndexException", index)
+    CHECK index = math.trunc(index) ELSE
+        self.raise_literal("PANIC", "Array index not an integer: \(index)")
+        EXIT FUNCTION
+    END CHECK
+    CHECK index >= 0 ELSE
+        self.raise_literal("PANIC", "Array index is negative: \(index)")
+        EXIT FUNCTION
+    END CHECK
+    CHECK index < array.size() ELSE
+        self.raise_literal("PANIC", "Array index exceeds size \(array.size()): \(index)")
         EXIT FUNCTION
     END CHECK
     self.stack.append(array[index])
@@ -1054,7 +1074,7 @@ FUNCTION f_callp(INOUT self: Executor)
         --        END IF
         --    END FOREACH
         --    IF NOT found THEN
-        --        self.raise_literal("ArrayIndexException", "value not found in array")
+        --        self.raise_literal("PANIC", "value not found in array")
         --    END IF
         WHEN "array__size" DO
             LET a: VALID POINTER TO Value := self.pop()
@@ -1335,11 +1355,16 @@ FUNCTION f_callp(INOUT self: Executor)
                 self.raise_literal("DynamicConversionException", "object is null")
             ELSIF index = NIL THEN
                 self.raise_literal("DynamicConversionException", "index is null")
+            ELSIF obj ISA Array<Object> AND index ISA Number THEN
+                LET i: Number := index
+                IF i < obj.size() THEN
+                    self.stack.append(makeValueObject(obj[index]))
+                ELSE
+                    self.raise_literal("PANIC", "Array index exceeds size \(obj.size()): \(index)")
+                END IF
             ELSE
                 TRY
                     self.stack.append(makeValueObject(obj[index]))
-                TRAP ArrayIndexException AS e DO
-                    self.raise_literal("ArrayIndexException", e.info)
                 TRAP DynamicConversionException AS e DO
                     self.raise_literal("DynamicConversionException", e.info)
                 TRAP ObjectSubscriptException AS e DO

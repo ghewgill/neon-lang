@@ -239,7 +239,7 @@ neon = {
 
         toCodePoint: function(s) {
             if (s.length != 1) {
-                throw new neon.NeonException("ArrayIndexException", {info: "toCodePoint() requires string of length 1"});
+                throw new neon.NeonException("PANIC", {info: "toCodePoint() requires string of length 1"});
             }
             return s.charCodeAt(0);
         }

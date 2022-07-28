@@ -4,12 +4,7 @@ a[1] := 5
 print(str(a[0]))
 print(str(a[1]))
 
-TRY
-    print(str(a[2]))
-TRAP ArrayIndexException DO
-    print("array index")
-END TRY
+TESTCASE a[2] EXPECT PANIC "Array index exceeds size 2: 2"
 
 --= 4
 --= 5
---= array index

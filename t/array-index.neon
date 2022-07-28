@@ -1,15 +1,15 @@
 CONSTANT a: Array<Number> := [1, 2, 3]
 
-TESTCASE a[1.5] EXPECT ArrayIndexException
-TESTCASE a[0.2 TO 1.9] EXPECT ArrayIndexException
+TESTCASE a[1.5] EXPECT PANIC "Array index not an integer: 1.5"
+TESTCASE a[0.2 TO 1.9] EXPECT PANIC "First index not an integer: 0.2"
 
-TESTCASE a[-2] EXPECT ArrayIndexException
-TESTCASE a[-1] EXPECT ArrayIndexException
+TESTCASE a[-2] EXPECT PANIC "Array index is negative: -2"
+TESTCASE a[-1] EXPECT PANIC "Array index is negative: -1"
 TESTCASE a[ 0] = 1
 TESTCASE a[ 1] = 2
 TESTCASE a[ 2] = 3
-TESTCASE a[ 3] EXPECT ArrayIndexException
-TESTCASE a[ 4] EXPECT ArrayIndexException
+TESTCASE a[ 3] EXPECT PANIC "Array index exceeds size 3: 3"
+TESTCASE a[ 4] EXPECT PANIC "Array index exceeds size 3: 4"
 
 TESTCASE a[-2 TO -2] = []
 TESTCASE a[-2 TO -1] = []
