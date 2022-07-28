@@ -759,7 +759,9 @@ Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, Ne_Boole
             }
             a->size = index+1;
         } else {
-            return Ne_Exception_raise("ArrayIndexException");
+            char buf[100];
+            snprintf(buf, sizeof(buf), "Array index exceeds size %d: %d", a->size, index);
+            return Ne_Exception_raise_info_literal("PANIC", buf);
         }
     }
     *result = a->a[index];
@@ -768,11 +770,15 @@ Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, Ne_Boole
 
 Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, Ne_Boolean always_create)
 {
-    if (index->dval != trunc(index->dval) || index->dval < 0) {
-        Ne_Object info;
-        Ne_Object_init(&info);
-        Ne_object__makeNumber(&info, index);
-        return Ne_Exception_raise_info("ArrayIndexException", &info);
+    if (index->dval != trunc(index->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index not an integer: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (index->dval < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is negative: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     return Ne_Array_index_int(result, a, (int)index->dval, always_create);
 }
@@ -782,8 +788,15 @@ Ne_Exception *Ne_Array_range(Ne_Array *result, const Ne_Array *a, const Ne_Numbe
     result->size = 0;
     result->a = NULL;
     result->mtable = a->mtable;
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("ArrayIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -813,8 +826,15 @@ Ne_Exception *Ne_Array_range(Ne_Array *result, const Ne_Array *a, const Ne_Numbe
 
 Ne_Exception *Ne_Array_splice(const Ne_Array *b, Ne_Array *a, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("ArrayIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -892,14 +912,21 @@ Ne_Exception *Ne_array__find(Ne_Number *result, const Ne_Array *a, void *e)
             return NULL;
         }
     }
-    return Ne_Exception_raise("ArrayIndexException");
+    return Ne_Exception_raise_info_literal("PANIC", "value not found in array");
 }
 
 Ne_Exception *Ne_array__remove(Ne_Array *a, const Ne_Number *index)
 {
     int i = (int)index->dval;
-    if (i < 0 || i >= a->size) {
-        return Ne_Exception_raise("ArrayIndexException");
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is negative: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (i >= a->size) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index exceeds size %d: %g", a->size, index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     a->mtable->destructor(a->a[i]);
     memmove(&a->a[i], &a->a[i+1], (a->size-i-1) * sizeof(void *));
@@ -911,7 +938,9 @@ Ne_Exception *Ne_array__resize(Ne_Array *a, const Ne_Number *size)
 {
     int newsize = (int)size->dval;
     if (newsize != size->dval) {
-        return Ne_Exception_raise("ArrayIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Invalid array size: %g", size->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     if (newsize < a->size) {
         for (int i = newsize; i < a->size; i++) {
