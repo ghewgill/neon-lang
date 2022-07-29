@@ -4,25 +4,25 @@ FUNCTION do(from, to: Number): Bytes
     RETURN b
 END FUNCTION
 
-TESTCASE do(-2, -2) EXPECT BytesIndexException
-TESTCASE do(-2, -1) EXPECT BytesIndexException
-TESTCASE do(-2,  0) EXPECT BytesIndexException
-TESTCASE do(-2,  1) EXPECT BytesIndexException
-TESTCASE do(-2,  2) EXPECT BytesIndexException
-TESTCASE do(-2,  3) EXPECT BytesIndexException
-TESTCASE do(-2,  4) EXPECT BytesIndexException
-TESTCASE do(-2,  5) EXPECT BytesIndexException
-TESTCASE do(-2,  6) EXPECT BytesIndexException
-TESTCASE do(-2, -2) EXPECT BytesIndexException
+TESTCASE do(-2, -2) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2, -1) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2,  0) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2,  1) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2,  2) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2,  3) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2,  4) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2,  5) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2,  6) EXPECT PANIC "First index is negative: -2"
+TESTCASE do(-2, -2) EXPECT PANIC "First index is negative: -2"
 
-TESTCASE do(-1, -1) EXPECT BytesIndexException
-TESTCASE do(-1,  0) EXPECT BytesIndexException
-TESTCASE do(-1,  1) EXPECT BytesIndexException
-TESTCASE do(-1,  2) EXPECT BytesIndexException
-TESTCASE do(-1,  3) EXPECT BytesIndexException
-TESTCASE do(-1,  4) EXPECT BytesIndexException
-TESTCASE do(-1,  5) EXPECT BytesIndexException
-TESTCASE do(-1,  6) EXPECT BytesIndexException
+TESTCASE do(-1, -1) EXPECT PANIC "First index is negative: -1"
+TESTCASE do(-1,  0) EXPECT PANIC "First index is negative: -1"
+TESTCASE do(-1,  1) EXPECT PANIC "First index is negative: -1"
+TESTCASE do(-1,  2) EXPECT PANIC "First index is negative: -1"
+TESTCASE do(-1,  3) EXPECT PANIC "First index is negative: -1"
+TESTCASE do(-1,  4) EXPECT PANIC "First index is negative: -1"
+TESTCASE do(-1,  5) EXPECT PANIC "First index is negative: -1"
+TESTCASE do(-1,  6) EXPECT PANIC "First index is negative: -1"
 
 TESTCASE do(0, -1) = HEXBYTES "77 01 02 03 04 05"
 TESTCASE do(0,  0) = HEXBYTES "77 02 03 04 05"
@@ -33,7 +33,7 @@ TESTCASE do(0,  4) = HEXBYTES "77"
 TESTCASE do(0,  5) = HEXBYTES "77"
 TESTCASE do(0,  6) = HEXBYTES "77"
 
-TESTCASE do(1, -1) EXPECT BytesIndexException
+TESTCASE do(1, -1) EXPECT PANIC "Last index is before first 1: -1"
 TESTCASE do(1,  0) = HEXBYTES "01 77 02 03 04 05"
 TESTCASE do(1,  1) = HEXBYTES "01 77 03 04 05"
 TESTCASE do(1,  2) = HEXBYTES "01 77 04 05"
@@ -42,8 +42,8 @@ TESTCASE do(1,  4) = HEXBYTES "01 77"
 TESTCASE do(1,  5) = HEXBYTES "01 77"
 TESTCASE do(1,  6) = HEXBYTES "01 77"
 
-TESTCASE do(2, -1) EXPECT BytesIndexException
-TESTCASE do(2,  0) EXPECT BytesIndexException
+TESTCASE do(2, -1) EXPECT PANIC "Last index is before first 2: -1"
+TESTCASE do(2,  0) EXPECT PANIC "Last index is before first 2: 0"
 TESTCASE do(2,  1) = HEXBYTES "01 02 77 03 04 05"
 TESTCASE do(2,  2) = HEXBYTES "01 02 77 04 05"
 TESTCASE do(2,  3) = HEXBYTES "01 02 77 05"
@@ -51,38 +51,38 @@ TESTCASE do(2,  4) = HEXBYTES "01 02 77"
 TESTCASE do(2,  5) = HEXBYTES "01 02 77"
 TESTCASE do(2,  6) = HEXBYTES "01 02 77"
 
-TESTCASE do(3, -1) EXPECT BytesIndexException
-TESTCASE do(3,  0) EXPECT BytesIndexException
-TESTCASE do(3,  1) EXPECT BytesIndexException
+TESTCASE do(3, -1) EXPECT PANIC "Last index is before first 3: -1"
+TESTCASE do(3,  0) EXPECT PANIC "Last index is before first 3: 0"
+TESTCASE do(3,  1) EXPECT PANIC "Last index is before first 3: 1"
 TESTCASE do(3,  2) = HEXBYTES "01 02 03 77 04 05"
 TESTCASE do(3,  3) = HEXBYTES "01 02 03 77 05"
 TESTCASE do(3,  4) = HEXBYTES "01 02 03 77"
 TESTCASE do(3,  5) = HEXBYTES "01 02 03 77"
 TESTCASE do(3,  6) = HEXBYTES "01 02 03 77"
 
-TESTCASE do(4, -1) EXPECT BytesIndexException
-TESTCASE do(4,  0) EXPECT BytesIndexException
-TESTCASE do(4,  1) EXPECT BytesIndexException
-TESTCASE do(4,  2) EXPECT BytesIndexException
+TESTCASE do(4, -1) EXPECT PANIC "Last index is before first 4: -1"
+TESTCASE do(4,  0) EXPECT PANIC "Last index is before first 4: 0"
+TESTCASE do(4,  1) EXPECT PANIC "Last index is before first 4: 1"
+TESTCASE do(4,  2) EXPECT PANIC "Last index is before first 4: 2"
 TESTCASE do(4,  3) = HEXBYTES "01 02 03 04 77 05"
 TESTCASE do(4,  4) = HEXBYTES "01 02 03 04 77"
 TESTCASE do(4,  5) = HEXBYTES "01 02 03 04 77"
 TESTCASE do(4,  6) = HEXBYTES "01 02 03 04 77"
 
-TESTCASE do(5, -1) EXPECT BytesIndexException
-TESTCASE do(5,  0) EXPECT BytesIndexException
-TESTCASE do(5,  1) EXPECT BytesIndexException
-TESTCASE do(5,  2) EXPECT BytesIndexException
-TESTCASE do(5,  3) EXPECT BytesIndexException
+TESTCASE do(5, -1) EXPECT PANIC "Last index is before first 5: -1"
+TESTCASE do(5,  0) EXPECT PANIC "Last index is before first 5: 0"
+TESTCASE do(5,  1) EXPECT PANIC "Last index is before first 5: 1"
+TESTCASE do(5,  2) EXPECT PANIC "Last index is before first 5: 2"
+TESTCASE do(5,  3) EXPECT PANIC "Last index is before first 5: 3"
 TESTCASE do(5,  4) = HEXBYTES "01 02 03 04 05 77"
 TESTCASE do(5,  5) = HEXBYTES "01 02 03 04 05 77"
 TESTCASE do(5,  6) = HEXBYTES "01 02 03 04 05 77"
 
-TESTCASE do(6, -1) EXPECT BytesIndexException
-TESTCASE do(6,  0) EXPECT BytesIndexException
-TESTCASE do(6,  1) EXPECT BytesIndexException
-TESTCASE do(6,  2) EXPECT BytesIndexException
-TESTCASE do(6,  3) EXPECT BytesIndexException
-TESTCASE do(6,  4) EXPECT BytesIndexException
+TESTCASE do(6, -1) EXPECT PANIC "Last index is before first 6: -1"
+TESTCASE do(6,  0) EXPECT PANIC "Last index is before first 6: 0"
+TESTCASE do(6,  1) EXPECT PANIC "Last index is before first 6: 1"
+TESTCASE do(6,  2) EXPECT PANIC "Last index is before first 6: 2"
+TESTCASE do(6,  3) EXPECT PANIC "Last index is before first 6: 3"
+TESTCASE do(6,  4) EXPECT PANIC "Last index is before first 6: 4"
 TESTCASE do(6,  5) = HEXBYTES "01 02 03 04 05 00 77"
 TESTCASE do(6,  6) = HEXBYTES "01 02 03 04 05 00 77"

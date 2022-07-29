@@ -11,6 +11,7 @@ assignment.neon            # choice
 binary-test.neon           # verifier
 bytes.neon                 # bytes.append
 bytes-index.neon           # index
+bytes-splice.neon          # exception
 cformat-test.neon          # object
 cmdline.neon               # PredefinedVariable sys$args
 complex-test.neon          # Math.atan2

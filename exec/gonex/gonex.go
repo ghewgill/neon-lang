@@ -2197,11 +2197,13 @@ func (self *executor) op_callp() {
 		nindex := self.pop().num
 		b := self.pop().bytes
 		if nindex != math.Trunc(nindex) {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nindex)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Bytes index not an integer: %g", nindex)})
 		} else {
 			index := int(nindex)
-			if index < 0 || index >= len(b) {
-				self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", index)})
+			if index < 0 {
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("Bytes index is negative: %d", index)})
+			} else if index >= len(b) {
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("Bytes index exceeds size %d: %d", len(b), index)})
 			} else {
 				self.push(make_cell_num(float64(b[index])))
 			}
@@ -2213,9 +2215,9 @@ func (self *executor) op_callp() {
 		nfirst := self.pop().num
 		b := self.pop().bytes
 		if nfirst != math.Trunc(nfirst) {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("First index not an integer: %g", nfirst)})
 		} else if nlast != math.Trunc(nlast) {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nlast)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Last index not an integer: %g", nlast)})
 		} else {
 			first := int(nfirst)
 			last := int(nlast)
