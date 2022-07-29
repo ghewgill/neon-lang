@@ -51,7 +51,7 @@ TESTCASE string.splitLines("hello\nworld\r\neverybody\n") = ["hello", "world", "
 print(str(string.toCodePoint("B")))
 --= 66
 
-TESTCASE string.toCodePoint("AB") EXPECT StringIndexException
+TESTCASE string.toCodePoint("AB") EXPECT PANIC "toCodePoint() requires string of length 1"
 
 print(string.trimCharacters("  Hello World  ", " ", " "))
 --= Hello World

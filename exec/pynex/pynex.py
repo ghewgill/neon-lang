@@ -2252,14 +2252,14 @@ def neon_string__index(self):
     index = self.stack.pop()
     s = self.stack.pop()
     if index != int(index):
-        self.raise_literal("StringIndexException", (str(index), 0))
+        self.raise_literal("PANIC", "String index not an integer: {}".format(index))
         return
     index = int(index)
     if index < 0:
-        self.raise_literal("StringIndexException", (str(index), 0))
+        self.raise_literal("PANIC", "String index is negative: {}".format(index))
         return
     if index >= len(s):
-        self.raise_literal("StringIndexException", (str(index), 0))
+        self.raise_literal("PANIC", "String index exceeds length {}: {}".format(len(s), index))
         return
     self.stack.append(s[index:index+1])
 
@@ -2279,10 +2279,10 @@ def neon_string__splice(self):
     if last_from_end:
         last += len(a) - 1
     if first < 0:
-        self.raise_literal("StringIndexException", (str(first), 0))
+        self.raise_literal("PANIC", "First index is negative: {}".format(first))
         return
     if last < first-1:
-        self.raise_literal("StringIndexException", (str(last), 0))
+        self.raise_literal("PANIC", "Last index is less than first {}: {}".format(first, last))
         return
     padding = ""
     if first > len(a):
@@ -2297,10 +2297,10 @@ def neon_string__substring(self):
     first = self.stack.pop()
     s = self.stack.pop()
     if first != int(first):
-        self.raise_literal("StringIndexException", first)
+        self.raise_literal("PANIC", "First index not an integer: {}".format(first))
         return
     if last != int(last):
-        self.raise_literal("StringIndexException", last)
+        self.raise_literal("PANIC", "Last index not an integer: {}".format(last))
         return
     first = int(first)
     last = int(last)
@@ -2936,7 +2936,7 @@ def neon_string_splitLines(self):
 def neon_string_toCodePoint(self):
     s = self.stack.pop()
     if len(s) != 1:
-        self.raise_literal("StringIndexException", "toCodePoint() requires string of length 1")
+        self.raise_literal("PANIC", "toCodePoint() requires string of length 1")
         return
     self.stack.append(ord(s))
 

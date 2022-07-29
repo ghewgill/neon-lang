@@ -183,11 +183,20 @@ int Ne_String_compare(const Ne_String *a, const Ne_String *b)
 Ne_Exception *Ne_String_index(Ne_String *dest, const Ne_String *s, const Ne_Number *index)
 {
     if (index->dval != trunc(index->dval)) {
-        return Ne_Exception_raise("StringIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index not an integer: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int i = (int)index->dval;
-    if (i < 0 || i >= s->len) {
-        return Ne_Exception_raise("StringIndexException");
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index is negative: %d", i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (i >= s->len) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index exceeds length %d: %d", s->len, i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     dest->ptr = malloc(1);
     *dest->ptr = s->ptr[i];
@@ -199,8 +208,15 @@ Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Numb
 {
     dest->len = 0;
     dest->ptr = NULL;
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("StringIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -227,8 +243,15 @@ Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Numb
 
 Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("StringIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -239,10 +262,14 @@ Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number
         l += d->len - 1;
     }
     if (f < 0) {
-        return Ne_Exception_raise("StringIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index is negative: %d", f);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     if (l < f-1) {
-        return Ne_Exception_raise("StringIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index is less than first %d: %d", f, l);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int new_len = d->len - (f < d->len ? (l < d->len ? l - f + 1 : d->len - f) : 0) + t->len;
     int padding = 0;

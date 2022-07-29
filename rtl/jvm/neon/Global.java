@@ -422,10 +422,10 @@ public class Global {
             l += s.length() - 1;
         }
         if (f < 0) {
-            throw new neon.type.NeonException("StringIndexException", s);
+            throw new neon.type.NeonException("PANIC", "First index is negative: " + f);
         }
         if (l < f-1) {
-            throw new neon.type.NeonException("StringIndexException", s);
+            throw new neon.type.NeonException("PANIC", "Last index is less than first " + f + ": " + l);
         }
         java.lang.String padding = "";
         if (f > s.length()) {

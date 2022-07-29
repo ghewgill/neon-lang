@@ -97,6 +97,7 @@ sql-whenever.neon          # module sqlite
 sqlite-test.neon           # verifier
 string-in.neon             # verifier
 string-index.neon          # index
+string-splice.neon         # exception
 string-test.neon           # utf-16 surrogates
 struct-test.neon           # ExpressionTransformer
 sys-exit.neon              # ExceptionType

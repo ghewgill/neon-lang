@@ -2921,7 +2921,7 @@ func (self *executor) op_callp() {
 	case "string$toCodePoint":
 		s := self.pop().str
 		if len(s) != 1 {
-			self.raise_literal("StringIndexException", objectString{"toCodePoint() requires string of length 1"})
+			self.raise_literal("PANIC", objectString{"toCodePoint() requires string of length 1"})
 		} else {
 			self.push(make_cell_num(float64(s[0])))
 		}
@@ -2947,13 +2947,13 @@ func (self *executor) op_callp() {
 		nindex := self.pop().num
 		s := self.pop().str
 		if nindex != math.Trunc(nindex) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", nindex)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("String index not an integer: %v", nindex)})
 		} else {
 			index := int(nindex)
 			if index < 0 {
-				self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("String index is negative: %v", index)})
 			} else if index >= len(s) {
-				self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("String index exceeds length %v: %v", len(s), index)})
 			} else {
 				self.push(make_cell_str(s[index : index+1]))
 			}
@@ -2975,9 +2975,9 @@ func (self *executor) op_callp() {
 			last += len(s) - 1
 		}
 		if first < 0 {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", first)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("First index is negative: %d", first)})
 		} else if last < first-1 {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", last)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Last index is less than first %d: %d", first, last)})
 		} else {
 			padding := ""
 			if first > len(s) {
@@ -2996,9 +2996,9 @@ func (self *executor) op_callp() {
 		nfirst := self.pop().num
 		s := self.pop().str
 		if nfirst != math.Trunc(nfirst) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("First index not an integer: %g", nfirst)})
 		} else if nlast != math.Trunc(nlast) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", nlast)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Last index not an integer: %g", nlast)})
 		} else {
 			first := int(nfirst)
 			last := int(nlast)

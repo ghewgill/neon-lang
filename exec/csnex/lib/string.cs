@@ -43,7 +43,7 @@ namespace csnex.rtl
             string s = Exec.stack.Pop().String;
 
             if (s.Length != 1) {
-                Exec.Raise("StringIndexException", "toCodePoint() requires string of length 1");
+                Exec.Raise("PANIC", "toCodePoint() requires string of length 1");
                 return;
             }
 
