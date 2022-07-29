@@ -366,7 +366,7 @@ func (obj objectArray) subscript(index object) (object, error) {
 		if int(i) < len(obj.array) {
 			return obj.array[int(i)], nil
 		} else {
-			return nil, &neonexception{"PANIC", objectString{fmt.Sprintf("Array index exceeds size %g: %g", len(obj.array), i)}}
+			return nil, &neonexception{"PANIC", objectString{fmt.Sprintf("Array index exceeds size %d: %g", len(obj.array), i)}}
 		}
 	} else {
 		return nil, &neonexception{"DynamicConversionException", objectString{"to Number"}}
@@ -1770,7 +1770,7 @@ func (self *executor) op_indexar() {
 	}
 	index := int(nindex)
 	if index >= len(a) {
-		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index exceeds size %g: %g", len(a), nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index exceeds size %d: %g", len(a), nindex)})
 		return
 	}
 	self.push(make_cell_addr(&a[index]))
@@ -1938,7 +1938,7 @@ func (self *executor) op_callp() {
 	case "array__resize":
 		size := self.pop().num
 		if size != math.Trunc(size) || size < 0 {
-			self.raise_literal("PANIC", objectString{fmt.Sprintf("Invalid array index: %g", size)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Invalid array size: %g", size)})
 		} else {
 			size := int(size)
 			r := self.pop().ref
