@@ -1257,7 +1257,7 @@ void Executor::exec_INDEXDR()
     Cell *addr = stack.top().address(); stack.pop();
     auto e = addr->dictionary().find(index);
     if (e == addr->dictionary().end()) {
-        raise(rtl::ne_global::Exception_DictionaryIndexException, std::make_shared<ObjectString>(index));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>("Dictionary key not found: " + index));
         return;
     }
     stack.push(Cell(&addr->dictionary_index_for_read(index)));
@@ -1278,7 +1278,7 @@ void Executor::exec_INDEXDV()
     const std::map<utf8string, Cell> &dictionary = stack.top().dictionary();
     auto e = dictionary.find(index);
     if (e == dictionary.end()) {
-        raise(rtl::ne_global::Exception_DictionaryIndexException, std::make_shared<ObjectString>(index));
+        raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>("Dictionary key not found: " + index));
         return;
     }
     Cell val = e->second;

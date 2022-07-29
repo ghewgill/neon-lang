@@ -304,7 +304,7 @@ public class Global {
     public static Object dictionary__get(java.util.Map<java.lang.String, Object> self, java.lang.String index) {
         Object r = self.get(index);
         if (r == null) {
-            throw new neon.type.NeonException("DictionaryIndexException");
+            throw new neon.type.NeonException("PANIC", "Dictionary key not found: " + index);
         }
         return r;
     }

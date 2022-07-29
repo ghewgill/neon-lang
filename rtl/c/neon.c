@@ -1120,7 +1120,9 @@ Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_Stri
         i++;
     }
     if (!always_create) {
-        return Ne_Exception_raise("DictionaryIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Dictionary key not found: %.*s", index->len, index->ptr);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     d->d = realloc(d->d, (d->size+1) * sizeof(struct KV));
     memmove(&d->d[i+1], &d->d[i], (d->size-i) * sizeof(struct KV));

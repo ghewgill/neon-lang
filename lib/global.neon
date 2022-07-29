@@ -47,12 +47,6 @@ TYPE ExceptionType IS RECORD
     offset: Number
 END RECORD
 
-/*  Exception: DictionaryIndexException
- *
- *  A dictionary index value does not exist.
- */
-EXCEPTION DictionaryIndexException
-
 /*  Exception: NumberException
  *
  *  Number exception.

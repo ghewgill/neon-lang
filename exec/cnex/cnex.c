@@ -1291,7 +1291,9 @@ void exec_INDEXDR(TExecutor *self)
     Cell *e = dictionary_findDictionaryEntry(addr->dictionary, index);
     if (e == NULL) {
         char *pszIndex = string_asCString(index);
-        self->rtl_raise(self, "DictionaryIndexException", pszIndex);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Dictionary key not found: %s", pszIndex);
+        self->rtl_raise(self, "PANIC", buf);
         free(pszIndex);
         string_freeString(index);
         return;
@@ -1317,7 +1319,9 @@ void exec_INDEXDV(TExecutor *self)
     Cell *val = dictionary_findDictionaryEntry(dictionary->dictionary, index);
     if (val == NULL) {
         char *pszIndex = string_asCString(index);
-        self->rtl_raise(self, "DictionaryIndexException", pszIndex);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Dictionary key not found: %s", pszIndex);
+        self->rtl_raise(self, "PANIC", buf);
         free(pszIndex);
         pop(self->stack);
         pop(self->stack);

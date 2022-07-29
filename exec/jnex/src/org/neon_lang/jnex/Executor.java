@@ -849,7 +849,7 @@ class Executor {
         Map<String, Cell> dictionary = stack.removeFirst().getAddress().getDictionary();
         Cell r = dictionary.get(key);
         if (r == null) {
-            raiseLiteral("DictionaryIndexException", key);
+            raiseLiteral("PANIC", "Dictionary key not found: " + key);
             return;
         }
         stack.addFirst(new Cell(r));
@@ -875,7 +875,7 @@ class Executor {
         Map<String, Cell> dictionary = stack.removeFirst().getDictionary();
         Cell r = dictionary.get(key);
         if (r == null) {
-            raiseLiteral("DictionaryIndexException", key);
+            raiseLiteral("PANIC", "Dictionary key not found: " + key);
             return;
         }
         stack.addFirst(r);
