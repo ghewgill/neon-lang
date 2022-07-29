@@ -33,8 +33,8 @@ typedef struct tagTCell {
 Cell *cell_createAddressCell(Cell *a);
 Cell *cell_createArrayCell(size_t elements);
 Cell *cell_createDictionaryCell(void);
-Cell *cell_createStringCell(size_t size);
 Cell *cell_createOtherCell(void *ptr);
+Cell *cell_createStringCell(size_t size);
 
 Cell *cell_newCell(void);
 Cell *cell_newCellType(CellType t);
