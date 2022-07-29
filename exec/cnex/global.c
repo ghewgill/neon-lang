@@ -933,7 +933,7 @@ void bytes__index(TExecutor *exec)
     }
     if (i >= (int64_t)t->string->length) {
         char buf[100];
-        snprintf(buf, sizeof(buf), "Bytes index exceeds size %" PRIu64 ": %" PRId64, t->string->length, i);
+        snprintf(buf, sizeof(buf), "Bytes index exceeds size %zd: %" PRId64, t->string->length, i);
         exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
@@ -1479,7 +1479,7 @@ void object__subscript(struct tagTExecutor *exec)
         uint64_t ii = number_to_uint64(i);
         if (ii >= ((Cell*)o->object->ptr)->array->size) {
             char buf[100];
-            snprintf(buf, sizeof(buf), "Array index exceeds size %"PRIu64": %"PRIu64, ((Cell*)o->object->ptr)->array->size, ii);
+            snprintf(buf, sizeof(buf), "Array index exceeds size %zd: %"PRIu64, ((Cell*)o->object->ptr)->array->size, ii);
             exec->rtl_raise(exec, "PANIC", buf);
             cell_freeCell(index);
             cell_freeCell(o);
