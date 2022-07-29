@@ -1829,7 +1829,7 @@ func (self *executor) op_indexdr() {
 	key := self.pop().str
 	ref := self.pop().ref
 	if _, present := ref.load().dict[key]; !present {
-		self.raise_literal("DictionaryIndexException", objectString{key})
+		self.raise_literal("PANIC", objectString{"Dictionary key not found: " + key})
 		return
 	}
 	self.push(make_cell_ref(referenceDictionary{ref, key}))

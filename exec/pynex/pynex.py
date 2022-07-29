@@ -1017,7 +1017,7 @@ class Executor:
             addr.value = {}
         d = addr.value
         if key not in d:
-            self.raise_literal("DictionaryIndexException", key)
+            self.raise_literal("PANIC", "Dictionary key not found: " + key)
             return
         self.stack.append(d[key])
 

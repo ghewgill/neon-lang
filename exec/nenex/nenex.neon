@@ -1008,7 +1008,7 @@ FUNCTION f_indexdr(INOUT self: Executor)
         RAISE InternalException
     END CHECK
     CHECK key IN addr->d ELSE
-        self.raise_literal("DictionaryIndexException", key)
+        self.raise_literal("PANIC", "Dictionary key not found: \(key)")
         EXIT FUNCTION
     END CHECK
     self.stack.append(makeValuePointer(addr->d[key]))
@@ -1032,7 +1032,7 @@ FUNCTION f_indexdv(INOUT self: Executor)
     LET key: String := self.pop()->s
     LET dict: Dictionary<POINTER TO Value> := self.pop()->d
     CHECK key IN dict ELSE
-        self.raise_literal("DictionaryIndexException", key)
+        self.raise_literal("PANIC", "Dictionary key not found: \(key)")
         EXIT FUNCTION
     END CHECK
     self.stack.append(dict[key])

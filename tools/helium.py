@@ -646,7 +646,7 @@ class SubscriptExpression:
         except IndexError:
             raise NeonException(("PANIC",), "Array index exceeds size {}: {}".format(len(a), i))
         except KeyError:
-            raise NeonException("DictionaryIndexException")
+            raise NeonException("PANIC", "Dictionary key not found: {}".format(i))
     def set(self, env, value):
         a = self.expr.eval(env)
         i = self.index.eval(env)

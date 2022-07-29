@@ -842,7 +842,7 @@ namespace csnex
             string index = stack.Pop().String;
             Cell addr = stack.Pop().Address;
             if (!addr.Dictionary.ContainsKey(index)) {
-                Raise("DictionaryIndexException", index);
+                Raise("PANIC", "Dictionary key not found: " + index);
                 return;
             }
             stack.Push(Cell.CreateAddressCell(addr.DictionaryIndexForRead(index)));
@@ -864,7 +864,7 @@ namespace csnex
 
             Cell val = dictionary.Dictionary[index];
             if (val == null) {
-                Raise("DictionaryIndexException", index);
+                Raise("PANIC", "Dictionary key not found: " + index);
                 return;
             }
 
