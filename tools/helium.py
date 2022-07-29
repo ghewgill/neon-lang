@@ -624,7 +624,7 @@ class SubscriptExpression:
                     if isinstance(a, str):
                         raise NeonException("PANIC", "String index is not an integer: {}".format(i))
                     if isinstance(a, bytes):
-                        raise NeonException("BytesIndexException", i)
+                        raise NeonException("PANIC", "Bytes index not an integer: {}".format(i))
                     if isinstance(a, list):
                         raise NeonException(("PANIC",), "Array index not an integer: {}".format(i))
                     assert False
@@ -679,7 +679,7 @@ class RangeSubscriptExpression:
                 if isinstance(a, str):
                     raise NeonException("PANIC", "{} index not an integer: {}".format(which, i))
                 if isinstance(a, bytes):
-                    raise NeonException("BytesIndexException", i)
+                    raise NeonException("PANIC", "{} index not an integer: {}".format(which, i))
                 if isinstance(a, list):
                     raise NeonException(("PANIC",), "{} index not an integer: {}".format(which, i))
                 assert False

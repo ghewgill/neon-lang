@@ -268,7 +268,7 @@ Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number
     }
     if (l < f-1) {
         char buf[100];
-        snprintf(buf, sizeof(buf), "Last index is less than first %d: %d", f, l);
+        snprintf(buf, sizeof(buf), "Last index is before first %d: %d", f, l);
         return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int new_len = d->len - (f < d->len ? (l < d->len ? l - f + 1 : d->len - f) : 0) + t->len;
@@ -400,11 +400,20 @@ int Ne_Bytes_compare(const Ne_Bytes *a, const Ne_Bytes *b)
 Ne_Exception *Ne_Bytes_index(Ne_Number *dest, const Ne_Bytes *b, const Ne_Number *index)
 {
     if (index->dval != trunc(index->dval)) {
-        return Ne_Exception_raise("BytesIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index not an integer: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int i = (int)index->dval;
-    if (i < 0 || i >= b->len) {
-        return Ne_Exception_raise("BytesIndexException");
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index is negative: %d", i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (i >= b->len) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index exceeds size %d: %d", b->len, i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     dest->dval = b->data[i];
     return NULL;
@@ -414,8 +423,15 @@ Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number 
 {
     dest->len = 0;
     dest->data = NULL;
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("BytesIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -442,8 +458,15 @@ Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number 
 
 Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("BytesIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -454,10 +477,14 @@ Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number 
         l += b->len - 1;
     }
     if (f < 0) {
-        return Ne_Exception_raise("BytesIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index is negative: %d", f);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     if (l < f-1) {
-        return Ne_Exception_raise("BytesIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index is before first %d: %d", f, l);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int new_len = b->len - (f < b->len ? (l < b->len ? l - f + 1 : b->len - f) : 0) + src->len;
     int padding = 0;
@@ -481,11 +508,20 @@ Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number 
 Ne_Exception *Ne_Bytes_store(const Ne_Number *b, Ne_Bytes *s, const Ne_Number *index)
 {
     if (index->dval != trunc(index->dval)) {
-        return Ne_Exception_raise("BytesIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index not an integer: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int i = (int)index->dval;
-    if (i < 0 || i >= s->len) {
-        return Ne_Exception_raise("BytesIndexException");
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index is negative: %d", i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (i >= s->len) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index exceeds size %d: %d", s->len, i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     s->data[i] = (unsigned char)b->dval;
     return NULL;
