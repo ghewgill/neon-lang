@@ -784,17 +784,17 @@ namespace csnex
             Cell a = Exec.stack.Pop();
 
             if (!index.IsInteger()) {
-                Exec.Raise("StringIndexException", index.ToString());
+                Exec.Raise("PANIC", "String index not an integer: " + index.ToString());
                 return;
             }
             // String index in C# / .NET are limited to 32 bit values.
             Int32 i = Number.number_to_int32(index);
             if (i < 0) {
-                Exec.Raise("StringIndexException", i.ToString());
+                Exec.Raise("PANIC", "String index is negative: " + i.ToString());
                 return;
             }
             if (i >= a.String.Length) {
-                Exec.Raise("StringIndexException", i.ToString());
+                Exec.Raise("PANIC", "String index exceeds length " + a.String.Length + ": " + i.ToString());
                 return;
             }
 
@@ -826,11 +826,11 @@ namespace csnex
                 l += s.String.Length - 1;
             }
             if (f < 0) {
-                Exec.Raise("StringIndexException", f.ToString());
+                Exec.Raise("PANIC", "First index is negative: " + f.ToString());
                 return;
             }
             if (l < f-1) {
-                Exec.Raise("StringIndexException", l.ToString());
+                Exec.Raise("PANIC", "Last index is less than first " + f + ": " + l.ToString());
                 return;
             }
 
@@ -856,11 +856,11 @@ namespace csnex
             Cell a = Exec.stack.Pop();
 
             if (!first.IsInteger()) {
-                Exec.Raise("StringIndexException", first.ToString());
+                Exec.Raise("PANIC", "First index not an integer: " + first.ToString());
                 return;
             }
             if (!last.IsInteger()) {
-                Exec.Raise("StringIndexException", last.ToString());
+                Exec.Raise("PANIC", "Last index not an integer: " + last.ToString());
                 return;
             }
 

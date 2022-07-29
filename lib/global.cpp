@@ -294,14 +294,14 @@ void string__append(utf8string *self, const utf8string &t)
 utf8string string__index(const utf8string &s, Number index)
 {
     if (not number_is_integer(index)) {
-        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(index)));
+        throw PanicException(utf8string("String index not an integer: " + number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(i)));
+        throw PanicException(utf8string("String index is negative: " + std::to_string(i)));
     }
     if (i >= static_cast<int64_t>(s.size())) {
-        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(i)));
+        throw PanicException(utf8string("String index exceeds length " + std::to_string(s.size()) + ": " + std::to_string(i)));
     }
     size_t start = s.index(i);
     size_t end = s.index(i+1);
@@ -317,10 +317,10 @@ utf8string string__splice(const utf8string &t, const utf8string &s, Number first
 {
     // TODO: utf8
     if (not number_is_integer(first)) {
-        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(first)));
+        throw PanicException(utf8string("First index not an integer: " + number_to_string(first)));
     }
     if (not number_is_integer(last)) {
-        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(last)));
+        throw PanicException(utf8string("Last index not an integer: " + number_to_string(last)));
     }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
@@ -331,10 +331,10 @@ utf8string string__splice(const utf8string &t, const utf8string &s, Number first
         l += s.size() - 1;
     }
     if (f < 0) {
-        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(f)));
+        throw PanicException(utf8string("First index is negative: " + std::to_string(f)));
     }
     if (l < f-1) {
-        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(l)));
+        throw PanicException(utf8string("Last index is less than first " + std::to_string(f) + ": " + std::to_string(l)));
     }
     int64_t slen = static_cast<int64_t>(s.str().length());
     std::string padding;
@@ -347,10 +347,10 @@ utf8string string__splice(const utf8string &t, const utf8string &s, Number first
 utf8string string__substring(const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {
-        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(first)));
+        throw PanicException(utf8string("First index not an integer: " + number_to_string(first)));
     }
     if (not number_is_integer(last)) {
-        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(last)));
+        throw PanicException(utf8string("Last index not an integer: " + number_to_string(last)));
     }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);

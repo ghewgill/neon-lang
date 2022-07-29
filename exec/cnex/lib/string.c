@@ -138,7 +138,7 @@ void string_toCodePoint(TExecutor *exec)
     Cell *s = top(exec->stack);
 
     if (string_getLength(s->string) != 1) {
-        exec->rtl_raise(exec, "StringIndexException", "toCodePoint() requires string of length 1");
+        exec->rtl_raise(exec, "PANIC", "toCodePoint() requires string of length 1");
         return;
     }
 

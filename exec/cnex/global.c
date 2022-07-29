@@ -1610,21 +1610,23 @@ void string__index(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(index)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index not an integer: %s", number_to_string(index));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, i);
-        exec->rtl_raise(exec, "StringIndexException", n);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index is negative: %" PRId64, i);
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
     if (i >= (int64_t)string_getLength(a->string)) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, i);
-        exec->rtl_raise(exec, "StringIndexException", n);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index exceeds length %zd: %" PRId64, string_getLength(a->string), i);
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -1652,11 +1654,15 @@ void string__splice(TExecutor *exec)
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
 
@@ -1669,11 +1675,15 @@ void string__splice(TExecutor *exec)
         l += s->string->length - 1;
     }
     if (f < 0) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(number_from_sint64(f)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index is negative: %"PRId64, f);
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     if (l < f-1) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(number_from_sint64(l)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index is less than first %"PRId64": %"PRId64, f, l);
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     int64_t new_len = (int64_t)s->string->length - (f < (int64_t)s->string->length ? (l < (int64_t)s->string->length ? l - f + 1 : (int64_t)s->string->length - f) : 0) + (int64_t)t->string->length;
@@ -1713,12 +1723,16 @@ void string__substring(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         cell_freeCell(a);
         return;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         cell_freeCell(a);
         return;
     }
