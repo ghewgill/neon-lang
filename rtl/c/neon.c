@@ -268,7 +268,7 @@ Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number
     }
     if (l < f-1) {
         char buf[100];
-        snprintf(buf, sizeof(buf), "Last index is before first %d: %d", f, l);
+        snprintf(buf, sizeof(buf), "Last index is less than first %d: %d", f, l);
         return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int new_len = d->len - (f < d->len ? (l < d->len ? l - f + 1 : d->len - f) : 0) + t->len;
