@@ -360,13 +360,17 @@ namespace csnex
             Cell t = Exec.stack.Pop();
 
             if (!index.IsInteger()) {
-                Exec.Raise("BytesIndexException", index.ToString());
+                Exec.Raise("PANIC", "Bytes index not an integer: " + index.ToString());
                 return;
             }
 
             Int64 i = Number.number_to_int64(index);
-            if (i < 0 || i >= t.Bytes.LongLength) {
-                Exec.Raise("BytesIndexException", i.ToString());
+            if (i < 0) {
+                Exec.Raise("PANIC", "Bytes index is negative: " + i.ToString());
+                return;
+            }
+            if (i >= t.Bytes.LongLength) {
+                Exec.Raise("PANIC", "Bytes index exceeds size " + t.Bytes.LongLength + ": " + i.ToString());
                 return;
             }
 
@@ -383,11 +387,11 @@ namespace csnex
             Cell t = Exec.stack.Pop();
 
             if (!first.IsInteger()) {
-                Exec.Raise("BytesIndexException", first.ToString());
+                Exec.Raise("PANIC", "First index not an integer: " + first.ToString());
                 return;
             }
             if (!last.IsInteger()) {
-                Exec.Raise("BytesIndexException", last.ToString());
+                Exec.Raise("PANIC", "Last index not an integer: " + last.ToString());
                 return;
             }
 

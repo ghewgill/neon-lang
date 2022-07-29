@@ -266,10 +266,10 @@ public class Global {
             l += a.length - 1;
         }
         if (f < 0) {
-            throw new neon.type.NeonException("BytesIndexException", Integer.toString(f));
+            throw new neon.type.NeonException("PANIC", "First index is negative: " + f);
         }
         if (l < f-1) {
-            throw new neon.type.NeonException("BytesIndexException", Integer.toString(l));
+            throw new neon.type.NeonException("PANIC", "Last index is before first " + f + ": " + l);
         }
         byte[] r = new byte[f + b.length + java.lang.Math.max(0, a.length - (l + 1))];
         System.arraycopy(a, 0, r, 0, java.lang.Math.min(f, a.length));

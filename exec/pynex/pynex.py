@@ -1895,11 +1895,14 @@ def neon_bytes__index(self):
     index = self.stack.pop()
     b = self.stack.pop()
     if index != int(index):
-        self.raise_literal("BytesIndexException", index)
+        self.raise_literal("PANIC", "Bytes index not an integer: {}".format(index))
         return
     index = int(index)
-    if index < 0 or index >= len(b):
-        self.raise_literal("BytesIndexException", index)
+    if index < 0:
+        self.raise_literal("PANIC", "Bytes index is negative: {}".format(index))
+        return
+    if index >= len(b):
+        self.raise_literal("PANIC", "Bytes index exceeds size {}: {}".format(len(b), index))
         return
     self.stack.append(b[index])
 
@@ -1910,10 +1913,10 @@ def neon_bytes__range(self):
     first = self.stack.pop()
     b = self.stack.pop()
     if first != int(first):
-        self.raise_literal("BytesIndexException", first)
+        self.raise_literal("PANIC", "First index not an integer: {}".format(first))
         return
     if last != int(last):
-        self.raise_literal("BytesIndexException", last)
+        self.raise_literal("PANIC", "Last index not an integer: {}".format(last))
         return
     first = int(first)
     last = int(last)
@@ -1947,10 +1950,10 @@ def neon_bytes__splice(self):
     if last_from_end:
         last += len(a) - 1
     if first < 0:
-        self.raise_literal("BytesIndexException", (str(first), 0))
+        self.raise_literal("PANIC", "First index is negative: {}".format(first))
         return
     if last < first-1:
-        self.raise_literal("BytesIndexException", (str(last), 0))
+        self.raise_literal("PANIC", "Last index is before first {}: {}".format(first, last))
         return
     padding = b""
     if first > len(a):

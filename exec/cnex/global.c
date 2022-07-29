@@ -918,15 +918,23 @@ void bytes__index(TExecutor *exec)
     cell_ensureBytes(t);
 
     if (!number_is_integer(index)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index not an integer: %s", number_to_string(index));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
     int64_t i = number_to_sint64(index);
-    if (i < 0 || i >= (int64_t)t->string->length) {
-        char n[128];
-        snprintf(n, sizeof(n), "%" PRId64, i);
-        exec->rtl_raise(exec, "BytesIndexException", n);
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index is negative: %" PRId64, i);
+        exec->rtl_raise(exec, "PANIC", buf);
+        return;
+    }
+    if (i >= (int64_t)t->string->length) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index exceeds size %" PRIu64 ": %" PRId64, t->string->length, i);
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -945,11 +953,15 @@ void bytes__range(TExecutor *exec)
     cell_ensureBytes(t);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -1014,11 +1026,15 @@ void bytes__splice(TExecutor *exec)
     cell_ensureBytes(t);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     int64_t f = number_to_sint64(first);
@@ -1030,11 +1046,15 @@ void bytes__splice(TExecutor *exec)
         l += s->string->length - 1;
     }
     if (f < 0) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(number_from_sint64(f)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index is negative: %" PRId64, f);
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     if (l< f-1) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(number_from_sint64(l)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index is before first %" PRId64 ": %" PRId64, f, l);
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
 

@@ -398,11 +398,14 @@ void bytes__append(std::vector<unsigned char> *self, const std::vector<unsigned 
 Number bytes__index(const std::vector<unsigned char> &t, Number index)
 {
     if (not number_is_integer(index)) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(index)));
+        throw PanicException(utf8string("Bytes index not an integer: " + number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
-    if (i < 0 || i >= static_cast<int64_t>(t.size())) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(index)));
+    if (i < 0) {
+        throw PanicException(utf8string("Bytes index is negative: " + number_to_string(index)));
+    }
+    if (i >= static_cast<int64_t>(t.size())) {
+        throw PanicException(utf8string("Bytes index exceeds size " + std::to_string(t.size()) + ": " + number_to_string(index)));
     }
     return number_from_uint8(t[i]);
 }
@@ -410,10 +413,10 @@ Number bytes__index(const std::vector<unsigned char> &t, Number index)
 std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(first)));
+        throw PanicException(utf8string("First index not an integer: " + number_to_string(first)));
     }
     if (not number_is_integer(last)) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(last)));
+        throw PanicException(utf8string("Last index not an integer: " + number_to_string(last)));
     }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
@@ -451,10 +454,10 @@ Number bytes__size(const std::vector<unsigned char> &self)
 std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, const std::vector<unsigned char> &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     if (not number_is_integer(first)) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(first)));
+        throw PanicException(utf8string("First index not an integer: " + number_to_string(first)));
     }
     if (not number_is_integer(last)) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(last)));
+        throw PanicException(utf8string("Last index not an integer: " + number_to_string(last)));
     }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
@@ -465,10 +468,10 @@ std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, co
         l += s.size() - 1;
     }
     if (f < 0) {
-        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(f)));
+        throw PanicException(utf8string("First index is negative: " + std::to_string(f)));
     }
     if (l < f-1) {
-        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(l)));
+        throw PanicException(utf8string("Last index is before first " + std::to_string(f) + ": " + std::to_string(l)));
     }
     int64_t slen = static_cast<int64_t>(s.size());
     std::vector<unsigned char> r;
@@ -487,11 +490,14 @@ std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, co
 void bytes__store(Number b, std::vector<unsigned char> *s, Number index)
 {
     if (not number_is_integer(index)) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(index)));
+        throw PanicException(utf8string("Bytes index not an integer: " + number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
-    if (i < 0 || i >= static_cast<int64_t>(s->size())) {
-        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(index)));
+    if (i < 0) {
+        throw PanicException(utf8string("Bytes index is negative: " + number_to_string(index)));
+    }
+    if (i >= static_cast<int64_t>(s->size())) {
+        throw PanicException(utf8string("Bytes index exceeds size " + std::to_string(s->size()) + ": " + number_to_string(index)));
     }
     int64_t bb = number_to_sint64(b);
     if (bb < 0 || bb >= 256) {
