@@ -1195,7 +1195,7 @@ void exec_INDEXAR(TExecutor *self)
     uint64_t j = (uint64_t)i;
     if (j >= addr->array->size) {
         char buf[100];
-        snprintf(buf, sizeof(buf), "Array index exceeds size %"PRIu64": %"PRIu64, addr->array->size, j);
+        snprintf(buf, sizeof(buf), "Array index exceeds size %zd: %"PRIu64, addr->array->size, j);
         self->rtl_raise(self, "PANIC", buf);
         return;
     }
