@@ -341,6 +341,17 @@ Cell *cell_createArrayCell(size_t iElements)
     return c;
 }
 
+Cell *cell_createBytesCell(size_t size)
+{
+    Cell *c = cell_newCell();
+
+    c->type = cBytes;
+    c->string = string_newString();
+    c->string->length = size;
+    c->string->data = malloc(size);
+    return c;
+}
+
 Cell *cell_createDictionaryCell(void)
 {
     Cell *c = cell_newCell();

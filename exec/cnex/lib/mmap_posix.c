@@ -132,8 +132,7 @@ void mmap_read(TExecutor *exec)
     Number count = top(exec->stack)->number; pop(exec->stack);
     Number offset = top(exec->stack)->number; pop(exec->stack);
     Object *pf = top(exec->stack)->object;  pop(exec->stack);
-    Cell *ret = cell_createStringCell(0);
-    ret->type = cBytes;
+    Cell *ret = cell_createBytesCell(0);
 
     struct MmapObject *f = check_file(exec, pf);
 
