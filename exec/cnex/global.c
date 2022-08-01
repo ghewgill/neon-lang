@@ -880,8 +880,7 @@ void bytes__concat(TExecutor *exec)
     cell_ensureBytes(b);
     Cell *a = peek(exec->stack, 1);
     cell_ensureBytes(a);
-    Cell *r = cell_createStringCell(b->string->length + a->string->length);
-    r->type = cBytes;
+    Cell *r = cell_createBytesCell(b->string->length + a->string->length);
 
     memcpy(r->string->data, a->string->data, a->string->length);
     memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);

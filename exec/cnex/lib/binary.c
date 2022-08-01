@@ -565,13 +565,12 @@ void binary_andBytes(TExecutor *exec)
         return;
     }
 
-    TString *r = string_createString(x->length);
+    Cell *r = cell_createBytesCell(x->length);
 
     for (size_t i = 0; i < x->length; i++) {
-        r->data[i] = x->data[i] & y->data[i];
+        r->string->data[i] = x->data[i] & y->data[i];
     }
-    push(exec->stack, cell_fromBytes(r));
-    string_freeString(r);
+    push(exec->stack, r);
     string_freeString(y);
     string_freeString(x);
 }
@@ -592,14 +591,13 @@ void binary_notBytes(TExecutor *exec)
 {
     TString *x = top(exec->stack)->string;
 
-    TString *r = string_createString(x->length);
+    Cell *r = cell_createBytesCell(x->length);
 
     for (size_t i = 0; i < x->length; i++) {
-        r->data[i] = ~x->data[i];
+        r->string->data[i] = ~x->data[i];
     }
     pop(exec->stack);
-    push(exec->stack, cell_fromBytes(r));
-    string_freeString(r);
+    push(exec->stack, r);
 }
 
 void binary_orBytes(TExecutor *exec)
@@ -612,13 +610,12 @@ void binary_orBytes(TExecutor *exec)
         return;
     }
 
-    TString *r = string_createString(x->length);
+    Cell *r = cell_createBytesCell(x->length);
 
     for (size_t i = 0; i < x->length; i++) {
-        r->data[i] = x->data[i] | y->data[i];
+        r->string->data[i] = x->data[i] | y->data[i];
     }
-    push(exec->stack, cell_fromBytes(r));
-    string_freeString(r);
+    push(exec->stack, r);
     string_freeString(y);
     string_freeString(x);
 }
@@ -633,13 +630,12 @@ void binary_xorBytes(TExecutor *exec)
         return;
     }
 
-    TString *r = string_createString(x->length);
+    Cell *r = cell_createBytesCell(x->length);
 
     for (size_t i = 0; i < x->length; i++) {
-        r->data[i] = x->data[i] ^ y->data[i];
+        r->string->data[i] = x->data[i] ^ y->data[i];
     }
-    push(exec->stack, cell_fromBytes(r));
-    string_freeString(r);
+    push(exec->stack, r);
     string_freeString(y);
     string_freeString(x);
 }

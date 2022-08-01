@@ -55,8 +55,8 @@ void process_call(TExecutor *exec)
     }
     close(pout[1]);
     close(perr[1]);
-    Cell *err = cell_createStringCell(0); err->type = cBytes;
-    Cell *out = cell_createStringCell(0); out->type = cBytes;
+    Cell *err = cell_createBytesCell(0);
+    Cell *out = cell_createBytesCell(0);
     free(command);
 
     for (;;) {

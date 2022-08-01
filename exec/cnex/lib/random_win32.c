@@ -16,8 +16,7 @@ void random_bytes(TExecutor *exec)
 {
     size_t count = number_to_uint32(top(exec->stack)->number); pop(exec->stack);
 
-    Cell *r = cell_createStringCell(count);
-    r->type = cBytes;
+    Cell *r = cell_createBytesCell(count);
 
     char err[64];
     HCRYPTPROV hCryptProv;
