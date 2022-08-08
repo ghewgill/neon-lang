@@ -30,6 +30,22 @@ print(string.join(["hello", "world"], " "))
 print(string.lower("Hello World"))
 --= hello world
 
+TESTCASE string.padLeft("test", "a", 3) = "test"
+TESTCASE string.padLeft("test", "a", 4) = "test"
+TESTCASE string.padLeft("test", "a", 5) = "atest"
+TESTCASE string.padLeft("test", "a", 6) = "aatest"
+TESTCASE string.padLeft("test", "ab", 5) = "atest"
+TESTCASE string.padLeft("test", "ab", 6) = "abtest"
+TESTCASE string.padLeft("test", "ab", 7) = "abatest"
+
+TESTCASE string.padRight("test", "a", 3) = "test"
+TESTCASE string.padRight("test", "a", 4) = "test"
+TESTCASE string.padRight("test", "a", 5) = "testa"
+TESTCASE string.padRight("test", "a", 6) = "testaa"
+TESTCASE string.padRight("test", "ab", 5) = "testb"
+TESTCASE string.padRight("test", "ab", 6) = "testab"
+TESTCASE string.padRight("test", "ab", 7) = "testbab"
+
 LET a: Array<String> := string.split("Hello World Everybody", " ")
 print("\(a.size())")
 --= 3

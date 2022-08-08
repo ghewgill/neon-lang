@@ -11,6 +11,8 @@ EXPORT hasSuffix
 EXPORT isBlank
 EXPORT join
 EXPORT lower
+EXPORT padLeft
+EXPORT padRight
 EXPORT quoted
 EXPORT repeat
 EXPORT replaceAll
@@ -191,6 +193,34 @@ END FUNCTION
  *  Return a string with all alphabetic characters converted to lower case.
  */
 DECLARE NATIVE FUNCTION lower(s: String): String
+
+/*
+ *  Function: padLeft
+ *
+ *  Return a string padded on the left with the given characters to a specifed width.
+ *  If the string is already longer than the width, return the string unchanged.
+ */
+FUNCTION padLeft(s: String, pad: String, width: Number): String
+    LET n: Number := width - s.length()
+    CHECK n > 0 ELSE
+        RETURN s
+    END CHECK
+    RETURN repeat(pad, n INTDIV pad.length()) & pad[0 TO n MOD pad.length() - 1] & s
+END FUNCTION
+
+/*
+ *  Function: padRight
+ *
+ *  Return a string padded on the right with the given characters to a specified width.
+ *  If the string is already longer than the width, return the string unchanged.
+ */
+FUNCTION padRight(s: String, pad: String, width: Number): String
+    LET n: Number := width - s.length()
+    CHECK n > 0 ELSE
+        RETURN s
+    END CHECK
+    RETURN s & pad[LAST - (n MOD pad.length() - 1) TO LAST] & repeat(pad, n INTDIV pad.length())
+END FUNCTION
 
 /*  Function: quoted
  *
