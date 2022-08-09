@@ -142,6 +142,7 @@ void net_socket_bind(TExecutor *exec)
     if (r < 0) {
         // ToDo: Raise exception here?
         perror("bind");
+        goto bail;
     }
 
 bail:
@@ -194,6 +195,7 @@ void net_socket_connect(TExecutor *exec)
     if (r < 0) {
         // ToDo: Raise exception here?
         perror("connect");
+        goto bail;
     }
 
 bail:
@@ -250,6 +252,7 @@ void net_socket_recv(TExecutor *exec)
     if (r < 0) {
         perror("recv");
         push(exec->stack, cell_createBytesCell(0));
+        return;
     }
     if (r == 0) {
         push(exec->stack, cell_fromBoolean(FALSE));
