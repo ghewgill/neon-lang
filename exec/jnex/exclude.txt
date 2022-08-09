@@ -26,6 +26,7 @@ encoding-base64.neon       # import
 equality.neon              # PUSHFP
 exception-opstack.neon     # exception
 exception-opstack-depth.neon    # exception
+exception-tostring.neon    # CALLMF
 export-function-indent.neon# function_export
 export-inline.neon         # types
 export.neon                # types

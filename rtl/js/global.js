@@ -1,5 +1,5 @@
 neon = {
-    global: {
+    builtin: {
         array__append: function(self, element) {
             self.push(element);
         },
@@ -46,17 +46,6 @@ neon = {
             return Object.keys(self).sort();
         },
 
-        divide: function(a, b) {
-            if (b === 0) {
-                throw new NeonException("NumberException.DivideByZero");
-            }
-            return a / b;
-        },
-
-        num: function(s) {
-            return parseFloat(s);
-        },
-
         number__toString: function(x) {
             return x.toString();
         },
@@ -69,20 +58,33 @@ neon = {
             return x.toString();
         },
 
-        print: function(x) {
-            console.log(x);
-        },
-
-        str: function(x) {
-            return x.toString();
-        },
-
         string__concat: function(a, b) {
             return a + b;
         },
 
         string__length: function(self) {
             return self.length;
+        },
+
+    },
+    global: {
+        divide: function(a, b) {
+            if (b === 0) {
+                throw new NeonException("NumberException.DivideByZero");
+            }
+            return a / b;
+        },
+
+        num: function(s) {
+            return parseFloat(s);
+        },
+
+        print: function(x) {
+            console.log(x);
+        },
+
+        str: function(x) {
+            return x.toString();
         },
 
         substring: function(s, offset, length) {

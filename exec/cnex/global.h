@@ -53,8 +53,6 @@ void dictionary__remove(struct tagTExecutor *exec);
 void dictionary__toString__object(struct tagTExecutor *exec);
 void dictionary__toString__string(struct tagTExecutor *exec);
 
-void exceptiontype__toString(struct tagTExecutor *exec);
-
 void number__toString(struct tagTExecutor *exec);
 
 void object__getArray(struct tagTExecutor *exec);

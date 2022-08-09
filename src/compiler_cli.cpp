@@ -3558,7 +3558,7 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        if (pf->name == "print") {
+        if (pf->name == "global$print") {
             context.code << op_call << context.md.MemberRefToken(MemberRef(
                 MemberRefParent_TypeRef(context.md.TypeRefIndex(TypeRef(
                     ResolutionScope_AssemblyRef(context.md.AssemblyRefIndex(AssemblyRef(
@@ -3571,7 +3571,7 @@ public:
                 context.md.String("print"),
                 context.md.Blob(MethodRefSig_WriteLine().serialize())
             ));
-        } else if (pf->name == "object__makeString") {
+        } else if (pf->name == "builtin$object__makeString") {
             context.code << op_call << context.md.MemberRefToken(MemberRef(
                 MemberRefParent_TypeRef(context.md.TypeRefIndex(TypeRef(
                     ResolutionScope_AssemblyRef(context.md.AssemblyRefIndex(AssemblyRef(
@@ -3579,7 +3579,7 @@ public:
                         0, // TODO: not sure where to get this or whether it's necessary
                         AssemblyFlags_Retargetable
                     ))),
-                    context.md.String("Global"),
+                    context.md.String("Builtin"),
                     context.md.String("Neon")))),
                 context.md.String("object__makeString"),
                 context.md.Blob(MethodRefSig_makeString().serialize())

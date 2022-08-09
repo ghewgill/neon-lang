@@ -1,5 +1,6 @@
 set(CSNEX_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/csnex.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Builtin.cs
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode.cs
     ${CMAKE_CURRENT_SOURCE_DIR}/Cell.cs
     ${CMAKE_CURRENT_SOURCE_DIR}/Disassembly.cs

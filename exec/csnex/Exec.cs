@@ -45,6 +45,7 @@ namespace csnex
             exit_code = 0;
             stack = new Stack<Cell>();
             callstack = new Stack<CallStack>();
+            builtin = new Builtin(this);
             global = new Global(this);
             modules = new Dictionary<string, Module>();
             init_order = new List<string>();
@@ -86,6 +87,7 @@ namespace csnex
         public bool enable_assert;
         public bool enable_debug;
         private int ip;
+        private Builtin builtin;
         private Global global;
         public Int32 param_recursion_limit;
         private Stack<ActivationFrame> frames;
@@ -902,13 +904,22 @@ namespace csnex
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             string func = module.Bytecode.strtable[val];
             try {
-                if (func.IndexOf('$') > 0) {
+                if (func.StartsWith("builtin$")) {
+                    // Call a builtin function
+                    MethodInfo mi = builtin.GetType().GetMethod(func.Substring(func.IndexOf('$')+1));
+                    mi.Invoke(builtin, null);
+                } else if (func.StartsWith("global$")) {
+                    // Call a global function
+                    MethodInfo mi = global.GetType().GetMethod(func.Substring(func.IndexOf('$')+1));
+                    mi.Invoke(global, null);
+                } else if (func.IndexOf('$') > 0) {
                     // Call a module function from our csnex.rtl namspace
                     object lib = library.Find(a => a.Key == func.Substring(0, func.IndexOf('$'))).Value;
                     MethodInfo mi = lib.GetType().GetMethod(func.Substring(func.IndexOf('$')+1));
                     mi.Invoke(lib, null);
                 } else {
                     // Call a global function
+                    // This code path is now unused
                     MethodInfo mi = global.GetType().GetMethod(func);
                     mi.Invoke(global, null);
                 }
