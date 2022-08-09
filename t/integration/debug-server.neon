@@ -32,6 +32,10 @@ LET debuginfo: Object := get("/module/-/debuginfo")
 r := get("/module/-/source")
 TESTCASE r[1] = "IMPORT debugger"
 
+-- This steps through the initialisation of the 'global' module.
+-- Find a better way to do this.
+r := post("/step/instruction", "")
+
 r := get("/status")
 TESTCASE r.state = "stopped"
 TESTCASE r.module = "t/debug-example.neon"

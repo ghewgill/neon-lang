@@ -43,9 +43,9 @@
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
 TDispatch gfuncDispatch[] = {
-    PDFUNC("num",                       neon_num),
-    PDFUNC("print",                     neon_print),
-    PDFUNC("str",                       neon_str),
+    PDFUNC("global$num",                neon_num),
+    PDFUNC("global$print",              neon_print),
+    PDFUNC("global$str",                neon_str),
 
 
     // Neon Library Modules:
@@ -325,73 +325,71 @@ TDispatch gfuncDispatch[] = {
 
     // Global Functions::
     // Array functions
-    PDFUNC("array__append",             array__append),
-    PDFUNC("array__concat",             array__concat),
-    PDFUNC("array__extend",             array__extend),
-    PDFUNC("array__find",               array__find),
-    PDFUNC("array__range",              array__range),
-    PDFUNC("array__remove",             array__remove),
-    PDFUNC("array__resize",             array__resize),
-    PDFUNC("array__reversed",           array__reversed),
-    PDFUNC("array__size",               array__size),
-    PDFUNC("array__slice",              array__slice),
-    PDFUNC("array__splice",             array__splice),
-    PDFUNC("array__toBytes__number",    array__toBytes__number),
-    PDFUNC("array__toString__number",   array__toString__number),
-    PDFUNC("array__toString__object",   array__toString__object),
-    PDFUNC("array__toString__string",   array__toString__string),
+    PDFUNC("builtin$array__append",             array__append),
+    PDFUNC("builtin$array__concat",             array__concat),
+    PDFUNC("builtin$array__extend",             array__extend),
+    PDFUNC("builtin$array__find",               array__find),
+    PDFUNC("builtin$array__range",              array__range),
+    PDFUNC("builtin$array__remove",             array__remove),
+    PDFUNC("builtin$array__resize",             array__resize),
+    PDFUNC("builtin$array__reversed",           array__reversed),
+    PDFUNC("builtin$array__size",               array__size),
+    PDFUNC("builtin$array__slice",              array__slice),
+    PDFUNC("builtin$array__splice",             array__splice),
+    PDFUNC("builtin$array__toBytes__number",    array__toBytes__number),
+    PDFUNC("builtin$array__toString__number",   array__toString__number),
+    PDFUNC("builtin$array__toString__object",   array__toString__object),
+    PDFUNC("builtin$array__toString__string",   array__toString__string),
 
-    PDFUNC("boolean__toString",         boolean__toString),
+    PDFUNC("builtin$boolean__toString",         boolean__toString),
 
-    PDFUNC("bytes__append",             bytes__append),
-    PDFUNC("bytes__concat",             bytes__concat),
-    PDFUNC("bytes__decodeToString",     bytes__decodeToString),
-    PDFUNC("bytes__index",              bytes__index),
-    PDFUNC("bytes__range",              bytes__range),
-    PDFUNC("bytes__size",               bytes__size),
-    PDFUNC("bytes__splice",             bytes__splice),
-    PDFUNC("bytes__store",              bytes__store),
-    PDFUNC("bytes__toArray",            bytes__toArray),
-    PDFUNC("bytes__toString",           bytes__toString),
+    PDFUNC("builtin$bytes__append",             bytes__append),
+    PDFUNC("builtin$bytes__concat",             bytes__concat),
+    PDFUNC("builtin$bytes__decodeToString",     bytes__decodeToString),
+    PDFUNC("builtin$bytes__index",              bytes__index),
+    PDFUNC("builtin$bytes__range",              bytes__range),
+    PDFUNC("builtin$bytes__size",               bytes__size),
+    PDFUNC("builtin$bytes__splice",             bytes__splice),
+    PDFUNC("builtin$bytes__store",              bytes__store),
+    PDFUNC("builtin$bytes__toArray",            bytes__toArray),
+    PDFUNC("builtin$bytes__toString",           bytes__toString),
 
-    PDFUNC("dictionary__keys",          dictionary__keys),
-    PDFUNC("dictionary__remove",        dictionary__remove),
-    PDFUNC("dictionary__toString__object", dictionary__toString__object),
-    PDFUNC("dictionary__toString__string", dictionary__toString__string),
+    PDFUNC("builtin$dictionary__keys",          dictionary__keys),
+    PDFUNC("builtin$dictionary__remove",        dictionary__remove),
+    PDFUNC("builtin$dictionary__toString__object", dictionary__toString__object),
+    PDFUNC("builtin$dictionary__toString__string", dictionary__toString__string),
 
-    PDFUNC("exceptiontype__toString",   exceptiontype__toString),
+    PDFUNC("builtin$number__toString",          number__toString),
 
-    PDFUNC("number__toString",          number__toString),
+    PDFUNC("builtin$object__getArray",          object__getArray),
+    PDFUNC("builtin$object__makeArray",         object__makeArray),
+    PDFUNC("builtin$object__getBoolean",        object__getBoolean),
+    PDFUNC("builtin$object__makeBoolean",       object__makeBoolean),
+    PDFUNC("builtin$object__getBytes",          object__getBytes),
+    PDFUNC("builtin$object__makeBytes",         object__makeBytes),
+    PDFUNC("builtin$object__getDictionary",     object__getDictionary),
+    PDFUNC("builtin$object__makeDictionary",    object__makeDictionary),
+    PDFUNC("builtin$object__makeNull",          object__makeNull),
+    PDFUNC("builtin$object__getNumber",         object__getNumber),
+    PDFUNC("builtin$object__makeNumber",        object__makeNumber),
+    PDFUNC("builtin$object__getString",         object__getString),
+    PDFUNC("builtin$object__makeString",        object__makeString),
+    PDFUNC("builtin$object__invokeMethod",      object__invokeMethod),
+    PDFUNC("builtin$object__isNull",            object__isNull),
+    PDFUNC("builtin$object__setProperty",       object__setProperty),
+    PDFUNC("builtin$object__subscript",         object__subscript),
+    PDFUNC("builtin$object__toString",          object__toString),
 
-    PDFUNC("object__getArray",          object__getArray),
-    PDFUNC("object__makeArray",         object__makeArray),
-    PDFUNC("object__getBoolean",        object__getBoolean),
-    PDFUNC("object__makeBoolean",       object__makeBoolean),
-    PDFUNC("object__getBytes",          object__getBytes),
-    PDFUNC("object__makeBytes",         object__makeBytes),
-    PDFUNC("object__getDictionary",     object__getDictionary),
-    PDFUNC("object__makeDictionary",    object__makeDictionary),
-    PDFUNC("object__makeNull",          object__makeNull),
-    PDFUNC("object__getNumber",         object__getNumber),
-    PDFUNC("object__makeNumber",        object__makeNumber),
-    PDFUNC("object__getString",         object__getString),
-    PDFUNC("object__makeString",        object__makeString),
-    PDFUNC("object__invokeMethod",      object__invokeMethod),
-    PDFUNC("object__isNull",            object__isNull),
-    PDFUNC("object__setProperty",       object__setProperty),
-    PDFUNC("object__subscript",         object__subscript),
-    PDFUNC("object__toString",          object__toString),
+    PDFUNC("builtin$pointer__toString",         pointer__toString),
 
-    PDFUNC("pointer__toString",         pointer__toString),
-
-    PDFUNC("string__append",            string__append),
-    PDFUNC("string__concat",            string__concat),
-    PDFUNC("string__toBytes",           string__toBytes),
-    PDFUNC("string__toString",          string__toString),
-    PDFUNC("string__index",             string__index),
-    PDFUNC("string__length",            string__length),
-    PDFUNC("string__splice",            string__splice),
-    PDFUNC("string__substring",         string__substring),
+    PDFUNC("builtin$string__append",            string__append),
+    PDFUNC("builtin$string__concat",            string__concat),
+    PDFUNC("builtin$string__toBytes",           string__toBytes),
+    PDFUNC("builtin$string__toString",          string__toString),
+    PDFUNC("builtin$string__index",             string__index),
+    PDFUNC("builtin$string__length",            string__length),
+    PDFUNC("builtin$string__splice",            string__splice),
+    PDFUNC("builtin$string__substring",         string__substring),
 
     { 0, 0 }
 };
@@ -1177,27 +1175,6 @@ void dictionary__toString__string(TExecutor *exec)
     push(exec->stack, cell_fromString(s));
     string_freeString(s);
 }
-
-
-void exceptiontype__toString(struct tagTExecutor *exec)
-{
-    Cell *ex = top(exec->stack);
-
-    assert(ex->array->size == 3);
-    Cell *r = cell_fromCString("<ExceptionType:");
-    string_appendString(r->string, ex->array->data[0].string);
-    string_appendChar(r->string, ',');
-    Cell *inf = object_toString(ex->array->data[1].object);
-    string_appendString(r->string, inf->string);
-    cell_freeCell(inf);
-    string_appendChar(r->string, ',');
-    string_appendCString(r->string, number_to_string(ex->array->data[2].number));
-    string_appendChar(r->string, '>');
-
-    pop(exec->stack);
-    push(exec->stack, r);
-}
-
 
 
 

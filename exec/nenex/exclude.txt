@@ -29,6 +29,7 @@ dns-test.neon               # file$readLines
 encoding-base64.neon        # exception Utf8DecodingException
 enum.neon                   # unknown enum
 equality.neon               # pushy
+exception-tostring.neon     # callmf
 export-function-indent.neon # exportfunctionsize
 export-inline.neon          # typesize
 export.neon                 # typesize

@@ -1054,7 +1054,7 @@ FUNCTION f_callp(INOUT self: Executor)
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
     LET f: String := self.bytecode.strtable[val]
     CASE f
-        WHEN "array__append" DO
+        WHEN "builtin$array__append" DO
             LET v: VALID POINTER TO Value := self.pop()
             LET addr: POINTER TO Value := self.pop()->p
             IF VALID addr THEN
@@ -1062,7 +1062,7 @@ FUNCTION f_callp(INOUT self: Executor)
             ELSE
                 RAISE InternalException
             END IF
-        --WHEN "array__find" DO
+        --WHEN "builtin$array__find" DO
         --    LET e: VALID POINTER TO Value := self.pop()
         --    LET a: Array<POINTER TO Value> := self.pop()->a
         --    VAR found: Boolean := FALSE
@@ -1076,10 +1076,10 @@ FUNCTION f_callp(INOUT self: Executor)
         --    IF NOT found THEN
         --        self.raise_literal("PANIC", "value not found in array")
         --    END IF
-        WHEN "array__size" DO
+        WHEN "builtin$array__size" DO
             LET a: VALID POINTER TO Value := self.pop()
             self.stack.append(makeValueNumber(a->a.size()))
-        WHEN "array__toBytes__number" DO
+        WHEN "builtin$array__toBytes__number" DO
             LET a: Array<POINTER TO Value> := self.pop()->a
             VAR an: Array<Number> := []
             FOREACH p IN a INDEX i DO
@@ -1092,7 +1092,7 @@ FUNCTION f_callp(INOUT self: Executor)
                 END IF
             END FOREACH
             self.stack.append(makeValueBytes(an.toBytes()))
-        WHEN "array__toString__number" DO
+        WHEN "builtin$array__toString__number" DO
             LET a: Array<POINTER TO Value> := self.pop()->a
             VAR r: String := "["
             FOR i := 0 TO a.size()-1 DO
@@ -1105,7 +1105,7 @@ FUNCTION f_callp(INOUT self: Executor)
             END FOR
             r.append("]")
             self.stack.append(makeValueString(r))
-        WHEN "array__toString__object" DO
+        WHEN "builtin$array__toString__object" DO
             LET a: Array<POINTER TO Value> := self.pop()->a
             VAR r: String := "["
             FOREACH x IN a INDEX i DO
@@ -1120,7 +1120,7 @@ FUNCTION f_callp(INOUT self: Executor)
             END FOREACH
             r.append("]")
             self.stack.append(makeValueString(r))
-        WHEN "array__toString__string" DO
+        WHEN "builtin$array__toString__string" DO
             LET a: Array<POINTER TO Value> := self.pop()->a
             VAR r: String := "["
             FOR i := 0 TO a.size()-1 DO
@@ -1133,28 +1133,28 @@ FUNCTION f_callp(INOUT self: Executor)
             END FOR
             r.append("]")
             self.stack.append(makeValueString(r))
-        WHEN "boolean__toString" DO
+        WHEN "builtin$boolean__toString" DO
             LET b: Boolean := self.pop()->b
             self.stack.append(makeValueString(b.toString()))
-        WHEN "bytes__append" DO
+        WHEN "builtin$bytes__append" DO
             LET b: Bytes := self.pop()->y
             LET a: POINTER TO Value := self.pop()->p
             CHECK VALID a ELSE
                 RAISE InternalException
             END CHECK
             a->y.append(b)
-        WHEN "bytes__concat" DO
+        WHEN "builtin$bytes__concat" DO
             LET b: Bytes := self.pop()->y
             LET a: Bytes := self.pop()->y
             self.stack.append(makeValueBytes(a & b))
-        WHEN "bytes__decodeToString" DO
+        WHEN "builtin$bytes__decodeToString" DO
             LET y: Bytes := self.pop()->y
             self.stack.append(makeValueString(y.decodeToString()))
-        WHEN "bytes__index" DO
+        WHEN "builtin$bytes__index" DO
             LET index: Number := self.pop()->n
             LET y: Bytes := self.pop()->y
             self.stack.append(makeValueNumber(y[index]))
-        WHEN "bytes__range" DO
+        WHEN "builtin$bytes__range" DO
             LET last_from_end: Boolean := self.pop()->b
             VAR last: Number := self.pop()->n
             LET first_from_end: Boolean := self.pop()->b
@@ -1181,10 +1181,10 @@ FUNCTION f_callp(INOUT self: Executor)
             ELSE
                 self.stack.append(makeValueBytes(y[first TO last]))
             END IF
-        WHEN "bytes__size" DO
+        WHEN "builtin$bytes__size" DO
             LET y: Bytes := self.pop()->y
             self.stack.append(makeValueNumber(y.size()))
-        WHEN "bytes__splice" DO
+        WHEN "builtin$bytes__splice" DO
             LET last_from_end: Boolean := self.pop()->b
             VAR last: Number := self.pop()->n
             LET first_from_end: Boolean := self.pop()->b
@@ -1199,7 +1199,7 @@ FUNCTION f_callp(INOUT self: Executor)
             END IF
             LET r: Bytes := a[0 TO first-1] & b & a[last+1 TO LAST]
             self.stack.append(makeValueBytes(r))
-        WHEN "bytes__store" DO
+        WHEN "builtin$bytes__store" DO
             LET index: Number := self.pop()->n
             LET a: POINTER TO Value := self.pop()->p
             CHECK VALID a ELSE
@@ -1207,7 +1207,7 @@ FUNCTION f_callp(INOUT self: Executor)
             END CHECK
             LET b: Number := self.pop()->n
             a->y[index] := b
-        WHEN "bytes__toArray" DO
+        WHEN "builtin$bytes__toArray" DO
             LET y: Bytes := self.pop()->y
             LET a: Array<Number> := y.toArray()
             VAR r: Array<POINTER TO Value> := []
@@ -1215,23 +1215,23 @@ FUNCTION f_callp(INOUT self: Executor)
                 r.append(makeValueNumber(a[i]))
             END FOR
             self.stack.append(makeValueArray(r))
-        WHEN "bytes__toString" DO
+        WHEN "builtin$bytes__toString" DO
             LET y: Bytes := self.pop()->y
             self.stack.append(makeValueString(y.toString()))
-        WHEN "dictionary__keys" DO
+        WHEN "builtin$dictionary__keys" DO
             LET d: Dictionary<POINTER TO Value> := self.pop()->d
             LET a: Array<POINTER TO Value> := []
             FOREACH k IN d.keys() DO
                 a.append(makeValueString(k))
             END FOREACH
             self.stack.append(makeValueArray(a))
-        WHEN "dictionary__remove" DO
+        WHEN "builtin$dictionary__remove" DO
             LET key: String := self.pop()->s
             LET a: POINTER TO Value := self.pop()->p
             IF VALID a THEN
                 a->d.remove(key)
             END IF
-        WHEN "dictionary__toString__object" DO
+        WHEN "builtin$dictionary__toString__object" DO
             LET d: Dictionary<POINTER TO Value> := self.pop()->d
             VAR r: String := "{"
             FOREACH k IN d.keys() INDEX i DO
@@ -1247,7 +1247,7 @@ FUNCTION f_callp(INOUT self: Executor)
             END FOREACH
             r.append("}")
             self.stack.append(makeValueString(r))
-        WHEN "dictionary__toString__string" DO
+        WHEN "builtin$dictionary__toString__string" DO
             LET d: Dictionary<POINTER TO Value> := self.pop()->d
             VAR r: String := "{"
             FOREACH k IN d.keys() INDEX i DO
@@ -1262,29 +1262,14 @@ FUNCTION f_callp(INOUT self: Executor)
             END FOREACH
             r.append("}")
             self.stack.append(makeValueString(r))
-        WHEN "exceptiontype__toString" DO
-            LET ei: Array<POINTER TO Value> := self.pop()->a
-            VAR name: String := ""
-            VAR info: String := ""
-            VAR offset: Number := 0
-            IF VALID ei[0] AS p THEN
-                name := p->s
-            END IF
-            IF VALID ei[1] AS p THEN
-                info := p->o
-            END IF
-            IF VALID ei[2] AS p THEN
-                offset := p->n
-            END IF
-            self.stack.append(makeValueString("<ExceptionType:\(name),\(info),\(offset)>"))
-        WHEN "num" DO
+        WHEN "global$num" DO
             LET s: String := self.pop()->s
             TRY
                 self.stack.append(makeValueNumber(num(s)))
             TRAP ValueRangeException DO
                 self.raise_literal("ValueRangeException", s)
             END TRY
-        WHEN "object__getArray" DO
+        WHEN "builtin$object__getArray" DO
             TRY
                 LET a: Array<Object> := self.pop()->o
                 VAR r: Array<POINTER TO Value> := []
@@ -1295,19 +1280,19 @@ FUNCTION f_callp(INOUT self: Executor)
             TRAP DynamicConversionException DO
                 self.raise_literal("DynamicConversionException", "to Array")
             END TRY
-        WHEN "object__getBoolean" DO
+        WHEN "builtin$object__getBoolean" DO
             TRY
                 self.stack.append(makeValueBoolean(self.pop()->o))
             TRAP DynamicConversionException DO
                 self.raise_literal("DynamicConversionException", "to Boolean")
             END TRY
-        WHEN "object__getBytes" DO
+        WHEN "builtin$object__getBytes" DO
             TRY
                 self.stack.append(makeValueBytes(self.pop()->o))
             TRAP DynamicConversionException DO
                 self.raise_literal("DynamicConversionException", "to Bytes")
             END TRY
-        WHEN "object__getDictionary" DO
+        WHEN "builtin$object__getDictionary" DO
             TRY
                 -- TODO: Evaluate right hand side only once, should not need temporary o.
                 LET o: Object := self.pop()->o
@@ -1320,35 +1305,35 @@ FUNCTION f_callp(INOUT self: Executor)
             TRAP DynamicConversionException DO
                 self.raise_literal("DynamicConversionException", "to Dictionary")
             END TRY
-        WHEN "object__getNumber" DO
+        WHEN "builtin$object__getNumber" DO
             TRY
                 self.stack.append(makeValueNumber(self.pop()->o))
             TRAP DynamicConversionException DO
                 self.raise_literal("DynamicConversionException", "to Number")
             END TRY
-        WHEN "object__getString" DO
+        WHEN "builtin$object__getString" DO
             TRY
                 self.stack.append(makeValueString(self.pop()->o))
             TRAP DynamicConversionException DO
                 self.raise_literal("DynamicConversionException", "to String")
             END TRY
-        WHEN "object__isNull" DO
+        WHEN "builtin$object__isNull" DO
             self.stack.append(makeValueBoolean(self.pop()->o = NIL))
-        WHEN "object__makeArray" DO
+        WHEN "builtin$object__makeArray" DO
             self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
-        WHEN "object__makeBoolean" DO
+        WHEN "builtin$object__makeBoolean" DO
             self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
-        WHEN "object__makeBytes" DO
+        WHEN "builtin$object__makeBytes" DO
             self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
-        WHEN "object__makeDictionary" DO
+        WHEN "builtin$object__makeDictionary" DO
             self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
-        WHEN "object__makeNull" DO
+        WHEN "builtin$object__makeNull" DO
             self.stack.append(makeValueObject(NIL))
-        WHEN "object__makeNumber" DO
+        WHEN "builtin$object__makeNumber" DO
             self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
-        WHEN "object__makeString" DO
+        WHEN "builtin$object__makeString" DO
             self.stack.append(makeValueObject(makeObjectFromValue(self.pop())))
-        WHEN "object__subscript" DO
+        WHEN "builtin$object__subscript" DO
             LET index: Object := self.pop()->o
             LET obj: Object := self.pop()->o
             IF obj = NIL THEN
@@ -1371,9 +1356,9 @@ FUNCTION f_callp(INOUT self: Executor)
                     self.raise_literal("ObjectSubscriptException", e.info)
                 END TRY
             END IF
-        WHEN "object__toString" DO
+        WHEN "builtin$object__toString" DO
             self.stack.append(makeValueString("\(self.pop()->o)"))
-        WHEN "print" DO
+        WHEN "global$print" DO
             print(self.pop()->o)
         WHEN "runtime$assertionsEnabled" DO
             self.stack.append(makeValueBoolean(TRUE))
@@ -1381,21 +1366,21 @@ FUNCTION f_callp(INOUT self: Executor)
             self.stack.append(makeValueBoolean(FALSE))
         WHEN "runtime$executorName" DO
             self.stack.append(makeValueString("nenex"))
-        WHEN "str", "number__toString" DO
+        WHEN "global$str", "builtin$number__toString" DO
             LET n: Number := self.pop()->n
             self.stack.append(makeValueString(str(n)))
-        WHEN "string__concat" DO
+        WHEN "builtin$string__concat" DO
             LET b: String := self.pop()->s
             LET a: String := self.pop()->s
             self.stack.append(makeValueString(a & b))
-        WHEN "string__index" DO
+        WHEN "builtin$string__index" DO
             LET index: Number := self.pop()->n
             LET s: String := self.pop()->s
             self.stack.append(makeValueString(s[index TO index]))
-        WHEN "string__length" DO
+        WHEN "builtin$string__length" DO
             LET s: String := self.pop()->s
             self.stack.append(makeValueNumber(s.length()))
-        WHEN "string__substring" DO
+        WHEN "builtin$string__substring" DO
             LET last_from_end: Boolean := self.pop()->b
             ASSERT last_from_end = last_from_end
             LET last: Number := self.pop()->n
