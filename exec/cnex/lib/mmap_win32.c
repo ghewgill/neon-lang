@@ -1,6 +1,7 @@
 #include "mmap.h"
 
 #include <assert.h>
+#include <inttypes.h>
 #include <iso646.h>
 #include <windows.h>
 
@@ -197,14 +198,14 @@ void mmap_write(TExecutor *exec)
     if (o >= f->len) {
         string_freeString(data);
         char buf[100];
-        snprintf(buf, sizeof(buf), "Offset is greater than mapped size %" PRIu64 ": %" PRIu64, f->len, o);
+        snprintf(buf, sizeof(buf), "Offset is greater than mapped size %zd: %" PRIu64, f->len, o);
         exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
     if (o + data->length > f->len) {
         string_freeString(data);
         char buf[100];
-        snprintf(buf, sizeof(buf), "Amount of data to write exceeds mapped size %" PRIu64 ": %" PRIu64, f->len, data->length);
+        snprintf(buf, sizeof(buf), "Amount of data to write exceeds mapped size %zd: %" PRIu64, f->len, data->length);
         exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
