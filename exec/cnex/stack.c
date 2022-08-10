@@ -29,7 +29,7 @@ TStack *createStack(int capacity)
 
 void destroyStack(TStack *stack)
 {
-    while (stack->top > 0) {
+    while (stack->top != -1) {
         pop(stack);
     }
 
