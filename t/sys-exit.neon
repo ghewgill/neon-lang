@@ -1,17 +1,6 @@
 IMPORT sys
 
-TRY
-    sys.exit(1.5)
-TRAP ValueRangeException AS x DO
-    print(x.info)
-END TRY
---= sys.exit invalid parameter: 1.5
-
-TRY
-    sys.exit(-1)
-TRAP ValueRangeException AS x DO
-    print(x.info)
-END TRY
---= sys.exit invalid parameter: -1
+TESTCASE sys.exit(1.5) EXPECT PANIC "sys.exit invalid parameter: 1.5"
+TESTCASE sys.exit(-1) EXPECT PANIC "sys.exit invalid parameter: -1"
 
 EXIT PROCESS SUCCESS

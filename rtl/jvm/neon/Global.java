@@ -16,10 +16,10 @@ public class Global {
             try {
                 return new neon.type.Number(s);
             } catch (NumberFormatException x) {
-                throw new neon.type.NeonException("ValueRangeException", s);
+                throw new neon.type.NeonException("PANIC", "num() argument not a number");
             }
         } else {
-            throw new neon.type.NeonException("ValueRangeException", s);
+            throw new neon.type.NeonException("PANIC", "num() argument not a number");
         }
     }
 

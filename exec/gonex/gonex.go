@@ -1910,7 +1910,7 @@ func (self *executor) op_callp() {
 		last := self.pop().num
 		first := self.pop().num
 		if step == 0 {
-			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("%g", step)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("%g", step)})
 		} else {
 			r := []cell{}
 			if step < 0 {
@@ -2595,7 +2595,7 @@ func (self *executor) op_callp() {
 	case "math$odd":
 		n := self.pop().num
 		if n != math.Trunc(n) {
-			self.raise_literal("ValueRangeException", objectString{"odd() requires integer"})
+			self.raise_literal("PANIC", objectString{"odd() requires integer"})
 		} else {
 			self.push(make_cell_bool((int(n) & 1) != 0))
 		}
@@ -2634,7 +2634,7 @@ func (self *executor) op_callp() {
 		if err == nil {
 			self.push(make_cell_num(n))
 		} else {
-			self.raise_literal("ValueRangeException", objectString{"num() argument not a number"})
+			self.raise_literal("PANIC", objectString{"num() argument not a number"})
 		}
 	case "builtin$object__invokeMethod":
 		args := self.pop().array
@@ -2874,9 +2874,9 @@ func (self *executor) op_callp() {
 	case "string$fromCodePoint":
 		c := self.pop().num
 		if c != math.Trunc(c) {
-			self.raise_literal("ValueRangeException", objectString{"fromCodePoint() argument not an integer"})
+			self.raise_literal("PANIC", objectString{"fromCodePoint() argument not an integer"})
 		} else if c < 0 || c > 0x10ffff {
-			self.raise_literal("ValueRangeException", objectString{"fromCodePoint() argument out of range 0-0x10ffff"})
+			self.raise_literal("PANIC", objectString{"fromCodePoint() argument out of range 0-0x10ffff"})
 		} else {
 			self.push(make_cell_str(string([]byte{byte(c)})))
 		}
@@ -3030,9 +3030,9 @@ func (self *executor) op_callp() {
 	case "sys$exit":
 		n := self.pop().num
 		if n != math.Trunc(n) {
-			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else if n < 0 || n > 255 {
-			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else {
 			os.Exit(int(n))
 		}

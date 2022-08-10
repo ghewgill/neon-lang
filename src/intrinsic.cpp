@@ -16,10 +16,10 @@ namespace ne_global {
 utf8string chr(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(Exception_ValueRangeException, utf8string("fromCodePoint() argument not an integer"));
+        throw PanicException(utf8string("fromCodePoint() argument not an integer"));
     }
     if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
-        throw RtlException(Exception_ValueRangeException, utf8string("fromCodePoint() argument out of range 0-0x10ffff"));
+        throw PanicException(utf8string("fromCodePoint() argument out of range 0-0x10ffff"));
     }
     std::string r;
     utf8::append(number_to_uint32(x), std::back_inserter(r));
@@ -53,7 +53,7 @@ Number num(const utf8string &s)
 {
     Number n = number_from_string(s.str());
     if (number_is_nan(n)) {
-        throw RtlException(Exception_ValueRangeException, utf8string("num() argument not a number"));
+        throw PanicException(utf8string("num() argument not a number"));
     }
     return n;
 }
@@ -61,7 +61,7 @@ Number num(const utf8string &s)
 bool odd(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(Exception_ValueRangeException, utf8string("odd() requires integer"));
+        throw PanicException(utf8string("odd() requires integer"));
     }
     return number_is_odd(x);
 }

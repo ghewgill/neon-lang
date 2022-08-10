@@ -1,6 +1,7 @@
 IMPORT binary
 IMPORT file
 IMPORT math
+IMPORT regex
 IMPORT string
 IMPORT sys
 IMPORT textio
@@ -1264,11 +1265,11 @@ FUNCTION f_callp(INOUT self: Executor)
             self.stack.append(makeValueString(r))
         WHEN "global$num" DO
             LET s: String := self.pop()->s
-            TRY
+            IF regex.search(@"^[-+]?\d+(\.\d+)?([eE][-+]?\d+)?$", s) ISA regex.Result.match THEN
                 self.stack.append(makeValueNumber(num(s)))
-            TRAP ValueRangeException DO
-                self.raise_literal("ValueRangeException", s)
-            END TRY
+            ELSE
+                self.raise_literal("PANIC", "num() argument not a number")
+            END IF
         WHEN "builtin$object__getArray" DO
             TRY
                 LET a: Array<Object> := self.pop()->o

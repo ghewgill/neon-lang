@@ -27,11 +27,11 @@ namespace csnex.rtl
             Number x = Exec.stack.Pop().Number;
 
             if (!x.IsInteger()) {
-                Exec.Raise("ValueRangeException", "fromCodePoint() argument not an integer");
+                Exec.Raise("PANIC", "fromCodePoint() argument not an integer");
                 return;
             }
             if (x.IsNegative() || Number.number_to_int32(x) > 0x10ffff) {
-                Exec.Raise("ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff");
+                Exec.Raise("PANIC", "fromCodePoint() argument out of range 0-0x10ffff");
                 return;
             }
 

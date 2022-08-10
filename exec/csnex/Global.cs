@@ -23,12 +23,12 @@ namespace csnex
             try {
                 n = Number.FromString(s);
             } catch {
-                Exec.Raise("ValueRangeException", "num() argument not a number");
+                Exec.Raise("PANIC", "num() argument not a number");
                 return;
             }
 
             if (n == null || n.IsNaN()) {
-                Exec.Raise("ValueRangeException", "num() argument not a number");
+                Exec.Raise("PANIC", "num() argument not a number");
                 return;
             }
 

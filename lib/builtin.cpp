@@ -54,7 +54,7 @@ std::vector<Number> array__range(Number first, Number last, Number step)
 {
     std::vector<Number> r;
     if (number_is_zero(step)) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(step)));
+        throw PanicException(utf8string(number_to_string(step)));
     }
     if (number_is_negative(step)) {
         for (Number i = first; number_is_greater_equal(i, last); i = number_add(i, step)) {

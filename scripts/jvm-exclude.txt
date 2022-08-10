@@ -8,6 +8,7 @@ array-sparse.neon          # array default item
 array2d.neon               # array copying semantics
 assert-multiline.neon      # exception
 assignment.neon            # choice
+base-test.neon             # exception
 binary-test.neon           # verifier
 bytes.neon                 # bytes.append
 bytes-index.neon           # index
@@ -87,6 +88,7 @@ random-test.neon           # module random
 recursion-limit.neon       # module runtime
 regex-test.neon            # interface
 repl_import.neon           # module random
+rtl.neon                   # exception
 runtime-test.neon          # module runtime
 sql-connect.neon           # module sqlite
 sql-cursor.neon            # module sqlite

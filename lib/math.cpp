@@ -125,8 +125,7 @@ Number intdiv(Number x, Number y)
 Number ldexp(Number x, Number exp)
 {
     if (not number_is_integer(exp)) {
-        // TODO: more specific exception?
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(exp)));
+        throw PanicException(utf8string("Exponent value is not an integer: " + number_to_string(exp)));
     }
     return number_ldexp(x, number_to_sint32(exp));
 }
@@ -179,13 +178,13 @@ bool odd(Number x)
 Number powmod(Number b, Number e, Number m)
 {
     if (not number_is_integer(b)) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(b)));
+        throw PanicException(utf8string("Base value is not an integer: " + number_to_string(b)));
     }
     if (not number_is_integer(e)) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(e)));
+        throw PanicException(utf8string("Exponent value is not an integer: " + number_to_string(e)));
     }
     if (not number_is_integer(m)) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(number_to_string(m)));
+        throw PanicException(utf8string("Modulus value is not an integer: " + number_to_string(m)));
     }
     return number_powmod(b, e, m);
 }

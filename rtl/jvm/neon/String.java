@@ -8,11 +8,11 @@ public class String {
 
     public static java.lang.String fromCodePoint(neon.type.Number x) {
         if (!x.isInteger()) {
-            throw new neon.type.NeonException("ValueRangeException", "fromCodePoint() argument not an integer");
+            throw new neon.type.NeonException("PANIC", "fromCodePoint() argument not an integer");
         }
         int c = x.intValue();
         if (c > 0x10ffff) {
-            throw new neon.type.NeonException("ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff");
+            throw new neon.type.NeonException("PANIC", "fromCodePoint() argument out of range 0-0x10ffff");
         }
         return new java.lang.String(new char[] {(char)c});
     }

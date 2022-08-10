@@ -15,7 +15,6 @@ EXPORT InterruptedException
 EXPORT ObjectSubscriptException
 EXPORT SqlException
 EXPORT Utf8DecodingException
-EXPORT ValueRangeException
 
 /*  Type: Boolean
  *
@@ -118,12 +117,6 @@ EXCEPTION SqlException
  *  Invalid UTF-8 encoding found in Bytes.decodeToString().
  */
 EXCEPTION Utf8DecodingException
-
-/*  Exception: ValueRangeException
- *
- *  An input value is out of range.
- */
-EXCEPTION ValueRangeException
 
 /*  Function: num
  *

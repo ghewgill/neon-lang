@@ -10,13 +10,14 @@ EXPORT CONSTANT Digits: String := "0123456789abcdefghijklmnopqrstuvwxyz"
 
 EXPORT FUNCTION from(base: Number, digits: String): Number
     CHECK base = math.trunc(base) AND 2 <= base <= 36 ELSE
-        RAISE ValueRangeException("invalid base: \(base)")
+        PANIC "invalid base: \(base)"
     END CHECK
     VAR r: Number := 0
     FOREACH c IN digits INDEX i DO
         LET d: Number := string.find(Digits, string.lower(c))
         CHECK d >= 0 ELSE
-            RAISE ValueRangeException("invalid digit: \(c) at index \(i)")
+            -- TODO: This should be a CHOICE return instead of a PANIC.
+            PANIC "invalid digit: \(c) at index \(i)"
         END CHECK
         r := r * base + d
     END FOREACH
@@ -25,10 +26,10 @@ END FUNCTION
 
 EXPORT FUNCTION to(base: Number, value: Number): String
     CHECK base = math.trunc(base) AND 2 <= base <= 36 ELSE
-        RAISE ValueRangeException("invalid base: \(base)")
+        PANIC "invalid base: \(base)"
     END CHECK
     CHECK value = math.trunc(value) AND value >= 0 ELSE
-        RAISE ValueRangeException("value cannot be negative")
+        PANIC "value cannot be negative"
     END CHECK
     VAR r: String := ""
     VAR x: Number := value

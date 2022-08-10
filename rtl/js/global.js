@@ -194,7 +194,7 @@ neon = {
 
         odd: function(n) {
             if (n != Math.trunc(n)) {
-                throw new neon.NeonException("ValueRangeException", {info: "odd() requires integer"});
+                throw new neon.NeonException("PANIC", {info: "odd() requires integer"});
             }
             return (n % 2) != 0;
         },
@@ -231,10 +231,10 @@ neon = {
     string: {
         fromCodePoint: function(x) {
             if (x != Math.trunc(x)) {
-                throw new neon.NeonException("ValueRangeException", {info: "fromCodePoint() argument not an integer"});
+                throw new neon.NeonException("PANIC", {info: "fromCodePoint() argument not an integer"});
             }
             if (x < 0 || x > 0x10ffff) {
-                throw new neon.NeonException("ValueRangeException", {info: "fromCodePoint() argument out of range 0-0x10ffff"});
+                throw new neon.NeonException("PANIC", {info: "fromCodePoint() argument out of range 0-0x10ffff"});
             }
             return String.fromCharCode(x);
         },

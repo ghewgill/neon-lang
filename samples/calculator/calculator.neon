@@ -320,12 +320,8 @@ BEGIN MAIN
                             EXIT FUNCTION
                         END CHECK
                         LET v: String := vr.line
-                        TRY
-                            vars[var] := num(v)
-                        TRAP ValueRangeException AS e DO
-                            print(e.info)
-                            NEXT LOOP
-                        END TRY
+                        -- TODO: Catch invalid number here.
+                        vars[var] := num(v)
                         EXIT LOOP
                     END LOOP
                 END IF

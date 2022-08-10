@@ -1,6 +1,7 @@
 #include "math.h"
 
 #include <iso646.h>
+#include <stdio.h>
 
 #include "cell.h"
 #include "exec.h"
@@ -168,8 +169,9 @@ void math_ldexp(TExecutor *exec)
     Number x = top(exec->stack)->number; pop(exec->stack);
 
     if (!number_is_integer(exp)) {
-        // TODO: more specific exception?
-        exec->rtl_raise(exec, "ValueRangeException", number_to_string(exp));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Exponent value is not an integer: %s", number_to_string(exp));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -247,7 +249,7 @@ void math_odd(TExecutor *exec)
     Number n = top(exec->stack)->number; pop(exec->stack);
 
     if (!number_is_integer(n)) {
-        exec->rtl_raise(exec, "ValueRangeException", "odd() requires integer");
+        exec->rtl_raise(exec, "PANIC", "odd() requires integer");
         return;
     }
 

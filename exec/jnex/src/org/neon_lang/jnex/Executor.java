@@ -1649,10 +1649,10 @@ class Executor {
             try {
                 stack.addFirst(new Cell(new BigDecimal(s)));
             } catch (NumberFormatException x) {
-                raiseLiteral("ValueRangeException");
+                raiseLiteral("PANIC", "num() argument not a number");
             }
         } else {
-            raiseLiteral("ValueRangeException");
+            raiseLiteral("PANIC", "num() argument not a number");
         }
     }
 

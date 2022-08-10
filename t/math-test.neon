@@ -45,7 +45,7 @@ TESTCASE eq(math.max(45, 67), 67)
 TESTCASE eq(math.min(45, 67), 45)
 TESTCASE eq(math.nearbyint(5.2), 5)
 TESTCASE math.odd(3)
-TESTCASE math.odd(1.5) EXPECT ValueRangeException
+TESTCASE math.odd(1.5) EXPECT PANIC "odd() requires integer"
 TESTCASE eq(math.round(0, 3.14159), 3)
 TESTCASE eq(math.round(1, 3.14159), 3.1)
 TESTCASE eq(math.round(2, 3.14159), 3.14)
