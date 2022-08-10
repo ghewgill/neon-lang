@@ -25,7 +25,9 @@ void time_sleep(TExecutor *exec)
 
     // ToDo: If the number of seconds is greater than MAX_INT / 1000, then call Sleep() multiple times.
     if (number_is_greater(seconds, number_from_uint32(4294967))) {
-        exec->rtl_raise(exec, "ValueRangeException", "");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Requested time to sleep exceeds 4294967: %s", number_to_string(seconds);
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
     uint32_t ms = number_to_uint32(number_multiply(seconds, number_from_uint32(1000)));

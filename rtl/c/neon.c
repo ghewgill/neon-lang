@@ -1335,7 +1335,7 @@ void Ne_Exception_unhandled()
 Ne_Exception *Ne_binary_xorBytes(Ne_Bytes *r, Ne_Bytes *x, Ne_Bytes *y)
 {
     if (x->len != y->len) {
-        return Ne_Exception_raise("ValueRangeException");
+        return Ne_Exception_raise_info_literal("PANIC", "Lengths of operands are not the same");
     }
     Ne_Bytes_init_literal(r, NULL, x->len);
     for (int i = 0; i < x->len; i++) {
@@ -1536,7 +1536,7 @@ Ne_Exception *Ne_math_odd(Ne_Boolean *result, const Ne_Number *x)
 {
     int i = (int)trunc(x->dval);
     if (i != x->dval) {
-        return Ne_Exception_raise_info_literal("ValueRangeException", "odd() requires integer");
+        return Ne_Exception_raise_info_literal("PANIC", "odd() requires integer");
     }
     *result = (int)trunc(x->dval) & 1;
     return NULL;
@@ -1705,12 +1705,12 @@ Ne_Exception *Ne_sys_exit(const Ne_Number *n)
     if (i != n->dval) {
         char buf[50];
         snprintf(buf, sizeof(buf), "sys.exit invalid parameter: %g", n->dval);
-        return Ne_Exception_raise_info_literal("ValueRangeException", buf);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     if (i < 0 || i > 255) {
         char buf[50];
         snprintf(buf, sizeof(buf), "sys.exit invalid parameter: %g", n->dval);
-        return Ne_Exception_raise_info_literal("ValueRangeException", buf);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     exit(i);
 }

@@ -74,7 +74,7 @@ public class Builtin {
 
     public static neon.type.Array array__range(neon.type.Number first, neon.type.Number last, neon.type.Number step) {
         if (step.isZero()) {
-            throw new neon.type.NeonException("ValueRangeException", step.toString());
+            throw new neon.type.NeonException("PANIC", step.toString());
         }
         neon.type.Array r = new neon.type.Array();
         if (step.isNegative()) {

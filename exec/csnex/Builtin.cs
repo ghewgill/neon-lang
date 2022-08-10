@@ -74,7 +74,7 @@ namespace csnex
             List<Cell> r = new List<Cell>();
 
             if (step.IsZero()) {
-                Exec.Raise("ValueRangeException", step.ToString());
+                Exec.Raise("PANIC", step.ToString());
                 return;
             }
 
