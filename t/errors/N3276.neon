@@ -1,6 +1,8 @@
+EXCEPTION TestException
+
 VAR x: Number := 0
     --<2
 TRY
-TRAP ValueRangeException AS x DO
-                            --<1
+TRAP TestException AS x DO
+                      --<1
 END TRY

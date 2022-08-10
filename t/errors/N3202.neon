@@ -1,2 +1,4 @@
-LET n: Number := (TRY 1 TRAP ValueRangeException DO)
+EXCEPTION TestException
+
+LET n: Number := (TRY 1 TRAP TestException DO)
                       --<

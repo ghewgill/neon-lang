@@ -1,3 +1,5 @@
+EXCEPTION TestException
+
 FUNCTION testExit(x: Number)
     LOOP
         CHECK x > 0 ELSE
@@ -23,7 +25,7 @@ END FUNCTION
 FUNCTION testRaise(x: Number)
     CHECK x > 0 ELSE
         print("check raise")
-        RAISE ValueRangeException
+        RAISE TestException
     END CHECK
     print("ok raise")
 END FUNCTION
@@ -43,7 +45,7 @@ testNext(0)
 --= check next
 TRY
     testRaise(0)
-TRAP ValueRangeException DO
+TRAP TestException DO
 END TRY
 --= check raise
 _ := testReturn(0)

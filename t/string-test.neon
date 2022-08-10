@@ -10,19 +10,8 @@ print(str(string.find("hello world", "world")))
 print(string.fromCodePoint(65))
 --= A
 
-TRY
-    print(string.fromCodePoint(1.5))
-TRAP ValueRangeException AS x DO
-    print(x.info)
-END TRY
---= fromCodePoint() argument not an integer
-
-TRY
-    print(string.fromCodePoint(0x110000))
-TRAP ValueRangeException AS x DO
-    print(x.info)
-END TRY
---= fromCodePoint() argument out of range 0-0x10ffff
+TESTCASE string.fromCodePoint(1.5) EXPECT PANIC "fromCodePoint() argument not an integer"
+TESTCASE string.fromCodePoint(0x110000) EXPECT PANIC "fromCodePoint() argument out of range 0-0x10ffff"
 
 print(string.join(["hello", "world"], " "))
 --= hello world

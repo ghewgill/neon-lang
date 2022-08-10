@@ -2980,11 +2980,11 @@ def neon_format(env, s, fmt):
 
 def neon_num(env, x):
     if not any(c.isdigit() for c in x):
-        raise NeonException("ValueRangeException", x)
+        raise NeonException("PANIC", "num() argument not a number")
     try:
         return int(x) if x.isdigit() else float(x)
     except ValueError:
-        raise NeonException("ValueRangeException", x)
+        raise NeonException("PANIC", "num() argument not a number")
 
 def neon_print(env, x):
     if isinstance(x, list):
@@ -3207,7 +3207,7 @@ def neon_math_nearbyint(env, x):
 
 def neon_math_odd(env, x):
     if x != int(x):
-        raise NeonException("ValueRangeException", "odd() requires integer")
+        raise NeonException("PANIC", "odd() requires integer")
     return (x & 1) != 0
 
 def neon_math_powmod(env, b, e, m):
@@ -3319,9 +3319,9 @@ def neon_string_find(env, s, t):
 
 def neon_string_fromCodePoint(env, x):
     if x != int(x):
-        raise NeonException("ValueRangeException", "fromCodePoint() argument not an integer")
+        raise NeonException("PANIC", "fromCodePoint() argument not an integer")
     if not (0 <= x <= 0x10ffff):
-        raise NeonException("ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff")
+        raise NeonException("PANIC", "fromCodePoint() argument out of range 0-0x10ffff")
     return chr(x)
 
 def neon_string_hasPrefix(env, s, t):
@@ -3383,7 +3383,7 @@ def neon_string_upper(env, s):
 
 def neon_sys_exit(env, n):
     if n != int(n) or n < 0 or n > 255:
-        raise NeonException("ValueRangeException", "sys.exit invalid parameter: {}".format(n))
+        raise NeonException("PANIC", "sys.exit invalid parameter: {}".format(n))
     sys.exit(n)
 
 def neon_textio_close(env, f):

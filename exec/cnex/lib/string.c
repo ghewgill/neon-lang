@@ -31,11 +31,11 @@ void string_fromCodePoint(TExecutor *exec)
     Number x = top(exec->stack)->number; pop(exec->stack);
 
     if (!number_is_integer(x)) {
-        exec->rtl_raise(exec, "ValueRangeException", "fromCodePoint() argument not an integer");
+        exec->rtl_raise(exec, "PANIC", "fromCodePoint() argument not an integer");
         return;
     }
     if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
-        exec->rtl_raise(exec, "ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff");
+        exec->rtl_raise(exec, "PANIC", "fromCodePoint() argument out of range 0-0x10ffff");
         return;
     }
 

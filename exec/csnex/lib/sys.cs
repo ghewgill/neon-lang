@@ -25,12 +25,12 @@ namespace csnex.rtl
             Number x = exec.stack.Pop().Number;
 
             if (!x.IsInteger()) {
-                exec.Raise("ValueRangeException", string.Format("sys.exit invalid parameter: {0}", x.ToString()));
+                exec.Raise("PANIC", string.Format("sys.exit invalid parameter: {0}", x.ToString()));
                 return;
             }
             int r = Number.number_to_int32(x);
             if (r < 0 || r > 255) {
-                exec.Raise("ValueRangeException", string.Format("sys.exit invalid parameter: {0}", x.ToString()));
+                exec.Raise("PANIC", string.Format("sys.exit invalid parameter: {0}", x.ToString()));
                 return;
             }
             Environment.Exit(r);

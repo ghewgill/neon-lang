@@ -503,14 +503,14 @@ void neon_num(TExecutor *exec)
     // Require at least one digit in the input.
     if (strcspn(str, "0123456789") == strlen(str)) {
         free(str);
-        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number");
+        exec->rtl_raise(exec, "PANIC", "num() argument not a number");
         return;
     }
     Number n = number_from_string(str);
     free(str);
 
     if (number_is_nan(n)) {
-        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number");
+        exec->rtl_raise(exec, "PANIC", "num() argument not a number");
         return;
     }
     push(exec->stack, cell_fromNumber(n));
@@ -609,7 +609,7 @@ void array__range(TExecutor *exec)
     Number first = top(exec->stack)->number; pop(exec->stack);
 
     if (number_is_zero(step)) {
-        exec->rtl_raise(exec, "ValueRangeException", number_to_string(step));
+        exec->rtl_raise(exec, "PANIC", number_to_string(step));
         return;
     }
 
