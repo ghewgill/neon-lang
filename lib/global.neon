@@ -3,6 +3,19 @@
  *  Global names that are available everywhere.
  */
 
+EXPORT ExceptionType
+
+EXPORT num
+EXPORT print
+EXPORT str
+
+EXPORT NumberException
+EXPORT DynamicConversionException
+EXPORT InterruptedException
+EXPORT ObjectSubscriptException
+EXPORT SqlException
+EXPORT Utf8DecodingException
+
 /*  Type: Boolean
  *
  *  TRUE or FALSE.
@@ -46,6 +59,10 @@ TYPE ExceptionType IS RECORD
     info: Object
     offset: Number
 END RECORD
+
+FUNCTION ExceptionType.toString(self: ExceptionType): String
+    RETURN "<ExceptionType:" & self.name & "," & self.info & "," & str(self.offset) & ">"
+END FUNCTION
 
 /*  Exception: NumberException
  *
@@ -100,70 +117,6 @@ EXCEPTION SqlException
  *  Invalid UTF-8 encoding found in Bytes.decodeToString().
  */
 EXCEPTION Utf8DecodingException
-
-DECLARE NATIVE FUNCTION array__append(INOUT self: Array, element: Cell)
-DECLARE NATIVE FUNCTION array__concat(left: Array, right: Array): Array
-DECLARE NATIVE FUNCTION array__extend(INOUT self: Array, elements: Array)
-DECLARE NATIVE FUNCTION array__find(self: Array, element: Cell): Number
-DECLARE NATIVE FUNCTION array__range(first: Number, last: Number, step: Number): Array<Number>
-DECLARE NATIVE FUNCTION array__remove(INOUT self: Array, index: Number)
-DECLARE NATIVE FUNCTION array__resize(INOUT self: Array, new_size: Number)
-DECLARE NATIVE FUNCTION array__reversed(self: Array): Array
-DECLARE NATIVE FUNCTION array__size(self: Array): Number
-DECLARE NATIVE FUNCTION array__slice(a: Array, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Array
-DECLARE NATIVE FUNCTION array__splice(b: Array, a: Array, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Array
-DECLARE NATIVE FUNCTION array__toBytes__number(self: Array<Number>): Bytes
-DECLARE NATIVE FUNCTION array__toString__number(self: Array<Number>): String
-DECLARE NATIVE FUNCTION array__toString__string(self: Array<String>): String
-DECLARE NATIVE FUNCTION array__toString__object(self: Array<Object>): String
-DECLARE NATIVE FUNCTION boolean__toString(self: Boolean): String
-DECLARE NATIVE FUNCTION dictionary__size(self: Dictionary): Number
-DECLARE NATIVE FUNCTION dictionary__keys(self: Dictionary): Array<String>
-DECLARE NATIVE FUNCTION dictionary__remove(INOUT self: Dictionary, key: String)
-DECLARE NATIVE FUNCTION dictionary__toString__number(self: Dictionary<Number>): String
-DECLARE NATIVE FUNCTION dictionary__toString__string(self: Dictionary<String>): String
-DECLARE NATIVE FUNCTION dictionary__toString__object(self: Dictionary<Object>): String
-DECLARE NATIVE FUNCTION number__toString(self: Number): String
-DECLARE NATIVE FUNCTION string__append(INOUT self: String, t: String)
-DECLARE NATIVE FUNCTION string__concat(a: String, b: String): String
-DECLARE NATIVE FUNCTION string__index(s: String, index: Number): String
-DECLARE NATIVE FUNCTION string__length(self: String): Number
-DECLARE NATIVE FUNCTION string__splice(t: String, s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
-DECLARE NATIVE FUNCTION string__substring(s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
-DECLARE NATIVE FUNCTION string__toBytes(self: String): Bytes
-DECLARE NATIVE FUNCTION string__toString(self: String): String
-DECLARE NATIVE FUNCTION bytes__append(INOUT self: Bytes, t: Bytes)
-DECLARE NATIVE FUNCTION bytes__concat(a: Bytes, b: Bytes): Bytes
-DECLARE NATIVE FUNCTION bytes__index(s: Bytes, index: Number): Number
-DECLARE NATIVE FUNCTION bytes__range(s: Bytes, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Bytes
-DECLARE NATIVE FUNCTION bytes__size(self: Bytes): Number
-DECLARE NATIVE FUNCTION bytes__splice(t: Bytes, s: Bytes, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Bytes
-DECLARE NATIVE FUNCTION bytes__store(b: Number, INOUT s: Bytes, index: Number)
-DECLARE NATIVE FUNCTION bytes__decodeToString(self: Bytes): String
-DECLARE NATIVE FUNCTION bytes__toArray(self: Bytes): Array<Number>
-DECLARE NATIVE FUNCTION bytes__toString(self: Bytes): String
-DECLARE NATIVE FUNCTION pointer__toString(self: Cell): String
-DECLARE NATIVE FUNCTION functionpointer__toString(self: Cell): String
-DECLARE NATIVE FUNCTION interfacepointer__toString(self: Cell): String
-DECLARE NATIVE FUNCTION object__makeNull(): Object
-DECLARE NATIVE FUNCTION object__makeBoolean(b: Boolean): Object
-DECLARE NATIVE FUNCTION object__makeNumber(n: Number): Object
-DECLARE NATIVE FUNCTION object__makeString(s: String): Object
-DECLARE NATIVE FUNCTION object__makeBytes(b: Bytes): Object
-DECLARE NATIVE FUNCTION object__makeArray(a: Array<Object>): Object
-DECLARE NATIVE FUNCTION object__makeDictionary(d: Dictionary<Object>): Object
-DECLARE NATIVE FUNCTION object__getBoolean(obj: Object): Boolean
-DECLARE NATIVE FUNCTION object__getNumber(obj: Object): Number
-DECLARE NATIVE FUNCTION object__getString(obj: Object): String
-DECLARE NATIVE FUNCTION object__getBytes(obj: Object): Bytes
-DECLARE NATIVE FUNCTION object__getArray(obj: Object): Array<Object>
-DECLARE NATIVE FUNCTION object__getDictionary(obj: Object): Dictionary<Object>
-DECLARE NATIVE FUNCTION object__invokeMethod(obj: Object, name: String, params: Object...): Object
-DECLARE NATIVE FUNCTION object__isNull(obj: Object): Boolean
-DECLARE NATIVE FUNCTION object__setProperty(value: Object, obj: Object, index: Object)
-DECLARE NATIVE FUNCTION object__subscript(obj: Object, index: Object): Object
-DECLARE NATIVE FUNCTION object__toString(obj: Object): String
-DECLARE NATIVE FUNCTION exceptiontype__toString(ei: ExceptionType): String
 
 /*  Function: num
  *

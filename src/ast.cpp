@@ -164,41 +164,41 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, elementtype, nullptr));
-        methods["append"] = new PredefinedFunction("array__append", new TypeFunction(TYPE_NOTHING, params, false));
+        methods["append"] = new PredefinedFunction("builtin$array__append", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
-        methods["extend"] = new PredefinedFunction("array__extend", new TypeFunction(TYPE_NOTHING, params, false));
+        methods["extend"] = new PredefinedFunction("builtin$array__extend", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, elementtype, nullptr));
-        methods["find"] = new PredefinedFunction("array__find", new TypeFunction(TYPE_NUMBER, params, false));
+        methods["find"] = new PredefinedFunction("builtin$array__find", new TypeFunction(TYPE_NUMBER, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_NUMBER, nullptr));
-        methods["remove"] = new PredefinedFunction("array__remove", new TypeFunction(TYPE_NOTHING, params, false));
+        methods["remove"] = new PredefinedFunction("builtin$array__remove", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_NUMBER, nullptr));
-        methods["resize"] = new PredefinedFunction("array__resize", new TypeFunction(TYPE_NOTHING, params, false));
+        methods["resize"] = new PredefinedFunction("builtin$array__resize", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
-        methods["reversed"] = new PredefinedFunction("array__reversed", new TypeFunction(this, params, false));
+        methods["reversed"] = new PredefinedFunction("builtin$array__reversed", new TypeFunction(this, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
-        methods["size"] = new PredefinedFunction("array__size", new TypeFunction(TYPE_NUMBER, params, false));
+        methods["size"] = new PredefinedFunction("builtin$array__size", new TypeFunction(TYPE_NUMBER, params, false));
     }
     {
         std::vector<const ParameterType *> params;
@@ -206,12 +206,12 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
         // TODO: This is just a hack to make this work for now.
         // Need to do this properly in a general purpose way.
         if (elementtype == TYPE_NUMBER) {
-            methods["toBytes"] = new PredefinedFunction("array__toBytes__number", new TypeFunction(TYPE_BYTES, params, false));
-            methods["toString"] = new PredefinedFunction("array__toString__number", new TypeFunction(TYPE_STRING, params, false));
+            methods["toBytes"] = new PredefinedFunction("builtin$array__toBytes__number", new TypeFunction(TYPE_BYTES, params, false));
+            methods["toString"] = new PredefinedFunction("builtin$array__toString__number", new TypeFunction(TYPE_STRING, params, false));
         } else if (elementtype == TYPE_STRING) {
-            methods["toString"] = new PredefinedFunction("array__toString__string", new TypeFunction(TYPE_STRING, params, false));
+            methods["toString"] = new PredefinedFunction("builtin$array__toString__string", new TypeFunction(TYPE_STRING, params, false));
         } else if (elementtype == TYPE_OBJECT) {
-            methods["toString"] = new PredefinedFunction("array__toString__object", new TypeFunction(TYPE_STRING, params, false));
+            methods["toString"] = new PredefinedFunction("builtin$array__toString__object", new TypeFunction(TYPE_STRING, params, false));
         }
     }
 }
@@ -321,18 +321,18 @@ TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
-        methods["size"] = new PredefinedFunction("dictionary__size", new TypeFunction(TYPE_NUMBER, params, false));
+        methods["size"] = new PredefinedFunction("builtin$dictionary__size", new TypeFunction(TYPE_NUMBER, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
-        methods["keys"] = new PredefinedFunction("dictionary__keys", new TypeFunction(TYPE_ARRAY_STRING, params, false));
+        methods["keys"] = new PredefinedFunction("builtin$dictionary__keys", new TypeFunction(TYPE_ARRAY_STRING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
-        methods["remove"] = new PredefinedFunction("dictionary__remove", new TypeFunction(TYPE_NOTHING, params, false));
+        methods["remove"] = new PredefinedFunction("builtin$dictionary__remove", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
@@ -340,11 +340,11 @@ TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype
         // TODO: This is just a hack to make this work for now.
         // Need to do this properly in a general purpose way.
         if (elementtype == TYPE_NUMBER) {
-            methods["toString"] = new PredefinedFunction("dictionary__toString__number", new TypeFunction(TYPE_STRING, params, false));
+            methods["toString"] = new PredefinedFunction("builtin$dictionary__toString__number", new TypeFunction(TYPE_STRING, params, false));
         } else if (elementtype == TYPE_STRING) {
-            methods["toString"] = new PredefinedFunction("dictionary__toString__string", new TypeFunction(TYPE_STRING, params, false));
+            methods["toString"] = new PredefinedFunction("builtin$dictionary__toString__string", new TypeFunction(TYPE_STRING, params, false));
         } else if (elementtype == TYPE_OBJECT) {
-            methods["toString"] = new PredefinedFunction("dictionary__toString__object", new TypeFunction(TYPE_STRING, params, false));
+            methods["toString"] = new PredefinedFunction("builtin$dictionary__toString__object", new TypeFunction(TYPE_STRING, params, false));
         }
     }
 }
@@ -484,7 +484,7 @@ TypePointer::TypePointer(const Token &declaration, const TypeClass *reftype)
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
-        methods["toString"] = new PredefinedFunction("pointer__toString", new TypeFunction(TYPE_STRING, params, false));
+        methods["toString"] = new PredefinedFunction("builtin$pointer__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 }
 
@@ -555,7 +555,7 @@ TypeInterfacePointer::TypeInterfacePointer(const Token &declaration, const Inter
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
-        methods["toString"] = new PredefinedFunction("interfacepointer__toString", new TypeFunction(TYPE_STRING, params, false));
+        methods["toString"] = new PredefinedFunction("builtin$interfacepointer__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 }
 
@@ -631,7 +631,7 @@ TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFun
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
-        methods["toString"] = new PredefinedFunction("functionpointer__toString", new TypeFunction(TYPE_STRING, params, false));
+        methods["toString"] = new PredefinedFunction("builtin$functionpointer__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 }
 
@@ -1026,7 +1026,7 @@ Number FunctionCall::eval_number() const
     if (f->name == "math$trunc") return rtl::ne_global::int_(args[0]->eval_number());
     if (f->name == "math$max") return rtl::ne_global::max(args[0]->eval_number(), args[1]->eval_number());
     if (f->name == "math$min") return rtl::ne_global::min(args[0]->eval_number(), args[1]->eval_number());
-    if (f->name == "num") return rtl::ne_global::num(args[0]->eval_string());
+    if (f->name == "global$num") return rtl::ne_global::num(args[0]->eval_string());
     if (f->name == "math$round") return rtl::ne_global::round(args[0]->eval_number(), args[1]->eval_number());
     internal_error("unexpected intrinsic");
 }
@@ -1036,8 +1036,8 @@ utf8string FunctionCall::eval_string() const
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
     if (f->name == "string$fromCodePoint") return rtl::ne_global::chr(args[0]->eval_number());
-    if (f->name == "string__concat") return rtl::ne_global::string__concat(args[0]->eval_string(), args[1]->eval_string());
-    if (f->name == "str") return rtl::ne_global::str(args[0]->eval_number());
+    if (f->name == "builtin$string__concat") return rtl::ne_builtin::string__concat(args[0]->eval_string(), args[1]->eval_string());
+    if (f->name == "global$str") return rtl::ne_global::str(args[0]->eval_number());
     internal_error("unexpected intrinsic");
 }
 
@@ -1057,15 +1057,15 @@ bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const 
         return false;
     }
     if (f->name == "string$fromCodePoint"
-     || f->name == "string__concat"
+     || f->name == "builtin$string__concat"
      || f->name == "math$trunc"
      || f->name == "math$max"
      || f->name == "math$min"
-     || f->name == "num"
+     || f->name == "global$num"
      || f->name == "math$odd"
      || f->name == "string$toCodePoint"
      || f->name == "math$round"
-     || f->name == "str") {
+     || f->name == "global$str") {
         return true;
     }
     return false;
@@ -1271,7 +1271,7 @@ const TypeFunction *Function::makeFunctionType(const Type *returntype, const std
 
 bool PredefinedFunction::is_pure(std::set<const ast::Function *> &) const
 {
-    static std::set<std::string> impure_modules {
+    static const std::set<std::string> impure_modules {
         "console",
         "debugger",
         "file",
@@ -1292,7 +1292,21 @@ bool PredefinedFunction::is_pure(std::set<const ast::Function *> &) const
     };
     auto sep = name.find('$');
     auto mod = name.substr(0, sep);
-    return impure_modules.find(mod) == impure_modules.end();
+    if (impure_modules.find(mod) != impure_modules.end()) {
+        return false;
+    }
+
+    // TODO: This list needs to be a lot bigger.
+    static const std::set<std::string> pure_functions {
+        "builtin$array__size",
+        "builtin$object__getNumber",
+        "builtin$object__getString",
+        "builtin$object__makeNumber",
+        "builtin$object__makeString",
+        "builtin$object__subscript",
+        "builtin$string__length",
+    };
+    return pure_functions.find(name) != pure_functions.end();
 }
 
 Program::Program(const std::string &source_path, const std::string &source_hash, const std::string &module_name)
@@ -1313,36 +1327,36 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BOOLEAN, nullptr));
-        TYPE_BOOLEAN->methods["toString"] = new PredefinedFunction("boolean__toString", new TypeFunction(TYPE_STRING, params, false));
+        TYPE_BOOLEAN->methods["toString"] = new PredefinedFunction("builtin$boolean__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_NUMBER, nullptr));
-        TYPE_NUMBER->methods["toString"] = new PredefinedFunction("number__toString", new TypeFunction(TYPE_STRING, params, false));
+        TYPE_NUMBER->methods["toString"] = new PredefinedFunction("builtin$number__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
-        TYPE_STRING->methods["length"] = new PredefinedFunction("string__length", new TypeFunction(TYPE_NUMBER, params, false));
+        TYPE_STRING->methods["length"] = new PredefinedFunction("builtin$string__length", new TypeFunction(TYPE_NUMBER, params, false));
     }
 
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, TYPE_STRING, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
-        TYPE_STRING->methods["append"] = new PredefinedFunction("string__append", new TypeFunction(TYPE_NOTHING, params, false));
+        TYPE_STRING->methods["append"] = new PredefinedFunction("builtin$string__append", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
-        TYPE_STRING->methods["toBytes"] = new PredefinedFunction("string__toBytes", new TypeFunction(TYPE_BYTES, params, false));
+        TYPE_STRING->methods["toBytes"] = new PredefinedFunction("builtin$string__toBytes", new TypeFunction(TYPE_BYTES, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
-        TYPE_STRING->methods["toString"] = new PredefinedFunction("string__toString", new TypeFunction(TYPE_STRING, params, false));
+        TYPE_STRING->methods["toString"] = new PredefinedFunction("builtin$string__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 
     {
@@ -1354,52 +1368,32 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, TYPE_BYTES, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
-        TYPE_BYTES->methods["append"] = new PredefinedFunction("bytes__append", new TypeFunction(TYPE_NOTHING, params, false));
+        TYPE_BYTES->methods["append"] = new PredefinedFunction("builtin$bytes__append", new TypeFunction(TYPE_NOTHING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
-        TYPE_BYTES->methods["size"] = new PredefinedFunction("bytes__size", new TypeFunction(TYPE_NUMBER, params, false));
+        TYPE_BYTES->methods["size"] = new PredefinedFunction("builtin$bytes__size", new TypeFunction(TYPE_NUMBER, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
-        TYPE_BYTES->methods["decodeToString"] = new PredefinedFunction("bytes__decodeToString", new TypeFunction(TYPE_STRING, params, false));
+        TYPE_BYTES->methods["decodeToString"] = new PredefinedFunction("builtin$bytes__decodeToString", new TypeFunction(TYPE_STRING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
-        TYPE_BYTES->methods["toArray"] = new PredefinedFunction("bytes__toArray", new TypeFunction(TYPE_ARRAY_NUMBER, params, false));
+        TYPE_BYTES->methods["toArray"] = new PredefinedFunction("builtin$bytes__toArray", new TypeFunction(TYPE_ARRAY_NUMBER, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
-        TYPE_BYTES->methods["toString"] = new PredefinedFunction("bytes__toString", new TypeFunction(TYPE_STRING, params, false));
+        TYPE_BYTES->methods["toString"] = new PredefinedFunction("builtin$bytes__toString", new TypeFunction(TYPE_STRING, params, false));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_OBJECT, nullptr));
-        TYPE_OBJECT->methods["toString"] = new PredefinedFunction("object__toString", new TypeFunction(TYPE_STRING, params, false));
-    }
-
-    for (auto x: rtl::ExceptionNames) {
-        Exception *e = new Exception(Token(), x.name);
-        for (int i = 0; x.sub[i] != nullptr; i++) {
-            e->subexceptions[x.sub[i]] = new Exception(Token(), std::string(x.name) + "." + x.sub[i]);
-        }
-        scope->addName(Token(IDENTIFIER, x.name), x.name, e);
-    }
-
-    {
-        // The fields here must match the corresponding references to
-        // ExceptionType in exec.cpp, and the declaration in global.neon.
-        std::vector<TypeRecord::Field> fields;
-        fields.push_back(TypeRecord::Field(Token("name"), TYPE_STRING, false));
-        fields.push_back(TypeRecord::Field(Token("info"), TYPE_OBJECT, false));
-        fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
-        Type *exception_type = new TypeRecord(Token(), "global", "ExceptionType", fields);
-        exception_type->methods["toString"] = new PredefinedFunction("exceptiontype__toString", new TypeFunction(TYPE_STRING, { new ParameterType(Token(), ParameterType::Mode::IN, exception_type, nullptr) }, false));
-        scope->addName(Token(IDENTIFIER, "ExceptionType"), "ExceptionType", exception_type, true);
+        TYPE_OBJECT->methods["toString"] = new PredefinedFunction("builtin$object__toString", new TypeFunction(TYPE_STRING, params, false));
     }
 
     rtl_compile_init(scope);

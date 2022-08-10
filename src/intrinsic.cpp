@@ -26,11 +26,6 @@ utf8string chr(Number x)
     return utf8string(r);
 }
 
-utf8string string__concat(const utf8string &a, const utf8string &b)
-{
-    return a + b;
-}
-
 Number int_(Number a)
 {
     return number_trunc(a);
@@ -97,5 +92,14 @@ utf8string str(Number x)
 }
 
 } // namespace ne_global
+
+namespace ne_builtin {
+
+utf8string string__concat(const utf8string &a, const utf8string &b)
+{
+    return a + b;
+}
+
+} // namespace ne_builtin
 
 } // namespace rtl

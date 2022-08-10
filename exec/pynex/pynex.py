@@ -1407,24 +1407,24 @@ Dispatch = [
     Executor.PUSHCI,
 ]
 
-def neon_array__append(self):
+def neon_builtin_array__append(self):
     v = self.stack.pop()
     a = self.stack.pop()
     if a.value is None:
         a.value = []
     a.value.append(Value(v))
 
-def neon_array__concat(self):
+def neon_builtin_array__concat(self):
     b = self.stack.pop()
     a = self.stack.pop()
     self.stack.append(a + b)
 
-def neon_array__extend(self):
+def neon_builtin_array__extend(self):
     v = self.stack.pop()
     a = self.stack.pop().value
     a.extend(v)
 
-def neon_array__find(self):
+def neon_builtin_array__find(self):
     e = self.stack.pop()
     a = self.stack.pop()
     try:
@@ -1433,7 +1433,7 @@ def neon_array__find(self):
     except StopIteration:
         self.raise_literal("PANIC", "value not found in array")
 
-def neon_array__range(self):
+def neon_builtin_array__range(self):
     step = self.stack.pop()
     last = self.stack.pop()
     first = self.stack.pop()
@@ -1450,7 +1450,7 @@ def neon_array__range(self):
             i += step
     self.stack.append(r)
 
-def neon_array__remove(self):
+def neon_builtin_array__remove(self):
     index = self.stack.pop()
     a = self.stack.pop().value
     if not is_integer(index):
@@ -1458,7 +1458,7 @@ def neon_array__remove(self):
         return
     del a[int(index)]
 
-def neon_array__resize(self):
+def neon_builtin_array__resize(self):
     size = self.stack.pop()
     a = self.stack.pop()
     if a.value is None:
@@ -1474,15 +1474,15 @@ def neon_array__resize(self):
         while len(a) < size:
             a.append(Value(None))
 
-def neon_array__reversed(self):
+def neon_builtin_array__reversed(self):
     a = self.stack.pop()
     self.stack.append(list(reversed(a)))
 
-def neon_array__size(self):
+def neon_builtin_array__size(self):
     a = self.stack.pop()
     self.stack.append(len(a))
 
-def neon_array__slice(self):
+def neon_builtin_array__slice(self):
     last_from_end = self.stack.pop()
     last = self.stack.pop()
     first_from_end = self.stack.pop()
@@ -1506,7 +1506,7 @@ def neon_array__slice(self):
         last = -1
     self.stack.append(a[first:last+1])
 
-def neon_array__splice(self):
+def neon_builtin_array__splice(self):
     last_from_end = self.stack.pop()
     last = int(self.stack.pop())
     first_from_end = self.stack.pop()
@@ -1520,7 +1520,7 @@ def neon_array__splice(self):
     r = a[:first] + b + a[last+1:]
     self.stack.append(r)
 
-def neon_array__toBytes__number(self):
+def neon_builtin_array__toBytes__number(self):
     a = self.stack.pop()
     for i, x in enumerate(a):
         if x.value is not None and not (0 <= x.value < 256):
@@ -1528,15 +1528,15 @@ def neon_array__toBytes__number(self):
             return
     self.stack.append(bytearray(int(x.value) if x.value is not None else 0 for x in a))
 
-def neon_array__toString__number(self):
+def neon_builtin_array__toString__number(self):
     a = self.stack.pop()
     self.stack.append("[{}]".format(", ".join(str(x.value) for x in a)))
 
-def neon_array__toString__object(self):
+def neon_builtin_array__toString__object(self):
     a = self.stack.pop()
     self.stack.append("[{}]".format(", ".join(literal(x.value) for x in a)))
 
-def neon_array__toString__string(self):
+def neon_builtin_array__toString__string(self):
     a = self.stack.pop()
     self.stack.append("[{}]".format(", ".join(literal(x.value) for x in a)))
 
@@ -1873,25 +1873,25 @@ def neon_binary_xorBytes(self):
     a = self.stack.pop()
     self.stack.append(bytearray([x ^ y for x, y in zip(a, b)]))
 
-def neon_boolean__toString(self):
+def neon_builtin_boolean__toString(self):
     x = self.stack.pop()
     self.stack.append("TRUE" if x else "FALSE")
 
-def neon_bytes__append(self):
+def neon_builtin_bytes__append(self):
     b = self.stack.pop()
     ac = self.stack.pop()
     ac.value = ac.value + b
 
-def neon_bytes__concat(self):
+def neon_builtin_bytes__concat(self):
     b = self.stack.pop()
     a = self.stack.pop()
     self.stack.append(a + b)
 
-def neon_bytes__decodeToString(self):
+def neon_builtin_bytes__decodeToString(self):
     b = self.stack.pop()
     self.stack.append(b.decode())
 
-def neon_bytes__index(self):
+def neon_builtin_bytes__index(self):
     index = self.stack.pop()
     b = self.stack.pop()
     if index != int(index):
@@ -1906,7 +1906,7 @@ def neon_bytes__index(self):
         return
     self.stack.append(b[index])
 
-def neon_bytes__range(self):
+def neon_builtin_bytes__range(self):
     last_from_end = self.stack.pop()
     last = self.stack.pop()
     first_from_end = self.stack.pop()
@@ -1934,11 +1934,11 @@ def neon_bytes__range(self):
         last = -1
     self.stack.append(b[first:last+1])
 
-def neon_bytes__size(self):
+def neon_builtin_bytes__size(self):
     b = self.stack.pop()
     self.stack.append(len(b))
 
-def neon_bytes__splice(self):
+def neon_builtin_bytes__splice(self):
     last_from_end = self.stack.pop()
     last = int(self.stack.pop())
     first_from_end = self.stack.pop()
@@ -1961,17 +1961,17 @@ def neon_bytes__splice(self):
     r = a[:first] + padding + b + a[last+1:]
     self.stack.append(r)
 
-def neon_bytes__store(self):
+def neon_builtin_bytes__store(self):
     index = int(self.stack.pop())
     sc = self.stack.pop()
     b = int(self.stack.pop())
     sc.value = sc.value[:index] + bytes([b]) + sc.value[index+1:]
 
-def neon_bytes__toArray(self):
+def neon_builtin_bytes__toArray(self):
     b = self.stack.pop()
     self.stack.append([Value(x) for x in b])
 
-def neon_bytes__toString(self):
+def neon_builtin_bytes__toString(self):
     b = self.stack.pop()
     self.stack.append("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in b)))
 
@@ -2010,29 +2010,25 @@ def neon_debugger_log(self):
     message = self.stack.pop()
     pass
 
-def neon_dictionary__keys(self):
+def neon_builtin_dictionary__keys(self):
     d = self.stack.pop()
     self.stack.append([Value(x) for x in sorted(d.keys())])
 
-def neon_dictionary__remove(self):
+def neon_builtin_dictionary__remove(self):
     key = self.stack.pop()
     d = self.stack.pop().value
     if key in d:
         del d[key]
 
-def neon_dictionary__toString__object(self):
+def neon_builtin_dictionary__toString__object(self):
     d = self.stack.pop()
     self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(str(v.value))) for k, v in sorted(d.items()))))
 
-def neon_dictionary__toString__string(self):
+def neon_builtin_dictionary__toString__string(self):
     d = self.stack.pop()
     self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(v.value)) for k, v in sorted(d.items()))))
 
-def neon_exceptiontype__toString(self):
-    ei = self.stack.pop()
-    self.stack.append("<ExceptionType:{},{},{}>".format(ei[0].value, ei[1].value, ei[2].value))
-
-def neon_num(self):
+def neon_global_num(self):
     s = self.stack.pop()
     try:
         self.stack.append(decimal.Decimal(s))
@@ -2040,38 +2036,38 @@ def neon_num(self):
         self.raise_literal("PANIC", "num() argument not a number")
         return
 
-def neon_number__toString(self):
-    neon_str(self)
+def neon_builtin_number__toString(self):
+    neon_global_str(self)
 
-def neon_object__getArray(self):
+def neon_builtin_object__getArray(self):
     v = self.stack.pop()
     if not isinstance(v, list):
         self.raise_literal("DynamicConversionException", "to Array")
         return
     self.stack.append(v)
 
-def neon_object__getBoolean(self):
+def neon_builtin_object__getBoolean(self):
     v = self.stack.pop()
     if not isinstance(v, bool):
         self.raise_literal("DynamicConversionException", "to Boolean")
         return
     self.stack.append(v)
 
-def neon_object__getBytes(self):
+def neon_builtin_object__getBytes(self):
     v = self.stack.pop()
     if not isinstance(v, bytes):
         self.raise_literal("DynamicConversionException", "to Bytes")
         return
     self.stack.append(v)
 
-def neon_object__getDictionary(self):
+def neon_builtin_object__getDictionary(self):
     v = self.stack.pop()
     if not isinstance(v, dict):
         self.raise_literal("DynamicConversionException", "to Dictionary")
         return
     self.stack.append(v)
 
-def neon_object__getNumber(self):
+def neon_builtin_object__getNumber(self):
     v = self.stack.pop()
     # Check against False and True explicitly,
     # because isinstance(False, int) is true.
@@ -2080,14 +2076,14 @@ def neon_object__getNumber(self):
         return
     self.stack.append(v)
 
-def neon_object__getString(self):
+def neon_builtin_object__getString(self):
     v = self.stack.pop()
     if not isinstance(v, str):
         self.raise_literal("DynamicConversionException", "to String")
         return
     self.stack.append(v)
 
-def neon_object__invokeMethod(self):
+def neon_builtin_object__invokeMethod(self):
     args = self.stack.pop()
     name = self.stack.pop()
     obj = self.stack.pop()
@@ -2107,38 +2103,38 @@ def neon_object__invokeMethod(self):
         r = getattr(obj, name)(*[x.value for x in args])
     self.stack.append(r)
 
-def neon_object__isNull(self):
+def neon_builtin_object__isNull(self):
     v = self.stack.pop()
     self.stack.append(v is None)
 
-def neon_object__makeArray(self):
+def neon_builtin_object__makeArray(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeBoolean(self):
+def neon_builtin_object__makeBoolean(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeBytes(self):
+def neon_builtin_object__makeBytes(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeDictionary(self):
+def neon_builtin_object__makeDictionary(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeNull(self):
+def neon_builtin_object__makeNull(self):
     self.stack.append(None)
 
-def neon_object__makeNumber(self):
+def neon_builtin_object__makeNumber(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeString(self):
+def neon_builtin_object__makeString(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__subscript(self):
+def neon_builtin_object__subscript(self):
     i = self.stack.pop()
     o = self.stack.pop()
     if o is None:
@@ -2169,7 +2165,7 @@ def neon_object__subscript(self):
     else:
         self.raise_literal("ObjectSubscriptException", str(i))
 
-def neon_object__setProperty(self):
+def neon_builtin_object__setProperty(self):
     i = self.stack.pop()
     o = self.stack.pop()
     v = self.stack.pop().value
@@ -2196,7 +2192,7 @@ def neon_object__setProperty(self):
     else:
         setattr(o, i, v)
 
-def neon_object__toString(self):
+def neon_builtin_object__toString(self):
     v = self.stack.pop()
     if isinstance(v, str):
         self.stack.append(v)
@@ -2207,11 +2203,11 @@ def neon_object__toString(self):
     else:
         self.stack.append(literal(v))
 
-def neon_pointer__toString(self):
+def neon_builtin_pointer__toString(self):
     v = self.stack.pop()
     self.stack.append("<p:{}>".format(id(v)))
 
-def neon_print(self):
+def neon_global_print(self):
     s = self.stack.pop()
     if s is None:
         print("NIL")
@@ -2228,7 +2224,7 @@ def neon_print(self):
     else:
         print(s)
 
-def neon_str(self):
+def neon_global_str(self):
     v = self.stack.pop()
     if isinstance(v, decimal.Decimal):
         # Remove trailing zeros and decimal point if possible.
@@ -2238,17 +2234,17 @@ def neon_str(self):
             v = re.sub("(\\.[\\d]+?)0+(?![\\d])", "\\1", v)
     self.stack.append(str(v))
 
-def neon_string__append(self):
+def neon_builtin_string__append(self):
     b = self.stack.pop()
     a = self.stack.pop()
     a.value = a.value + b
 
-def neon_string__concat(self):
+def neon_builtin_string__concat(self):
     b = self.stack.pop()
     a = self.stack.pop()
     self.stack.append(a + b)
 
-def neon_string__index(self):
+def neon_builtin_string__index(self):
     index = self.stack.pop()
     s = self.stack.pop()
     if index != int(index):
@@ -2263,11 +2259,11 @@ def neon_string__index(self):
         return
     self.stack.append(s[index:index+1])
 
-def neon_string__length(self):
+def neon_builtin_string__length(self):
     s = self.stack.pop()
     self.stack.append(len(s))
 
-def neon_string__splice(self):
+def neon_builtin_string__splice(self):
     last_from_end = self.stack.pop()
     last = int(self.stack.pop())
     first_from_end = self.stack.pop()
@@ -2290,7 +2286,7 @@ def neon_string__splice(self):
     r = a[:first] + padding + b + a[last+1:]
     self.stack.append(r)
 
-def neon_string__substring(self):
+def neon_builtin_string__substring(self):
     last_from_end = self.stack.pop()
     last = self.stack.pop()
     first_from_end = self.stack.pop()
@@ -2318,11 +2314,11 @@ def neon_string__substring(self):
         last = -1
     self.stack.append(s[first:last+1])
 
-def neon_string__toBytes(self):
+def neon_builtin_string__toBytes(self):
     s = self.stack.pop()
     self.stack.append(s.encode())
 
-def neon_string__toString(self):
+def neon_builtin_string__toString(self):
     s = self.stack.pop()
     self.stack.append(s)
 

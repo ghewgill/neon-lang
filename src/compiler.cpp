@@ -1375,7 +1375,7 @@ void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
 
 void ast::ConstantNilObject::generate_expr(Emitter &emitter) const
 {
-    emitter.emit(Opcode::CALLP, emitter.str("object__makeNull"));
+    emitter.emit(Opcode::CALLP, emitter.str("builtin$object__makeNull"));
     emitter.adjust_stack_depth(1);
 }
 
@@ -1872,7 +1872,7 @@ void ast::BytesReferenceIndexExpression::generate_store(Emitter &emitter) const
 {
     ref->generate_address_write(emitter);
     index->generate(emitter);
-    emitter.emit(Opcode::CALLP, emitter.str("bytes__store"));
+    emitter.emit(Opcode::CALLP, emitter.str("builtin$bytes__store"));
     emitter.adjust_stack_depth(-3);
 }
 
@@ -1901,7 +1901,7 @@ void ast::ObjectSubscriptExpression::generate_expr(Emitter &emitter) const
 {
     obj->generate(emitter);
     index->generate(emitter);
-    emitter.emit(Opcode::CALLP, emitter.str("object__subscript"));
+    emitter.emit(Opcode::CALLP, emitter.str("builtin$object__subscript"));
     emitter.adjust_stack_depth(-1);
 }
 
@@ -1909,7 +1909,7 @@ void ast::ObjectSubscriptExpression::generate_store(Emitter &emitter) const
 {
     obj->generate(emitter);
     index->generate(emitter);
-    emitter.emit(Opcode::CALLP, emitter.str("object__setProperty"));
+    emitter.emit(Opcode::CALLP, emitter.str("builtin$object__setProperty"));
     emitter.adjust_stack_depth(-3);
 }
 
@@ -1993,7 +1993,7 @@ void ast::ChoiceReferenceExpression::generate_address_read(Emitter &emitter) con
     auto skip_label = emitter.create_label();
     emitter.emit_jump(Opcode::JT, skip_label);
     emitter.emit(Opcode::PUSHI, choice);
-    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::CALLP, emitter.str("builtin$object__makeNumber"));
     emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
     emitter.jump_target(skip_label);
     expr->generate_address_read(emitter);
@@ -2012,7 +2012,7 @@ void ast::ChoiceReferenceExpression::generate_address_write(Emitter &emitter) co
     auto skip_label = emitter.create_label();
     emitter.emit_jump(Opcode::JT, skip_label);
     emitter.emit(Opcode::PUSHI, choice);
-    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::CALLP, emitter.str("builtin$object__makeNumber"));
     emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
     emitter.jump_target(skip_label);
     expr->generate_address_write(emitter);
@@ -2031,7 +2031,7 @@ void ast::ChoiceValueExpression::generate_expr(Emitter &emitter) const
     auto skip_label = emitter.create_label();
     emitter.emit_jump(Opcode::JT, skip_label);
     emitter.emit(Opcode::PUSHI, choice);
-    emitter.emit(Opcode::CALLP, emitter.str("object__makeNumber"));
+    emitter.emit(Opcode::CALLP, emitter.str("builtin$object__makeNumber"));
     emitter.emit(Opcode::EXCEPT, emitter.str("InternalChoiceException"));
     emitter.jump_target(skip_label);
     emitter.emit(Opcode::PUSHI, 1);
@@ -2099,9 +2099,9 @@ void ast::FunctionCall::generate_parameters(Emitter &emitter) const
     if (ve != nullptr) {
         const PredefinedFunction *pf = dynamic_cast<const PredefinedFunction *>(ve->var);
         if (pf != nullptr) {
-            if (pf->name == "string__splice"
-             || pf->name == "bytes__splice"
-             || pf->name == "array__splice") {
+            if (pf->name == "builtin$string__splice"
+             || pf->name == "builtin$bytes__splice"
+             || pf->name == "builtin$array__splice") {
                 check = false;
             }
         }
@@ -2224,7 +2224,7 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
         stmt->generate(emitter);
     }
     emitter.emit(Opcode::PUSHS, emitter.str(source));
-    emitter.emit(Opcode::CALLP, emitter.str("object__makeString"));
+    emitter.emit(Opcode::CALLP, emitter.str("builtin$object__makeString"));
     emitter.emit(Opcode::EXCEPT, emitter.str("PANIC"));
     emitter.jump_target(skip_label);
 }

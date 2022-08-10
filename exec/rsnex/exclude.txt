@@ -132,6 +132,7 @@ for-bounds.neon
 foreach-bytes.neon
 foreach-eval.neon
 foreach-function.neon
+foreach-literal-empty.neon
 foreach.neon
 foreach-string.neon
 foreach-update.neon
@@ -158,6 +159,7 @@ gc-array.neon
 gc-long-chain.neon
 gc-two-pointers.neon
 global-shadow.neon
+hello.neon
 if.neon
 import-dup.neon
 import.neon
@@ -314,6 +316,7 @@ return-nothing.neon
 return-try.neon
 retval-index.neon
 rtl.neon
+runtime-test.neon
 shadow2.neon
 shadow.neon
 shebang.neon

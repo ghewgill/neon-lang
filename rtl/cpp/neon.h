@@ -17,9 +17,14 @@ public:
     virtual std::string toString() override { return s; }
 };
 
-namespace global {
+namespace builtin {
 
 std::shared_ptr<Object> object__makeString(const std::string &s);
+
+} // namespace builtin
+
+namespace global {
+
 void print(std::shared_ptr<Object> x);
 
 } // namespace global

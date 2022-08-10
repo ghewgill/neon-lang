@@ -142,6 +142,7 @@ void net_socket_bind(TExecutor *exec)
     if (r < 0) {
         // ToDo: Raise exception here?
         perror("bind");
+        goto bail;
     }
 
 bail:
@@ -194,6 +195,7 @@ void net_socket_connect(TExecutor *exec)
     if (r < 0) {
         // ToDo: Raise exception here?
         perror("connect");
+        goto bail;
     }
 
 bail:
@@ -249,14 +251,12 @@ void net_socket_recv(TExecutor *exec)
     int r = recv(s, (char*)buf, n, 0);
     if (r < 0) {
         perror("recv");
-        Cell *empty = cell_fromCString("");
-        // We need to make sure that we're returning a BYTES cell.
-        empty->type = cBytes;
-        push(exec->stack, empty);
+        push(exec->stack, cell_createBytesCell(0));
+        return;
     }
     if (r == 0) {
         push(exec->stack, cell_fromBoolean(FALSE));
-        push(exec->stack, cell_fromBytes(string_newString()));
+        push(exec->stack, cell_createBytesCell(0));
         return;
     }
     TString *ret = string_newString();

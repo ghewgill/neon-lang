@@ -92,11 +92,9 @@ void process_call(TExecutor *exec)
 
     struct ThreadInfo stdInfo[2];
     stdInfo[0].pipeHandle = out_read;
-    stdInfo[0].buffer = cell_createStringCell(0);
-    stdInfo[0].buffer->type = cBytes;
+    stdInfo[0].buffer = cell_createBytesCell(0);
     stdInfo[1].pipeHandle = err_read;
-    stdInfo[1].buffer = cell_createStringCell(0);
-    stdInfo[1].buffer->type = cBytes;
+    stdInfo[1].buffer = cell_createBytesCell(0);
     DWORD threadId[2];
     HANDLE readerThread[2];
 

@@ -1875,23 +1875,23 @@ func (self *executor) op_callp() {
 	val := get_vint(self.module.object.code, &self.ip)
 	name := string(self.module.object.strtable[val])
 	switch name {
-	case "array__append":
+	case "builtin$array__append":
 		e := self.pop()
 		r := self.pop().ref
 		a := r.load()
 		a.array = append(a.array, e)
 		r.store(a)
-	case "array__concat":
+	case "builtin$array__concat":
 		b := self.pop().array
 		a := self.pop().array
 		self.push(make_cell_array(append(a, b...)))
-	case "array__extend":
+	case "builtin$array__extend":
 		b := self.pop().array
 		r := self.pop().ref
 		a := r.load()
 		a.array = append(a.array, b...)
 		r.store(a)
-	case "array__find":
+	case "builtin$array__find":
 		e := self.pop()
 		a := self.pop().array
 		found := false
@@ -1905,7 +1905,7 @@ func (self *executor) op_callp() {
 		if !found {
 			self.raise_literal("PANIC", objectString{"value not found in array"})
 		}
-	case "array__range":
+	case "builtin$array__range":
 		step := self.pop().num
 		last := self.pop().num
 		first := self.pop().num
@@ -1924,7 +1924,7 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_array(r))
 		}
-	case "array__remove":
+	case "builtin$array__remove":
 		index := self.pop().num
 		if index != math.Trunc(index) || index < 0 {
 			self.raise_literal("PANIC", objectString{fmt.Sprintf("Invalid array index: %g", index)})
@@ -1935,7 +1935,7 @@ func (self *executor) op_callp() {
 			a = append(a[:index], a[index+1:]...)
 			r.store(make_cell_array(a))
 		}
-	case "array__resize":
+	case "builtin$array__resize":
 		size := self.pop().num
 		if size != math.Trunc(size) || size < 0 {
 			self.raise_literal("PANIC", objectString{fmt.Sprintf("Invalid array size: %g", size)})
@@ -1952,17 +1952,17 @@ func (self *executor) op_callp() {
 			}
 			r.store(make_cell_array(a))
 		}
-	case "array__reversed":
+	case "builtin$array__reversed":
 		a := self.pop().array
 		r := make([]cell, len(a))
 		for i, x := range a {
 			r[len(a)-1-i] = x
 		}
 		self.push(make_cell_array(r))
-	case "array__size":
+	case "builtin$array__size":
 		a := self.pop().array
 		self.push(make_cell_num(float64(len(a))))
-	case "array__slice":
+	case "builtin$array__slice":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num
 		first_from_end := self.pop().bool
@@ -1998,7 +1998,7 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_array(a[first : last+1]))
 		}
-	case "array__splice":
+	case "builtin$array__splice":
 		last_from_end := self.pop().bool
 		last := int(self.pop().num)
 		first_from_end := self.pop().bool
@@ -2028,7 +2028,7 @@ func (self *executor) op_callp() {
 		r = append(r, b...)
 		r = append(r, a[last+1:]...)
 		self.push(make_cell_array(r))
-	case "array__toBytes__number":
+	case "builtin$array__toBytes__number":
 		a := self.pop().array
 		b := make([]byte, len(a))
 		failed := false
@@ -2044,7 +2044,7 @@ func (self *executor) op_callp() {
 		if !failed {
 			self.push(make_cell_bytes(b))
 		}
-	case "array__toString__number":
+	case "builtin$array__toString__number":
 		a := self.pop().array
 		r := "["
 		first := true
@@ -2058,7 +2058,7 @@ func (self *executor) op_callp() {
 		}
 		r += "]"
 		self.push(make_cell_str(r))
-	case "array__toString__object":
+	case "builtin$array__toString__object":
 		a := self.pop().array
 		r := "["
 		for i, x := range a {
@@ -2069,7 +2069,7 @@ func (self *executor) op_callp() {
 		}
 		r += "]"
 		self.push(make_cell_str(r))
-	case "array__toString__string":
+	case "builtin$array__toString__string":
 		a := self.pop().array
 		r := "["
 		for i, x := range a {
@@ -2173,13 +2173,13 @@ func (self *executor) op_callp() {
 			r[i] = a[i] ^ b[i]
 		}
 		self.push(make_cell_bytes(r))
-	case "bytes__append":
+	case "builtin$bytes__append":
 		b := self.pop().bytes
 		ar := self.pop().ref
 		a := ar.load()
 		a.bytes = append(a.bytes, b...)
 		ar.store(a)
-	case "bytes__concat":
+	case "builtin$bytes__concat":
 		b := self.pop().bytes
 		a := self.pop().bytes
 		r := make([]byte, len(a)+len(b))
@@ -2190,10 +2190,10 @@ func (self *executor) op_callp() {
 			r[len(a)+i] = b[i]
 		}
 		self.push(make_cell_bytes(r))
-	case "bytes__decodeToString":
+	case "builtin$bytes__decodeToString":
 		b := self.pop().bytes
 		self.push(make_cell_str(string(b)))
-	case "bytes__index":
+	case "builtin$bytes__index":
 		nindex := self.pop().num
 		b := self.pop().bytes
 		if nindex != math.Trunc(nindex) {
@@ -2208,7 +2208,7 @@ func (self *executor) op_callp() {
 				self.push(make_cell_num(float64(b[index])))
 			}
 		}
-	case "bytes__range":
+	case "builtin$bytes__range":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num
 		first_from_end := self.pop().bool
@@ -2243,10 +2243,10 @@ func (self *executor) op_callp() {
 				self.push(make_cell_bytes(b[first : last+1]))
 			}
 		}
-	case "bytes__size":
+	case "builtin$bytes__size":
 		b := self.pop().bytes
 		self.push(make_cell_num(float64(len(b))))
-	case "bytes__splice":
+	case "builtin$bytes__splice":
 		last_from_end := self.pop().bool
 		last := int(self.pop().num)
 		first_from_end := self.pop().bool
@@ -2260,21 +2260,21 @@ func (self *executor) op_callp() {
 			last += len(b) - 1
 		}
 		self.push(make_cell_bytes(append(b[:first], append(t, b[last+1:]...)...)))
-	case "bytes__store":
+	case "builtin$bytes__store":
 		index := int(self.pop().num)
 		r := self.pop().ref
 		b := r.load()
 		c := int(self.pop().num)
 		b.bytes[index] = byte(c)
 		r.store(b)
-	case "bytes__toArray":
+	case "builtin$bytes__toArray":
 		b := self.pop().bytes
 		a := make([]cell, len(b))
 		for i, x := range b {
 			a[i] = make_cell_num(float64(x))
 		}
 		self.push(make_cell_array(a))
-	case "bytes__toString":
+	case "builtin$bytes__toString":
 		b := self.pop().bytes
 		s := "HEXBYTES \""
 		for i, x := range b {
@@ -2298,7 +2298,7 @@ func (self *executor) op_callp() {
 			self.push(make_cell_bool(false))
 			self.push(make_cell_none())
 		}
-	case "dictionary__keys":
+	case "builtin$dictionary__keys":
 		d := self.pop().dict
 		i := 0
 		keys := make([]string, len(d))
@@ -2312,12 +2312,12 @@ func (self *executor) op_callp() {
 			ckeys[i] = make_cell_str(k)
 		}
 		self.push(make_cell_array(ckeys))
-	case "dictionary__remove":
+	case "builtin$dictionary__remove":
 		key := self.pop().str
 		r := self.pop().ref
 		d := r.load().dict
 		delete(d, key)
-	case "dictionary__toString__object":
+	case "builtin$dictionary__toString__object":
 		d := self.pop().dict
 		r := "{"
 		keys := []string{}
@@ -2335,7 +2335,7 @@ func (self *executor) op_callp() {
 		}
 		r += "}"
 		self.push(make_cell_str(r))
-	case "dictionary__toString__string":
+	case "builtin$dictionary__toString__string":
 		d := self.pop().dict
 		r := "{"
 		keys := []string{}
@@ -2353,9 +2353,6 @@ func (self *executor) op_callp() {
 		}
 		r += "}"
 		self.push(make_cell_str(r))
-	case "exceptiontype__toString":
-		et := self.pop().array
-		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v>", et[0].str, et[1].obj.toString(), et[2].num)))
 	case "file$_CONSTANT_Separator":
 		self.push(make_cell_str(string(os.PathSeparator)))
 	case "file$copy":
@@ -2631,7 +2628,7 @@ func (self *executor) op_callp() {
 	case "math$trunc":
 		x := self.pop().num
 		self.push(make_cell_num(math.Trunc(x)))
-	case "num":
+	case "global$num":
 		s := self.pop().str
 		n, err := strconv.ParseFloat(s, 64)
 		if err == nil {
@@ -2639,7 +2636,7 @@ func (self *executor) op_callp() {
 		} else {
 			self.raise_literal("PANIC", objectString{"num() argument not a number"})
 		}
-	case "object__invokeMethod":
+	case "builtin$object__invokeMethod":
 		args := self.pop().array
 		name := self.pop().str
 		o := self.pop().obj
@@ -2693,42 +2690,42 @@ func (self *executor) op_callp() {
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"object does not support method calls"})
 		}
-	case "object__isNull":
+	case "builtin$object__isNull":
 		o := self.pop().obj
 		if o == nil {
 			self.push(make_cell_bool(true))
 		} else {
 			self.push(make_cell_bool(false))
 		}
-	case "object__getBoolean":
+	case "builtin$object__getBoolean":
 		o := self.pop().obj
 		if b, err := o.getBoolean(); err == nil {
 			self.push(make_cell_bool(b))
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Boolean"})
 		}
-	case "object__getNumber":
+	case "builtin$object__getNumber":
 		o := self.pop().obj
 		if n, err := o.getNumber(); err == nil {
 			self.push(make_cell_num(n))
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Number"})
 		}
-	case "object__getString":
+	case "builtin$object__getString":
 		o := self.pop().obj
 		if s, err := o.getString(); err == nil {
 			self.push(make_cell_str(s))
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to String"})
 		}
-	case "object__getBytes":
+	case "builtin$object__getBytes":
 		o := self.pop().obj
 		if s, err := o.getBytes(); err == nil {
 			self.push(make_cell_bytes(s))
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Bytes"})
 		}
-	case "object__getArray":
+	case "builtin$object__getArray":
 		o := self.pop().obj
 		if a, err := o.getArray(); err == nil {
 			b := make([]cell, len(a))
@@ -2739,7 +2736,7 @@ func (self *executor) op_callp() {
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Array"})
 		}
-	case "object__getDictionary":
+	case "builtin$object__getDictionary":
 		o := self.pop().obj
 		if d, err := o.getDictionary(); err == nil {
 			b := make(map[string]cell)
@@ -2750,35 +2747,35 @@ func (self *executor) op_callp() {
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Dictionary"})
 		}
-	case "object__makeNull":
+	case "builtin$object__makeNull":
 		self.push(make_cell_obj(nil))
-	case "object__makeBoolean":
+	case "builtin$object__makeBoolean":
 		b := self.pop().bool
 		self.push(make_cell_obj(objectBoolean{b}))
-	case "object__makeNumber":
+	case "builtin$object__makeNumber":
 		n := self.pop().num
 		self.push(make_cell_obj(objectNumber{n}))
-	case "object__makeString":
+	case "builtin$object__makeString":
 		s := self.pop().str
 		self.push(make_cell_obj(objectString{s}))
-	case "object__makeBytes":
+	case "builtin$object__makeBytes":
 		b := self.pop().bytes
 		self.push(make_cell_obj(objectBytes{b}))
-	case "object__makeArray":
+	case "builtin$object__makeArray":
 		a := self.pop().array
 		b := make([]object, len(a))
 		for i, x := range a {
 			b[i] = x.obj
 		}
 		self.push(make_cell_obj(objectArray{b}))
-	case "object__makeDictionary":
+	case "builtin$object__makeDictionary":
 		d := self.pop().dict
 		b := make(map[string]object)
 		for k, x := range d {
 			b[k] = x.obj
 		}
 		self.push(make_cell_obj(objectDictionary{b}))
-	case "object__subscript":
+	case "builtin$object__subscript":
 		i := self.pop().obj
 		o := self.pop().obj
 		if o == nil {
@@ -2794,7 +2791,7 @@ func (self *executor) op_callp() {
 				self.raise_literal("ObjectSubscriptException", objectString{i.toString()})
 			}
 		}
-	case "object__toString":
+	case "builtin$object__toString":
 		o := self.pop().obj
 		if o != nil {
 			self.push(make_cell_str(o.toString()))
@@ -2834,10 +2831,10 @@ func (self *executor) op_callp() {
 		} else {
 			self.push(make_cell_num(0))
 		}
-	case "pointer__toString":
+	case "builtin$pointer__toString":
 		p := self.pop().ref.(referenceDirect).addr
 		self.push(make_cell_str(fmt.Sprintf("<p:%p>", p)))
-	case "print":
+	case "global$print":
 		x := self.pop()
 		if x.obj != nil {
 			fmt.Println(x.obj.toString())
@@ -2860,10 +2857,10 @@ func (self *executor) op_callp() {
 		self.push(make_cell_bool(self.module == self.modules[""]))
 	case "runtime$setRecursionLimit":
 		self.param_recursion_limit = int(self.pop().num)
-	case "str", "number__toString":
+	case "global$str", "builtin$number__toString":
 		n := self.pop().num
 		self.push(make_cell_str(fmt.Sprintf("%v", n)))
-	case "boolean__toString":
+	case "builtin$boolean__toString":
 		b := self.pop().bool
 		if b {
 			self.push(make_cell_str("TRUE"))
@@ -2933,17 +2930,17 @@ func (self *executor) op_callp() {
 	case "string$upper":
 		s := self.pop().str
 		self.push(make_cell_str(strings.ToUpper(s)))
-	case "string__append":
+	case "builtin$string__append":
 		t := self.pop().str
 		r := self.pop().ref
 		s := r.load()
 		s.str = s.str + t
 		r.store(s)
-	case "string__concat":
+	case "builtin$string__concat":
 		b := self.pop().str
 		a := self.pop().str
 		self.push(make_cell_str(a + b))
-	case "string__index":
+	case "builtin$string__index":
 		nindex := self.pop().num
 		s := self.pop().str
 		if nindex != math.Trunc(nindex) {
@@ -2958,10 +2955,10 @@ func (self *executor) op_callp() {
 				self.push(make_cell_str(s[index : index+1]))
 			}
 		}
-	case "string__length":
+	case "builtin$string__length":
 		s := self.pop().str
 		self.push(make_cell_num(float64(len(s))))
-	case "string__splice":
+	case "builtin$string__splice":
 		last_from_end := self.pop().bool
 		last := int(self.pop().num)
 		first_from_end := self.pop().bool
@@ -2989,7 +2986,7 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_str(s[:first] + padding + t + s[last+1:]))
 		}
-	case "string__substring":
+	case "builtin$string__substring":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num
 		first_from_end := self.pop().bool
@@ -3024,10 +3021,10 @@ func (self *executor) op_callp() {
 				self.push(make_cell_str(s[first : last+1]))
 			}
 		}
-	case "string__toBytes":
+	case "builtin$string__toBytes":
 		s := self.pop().str
 		self.push(make_cell_bytes([]byte(s)))
-	case "string__toString":
+	case "builtin$string__toString":
 		s := self.pop().str
 		self.push(make_cell_str(s))
 	case "sys$exit":
