@@ -177,7 +177,7 @@ void mmap_write(TExecutor *exec)
     if (o + data->length > f->len) {
         string_freeString(data);
         char buf[100];
-        snprintf(buf, sizeof(buf), "Amount of data to write exceeds mapped size %zd: %" PRIu64, f->len, data->length);
+        snprintf(buf, sizeof(buf), "Amount of data to write exceeds mapped size %zd: %zd, f->len, data->length);
         exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
