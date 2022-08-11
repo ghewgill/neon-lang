@@ -506,15 +506,6 @@ void bytes__store(Number b, std::vector<unsigned char> *s, Number index)
     s->at(i) = bb;
 }
 
-utf8string bytes__decodeToString(const std::vector<unsigned char> &self)
-{
-    auto inv = utf8::find_invalid(self.begin(), self.end());
-    if (inv != self.end()) {
-        throw RtlException(ne_global::Exception_Utf8DecodingException, utf8string(std::to_string(std::distance(self.begin(), inv))));
-    }
-    return utf8string(std::string(self.begin(), self.end()));
-}
-
 std::vector<Number> bytes__toArray(const std::vector<unsigned char> &self)
 {
     std::vector<Number> r;

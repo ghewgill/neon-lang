@@ -544,7 +544,7 @@ Ne_Exception *Ne_builtin_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_
     return NULL;
 }
 
-Ne_Exception *Ne_builtin_bytes__decodeToString(Ne_String *r, const Ne_Bytes *bytes)
+Ne_Exception *Ne_global_Bytes__decodeToString(Ne_String *r, const Ne_Bytes *bytes)
 {
     r->ptr = malloc(bytes->len);
     memcpy(r->ptr, bytes->data, bytes->len);

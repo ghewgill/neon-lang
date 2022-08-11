@@ -31,4 +31,8 @@ public class Global {
         return x.toString();
     }
 
+    public static java.lang.String Bytes__decodeToString(byte[] self) {
+        return new java.lang.String(self, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
 }

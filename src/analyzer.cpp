@@ -6998,6 +6998,7 @@ const ast::Program *Analyzer::analyze()
             }
         }
     }
+    rtl_compile_init_methods(global_scope);
     checked_choice_variables.push({});
 
     //init_builtin_constants(global_scope);

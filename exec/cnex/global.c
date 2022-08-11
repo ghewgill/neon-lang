@@ -345,7 +345,7 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("builtin$bytes__append",             bytes__append),
     PDFUNC("builtin$bytes__concat",             bytes__concat),
-    PDFUNC("builtin$bytes__decodeToString",     bytes__decodeToString),
+    PDFUNC("global$Bytes__decodeToString",      bytes__decodeToString),
     PDFUNC("builtin$bytes__index",              bytes__index),
     PDFUNC("builtin$bytes__range",              bytes__range),
     PDFUNC("builtin$bytes__size",               bytes__size),

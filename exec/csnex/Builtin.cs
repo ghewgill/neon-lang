@@ -302,13 +302,6 @@ namespace csnex
             Exec.stack.Push(Cell.CreateBytesCell(r));
         }
 
-        public void bytes__decodeToString()
-        {
-            Cell s = Exec.stack.Pop();
-
-            Exec.stack.Push(Cell.CreateStringCell(new string(System.Text.Encoding.UTF8.GetChars(s.Bytes, 0, s.Bytes.Length))));
-        }
-
         public void bytes__index()
         {
             Number index = Exec.stack.Pop().Number;

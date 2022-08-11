@@ -59,5 +59,13 @@ namespace csnex
             Exec.stack.Push(Cell.CreateStringCell(sbuf));
         }
 #endregion
+#region Bytes Functions
+        public void Bytes__decodeToString()
+        {
+            Cell s = Exec.stack.Pop();
+
+            Exec.stack.Push(Cell.CreateStringCell(new string(System.Text.Encoding.UTF8.GetChars(s.Bytes, 0, s.Bytes.Length))));
+        }
+#endregion
     }
 }

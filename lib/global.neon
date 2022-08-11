@@ -135,3 +135,5 @@ DECLARE NATIVE FUNCTION print(x: Object)
  *  Convert a number to a decimal string.
  */
 DECLARE NATIVE FUNCTION str(x: Number): String
+
+DECLARE NATIVE FUNCTION Bytes.decodeToString(self: Bytes): String

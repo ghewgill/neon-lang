@@ -1148,7 +1148,7 @@ FUNCTION f_callp(INOUT self: Executor)
             LET b: Bytes := self.pop()->y
             LET a: Bytes := self.pop()->y
             self.stack.append(makeValueBytes(a & b))
-        WHEN "builtin$bytes__decodeToString" DO
+        WHEN "global$Bytes__decodeToString" DO
             LET y: Bytes := self.pop()->y
             self.stack.append(makeValueString(y.decodeToString()))
         WHEN "builtin$bytes__index" DO

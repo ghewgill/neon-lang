@@ -270,11 +270,11 @@ for fn in sys.argv[1:]:
                         AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)
                         AstFromNeon["OUT "+name] = ("TYPE_GENERIC", OUT)
                 elif a[:3] == ["DECLARE", "NATIVE", "FUNCTION"]:
-                    m = re.search(r"(\w+)\((.*?)\)(:\s*(\S+))?\s*$", s)
+                    m = re.search(r"((\w+)\.)?(\w+)\((.*?)\)(:\s*(\S+))?\s*$", s)
                     assert m is not None
-                    name = prefix + m.group(1)
-                    paramstr = m.group(2)
-                    rtype = m.group(4)
+                    name = prefix + (m.group(2) + "__" if m.group(1) else "") + m.group(3)
+                    paramstr = m.group(4)
+                    rtype = m.group(6)
                     params, variadic = parse_params(paramstr)
                     functions[name] = [
                         name,

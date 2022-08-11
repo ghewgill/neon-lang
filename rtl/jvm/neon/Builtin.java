@@ -216,10 +216,6 @@ public class Builtin {
         return r;
     }
 
-    public static java.lang.String bytes__decodeToString(byte[] self) {
-        return new java.lang.String(self, java.nio.charset.StandardCharsets.UTF_8);
-    }
-
     public static neon.type.Number bytes__size(byte[] self) {
         return new neon.type.Number(self.length);
     }

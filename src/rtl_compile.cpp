@@ -23,7 +23,31 @@ void rtl_compile_init(ast::Scope *scope)
             auto &p = f.params[i];
             params.push_back(new ast::ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, nullptr), nullptr));
         }
-        scope->addName(Token(IDENTIFIER, f.name), f.name, new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, nullptr), params, f.variadic)));
+        ast::PredefinedFunction *func = new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, nullptr), params, f.variadic));
+        std::string fname = f.name;
+        if (not (fname.substr(0, 7) == "global$" && fname.find("__") != std::string::npos)) {
+            scope->addName(Token(IDENTIFIER, f.name), f.name, func);
+        }
+    }
+}
+
+void rtl_compile_init_methods(ast::Scope *scope)
+{
+    for (auto f: BuiltinFunctions) {
+        std::vector<const ast::ParameterType *> params;
+        for (int i = 0; i < f.count; i++) {
+            auto &p = f.params[i];
+            params.push_back(new ast::ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, nullptr), nullptr));
+        }
+        ast::PredefinedFunction *func = new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, nullptr), params, f.variadic));
+        std::string fname = f.name;
+        if (fname.substr(0, 7) == "global$" && fname.find("__") != std::string::npos) {
+            auto under = fname.find("__");
+            auto classname = fname.substr(7, under-7);
+            auto *name = scope->lookupName(classname);
+            auto *type = dynamic_cast<ast::Type *>(name);
+            type->methods[fname.substr(under+2)] = func;
+        }
     }
 }
 

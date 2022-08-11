@@ -2190,7 +2190,7 @@ func (self *executor) op_callp() {
 			r[len(a)+i] = b[i]
 		}
 		self.push(make_cell_bytes(r))
-	case "builtin$bytes__decodeToString":
+	case "global$Bytes__decodeToString":
 		b := self.pop().bytes
 		self.push(make_cell_str(string(b)))
 	case "builtin$bytes__index":

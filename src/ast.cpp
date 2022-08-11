@@ -1378,11 +1378,6 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
-        TYPE_BYTES->methods["decodeToString"] = new PredefinedFunction("builtin$bytes__decodeToString", new TypeFunction(TYPE_STRING, params, false));
-    }
-    {
-        std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["toArray"] = new PredefinedFunction("builtin$bytes__toArray", new TypeFunction(TYPE_ARRAY_NUMBER, params, false));
     }
     {
