@@ -1492,7 +1492,7 @@ class Executor {
     private void bytes__decodeToString()
     {
         byte[] b = stack.removeFirst().getBytes();
-        stack.addFirst(new Cell(new String(b)));
+        stack.addFirst(new Cell(new Cell[]{new Cell(BigDecimal.ZERO), new Cell(new String(b))}));
     }
 
     private void bytes__index()

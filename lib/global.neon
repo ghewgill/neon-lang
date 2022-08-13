@@ -4,6 +4,7 @@
  */
 
 EXPORT ExceptionType
+EXPORT DecodeResult
 
 EXPORT num
 EXPORT print
@@ -14,7 +15,6 @@ EXPORT DynamicConversionException
 EXPORT InterruptedException
 EXPORT ObjectSubscriptException
 EXPORT SqlException
-EXPORT Utf8DecodingException
 
 /*  Type: Boolean
  *
@@ -112,12 +112,6 @@ EXCEPTION ObjectSubscriptException
  */
 EXCEPTION SqlException
 
-/*  Exception: Utf8DecodingException
- *
- *  Invalid UTF-8 encoding found in Bytes.decodeToString().
- */
-EXCEPTION Utf8DecodingException
-
 /*  Function: num
  *
  *  Convert a decimal number as a string to a number.
@@ -136,4 +130,22 @@ DECLARE NATIVE FUNCTION print(x: Object)
  */
 DECLARE NATIVE FUNCTION str(x: Number): String
 
-DECLARE NATIVE FUNCTION Bytes.decodeToString(self: Bytes): String
+TYPE DecodeError IS RECORD
+    offset: Number
+END RECORD
+
+TYPE DecodeResult IS CHOICE
+    string: String
+    error: DecodeError
+END CHOICE
+
+DECLARE NATIVE FUNCTION Bytes.decodeToString(self: Bytes): DecodeResult
+
+FUNCTION DecodeResult.expectString(self: DecodeResult): String
+    CASE self
+        WHEN ISA DecodeResult.string DO
+            RETURN self.string
+        WHEN ISA DecodeResult.error DO
+            PANIC "UTF-8 decoding error at offset: " & str(self.error.offset)
+    END CASE
+END FUNCTION

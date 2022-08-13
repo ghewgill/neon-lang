@@ -197,7 +197,7 @@ FUNCTION unpackName(data: Bytes, INOUT i: Number): String
             r.append(".")
         END IF
         IF binary.and32(len, 0xC0) = 0 THEN
-            r.append(data[i TO i+len-1].decodeToString())
+            r.append(data[i TO i+len-1].decodeToString().expectString())
             i := i + len
         ELSE
             DEBUG i
@@ -242,7 +242,7 @@ END FUNCTION
 FUNCTION unpackText(data: Bytes, INOUT i: Number): String
     LET len: Number := data[i]
     INC i
-    LET r: String := data[i TO i+len-1].decodeToString()
+    LET r: String := data[i TO i+len-1].decodeToString().expectString()
     i := i + len
     RETURN r
 END FUNCTION

@@ -64,7 +64,7 @@ namespace csnex
         {
             Cell s = Exec.stack.Pop();
 
-            Exec.stack.Push(Cell.CreateStringCell(new string(System.Text.Encoding.UTF8.GetChars(s.Bytes, 0, s.Bytes.Length))));
+            Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {Cell.CreateNumberCell(new Number(0)), Cell.CreateStringCell(new string(System.Text.Encoding.UTF8.GetChars(s.Bytes, 0, s.Bytes.Length)))}));
         }
 #endregion
     }

@@ -1889,7 +1889,11 @@ def neon_builtin_bytes__concat(self):
 
 def neon_global_Bytes__decodeToString(self):
     b = self.stack.pop()
-    self.stack.append(b.decode())
+    try:
+        s = b.decode()
+        self.stack.append([Value(0), Value(s)])
+    except UnicodeDecodeError as x:
+        self.stack.append([Value(1), Value([Value(x.start)])])
 
 def neon_builtin_bytes__index(self):
     index = self.stack.pop()

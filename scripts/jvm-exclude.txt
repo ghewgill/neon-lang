@@ -11,6 +11,7 @@ assignment.neon            # choice
 base-test.neon             # exception
 binary-test.neon           # verifier
 bytes.neon                 # bytes.append
+bytes-embed.neon           # choice return
 bytes-index.neon           # index
 bytes-splice.neon          # exception
 cformat-test.neon          # object
@@ -97,6 +98,7 @@ sql-execute.neon           # module sqlite
 sql-query.neon             # module sqlite
 sql-whenever.neon          # module sqlite
 sqlite-test.neon           # verifier
+string-bytes.neon          # choice return
 string-in.neon             # verifier
 string-index.neon          # index
 string-splice.neon         # exception

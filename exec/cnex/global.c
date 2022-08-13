@@ -11,6 +11,7 @@
 #include "array.h"
 #include "cell.h"
 #include "dictionary.h"
+#include "enums.h"
 #include "exec.h"
 #include "number.h"
 #include "object.h"
@@ -889,23 +890,52 @@ void bytes__concat(TExecutor *exec)
     push(exec->stack, r);
 }
 
+// These two functions should be removed from here once they're available
+// in cell.c (from branch lib-choice).
+static Cell *cell_makeChoice_string(int choice, TString *str)
+{
+    Cell *r = cell_createArrayCell(2);
+    Cell *e = cell_arrayIndexForWrite(r, 0);
+    e->type = cNumber;
+    e->number = number_from_uint32(choice);
+    e = cell_arrayIndexForWrite(r, 1);
+    e->type = cString;
+    e->string = str;
+    return r;
+}
+
+static Cell *cell_makeChoice_cell(int choice, Cell *value)
+{
+    Cell *r = cell_createArrayCell(2);
+    Cell *e = cell_arrayIndexForWrite(r, 0);
+    e->type = cNumber;
+    e->number = number_from_uint32(choice);
+    e = cell_arrayIndexForWrite(r, 1);
+    // TODO: This should really be done with a "move" operation,
+    // instead of a copy and free.
+    cell_copyCell(e, value);
+    cell_freeCell(value);
+    return r;
+}
+
 void bytes__decodeToString(TExecutor *exec)
 {
     TString *s = top(exec->stack)->string;
 
     size_t err_idx;
     if (!string_isValidUtf8(s, &err_idx)) {
-        char offset[32];
-        snprintf(offset, sizeof(offset), "%zu", err_idx);
+        Cell *e = cell_createArrayCell(1);
+        Cell *o = cell_arrayIndexForWrite(e, 0);
+        o->type = cNumber;
+        o->number = number_from_uint32(err_idx);
         pop(exec->stack);
-        exec_rtl_raiseException(exec, "Utf8DecodingException", offset);
+        push(exec->stack, cell_makeChoice_cell(CHOICE_DecodeResult_error, e));
         return;
     }
 
-    Cell *r = cell_fromCString(string_ensureNullTerminated(s));
-
+    TString *t = string_fromString(s);
     pop(exec->stack);
-    push(exec->stack, r);
+    push(exec->stack, cell_makeChoice_string(CHOICE_DecodeResult_string, t));
 }
 
 void bytes__index(TExecutor *exec)
