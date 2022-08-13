@@ -2192,7 +2192,7 @@ func (self *executor) op_callp() {
 		self.push(make_cell_bytes(r))
 	case "global$Bytes__decodeToString":
 		b := self.pop().bytes
-		self.push(make_cell_str(string(b)))
+		self.push(make_cell_array([]cell{make_cell_num(0), make_cell_str(string(b))}))
 	case "builtin$bytes__index":
 		nindex := self.pop().num
 		b := self.pop().bytes

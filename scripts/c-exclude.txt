@@ -12,6 +12,7 @@ assignment.neon                 # pointer
 base-test.neon                  # memory leak
 bigint.neon                     # bigint
 binary-test.neon                # module binary
+bytes-embed.neon                # module type reference
 bytes-index.neon                # exception info
 bytes-splice.neon               # exception info
 bytes.neon                      # exception info

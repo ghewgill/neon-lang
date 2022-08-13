@@ -133,7 +133,7 @@ FUNCTION nextLine(buf: Bytes, INOUT i: Number): String
         INC i
     END WHILE
     INC i
-    RETURN buf[start TO lastchar].decodeToString()
+    RETURN buf[start TO lastchar].decodeToString().expectString()
 END FUNCTION
 
 BEGIN MAIN

@@ -74,7 +74,11 @@ FUNCTION HttpServer.handle_incoming(INOUT self: HttpServer, INOUT client: Client
     IF NOT client.socket.recv(1000, OUT buf) THEN
         RETURN TRUE
     END IF
-    client.header.append(buf.decodeToString())
+    LET r := buf.decodeToString()
+    CHECK r ISA DecodeResult.string ELSE
+        RETURN FALSE
+    END CHECK
+    client.header.append(r.string)
     IF client.header[LAST-3 TO LAST] = "\r\n\r\n" THEN
         self.handle_request(INOUT client)
         RETURN TRUE

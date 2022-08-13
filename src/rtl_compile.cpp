@@ -21,9 +21,9 @@ void rtl_compile_init(ast::Scope *scope)
         std::vector<const ast::ParameterType *> params;
         for (int i = 0; i < f.count; i++) {
             auto &p = f.params[i];
-            params.push_back(new ast::ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, nullptr), nullptr));
+            params.push_back(new ast::ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, scope), nullptr));
         }
-        ast::PredefinedFunction *func = new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, nullptr), params, f.variadic));
+        ast::PredefinedFunction *func = new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, scope), params, f.variadic));
         std::string fname = f.name;
         if (not (fname.substr(0, 7) == "global$" && fname.find("__") != std::string::npos)) {
             scope->addName(Token(IDENTIFIER, f.name), f.name, func);
@@ -37,9 +37,9 @@ void rtl_compile_init_methods(ast::Scope *scope)
         std::vector<const ast::ParameterType *> params;
         for (int i = 0; i < f.count; i++) {
             auto &p = f.params[i];
-            params.push_back(new ast::ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, nullptr), nullptr));
+            params.push_back(new ast::ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, scope), nullptr));
         }
-        ast::PredefinedFunction *func = new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, nullptr), params, f.variadic));
+        ast::PredefinedFunction *func = new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, scope), params, f.variadic));
         std::string fname = f.name;
         if (fname.substr(0, 7) == "global$" && fname.find("__") != std::string::npos) {
             auto under = fname.find("__");

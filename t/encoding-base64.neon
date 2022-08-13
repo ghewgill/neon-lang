@@ -19,19 +19,19 @@ TESTCASE encoding.base64Encode(stringToBytes("foobar")) = "Zm9vYmFy"
 TESTCASE encoding.base64Encode(stringToBytes("foobar\r\nfoobar")) = "Zm9vYmFyDQpmb29iYXI="
 
 -- Then perform decode tests based on RFC samples...
-TESTCASE encoding.base64Decode("").decodeToString() = ""
-TESTCASE encoding.base64Decode("Zg==").decodeToString() = "f"
-TESTCASE encoding.base64Decode("Zm8=").decodeToString() = "fo"
-TESTCASE encoding.base64Decode("Zm9v").decodeToString() = "foo"
-TESTCASE encoding.base64Decode("Zm9vYg==").decodeToString() = "foob"
-TESTCASE encoding.base64Decode("Zm9vYmE=").decodeToString() = "fooba"
-TESTCASE encoding.base64Decode("Zm9vYmFy").decodeToString() = "foobar"
+TESTCASE encoding.base64Decode("").decodeToString().expectString() = ""
+TESTCASE encoding.base64Decode("Zg==").decodeToString().expectString() = "f"
+TESTCASE encoding.base64Decode("Zm8=").decodeToString().expectString() = "fo"
+TESTCASE encoding.base64Decode("Zm9v").decodeToString().expectString() = "foo"
+TESTCASE encoding.base64Decode("Zm9vYg==").decodeToString().expectString() = "foob"
+TESTCASE encoding.base64Decode("Zm9vYmE=").decodeToString().expectString() = "fooba"
+TESTCASE encoding.base64Decode("Zm9vYmFy").decodeToString().expectString() = "foobar"
 
 -- Perform minimal "fuzz" tests...
-TESTCASE encoding.base64Decode("Zm9vYmFy\r   \nZm9vYmFy").decodeToString() = "foobarfoobar"
-TESTCASE encoding.base64Decode("Zm9vYmFyDQ  pmb29iYXI=").decodeToString() = "foobar\r\nfoobar"
-TESTCASE encoding.base64Decode("!@#$#^&*)(_+_)==").decodeToString() = ""
-TESTCASE encoding.base64Decode(encoding.base64Encode(stringToBytes("foobar"))).decodeToString() = "foobar"
+TESTCASE encoding.base64Decode("Zm9vYmFy\r   \nZm9vYmFy").decodeToString().expectString() = "foobarfoobar"
+TESTCASE encoding.base64Decode("Zm9vYmFyDQ  pmb29iYXI=").decodeToString().expectString() = "foobar\r\nfoobar"
+TESTCASE encoding.base64Decode("!@#$#^&*)(_+_)==").decodeToString().expectString() = ""
+TESTCASE encoding.base64Decode(encoding.base64Encode(stringToBytes("foobar"))).decodeToString().expectString() = "foobar"
 
 -- Most thorough tests of all, test every bit, at every position across all 3 base64 Bytes.
 t(HEXBYTES "00 00 00")

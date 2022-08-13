@@ -733,7 +733,7 @@ class DotExpression:
             if self.field == "toBytes": return lambda env, self: bytes([x for x in obj.encode("utf-8")])
             if self.field == "toString": return lambda env, self: obj
         elif isinstance(obj, bytes):
-            if self.field == "decodeToString": return lambda env, self: bytearray(obj.a).decode("utf-8")
+            if self.field == "decodeToString": return lambda env, self: neon_global_decodeToString(env, obj.a)
             if self.field == "size": return lambda env, self: len(obj.a)
             if self.field == "toArray": return lambda env, self: obj.a
             if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj.a))
@@ -2754,8 +2754,16 @@ class ClassChoice(Class):
                 return "<{}:{}>".format(x._choice, value)
             else:
                 return "<{}>".format(x._choice)
+        def expectString(self, env, x):
+            # This is a huge hack to support DecodeResult.expectString, because right now methods
+            # declared on choice classes aren't available inside instances like this.
+            if x._choice == "string":
+                return getattr(x, x._choice)
+            else:
+                raise NeonException("PANIC", "not a string")
     def __init__(self, choices):
         self.choices = choices
+        self.methods = {}
     def default(self, env):
         r = ClassChoice.Instance(self.choices[0][0], self.choices[0][1] and self.choices[0][1].resolve(env).default(env))
         return r
@@ -2961,6 +2969,12 @@ def neon_format(env, s, fmt):
         return format(int(s), fmt)
     else:
         return format(s, fmt)
+
+def neon_global_decodeToString(env, x):
+    try:
+        return ClassChoice.Instance("string", bytearray(x).decode("utf-8"))
+    except UnicodeDecodeError as x:
+        return ClassChoice.Instance("error", [x.start])
 
 def neon_global_num(env, x):
     if not any(c.isdigit() for c in x):

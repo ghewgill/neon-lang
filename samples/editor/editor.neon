@@ -246,7 +246,7 @@ END FUNCTION
 
 FUNCTION Editor.load(INOUT self: Editor, filename: String)
     self.filename := filename
-    self.buffer.load(file.readBytes(filename).decodeToString())
+    self.buffer.load(file.readBytes(filename).decodeToString().expectString())
 END FUNCTION
 
 FUNCTION Editor.refresh(self: Editor)

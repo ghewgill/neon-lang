@@ -803,19 +803,21 @@ END FUNCTION
 BEGIN MAIN
     FOREACH fn IN sys.args[1 TO LAST] DO
         LET bytes: Bytes := file.readBytes(fn)
-        TRY
-            LET tokens: Array<Token> := tokenize(fn, bytes.decodeToString())
-            FOREACH t IN tokens DO
-                print("\(t)")
-            END FOREACH
-        TRAP Utf8DecodingException AS x DO
-            LET offset: Number := num(x.info)
-            LET source: String := bytes[FIRST TO offset-1].decodeToString()
-            LET line: Number := 1 + count(source, "\n")
-            LET bol: Number := findLast(source, "\n") + 1
-            LET column: Number := 1 + offset - bol
-            LET t: Token := Token(line WITH line, column WITH column)
-            error(1000, t, "invalid UTF-8 data in source")
-        END TRY
+        LET r: DecodeResult := bytes.decodeToString()
+        CASE r
+            WHEN ISA DecodeResult.string DO
+                LET tokens: Array<Token> := tokenize(fn, r.string)
+                FOREACH t IN tokens DO
+                    print("\(t)")
+                END FOREACH
+            WHEN ISA DecodeResult.error DO
+                LET offset: Number := r.error.offset
+                LET source: String := bytes[FIRST TO offset-1].decodeToString().expectString()
+                LET line: Number := 1 + count(source, "\n")
+                LET bol: Number := findLast(source, "\n") + 1
+                LET column: Number := 1 + offset - bol
+                LET t: Token := Token(line WITH line, column WITH column)
+                error(1000, t, "invalid UTF-8 data in source")
+        END CASE
     END FOREACH
 END MAIN

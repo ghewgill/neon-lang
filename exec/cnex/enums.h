@@ -17,4 +17,7 @@
 #define ENUM_FileType_directory     1
 #define ENUM_FileType_special       2
 
+#define CHOICE_DecodeResult_string  0
+#define CHOICE_DecodeResult_error   1
+
 #endif

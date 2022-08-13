@@ -5,8 +5,8 @@ VAR out, err: Bytes
 
 TESTCASE process.call("bin/neonc", OUT out, OUT err) = 1
 TESTCASE out = HEXBYTES ""
-TESTCASE string.splitLines(err.decodeToString())[0] = "Usage: bin/neonc [options] filename.neon ..."
+TESTCASE string.splitLines(err.decodeToString().expectString())[0] = "Usage: bin/neonc [options] filename.neon ..."
 
 TESTCASE process.call("bin/neon t/hello.neon", OUT out, OUT err) = 0
-TESTCASE string.splitLines(out.decodeToString()) = ["hello world"]
+TESTCASE string.splitLines(out.decodeToString().expectString()) = ["hello world"]
 TESTCASE err = HEXBYTES ""
