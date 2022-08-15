@@ -2677,23 +2677,7 @@ class ClassString(Class):
 
 class ClassBytes(Class):
     def default(self, env):
-        class Bytes:
-            def __init__(self):
-                self.a = []
-            def __eq__(self, rhs):
-                return self.a == rhs.a
-            def fromArray(self, env, a):
-                self.a = list(a)
-            def size(self, env):
-                return len(self.a)
-            def toArray(self, env):
-                return list(self.a)
-            def decodeToString(self, env, obj):
-                if isinstance(self.a, list):
-                    # Convert bytes to string.
-                    self.a = bytearray(self.a)
-                return self.a.decode("utf-8")
-        return Bytes()
+        return bytes([])
 
 class ClassObject(Class):
     def default(self, env):
@@ -3050,9 +3034,7 @@ def neon_file_mkdir(env, path):
 
 def neon_file_readBytes(env, fn):
     with open(fn, "rb") as f:
-        r = ClassBytes().default(env)
-        r.fromArray(env, [x for x in f.read()])
-        return r
+        return bytes(f.read())
 
 def neon_file_readLines(env, fn):
     with codecs.open(fn, "r", encoding="utf-8") as f:
@@ -3092,9 +3074,7 @@ def neon_io_open(env, fn, mode):
         raise NeonException(["IoException", "Open"], "open error")
 
 def neon_io_readBytes(env, f, count):
-    r = ClassBytes().default(env)
-    r.fromArray(env, bytearray(f.read(count)))
-    return r
+    return bytes(f.read(count))
 
 def neon_io_readLine(env, f, r):
     r = f.readline()
