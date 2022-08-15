@@ -94,7 +94,7 @@ class Executor {
         predefined.put("builtin$string__index", this::string__index);
         predefined.put("builtin$string__length", this::string__length);
         predefined.put("builtin$string__substring", this::string__substring);
-        predefined.put("builtin$string__toBytes", this::string__toBytes);
+        predefined.put("builtin$string__encodeUTF8", this::string__encodeUTF8);
         predefined.put("builtin$string__toString", this::string__toString);
         predefined.put("math$abs", this::math$abs);
         predefined.put("math$atan", this::math$atan);
@@ -1931,7 +1931,7 @@ class Executor {
         stack.addFirst(new Cell(s.substring(first, last+1)));
     }
 
-    private void string__toBytes()
+    private void string__encodeUTF8()
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(s.getBytes()));

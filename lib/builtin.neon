@@ -35,7 +35,7 @@ DECLARE NATIVE FUNCTION string__index(s: String, index: Number): String
 DECLARE NATIVE FUNCTION string__length(self: String): Number
 DECLARE NATIVE FUNCTION string__splice(t: String, s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
 DECLARE NATIVE FUNCTION string__substring(s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
-DECLARE NATIVE FUNCTION string__toBytes(self: String): Bytes
+DECLARE NATIVE FUNCTION string__encodeUTF8(self: String): Bytes
 DECLARE NATIVE FUNCTION string__toString(self: String): String
 DECLARE NATIVE FUNCTION bytes__append(INOUT self: Bytes, t: Bytes)
 DECLARE NATIVE FUNCTION bytes__concat(a: Bytes, b: Bytes): Bytes

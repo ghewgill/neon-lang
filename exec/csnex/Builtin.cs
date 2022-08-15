@@ -831,7 +831,7 @@ namespace csnex
             Exec.stack.Push(Cell.CreateStringCell(sub));
         }
 
-        public void string__toBytes()
+        public void string__encodeUTF8()
         {
             string s = Exec.stack.Pop().String;
             byte[] r = System.Text.Encoding.UTF8.GetBytes(s);

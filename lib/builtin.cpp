@@ -380,7 +380,7 @@ utf8string string__substring(const utf8string &s, Number first, bool first_from_
     return utf8string(s.substr(start, end-start));
 }
 
-std::vector<unsigned char> string__toBytes(const utf8string &self)
+std::vector<unsigned char> string__encodeUTF8(const utf8string &self)
 {
     return std::vector<unsigned char>(self.data(), self.data()+self.size());
 }

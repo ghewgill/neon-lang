@@ -1,7 +1,7 @@
 IMPORT encoding
 
 FUNCTION stringToBytes(s: String): Bytes
-    RETURN s.toBytes()
+    RETURN s.encodeUTF8()
 END FUNCTION
 
 FUNCTION t(b: Bytes)

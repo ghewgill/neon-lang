@@ -11,7 +11,7 @@ LOOP
         IF server IN read THEN
             LET s: net.Socket := server.accept()
             LET ts: String := datetime.now().toString() & "\r\n"
-            s.send(ts.toBytes())
+            s.send(ts.encodeUTF8())
             s.close()
         END IF
     END IF

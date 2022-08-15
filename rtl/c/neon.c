@@ -1274,7 +1274,7 @@ Ne_Exception *Ne_builtin_string__length(Ne_Number *result, const Ne_String *str)
     return NULL;
 }
 
-Ne_Exception *Ne_builtin_string__toBytes(Ne_Bytes *result, const Ne_String *str)
+Ne_Exception *Ne_builtin_string__encodeUTF8(Ne_Bytes *result, const Ne_String *str)
 {
     result->data = malloc(str->len);
     memcpy(result->data, str->ptr, str->len);
