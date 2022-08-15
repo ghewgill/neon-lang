@@ -574,7 +574,7 @@ class InterpolatedStringExpression:
             x = e.eval(env)
             s = (x if isinstance(x, str)
                   else ("TRUE" if x else "FALSE") if isinstance(x, bool)
-                  else neon_str(env, x) if isinstance(x, (int, float))
+                  else neon_global_str(env, x) if isinstance(x, (int, float))
                   else "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(b) for b in x.a)) if isinstance(x, bytes)
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e) if e is not None else "null") for e in x)) if isinstance(x, list)
                   else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, str) else str(v) if v is not None else "null")) for k, v in sorted(x.items())))) if isinstance(x, dict)
@@ -2901,9 +2901,9 @@ def run(program):
     program.env.declare("String", Class(), ClassString())
     program.env.declare("Bytes", Class(), ClassBytes())
     program.env.declare("Object", Class(), ClassObject())
-    program.env.declare("num", None, neon_num)
-    program.env.declare("print", None, neon_print)
-    program.env.declare("str", None, neon_str)
+    g = import_module("global", False)
+    for name, decl in g.env.names.items():
+        program.env.names[name] = decl
     program.run(program.env)
 
 def eval_cond(left, cond, right):
@@ -2962,7 +2962,7 @@ def neon_format(env, s, fmt):
     else:
         return format(s, fmt)
 
-def neon_num(env, x):
+def neon_global_num(env, x):
     if not any(c.isdigit() for c in x):
         raise NeonException("PANIC", "num() argument not a number")
     try:
@@ -2970,12 +2970,12 @@ def neon_num(env, x):
     except ValueError:
         raise NeonException("PANIC", "num() argument not a number")
 
-def neon_print(env, x):
+def neon_global_print(env, x):
     if isinstance(x, list):
         x = "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in x))
     print(x)
 
-def neon_str(env, x):
+def neon_global_str(env, x):
     r = str(x)
     if isinstance(x, float):
         # Format with limited precision to avoid roundoff.
