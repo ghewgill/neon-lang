@@ -115,7 +115,7 @@ BEGIN MAIN
     TESTCASE os.system("bin/neonc -q t/opcode-coverage.neon") = 0
     TESTCASE process.call("bin/neondis t/opcode-coverage.neonx", OUT disassemblyBytes, OUT _) = 0
 
-    LET disassemblyStr: String := disassemblyBytes.decodeToString().expectString()
+    LET disassemblyStr: String := disassemblyBytes.decodeUTF8().expectString()
     LET disassembly: Array<String> := string.split(disassemblyStr, (IF "\r\n" IN disassemblyStr THEN "\r\n" ELSE "\n"))
 
     LET opcodes: Array<String> := extractOpcodes()

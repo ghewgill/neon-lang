@@ -33,7 +33,7 @@ void print(const std::shared_ptr<Object> &x)
     std::cout << x->toString().str() << "\n";
 }
 
-Cell Bytes__decodeToString(const std::vector<unsigned char> &self)
+Cell Bytes__decodeUTF8(const std::vector<unsigned char> &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {

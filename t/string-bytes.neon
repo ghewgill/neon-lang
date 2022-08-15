@@ -5,10 +5,10 @@ LET b: Bytes := s.toBytes()
 print(b.toArray().toString())
 --= [228, 189, 160, 229, 165, 189]
 
-LET t: String := b.decodeToString().expectString()
+LET t: String := b.decodeUTF8().expectString()
 print("\(string.toCodePoint(t[0]):x) \(string.toCodePoint(t[1]):x)")
 --= 4f60 597d
 
-TESTCASE HEXBYTES "41 42 43".decodeToString() ISA DecodeResult.string
-TESTCASE HEXBYTES "41 42 43".decodeToString().expectString() = "ABC"
-TESTCASE HEXBYTES "41 42 43 81 82".decodeToString() ISA DecodeResult.error
+TESTCASE HEXBYTES "41 42 43".decodeUTF8() ISA DecodeResult.string
+TESTCASE HEXBYTES "41 42 43".decodeUTF8().expectString() = "ABC"
+TESTCASE HEXBYTES "41 42 43 81 82".decodeUTF8() ISA DecodeResult.error

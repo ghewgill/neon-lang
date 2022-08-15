@@ -10,7 +10,7 @@ TESTCASE io.open("nonexistent.file", io.Mode.read) EXPECT io.IoException.Open
 
 VAR f: io.File := io.open("LICENSE.txt", io.Mode.read)
 io.seek(f, 4, io.SeekBase.absolute)
-print(io.readBytes(f, 5).decodeToString().expectString())
+print(io.readBytes(f, 5).decodeUTF8().expectString())
 --= MIT L
 print(str(io.tell(f)))
 --= 9

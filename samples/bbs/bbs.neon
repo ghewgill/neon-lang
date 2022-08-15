@@ -40,7 +40,7 @@ FUNCTION Client.handleInput(INOUT self: Client, buf: Bytes)
     LET a: Array<Number> := self.buf.toArray()
     FOREACH b IN a INDEX i DO
         IF b = 10 THEN
-            LET r: String := a[FIRST TO i-1].toBytes().decodeToString().expectString()
+            LET r: String := a[FIRST TO i-1].toBytes().decodeUTF8().expectString()
             self.buf := a[i+1 TO LAST].toBytes()
             LET h: ResponseHandler := self.handler
             self.handler := NOWHERE

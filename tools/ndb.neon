@@ -9,12 +9,12 @@ IMPORT time
 CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): Object
-    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString().expectString()
+    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeUTF8().expectString()
     RETURN json.decode(data)
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): Object
-    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString().expectString()
+    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeUTF8().expectString()
     RETURN json.decode(data)
 END FUNCTION
 

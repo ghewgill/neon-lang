@@ -1887,7 +1887,7 @@ def neon_builtin_bytes__concat(self):
     a = self.stack.pop()
     self.stack.append(a + b)
 
-def neon_global_Bytes__decodeToString(self):
+def neon_global_Bytes__decodeUTF8(self):
     b = self.stack.pop()
     try:
         s = b.decode()

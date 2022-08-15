@@ -346,7 +346,7 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("builtin$bytes__append",             bytes__append),
     PDFUNC("builtin$bytes__concat",             bytes__concat),
-    PDFUNC("global$Bytes__decodeToString",      bytes__decodeToString),
+    PDFUNC("global$Bytes__decodeUTF8",          bytes__decodeUTF8),
     PDFUNC("builtin$bytes__index",              bytes__index),
     PDFUNC("builtin$bytes__range",              bytes__range),
     PDFUNC("builtin$bytes__size",               bytes__size),
@@ -918,7 +918,7 @@ static Cell *cell_makeChoice_cell(int choice, Cell *value)
     return r;
 }
 
-void bytes__decodeToString(TExecutor *exec)
+void bytes__decodeUTF8(TExecutor *exec)
 {
     TString *s = top(exec->stack)->string;
 
