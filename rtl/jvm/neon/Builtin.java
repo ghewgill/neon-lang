@@ -398,7 +398,7 @@ public class Builtin {
         return s.substring(0, f) + padding + t + (l < s.length() ? s.substring(l + 1) : "");
     }
 
-    public static byte[] string__toBytes(java.lang.String self) {
+    public static byte[] string__encodeUTF8(java.lang.String self) {
         return self.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }
 

@@ -9,7 +9,7 @@ IMPORT regex
 IMPORT string
 
 FUNCTION toBytes(s: String): Bytes
-    RETURN s.toBytes()
+    RETURN s.encodeUTF8()
 END FUNCTION
 
 TYPE Response IS RECORD
@@ -141,7 +141,7 @@ FUNCTION path_handler(path: String, params: Array<Object>): Response
             page.append("</table>\n")
             page.append("</body>\n")
             page.append("</html>\n")
-            r.content := page.toBytes()
+            r.content := page.encodeUTF8()
         END IF
     ELSE
         TRY

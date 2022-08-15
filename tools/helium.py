@@ -730,7 +730,7 @@ class DotExpression:
             if self.field == "append": return neon_string_append
             if self.field == "length": return lambda env, self: len(self)
             if self.field == "toArray": return lambda env, self: [ord(x) for x in obj]
-            if self.field == "toBytes": return lambda env, self: bytes([x for x in obj.encode("utf-8")])
+            if self.field == "encodeUTF8": return lambda env, self: bytes([x for x in obj.encode("utf-8")])
             if self.field == "toString": return lambda env, self: obj
         elif isinstance(obj, bytes):
             if self.field == "decodeUTF8": return lambda env, self: neon_global_decodeUTF8(env, obj.a)

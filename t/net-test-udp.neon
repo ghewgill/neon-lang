@@ -7,7 +7,7 @@ LET client: net.Socket := net.udpSocket()
 client.connect("127.0.0.1", 21012)
 
 LET s: String := "UDP packet."
-client.send(s.toBytes())
+client.send(s.encodeUTF8())
 VAR buf: Bytes
 _ := server.recv(1000, OUT buf)
 print(buf.decodeUTF8().expectString())

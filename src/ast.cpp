@@ -1351,7 +1351,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
-        TYPE_STRING->methods["toBytes"] = new PredefinedFunction("builtin$string__toBytes", new TypeFunction(TYPE_BYTES, params, false));
+        TYPE_STRING->methods["encodeUTF8"] = new PredefinedFunction("builtin$string__encodeUTF8", new TypeFunction(TYPE_BYTES, params, false));
     }
     {
         std::vector<const ParameterType *> params;

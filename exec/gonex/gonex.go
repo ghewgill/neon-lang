@@ -3021,7 +3021,7 @@ func (self *executor) op_callp() {
 				self.push(make_cell_str(s[first : last+1]))
 			}
 		}
-	case "builtin$string__toBytes":
+	case "builtin$string__encodeUTF8":
 		s := self.pop().str
 		self.push(make_cell_bytes([]byte(s)))
 	case "builtin$string__toString":

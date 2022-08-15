@@ -127,7 +127,7 @@ FUNCTION packQuestion(q: Question): Bytes
             PANIC "zero length name component"
         END CHECK
         r.append([part.length()].toBytes())
-        r.append(part.toBytes())
+        r.append(part.encodeUTF8())
     END FOREACH
     r.append(HEXBYTES "00")
     r.append(struct.packUInt16BE(q.type.value()))

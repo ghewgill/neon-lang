@@ -175,7 +175,7 @@ Ne_Exception *Ne_global_str(Ne_String *result, const Ne_Number *n);
 Ne_Exception *Ne_builtin_string__append(Ne_String *dest, const Ne_String *s);
 Ne_Exception *Ne_builtin_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b);
 Ne_Exception *Ne_builtin_string__length(Ne_Number *result, const Ne_String *str);
-Ne_Exception *Ne_builtin_string__toBytes(Ne_Bytes *result, const Ne_String *str);
+Ne_Exception *Ne_builtin_string__encodeUTF8(Ne_Bytes *result, const Ne_String *str);
 Ne_Exception *Ne_Exception_raise(const char *name);
 Ne_Exception *Ne_Exception_raise_info(const char *name, const Ne_Object *info);
 Ne_Exception *Ne_Exception_raise_info_literal(const char *name, const char *info);

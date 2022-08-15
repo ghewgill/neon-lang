@@ -1,7 +1,7 @@
 IMPORT string
 
 LET s: String := "你好"
-LET b: Bytes := s.toBytes()
+LET b: Bytes := s.encodeUTF8()
 print(b.toArray().toString())
 --= [228, 189, 160, 229, 165, 189]
 

@@ -52,11 +52,11 @@ END FUNCTION
 
 FUNCTION Client.send(self: Client, s: String)
     LET t: String := s & "\n"
-    self.socket.send(t.toBytes())
+    self.socket.send(t.encodeUTF8())
 END FUNCTION
 
 FUNCTION Client.prompt(INOUT self: Client, prompt: String, handler: ResponseHandler)
-    self.socket.send(prompt.toBytes())
+    self.socket.send(prompt.encodeUTF8())
     self.handler := handler
 END FUNCTION
 

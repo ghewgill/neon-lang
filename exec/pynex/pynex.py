@@ -2318,7 +2318,7 @@ def neon_builtin_string__substring(self):
         last = -1
     self.stack.append(s[first:last+1])
 
-def neon_builtin_string__toBytes(self):
+def neon_builtin_string__encodeUTF8(self):
     s = self.stack.pop()
     self.stack.append(s.encode())
 
