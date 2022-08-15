@@ -117,7 +117,7 @@ Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number 
 Ne_Exception *Ne_Bytes_store(const Ne_Number *b, Ne_Bytes *s, const Ne_Number *index);
 Ne_Exception *Ne_builtin_bytes__append(Ne_Bytes *r, const Ne_Bytes *b);
 Ne_Exception *Ne_builtin_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b);
-Ne_Exception *Ne_global_Bytes__decodeToString(Ne_String *r, const Ne_Bytes *bytes);
+Ne_Exception *Ne_global_Bytes__decodeUTF8(Ne_String *r, const Ne_Bytes *bytes);
 Ne_Exception *Ne_builtin_bytes__size(Ne_Number *r, const Ne_Bytes *bytes);
 Ne_Exception *Ne_builtin_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes);
 Ne_Exception *Ne_builtin_bytes__toString(Ne_String *result, const Ne_Bytes *bytes);

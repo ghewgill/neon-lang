@@ -74,7 +74,7 @@ FUNCTION HttpServer.handle_incoming(INOUT self: HttpServer, INOUT client: Client
     IF NOT client.socket.recv(1000, OUT buf) THEN
         RETURN TRUE
     END IF
-    LET r := buf.decodeToString()
+    LET r := buf.decodeUTF8()
     CHECK r ISA DecodeResult.string ELSE
         RETURN FALSE
     END CHECK

@@ -60,7 +60,7 @@ namespace csnex
         }
 #endregion
 #region Bytes Functions
-        public void Bytes__decodeToString()
+        public void Bytes__decodeUTF8()
         {
             Cell s = Exec.stack.Pop();
 

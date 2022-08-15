@@ -124,7 +124,7 @@ FUNCTION decodeBytecode(bytes: Bytes): Bytecode
     LET strtablesize: Number := getVint(a, INOUT i)
     r.bytestable := getBytesTable(a[i TO i+strtablesize-1])
     FOR j := 0 TO r.bytestable.size()-1 DO
-        LET dr: DecodeResult := r.bytestable[j].decodeToString()
+        LET dr: DecodeResult := r.bytestable[j].decodeUTF8()
         IF dr ISA DecodeResult.string THEN
             r.strtable[j] := dr.string
         ELSE
@@ -1149,9 +1149,9 @@ FUNCTION f_callp(INOUT self: Executor)
             LET b: Bytes := self.pop()->y
             LET a: Bytes := self.pop()->y
             self.stack.append(makeValueBytes(a & b))
-        WHEN "global$Bytes__decodeToString" DO
+        WHEN "global$Bytes__decodeUTF8" DO
             LET y: Bytes := self.pop()->y
-            LET r: DecodeResult := y.decodeToString()
+            LET r: DecodeResult := y.decodeUTF8()
             CASE r
                 WHEN ISA DecodeResult.string DO
                     self.stack.append(makeValueArray([makeValueNumber(0), makeValueString(r.string)]))

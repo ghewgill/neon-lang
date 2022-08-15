@@ -12,7 +12,7 @@ LET s: String := "GET / HTTP/1.0"
 client.send(s.toBytes())
 VAR buf: Bytes
 _ := t.recv(1000, OUT buf)
-print(buf.decodeToString().expectString())
+print(buf.decodeUTF8().expectString())
 --= GET / HTTP/1.0
 
 client.close()

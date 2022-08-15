@@ -803,7 +803,7 @@ END FUNCTION
 BEGIN MAIN
     FOREACH fn IN sys.args[1 TO LAST] DO
         LET bytes: Bytes := file.readBytes(fn)
-        LET r: DecodeResult := bytes.decodeToString()
+        LET r: DecodeResult := bytes.decodeUTF8()
         CASE r
             WHEN ISA DecodeResult.string DO
                 LET tokens: Array<Token> := tokenize(fn, r.string)
@@ -812,7 +812,7 @@ BEGIN MAIN
                 END FOREACH
             WHEN ISA DecodeResult.error DO
                 LET offset: Number := r.error.offset
-                LET source: String := bytes[FIRST TO offset-1].decodeToString().expectString()
+                LET source: String := bytes[FIRST TO offset-1].decodeUTF8().expectString()
                 LET line: Number := 1 + count(source, "\n")
                 LET bol: Number := findLast(source, "\n") + 1
                 LET column: Number := 1 + offset - bol

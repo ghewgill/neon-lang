@@ -1,3 +1,3 @@
 LET text: Bytes := EMBED "bytes-embed.neon"
-print(text.decodeToString().expectString()[FIRST TO 10])
+print(text.decodeUTF8().expectString()[FIRST TO 10])
 --= LET text: B

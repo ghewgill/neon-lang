@@ -55,7 +55,7 @@ class Executor {
         predefined.put("builtin$boolean__toString", this::boolean__toString);
         predefined.put("builtin$bytes__append", this::bytes__append);
         predefined.put("builtin$bytes__concat", this::bytes__concat);
-        predefined.put("global$Bytes__decodeToString", this::bytes__decodeToString);
+        predefined.put("global$Bytes__decodeUTF8", this::bytes__decodeUTF8);
         predefined.put("builtin$bytes__index", this::bytes__index);
         predefined.put("builtin$bytes__range", this::bytes__range);
         predefined.put("builtin$bytes__size", this::bytes__size);
@@ -1489,7 +1489,7 @@ class Executor {
         stack.addFirst(new Cell(r));
     }
 
-    private void bytes__decodeToString()
+    private void bytes__decodeUTF8()
     {
         byte[] b = stack.removeFirst().getBytes();
         stack.addFirst(new Cell(new Cell[]{new Cell(BigDecimal.ZERO), new Cell(new String(b))}));

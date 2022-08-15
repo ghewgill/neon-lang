@@ -139,7 +139,7 @@ TYPE DecodeResult IS CHOICE
     error: DecodeError
 END CHOICE
 
-DECLARE NATIVE FUNCTION Bytes.decodeToString(self: Bytes): DecodeResult
+DECLARE NATIVE FUNCTION Bytes.decodeUTF8(self: Bytes): DecodeResult
 
 FUNCTION DecodeResult.expectString(self: DecodeResult): String
     CASE self
