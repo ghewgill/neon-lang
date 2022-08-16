@@ -1,3 +1,4 @@
+array.neon                 # object
 array-find.neon            # array__find
 array-fraction.neon        # exception
 array-index.neon           # array index
@@ -129,6 +130,7 @@ recursion-limit.neon       # module runtime
 regex-test.neon            # interface
 repl_import.neon           # module random
 retval-index.neon          # StringValueIndexExpression
+rtl.neon                   # exception
 runtime-test.neon          # module runtime
 sql-connect.neon           # module sqlite
 sql-cursor.neon            # module sqlite

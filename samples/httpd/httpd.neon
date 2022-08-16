@@ -9,7 +9,7 @@ IMPORT regex
 IMPORT string
 
 FUNCTION toBytes(s: String): Bytes
-    RETURN s.toBytes()
+    RETURN s.encodeUTF8()
 END FUNCTION
 
 TYPE Response IS RECORD
@@ -70,11 +70,15 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
 END FUNCTION
 
 FUNCTION HttpServer.handle_incoming(INOUT self: HttpServer, INOUT client: Client): Boolean
-    LET r := client.socket.recv(1000)
-    CHECK r ISA net.RecvResult.data ELSE
+    LET rr := client.socket.recv(1000)
+    CHECK rr ISA net.RecvResult.data ELSE
         RETURN TRUE
     END CHECK
-    client.header.append(r.data.decodeToString())
+    LET dr := rr.data.decodeUTF8()
+    CHECK dr ISA DecodeResult.string ELSE
+        RETURN FALSE
+    END CHECK
+    client.header.append(dr.string)
     IF client.header[LAST-3 TO LAST] = "\r\n\r\n" THEN
         self.handle_request(INOUT client)
         RETURN TRUE
@@ -137,7 +141,7 @@ FUNCTION path_handler(path: String, params: Array<Object>): Response
             page.append("</table>\n")
             page.append("</body>\n")
             page.append("</html>\n")
-            r.content := page.toBytes()
+            r.content := page.encodeUTF8()
         END IF
     ELSE
         LET br := file.readBytes(local_path)

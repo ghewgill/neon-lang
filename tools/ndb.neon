@@ -14,8 +14,8 @@ FUNCTION get(url: String): Object
         print(hr.error)
         EXIT PROCESS FAILURE
     END CHECK
-    LET d := json.decode(hr.response.data.decodeToString())
-    CHECK d ISA json.DecodeResult.data ELSE
+    LET d := json.decode(hr.response.data.decodeUTF8().expectString())
+    CHECK d ISA json.JsonResult.data ELSE
         print(d.error.message)
         EXIT PROCESS FAILURE
     END CHECK
@@ -28,8 +28,8 @@ FUNCTION post(url: String, post_data: String): Object
         print(hr.error)
         EXIT PROCESS FAILURE
     END CHECK
-    LET d := json.decode(hr.response.data.decodeToString())
-    CHECK d ISA json.DecodeResult.data ELSE
+    LET d := json.decode(hr.response.data.decodeUTF8().expectString())
+    CHECK d ISA json.JsonResult.data ELSE
         print(d.error.message)
         EXIT PROCESS FAILURE
     END CHECK

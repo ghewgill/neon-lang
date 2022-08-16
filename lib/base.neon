@@ -15,7 +15,7 @@ END CHOICE
 
 EXPORT FUNCTION from(base: Number, digits: String): NumberResult
     CHECK base = math.trunc(base) AND 2 <= base <= 36 ELSE
-        RAISE ValueRangeException("invalid base: \(base)")
+        PANIC "invalid base: \(base)"
     END CHECK
     VAR r: Number := 0
     FOREACH c IN digits INDEX i DO
@@ -30,10 +30,10 @@ END FUNCTION
 
 EXPORT FUNCTION to(base: Number, value: Number): String
     CHECK base = math.trunc(base) AND 2 <= base <= 36 ELSE
-        RAISE ValueRangeException("invalid base: \(base)")
+        PANIC "invalid base: \(base)"
     END CHECK
     CHECK value = math.trunc(value) AND value >= 0 ELSE
-        RAISE ValueRangeException("value cannot be negative")
+        PANIC "value cannot be negative"
     END CHECK
     VAR r: String := ""
     VAR x: Number := value

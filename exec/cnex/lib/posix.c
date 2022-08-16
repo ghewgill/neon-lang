@@ -444,8 +444,7 @@ void posix_pread(struct tagTExecutor *exec)
     Number fildes = top(exec->stack)->number; pop(exec->stack);
 
     size_t n = number_to_uint64(nbyte);
-    Cell *buf = cell_createStringCell(n);
-    buf->type = cBytes;
+    Cell *buf = cell_createBytesCell(n);
 
     push(exec->stack, wrap(pread(number_to_sint32(fildes), buf->string->data, n, number_to_uint64(offset))));
     push(exec->stack, buf);
@@ -471,7 +470,7 @@ void posix_read(struct tagTExecutor *exec)
     Number fildes = top(exec->stack)->number; pop(exec->stack);
 
     size_t n = number_to_uint64(nbyte);
-    Cell *buf = cell_createStringCell(n); buf->type = cBytes;
+    Cell *buf = cell_createBytesCell(n);
     Cell *r =  wrap(read(number_to_sint32(fildes), buf->string->data, n));
 
     push(exec->stack, buf);
@@ -484,7 +483,7 @@ void posix_readlink(struct tagTExecutor *exec)
     char *path = string_asCString(top(exec->stack)->string); pop(exec->stack);
 
     size_t n = number_to_uint64(bufsize);
-    Cell *buf = cell_createStringCell(n); buf->type= cBytes;
+    Cell *buf = cell_createBytesCell(n);
     Cell *r = wrap(readlink(path, buf->string->data, n));
 
     push(exec->stack, buf);
@@ -500,7 +499,7 @@ void posix_readlinkat(TExecutor *exec)
     Number fd = top(exec->stack)->number; pop(exec->stack);
 
     size_t n = number_to_uint64(bufsize);
-    Cell *buf = cell_createStringCell(n); buf->type = cBytes;
+    Cell *buf = cell_createBytesCell(n);
     Cell *r = wrap(readlinkat(number_to_sint32(fd), path, buf->string->data, n));
 
     push(exec->stack, buf);

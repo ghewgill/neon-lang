@@ -30,7 +30,7 @@ class NeObjectArray implements NeObject {
             throw new NeonException("DynamicConversionException", "to Number");
         }
         if (i.getNumber().intValue() >= a.size()) {
-            throw new NeonException("ArrayIndexException", i.getNumber().toString());
+            throw new NeonException("PANIC", "Array index exceeds size " + a.size() + ": " + i.getNumber().toString());
         }
         return a.get(i.getNumber().intValue());
     }

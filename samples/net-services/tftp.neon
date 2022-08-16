@@ -113,7 +113,7 @@ LOOP
             LET a: Array<Number> := rr.data.data.toArray()
             IF a[0] = 0 THEN
                 IF a[1] = Type_RRQ THEN
-                    LET s: String := a[2 TO LAST].toBytes().decodeToString()
+                    LET s: String := a[2 TO LAST].toBytes().decodeUTF8().expectString()
                     LET args: Array<String> := string.split(s, string.fromCodePoint(0))
                     IF args.size() = 2 THEN
                         LET r := makeClient(rr.data.remoteAddress, rr.data.remotePort, filename WITH args[0], mode WITH args[1])

@@ -71,7 +71,7 @@ int Ne_Boolean_compare(const Ne_Boolean *a, const Ne_Boolean *b)
     return *a == *b ? 0 : 1;
 }
 
-Ne_Exception *Ne_boolean__toString(Ne_String *result, const Ne_Boolean *a)
+Ne_Exception *Ne_builtin_boolean__toString(Ne_String *result, const Ne_Boolean *a)
 {
     Ne_String_init_literal(result, *a ? "TRUE" : "FALSE");
     return NULL;
@@ -183,11 +183,20 @@ int Ne_String_compare(const Ne_String *a, const Ne_String *b)
 Ne_Exception *Ne_String_index(Ne_String *dest, const Ne_String *s, const Ne_Number *index)
 {
     if (index->dval != trunc(index->dval)) {
-        return Ne_Exception_raise("StringIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index not an integer: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int i = (int)index->dval;
-    if (i < 0 || i >= s->len) {
-        return Ne_Exception_raise("StringIndexException");
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index is negative: %d", i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (i >= s->len) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index exceeds length %d: %d", s->len, i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     dest->ptr = malloc(1);
     *dest->ptr = s->ptr[i];
@@ -199,8 +208,15 @@ Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Numb
 {
     dest->len = 0;
     dest->ptr = NULL;
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("StringIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -227,8 +243,15 @@ Ne_Exception *Ne_String_range(Ne_String *dest, const Ne_String *s, const Ne_Numb
 
 Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("StringIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -239,10 +262,14 @@ Ne_Exception *Ne_String_splice(Ne_String *d, const Ne_String *t, const Ne_Number
         l += d->len - 1;
     }
     if (f < 0) {
-        return Ne_Exception_raise("StringIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index is negative: %d", f);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     if (l < f-1) {
-        return Ne_Exception_raise("StringIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index is less than first %d: %d", f, l);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int new_len = d->len - (f < d->len ? (l < d->len ? l - f + 1 : d->len - f) : 0) + t->len;
     int padding = 0;
@@ -373,11 +400,20 @@ int Ne_Bytes_compare(const Ne_Bytes *a, const Ne_Bytes *b)
 Ne_Exception *Ne_Bytes_index(Ne_Number *dest, const Ne_Bytes *b, const Ne_Number *index)
 {
     if (index->dval != trunc(index->dval)) {
-        return Ne_Exception_raise("BytesIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index not an integer: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int i = (int)index->dval;
-    if (i < 0 || i >= b->len) {
-        return Ne_Exception_raise("BytesIndexException");
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index is negative: %d", i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (i >= b->len) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index exceeds size %d: %d", b->len, i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     dest->dval = b->data[i];
     return NULL;
@@ -387,8 +423,15 @@ Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number 
 {
     dest->len = 0;
     dest->data = NULL;
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("BytesIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -415,8 +458,15 @@ Ne_Exception *Ne_Bytes_range(Ne_Bytes *dest, const Ne_Bytes *b, const Ne_Number 
 
 Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("BytesIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -427,10 +477,14 @@ Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number 
         l += b->len - 1;
     }
     if (f < 0) {
-        return Ne_Exception_raise("BytesIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index is negative: %d", f);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     if (l < f-1) {
-        return Ne_Exception_raise("BytesIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index is before first %d: %d", f, l);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int new_len = b->len - (f < b->len ? (l < b->len ? l - f + 1 : b->len - f) : 0) + src->len;
     int padding = 0;
@@ -454,17 +508,26 @@ Ne_Exception *Ne_Bytes_splice(const Ne_Bytes *src, Ne_Bytes *b, const Ne_Number 
 Ne_Exception *Ne_Bytes_store(const Ne_Number *b, Ne_Bytes *s, const Ne_Number *index)
 {
     if (index->dval != trunc(index->dval)) {
-        return Ne_Exception_raise("BytesIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index not an integer: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int i = (int)index->dval;
-    if (i < 0 || i >= s->len) {
-        return Ne_Exception_raise("BytesIndexException");
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index is negative: %d", i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (i >= s->len) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index exceeds size %d: %d", s->len, i);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     s->data[i] = (unsigned char)b->dval;
     return NULL;
 }
 
-Ne_Exception *Ne_bytes__append(Ne_Bytes *r, const Ne_Bytes *b)
+Ne_Exception *Ne_builtin_bytes__append(Ne_Bytes *r, const Ne_Bytes *b)
 {
     r->data = realloc(r->data, r->len + b->len);
     memcpy(&r->data[r->len], b->data, b->len);
@@ -472,7 +535,7 @@ Ne_Exception *Ne_bytes__append(Ne_Bytes *r, const Ne_Bytes *b)
     return NULL;
 }
 
-Ne_Exception *Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b)
+Ne_Exception *Ne_builtin_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b)
 {
     r->data = malloc(a->len + b->len);
     memcpy(r->data, a->data, a->len);
@@ -481,7 +544,7 @@ Ne_Exception *Ne_bytes__concat(Ne_Bytes *r, const Ne_Bytes *a, const Ne_Bytes *b
     return NULL;
 }
 
-Ne_Exception *Ne_bytes__decodeToString(Ne_String *r, const Ne_Bytes *bytes)
+Ne_Exception *Ne_global_Bytes__decodeUTF8(Ne_String *r, const Ne_Bytes *bytes)
 {
     r->ptr = malloc(bytes->len);
     memcpy(r->ptr, bytes->data, bytes->len);
@@ -489,13 +552,13 @@ Ne_Exception *Ne_bytes__decodeToString(Ne_String *r, const Ne_Bytes *bytes)
     return NULL;
 }
 
-Ne_Exception *Ne_bytes__size(Ne_Number *r, const Ne_Bytes *bytes)
+Ne_Exception *Ne_builtin_bytes__size(Ne_Number *r, const Ne_Bytes *bytes)
 {
     r->dval = bytes->len;
     return NULL;
 }
 
-Ne_Exception *Ne_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes)
+Ne_Exception *Ne_builtin_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes)
 {
     Ne_Array_init(result, bytes->len, &Ne_Number_mtable);
     for (int i = 0; i < bytes->len; i++) {
@@ -510,7 +573,7 @@ Ne_Exception *Ne_bytes__toArray(Ne_Array *result, const Ne_Bytes *bytes)
     return NULL;
 }
 
-Ne_Exception *Ne_bytes__toString(Ne_String *result, const Ne_Bytes *bytes)
+Ne_Exception *Ne_builtin_bytes__toString(Ne_String *result, const Ne_Bytes *bytes)
 {
     char *buf = malloc(8 + 1 + 1 + 3*bytes->len + 1 + 1);
     strcpy(buf, "HEXBYTES \"");
@@ -610,7 +673,7 @@ int Ne_Object_compare(const Ne_Object *a, const Ne_Object *b)
     return a == b ? 0 : 1;
 }
 
-Ne_Exception *Ne_object__getBoolean(Ne_Boolean *r, Ne_Object *obj)
+Ne_Exception *Ne_builtin_object__getBoolean(Ne_Boolean *r, Ne_Object *obj)
 {
     if (obj->type != neBoolean) {
         return Ne_Exception_raise("DynamicConversionException");
@@ -619,7 +682,7 @@ Ne_Exception *Ne_object__getBoolean(Ne_Boolean *r, Ne_Object *obj)
     return NULL;
 }
 
-Ne_Exception *Ne_object__getNumber(Ne_Number *r, Ne_Object *obj)
+Ne_Exception *Ne_builtin_object__getNumber(Ne_Number *r, Ne_Object *obj)
 {
     if (obj->type != neNumber) {
         return Ne_Exception_raise("DynamicConversionException");
@@ -628,7 +691,7 @@ Ne_Exception *Ne_object__getNumber(Ne_Number *r, Ne_Object *obj)
     return NULL;
 }
 
-Ne_Exception *Ne_object__getString(Ne_String *r, Ne_Object *obj)
+Ne_Exception *Ne_builtin_object__getString(Ne_String *r, Ne_Object *obj)
 {
     if (obj->type != neString) {
         return Ne_Exception_raise("DynamicConversionException");
@@ -637,20 +700,20 @@ Ne_Exception *Ne_object__getString(Ne_String *r, Ne_Object *obj)
     return NULL;
 }
 
-Ne_Exception *Ne_object__isNull(Ne_Boolean *r, Ne_Object *obj)
+Ne_Exception *Ne_builtin_object__isNull(Ne_Boolean *r, Ne_Object *obj)
 {
     *r = obj->type == neNothing;
     return NULL;
 }
 
-Ne_Exception *Ne_object__makeNull(Ne_Object *obj)
+Ne_Exception *Ne_builtin_object__makeNull(Ne_Object *obj)
 {
     Ne_Object_init(obj);
     obj->type = neNothing;
     return NULL;
 }
 
-Ne_Exception *Ne_object__makeBoolean(Ne_Object *obj, const Ne_Boolean *b)
+Ne_Exception *Ne_builtin_object__makeBoolean(Ne_Object *obj, const Ne_Boolean *b)
 {
     Ne_Object_init(obj);
     obj->type = neBoolean;
@@ -658,7 +721,7 @@ Ne_Exception *Ne_object__makeBoolean(Ne_Object *obj, const Ne_Boolean *b)
     return NULL;
 }
 
-Ne_Exception *Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
+Ne_Exception *Ne_builtin_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
 {
     Ne_Object_init(obj);
     obj->type = neNumber;
@@ -666,7 +729,7 @@ Ne_Exception *Ne_object__makeNumber(Ne_Object *obj, const Ne_Number *n)
     return NULL;
 }
 
-Ne_Exception *Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
+Ne_Exception *Ne_builtin_object__makeString(Ne_Object *obj, const Ne_String *s)
 {
     Ne_Object_init(obj);
     obj->type = neString;
@@ -674,7 +737,7 @@ Ne_Exception *Ne_object__makeString(Ne_Object *obj, const Ne_String *s)
     return NULL;
 }
 
-Ne_Exception *Ne_object__toString(Ne_String *result, const Ne_Object *obj)
+Ne_Exception *Ne_builtin_object__toString(Ne_String *result, const Ne_Object *obj)
 {
     switch (obj->type) {
         case neNothing:
@@ -759,7 +822,9 @@ Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, Ne_Boole
             }
             a->size = index+1;
         } else {
-            return Ne_Exception_raise("ArrayIndexException");
+            char buf[100];
+            snprintf(buf, sizeof(buf), "Array index exceeds size %d: %d", a->size, index);
+            return Ne_Exception_raise_info_literal("PANIC", buf);
         }
     }
     *result = a->a[index];
@@ -768,11 +833,15 @@ Ne_Exception *Ne_Array_index_int(void **result, Ne_Array *a, int index, Ne_Boole
 
 Ne_Exception *Ne_Array_index(void **result, Ne_Array *a, const Ne_Number *index, Ne_Boolean always_create)
 {
-    if (index->dval != trunc(index->dval) || index->dval < 0) {
-        Ne_Object info;
-        Ne_Object_init(&info);
-        Ne_object__makeNumber(&info, index);
-        return Ne_Exception_raise_info("ArrayIndexException", &info);
+    if (index->dval != trunc(index->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index not an integer: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (index->dval < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is negative: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     return Ne_Array_index_int(result, a, (int)index->dval, always_create);
 }
@@ -782,8 +851,15 @@ Ne_Exception *Ne_Array_range(Ne_Array *result, const Ne_Array *a, const Ne_Numbe
     result->size = 0;
     result->a = NULL;
     result->mtable = a->mtable;
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("ArrayIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -813,8 +889,15 @@ Ne_Exception *Ne_Array_range(Ne_Array *result, const Ne_Array *a, const Ne_Numbe
 
 Ne_Exception *Ne_Array_splice(const Ne_Array *b, Ne_Array *a, const Ne_Number *first, Ne_Boolean first_from_end, const Ne_Number *last, Ne_Boolean last_from_end)
 {
-    if (first->dval != trunc(first->dval) || last->dval != trunc(last->dval)) {
-        return Ne_Exception_raise("ArrayIndexException");
+    if (first->dval != trunc(first->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %g", first->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (last->dval != trunc(last->dval)) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %g", last->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     int f = (int)first->dval;
     int l = (int)last->dval;
@@ -847,7 +930,7 @@ Ne_Exception *Ne_Array_splice(const Ne_Array *b, Ne_Array *a, const Ne_Number *f
     return NULL;
 }
 
-Ne_Exception *Ne_array__append(Ne_Array *a, const void *element)
+Ne_Exception *Ne_builtin_array__append(Ne_Array *a, const void *element)
 {
     a->a = realloc(a->a, (a->size+1) * sizeof(void *));
     a->mtable->constructor(&a->a[a->size]);
@@ -856,7 +939,7 @@ Ne_Exception *Ne_array__append(Ne_Array *a, const void *element)
     return NULL;
 }
 
-Ne_Exception *Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b)
+Ne_Exception *Ne_builtin_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array *b)
 {
     dest->size = a->size + b->size;
     dest->a = malloc(dest->size * sizeof(void *));
@@ -872,7 +955,7 @@ Ne_Exception *Ne_array__concat(Ne_Array *dest, const Ne_Array *a, const Ne_Array
     return NULL;
 }
 
-Ne_Exception *Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
+Ne_Exception *Ne_builtin_array__extend(Ne_Array *dest, const Ne_Array *src)
 {
     int newsize = dest->size + src->size;
     dest->a = realloc(dest->a, newsize * sizeof(void *));
@@ -884,7 +967,7 @@ Ne_Exception *Ne_array__extend(Ne_Array *dest, const Ne_Array *src)
     return NULL;
 }
 
-Ne_Exception *Ne_array__find(Ne_Number *result, const Ne_Array *a, void *e)
+Ne_Exception *Ne_builtin_array__find(Ne_Number *result, const Ne_Array *a, void *e)
 {
     for (int i = 0; i < a->size; i++) {
         if (a->mtable->compare(a->a[i], e) == 0) {
@@ -892,14 +975,21 @@ Ne_Exception *Ne_array__find(Ne_Number *result, const Ne_Array *a, void *e)
             return NULL;
         }
     }
-    return Ne_Exception_raise("ArrayIndexException");
+    return Ne_Exception_raise_info_literal("PANIC", "value not found in array");
 }
 
-Ne_Exception *Ne_array__remove(Ne_Array *a, const Ne_Number *index)
+Ne_Exception *Ne_builtin_array__remove(Ne_Array *a, const Ne_Number *index)
 {
     int i = (int)index->dval;
-    if (i < 0 || i >= a->size) {
-        return Ne_Exception_raise("ArrayIndexException");
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index is negative: %g", index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
+    }
+    if (i >= a->size) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index exceeds size %d: %g", a->size, index->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     a->mtable->destructor(a->a[i]);
     memmove(&a->a[i], &a->a[i+1], (a->size-i-1) * sizeof(void *));
@@ -907,11 +997,13 @@ Ne_Exception *Ne_array__remove(Ne_Array *a, const Ne_Number *index)
     return NULL;
 }
 
-Ne_Exception *Ne_array__resize(Ne_Array *a, const Ne_Number *size)
+Ne_Exception *Ne_builtin_array__resize(Ne_Array *a, const Ne_Number *size)
 {
     int newsize = (int)size->dval;
     if (newsize != size->dval) {
-        return Ne_Exception_raise("ArrayIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Invalid array size: %g", size->dval);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     if (newsize < a->size) {
         for (int i = newsize; i < a->size; i++) {
@@ -928,7 +1020,7 @@ Ne_Exception *Ne_array__resize(Ne_Array *a, const Ne_Number *size)
     return NULL;
 }
 
-Ne_Exception *Ne_array__reversed(Ne_Array *dest, const Ne_Array *src)
+Ne_Exception *Ne_builtin_array__reversed(Ne_Array *dest, const Ne_Array *src)
 {
     Ne_Array_init(dest, src->size, src->mtable);
     for (int i = 0; i < src->size; i++) {
@@ -937,13 +1029,13 @@ Ne_Exception *Ne_array__reversed(Ne_Array *dest, const Ne_Array *src)
     return NULL;
 }
 
-Ne_Exception *Ne_array__size(Ne_Number *result, const Ne_Array *a)
+Ne_Exception *Ne_builtin_array__size(Ne_Number *result, const Ne_Array *a)
 {
     Ne_Number_init_literal(result, a->size);
     return NULL;
 }
 
-Ne_Exception *Ne_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a)
+Ne_Exception *Ne_builtin_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a)
 {
     r->data = malloc(a->size);
     for (int i = 0; i < a->size; i++) {
@@ -961,7 +1053,7 @@ Ne_Exception *Ne_array__toBytes__number(Ne_Bytes *r, const Ne_Array *a)
     return NULL;
 }
 
-Ne_Exception *Ne_array__toString__number(Ne_String *r, const Ne_Array *a)
+Ne_Exception *Ne_builtin_array__toString__number(Ne_String *r, const Ne_Array *a)
 {
     char buf[100];
     strcpy(buf, "[");
@@ -977,7 +1069,7 @@ Ne_Exception *Ne_array__toString__number(Ne_String *r, const Ne_Array *a)
     return NULL;
 }
 
-Ne_Exception *Ne_array__toString__string(Ne_String *r, const Ne_Array *a)
+Ne_Exception *Ne_builtin_array__toString__string(Ne_String *r, const Ne_Array *a)
 {
     char buf[100];
     strcpy(buf, "[");
@@ -1055,7 +1147,9 @@ Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_Stri
         i++;
     }
     if (!always_create) {
-        return Ne_Exception_raise("DictionaryIndexException");
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Dictionary key not found: %.*s", index->len, index->ptr);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     d->d = realloc(d->d, (d->size+1) * sizeof(struct KV));
     memmove(&d->d[i+1], &d->d[i], (d->size-i) * sizeof(struct KV));
@@ -1066,7 +1160,7 @@ Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_Stri
     return NULL;
 }
 
-Ne_Exception *Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
+Ne_Exception *Ne_builtin_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
 {
     Ne_Array_init(result, d->size, &Ne_String_mtable);
     for (int i = 0; i < d->size; i++) {
@@ -1077,7 +1171,7 @@ Ne_Exception *Ne_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d)
     return NULL;
 }
 
-Ne_Exception *Ne_dictionary__remove(Ne_Dictionary *d, const Ne_String *key)
+Ne_Exception *Ne_builtin_dictionary__remove(Ne_Dictionary *d, const Ne_String *key)
 {
     int i = 0;
     while (i < d->size) {
@@ -1097,7 +1191,7 @@ Ne_Exception *Ne_dictionary__remove(Ne_Dictionary *d, const Ne_String *key)
     return NULL;
 }
 
-Ne_Exception *Ne_dictionary__toString__string(Ne_String *r, const Ne_Dictionary *d)
+Ne_Exception *Ne_builtin_dictionary__toString__string(Ne_String *r, const Ne_Dictionary *d)
 {
     char buf[1000];
     strcpy(buf, "{");
@@ -1115,14 +1209,14 @@ Ne_Exception *Ne_dictionary__toString__string(Ne_String *r, const Ne_Dictionary 
     return NULL;
 }
 
-Ne_Exception *Ne_num(Ne_Number *result, const Ne_String *s)
+Ne_Exception *Ne_global_num(Ne_Number *result, const Ne_String *s)
 {
     const char *t = Ne_String_null_terminate(s);
     result->dval = atof(t);
     return NULL;
 }
 
-Ne_Exception *Ne_number__toString(Ne_String *result, const Ne_Number *n)
+Ne_Exception *Ne_builtin_number__toString(Ne_String *result, const Ne_Number *n)
 {
     char buf[20];
     snprintf(buf, sizeof(buf), "%g", n->dval);
@@ -1130,7 +1224,7 @@ Ne_Exception *Ne_number__toString(Ne_String *result, const Ne_Number *n)
     return NULL;
 }
 
-Ne_Exception *Ne_pointer__toString(Ne_String *r, const void *p)
+Ne_Exception *Ne_builtin_pointer__toString(Ne_String *r, const void *p)
 {
     char buf[20];
     snprintf(buf, sizeof(buf), "%p", p);
@@ -1138,10 +1232,10 @@ Ne_Exception *Ne_pointer__toString(Ne_String *r, const void *p)
     return NULL;
 }
 
-Ne_Exception *Ne_print(const Ne_Object *obj)
+Ne_Exception *Ne_global_print(const Ne_Object *obj)
 {
     Ne_String s;
-    if (Ne_object__toString(&s, obj)) {
+    if (Ne_builtin_object__toString(&s, obj)) {
         return Ne_Exception_propagate();
     }
     printf("%.*s\n", s.len, s.ptr);
@@ -1149,7 +1243,7 @@ Ne_Exception *Ne_print(const Ne_Object *obj)
     return NULL;
 }
 
-Ne_Exception *Ne_str(Ne_String *result, const Ne_Number *n)
+Ne_Exception *Ne_global_str(Ne_String *result, const Ne_Number *n)
 {
     char buf[20];
     snprintf(buf, sizeof(buf), "%g", n->dval);
@@ -1157,7 +1251,7 @@ Ne_Exception *Ne_str(Ne_String *result, const Ne_Number *n)
     return NULL;
 }
 
-Ne_Exception *Ne_string__append(Ne_String *dest, const Ne_String *s)
+Ne_Exception *Ne_builtin_string__append(Ne_String *dest, const Ne_String *s)
 {
     dest->ptr = realloc(dest->ptr, dest->len + s->len);
     memcpy(dest->ptr + dest->len, s->ptr, s->len);
@@ -1165,7 +1259,7 @@ Ne_Exception *Ne_string__append(Ne_String *dest, const Ne_String *s)
     return NULL;
 }
 
-Ne_Exception *Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b)
+Ne_Exception *Ne_builtin_string__concat(Ne_String *dest, const Ne_String *a, const Ne_String *b)
 {
     dest->len = a->len + b->len;
     dest->ptr = malloc(dest->len);
@@ -1174,13 +1268,13 @@ Ne_Exception *Ne_string__concat(Ne_String *dest, const Ne_String *a, const Ne_St
     return NULL;
 }
 
-Ne_Exception *Ne_string__length(Ne_Number *result, const Ne_String *str)
+Ne_Exception *Ne_builtin_string__length(Ne_Number *result, const Ne_String *str)
 {
     result->dval = str->len;
     return NULL;
 }
 
-Ne_Exception *Ne_string__toBytes(Ne_Bytes *result, const Ne_String *str)
+Ne_Exception *Ne_builtin_string__encodeUTF8(Ne_Bytes *result, const Ne_String *str)
 {
     result->data = malloc(str->len);
     memcpy(result->data, str->ptr, str->len);
@@ -1207,7 +1301,7 @@ Ne_Exception *Ne_Exception_raise_info_literal(const char *name, const char *info
     Ne_Exception_current.name = name;
     Ne_String s;
     Ne_String_init_literal(&s, info);
-    Ne_object__makeString(&Ne_Exception_current.info, &s);
+    Ne_builtin_object__makeString(&Ne_Exception_current.info, &s);
     Ne_String_deinit(&s);
     return &Ne_Exception_current;
 }
@@ -1232,7 +1326,7 @@ Ne_Exception *Ne_Exception_propagate()
 void Ne_Exception_unhandled()
 {
     Ne_String detail;
-    Ne_object__toString(&detail, &Ne_Exception_current.info);
+    Ne_builtin_object__toString(&detail, &Ne_Exception_current.info);
     fprintf(stderr, "Unhandled exception %s (%.*s)\n", Ne_Exception_current.name, detail.len, detail.ptr);
     Ne_Exception_clear();
     exit(1);
@@ -1241,7 +1335,7 @@ void Ne_Exception_unhandled()
 Ne_Exception *Ne_binary_xorBytes(Ne_Bytes *r, Ne_Bytes *x, Ne_Bytes *y)
 {
     if (x->len != y->len) {
-        return Ne_Exception_raise("ValueRangeException");
+        return Ne_Exception_raise_info_literal("PANIC", "Lengths of operands are not the same");
     }
     Ne_Bytes_init_literal(r, NULL, x->len);
     for (int i = 0; i < x->len; i++) {
@@ -1442,7 +1536,7 @@ Ne_Exception *Ne_math_odd(Ne_Boolean *result, const Ne_Number *x)
 {
     int i = (int)trunc(x->dval);
     if (i != x->dval) {
-        return Ne_Exception_raise_info_literal("ValueRangeException", "odd() requires integer");
+        return Ne_Exception_raise_info_literal("PANIC", "odd() requires integer");
     }
     *result = (int)trunc(x->dval) & 1;
     return NULL;
@@ -1611,12 +1705,12 @@ Ne_Exception *Ne_sys_exit(const Ne_Number *n)
     if (i != n->dval) {
         char buf[50];
         snprintf(buf, sizeof(buf), "sys.exit invalid parameter: %g", n->dval);
-        return Ne_Exception_raise_info_literal("ValueRangeException", buf);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     if (i < 0 || i > 255) {
         char buf[50];
         snprintf(buf, sizeof(buf), "sys.exit invalid parameter: %g", n->dval);
-        return Ne_Exception_raise_info_literal("ValueRangeException", buf);
+        return Ne_Exception_raise_info_literal("PANIC", buf);
     }
     exit(i);
 }

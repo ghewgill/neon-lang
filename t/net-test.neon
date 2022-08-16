@@ -9,12 +9,12 @@ client.connect("127.0.0.1", 21011)
 LET t: net.Socket := server.accept()
 
 LET s: String := "GET / HTTP/1.0"
-client.send(s.toBytes())
+client.send(s.encodeUTF8())
 LET r := t.recv(1000)
 CHECK r ISA net.RecvResult.data ELSE
     RAISE TestFailedException
 END CHECK
-print(r.data.decodeToString())
+print(r.data.decodeUTF8().expectString())
 --= GET / HTTP/1.0
 
 client.close()

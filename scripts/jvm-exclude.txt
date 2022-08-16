@@ -1,11 +1,19 @@
+array.neon                 # exception
+array-find.neon            # exception
+array-fraction.neon        # exception
+array-index.neon           # exception
+array-negative.neon        # exception
 array-resize.neon          # array default item
 array-sparse.neon          # array default item
 array2d.neon               # array copying semantics
 assert-multiline.neon      # exception
 assignment.neon            # choice
+base-test.neon             # exception
 binary-test.neon           # verifier
 bytes.neon                 # bytes.append
+bytes-embed.neon           # choice return
 bytes-index.neon           # index
+bytes-splice.neon          # exception
 cformat-test.neon          # object
 cmdline.neon               # PredefinedVariable sys$args
 complex-test.neon          # Math.atan2
@@ -13,6 +21,7 @@ datetime-test.neon         # verifier
 debug.neon                 # module runtime
 debug-example.neon         # debugger.log
 decimal.neon               # exception
+dictionary.neon            # exception
 dns-test.neon              # module$enum
 encoding-base64.neon       # verifier - incompatible object for function call
 enum.neon                  # enum toString
@@ -80,6 +89,7 @@ random-test.neon           # module random
 recursion-limit.neon       # module runtime
 regex-test.neon            # interface
 repl_import.neon           # module random
+rtl.neon                   # exception
 runtime-test.neon          # module runtime
 sql-connect.neon           # module sqlite
 sql-cursor.neon            # module sqlite
@@ -88,8 +98,10 @@ sql-execute.neon           # module sqlite
 sql-query.neon             # module sqlite
 sql-whenever.neon          # module sqlite
 sqlite-test.neon           # verifier
+string-bytes.neon          # choice return
 string-in.neon             # verifier
 string-index.neon          # index
+string-splice.neon         # exception
 string-test.neon           # utf-16 surrogates
 struct-test.neon           # ExpressionTransformer
 sys-exit.neon              # ExceptionType

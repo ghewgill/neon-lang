@@ -40,7 +40,7 @@ FUNCTION Client.handleInput(INOUT self: Client, buf: Bytes)
     LET a: Array<Number> := self.buf.toArray()
     FOREACH b IN a INDEX i DO
         IF b = 10 THEN
-            LET r: String := a[FIRST TO i-1].toBytes().decodeToString()
+            LET r: String := a[FIRST TO i-1].toBytes().decodeUTF8().expectString()
             self.buf := a[i+1 TO LAST].toBytes()
             LET h: ResponseHandler := self.handler
             self.handler := NOWHERE
@@ -52,11 +52,11 @@ END FUNCTION
 
 FUNCTION Client.send(self: Client, s: String)
     LET t: String := s & "\n"
-    self.socket.send(t.toBytes())
+    self.socket.send(t.encodeUTF8())
 END FUNCTION
 
 FUNCTION Client.prompt(INOUT self: Client, prompt: String, handler: ResponseHandler)
-    self.socket.send(prompt.toBytes())
+    self.socket.send(prompt.encodeUTF8())
     self.handler := handler
 END FUNCTION
 

@@ -48,4 +48,7 @@
 #define CHOICE_RecvResult_eof   1
 #define CHOICE_RecvResult_error 2
 
+#define CHOICE_DecodeResult_string  0
+#define CHOICE_DecodeResult_error   1
+
 #endif

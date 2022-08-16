@@ -30,7 +30,7 @@ public class Array extends java.util.ArrayList {
         checkIndex(index);
         int i = index.intValue();
         if (i >= size()) {
-            throw new NeonException("ArrayIndexException", index.toString());
+            throw new NeonException("PANIC", "Array index exceeds size " + size() + ": " + index.toString());
         }
         return super.get(i);
     }
@@ -70,10 +70,10 @@ public class Array extends java.util.ArrayList {
 
     private void checkIndex(Number index) {
         if (!index.isInteger()) {
-            throw new NeonException("ArrayIndexException", index.toString());
+            throw new NeonException("PANIC", "Array index not an integer: " + index.toString());
         }
         if (index.isNegative()) {
-            throw new NeonException("ArrayIndexException", index.toString());
+            throw new NeonException("PANIC", "Array index is negative: " + index.toString());
         }
     }
 

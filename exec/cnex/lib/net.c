@@ -143,6 +143,7 @@ void net_socket_bind(TExecutor *exec)
     if (r < 0) {
         // ToDo: Raise exception here?
         perror("bind");
+        goto bail;
     }
 
 bail:
@@ -195,6 +196,7 @@ void net_socket_connect(TExecutor *exec)
     if (r < 0) {
         // ToDo: Raise exception here?
         perror("connect");
+        goto bail;
     }
 
 bail:

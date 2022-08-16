@@ -276,17 +276,17 @@ for fn in sys.argv[1:]:
                         AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)
                         AstFromNeon["OUT "+name] = ("TYPE_GENERIC", OUT)
                 elif a[:3] == ["DECLARE", "NATIVE", "FUNCTION"]:
-                    m = re.search(r"(\w+)\((.*?)\)(:\s*(\S+))?\s*$", s)
+                    m = re.search(r"((\w+)\.)?(\w+)\((.*?)\)(:\s*(\S+))?\s*$", s)
                     assert m is not None
-                    name = prefix + m.group(1)
-                    paramstr = m.group(2)
-                    rtype = m.group(4)
+                    name = prefix + (m.group(2) + "__" if m.group(1) else "") + m.group(3)
+                    paramstr = m.group(4)
+                    rtype = m.group(6)
                     params, variadic = parse_params(paramstr)
                     functions[name] = [
                         name,
                         AstFromNeon[rtype],
                         rtype.split()[-1] if rtype is not None else None,
-                        name in exported,
+                        name in exported or prefix == "builtin$",
                         [AstFromNeon[x[0]] for x in params],
                         [x[0].split()[-1] for x in params],
                         [x[1] for x in params],
@@ -465,7 +465,7 @@ with open("gen/functions_compile.inc", "w") as inc:
     for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
         print("    BuiltinFunctions[{}] = {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}, {}}};".format(
             bfi,
-            name.replace("global$", ""),
+            name,
             "ast::"+rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr",
             "\"{}\"".format(rtypename) or "nullptr",
             "true" if exported else "false",
@@ -494,7 +494,7 @@ with open("gen/functions_compile_jvm.inc", "w") as inc:
             # Recover the original class name so the native function can return the right type.
             rettype = "Lneon/lib/{}${};".format(name.split("$")[0], rtypename)
         print("    {{\"{}\", \"{}\", \"{}\", \"{}\"}},".format(
-            name.replace("global$", ""),
+            name,
             "neon/{}".format(module.title()),
             function,
             "(" + "".join(JvmFromAst[(p, m)] for (p, m), t, n in zip(params, paramtypes, paramnames)) + ")" + ("[Ljava/lang/Object;" if any(x[1] == REF for x in params) else rettype)
@@ -521,7 +521,7 @@ with open("gen/functions_exec.inc", "w") as inc:
     print("    void *func;", file=inc)
     print("} BuiltinFunctions[] = {", file=inc)
     for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
-        print("    {{\"{}\", {}, reinterpret_cast<void *>(rtl::ne_{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name]), file=inc)
+        print("    {{\"{}\", {}, reinterpret_cast<void *>(rtl::ne_{})}},".format(name, "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name]), file=inc)
     print("};", file=inc)
 
 with open("gen/enums.inc", "w") as inc:
@@ -543,9 +543,4 @@ with open("gen/exceptions.inc", "w") as inc:
     for prefix, name in exceptions:
         print("namespace ne_{} {{ static const ExceptionName Exception_{} = {{\"{}\", {{{}NULL}}}}; }}".format(prefix[:-1], name.replace(".", "_"), name, "".join("\"{}\", ".format(e[1].split(".")[-1]) for e in exceptions if e[1].startswith(name+"."))), file=inc)
     print("", file=inc)
-    print("static const ExceptionName ExceptionNames[] = {", file=inc)
-    for prefix, name in exceptions:
-        if prefix == "global$":
-            print("    ne_global::Exception_{},".format(name.replace(".", "_")), file=inc)
-    print("};", file=inc)
     print("}", file=inc)

@@ -1,13 +1,15 @@
+EXCEPTION TestException
+
 FUNCTION bar(n: Number): Number
     IF n > 0 THEN
         RETURN n
     ELSE
-        RAISE ValueRangeException
+        RAISE TestException
     END IF
 END FUNCTION
 
 FUNCTION foo1(n: Number)
-    LET x: Number := (TRY bar(n) TRAP ValueRangeException DO
+    LET x: Number := (TRY bar(n) TRAP TestException DO
         print("exception")
         EXIT FUNCTION
     )
@@ -15,7 +17,7 @@ FUNCTION foo1(n: Number)
 END FUNCTION
 
 --FUNCTION foo2(n: Number): Number
---    LET x: Number := (TRY bar(n) TRAP ValueRangeException GIVES 0)
+--    LET x: Number := (TRY bar(n) TRAP TestException GIVES 0)
 --    RETURN x
 --END FUNCTION
 
@@ -24,9 +26,9 @@ foo1(5)
 foo1(-1)
 --= exception
 
-LET a: Array<Number> := [1]
-LET b: Number := (TRY a[1.5] TRAP ArrayIndexException GIVES 9999)
-TESTCASE b = 9999
+--LET a: Array<Number> := [1]
+--LET b: Number := (TRY a[1.5] TRAP ArrayIndexException GIVES 9999)
+--TESTCASE b = 9999
 
 --print(str(foo2(5)))
 --#= 5

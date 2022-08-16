@@ -2,7 +2,7 @@ IMPORT json
 
 FUNCTION decode(t: String): Object
     LET r := json.decode(t)
-    CHECK r ISA json.DecodeResult.data ELSE
+    CHECK r ISA json.JsonResult.data ELSE
         RAISE TestFailedException
     END CHECK
     RETURN r.data

@@ -100,10 +100,10 @@ void write(const std::shared_ptr<Object> &pf, Number offset, const std::vector<u
     MmapObject *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(""));
+        throw PanicException(utf8string("Offset is greater than mapped size " + std::to_string(f->len) + ": " + std::to_string(o)));
     }
     if (o + data.size() > f->len) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(""));
+        throw PanicException(utf8string("Amount of data to write exceeds mapped size " + std::to_string(f->len) + ": " + std::to_string(data.size())));
     }
     memcpy(f->view + o, data.data(), data.size());
 }

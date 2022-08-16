@@ -1,4 +1,2 @@
 VAR a: Array<Number> := []
-a[1.5] := 1
-
---! ArrayIndexException (1.5)
+TESTCASE a[1.5] EXPECT PANIC "Array index not an integer: 1.5"

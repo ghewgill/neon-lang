@@ -14,7 +14,7 @@ CHECK license ISA io.OpenResult.file ELSE
 END CHECK
 VAR f: io.File := license.file
 io.seek(f, 4, io.SeekBase.absolute)
-print(io.readBytes(f, 5).decodeToString())
+print(io.readBytes(f, 5).decodeUTF8().expectString())
 --= MIT L
 print(str(io.tell(f)))
 --= 9

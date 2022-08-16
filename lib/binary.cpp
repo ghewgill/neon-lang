@@ -73,20 +73,20 @@ const Number traits<uint64_t>::MAX = traits<uint64_t>::to_number(std::numeric_li
 template <typename T> void range_check(Number x)
 {
     if (number_is_less(x, traits<T>::MIN) || number_is_greater(x, traits<T>::MAX)) {
-        throw RtlException(rtl::ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
+        throw PanicException(utf8string("Range of argument is not between " + number_to_string(traits<T>::MIN) + " and " + number_to_string(traits<T>::MAX) + ": " + number_to_string(x)));
     }
     if (not number_is_integer(x)) {
-        throw RtlException(rtl::ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
+        throw PanicException(utf8string("Argument is not an integer: " + number_to_string(x)));
     }
 }
 
 template <typename T> void index_range_check(Number x)
 {
     if (number_is_less(x, number_from_uint32(0)) || number_is_greater(x, number_from_uint32(traits<T>::BITS))) {
-        throw RtlException(rtl::ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
+        throw PanicException(utf8string("Index is out of max range " + std::to_string(traits<T>::BITS) + ": " + number_to_string(x)));
     }
     if (not number_is_integer(x)) {
-        throw RtlException(rtl::ne_global::Exception_ValueRangeException, utf8string(number_to_string(x)));
+        throw PanicException(utf8string("Index is not an integer: " + number_to_string(x)));
     }
 }
 
@@ -252,7 +252,7 @@ Number xor64(Number x, Number y)                            { return binary_xor<
 std::vector<unsigned char> andBytes(const std::vector<unsigned char> &x, const std::vector<unsigned char> &y)
 {
     if (x.size() != y.size()) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(""));
+        throw PanicException(utf8string("Lengths of operands are not the same"));
     }
     std::vector<unsigned char> r;
     r.resize(x.size());
@@ -284,7 +284,7 @@ std::vector<unsigned char> notBytes(const std::vector<unsigned char> &x)
 std::vector<unsigned char> orBytes(const std::vector<unsigned char> &x, const std::vector<unsigned char> &y)
 {
     if (x.size() != y.size()) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(""));
+        throw PanicException(utf8string("Lengths of operands are not the same"));
     }
     std::vector<unsigned char> r;
     r.resize(x.size());
@@ -297,7 +297,7 @@ std::vector<unsigned char> orBytes(const std::vector<unsigned char> &x, const st
 std::vector<unsigned char> xorBytes(const std::vector<unsigned char> &x, const std::vector<unsigned char> &y)
 {
     if (x.size() != y.size()) {
-        throw RtlException(ne_global::Exception_ValueRangeException, utf8string(""));
+        throw PanicException(utf8string("Lengths of operands are not the same"));
     }
     std::vector<unsigned char> r;
     r.resize(x.size());

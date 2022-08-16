@@ -1049,7 +1049,7 @@ public:
     const Expression *right;
 
     virtual void generate(Context &context) const override {
-        context.out << "neon.global.divide(";
+        context.out << "neon.builtin.divide(";
         left->generate(context);
         context.out << ", ";
         right->generate(context);
@@ -1886,11 +1886,7 @@ public:
     virtual void generate_decl(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate(Context &context) const override {
         auto dollar = pf->name.find('$');
-        if (dollar != std::string::npos) {
-            context.out << "neon::" << pf->name.substr(0, dollar) << "." << pf->name.substr(dollar+1);
-        } else {
-            context.out << "neon::global::" << pf->name;
-        }
+        context.out << "neon::" << pf->name.substr(0, dollar) << "::" << pf->name.substr(dollar+1);
     }
 };
 

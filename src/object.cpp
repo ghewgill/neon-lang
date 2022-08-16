@@ -44,7 +44,7 @@ bool ObjectArray::subscript(std::shared_ptr<Object> index, std::shared_ptr<Objec
     }
     uint64_t ii = number_to_uint64(i);
     if (ii >= a.size()) {
-        throw RtlException(rtl::ne_global::Exception_ArrayIndexException, utf8string(number_to_string(i)));
+        throw PanicException(utf8string("Array index exceeds size " + std::to_string(a.size()) + ": " + number_to_string(i)));
     }
     r = a.at(ii);
     return true;

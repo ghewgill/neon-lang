@@ -366,7 +366,7 @@ func (obj objectArray) subscript(index object) (object, error) {
 		if int(i) < len(obj.array) {
 			return obj.array[int(i)], nil
 		} else {
-			return nil, &neonexception{"ArrayIndexException", objectString{fmt.Sprintf("%g", i)}}
+			return nil, &neonexception{"PANIC", objectString{fmt.Sprintf("Array index exceeds size %d: %g", len(obj.array), i)}}
 		}
 	} else {
 		return nil, &neonexception{"DynamicConversionException", objectString{"to Number"}}
@@ -1062,6 +1062,7 @@ func (self *executor) run() {
 		self.invoke(m, 0)
 	}
 	for self.ip < len(self.module.object.code) {
+		//fmt.Fprintf(os.Stderr, "ip %d\n", self.ip)
 		switch self.module.object.code[self.ip] {
 		case PUSHB:
 			self.op_pushb()
@@ -1308,8 +1309,14 @@ func (self *executor) op_pushpg() {
 
 func (self *executor) op_pushppg() {
 	self.ip++
-	name := get_vint(self.module.object.code, &self.ip)
-	self.push(make_cell_addr(self.predefined_globals[string(self.module.object.strtable[name])]))
+	index := get_vint(self.module.object.code, &self.ip)
+	name := string(self.module.object.strtable[index])
+	value, exists := self.predefined_globals[name]
+	if exists {
+		self.push(make_cell_addr(value))
+	} else {
+		panic("predefined global not found: " + name)
+	}
 }
 
 func (self *executor) op_pushpmg() {
@@ -1754,16 +1761,16 @@ func (self *executor) op_indexar() {
 	ref := self.pop().ref
 	a := ref.load().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index not an integer: %g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index is negative: %g", nindex)})
 		return
 	}
 	index := int(nindex)
 	if index >= len(a) {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index exceeds size %d: %g", len(a), nindex)})
 		return
 	}
 	self.push(make_cell_addr(&a[index]))
@@ -1775,11 +1782,11 @@ func (self *executor) op_indexaw() {
 	ref := self.pop().ref
 	a := ref.load().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index not an integer: %g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index is negative: %g", nindex)})
 		return
 	}
 	index := int(nindex)
@@ -1795,11 +1802,11 @@ func (self *executor) op_indexav() {
 	nindex := self.pop().num
 	a := self.pop().array
 	if math.Trunc(nindex) != nindex {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index not an integer: %g", nindex)})
 		return
 	}
 	if nindex < 0 {
-		self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nindex)})
+		self.raise_literal("PANIC", objectString{fmt.Sprintf("Array index is negative: %g", nindex)})
 		return
 	}
 	index := int(nindex)
@@ -1822,7 +1829,7 @@ func (self *executor) op_indexdr() {
 	key := self.pop().str
 	ref := self.pop().ref
 	if _, present := ref.load().dict[key]; !present {
-		self.raise_literal("DictionaryIndexException", objectString{key})
+		self.raise_literal("PANIC", objectString{"Dictionary key not found: " + key})
 		return
 	}
 	self.push(make_cell_ref(referenceDictionary{ref, key}))
@@ -1868,23 +1875,23 @@ func (self *executor) op_callp() {
 	val := get_vint(self.module.object.code, &self.ip)
 	name := string(self.module.object.strtable[val])
 	switch name {
-	case "array__append":
+	case "builtin$array__append":
 		e := self.pop()
 		r := self.pop().ref
 		a := r.load()
 		a.array = append(a.array, e)
 		r.store(a)
-	case "array__concat":
+	case "builtin$array__concat":
 		b := self.pop().array
 		a := self.pop().array
 		self.push(make_cell_array(append(a, b...)))
-	case "array__extend":
+	case "builtin$array__extend":
 		b := self.pop().array
 		r := self.pop().ref
 		a := r.load()
 		a.array = append(a.array, b...)
 		r.store(a)
-	case "array__find":
+	case "builtin$array__find":
 		e := self.pop()
 		a := self.pop().array
 		found := false
@@ -1896,14 +1903,14 @@ func (self *executor) op_callp() {
 			}
 		}
 		if !found {
-			self.raise_literal("ArrayIndexException", objectString{"value not found in array"})
+			self.raise_literal("PANIC", objectString{"value not found in array"})
 		}
-	case "array__range":
+	case "builtin$array__range":
 		step := self.pop().num
 		last := self.pop().num
 		first := self.pop().num
 		if step == 0 {
-			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("%g", step)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("%g", step)})
 		} else {
 			r := []cell{}
 			if step < 0 {
@@ -1917,10 +1924,10 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_array(r))
 		}
-	case "array__remove":
+	case "builtin$array__remove":
 		index := self.pop().num
 		if index != math.Trunc(index) || index < 0 {
-			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", index)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Invalid array index: %g", index)})
 		} else {
 			index := int(index)
 			r := self.pop().ref
@@ -1928,10 +1935,10 @@ func (self *executor) op_callp() {
 			a = append(a[:index], a[index+1:]...)
 			r.store(make_cell_array(a))
 		}
-	case "array__resize":
+	case "builtin$array__resize":
 		size := self.pop().num
 		if size != math.Trunc(size) || size < 0 {
-			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", size)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Invalid array size: %g", size)})
 		} else {
 			size := int(size)
 			r := self.pop().ref
@@ -1945,26 +1952,26 @@ func (self *executor) op_callp() {
 			}
 			r.store(make_cell_array(a))
 		}
-	case "array__reversed":
+	case "builtin$array__reversed":
 		a := self.pop().array
 		r := make([]cell, len(a))
 		for i, x := range a {
 			r[len(a)-1-i] = x
 		}
 		self.push(make_cell_array(r))
-	case "array__size":
+	case "builtin$array__size":
 		a := self.pop().array
 		self.push(make_cell_num(float64(len(a))))
-	case "array__slice":
+	case "builtin$array__slice":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num
 		first_from_end := self.pop().bool
 		nfirst := self.pop().num
 		a := self.pop().array
 		if nfirst != math.Trunc(nfirst) {
-			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("First index not an integer: %g", nfirst)})
 		} else if nlast != math.Trunc(nlast) {
-			self.raise_literal("ArrayIndexException", objectString{fmt.Sprintf("%g", nlast)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Last index not an integer: %g", nlast)})
 		} else {
 			first := int(nfirst)
 			last := int(nlast)
@@ -1991,7 +1998,7 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_array(a[first : last+1]))
 		}
-	case "array__splice":
+	case "builtin$array__splice":
 		last_from_end := self.pop().bool
 		last := int(self.pop().num)
 		first_from_end := self.pop().bool
@@ -2021,7 +2028,7 @@ func (self *executor) op_callp() {
 		r = append(r, b...)
 		r = append(r, a[last+1:]...)
 		self.push(make_cell_array(r))
-	case "array__toBytes__number":
+	case "builtin$array__toBytes__number":
 		a := self.pop().array
 		b := make([]byte, len(a))
 		failed := false
@@ -2037,7 +2044,7 @@ func (self *executor) op_callp() {
 		if !failed {
 			self.push(make_cell_bytes(b))
 		}
-	case "array__toString__number":
+	case "builtin$array__toString__number":
 		a := self.pop().array
 		r := "["
 		first := true
@@ -2051,7 +2058,7 @@ func (self *executor) op_callp() {
 		}
 		r += "]"
 		self.push(make_cell_str(r))
-	case "array__toString__object":
+	case "builtin$array__toString__object":
 		a := self.pop().array
 		r := "["
 		for i, x := range a {
@@ -2062,7 +2069,7 @@ func (self *executor) op_callp() {
 		}
 		r += "]"
 		self.push(make_cell_str(r))
-	case "array__toString__string":
+	case "builtin$array__toString__string":
 		a := self.pop().array
 		r := "["
 		for i, x := range a {
@@ -2166,13 +2173,13 @@ func (self *executor) op_callp() {
 			r[i] = a[i] ^ b[i]
 		}
 		self.push(make_cell_bytes(r))
-	case "bytes__append":
+	case "builtin$bytes__append":
 		b := self.pop().bytes
 		ar := self.pop().ref
 		a := ar.load()
 		a.bytes = append(a.bytes, b...)
 		ar.store(a)
-	case "bytes__concat":
+	case "builtin$bytes__concat":
 		b := self.pop().bytes
 		a := self.pop().bytes
 		r := make([]byte, len(a)+len(b))
@@ -2183,32 +2190,34 @@ func (self *executor) op_callp() {
 			r[len(a)+i] = b[i]
 		}
 		self.push(make_cell_bytes(r))
-	case "bytes__decodeToString":
+	case "global$Bytes__decodeUTF8":
 		b := self.pop().bytes
-		self.push(make_cell_str(string(b)))
-	case "bytes__index":
+		self.push(make_cell_array([]cell{make_cell_num(0), make_cell_str(string(b))}))
+	case "builtin$bytes__index":
 		nindex := self.pop().num
 		b := self.pop().bytes
 		if nindex != math.Trunc(nindex) {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nindex)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Bytes index not an integer: %g", nindex)})
 		} else {
 			index := int(nindex)
-			if index < 0 || index >= len(b) {
-				self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", index)})
+			if index < 0 {
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("Bytes index is negative: %d", index)})
+			} else if index >= len(b) {
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("Bytes index exceeds size %d: %d", len(b), index)})
 			} else {
 				self.push(make_cell_num(float64(b[index])))
 			}
 		}
-	case "bytes__range":
+	case "builtin$bytes__range":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num
 		first_from_end := self.pop().bool
 		nfirst := self.pop().num
 		b := self.pop().bytes
 		if nfirst != math.Trunc(nfirst) {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("First index not an integer: %g", nfirst)})
 		} else if nlast != math.Trunc(nlast) {
-			self.raise_literal("BytesIndexException", objectString{fmt.Sprintf("%g", nlast)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Last index not an integer: %g", nlast)})
 		} else {
 			first := int(nfirst)
 			last := int(nlast)
@@ -2234,10 +2243,10 @@ func (self *executor) op_callp() {
 				self.push(make_cell_bytes(b[first : last+1]))
 			}
 		}
-	case "bytes__size":
+	case "builtin$bytes__size":
 		b := self.pop().bytes
 		self.push(make_cell_num(float64(len(b))))
-	case "bytes__splice":
+	case "builtin$bytes__splice":
 		last_from_end := self.pop().bool
 		last := int(self.pop().num)
 		first_from_end := self.pop().bool
@@ -2251,21 +2260,21 @@ func (self *executor) op_callp() {
 			last += len(b) - 1
 		}
 		self.push(make_cell_bytes(append(b[:first], append(t, b[last+1:]...)...)))
-	case "bytes__store":
+	case "builtin$bytes__store":
 		index := int(self.pop().num)
 		r := self.pop().ref
 		b := r.load()
 		c := int(self.pop().num)
 		b.bytes[index] = byte(c)
 		r.store(b)
-	case "bytes__toArray":
+	case "builtin$bytes__toArray":
 		b := self.pop().bytes
 		a := make([]cell, len(b))
 		for i, x := range b {
 			a[i] = make_cell_num(float64(x))
 		}
 		self.push(make_cell_array(a))
-	case "bytes__toString":
+	case "builtin$bytes__toString":
 		b := self.pop().bytes
 		s := "HEXBYTES \""
 		for i, x := range b {
@@ -2289,7 +2298,7 @@ func (self *executor) op_callp() {
 			self.push(make_cell_bool(false))
 			self.push(make_cell_none())
 		}
-	case "dictionary__keys":
+	case "builtin$dictionary__keys":
 		d := self.pop().dict
 		i := 0
 		keys := make([]string, len(d))
@@ -2303,12 +2312,12 @@ func (self *executor) op_callp() {
 			ckeys[i] = make_cell_str(k)
 		}
 		self.push(make_cell_array(ckeys))
-	case "dictionary__remove":
+	case "builtin$dictionary__remove":
 		key := self.pop().str
 		r := self.pop().ref
 		d := r.load().dict
 		delete(d, key)
-	case "dictionary__toString__object":
+	case "builtin$dictionary__toString__object":
 		d := self.pop().dict
 		r := "{"
 		keys := []string{}
@@ -2326,7 +2335,7 @@ func (self *executor) op_callp() {
 		}
 		r += "}"
 		self.push(make_cell_str(r))
-	case "dictionary__toString__string":
+	case "builtin$dictionary__toString__string":
 		d := self.pop().dict
 		r := "{"
 		keys := []string{}
@@ -2344,9 +2353,6 @@ func (self *executor) op_callp() {
 		}
 		r += "}"
 		self.push(make_cell_str(r))
-	case "exceptiontype__toString":
-		et := self.pop().array
-		self.push(make_cell_str(fmt.Sprintf("<ExceptionType:%s,%s,%v>", et[0].str, et[1].obj.toString(), et[2].num)))
 	case "file$_CONSTANT_Separator":
 		self.push(make_cell_str(string(os.PathSeparator)))
 	case "file$copy":
@@ -2601,7 +2607,7 @@ func (self *executor) op_callp() {
 	case "math$odd":
 		n := self.pop().num
 		if n != math.Trunc(n) {
-			self.raise_literal("ValueRangeException", objectString{"odd() requires integer"})
+			self.raise_literal("PANIC", objectString{"odd() requires integer"})
 		} else {
 			self.push(make_cell_bool((int(n) & 1) != 0))
 		}
@@ -2634,15 +2640,15 @@ func (self *executor) op_callp() {
 	case "math$trunc":
 		x := self.pop().num
 		self.push(make_cell_num(math.Trunc(x)))
-	case "num":
+	case "global$num":
 		s := self.pop().str
 		n, err := strconv.ParseFloat(s, 64)
 		if err == nil {
 			self.push(make_cell_num(n))
 		} else {
-			self.raise_literal("ValueRangeException", objectString{"num() argument not a number"})
+			self.raise_literal("PANIC", objectString{"num() argument not a number"})
 		}
-	case "object__invokeMethod":
+	case "builtin$object__invokeMethod":
 		args := self.pop().array
 		name := self.pop().str
 		o := self.pop().obj
@@ -2696,42 +2702,42 @@ func (self *executor) op_callp() {
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"object does not support method calls"})
 		}
-	case "object__isNull":
+	case "builtin$object__isNull":
 		o := self.pop().obj
 		if o == nil {
 			self.push(make_cell_bool(true))
 		} else {
 			self.push(make_cell_bool(false))
 		}
-	case "object__getBoolean":
+	case "builtin$object__getBoolean":
 		o := self.pop().obj
 		if b, err := o.getBoolean(); err == nil {
 			self.push(make_cell_bool(b))
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Boolean"})
 		}
-	case "object__getNumber":
+	case "builtin$object__getNumber":
 		o := self.pop().obj
 		if n, err := o.getNumber(); err == nil {
 			self.push(make_cell_num(n))
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Number"})
 		}
-	case "object__getString":
+	case "builtin$object__getString":
 		o := self.pop().obj
 		if s, err := o.getString(); err == nil {
 			self.push(make_cell_str(s))
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to String"})
 		}
-	case "object__getBytes":
+	case "builtin$object__getBytes":
 		o := self.pop().obj
 		if s, err := o.getBytes(); err == nil {
 			self.push(make_cell_bytes(s))
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Bytes"})
 		}
-	case "object__getArray":
+	case "builtin$object__getArray":
 		o := self.pop().obj
 		if a, err := o.getArray(); err == nil {
 			b := make([]cell, len(a))
@@ -2742,7 +2748,7 @@ func (self *executor) op_callp() {
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Array"})
 		}
-	case "object__getDictionary":
+	case "builtin$object__getDictionary":
 		o := self.pop().obj
 		if d, err := o.getDictionary(); err == nil {
 			b := make(map[string]cell)
@@ -2753,35 +2759,35 @@ func (self *executor) op_callp() {
 		} else {
 			self.raise_literal("DynamicConversionException", objectString{"to Dictionary"})
 		}
-	case "object__makeNull":
+	case "builtin$object__makeNull":
 		self.push(make_cell_obj(nil))
-	case "object__makeBoolean":
+	case "builtin$object__makeBoolean":
 		b := self.pop().bool
 		self.push(make_cell_obj(objectBoolean{b}))
-	case "object__makeNumber":
+	case "builtin$object__makeNumber":
 		n := self.pop().num
 		self.push(make_cell_obj(objectNumber{n}))
-	case "object__makeString":
+	case "builtin$object__makeString":
 		s := self.pop().str
 		self.push(make_cell_obj(objectString{s}))
-	case "object__makeBytes":
+	case "builtin$object__makeBytes":
 		b := self.pop().bytes
 		self.push(make_cell_obj(objectBytes{b}))
-	case "object__makeArray":
+	case "builtin$object__makeArray":
 		a := self.pop().array
 		b := make([]object, len(a))
 		for i, x := range a {
 			b[i] = x.obj
 		}
 		self.push(make_cell_obj(objectArray{b}))
-	case "object__makeDictionary":
+	case "builtin$object__makeDictionary":
 		d := self.pop().dict
 		b := make(map[string]object)
 		for k, x := range d {
 			b[k] = x.obj
 		}
 		self.push(make_cell_obj(objectDictionary{b}))
-	case "object__subscript":
+	case "builtin$object__subscript":
 		i := self.pop().obj
 		o := self.pop().obj
 		if o == nil {
@@ -2797,7 +2803,7 @@ func (self *executor) op_callp() {
 				self.raise_literal("ObjectSubscriptException", objectString{i.toString()})
 			}
 		}
-	case "object__toString":
+	case "builtin$object__toString":
 		o := self.pop().obj
 		if o != nil {
 			self.push(make_cell_str(o.toString()))
@@ -2837,10 +2843,10 @@ func (self *executor) op_callp() {
 		} else {
 			self.push(make_cell_num(0))
 		}
-	case "pointer__toString":
+	case "builtin$pointer__toString":
 		p := self.pop().ref.(referenceDirect).addr
 		self.push(make_cell_str(fmt.Sprintf("<p:%p>", p)))
-	case "print":
+	case "global$print":
 		x := self.pop()
 		if x.obj != nil {
 			fmt.Println(x.obj.toString())
@@ -2863,10 +2869,10 @@ func (self *executor) op_callp() {
 		self.push(make_cell_bool(self.module == self.modules[""]))
 	case "runtime$setRecursionLimit":
 		self.param_recursion_limit = int(self.pop().num)
-	case "str", "number__toString":
+	case "global$str", "builtin$number__toString":
 		n := self.pop().num
 		self.push(make_cell_str(fmt.Sprintf("%v", n)))
-	case "boolean__toString":
+	case "builtin$boolean__toString":
 		b := self.pop().bool
 		if b {
 			self.push(make_cell_str("TRUE"))
@@ -2885,9 +2891,9 @@ func (self *executor) op_callp() {
 	case "string$fromCodePoint":
 		c := self.pop().num
 		if c != math.Trunc(c) {
-			self.raise_literal("ValueRangeException", objectString{"fromCodePoint() argument not an integer"})
+			self.raise_literal("PANIC", objectString{"fromCodePoint() argument not an integer"})
 		} else if c < 0 || c > 0x10ffff {
-			self.raise_literal("ValueRangeException", objectString{"fromCodePoint() argument out of range 0-0x10ffff"})
+			self.raise_literal("PANIC", objectString{"fromCodePoint() argument out of range 0-0x10ffff"})
 		} else {
 			self.push(make_cell_str(string([]byte{byte(c)})))
 		}
@@ -2929,7 +2935,7 @@ func (self *executor) op_callp() {
 	case "string$toCodePoint":
 		s := self.pop().str
 		if len(s) != 1 {
-			self.raise_literal("StringIndexException", objectString{"toCodePoint() requires string of length 1"})
+			self.raise_literal("PANIC", objectString{"toCodePoint() requires string of length 1"})
 		} else {
 			self.push(make_cell_num(float64(s[0])))
 		}
@@ -2941,35 +2947,35 @@ func (self *executor) op_callp() {
 	case "string$upper":
 		s := self.pop().str
 		self.push(make_cell_str(strings.ToUpper(s)))
-	case "string__append":
+	case "builtin$string__append":
 		t := self.pop().str
 		r := self.pop().ref
 		s := r.load()
 		s.str = s.str + t
 		r.store(s)
-	case "string__concat":
+	case "builtin$string__concat":
 		b := self.pop().str
 		a := self.pop().str
 		self.push(make_cell_str(a + b))
-	case "string__index":
+	case "builtin$string__index":
 		nindex := self.pop().num
 		s := self.pop().str
 		if nindex != math.Trunc(nindex) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", nindex)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("String index not an integer: %v", nindex)})
 		} else {
 			index := int(nindex)
 			if index < 0 {
-				self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("String index is negative: %v", index)})
 			} else if index >= len(s) {
-				self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%v", index)})
+				self.raise_literal("PANIC", objectString{fmt.Sprintf("String index exceeds length %v: %v", len(s), index)})
 			} else {
 				self.push(make_cell_str(s[index : index+1]))
 			}
 		}
-	case "string__length":
+	case "builtin$string__length":
 		s := self.pop().str
 		self.push(make_cell_num(float64(len(s))))
-	case "string__splice":
+	case "builtin$string__splice":
 		last_from_end := self.pop().bool
 		last := int(self.pop().num)
 		first_from_end := self.pop().bool
@@ -2983,9 +2989,9 @@ func (self *executor) op_callp() {
 			last += len(s) - 1
 		}
 		if first < 0 {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", first)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("First index is negative: %d", first)})
 		} else if last < first-1 {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", last)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Last index is less than first %d: %d", first, last)})
 		} else {
 			padding := ""
 			if first > len(s) {
@@ -2997,16 +3003,16 @@ func (self *executor) op_callp() {
 			}
 			self.push(make_cell_str(s[:first] + padding + t + s[last+1:]))
 		}
-	case "string__substring":
+	case "builtin$string__substring":
 		last_from_end := self.pop().bool
 		nlast := self.pop().num
 		first_from_end := self.pop().bool
 		nfirst := self.pop().num
 		s := self.pop().str
 		if nfirst != math.Trunc(nfirst) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", nfirst)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("First index not an integer: %g", nfirst)})
 		} else if nlast != math.Trunc(nlast) {
-			self.raise_literal("StringIndexException", objectString{fmt.Sprintf("%g", nlast)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("Last index not an integer: %g", nlast)})
 		} else {
 			first := int(nfirst)
 			last := int(nlast)
@@ -3032,18 +3038,18 @@ func (self *executor) op_callp() {
 				self.push(make_cell_str(s[first : last+1]))
 			}
 		}
-	case "string__toBytes":
+	case "builtin$string__encodeUTF8":
 		s := self.pop().str
 		self.push(make_cell_bytes([]byte(s)))
-	case "string__toString":
+	case "builtin$string__toString":
 		s := self.pop().str
 		self.push(make_cell_str(s))
 	case "sys$exit":
 		n := self.pop().num
 		if n != math.Trunc(n) {
-			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else if n < 0 || n > 255 {
-			self.raise_literal("ValueRangeException", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
+			self.raise_literal("PANIC", objectString{fmt.Sprintf("sys.exit invalid parameter: %g", n)})
 		} else {
 			os.Exit(int(n))
 		}

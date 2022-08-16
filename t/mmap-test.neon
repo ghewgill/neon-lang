@@ -5,5 +5,5 @@ CHECK r ISA mmap.OpenResult.file ELSE
     RAISE TestFailedException
 END CHECK
 VAR f: mmap.MemoryFile := r.file
-TESTCASE mmap.read(f, 0, 21).decodeToString() = "The MIT License (MIT)"
+TESTCASE mmap.read(f, 0, 21).decodeUTF8().expectString() = "The MIT License (MIT)"
 mmap.close(f)

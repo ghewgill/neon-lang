@@ -45,6 +45,7 @@ namespace csnex
             exit_code = 0;
             stack = new Stack<Cell>();
             callstack = new Stack<CallStack>();
+            builtin = new Builtin(this);
             global = new Global(this);
             modules = new Dictionary<string, Module>();
             init_order = new List<string>();
@@ -86,6 +87,7 @@ namespace csnex
         public bool enable_assert;
         public bool enable_debug;
         private int ip;
+        private Builtin builtin;
         private Global global;
         public Int32 param_recursion_limit;
         private Stack<ActivationFrame> frames;
@@ -758,17 +760,17 @@ namespace csnex
             Cell addr = stack.Pop().Address;
 
             if (!index.IsInteger()) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index not an integer: " + index.ToString());
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index is negative: " + index.ToString());
                 return;
             }
 
             if (i >= addr.Array.Count) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index exceeds size " + addr.Array.Count.ToString() + ": " + index.ToString());
                 return;
             }
             stack.Push(Cell.CreateAddressCell(addr.ArrayIndexForRead(i)));
@@ -781,12 +783,12 @@ namespace csnex
             Cell addr = stack.Pop().Address;
 
             if (!index.IsInteger()) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index not an integer: " + index.ToString());
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                Raise("ArrayIndexException", index.ToString());
+                Raise("PANIC", "Array index is negative: " + index.ToString());
                 return;
             }
             stack.Push(Cell.CreateAddressCell(addr.ArrayIndexForWrite(i)));
@@ -799,17 +801,17 @@ namespace csnex
             Cell array = stack.Pop();
 
             if (!index.IsInteger()) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(index.ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index not an integer: " + index.ToString()));
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(i).ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index is negative: " + new Number(i).ToString()));
                 return;
             }
             uint j = (uint)i;
             if (j >= array.Array.Count) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(j).ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index exceeds size " + array.Array.Count.ToString() + ": " + new Number(j).ToString()));
                 return;
             }
             Debug.Assert(j < array.Array.Count);
@@ -823,12 +825,12 @@ namespace csnex
             Cell array = stack.Pop();
 
             if (!index.IsInteger()) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(index.ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index not an integer: " + index.ToString()));
                 return;
             }
             int i = Number.number_to_int32(index);
             if (i < 0 || i >= array.Array.Count) {
-                RaiseLiteral("ArrayIndexException", Cell.CreateStringCell(new Number(i).ToString()));
+                RaiseLiteral("PANIC", Cell.CreateStringCell("Array index exceeds size " + array.Array.Count.ToString() + ": " + new Number(i).ToString()));
                 return;
             }
 
@@ -842,7 +844,7 @@ namespace csnex
             string index = stack.Pop().String;
             Cell addr = stack.Pop().Address;
             if (!addr.Dictionary.ContainsKey(index)) {
-                Raise("DictionaryIndexException", index);
+                Raise("PANIC", "Dictionary key not found: " + index);
                 return;
             }
             stack.Push(Cell.CreateAddressCell(addr.DictionaryIndexForRead(index)));
@@ -864,7 +866,7 @@ namespace csnex
 
             Cell val = dictionary.Dictionary[index];
             if (val == null) {
-                Raise("DictionaryIndexException", index);
+                Raise("PANIC", "Dictionary key not found: " + index);
                 return;
             }
 
@@ -902,13 +904,22 @@ namespace csnex
             int val = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
             string func = module.Bytecode.strtable[val];
             try {
-                if (func.IndexOf('$') > 0) {
+                if (func.StartsWith("builtin$")) {
+                    // Call a builtin function
+                    MethodInfo mi = builtin.GetType().GetMethod(func.Substring(func.IndexOf('$')+1));
+                    mi.Invoke(builtin, null);
+                } else if (func.StartsWith("global$")) {
+                    // Call a global function
+                    MethodInfo mi = global.GetType().GetMethod(func.Substring(func.IndexOf('$')+1));
+                    mi.Invoke(global, null);
+                } else if (func.IndexOf('$') > 0) {
                     // Call a module function from our csnex.rtl namspace
                     object lib = library.Find(a => a.Key == func.Substring(0, func.IndexOf('$'))).Value;
                     MethodInfo mi = lib.GetType().GetMethod(func.Substring(func.IndexOf('$')+1));
                     mi.Invoke(lib, null);
                 } else {
                     // Call a global function
+                    // This code path is now unused
                     MethodInfo mi = global.GetType().GetMethod(func);
                     mi.Invoke(global, null);
                 }

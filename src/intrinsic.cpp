@@ -16,19 +16,14 @@ namespace ne_global {
 utf8string chr(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(Exception_ValueRangeException, utf8string("fromCodePoint() argument not an integer"));
+        throw PanicException(utf8string("fromCodePoint() argument not an integer"));
     }
     if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
-        throw RtlException(Exception_ValueRangeException, utf8string("fromCodePoint() argument out of range 0-0x10ffff"));
+        throw PanicException(utf8string("fromCodePoint() argument out of range 0-0x10ffff"));
     }
     std::string r;
     utf8::append(number_to_uint32(x), std::back_inserter(r));
     return utf8string(r);
-}
-
-utf8string string__concat(const utf8string &a, const utf8string &b)
-{
-    return a + b;
 }
 
 Number int_(Number a)
@@ -58,7 +53,7 @@ Number num(const utf8string &s)
 {
     Number n = number_from_string(s.str());
     if (number_is_nan(n)) {
-        throw RtlException(Exception_ValueRangeException, utf8string("num() argument not a number"));
+        throw PanicException(utf8string("num() argument not a number"));
     }
     return n;
 }
@@ -66,7 +61,7 @@ Number num(const utf8string &s)
 bool odd(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(Exception_ValueRangeException, utf8string("odd() requires integer"));
+        throw PanicException(utf8string("odd() requires integer"));
     }
     return number_is_odd(x);
 }
@@ -75,7 +70,7 @@ Number ord(const utf8string &ss)
 {
     std::string s = ss.str(); // TODO
     if (utf8::distance(s.begin(), s.end()) != 1) {
-        throw RtlException(Exception_StringIndexException, utf8string("toCodePoint() requires string of length 1"));
+        throw PanicException(utf8string("toCodePoint() requires string of length 1"));
     }
     auto it = s.begin();
     return number_from_uint32(utf8::next(it, s.end()));
@@ -97,5 +92,14 @@ utf8string str(Number x)
 }
 
 } // namespace ne_global
+
+namespace ne_builtin {
+
+utf8string string__concat(const utf8string &a, const utf8string &b)
+{
+    return a + b;
+}
+
+} // namespace ne_builtin
 
 } // namespace rtl

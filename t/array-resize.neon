@@ -9,5 +9,5 @@ TESTCASE a[2] = 0
 
 a.resize(2)
 TESTCASE a.size() = 2
-TESTCASE a[2] EXPECT ArrayIndexException
-TESTCASE a.resize(1.5) EXPECT ArrayIndexException
+TESTCASE a[2] EXPECT PANIC "Array index exceeds size 2: 2"
+TESTCASE a.resize(1.5) EXPECT PANIC "Invalid array size: 1.5"

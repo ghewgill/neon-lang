@@ -7,12 +7,12 @@ LET client: net.Socket := net.udpSocket()
 client.connect("127.0.0.1", 21012)
 
 LET s: String := "UDP packet."
-client.send(s.toBytes())
+client.send(s.encodeUTF8())
 LET r := server.recv(1000)
 CHECK r ISA net.RecvResult.data ELSE
     RAISE TestFailedException
 END CHECK
-print(r.data.decodeToString())
+print(r.data.decodeUTF8().expectString())
 --= UDP packet.
 
 client.close()

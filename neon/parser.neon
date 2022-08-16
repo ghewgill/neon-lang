@@ -4462,7 +4462,7 @@ BEGIN MAIN
         print("Could not open file: \(sys.args[1])")
         EXIT PROCESS FAILURE
     END CHECK
-    LET tokens: Array<lexer.Token> := lexer.tokenize(sys.args[1], r.data.decodeToString())
+    LET tokens: Array<lexer.Token> := lexer.tokenize(sys.args[1], r.data.decodeUTF8().expectString())
     --print("tokens \(tokens.size())")
     VAR parser: Parser := makeParser(tokens)
     LET pt: POINTER TO ParseTreeNode := parser.parse()

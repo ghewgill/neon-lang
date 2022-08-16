@@ -95,9 +95,9 @@ FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Di
         request.append("\(h): \(requestHeaders[h])\r\n")
     END FOREACH
     request.append("\r\n")
-    s.send(request.toBytes())
+    s.send(request.encodeUTF8())
     IF method = "POST" THEN
-        s.send(post_data.toBytes())
+        s.send(post_data.encodeUTF8())
     END IF
     VAR response: Bytes := HEXBYTES ""
     LOOP
@@ -172,7 +172,7 @@ FUNCTION nextLine(buf: Bytes, INOUT i: Number): String
         INC i
     END WHILE
     INC i
-    RETURN buf[start TO lastchar].decodeToString()
+    RETURN buf[start TO lastchar].decodeUTF8().expectString()
 END FUNCTION
 
 BEGIN MAIN
@@ -191,7 +191,7 @@ BEGIN MAIN
     check("https://hello/world", "https", "hello", 443, "/world")
 
     VAR x: String := "hello\r\nworld\r\n\r\n"
-    VAR b: Bytes := x.toBytes()
+    VAR b: Bytes := x.encodeUTF8()
     VAR i: Number := 0
     TESTCASE nextLine(b, INOUT i) = "hello"
     TESTCASE i = 7

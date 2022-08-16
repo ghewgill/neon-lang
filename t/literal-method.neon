@@ -1,8 +1,8 @@
 print((5).toString())
 --= 5
 
-print("test".toBytes().toString())
+print("test".encodeUTF8().toString())
 --= HEXBYTES "74 65 73 74"
 
-print("test".toBytes().toArray().toString())
+print("test".encodeUTF8().toArray().toString())
 --= [116, 101, 115, 116]

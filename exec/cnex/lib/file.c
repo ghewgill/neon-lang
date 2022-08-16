@@ -45,7 +45,7 @@ void file_readBytes(TExecutor *exec)
         return;
     }
 
-    Cell *r = cell_createStringCell(0);
+    Cell *r = cell_createBytesCell(0);
     for (;;) {
         char buf[16384];
         size_t n = fread(buf, sizeof(char), sizeof(buf), f);
@@ -54,8 +54,6 @@ void file_readBytes(TExecutor *exec)
         }
         r->string = string_appendData(r->string, buf, n);
     }
-    // Ensure that the returned Cell is a cBytes type.
-    r->type = cBytes;
 
     push(exec->stack, cell_makeChoice_cell(CHOICE_BytesResult_data, r));
     free(filename);

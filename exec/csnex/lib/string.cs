@@ -37,11 +37,11 @@ namespace csnex.rtl
             Number x = Exec.stack.Pop().Number;
 
             if (!x.IsInteger()) {
-                Exec.Raise("ValueRangeException", "fromCodePoint() argument not an integer");
+                Exec.Raise("PANIC", "fromCodePoint() argument not an integer");
                 return;
             }
             if (x.IsNegative() || Number.number_to_int32(x) > 0x10ffff) {
-                Exec.Raise("ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff");
+                Exec.Raise("PANIC", "fromCodePoint() argument out of range 0-0x10ffff");
                 return;
             }
 
@@ -53,7 +53,7 @@ namespace csnex.rtl
             string s = Exec.stack.Pop().String;
 
             if (s.Length != 1) {
-                Exec.Raise("StringIndexException", "toCodePoint() requires string of length 1");
+                Exec.Raise("PANIC", "toCodePoint() requires string of length 1");
                 return;
             }
 

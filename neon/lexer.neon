@@ -802,25 +802,27 @@ END FUNCTION
 
 BEGIN MAIN
     FOREACH fn IN sys.args[1 TO LAST] DO
-        LET r: file.BytesResult := file.readBytes(fn)
-        CHECK r ISA file.BytesResult.data ELSE
+        LET rr: file.BytesResult := file.readBytes(fn)
+        CHECK rr ISA file.BytesResult.data ELSE
             print("Could not open file: \(fn)")
             NEXT FOREACH
         END CHECK
-        LET bytes: Bytes := r.data
-        TRY
-            LET tokens: Array<Token> := tokenize(fn, bytes.decodeToString())
-            FOREACH t IN tokens DO
-                print("\(t)")
-            END FOREACH
-        TRAP Utf8DecodingException AS x DO
-            LET offset: Number := num(x.info)
-            LET source: String := bytes[FIRST TO offset-1].decodeToString()
-            LET line: Number := 1 + count(source, "\n")
-            LET bol: Number := findLast(source, "\n") + 1
-            LET column: Number := 1 + offset - bol
-            LET t: Token := Token(line WITH line, column WITH column)
-            error(1000, t, "invalid UTF-8 data in source")
-        END TRY
+        LET bytes: Bytes := rr.data
+        LET dr: DecodeResult := bytes.decodeUTF8()
+        CASE dr
+            WHEN ISA DecodeResult.string DO
+                LET tokens: Array<Token> := tokenize(fn, dr.string)
+                FOREACH t IN tokens DO
+                    print("\(t)")
+                END FOREACH
+            WHEN ISA DecodeResult.error DO
+                LET offset: Number := dr.error.offset
+                LET source: String := bytes[FIRST TO offset-1].decodeUTF8().expectString()
+                LET line: Number := 1 + count(source, "\n")
+                LET bol: Number := findLast(source, "\n") + 1
+                LET column: Number := 1 + offset - bol
+                LET t: Token := Token(line WITH line, column WITH column)
+                error(1000, t, "invalid UTF-8 data in source")
+        END CASE
     END FOREACH
 END MAIN

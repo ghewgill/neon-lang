@@ -154,6 +154,13 @@ private:
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, std::string tname, bool for_class);
     const ast::Expression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
     void dump_expression_parts(const Token &token, const std::vector<const pt::Expression *> &parts, std::vector<const ast::Statement *> &statements);
+    const ast::Expression *analyze_enum_call(const pt::FunctionCallExpression *expr, const ast::TypeEnum *enumtype);
+    const ast::Expression *analyze_choice_call(const pt::FunctionCallExpression *expr, const ast::TypeChoice *choice_type, Token name);
+    const ast::Expression *analyze_record_init(const pt::FunctionCallExpression *expr, const ast::TypeRecord *recordtype);
+    const ast::Expression *analyze_function_call(const pt::FunctionCallExpression *expr, const ast::TypeFunction *ftype, const ast::Expression *self, const ast::Expression *dispatch, const std::vector<const ast::Expression *> &initial_args, const ast::Expression *func, bool allow_ignore_result);
+    const ast::Expression *analyze_object_call(const pt::FunctionCallExpression *expr, const ast::Expression *base, Token name);
+    const ast::Expression *analyze_method_call(const pt::FunctionCallExpression *expr, const ast::Expression *base, Token name);
+    const ast::Expression *analyze_arrow_method_call(const pt::FunctionCallExpression *expr, const pt::ArrowExpression *arrowexpr);
 };
 
 class TypeAnalyzer: public pt::IParseTreeVisitor {
@@ -841,7 +848,7 @@ static const ast::Expression *make_object_conversion_from_record(Analyzer *analy
     return new ast::StatementExpression(
         new ast::CompoundStatement(Token(), field_statements),
         new ast::FunctionCall(
-            new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+            new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("builtin$object__makeDictionary"))),
             {new ast::VariableExpression(result)}
         )
     );
@@ -885,7 +892,7 @@ static const ast::Expression *make_object_conversion_from_choice(Analyzer *analy
     return new ast::StatementExpression(
         new ast::CaseStatement(Token(), e, clauses),
         new ast::FunctionCall(
-            new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+            new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("builtin$object__makeDictionary"))),
             {new ast::VariableExpression(result)}
         )
     );
@@ -1011,7 +1018,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (from == TYPE_OBJECT) {
         return [](Analyzer *analyzer, const Expression *e) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getBoolean"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__getBoolean"))),
                 {e}
             );
         };
@@ -1027,7 +1034,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (from == TYPE_OBJECT) {
         return [](Analyzer *analyzer, const Expression *e) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getNumber"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__getNumber"))),
                 {e}
             );
         };
@@ -1043,7 +1050,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (from == TYPE_OBJECT) {
         return [](Analyzer *analyzer, const Expression *e) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getString"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__getString"))),
                 {e}
             );
         };
@@ -1059,7 +1066,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (from == TYPE_OBJECT) {
         return [](Analyzer *analyzer, const Expression *e) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getBytes"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__getBytes"))),
                 {e}
             );
         };
@@ -1072,7 +1079,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (dynamic_cast<const TypePointerNil *>(from) != nullptr) {
         return [](Analyzer *analyzer, const Expression *) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeNull"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeNull"))),
                     {}
             );
         };
@@ -1080,7 +1087,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (from == TYPE_BOOLEAN) {
         return [](Analyzer *analyzer, const Expression *e) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeBoolean"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeBoolean"))),
                     {e}
             );
         };
@@ -1088,7 +1095,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (from == TYPE_NUMBER) {
         return [](Analyzer *analyzer, const Expression *e) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeNumber"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeNumber"))),
                     {e}
             );
         };
@@ -1096,7 +1103,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (from == TYPE_STRING) {
         return [](Analyzer *analyzer, const Expression *e) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeString"))),
                     {e}
             );
         };
@@ -1104,7 +1111,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (from == TYPE_BYTES) {
         return [](Analyzer *analyzer, const Expression *e) {
             return new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeBytes"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeBytes"))),
                     {e}
             );
         };
@@ -1117,7 +1124,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         if (atype->elementtype == nullptr) {
             return [](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeArray"))),
                     {e}
                 );
             };
@@ -1128,7 +1135,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         if (atype->elementtype != TYPE_OBJECT) {
             return [atype](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeArray"))),
                     // TODO: what happens if this conversion can't be done?
                     {make_array_conversion(analyzer, atype, e, TYPE_ARRAY_OBJECT)}
                 );
@@ -1136,7 +1143,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         } else {
             return [](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeArray"))),
                     {e}
                 );
             };
@@ -1147,7 +1154,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         if (dtype->elementtype == nullptr) {
             return [](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeDictionary"))),
                     {e}
                 );
             };
@@ -1158,14 +1165,14 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         if (dtype->elementtype != TYPE_OBJECT) {
             return [dtype](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeDictionary"))),
                     {make_dictionary_conversion(analyzer, dtype, e, TYPE_DICTIONARY_OBJECT)}
                 );
             };
         } else {
             return [](Analyzer *analyzer, const Expression *e) {
                 return new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeDictionary"))),
                     {e}
                 );
             };
@@ -1197,7 +1204,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     if (etype != nullptr) {
         return [etype](Analyzer *analyzer, const Expression *e) {
             return new ast::FunctionCall(
-                new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("builtin$object__makeString"))),
                 {
                     new FunctionCall(
                         new VariableExpression(etype->methods.at("toString")),
@@ -1237,7 +1244,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         }
         return [this](Analyzer *analyzer, const Expression *e) {
             return make_array_conversion(analyzer, TYPE_ARRAY_OBJECT, new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getArray"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__getArray"))),
                 {e}
             ), this);
         };
@@ -1281,7 +1288,7 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
         }
         return [this](Analyzer *analyzer, const Expression *e) {
             return make_dictionary_conversion(analyzer, TYPE_DICTIONARY_OBJECT, new FunctionCall(
-                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getDictionary"))),
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__getDictionary"))),
                 {e}
             ), this);
         };
@@ -1459,8 +1466,8 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             ));
         }
         f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(p_value), cases));
-        const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("string__concat")));
-        const ast::Expression *str = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("str")));
+        const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("builtin$string__concat")));
+        const ast::Expression *str = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("global$str")));
         f->statements.push_back(new ast::IfStatement(
             Token(),
             {ast::IfStatement::ConditionBlock(
@@ -1472,7 +1479,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             )},
             {
                 new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeString"))),
                         {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum value: ")), new ast::FunctionCall(str, {new ast::VariableExpression(p_value)})})}
                 ))
             }
@@ -1492,7 +1499,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             ));
         }
         f->statements.push_back(new ast::CaseStatement(Token(), new VariableExpression(p_name), cases));
-        const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("string__concat")));
+        const ast::Expression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->scope.top()->lookupName("builtin$string__concat")));
         f->statements.push_back(new ast::IfStatement(
             Token(),
             {ast::IfStatement::ConditionBlock(
@@ -1504,7 +1511,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             )},
             {
                 new ast::RaiseStatement(Token(), new ast::Exception(Token(), "PANIC"), new FunctionCall(
-                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$object__makeString"))),
                         {new ast::FunctionCall(concat, {new ConstantStringExpression(utf8string("unknown enum name: ")), new ast::VariableExpression(p_name)})}
                 ))
             }
@@ -1539,9 +1546,9 @@ void ast::TypeChoice::replace_choices(const std::map<std::string, std::pair<int,
             if (c.second.second != nullptr) {
                 auto tostring = c.second.second->methods.find("toString");
                 if (tostring != c.second.second->methods.end()) {
-                    r = new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
+                    r = new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("builtin$string__concat"))), {
                         new ConstantStringExpression(utf8string("<" + c.first + ":")),
-                        new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("string__concat"))), {
+                        new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("builtin$string__concat"))), {
                             new ast::FunctionCall(new VariableExpression(tostring->second), {new ChoiceReferenceExpression(c.second.second, new VariableExpression(fp), this, c.second.first)}),
                             new ConstantStringExpression(utf8string(">"))
                         })
@@ -1574,7 +1581,7 @@ ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const Refere
         std::vector<const Expression *> args;
         args.push_back(ref);
         args.push_back(index);
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__index"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$string__index"))), args);
     }
     {
         std::vector<const Expression *> args;
@@ -1583,7 +1590,7 @@ ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const Refere
         args.push_back(new ConstantBooleanExpression(false));
         args.push_back(index);
         args.push_back(new ConstantBooleanExpression(false));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__splice"))), args);
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$string__splice"))), args);
     }
 }
 
@@ -1597,7 +1604,7 @@ ast::StringValueIndexExpression::StringValueIndexExpression(const Expression *st
         std::vector<const Expression *> args;
         args.push_back(str);
         args.push_back(index);
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__index"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$string__index"))), args);
     }
 }
 
@@ -1618,7 +1625,7 @@ ast::StringReferenceRangeIndexExpression::StringReferenceRangeIndexExpression(co
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__substring"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$string__substring"))), args);
     }
     {
         std::vector<const Expression *> args;
@@ -1627,7 +1634,7 @@ ast::StringReferenceRangeIndexExpression::StringReferenceRangeIndexExpression(co
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__splice"))), args);
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$string__splice"))), args);
     }
 }
 
@@ -1647,7 +1654,7 @@ ast::StringValueRangeIndexExpression::StringValueRangeIndexExpression(const Expr
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__substring"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$string__substring"))), args);
     }
 }
 
@@ -1661,7 +1668,7 @@ ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const Referenc
         std::vector<const Expression *> args;
         args.push_back(ref);
         args.push_back(index);
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__index"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$bytes__index"))), args);
     }
 }
 
@@ -1675,7 +1682,7 @@ ast::BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str,
         std::vector<const Expression *> args;
         args.push_back(str);
         args.push_back(index);
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__index"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$bytes__index"))), args);
     }
 }
 
@@ -1696,7 +1703,7 @@ ast::BytesReferenceRangeIndexExpression::BytesReferenceRangeIndexExpression(cons
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__range"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$bytes__range"))), args);
     }
     {
         std::vector<const Expression *> args;
@@ -1705,7 +1712,7 @@ ast::BytesReferenceRangeIndexExpression::BytesReferenceRangeIndexExpression(cons
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__splice"))), args);
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$bytes__splice"))), args);
     }
 }
 
@@ -1725,7 +1732,7 @@ ast::BytesValueRangeIndexExpression::BytesValueRangeIndexExpression(const Expres
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__range"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$bytes__range"))), args);
     }
 }
 
@@ -1746,7 +1753,7 @@ ast::ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const Referenc
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("array__slice"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$array__slice"))), args);
     }
     {
         std::vector<const Expression *> args;
@@ -1755,7 +1762,7 @@ ast::ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const Referenc
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("array__splice"))), args);
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$array__splice"))), args);
     }
 }
 
@@ -1775,7 +1782,7 @@ ast::ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *arra
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("array__slice"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("builtin$array__slice"))), args);
     }
 }
 
@@ -1801,7 +1808,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         return m->second;
     }
     if (std::find(s_importing.begin(), s_importing.end(), name) != s_importing.end()) {
-        error(3181, token, "recursive import detected");
+        error(3181, token, "recursive import detected: " + name);
     }
     s_importing.push_back(name);
     Bytecode object;
@@ -2314,7 +2321,7 @@ const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralRangeExpression *
     if (step == nullptr) {
         error(2102, expr->step->token, "numeric expression expected");
     }
-    const ast::VariableExpression *range = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("array__range")));
+    const ast::VariableExpression *range = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$array__range")));
     std::vector<const ast::Expression *> args;
     args.push_back(first);
     args.push_back(last);
@@ -2653,7 +2660,7 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
 
 const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr)
 {
-    const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat")));
+    const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$string__concat")));
     const ast::Module *string = import_module(Token(), "string", false);
     if (string == nullptr) {
         internal_error("need module string");
@@ -2869,196 +2876,108 @@ static std::pair<bool, std::pair<std::string::size_type, std::string>> validate_
     return std::make_pair(true, std::make_pair(0, ""));
 }
 
-const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
+const ast::Expression *Analyzer::analyze_enum_call(const pt::FunctionCallExpression *expr, const ast::TypeEnum *enumtype)
 {
-    // TODO: This stuff works, but it's increasingly becoming a mess. There seem
-    // to be quite a few cases of x.y(), and this function tries to handle them all
-    // in a haphazard fashion.
-    const ast::TypeRecord *recordtype = nullptr;
-    const ast::TypeEnum *enumtype = nullptr;
-    const pt::IdentifierExpression *fname = dynamic_cast<const pt::IdentifierExpression *>(expr->base.get());
-    if (fname != nullptr) {
-        recordtype = dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName(fname->name));
-    }
-    if (fname != nullptr) {
-        enumtype = dynamic_cast<const ast::TypeEnum *>(scope.top()->lookupName(fname->name));
-    }
-    const pt::DotExpression *dotmethod = dynamic_cast<const pt::DotExpression *>(expr->base.get());
-    const pt::ArrowExpression *arrowmethod = dynamic_cast<const pt::ArrowExpression *>(expr->base.get());
-    const ast::Expression *self = nullptr;
+    const ast::Expression *value_or_name = nullptr;
+    const ast::Expression *default_value = nullptr;
     const ast::Expression *func = nullptr;
-    const ast::Expression *dispatch = nullptr;
-    bool allow_ignore_result = false;
-    const ast::TypeFunction *ftype = nullptr;
-    std::vector<const ast::Expression *> initial_args;
-    if (dotmethod != nullptr) {
-        // This check avoids trying to evaluate foo.bar as an
-        // expression in foo.bar() where foo is actually a module.
-        bool is_module_call = false;
-        const ast::TypeChoice *choice_type = nullptr;
-        const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(dotmethod->base.get());
-        if (ident != nullptr) {
-            const ast::Name *name = scope.top()->lookupName(ident->name);
-            is_module_call = dynamic_cast<const ast::Module *>(name) != nullptr;
-            choice_type = dynamic_cast<const ast::TypeChoice *>(name);
-        }
-        if (not is_module_call) {
-            if (choice_type != nullptr) {
-                auto choice = choice_type->choices.find(dotmethod->name.text);
-                if (choice == choice_type->choices.end()) {
-                    error(3309, dotmethod->name, "choice not found");
-                }
-                if (choice->second.second == nullptr) {
-                    error(3319, dotmethod->name, "choice does not take data");
-                }
-                if (expr->args.size() != 1) {
-                    error(3310, expr->rparen, "expected 1 argument");
-                }
-                const ast::Expression *arg = analyze(expr->args[0]->expr.get());
-                arg = convert(choice->second.second, arg);
-                if (arg == nullptr) {
-                    error(3311, expr->args[0]->expr->token, "type mismatch");
-                }
-                return new ast::ConstantChoiceExpression(choice_type, choice->second.first, arg);
-            } else {
-                const ast::Expression *base = analyze(dotmethod->base.get());
-                if (base->type == ast::TYPE_OBJECT) {
-                    auto invoke = dynamic_cast<ast::Variable *>(scope.top()->lookupName("object__invokeMethod"));
-                    if (invoke == nullptr) {
-                        internal_error("could not find object__invokeMethod");
-                    }
-                    self = base;
-                    initial_args.push_back(new ast::ConstantStringExpression(utf8string(dotmethod->name.text)));
-                    func = new ast::VariableExpression(invoke);
-                    allow_ignore_result = true;
-                } else {
-                    auto m = base->type->methods.find(dotmethod->name.text);
-                    if (m == base->type->methods.end()) {
-                        error(3137, dotmethod->name, "method not found");
-                    } else {
-                        if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
-                            internal_error("class not expected here");
-                        }
-                        self = base;
-                    }
-                    func = new ast::VariableExpression(m->second);
-                }
+    for (auto &a: expr->args) {
+        if (a->name.text == "value") {
+            value_or_name = analyze(a->expr.get());
+            value_or_name = convert(ast::TYPE_NUMBER, value_or_name);
+            if (value_or_name == nullptr) {
+                error(3337, a->expr.get()->token, "number required");
+            }
+            func = new ast::VariableExpression(enumtype->methods.at("CREATE.value"));
+        } else if (a->name.text == "name") {
+            value_or_name = analyze(a->expr.get());
+            value_or_name = convert(ast::TYPE_STRING, value_or_name);
+            if (value_or_name == nullptr) {
+                error(3338, a->expr.get()->token, "string required");
+            }
+            func = new ast::VariableExpression(enumtype->methods.at("CREATE.name"));
+        } else if (a->name.text == "default") {
+            default_value = analyze(a->expr.get());
+            if (default_value->type != enumtype) {
+                error(3339, a->expr.get()->token, "type mismatch");
             }
         } else {
-            recordtype = dynamic_cast<const ast::TypeRecord *>(analyze_qualified_name(expr->base.get()));
-            if (recordtype == nullptr) {
-                func = analyze(expr->base.get());
-            }
+            error(3335, a->name, "unknown parameter");
         }
-    } else if (arrowmethod != nullptr) {
-        const ast::Expression *base = analyze(arrowmethod->base.get());
-        const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(base->type);
-        const ast::TypeInterfacePointer *iptype = dynamic_cast<const ast::TypeInterfacePointer *>(base->type);
-        if (ptype != nullptr) {
-            if (dynamic_cast<const ast::TypeValidPointer *>(ptype) == nullptr) {
-                error(3219, arrowmethod->base->token, "valid pointer required");
-            }
-            auto m = ptype->reftype->methods.find(arrowmethod->name.text);
-            if (m == ptype->reftype->methods.end()) {
-                error(3220, arrowmethod->name, "method not found");
-            }
-            self = base;
-            func = new ast::VariableExpression(m->second);
-        } else if (iptype != nullptr) {
-            size_t i = 0;
-            while (i < iptype->interface->methods.size()) {
-                if (arrowmethod->name.text == iptype->interface->methods[i].first.text) {
-                    break;
-                }
-                i++;
-            }
-            if (i >= iptype->interface->methods.size()) {
-                error(3250, arrowmethod->name, "interface method not found");
-            }
-            self = new ast::InterfacePointerDeconstructor(base);
-            func = new ast::InterfaceMethodExpression(iptype->interface->methods[i].second, i);
-            dispatch = base;
-            ftype = iptype->interface->methods[i].second;
-        } else {
-            error(3218, arrowmethod->base->token, "pointer type expected");
-        }
-    } else if (recordtype == nullptr && enumtype == nullptr) {
-        func = analyze(expr->base.get());
     }
-    if (recordtype != nullptr) {
-        std::vector<const ast::Expression *> elements(recordtype->fields.size());
-        for (auto &x: expr->args) {
-            if (x->name.text.empty()) {
-                error(3208, x->expr->token, "field name must be specified using WITH");
-            }
-            auto f = recordtype->fields.begin();
-            for (;;) {
-                if (f == recordtype->fields.end()) {
-                    error(3209, x->name, "field name not found");
-                }
-                if (x->name.text == f->name.text) {
-                    break;
-                }
-                ++f;
-            }
-            auto p = std::distance(recordtype->fields.begin(), f);
-            const ast::Expression *element = analyze(x->expr.get());
-            element = convert(f->type, element);
-            if (element == nullptr) {
-                error2(3131, x->expr->token, "type mismatch", f->name, "field declared here");
-            }
-            if (elements[p] != nullptr) {
-                error(3210, x->name, "field name already specified");
-            }
-            elements[p] = element;
-        }
-        for (size_t p = 0; p < elements.size(); p++) {
-            if (elements[p] == nullptr) {
-                elements[p] = recordtype->fields[p].type->make_default_value();
-            }
-        }
-        const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(recordtype);
-        if (classtype != nullptr) {
-            return new ast::ClassLiteralExpression(classtype, elements);
-        } else {
-            return new ast::RecordLiteralExpression(recordtype, elements);
-        }
-    } else if (enumtype != nullptr) {
-        const ast::Expression *value_or_name = nullptr;
-        const ast::Expression *default_value = nullptr;
-        for (auto &a: expr->args) {
-            if (a->name.text == "value") {
-                value_or_name = analyze(a->expr.get());
-                value_or_name = convert(ast::TYPE_NUMBER, value_or_name);
-                if (value_or_name == nullptr) {
-                    error(3337, a->expr.get()->token, "number required");
-                }
-                func = new ast::VariableExpression(enumtype->methods.at("CREATE.value"));
-            } else if (a->name.text == "name") {
-                value_or_name = analyze(a->expr.get());
-                value_or_name = convert(ast::TYPE_STRING, value_or_name);
-                if (value_or_name == nullptr) {
-                    error(3338, a->expr.get()->token, "string required");
-                }
-                func = new ast::VariableExpression(enumtype->methods.at("CREATE.name"));
-            } else if (a->name.text == "default") {
-                default_value = analyze(a->expr.get());
-                if (default_value->type != enumtype) {
-                    error(3339, a->expr.get()->token, "type mismatch");
-                }
-            } else {
-                error(3335, a->name, "unknown parameter");
-            }
-        }
-        if (func == nullptr) {
-            error(3336, expr->token, "need value or name");
-        }
-        return new ast::FunctionCall(func, {
-            value_or_name,
-            new ast::ConstantBooleanExpression(default_value != nullptr),
-            default_value != nullptr ? default_value : new ast::ConstantNumberExpression(number_from_sint32(0))
-        }, nullptr, false);
+    if (func == nullptr) {
+        error(3336, expr->token, "need value or name");
     }
+    return new ast::FunctionCall(func, {
+        value_or_name,
+        new ast::ConstantBooleanExpression(default_value != nullptr),
+        default_value != nullptr ? default_value : new ast::ConstantNumberExpression(number_from_sint32(0))
+    }, nullptr, false);
+}
+
+const ast::Expression *Analyzer::analyze_choice_call(const pt::FunctionCallExpression *expr, const ast::TypeChoice *choice_type, Token name)
+{
+    auto choice = choice_type->choices.find(name.text);
+    if (choice == choice_type->choices.end()) {
+        error(3309, name, "choice not found");
+    }
+    if (choice->second.second == nullptr) {
+        error(3319, name, "choice does not take data");
+    }
+    if (expr->args.size() != 1) {
+        error(3310, expr->rparen, "expected 1 argument");
+    }
+    const ast::Expression *arg = analyze(expr->args[0]->expr.get());
+    arg = convert(choice->second.second, arg);
+    if (arg == nullptr) {
+        error(3311, expr->args[0]->expr->token, "type mismatch");
+    }
+    return new ast::ConstantChoiceExpression(choice_type, choice->second.first, arg);
+}
+
+const ast::Expression *Analyzer::analyze_record_init(const pt::FunctionCallExpression *expr, const ast::TypeRecord *recordtype)
+{
+    std::vector<const ast::Expression *> elements(recordtype->fields.size());
+    for (auto &x: expr->args) {
+        if (x->name.text.empty()) {
+            error(3208, x->expr->token, "field name must be specified using WITH");
+        }
+        auto f = recordtype->fields.begin();
+        for (;;) {
+            if (f == recordtype->fields.end()) {
+                error(3209, x->name, "field name not found");
+            }
+            if (x->name.text == f->name.text) {
+                break;
+            }
+            ++f;
+        }
+        auto p = std::distance(recordtype->fields.begin(), f);
+        const ast::Expression *element = analyze(x->expr.get());
+        element = convert(f->type, element);
+        if (element == nullptr) {
+            error2(3131, x->expr->token, "type mismatch", f->name, "field declared here");
+        }
+        if (elements[p] != nullptr) {
+            error(3210, x->name, "field name already specified");
+        }
+        elements[p] = element;
+    }
+    for (size_t p = 0; p < elements.size(); p++) {
+        if (elements[p] == nullptr) {
+            elements[p] = recordtype->fields[p].type->make_default_value();
+        }
+    }
+    const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(recordtype);
+    if (classtype != nullptr) {
+        return new ast::ClassLiteralExpression(classtype, elements);
+    } else {
+        return new ast::RecordLiteralExpression(recordtype, elements);
+    }
+}
+
+const ast::Expression *Analyzer::analyze_function_call(const pt::FunctionCallExpression *expr, const ast::TypeFunction *ftype, const ast::Expression *self, const ast::Expression *dispatch, const std::vector<const ast::Expression *> &initial_args, const ast::Expression *func, bool allow_ignore_result)
+{
     if (ftype == nullptr) {
         ftype = dynamic_cast<const ast::TypeFunction *>(func->type);
         if (ftype == nullptr) {
@@ -3082,7 +3001,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             case ast::ParameterType::Mode::INOUT: {
                 const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(self);
                 if (ref == nullptr) {
-                    error(3277, dotmethod->base.get()->token, "first parameter must be a reference");
+                    error(3277, expr->base.get()->token, "first parameter must be a reference");
                 }
                 break;
             }
@@ -3250,6 +3169,121 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     return new ast::FunctionCall(func, args, dispatch, allow_ignore_result);
 }
 
+const ast::Expression *Analyzer::analyze_object_call(const pt::FunctionCallExpression *expr, const ast::Expression *base, Token name)
+{
+    auto invoke = dynamic_cast<ast::Variable *>(scope.top()->lookupName("builtin$object__invokeMethod"));
+    if (invoke == nullptr) {
+        internal_error("could not find object__invokeMethod");
+    }
+    return analyze_function_call(expr, nullptr, base, nullptr, {new ast::ConstantStringExpression(utf8string(name.text))}, new ast::VariableExpression(invoke), true);
+}
+
+const ast::Expression *Analyzer::analyze_method_call(const pt::FunctionCallExpression *expr, const ast::Expression *base, Token name)
+{
+    const ast::Expression *self = nullptr;
+    auto m = base->type->methods.find(name.text);
+    if (m == base->type->methods.end()) {
+        error(3137, name, "method not found");
+    } else {
+        if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
+            internal_error("class not expected here");
+        }
+        self = base;
+    }
+    return analyze_function_call(expr, nullptr, self, nullptr, {}, new ast::VariableExpression(m->second), false);
+}
+
+const ast::Expression *Analyzer::analyze_arrow_method_call(const pt::FunctionCallExpression *expr, const pt::ArrowExpression *arrowexpr)
+{
+    const ast::Expression *base = analyze(arrowexpr->base.get());
+    const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(base->type);
+    const ast::TypeInterfacePointer *iptype = dynamic_cast<const ast::TypeInterfacePointer *>(base->type);
+    if (ptype != nullptr) {
+        if (dynamic_cast<const ast::TypeValidPointer *>(ptype) == nullptr) {
+            error(3219, arrowexpr->base->token, "valid pointer required");
+        }
+        auto m = ptype->reftype->methods.find(arrowexpr->name.text);
+        if (m == ptype->reftype->methods.end()) {
+            error(3220, arrowexpr->name, "method not found");
+        }
+        return analyze_function_call(expr, nullptr, base, nullptr, {}, new ast::VariableExpression(m->second), false);
+    } else if (iptype != nullptr) {
+        size_t i = 0;
+        while (i < iptype->interface->methods.size()) {
+            if (arrowexpr->name.text == iptype->interface->methods[i].first.text) {
+                break;
+            }
+            i++;
+        }
+        if (i >= iptype->interface->methods.size()) {
+            error(3250, arrowexpr->name, "interface method not found");
+        }
+        return analyze_function_call(expr, iptype->interface->methods[i].second, new ast::InterfacePointerDeconstructor(base), base, {}, new ast::InterfaceMethodExpression(iptype->interface->methods[i].second, i), false);
+    } else {
+        error(3218, arrowexpr->base->token, "pointer type expected");
+    }
+}
+
+const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
+{
+    std::function<std::string(const pt::ParseTreeNode *)> dump = [&dump](const pt::ParseTreeNode *node) -> std::string {
+        //fprintf(stderr, "dump %s\n", typeid(*node).name());
+        if (auto identexpr = dynamic_cast<const pt::IdentifierExpression *>(node)) {
+            return identexpr->name;
+        }
+        if (auto dotexpr = dynamic_cast<const pt::DotExpression *>(node)) {
+            return dump(dotexpr->base.get()) + "." + dotexpr->name.text;
+        }
+        if (auto arrowexpr = dynamic_cast<const pt::ArrowExpression *>(node)) {
+            return dump(arrowexpr->base.get()) + "->" + arrowexpr->name.text;
+        }
+        return "?";
+    };
+    //fprintf(stderr, "%s\n", dump(expr->base.get()).c_str());
+    if (auto dot = dynamic_cast<const pt::DotExpression *>(expr->base.get())) {
+        // Case: x.y()
+        const ast::Name *firstname = analyze_qualified_name(dot->base.get());
+        if (auto choicetype = dynamic_cast<const ast::TypeChoice *>(firstname)) {
+            // Case: Choice.name()
+            return analyze_choice_call(expr, choicetype, dot->name);
+        } else if (auto fullname = analyze_qualified_name(dot)) {
+            // Case: module.x()
+            if (auto enumtype = dynamic_cast<const ast::TypeEnum *>(fullname)) {
+                // Case: module.Enum()
+                return analyze_enum_call(expr, enumtype);
+            } else if (auto recordtype = dynamic_cast<const ast::TypeRecord *>(fullname)) {
+                // Case: module.Record()
+                return analyze_record_init(expr, recordtype);
+            }
+        } else if (const ast::Expression *base = analyze(dot->base.get())) {
+            if (base->type == ast::TYPE_OBJECT) {
+                // Case: object.method()
+                return analyze_object_call(expr, base, dot->name);
+            } else {
+                // Case: record.method()
+                return analyze_method_call(expr, base, dot->name);
+            }
+        }
+        return analyze_function_call(expr, nullptr, nullptr, nullptr, {}, analyze(dot), false);
+    } else if (auto arrow = dynamic_cast<const pt::ArrowExpression *>(expr->base.get())) {
+        // Case: pointer->method()
+        return analyze_arrow_method_call(expr, arrow);
+    } else {
+        const ast::Name *callable = analyze_qualified_name(expr->base.get());
+        //printf("callable %s\n", callable->text().c_str());
+        if (auto enumtype = dynamic_cast<const ast::TypeEnum *>(callable)) {
+            // Case: Enum()
+            return analyze_enum_call(expr, enumtype);
+        } else if (auto recordtype = dynamic_cast<const ast::TypeRecord *>(callable)) {
+            // Case: Record()
+            return analyze_record_init(expr, recordtype);
+        }
+        // Case: f()
+        const ast::Expression *func = analyze(expr->base.get());
+        return analyze_function_call(expr, nullptr, nullptr, nullptr, {}, func, false);
+    }
+}
+
 const ast::Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
 {
     const ast::Expression *atom = analyze(expr->expr.get());
@@ -3381,20 +3415,20 @@ const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
-        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat"))), args);
+        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$string__concat"))), args);
     }
     if (convert2(ast::TYPE_BYTES, left, right)) {
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
-        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("bytes__concat"))), args);
+        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$bytes__concat"))), args);
     } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr
             && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr
             && dynamic_cast<const ast::TypeArray *>(left->type)->elementtype == dynamic_cast<const ast::TypeArray *>(right->type)->elementtype) {
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
-        ast::VariableExpression *ve = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("array__concat")));
+        ast::VariableExpression *ve = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$array__concat")));
         // Since the array__concat function cannot be declared with its proper result type,
         // we have to create a new appropriate function type based on the desired result type
         // and the existing argument types.
@@ -3535,7 +3569,7 @@ const ast::Expression *Analyzer::analyze_comparison(const Token &token, const as
         if (left->type == ast::TYPE_OBJECT && dynamic_cast<const ast::ConstantNilExpression *>(right) != nullptr) {
             r = new ast::FunctionCall(
                 new ast::VariableExpression(
-                    dynamic_cast<const ast::Variable *>(scope.top()->lookupName("object__isNull"))
+                    dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$object__isNull"))
                 ),
                 {
                     left
@@ -3545,7 +3579,7 @@ const ast::Expression *Analyzer::analyze_comparison(const Token &token, const as
         if (dynamic_cast<const ast::ConstantNilExpression *>(left) != nullptr && right->type == ast::TYPE_OBJECT) {
             r = new ast::FunctionCall(
                 new ast::VariableExpression(
-                    dynamic_cast<const ast::Variable *>(scope.top()->lookupName("object__isNull"))
+                    dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$object__isNull"))
                 ),
                 {
                     right
@@ -3670,7 +3704,7 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
             ),
             {
                 ast::TryTrap(
-                    {dynamic_cast<const ast::Exception *>(scope.top()->lookupName("ArrayIndexException"))},
+                    {new ast::Exception(Token(), "PANIC")}, // Not found produces a panic. Change this to a choice result.
                     nullptr,
                     new ast::ConstantBooleanExpression(false)
                 )
@@ -6683,7 +6717,7 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
     if (print == nullptr) {
         internal_error("where's the print function");
     }
-    const ast::Variable *string_concat = dynamic_cast<const ast::Variable *>(scope.top()->lookupName("string__concat"));
+    const ast::Variable *string_concat = dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$string__concat"));
     auto concat = [string_concat](const ast::Expression *s, const ast::Expression *t){ return new ast::FunctionCall(new ast::VariableExpression(string_concat), {s, t}); };
     const ast::Expression *s = new ast::ConstantStringExpression(utf8string("DEBUG (" + statement->token.source->source_path + ":" + std::to_string(statement->token.line) + ") "));
     bool first = true;
@@ -6976,6 +7010,17 @@ const ast::Program *Analyzer::analyze()
         scope.push(new ast::Scope(scope.top(), frame.top()));
         r->scope = scope.top();
     }
+    if (module_name != "global") {
+        const ast::Module *global_module = import_module(Token(), "global", false);
+        ast::Frame *global_frame = global_module->scope->frame;
+        for (size_t i = 0; i < global_frame->getCount(); i++) {
+            ast::Frame::Slot slot = global_frame->getSlot(i);
+            if (global_scope->lookupName(slot.name) == nullptr) {
+                global_scope->addName(slot.token, slot.name, slot.ref);
+            }
+        }
+    }
+    rtl_compile_init_methods(global_scope);
     checked_choice_variables.push({});
 
     //init_builtin_constants(global_scope);

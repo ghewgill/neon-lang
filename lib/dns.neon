@@ -127,7 +127,7 @@ FUNCTION packQuestion(q: Question): Bytes
             PANIC "zero length name component"
         END CHECK
         r.append([part.length()].toBytes())
-        r.append(part.toBytes())
+        r.append(part.encodeUTF8())
     END FOREACH
     r.append(HEXBYTES "00")
     r.append(struct.packUInt16BE(q.type.value()))
@@ -197,7 +197,7 @@ FUNCTION unpackName(data: Bytes, INOUT i: Number): String
             r.append(".")
         END IF
         IF binary.and32(len, 0xC0) = 0 THEN
-            r.append(data[i TO i+len-1].decodeToString())
+            r.append(data[i TO i+len-1].decodeUTF8().expectString())
             i := i + len
         ELSE
             DEBUG i
@@ -242,7 +242,7 @@ END FUNCTION
 FUNCTION unpackText(data: Bytes, INOUT i: Number): String
     LET len: Number := data[i]
     INC i
-    LET r: String := data[i TO i+len-1].decodeToString()
+    LET r: String := data[i TO i+len-1].decodeUTF8().expectString()
     i := i + len
     RETURN r
 END FUNCTION

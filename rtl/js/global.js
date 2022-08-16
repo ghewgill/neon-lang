@@ -1,5 +1,5 @@
 neon = {
-    global: {
+    builtin: {
         array__append: function(self, element) {
             self.push(element);
         },
@@ -46,17 +46,6 @@ neon = {
             return Object.keys(self).sort();
         },
 
-        divide: function(a, b) {
-            if (b === 0) {
-                throw new NeonException("NumberException.DivideByZero");
-            }
-            return a / b;
-        },
-
-        num: function(s) {
-            return parseFloat(s);
-        },
-
         number__toString: function(x) {
             return x.toString();
         },
@@ -69,20 +58,33 @@ neon = {
             return x.toString();
         },
 
-        print: function(x) {
-            console.log(x);
-        },
-
-        str: function(x) {
-            return x.toString();
-        },
-
         string__concat: function(a, b) {
             return a + b;
         },
 
         string__length: function(self) {
             return self.length;
+        },
+
+    },
+    global: {
+        divide: function(a, b) {
+            if (b === 0) {
+                throw new NeonException("NumberException.DivideByZero");
+            }
+            return a / b;
+        },
+
+        num: function(s) {
+            return parseFloat(s);
+        },
+
+        print: function(x) {
+            console.log(x);
+        },
+
+        str: function(x) {
+            return x.toString();
         },
 
         substring: function(s, offset, length) {
@@ -192,7 +194,7 @@ neon = {
 
         odd: function(n) {
             if (n != Math.trunc(n)) {
-                throw new neon.NeonException("ValueRangeException", {info: "odd() requires integer"});
+                throw new neon.NeonException("PANIC", {info: "odd() requires integer"});
             }
             return (n % 2) != 0;
         },
@@ -229,17 +231,17 @@ neon = {
     string: {
         fromCodePoint: function(x) {
             if (x != Math.trunc(x)) {
-                throw new neon.NeonException("ValueRangeException", {info: "fromCodePoint() argument not an integer"});
+                throw new neon.NeonException("PANIC", {info: "fromCodePoint() argument not an integer"});
             }
             if (x < 0 || x > 0x10ffff) {
-                throw new neon.NeonException("ValueRangeException", {info: "fromCodePoint() argument out of range 0-0x10ffff"});
+                throw new neon.NeonException("PANIC", {info: "fromCodePoint() argument out of range 0-0x10ffff"});
             }
             return String.fromCharCode(x);
         },
 
         toCodePoint: function(s) {
             if (s.length != 1) {
-                throw new neon.NeonException("ArrayIndexException", {info: "toCodePoint() requires string of length 1"});
+                throw new neon.NeonException("PANIC", {info: "toCodePoint() requires string of length 1"});
             }
             return s.charCodeAt(0);
         }

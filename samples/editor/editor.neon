@@ -250,7 +250,7 @@ FUNCTION Editor.load(INOUT self: Editor, filename: String)
     CHECK br ISA file.BytesResult.data ELSE
         EXIT FUNCTION
     END CHECK
-    self.buffer.load(br.data.decodeToString())
+    self.buffer.load(br.data.decodeUTF8().expectString())
 END FUNCTION
 
 FUNCTION Editor.refresh(self: Editor)

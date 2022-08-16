@@ -39,7 +39,7 @@ void boolean__toString(struct tagTExecutor *exec);
 
 void bytes__append(struct tagTExecutor *exec);
 void bytes__concat(struct tagTExecutor *exec);
-void bytes__decodeToString(struct tagTExecutor *exec);
+void bytes__decodeUTF8(struct tagTExecutor *exec);
 void bytes__index(struct tagTExecutor *exec);
 void bytes__range(struct tagTExecutor *exec);
 void bytes__size(struct tagTExecutor *exec);
@@ -52,8 +52,6 @@ void dictionary__keys(struct tagTExecutor *exec);
 void dictionary__remove(struct tagTExecutor *exec);
 void dictionary__toString__object(struct tagTExecutor *exec);
 void dictionary__toString__string(struct tagTExecutor *exec);
-
-void exceptiontype__toString(struct tagTExecutor *exec);
 
 void number__toString(struct tagTExecutor *exec);
 
@@ -80,7 +78,7 @@ void pointer__toString(struct tagTExecutor *exec);
 
 void string__append(struct tagTExecutor *exec);
 void string__concat(struct tagTExecutor *exec);
-void string__toBytes(struct tagTExecutor *exec);
+void string__encodeUTF8(struct tagTExecutor *exec);
 void string__toString(struct tagTExecutor *exec);
 void string__index(struct tagTExecutor *exec);
 void string__length(struct tagTExecutor *exec);

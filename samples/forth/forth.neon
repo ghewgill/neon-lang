@@ -1327,7 +1327,7 @@ FUNCTION readLine(f: io.File, OUT s: String): Boolean
         END IF
         b := b & c
     END LOOP
-    s := b.decodeToString()
+    s := b.decodeUTF8().expectString()
     RETURN TRUE
 END FUNCTION
 

@@ -576,7 +576,7 @@ class InterpolatedStringExpression:
             x = e.eval(env)
             s = (x if isinstance(x, str)
                   else ("TRUE" if x else "FALSE") if isinstance(x, bool)
-                  else neon_str(env, x) if isinstance(x, (int, float))
+                  else neon_global_str(env, x) if isinstance(x, (int, float))
                   else "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(b) for b in x.a)) if isinstance(x, bytes)
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e) if e is not None else "null") for e in x)) if isinstance(x, list)
                   else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, str) else str(v) if v is not None else "null")) for k, v in sorted(x.items())))) if isinstance(x, dict)
@@ -624,11 +624,11 @@ class SubscriptExpression:
             if isinstance(a, (str, bytes, list)):
                 if i != int(i):
                     if isinstance(a, str):
-                        raise NeonException("StringIndexException", i)
+                        raise NeonException("PANIC", "String index is not an integer: {}".format(i))
                     if isinstance(a, bytes):
-                        raise NeonException("BytesIndexException", i)
+                        raise NeonException("PANIC", "Bytes index not an integer: {}".format(i))
                     if isinstance(a, list):
-                        raise NeonException("ArrayIndexException", i)
+                        raise NeonException(("PANIC",), "Array index not an integer: {}".format(i))
                     assert False
             if isinstance(a, (list, str)):
                 if self.from_end:
@@ -639,16 +639,16 @@ class SubscriptExpression:
                             return []
                         if isinstance(a, str):
                             return ""
-                    raise IndexError
+                    raise NeonException(("PANIC",), "Array index is negative: {}".format(i))
             return a[i]
         except TypeError:
             if i != int(i):
-                raise NeonException("ArrayIndexException")
+                raise NeonException(("PANIC",), "Array index not an integer: {}".format(i))
             assert False
         except IndexError:
-            raise NeonException("ArrayIndexException")
+            raise NeonException(("PANIC",), "Array index exceeds size {}: {}".format(len(a), i))
         except KeyError:
-            raise NeonException("DictionaryIndexException")
+            raise NeonException("PANIC", "Dictionary key not found: {}".format(i))
     def set(self, env, value):
         a = self.expr.eval(env)
         i = self.index.eval(env)
@@ -676,18 +676,18 @@ class RangeSubscriptExpression:
         a = self.expr.eval(env)
         f = self.first.eval(env)
         l = self.last.eval(env)
-        def check_index_integer(i):
+        def check_index_integer(i, which):
             if i != int(i):
                 if isinstance(a, str):
-                    raise NeonException("StringIndexException", i)
+                    raise NeonException("PANIC", "{} index not an integer: {}".format(which, i))
                 if isinstance(a, bytes):
-                    raise NeonException("BytesIndexException", i)
+                    raise NeonException("PANIC", "{} index not an integer: {}".format(which, i))
                 if isinstance(a, list):
-                    raise NeonException("ArrayIndexException", i)
+                    raise NeonException(("PANIC",), "{} index not an integer: {}".format(which, i))
                 assert False
         if isinstance(a, (str, bytes, list)):
-            check_index_integer(f)
-            check_index_integer(l)
+            check_index_integer(f, "First")
+            check_index_integer(l, "Last")
         if self.first_from_end:
             f += len(a) - 1
         else:
@@ -732,10 +732,10 @@ class DotExpression:
             if self.field == "append": return neon_string_append
             if self.field == "length": return lambda env, self: len(self)
             if self.field == "toArray": return lambda env, self: [ord(x) for x in obj]
-            if self.field == "toBytes": return lambda env, self: bytes([x for x in obj.encode("utf-8")])
+            if self.field == "encodeUTF8": return lambda env, self: bytes([x for x in obj.encode("utf-8")])
             if self.field == "toString": return lambda env, self: obj
         elif isinstance(obj, bytes):
-            if self.field == "decodeToString": return lambda env, self: bytearray(obj.a).decode("utf-8")
+            if self.field == "decodeUTF8": return lambda env, self: neon_global_decodeUTF8(env, obj.a)
             if self.field == "size": return lambda env, self: len(obj.a)
             if self.field == "toArray": return lambda env, self: obj.a
             if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj.a))
@@ -1454,6 +1454,9 @@ class TestCaseStatement:
                     if x.name[0] == "PANIC" and x.info == self.expected_exception[1].value:
                         pass
                     else:
+                        print("EXPECT PANIC mismatch:", file=sys.stderr)
+                        print("    info: " + x.info, file=sys.stderr)
+                        print("    expected: " + self.expected_exception[1].value, file=sys.stderr)
                         raise
                 else:
                     if x.name[:len(self.expected_exception)] == self.expected_exception or x.name[:len(self.expected_exception)-1] == self.expected_exception[1:]:
@@ -2679,23 +2682,7 @@ class ClassString(Class):
 
 class ClassBytes(Class):
     def default(self, env):
-        class Bytes:
-            def __init__(self):
-                self.a = []
-            def __eq__(self, rhs):
-                return self.a == rhs.a
-            def fromArray(self, env, a):
-                self.a = list(a)
-            def size(self, env):
-                return len(self.a)
-            def toArray(self, env):
-                return list(self.a)
-            def decodeToString(self, env, obj):
-                if isinstance(self.a, list):
-                    # Convert bytes to string.
-                    self.a = bytearray(self.a)
-                return self.a.decode("utf-8")
-        return Bytes()
+        return bytes([])
 
 class ClassObject(Class):
     def default(self, env):
@@ -2772,8 +2759,16 @@ class ClassChoice(Class):
                 return "<{}:{}>".format(x._choice, value)
             else:
                 return "<{}>".format(x._choice)
+        def expectString(self, env, x):
+            # This is a huge hack to support DecodeResult.expectString, because right now methods
+            # declared on choice classes aren't available inside instances like this.
+            if x._choice == "string":
+                return getattr(x, x._choice)
+            else:
+                raise NeonException("PANIC", "not a string")
     def __init__(self, choices):
         self.choices = choices
+        self.methods = {}
     def default(self, env):
         r = ClassChoice.Instance(self.choices[0][0], None)
         return r
@@ -2919,9 +2914,9 @@ def run(program):
     program.env.declare("String", Class(), ClassString())
     program.env.declare("Bytes", Class(), ClassBytes())
     program.env.declare("Object", Class(), ClassObject())
-    program.env.declare("num", None, neon_num)
-    program.env.declare("print", None, neon_print)
-    program.env.declare("str", None, neon_str)
+    g = import_module("global", False)
+    for name, decl in g.env.names.items():
+        program.env.names[name] = decl
     program.run(program.env)
 
 def eval_cond(left, cond, right):
@@ -2942,18 +2937,20 @@ def neon_array_find(a, x):
     try:
         return a.index(x)
     except ValueError:
-        raise NeonException("ArrayIndexException")
+        raise NeonException(("PANIC",), "value not found in array")
 
 def neon_array_remove(a, n):
     if n != int(n):
-        raise NeonException("ArrayIndexException")
-    if not (0 <= n < len(a)):
-        raise NeonException("ArrayIndexException")
+        raise NeonException(("PANIC",), "Array index not an integer: {}".format(n))
+    if n < 0:
+        raise NeonException(("PANIC",), "Array index is negative: {}".format(n))
+    if n >= len(a):
+        raise NeonException(("PANIC",), "Array index exceeds size {}: {}".format(len(a), n))
     del a[n]
 
 def neon_array_resize(a, n):
     if n != int(n):
-        raise NeonException("ArrayIndexException")
+        raise NeonException(("PANIC",), "Invalid array size: {}".format(n))
     if n < len(a):
         del a[int(n):]
     elif n > len(a):
@@ -2965,7 +2962,7 @@ def neon_array_reversed(a):
 def neon_array_toBytes(a):
     for i, x in enumerate(a):
         if not (0 <= x < 256):
-            raise NeonException("PANIC", "Byte value out of range at offset {}: {}".format(i, x))
+            raise NeonException(("PANIC",), "Byte value out of range at offset {}: {}".format(i, x))
     return bytes(a)
 
 def neon_dictionary_remove(d, k):
@@ -2978,20 +2975,26 @@ def neon_format(env, s, fmt):
     else:
         return format(s, fmt)
 
-def neon_num(env, x):
+def neon_global_decodeUTF8(env, x):
+    try:
+        return ClassChoice.Instance("string", bytearray(x).decode("utf-8"))
+    except UnicodeDecodeError as x:
+        return ClassChoice.Instance("error", [x.start])
+
+def neon_global_num(env, x):
     if not any(c.isdigit() for c in x):
-        raise NeonException("ValueRangeException", x)
+        raise NeonException("PANIC", "num() argument not a number")
     try:
         return int(x) if x.isdigit() else float(x)
     except ValueError:
-        raise NeonException("ValueRangeException", x)
+        raise NeonException("PANIC", "num() argument not a number")
 
-def neon_print(env, x):
+def neon_global_print(env, x):
     if isinstance(x, list):
         x = "[{}]".format(", ".join((neon_string_quoted(env, e) if isinstance(e, str) else str(e)) for e in x))
     print(x)
 
-def neon_str(env, x):
+def neon_global_str(env, x):
     r = str(x)
     if isinstance(x, float):
         # Format with limited precision to avoid roundoff.
@@ -3053,9 +3056,7 @@ def neon_file_mkdir(env, path):
 
 def neon_file_readBytes(env, fn):
     with open(fn, "rb") as f:
-        r = ClassBytes().default(env)
-        r.fromArray(env, [x for x in f.read()])
-        return ClassChoice.Instance("data", r)
+        return ClassChoice.Instance("data", bytes(f.read()))
 
 def neon_file_readLines(env, fn):
     with codecs.open(fn, "r", encoding="utf-8") as f:
@@ -3105,9 +3106,7 @@ def neon_io_open(env, fn, mode):
         return ClassChoice.Instance("error", "open error")
 
 def neon_io_readBytes(env, f, count):
-    r = ClassBytes().default(env)
-    r.fromArray(env, bytearray(f.read(count)))
-    return r
+    return bytes(f.read(count))
 
 def neon_io_readLine(env, f, r):
     r = f.readline()
@@ -3220,7 +3219,7 @@ def neon_math_nearbyint(env, x):
 
 def neon_math_odd(env, x):
     if x != int(x):
-        raise NeonException("ValueRangeException", "odd() requires integer")
+        raise NeonException("PANIC", "odd() requires integer")
     return (x & 1) != 0
 
 def neon_math_powmod(env, b, e, m):
@@ -3335,9 +3334,9 @@ def neon_string_find(env, s, t):
 
 def neon_string_fromCodePoint(env, x):
     if x != int(x):
-        raise NeonException("ValueRangeException", "fromCodePoint() argument not an integer")
+        raise NeonException("PANIC", "fromCodePoint() argument not an integer")
     if not (0 <= x <= 0x10ffff):
-        raise NeonException("ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff")
+        raise NeonException("PANIC", "fromCodePoint() argument out of range 0-0x10ffff")
     return chr(x)
 
 def neon_string_hasPrefix(env, s, t):
@@ -3388,7 +3387,7 @@ def neon_string_splitLines(env, s):
 
 def neon_string_toCodePoint(env, x):
     if len(x) != 1:
-        raise NeonException("ArrayIndexException", "toCodePoint() requires string of length 1")
+        raise NeonException("PANIC", "toCodePoint() requires string of length 1")
     return ord(x)
 
 def neon_string_trimCharacters(env, s, leading, trailing):
@@ -3399,7 +3398,7 @@ def neon_string_upper(env, s):
 
 def neon_sys_exit(env, n):
     if n != int(n) or n < 0 or n > 255:
-        raise NeonException("ValueRangeException", "sys.exit invalid parameter: {}".format(n))
+        raise NeonException("PANIC", "sys.exit invalid parameter: {}".format(n))
     sys.exit(n)
 
 def neon_textio_close(env, f):

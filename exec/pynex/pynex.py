@@ -957,8 +957,14 @@ class Executor:
         if addr.value is None:
             addr.value = []
         a = addr.value
-        if not is_integer(index) or is_signed(index) or int(index) >= len(a):
-            self.raise_literal("ArrayIndexException", str(index))
+        if not is_integer(index):
+            self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
+            return
+        if is_signed(index):
+            self.raise_literal("PANIC", "Array index is negative: {}".format(index))
+            return
+        if int(index) >= len(a):
+            self.raise_literal("PANIC", "Array index exceeds size {}: {}".format(len(a), index))
             return
         self.stack.append(a[int(index)])
 
@@ -968,8 +974,11 @@ class Executor:
         addr = self.stack.pop()
         if addr.value is None:
             addr.value = []
-        if not is_integer(index) or is_signed(index):
-            self.raise_literal("ArrayIndexException", str(index))
+        if not is_integer(index):
+            self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
+            return
+        if is_signed(index):
+            self.raise_literal("PANIC", "Array index is negative: {}".format(index))
             return
         a = addr.value
         i = int(index)
@@ -981,8 +990,11 @@ class Executor:
         self.ip += 1
         index = self.stack.pop()
         addr = self.stack.pop()
-        if not is_integer(index) or is_signed(index):
-            self.raise_literal("ArrayIndexException", str(index))
+        if not is_integer(index):
+            self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
+            return
+        if is_signed(index):
+            self.raise_literal("PANIC", "Array index is negative: {}".format(index))
             return
         self.stack.append(addr[int(index)].value)
 
@@ -990,8 +1002,11 @@ class Executor:
         self.ip += 1
         index = self.stack.pop()
         addr = self.stack.pop()
-        if not is_integer(index) or is_signed(index):
-            self.raise_literal("ArrayIndexException", str(index))
+        if not is_integer(index):
+            self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
+            return
+        if is_signed(index):
+            self.raise_literal("PANIC", "Array index is negative: {}".format(index))
             return
         self.stack.append(addr[int(index)].value)
 
@@ -1003,7 +1018,7 @@ class Executor:
             addr.value = {}
         d = addr.value
         if key not in d:
-            self.raise_literal("DictionaryIndexException", key)
+            self.raise_literal("PANIC", "Dictionary key not found: " + key)
             return
         self.stack.append(d[key])
 
@@ -1393,33 +1408,33 @@ Dispatch = [
     Executor.PUSHCI,
 ]
 
-def neon_array__append(self):
+def neon_builtin_array__append(self):
     v = self.stack.pop()
     a = self.stack.pop()
     if a.value is None:
         a.value = []
     a.value.append(Value(v))
 
-def neon_array__concat(self):
+def neon_builtin_array__concat(self):
     b = self.stack.pop()
     a = self.stack.pop()
     self.stack.append(a + b)
 
-def neon_array__extend(self):
+def neon_builtin_array__extend(self):
     v = self.stack.pop()
     a = self.stack.pop().value
     a.extend(v)
 
-def neon_array__find(self):
+def neon_builtin_array__find(self):
     e = self.stack.pop()
     a = self.stack.pop()
     try:
         i = next(i for i, x in enumerate(a) if equals(x.value, e))
         self.stack.append(i)
     except StopIteration:
-        self.raise_literal("ArrayIndexException", "value not found in array")
+        self.raise_literal("PANIC", "value not found in array")
 
-def neon_array__range(self):
+def neon_builtin_array__range(self):
     step = self.stack.pop()
     last = self.stack.pop()
     first = self.stack.pop()
@@ -1436,22 +1451,22 @@ def neon_array__range(self):
             i += step
     self.stack.append(r)
 
-def neon_array__remove(self):
+def neon_builtin_array__remove(self):
     index = self.stack.pop()
     a = self.stack.pop().value
     if not is_integer(index):
-        self.raise_literal("ArrayIndexException", str(index))
+        self.raise_literal("PANIC", "Array index not an integer: {}".format(index))
         return
     del a[int(index)]
 
-def neon_array__resize(self):
+def neon_builtin_array__resize(self):
     size = self.stack.pop()
     a = self.stack.pop()
     if a.value is None:
         a.value = []
     a = a.value
     if not is_integer(size):
-        self.raise_literal("ArrayIndexException", str(size))
+        self.raise_literal("PANIC", "Invalid array size: {}".format(size))
         return
     size = int(size)
     if size < len(a):
@@ -1460,25 +1475,25 @@ def neon_array__resize(self):
         while len(a) < size:
             a.append(Value(None))
 
-def neon_array__reversed(self):
+def neon_builtin_array__reversed(self):
     a = self.stack.pop()
     self.stack.append(list(reversed(a)))
 
-def neon_array__size(self):
+def neon_builtin_array__size(self):
     a = self.stack.pop()
     self.stack.append(len(a))
 
-def neon_array__slice(self):
+def neon_builtin_array__slice(self):
     last_from_end = self.stack.pop()
     last = self.stack.pop()
     first_from_end = self.stack.pop()
     first = self.stack.pop()
     a = self.stack.pop()
     if first != int(first):
-        self.raise_literal("ArrayIndexException", first)
+        self.raise_literal("PANIC", "First index not an integer: {}".format(first))
         return
     if last != int(last):
-        self.raise_literal("ArrayIndexException", last)
+        self.raise_literal("PANIC", "Last index not an integer: {}".format(last))
         return
     first = int(first)
     last = int(last)
@@ -1492,7 +1507,7 @@ def neon_array__slice(self):
         last = -1
     self.stack.append(a[first:last+1])
 
-def neon_array__splice(self):
+def neon_builtin_array__splice(self):
     last_from_end = self.stack.pop()
     last = int(self.stack.pop())
     first_from_end = self.stack.pop()
@@ -1506,7 +1521,7 @@ def neon_array__splice(self):
     r = a[:first] + b + a[last+1:]
     self.stack.append(r)
 
-def neon_array__toBytes__number(self):
+def neon_builtin_array__toBytes__number(self):
     a = self.stack.pop()
     for i, x in enumerate(a):
         if x.value is not None and not (0 <= x.value < 256):
@@ -1514,15 +1529,15 @@ def neon_array__toBytes__number(self):
             return
     self.stack.append(bytearray(int(x.value) if x.value is not None else 0 for x in a))
 
-def neon_array__toString__number(self):
+def neon_builtin_array__toString__number(self):
     a = self.stack.pop()
     self.stack.append("[{}]".format(", ".join(str(x.value) for x in a)))
 
-def neon_array__toString__object(self):
+def neon_builtin_array__toString__object(self):
     a = self.stack.pop()
     self.stack.append("[{}]".format(", ".join(literal(x.value) for x in a)))
 
-def neon_array__toString__string(self):
+def neon_builtin_array__toString__string(self):
     a = self.stack.pop()
     self.stack.append("[{}]".format(", ".join(literal(x.value) for x in a)))
 
@@ -1530,10 +1545,10 @@ def neon_binary_and32(self):
     b = int(self.stack.pop())
     a = int(self.stack.pop())
     if not (0 <= a <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", a)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(a))
         return
     if not (0 <= b <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", b)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(b))
         return
     self.stack.append(a & b)
 
@@ -1541,10 +1556,10 @@ def neon_binary_and64(self):
     b = int(self.stack.pop())
     a = int(self.stack.pop())
     if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", a)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(a))
         return
     if not (0 <= b <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", b)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(b))
         return
     self.stack.append(a & b)
 
@@ -1556,14 +1571,14 @@ def neon_binary_andBytes(self):
 def neon_binary_bitCount32(self):
     a = int(self.stack.pop())
     if not (0 <= a <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", a)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(a))
         return
     self.stack.append(bin(a).count("1"))
 
 def neon_binary_bitCount64(self):
     a = int(self.stack.pop())
     if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", a)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(a))
         return
     self.stack.append(bin(a).count("1"))
 
@@ -1576,13 +1591,13 @@ def neon_binary_extract32(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(x))
         return
     if not (0 <= n <= 32):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(n))
         return
     if not (0 <= w <= 32):
-        self.raise_literal("ValueRangeException", w)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(w))
         return
     if n < 32:
         self.stack.append((x >> n) & ((1 << w) - 1))
@@ -1594,13 +1609,13 @@ def neon_binary_extract64(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(x))
         return
     if not (0 <= n <= 64):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(n))
         return
     if not (0 <= w <= 64):
-        self.raise_literal("ValueRangeException", w)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(w))
         return
     if n < 64:
         self.stack.append((x >> n) & ((1 << w) - 1))
@@ -1611,10 +1626,10 @@ def neon_binary_get32(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(x))
         return
     if not (0 <= n <= 32):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(n))
         return
     if n < 32:
         self.stack.append((x & (1 << n)) != 0)
@@ -1625,10 +1640,10 @@ def neon_binary_get64(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(x))
         return
     if not (0 <= n <= 64):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(n))
         return
     if n < 64:
         self.stack.append((x & (1 << n)) != 0)
@@ -1638,14 +1653,14 @@ def neon_binary_get64(self):
 def neon_binary_not32(self):
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(x))
         return
     self.stack.append(x ^ 0xFFFFFFFF)
 
 def neon_binary_not64(self):
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(x))
         return
     self.stack.append(x ^ 0xFFFFFFFFFFFFFFFF)
 
@@ -1657,10 +1672,10 @@ def neon_binary_or32(self):
     b = int(self.stack.pop())
     a = int(self.stack.pop())
     if not (0 <= a <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", a)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(a))
         return
     if not (0 <= b <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", b)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(b))
         return
     self.stack.append(a | b)
 
@@ -1668,10 +1683,10 @@ def neon_binary_or64(self):
     b = int(self.stack.pop())
     a = int(self.stack.pop())
     if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", a)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(a))
         return
     if not (0 <= b <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", b)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(b))
         return
     self.stack.append(a | b)
 
@@ -1686,16 +1701,16 @@ def neon_binary_replace32(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(x))
         return
     if not (0 <= n <= 32):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(n))
         return
     if not (0 <= w <= 32):
-        self.raise_literal("ValueRangeException", w)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(w))
         return
     if not (0 <= y <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", y)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(y))
         return
     if n < 32:
         self.stack.append(x & ((((1 << w) - 1) << n) ^ 0xFFFFFFFF) | (y << n))
@@ -1708,16 +1723,16 @@ def neon_binary_replace64(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(x))
         return
     if not (0 <= n <= 64):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(n))
         return
     if not (0 <= w <= 64):
-        self.raise_literal("ValueRangeException", w)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(w))
         return
     if not (0 <= y <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", y)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(y))
         return
     if n < 64:
         self.stack.append(x & ((((1 << w) - 1) << n) ^ 0xFFFFFFFFFFFFFFFF) | (y << n))
@@ -1729,10 +1744,10 @@ def neon_binary_set32(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(x))
         return
     if not (0 <= n <= 32):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(n))
         return
     if n < 32:
         if v:
@@ -1747,10 +1762,10 @@ def neon_binary_set64(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(x))
         return
     if not (0 <= n <= 64):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(n))
         return
     if n < 64:
         if v:
@@ -1764,10 +1779,10 @@ def neon_binary_shiftLeft32(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(x))
         return
     if not (0 <= n <= 32):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(n))
         return
     if n < 32:
         self.stack.append(x << n)
@@ -1778,10 +1793,10 @@ def neon_binary_shiftLeft64(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(x))
         return
     if not (0 <= n <= 64):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(n))
         return
     if n < 64:
         self.stack.append(x << n)
@@ -1792,10 +1807,10 @@ def neon_binary_shiftRight32(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(x))
         return
     if not (0 <= n <= 32):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(n))
         return
     self.stack.append(x >> n)
 
@@ -1803,10 +1818,10 @@ def neon_binary_shiftRight64(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (0 <= x <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(x))
         return
     if not (0 <= n <= 64):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(n))
         return
     self.stack.append(x >> n)
 
@@ -1814,10 +1829,10 @@ def neon_binary_shiftRightSigned32(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (-0x80000000 <= x <= 0x7FFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between -2147483648 and 2147483647: {}".format(x))
         return
     if not (0 <= n <= 32):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 32: {}".format(n))
         return
     self.stack.append(x >> n)
 
@@ -1825,10 +1840,10 @@ def neon_binary_shiftRightSigned64(self):
     n = int(self.stack.pop())
     x = int(self.stack.pop())
     if not (-0x8000000000000000 <= x <= 0x7FFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", x)
+        self.raise_literal("PANIC", "Range of argument is not between -9223372036854775808 and 9223372036854775807: {}".format(x))
         return
     if not (0 <= n <= 64):
-        self.raise_literal("ValueRangeException", n)
+        self.raise_literal("PANIC", "Index is out of max range 64: {}".format(n))
         return
     self.stack.append(x >> n)
 
@@ -1836,10 +1851,10 @@ def neon_binary_xor32(self):
     b = int(self.stack.pop())
     a = int(self.stack.pop())
     if not (0 <= a <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", a)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(a))
         return
     if not (0 <= b <= 0xFFFFFFFF):
-        self.raise_literal("ValueRangeException", b)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 4294967295: {}".format(b))
         return
     self.stack.append(a ^ b)
 
@@ -1847,10 +1862,10 @@ def neon_binary_xor64(self):
     b = int(self.stack.pop())
     a = int(self.stack.pop())
     if not (0 <= a <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", a)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(a))
         return
     if not (0 <= b <= 0xFFFFFFFFFFFFFFFF):
-        self.raise_literal("ValueRangeException", b)
+        self.raise_literal("PANIC", "Range of argument is not between 0 and 18446744073709551615: {}".format(b))
         return
     self.stack.append(a ^ b)
 
@@ -1859,47 +1874,54 @@ def neon_binary_xorBytes(self):
     a = self.stack.pop()
     self.stack.append(bytearray([x ^ y for x, y in zip(a, b)]))
 
-def neon_boolean__toString(self):
+def neon_builtin_boolean__toString(self):
     x = self.stack.pop()
     self.stack.append("TRUE" if x else "FALSE")
 
-def neon_bytes__append(self):
+def neon_builtin_bytes__append(self):
     b = self.stack.pop()
     ac = self.stack.pop()
     ac.value = ac.value + b
 
-def neon_bytes__concat(self):
+def neon_builtin_bytes__concat(self):
     b = self.stack.pop()
     a = self.stack.pop()
     self.stack.append(a + b)
 
-def neon_bytes__decodeToString(self):
+def neon_global_Bytes__decodeUTF8(self):
     b = self.stack.pop()
-    self.stack.append(b.decode())
+    try:
+        s = b.decode()
+        self.stack.append([Value(0), Value(s)])
+    except UnicodeDecodeError as x:
+        self.stack.append([Value(1), Value([Value(x.start)])])
 
-def neon_bytes__index(self):
+def neon_builtin_bytes__index(self):
     index = self.stack.pop()
     b = self.stack.pop()
     if index != int(index):
-        self.raise_literal("BytesIndexException", index)
+        self.raise_literal("PANIC", "Bytes index not an integer: {}".format(index))
         return
     index = int(index)
-    if index < 0 or index >= len(b):
-        self.raise_literal("BytesIndexException", index)
+    if index < 0:
+        self.raise_literal("PANIC", "Bytes index is negative: {}".format(index))
+        return
+    if index >= len(b):
+        self.raise_literal("PANIC", "Bytes index exceeds size {}: {}".format(len(b), index))
         return
     self.stack.append(b[index])
 
-def neon_bytes__range(self):
+def neon_builtin_bytes__range(self):
     last_from_end = self.stack.pop()
     last = self.stack.pop()
     first_from_end = self.stack.pop()
     first = self.stack.pop()
     b = self.stack.pop()
     if first != int(first):
-        self.raise_literal("BytesIndexException", first)
+        self.raise_literal("PANIC", "First index not an integer: {}".format(first))
         return
     if last != int(last):
-        self.raise_literal("BytesIndexException", last)
+        self.raise_literal("PANIC", "Last index not an integer: {}".format(last))
         return
     first = int(first)
     last = int(last)
@@ -1917,11 +1939,11 @@ def neon_bytes__range(self):
         last = -1
     self.stack.append(b[first:last+1])
 
-def neon_bytes__size(self):
+def neon_builtin_bytes__size(self):
     b = self.stack.pop()
     self.stack.append(len(b))
 
-def neon_bytes__splice(self):
+def neon_builtin_bytes__splice(self):
     last_from_end = self.stack.pop()
     last = int(self.stack.pop())
     first_from_end = self.stack.pop()
@@ -1933,10 +1955,10 @@ def neon_bytes__splice(self):
     if last_from_end:
         last += len(a) - 1
     if first < 0:
-        self.raise_literal("BytesIndexException", (str(first), 0))
+        self.raise_literal("PANIC", "First index is negative: {}".format(first))
         return
     if last < first-1:
-        self.raise_literal("BytesIndexException", (str(last), 0))
+        self.raise_literal("PANIC", "Last index is before first {}: {}".format(first, last))
         return
     padding = b""
     if first > len(a):
@@ -1944,17 +1966,17 @@ def neon_bytes__splice(self):
     r = a[:first] + padding + b + a[last+1:]
     self.stack.append(r)
 
-def neon_bytes__store(self):
+def neon_builtin_bytes__store(self):
     index = int(self.stack.pop())
     sc = self.stack.pop()
     b = int(self.stack.pop())
     sc.value = sc.value[:index] + bytes([b]) + sc.value[index+1:]
 
-def neon_bytes__toArray(self):
+def neon_builtin_bytes__toArray(self):
     b = self.stack.pop()
     self.stack.append([Value(x) for x in b])
 
-def neon_bytes__toString(self):
+def neon_builtin_bytes__toString(self):
     b = self.stack.pop()
     self.stack.append("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in b)))
 
@@ -1993,68 +2015,64 @@ def neon_debugger_log(self):
     message = self.stack.pop()
     pass
 
-def neon_dictionary__keys(self):
+def neon_builtin_dictionary__keys(self):
     d = self.stack.pop()
     self.stack.append([Value(x) for x in sorted(d.keys())])
 
-def neon_dictionary__remove(self):
+def neon_builtin_dictionary__remove(self):
     key = self.stack.pop()
     d = self.stack.pop().value
     if key in d:
         del d[key]
 
-def neon_dictionary__toString__object(self):
+def neon_builtin_dictionary__toString__object(self):
     d = self.stack.pop()
     self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(str(v.value))) for k, v in sorted(d.items()))))
 
-def neon_dictionary__toString__string(self):
+def neon_builtin_dictionary__toString__string(self):
     d = self.stack.pop()
     self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(v.value)) for k, v in sorted(d.items()))))
 
-def neon_exceptiontype__toString(self):
-    ei = self.stack.pop()
-    self.stack.append("<ExceptionType:{},{},{}>".format(ei[0].value, ei[1].value, ei[2].value))
-
-def neon_num(self):
+def neon_global_num(self):
     s = self.stack.pop()
     try:
         self.stack.append(decimal.Decimal(s))
     except decimal.InvalidOperation:
-        self.raise_literal("ValueRangeException", s)
+        self.raise_literal("PANIC", "num() argument not a number")
         return
 
-def neon_number__toString(self):
-    neon_str(self)
+def neon_builtin_number__toString(self):
+    neon_global_str(self)
 
-def neon_object__getArray(self):
+def neon_builtin_object__getArray(self):
     v = self.stack.pop()
     if not isinstance(v, list):
         self.raise_literal("DynamicConversionException", "to Array")
         return
     self.stack.append(v)
 
-def neon_object__getBoolean(self):
+def neon_builtin_object__getBoolean(self):
     v = self.stack.pop()
     if not isinstance(v, bool):
         self.raise_literal("DynamicConversionException", "to Boolean")
         return
     self.stack.append(v)
 
-def neon_object__getBytes(self):
+def neon_builtin_object__getBytes(self):
     v = self.stack.pop()
     if not isinstance(v, bytes):
         self.raise_literal("DynamicConversionException", "to Bytes")
         return
     self.stack.append(v)
 
-def neon_object__getDictionary(self):
+def neon_builtin_object__getDictionary(self):
     v = self.stack.pop()
     if not isinstance(v, dict):
         self.raise_literal("DynamicConversionException", "to Dictionary")
         return
     self.stack.append(v)
 
-def neon_object__getNumber(self):
+def neon_builtin_object__getNumber(self):
     v = self.stack.pop()
     # Check against False and True explicitly,
     # because isinstance(False, int) is true.
@@ -2063,14 +2081,14 @@ def neon_object__getNumber(self):
         return
     self.stack.append(v)
 
-def neon_object__getString(self):
+def neon_builtin_object__getString(self):
     v = self.stack.pop()
     if not isinstance(v, str):
         self.raise_literal("DynamicConversionException", "to String")
         return
     self.stack.append(v)
 
-def neon_object__invokeMethod(self):
+def neon_builtin_object__invokeMethod(self):
     args = self.stack.pop()
     name = self.stack.pop()
     obj = self.stack.pop()
@@ -2090,38 +2108,38 @@ def neon_object__invokeMethod(self):
         r = getattr(obj, name)(*[x.value for x in args])
     self.stack.append(r)
 
-def neon_object__isNull(self):
+def neon_builtin_object__isNull(self):
     v = self.stack.pop()
     self.stack.append(v is None)
 
-def neon_object__makeArray(self):
+def neon_builtin_object__makeArray(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeBoolean(self):
+def neon_builtin_object__makeBoolean(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeBytes(self):
+def neon_builtin_object__makeBytes(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeDictionary(self):
+def neon_builtin_object__makeDictionary(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeNull(self):
+def neon_builtin_object__makeNull(self):
     self.stack.append(None)
 
-def neon_object__makeNumber(self):
+def neon_builtin_object__makeNumber(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__makeString(self):
+def neon_builtin_object__makeString(self):
     v = self.stack.pop()
     self.stack.append(v)
 
-def neon_object__subscript(self):
+def neon_builtin_object__subscript(self):
     i = self.stack.pop()
     o = self.stack.pop()
     if o is None:
@@ -2137,7 +2155,7 @@ def neon_object__subscript(self):
         try:
             self.stack.append(o[ii].value)
         except IndexError:
-            self.raise_literal("ArrayIndexException", str(ii))
+            self.raise_literal("PANIC", "Array index exceeds size {}: {}".format(len(o), str(ii)))
             return
     elif isinstance(o, dict):
         if not isinstance(i, str):
@@ -2152,7 +2170,7 @@ def neon_object__subscript(self):
     else:
         self.raise_literal("ObjectSubscriptException", str(i))
 
-def neon_object__setProperty(self):
+def neon_builtin_object__setProperty(self):
     i = self.stack.pop()
     o = self.stack.pop()
     v = self.stack.pop().value
@@ -2169,7 +2187,7 @@ def neon_object__setProperty(self):
         try:
             o[ii].value = v
         except IndexError:
-            self.raise_literal("ArrayIndexException", str(ii))
+            self.raise_literal("PANIC", "Array index exceeds size {}: {}".format(len(o), str(ii)))
             return
     elif isinstance(o, dict):
         if not isinstance(i, str):
@@ -2179,7 +2197,7 @@ def neon_object__setProperty(self):
     else:
         setattr(o, i, v)
 
-def neon_object__toString(self):
+def neon_builtin_object__toString(self):
     v = self.stack.pop()
     if isinstance(v, str):
         self.stack.append(v)
@@ -2190,11 +2208,11 @@ def neon_object__toString(self):
     else:
         self.stack.append(literal(v))
 
-def neon_pointer__toString(self):
+def neon_builtin_pointer__toString(self):
     v = self.stack.pop()
     self.stack.append("<p:{}>".format(id(v)))
 
-def neon_print(self):
+def neon_global_print(self):
     s = self.stack.pop()
     if s is None:
         print("NIL")
@@ -2211,7 +2229,7 @@ def neon_print(self):
     else:
         print(s)
 
-def neon_str(self):
+def neon_global_str(self):
     v = self.stack.pop()
     if isinstance(v, decimal.Decimal):
         # Remove trailing zeros and decimal point if possible.
@@ -2221,36 +2239,36 @@ def neon_str(self):
             v = re.sub("(\\.[\\d]+?)0+(?![\\d])", "\\1", v)
     self.stack.append(str(v))
 
-def neon_string__append(self):
+def neon_builtin_string__append(self):
     b = self.stack.pop()
     a = self.stack.pop()
     a.value = a.value + b
 
-def neon_string__concat(self):
+def neon_builtin_string__concat(self):
     b = self.stack.pop()
     a = self.stack.pop()
     self.stack.append(a + b)
 
-def neon_string__index(self):
+def neon_builtin_string__index(self):
     index = self.stack.pop()
     s = self.stack.pop()
     if index != int(index):
-        self.raise_literal("StringIndexException", (str(index), 0))
+        self.raise_literal("PANIC", "String index not an integer: {}".format(index))
         return
     index = int(index)
     if index < 0:
-        self.raise_literal("StringIndexException", (str(index), 0))
+        self.raise_literal("PANIC", "String index is negative: {}".format(index))
         return
     if index >= len(s):
-        self.raise_literal("StringIndexException", (str(index), 0))
+        self.raise_literal("PANIC", "String index exceeds length {}: {}".format(len(s), index))
         return
     self.stack.append(s[index:index+1])
 
-def neon_string__length(self):
+def neon_builtin_string__length(self):
     s = self.stack.pop()
     self.stack.append(len(s))
 
-def neon_string__splice(self):
+def neon_builtin_string__splice(self):
     last_from_end = self.stack.pop()
     last = int(self.stack.pop())
     first_from_end = self.stack.pop()
@@ -2262,10 +2280,10 @@ def neon_string__splice(self):
     if last_from_end:
         last += len(a) - 1
     if first < 0:
-        self.raise_literal("StringIndexException", (str(first), 0))
+        self.raise_literal("PANIC", "First index is negative: {}".format(first))
         return
     if last < first-1:
-        self.raise_literal("StringIndexException", (str(last), 0))
+        self.raise_literal("PANIC", "Last index is less than first {}: {}".format(first, last))
         return
     padding = ""
     if first > len(a):
@@ -2273,17 +2291,17 @@ def neon_string__splice(self):
     r = a[:first] + padding + b + a[last+1:]
     self.stack.append(r)
 
-def neon_string__substring(self):
+def neon_builtin_string__substring(self):
     last_from_end = self.stack.pop()
     last = self.stack.pop()
     first_from_end = self.stack.pop()
     first = self.stack.pop()
     s = self.stack.pop()
     if first != int(first):
-        self.raise_literal("StringIndexException", first)
+        self.raise_literal("PANIC", "First index not an integer: {}".format(first))
         return
     if last != int(last):
-        self.raise_literal("StringIndexException", last)
+        self.raise_literal("PANIC", "Last index not an integer: {}".format(last))
         return
     first = int(first)
     last = int(last)
@@ -2301,11 +2319,11 @@ def neon_string__substring(self):
         last = -1
     self.stack.append(s[first:last+1])
 
-def neon_string__toBytes(self):
+def neon_builtin_string__encodeUTF8(self):
     s = self.stack.pop()
     self.stack.append(s.encode())
 
-def neon_string__toString(self):
+def neon_builtin_string__toString(self):
     s = self.stack.pop()
     self.stack.append(s)
 
@@ -2646,7 +2664,7 @@ def neon_math_nearbyint(self):
 def neon_math_odd(self):
     v = self.stack.pop()
     if v != int(v):
-        self.raise_literal("ValueRangeException", "odd() requires integer")
+        self.raise_literal("PANIC", "odd() requires integer")
         return
     self.stack.append((v % 2) != 0)
 
@@ -2940,10 +2958,10 @@ def neon_string_hasSuffix(self):
 def neon_string_fromCodePoint(self):
     n = self.stack.pop()
     if n != int(n):
-        self.raise_literal("ValueRangeException", "fromCodePoint() argument not an integer")
+        self.raise_literal("PANIC", "fromCodePoint() argument not an integer")
         return
     if not (0 <= n <= 0x10ffff):
-        self.raise_literal("ValueRangeException", "fromCodePoint() argument out of range 0-0x10ffff")
+        self.raise_literal("PANIC", "fromCodePoint() argument out of range 0-0x10ffff")
         return
     self.stack.append(chr(int(n)))
 
@@ -2978,7 +2996,7 @@ def neon_string_splitLines(self):
 def neon_string_toCodePoint(self):
     s = self.stack.pop()
     if len(s) != 1:
-        self.raise_literal("StringIndexException", "toCodePoint() requires string of length 1")
+        self.raise_literal("PANIC", "toCodePoint() requires string of length 1")
         return
     self.stack.append(ord(s))
 
@@ -2995,7 +3013,7 @@ def neon_string_upper(self):
 def neon_sys_exit(self):
     x = self.stack.pop()
     if not is_integer(x) or x < 0 or x > 255:
-        self.raise_literal("ValueRangeException", "sys.exit invalid parameter: {}".format(x))
+        self.raise_literal("PANIC", "sys.exit invalid parameter: {}".format(x))
         return
     sys.exit(int(x))
 

@@ -341,12 +341,46 @@ Cell *cell_createArrayCell(size_t iElements)
     return c;
 }
 
+Cell *cell_createBytesCell(size_t size)
+{
+    Cell *c = cell_newCell();
+
+    c->type = cBytes;
+    c->string = string_newString();
+    c->string->length = size;
+    c->string->data = malloc(size);
+    return c;
+}
+
+Cell *cell_createDictionaryCell(void)
+{
+    Cell *c = cell_newCell();
+
+    c->type = cDictionary;
+    c->dictionary = dictionary_createDictionary();
+    return c;
+}
+
 Cell *cell_createOtherCell(void *ptr)
 {
     Cell *c = cell_newCell();
     c->other = ptr;
 
     c->type = cOther;
+    return c;
+}
+
+Cell *cell_createStringCell(size_t length)
+{
+    Cell *c = cell_newCell();
+
+    c->type = cString;
+    c->string = string_newString();
+    c->string->length = length;
+    c->string->data = malloc(length);
+    if (c->string->data == NULL) {
+        fatal_error("Unable to allocate memory for requested string with length of %ld.", length);
+    }
     return c;
 }
 
@@ -525,15 +559,6 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
     return &c->array->data[i];
 }
 
-Cell *cell_createDictionaryCell(void)
-{
-    Cell *c = cell_newCell();
-
-    c->type = cDictionary;
-    c->dictionary = dictionary_createDictionary();
-    return c;
-}
-
 Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key)
 {
     if (c->type == cNothing) {
@@ -563,20 +588,6 @@ Cell *cell_dictionaryIndexForRead(Cell *c, TString *key)
     }
     Cell *r = dictionary_findDictionaryEntry(c->dictionary, key);
     return r;
-}
-
-Cell *cell_createStringCell(size_t length)
-{
-    Cell *c = cell_newCell();
-
-    c->type = cString;
-    c->string = string_newString();
-    c->string->length = length;
-    c->string->data = malloc(length);
-    if (c->string->data == NULL) {
-        fatal_error("Unable to allocate memory for requested string with length of %ld.", length);
-    }
-    return c;
 }
 
 void cell_copyCell(Cell *dest, const Cell *source)

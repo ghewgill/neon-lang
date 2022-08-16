@@ -11,6 +11,7 @@
 #include "array.h"
 #include "cell.h"
 #include "dictionary.h"
+#include "enums.h"
 #include "exec.h"
 #include "number.h"
 #include "object.h"
@@ -43,9 +44,9 @@
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
 TDispatch gfuncDispatch[] = {
-    PDFUNC("num",                       neon_num),
-    PDFUNC("print",                     neon_print),
-    PDFUNC("str",                       neon_str),
+    PDFUNC("global$num",                neon_num),
+    PDFUNC("global$print",              neon_print),
+    PDFUNC("global$str",                neon_str),
 
 
     // Neon Library Modules:
@@ -325,73 +326,71 @@ TDispatch gfuncDispatch[] = {
 
     // Global Functions::
     // Array functions
-    PDFUNC("array__append",             array__append),
-    PDFUNC("array__concat",             array__concat),
-    PDFUNC("array__extend",             array__extend),
-    PDFUNC("array__find",               array__find),
-    PDFUNC("array__range",              array__range),
-    PDFUNC("array__remove",             array__remove),
-    PDFUNC("array__resize",             array__resize),
-    PDFUNC("array__reversed",           array__reversed),
-    PDFUNC("array__size",               array__size),
-    PDFUNC("array__slice",              array__slice),
-    PDFUNC("array__splice",             array__splice),
-    PDFUNC("array__toBytes__number",    array__toBytes__number),
-    PDFUNC("array__toString__number",   array__toString__number),
-    PDFUNC("array__toString__object",   array__toString__object),
-    PDFUNC("array__toString__string",   array__toString__string),
+    PDFUNC("builtin$array__append",             array__append),
+    PDFUNC("builtin$array__concat",             array__concat),
+    PDFUNC("builtin$array__extend",             array__extend),
+    PDFUNC("builtin$array__find",               array__find),
+    PDFUNC("builtin$array__range",              array__range),
+    PDFUNC("builtin$array__remove",             array__remove),
+    PDFUNC("builtin$array__resize",             array__resize),
+    PDFUNC("builtin$array__reversed",           array__reversed),
+    PDFUNC("builtin$array__size",               array__size),
+    PDFUNC("builtin$array__slice",              array__slice),
+    PDFUNC("builtin$array__splice",             array__splice),
+    PDFUNC("builtin$array__toBytes__number",    array__toBytes__number),
+    PDFUNC("builtin$array__toString__number",   array__toString__number),
+    PDFUNC("builtin$array__toString__object",   array__toString__object),
+    PDFUNC("builtin$array__toString__string",   array__toString__string),
 
-    PDFUNC("boolean__toString",         boolean__toString),
+    PDFUNC("builtin$boolean__toString",         boolean__toString),
 
-    PDFUNC("bytes__append",             bytes__append),
-    PDFUNC("bytes__concat",             bytes__concat),
-    PDFUNC("bytes__decodeToString",     bytes__decodeToString),
-    PDFUNC("bytes__index",              bytes__index),
-    PDFUNC("bytes__range",              bytes__range),
-    PDFUNC("bytes__size",               bytes__size),
-    PDFUNC("bytes__splice",             bytes__splice),
-    PDFUNC("bytes__store",              bytes__store),
-    PDFUNC("bytes__toArray",            bytes__toArray),
-    PDFUNC("bytes__toString",           bytes__toString),
+    PDFUNC("builtin$bytes__append",             bytes__append),
+    PDFUNC("builtin$bytes__concat",             bytes__concat),
+    PDFUNC("global$Bytes__decodeUTF8",          bytes__decodeUTF8),
+    PDFUNC("builtin$bytes__index",              bytes__index),
+    PDFUNC("builtin$bytes__range",              bytes__range),
+    PDFUNC("builtin$bytes__size",               bytes__size),
+    PDFUNC("builtin$bytes__splice",             bytes__splice),
+    PDFUNC("builtin$bytes__store",              bytes__store),
+    PDFUNC("builtin$bytes__toArray",            bytes__toArray),
+    PDFUNC("builtin$bytes__toString",           bytes__toString),
 
-    PDFUNC("dictionary__keys",          dictionary__keys),
-    PDFUNC("dictionary__remove",        dictionary__remove),
-    PDFUNC("dictionary__toString__object", dictionary__toString__object),
-    PDFUNC("dictionary__toString__string", dictionary__toString__string),
+    PDFUNC("builtin$dictionary__keys",          dictionary__keys),
+    PDFUNC("builtin$dictionary__remove",        dictionary__remove),
+    PDFUNC("builtin$dictionary__toString__object", dictionary__toString__object),
+    PDFUNC("builtin$dictionary__toString__string", dictionary__toString__string),
 
-    PDFUNC("exceptiontype__toString",   exceptiontype__toString),
+    PDFUNC("builtin$number__toString",          number__toString),
 
-    PDFUNC("number__toString",          number__toString),
+    PDFUNC("builtin$object__getArray",          object__getArray),
+    PDFUNC("builtin$object__makeArray",         object__makeArray),
+    PDFUNC("builtin$object__getBoolean",        object__getBoolean),
+    PDFUNC("builtin$object__makeBoolean",       object__makeBoolean),
+    PDFUNC("builtin$object__getBytes",          object__getBytes),
+    PDFUNC("builtin$object__makeBytes",         object__makeBytes),
+    PDFUNC("builtin$object__getDictionary",     object__getDictionary),
+    PDFUNC("builtin$object__makeDictionary",    object__makeDictionary),
+    PDFUNC("builtin$object__makeNull",          object__makeNull),
+    PDFUNC("builtin$object__getNumber",         object__getNumber),
+    PDFUNC("builtin$object__makeNumber",        object__makeNumber),
+    PDFUNC("builtin$object__getString",         object__getString),
+    PDFUNC("builtin$object__makeString",        object__makeString),
+    PDFUNC("builtin$object__invokeMethod",      object__invokeMethod),
+    PDFUNC("builtin$object__isNull",            object__isNull),
+    PDFUNC("builtin$object__setProperty",       object__setProperty),
+    PDFUNC("builtin$object__subscript",         object__subscript),
+    PDFUNC("builtin$object__toString",          object__toString),
 
-    PDFUNC("object__getArray",          object__getArray),
-    PDFUNC("object__makeArray",         object__makeArray),
-    PDFUNC("object__getBoolean",        object__getBoolean),
-    PDFUNC("object__makeBoolean",       object__makeBoolean),
-    PDFUNC("object__getBytes",          object__getBytes),
-    PDFUNC("object__makeBytes",         object__makeBytes),
-    PDFUNC("object__getDictionary",     object__getDictionary),
-    PDFUNC("object__makeDictionary",    object__makeDictionary),
-    PDFUNC("object__makeNull",          object__makeNull),
-    PDFUNC("object__getNumber",         object__getNumber),
-    PDFUNC("object__makeNumber",        object__makeNumber),
-    PDFUNC("object__getString",         object__getString),
-    PDFUNC("object__makeString",        object__makeString),
-    PDFUNC("object__invokeMethod",      object__invokeMethod),
-    PDFUNC("object__isNull",            object__isNull),
-    PDFUNC("object__setProperty",       object__setProperty),
-    PDFUNC("object__subscript",         object__subscript),
-    PDFUNC("object__toString",          object__toString),
+    PDFUNC("builtin$pointer__toString",         pointer__toString),
 
-    PDFUNC("pointer__toString",         pointer__toString),
-
-    PDFUNC("string__append",            string__append),
-    PDFUNC("string__concat",            string__concat),
-    PDFUNC("string__toBytes",           string__toBytes),
-    PDFUNC("string__toString",          string__toString),
-    PDFUNC("string__index",             string__index),
-    PDFUNC("string__length",            string__length),
-    PDFUNC("string__splice",            string__splice),
-    PDFUNC("string__substring",         string__substring),
+    PDFUNC("builtin$string__append",            string__append),
+    PDFUNC("builtin$string__concat",            string__concat),
+    PDFUNC("builtin$string__encodeUTF8",        string__encodeUTF8),
+    PDFUNC("builtin$string__toString",          string__toString),
+    PDFUNC("builtin$string__index",             string__index),
+    PDFUNC("builtin$string__length",            string__length),
+    PDFUNC("builtin$string__splice",            string__splice),
+    PDFUNC("builtin$string__substring",         string__substring),
 
     { 0, 0 }
 };
@@ -503,14 +502,14 @@ void neon_num(TExecutor *exec)
     // Require at least one digit in the input.
     if (strcspn(str, "0123456789") == strlen(str)) {
         free(str);
-        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number");
+        exec->rtl_raise(exec, "PANIC", "num() argument not a number");
         return;
     }
     Number n = number_from_string(str);
     free(str);
 
     if (number_is_nan(n)) {
-        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number");
+        exec->rtl_raise(exec, "PANIC", "num() argument not a number");
         return;
     }
     push(exec->stack, cell_fromNumber(n));
@@ -593,7 +592,7 @@ void array__find(TExecutor *exec)
     }
 
     if (number_is_negative(r)) {
-        exec->rtl_raise(exec, "ArrayIndexException", "value not found in array");
+        exec->rtl_raise(exec, "PANIC", "value not found in array");
         return;
     }
 
@@ -609,7 +608,7 @@ void array__range(TExecutor *exec)
     Number first = top(exec->stack)->number; pop(exec->stack);
 
     if (number_is_zero(step)) {
-        exec->rtl_raise(exec, "ValueRangeException", number_to_string(step));
+        exec->rtl_raise(exec, "PANIC", number_to_string(step));
         return;
     }
 
@@ -634,7 +633,9 @@ void array__remove(TExecutor *exec)
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
 
     if (!number_is_integer(index)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Array index not an integer: %s", number_to_string(index));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -650,7 +651,9 @@ void array__resize(TExecutor *exec)
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
 
     if (!number_is_integer(new_size)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(new_size));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Invalid array size: %s", number_to_string(new_size));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -694,11 +697,15 @@ void array__slice(TExecutor *exec)
     const Cell *array = top(exec->stack);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "ArrayIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -872,8 +879,7 @@ void bytes__concat(TExecutor *exec)
     cell_ensureBytes(b);
     Cell *a = peek(exec->stack, 1);
     cell_ensureBytes(a);
-    Cell *r = cell_createStringCell(b->string->length + a->string->length);
-    r->type = cBytes;
+    Cell *r = cell_createBytesCell(b->string->length + a->string->length);
 
     memcpy(r->string->data, a->string->data, a->string->length);
     memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
@@ -884,23 +890,24 @@ void bytes__concat(TExecutor *exec)
     push(exec->stack, r);
 }
 
-void bytes__decodeToString(TExecutor *exec)
+void bytes__decodeUTF8(TExecutor *exec)
 {
     TString *s = top(exec->stack)->string;
 
     size_t err_idx;
     if (!string_isValidUtf8(s, &err_idx)) {
-        char offset[32];
-        snprintf(offset, sizeof(offset), "%zu", err_idx);
+        Cell *e = cell_createArrayCell(1);
+        Cell *o = cell_arrayIndexForWrite(e, 0);
+        o->type = cNumber;
+        o->number = number_from_uint32(err_idx);
         pop(exec->stack);
-        exec_rtl_raiseException(exec, "Utf8DecodingException", offset);
+        push(exec->stack, cell_makeChoice_cell(CHOICE_DecodeResult_error, e));
         return;
     }
 
-    Cell *r = cell_fromCString(string_ensureNullTerminated(s));
-
+    TString *t = string_fromString(s);
     pop(exec->stack);
-    push(exec->stack, r);
+    push(exec->stack, cell_makeChoice_string(CHOICE_DecodeResult_string, t));
 }
 
 void bytes__index(TExecutor *exec)
@@ -910,15 +917,23 @@ void bytes__index(TExecutor *exec)
     cell_ensureBytes(t);
 
     if (!number_is_integer(index)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index not an integer: %s", number_to_string(index));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
     int64_t i = number_to_sint64(index);
-    if (i < 0 || i >= (int64_t)t->string->length) {
-        char n[128];
-        snprintf(n, sizeof(n), "%" PRId64, i);
-        exec->rtl_raise(exec, "BytesIndexException", n);
+    if (i < 0) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index is negative: %" PRId64, i);
+        exec->rtl_raise(exec, "PANIC", buf);
+        return;
+    }
+    if (i >= (int64_t)t->string->length) {
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Bytes index exceeds size %zd: %" PRId64, t->string->length, i);
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -937,11 +952,15 @@ void bytes__range(TExecutor *exec)
     cell_ensureBytes(t);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -1006,11 +1025,15 @@ void bytes__splice(TExecutor *exec)
     cell_ensureBytes(t);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     int64_t f = number_to_sint64(first);
@@ -1022,11 +1045,15 @@ void bytes__splice(TExecutor *exec)
         l += s->string->length - 1;
     }
     if (f < 0) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(number_from_sint64(f)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index is negative: %" PRId64, f);
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     if (l< f-1) {
-        exec->rtl_raise(exec, "BytesIndexException", number_to_string(number_from_sint64(l)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index is before first %" PRId64 ": %" PRId64, f, l);
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
 
@@ -1150,27 +1177,6 @@ void dictionary__toString__string(TExecutor *exec)
     push(exec->stack, cell_fromString(s));
     string_freeString(s);
 }
-
-
-void exceptiontype__toString(struct tagTExecutor *exec)
-{
-    Cell *ex = top(exec->stack);
-
-    assert(ex->array->size == 3);
-    Cell *r = cell_fromCString("<ExceptionType:");
-    string_appendString(r->string, ex->array->data[0].string);
-    string_appendChar(r->string, ',');
-    Cell *inf = object_toString(ex->array->data[1].object);
-    string_appendString(r->string, inf->string);
-    cell_freeCell(inf);
-    string_appendChar(r->string, ',');
-    string_appendCString(r->string, number_to_string(ex->array->data[2].number));
-    string_appendChar(r->string, '>');
-
-    pop(exec->stack);
-    push(exec->stack, r);
-}
-
 
 
 
@@ -1450,7 +1456,9 @@ void object__subscript(struct tagTExecutor *exec)
         Number i = ((Cell*)index->object->ptr)->number;
         uint64_t ii = number_to_uint64(i);
         if (ii >= ((Cell*)o->object->ptr)->array->size) {
-            exec->rtl_raise(exec, "ArrayIndexException", number_to_string(i));
+            char buf[100];
+            snprintf(buf, sizeof(buf), "Array index exceeds size %zd: %"PRIu64, ((Cell*)o->object->ptr)->array->size, ii);
+            exec->rtl_raise(exec, "PANIC", buf);
             cell_freeCell(index);
             cell_freeCell(o);
             cell_freeCell(r);
@@ -1561,7 +1569,7 @@ void string__concat(TExecutor *exec)
     push(exec->stack, r);
 }
 
-void string__toBytes(TExecutor *exec)
+void string__encodeUTF8(TExecutor *exec)
 {
     Cell *r = cell_fromCell(top(exec->stack)); pop(exec->stack);
     r->type = cBytes;
@@ -1580,21 +1588,23 @@ void string__index(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(index)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(index));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index not an integer: %s", number_to_string(index));
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, i);
-        exec->rtl_raise(exec, "StringIndexException", n);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index is negative: %" PRId64, i);
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
     if (i >= (int64_t)string_getLength(a->string)) {
-        char n[128];
-        snprintf(n, 128, "%" PRId64, i);
-        exec->rtl_raise(exec, "StringIndexException", n);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "String index exceeds length %zd: %" PRId64, string_getLength(a->string), i);
+        exec->rtl_raise(exec, "PANIC", buf);
         return;
     }
 
@@ -1622,11 +1632,15 @@ void string__splice(TExecutor *exec)
     Cell *t = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
 
@@ -1639,11 +1653,15 @@ void string__splice(TExecutor *exec)
         l += s->string->length - 1;
     }
     if (f < 0) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(number_from_sint64(f)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index is negative: %"PRId64, f);
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     if (l < f-1) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(number_from_sint64(l)));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index is less than first %"PRId64": %"PRId64, f, l);
+        exec->rtl_raise(exec, "PANIC", buf);
         goto cleanup;
     }
     int64_t new_len = (int64_t)s->string->length - (f < (int64_t)s->string->length ? (l < (int64_t)s->string->length ? l - f + 1 : (int64_t)s->string->length - f) : 0) + (int64_t)t->string->length;
@@ -1683,12 +1701,16 @@ void string__substring(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
 
     if (!number_is_integer(first)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(first));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "First index not an integer: %s", number_to_string(first));
+        exec->rtl_raise(exec, "PANIC", buf);
         cell_freeCell(a);
         return;
     }
     if (!number_is_integer(last)) {
-        exec->rtl_raise(exec, "StringIndexException", number_to_string(last));
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Last index not an integer: %s", number_to_string(last));
+        exec->rtl_raise(exec, "PANIC", buf);
         cell_freeCell(a);
         return;
     }

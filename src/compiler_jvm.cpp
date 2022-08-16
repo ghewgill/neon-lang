@@ -1917,7 +1917,7 @@ public:
     const ast::BytesComparisonExpression *bce;
 
     virtual void generate_comparison(Context &context) const override {
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__compare", "([B[B)I");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "bytes__compare", "([B[B)I");
         auto label_true = context.create_label();
         switch (bce->comp) {
             case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_ifeq, label_true); break;
@@ -2258,7 +2258,7 @@ public:
     virtual void generate(Context &context) const override {
         dictionary->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "dictionary__get", "(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Object;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "dictionary__get", "(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Object;");
         context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeDictionary *>(dictionary->type)->elementtype->classname);
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DictionaryReferenceIndexExpression"); }
@@ -2284,7 +2284,7 @@ public:
     virtual void generate(Context &context) const override {
         dictionary->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "dictionary__get", "(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Object;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "dictionary__get", "(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Object;");
         context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeDictionary *>(dictionary->type)->elementtype->classname);
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DictionaryValueIndexExpression"); }
@@ -2303,7 +2303,7 @@ public:
     virtual void generate(Context &context) const override {
         ref->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__index", "(Ljava/lang/String;Lneon/type/Number;)Ljava/lang/String;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "string__index", "(Ljava/lang/String;Lneon/type/Number;)Ljava/lang/String;");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("StringReferenceIndexExpression"); }
     virtual void generate_store(Context &context) const override {
@@ -2312,7 +2312,7 @@ public:
         context.push_integer(false);
         index->generate(context);
         context.push_integer(false);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__splice", "(Ljava/lang/String;Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "string__splice", "(Ljava/lang/String;Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
         ref->generate_store(context);
     }
 };
@@ -2329,7 +2329,7 @@ public:
     virtual void generate(Context &context) const override {
         str->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__index", "(Ljava/lang/String;Lneon/type/Number;)Ljava/lang/String;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "string__index", "(Ljava/lang/String;Lneon/type/Number;)Ljava/lang/String;");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("StringValueIndexExpression"); }
     virtual void generate_store(Context&) const override { internal_error("StringValueIndexExpression"); }
@@ -2351,7 +2351,7 @@ public:
         context.push_integer(srie->first_from_end);
         last->generate(context);
         context.push_integer(srie->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("StringReferenceRangeIndexExpression"); }
     virtual void generate_store(Context &context) const override {
@@ -2360,7 +2360,7 @@ public:
         context.push_integer(srie->first_from_end);
         last->generate(context);
         context.push_integer(srie->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__splice", "(Ljava/lang/String;Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "string__splice", "(Ljava/lang/String;Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
         ref->generate_store(context);
     }
 };
@@ -2381,7 +2381,7 @@ public:
         context.push_integer(svie->first_from_end);
         last->generate(context);
         context.push_integer(svie->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("StringValueRangeIndexExpression"); }
     virtual void generate_store(Context&) const override { internal_error("StringValueRangeIndexExpression"); }
@@ -2399,13 +2399,13 @@ public:
     virtual void generate(Context &context) const override {
         ref->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__index", "([BLneon/type/Number;)Lneon/type/Number;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "bytes__index", "([BLneon/type/Number;)Lneon/type/Number;");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesReferenceIndexExpression"); }
     virtual void generate_store(Context &context) const override {
         ref->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__store", "(Lneon/type/Number;[BLneon/type/Number;)V");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "bytes__store", "(Lneon/type/Number;[BLneon/type/Number;)V");
     }
 };
 
@@ -2421,7 +2421,7 @@ public:
     virtual void generate(Context &context) const override {
         data->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__index", "([BLneon/type/Number;)Lneon/type/Number;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "bytes__index", "([BLneon/type/Number;)Lneon/type/Number;");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesValueIndexExpression"); }
     virtual void generate_store(Context &) const override { internal_error("BytesValueIndexExpression"); }
@@ -2443,7 +2443,7 @@ public:
         context.push_integer(brie->first_from_end);
         last->generate(context);
         context.push_integer(brie->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesReferenceRangeIndexExpression"); }
     virtual void generate_store(Context &context) const override {
@@ -2452,7 +2452,7 @@ public:
         context.push_integer(brie->first_from_end);
         last->generate(context);
         context.push_integer(brie->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__splice", "([B[BLneon/type/Number;ZLneon/type/Number;Z)[B");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "bytes__splice", "([B[BLneon/type/Number;ZLneon/type/Number;Z)[B");
         ref->generate_store(context);
     }
 };
@@ -2473,7 +2473,7 @@ public:
         context.push_integer(bvie->first_from_end);
         last->generate(context);
         context.push_integer(bvie->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesValueRangeIndexExpression"); }
     virtual void generate_store(Context &) const override { internal_error("BytesValueRangeIndexExpression"); }
@@ -2535,7 +2535,7 @@ public:
         context.push_integer(arre->first_from_end);
         last->generate(context);
         context.push_integer(arre->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__slice", "(Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "array__slice", "(Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual void generate_store(Context &context) const override {
@@ -2544,7 +2544,7 @@ public:
         context.push_integer(arre->first_from_end);
         last->generate(context);
         context.push_integer(arre->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__splice", "(Lneon/type/Array;Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "array__splice", "(Lneon/type/Array;Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
         ref->generate_store(context);
     }
 };
@@ -2565,7 +2565,7 @@ public:
         context.push_integer(avre->first_from_end);
         last->generate(context);
         context.push_integer(avre->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__slice", "(Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Builtin", "array__slice", "(Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
     }
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ArrayValueRangeExpression"); }
     virtual void generate_store(Context&) const override { internal_error("ArrayValueRangeExpression"); }

@@ -1,0 +1,73 @@
+IMPORT dns
+IMPORT file
+IMPORT string
+IMPORT sys
+
+VAR nameserver := "1.1.1.1"
+
+LET rr := file.readLines("/etc/resolv.conf")
+IF rr ISA file.LinesResult.lines THEN
+    LET resolv := rr.lines
+    FOREACH s IN resolv DO
+        LET a := string.split(s, " ")
+        IF a.size() >= 1 AND a[0] = "nameserver" THEN
+            nameserver := a[1]
+            EXIT FOREACH
+        END IF
+    END FOREACH
+END IF
+
+IF sys.args.size() < 2 THEN
+    print("Usage: dnslookup [options] domainname [type...]")
+    EXIT PROCESS SUCCESS
+END IF
+
+LET name := sys.args[1]
+VAR types := ["a"]
+IF sys.args.size() >= 3 THEN
+    types := sys.args[2 TO LAST]
+END IF
+
+LET q := dns.makeQuery(name, dns.Type(name WITH types[0]))
+LET r := dns.execQuery(nameserver, q)
+CHECK r ISA dns.Result.response ELSE
+    print("No response from nameserver")
+    EXIT PROCESS FAILURE
+END CHECK
+CASE r.response.rcode
+    WHEN dns.ResponseCode.ok DO
+        FOREACH a IN r.response.answers DO
+            print("\(a.name) \(string.upper(a.type.toString())) \(formatRdata(a.rdata))")
+        END FOREACH
+    WHEN dns.ResponseCode.formatError DO
+        print("error: format error")
+    WHEN dns.ResponseCode.serverFailure DO
+        print("error: server failure")
+    WHEN dns.ResponseCode.nameError DO
+        print("error: name error")
+    WHEN dns.ResponseCode.notImplemented DO
+        print("error: not implemented")
+    WHEN dns.ResponseCode.refused DO
+        print("error: refused")
+    WHEN dns.ResponseCode.unknown DO
+        print("error: (unknown)")
+END CASE
+
+FUNCTION formatRdata(rdata: dns.ResourceData): String
+    CASE rdata
+        WHEN ISA dns.ResourceData.address DO
+            RETURN rdata.address
+        WHEN ISA dns.ResourceData.address6 DO
+            RETURN rdata.address6
+        WHEN ISA dns.ResourceData.name DO
+            RETURN rdata.name
+        WHEN ISA dns.ResourceData.mx DO
+            RETURN "\(rdata.mx.preference) \(rdata.mx.exchange)"
+        WHEN ISA dns.ResourceData.soa DO
+            RETURN "\(rdata.soa.mname) \(rdata.soa.rname) \(rdata.soa.serial) \(rdata.soa.refresh) \(rdata.soa.retry) \(rdata.soa.expire) \(rdata.soa.minimum)"
+        WHEN ISA dns.ResourceData.text DO
+            RETURN rdata.text
+        WHEN ISA dns.ResourceData.unknown DO
+            RETURN rdata.unknown.toString()
+    END CASE
+END FUNCTION

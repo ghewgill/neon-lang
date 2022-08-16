@@ -15,6 +15,7 @@ assert-multiline.neon       # pushppg
 base-test.neon              # callmf
 bigint.neon                 # math$abs
 binary-test.neon            # exception Utf8DecodingException
+bytes-embed.neon            # callmf
 bytes-index.neon            # bytes__range
 bytes-splice.neon           # bytes__splice
 cal-test.neon               # os$system
@@ -29,6 +30,7 @@ dns-test.neon               # file$readLines
 encoding-base64.neon        # exception Utf8DecodingException
 enum.neon                   # unknown enum
 equality.neon               # pushy
+exception-tostring.neon     # callmf
 export-function-indent.neon # exportfunctionsize
 export-inline.neon          # typesize
 export.neon                 # typesize

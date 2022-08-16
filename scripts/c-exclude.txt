@@ -1,11 +1,21 @@
 array2d.neon                    # Ne_Array_mtable
+array-find.neon                 # exception info
+array-fraction.neon             # exception info
+array-index.neon                # exception info
+array-negative.neon             # exception info
+array-resize.neon               # exception info
 array-subscript.neon            # Ne_Array_mtable
 array-tostring.neon             # memory
+array.neon                      # exception info
 assert-enum.neon                # enum.toString
 assignment.neon                 # pointer
 base-test.neon                  # memory leak
 bigint.neon                     # bigint
 binary-test.neon                # module binary
+bytes-embed.neon                # module type reference
+bytes-index.neon                # exception info
+bytes-splice.neon               # exception info
+bytes.neon                      # exception info
 check-valid.neon                # valid pointer
 check.neon                      # NEXT FOR
 choice.neon                     # choice.toString
@@ -124,8 +134,10 @@ string-format.neon              # module string
 string-in.neon                  # TryExpression
 string-index.neon               # memory leak
 string-multiline.neon           # string.find
+string-splice.neon              # exception info
 string-test.neon                # module string
 struct-test.neon                # bignum
+sys-exit.neon                   # exception info
 testcase.neon                   # DynamicConversionException
 textio-random.neon              # module textio
 textio-seek.neon                # module textio

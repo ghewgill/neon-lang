@@ -99,8 +99,8 @@ TESTCASE base.toOctal(42) = "52"
 TESTCASE base.toHex(42) = "2a"
 
 -- check exceptional conditions
-TESTCASE base.from(1.5, "0") EXPECT ValueRangeException
-TESTCASE base.from(-5, "0") EXPECT ValueRangeException
-TESTCASE base.to(1.5, 0) EXPECT ValueRangeException
-TESTCASE base.to(-5, 0) EXPECT ValueRangeException
-TESTCASE base.to(2, -1) EXPECT ValueRangeException
+TESTCASE base.from(1.5, "0") EXPECT PANIC "invalid base: 1.5"
+TESTCASE base.from(-5, "0") EXPECT PANIC "invalid base: -5"
+TESTCASE base.to(1.5, 0) EXPECT PANIC "invalid base: 1.5"
+TESTCASE base.to(-5, 0) EXPECT PANIC "invalid base: -5"
+TESTCASE base.to(2, -1) EXPECT PANIC "value cannot be negative"

@@ -39,64 +39,63 @@ class Executor {
     Executor(DataInput in, String[] args)
     {
         predefined = new HashMap<String, GenericFunction>();
-        predefined.put("array__append", this::array__append);
-        predefined.put("array__concat", this::array__concat);
-        predefined.put("array__extend", this::array__extend);
-        predefined.put("array__find", this::array__find);
-        predefined.put("array__remove", this::array__remove);
-        predefined.put("array__reversed", this::array__reversed);
-        predefined.put("array__size", this::array__size);
-        predefined.put("array__slice", this::array__slice);
-        predefined.put("array__splice", this::array__splice);
-        predefined.put("array__toBytes__number", this::array__toBytes__number);
-        predefined.put("array__toString__number", this::array__toString__number);
-        predefined.put("array__toString__string", this::array__toString__string);
-        predefined.put("array__toString__object", this::array__toString__object);
-        predefined.put("boolean__toString", this::boolean__toString);
-        predefined.put("bytes__append", this::bytes__append);
-        predefined.put("bytes__concat", this::bytes__concat);
-        predefined.put("bytes__decodeToString", this::bytes__decodeToString);
-        predefined.put("bytes__index", this::bytes__index);
-        predefined.put("bytes__range", this::bytes__range);
-        predefined.put("bytes__size", this::bytes__size);
-        predefined.put("bytes__splice", this::bytes__splice);
-        predefined.put("bytes__store", this::bytes__store);
-        predefined.put("bytes__toArray", this::bytes__toArray);
-        predefined.put("bytes__toString", this::bytes__toString);
-        predefined.put("dictionary__keys", this::dictionary__keys);
-        predefined.put("dictionary__remove", this::dictionary__remove);
-        predefined.put("dictionary__toString__object", this::dictionary__toString__object);
-        predefined.put("dictionary__toString__string", this::dictionary__toString__string);
-        predefined.put("exceptiontype__toString", this::exceptiontype__toString);
-        predefined.put("num", this::num);
-        predefined.put("number__toString", this::number__toString);
-        predefined.put("object__getArray", this::object__getArray);
-        predefined.put("object__getBoolean", this::object__getBoolean);
-        predefined.put("object__getBytes", this::object__getBytes);
-        predefined.put("object__getDictionary", this::object__getDictionary);
-        predefined.put("object__getNumber", this::object__getNumber);
-        predefined.put("object__getString", this::object__getString);
-        predefined.put("object__invokeMethod", this::object__invokeMethod);
-        predefined.put("object__isNull", this::object__isNull);
-        predefined.put("object__makeArray", this::object__makeArray);
-        predefined.put("object__makeBoolean", this::object__makeBoolean);
-        predefined.put("object__makeBytes", this::object__makeBytes);
-        predefined.put("object__makeDictionary", this::object__makeDictionary);
-        predefined.put("object__makeNull", this::object__makeNull);
-        predefined.put("object__makeNumber", this::object__makeNumber);
-        predefined.put("object__makeString", this::object__makeString);
-        predefined.put("object__setProperty", this::object__setProperty);
-        predefined.put("object__subscript", this::object__subscript);
-        predefined.put("object__toString", this::object__toString);
-        predefined.put("print", this::print);
-        predefined.put("str", this::number__toString);
-        predefined.put("string__append", this::string__append);
-        predefined.put("string__concat", this::string__concat);
-        predefined.put("string__index", this::string__index);
-        predefined.put("string__length", this::string__length);
-        predefined.put("string__substring", this::string__substring);
-        predefined.put("string__toBytes", this::string__toBytes);
-        predefined.put("string__toString", this::string__toString);
+        predefined.put("builtin$array__append", this::array__append);
+        predefined.put("builtin$array__concat", this::array__concat);
+        predefined.put("builtin$array__extend", this::array__extend);
+        predefined.put("builtin$array__find", this::array__find);
+        predefined.put("builtin$array__remove", this::array__remove);
+        predefined.put("builtin$array__reversed", this::array__reversed);
+        predefined.put("builtin$array__size", this::array__size);
+        predefined.put("builtin$array__slice", this::array__slice);
+        predefined.put("builtin$array__splice", this::array__splice);
+        predefined.put("builtin$array__toBytes__number", this::array__toBytes__number);
+        predefined.put("builtin$array__toString__number", this::array__toString__number);
+        predefined.put("builtin$array__toString__string", this::array__toString__string);
+        predefined.put("builtin$array__toString__object", this::array__toString__object);
+        predefined.put("builtin$boolean__toString", this::boolean__toString);
+        predefined.put("builtin$bytes__append", this::bytes__append);
+        predefined.put("builtin$bytes__concat", this::bytes__concat);
+        predefined.put("global$Bytes__decodeUTF8", this::bytes__decodeUTF8);
+        predefined.put("builtin$bytes__index", this::bytes__index);
+        predefined.put("builtin$bytes__range", this::bytes__range);
+        predefined.put("builtin$bytes__size", this::bytes__size);
+        predefined.put("builtin$bytes__splice", this::bytes__splice);
+        predefined.put("builtin$bytes__store", this::bytes__store);
+        predefined.put("builtin$bytes__toArray", this::bytes__toArray);
+        predefined.put("builtin$bytes__toString", this::bytes__toString);
+        predefined.put("builtin$dictionary__keys", this::dictionary__keys);
+        predefined.put("builtin$dictionary__remove", this::dictionary__remove);
+        predefined.put("builtin$dictionary__toString__object", this::dictionary__toString__object);
+        predefined.put("builtin$dictionary__toString__string", this::dictionary__toString__string);
+        predefined.put("global$num", this::num);
+        predefined.put("builtin$number__toString", this::number__toString);
+        predefined.put("builtin$object__getArray", this::object__getArray);
+        predefined.put("builtin$object__getBoolean", this::object__getBoolean);
+        predefined.put("builtin$object__getBytes", this::object__getBytes);
+        predefined.put("builtin$object__getDictionary", this::object__getDictionary);
+        predefined.put("builtin$object__getNumber", this::object__getNumber);
+        predefined.put("builtin$object__getString", this::object__getString);
+        predefined.put("builtin$object__invokeMethod", this::object__invokeMethod);
+        predefined.put("builtin$object__isNull", this::object__isNull);
+        predefined.put("builtin$object__makeArray", this::object__makeArray);
+        predefined.put("builtin$object__makeBoolean", this::object__makeBoolean);
+        predefined.put("builtin$object__makeBytes", this::object__makeBytes);
+        predefined.put("builtin$object__makeDictionary", this::object__makeDictionary);
+        predefined.put("builtin$object__makeNull", this::object__makeNull);
+        predefined.put("builtin$object__makeNumber", this::object__makeNumber);
+        predefined.put("builtin$object__makeString", this::object__makeString);
+        predefined.put("builtin$object__setProperty", this::object__setProperty);
+        predefined.put("builtin$object__subscript", this::object__subscript);
+        predefined.put("builtin$object__toString", this::object__toString);
+        predefined.put("global$print", this::print);
+        predefined.put("global$str", this::number__toString);
+        predefined.put("builtin$string__append", this::string__append);
+        predefined.put("builtin$string__concat", this::string__concat);
+        predefined.put("builtin$string__index", this::string__index);
+        predefined.put("builtin$string__length", this::string__length);
+        predefined.put("builtin$string__substring", this::string__substring);
+        predefined.put("builtin$string__encodeUTF8", this::string__encodeUTF8);
+        predefined.put("builtin$string__toString", this::string__toString);
         predefined.put("math$abs", this::math$abs);
         predefined.put("math$atan", this::math$atan);
         predefined.put("math$ceil", this::math$ceil);
@@ -761,11 +760,15 @@ class Executor {
         try {
             index.intValueExact();
         } catch (ArithmeticException x) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index not an integer: " + index.toString());
             return;
         }
-        if (index.signum() < 0 || index.intValue() >= array.size()) {
-            raiseLiteral("ArrayIndexException", index.toString());
+        if (index.signum() < 0) {
+            raiseLiteral("PANIC", "Array index is negative: " + index.toString());
+            return;
+        }
+        if (index.intValue() >= array.size()) {
+            raiseLiteral("PANIC", "Array index exceeds size " + array.size() + ": " + index.toString());
             return;
         }
         stack.addFirst(new Cell(array.get(index.intValue())));
@@ -779,11 +782,11 @@ class Executor {
         try {
             index.intValueExact();
         } catch (ArithmeticException x) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index not an integer: " + index.toString());
             return;
         }
         if (index.signum() < 0) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index is negative: " + index.toString());
             return;
         }
         int i = index.intValue();
@@ -801,11 +804,15 @@ class Executor {
         try {
             index.intValueExact();
         } catch (ArithmeticException x) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index not an integer: " + index.toString());
             return;
         }
-        if (index.signum() < 0 || index.intValue() >= array.size()) {
-            raiseLiteral("ArrayIndexException", index.toString());
+        if (index.signum() < 0) {
+            raiseLiteral("PANIC", "Array index is negative: " + index.toString());
+            return;
+        }
+        if (index.intValue() >= array.size()) {
+            raiseLiteral("PANIC", "Array index exceeds size " + array.size() + ": " + index.toString());
             return;
         }
         stack.addFirst(array.get(index.intValue()));
@@ -819,11 +826,11 @@ class Executor {
         try {
             index.intValueExact();
         } catch (ArithmeticException x) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index not an integer: " + index.toString());
             return;
         }
         if (index.signum() < 0) {
-            raiseLiteral("ArrayIndexException", index.toString());
+            raiseLiteral("PANIC", "Array index is negative: " + index.toString());
             return;
         }
         int i = index.intValue();
@@ -841,7 +848,7 @@ class Executor {
         Map<String, Cell> dictionary = stack.removeFirst().getAddress().getDictionary();
         Cell r = dictionary.get(key);
         if (r == null) {
-            raiseLiteral("DictionaryIndexException", key);
+            raiseLiteral("PANIC", "Dictionary key not found: " + key);
             return;
         }
         stack.addFirst(new Cell(r));
@@ -867,7 +874,7 @@ class Executor {
         Map<String, Cell> dictionary = stack.removeFirst().getDictionary();
         Cell r = dictionary.get(key);
         if (r == null) {
-            raiseLiteral("DictionaryIndexException", key);
+            raiseLiteral("PANIC", "Dictionary key not found: " + key);
             return;
         }
         stack.addFirst(r);
@@ -1301,7 +1308,7 @@ class Executor {
                 return;
             }
         }
-        raiseLiteral("ArrayIndexException", "value not found in array");
+        raiseLiteral("PANIC", "value not found in array");
     }
 
     private void array__remove()
@@ -1336,11 +1343,11 @@ class Executor {
         BigDecimal nfirst = stack.removeFirst().getNumber();
         List<Cell> a = stack.removeFirst().getArray();
         if (nfirst.stripTrailingZeros().scale() > 0) {
-            raiseLiteral("ArrayIndexException", nfirst.toString());
+            raiseLiteral("PANIC", "First index not an integer: " + nfirst.toString());
             return;
         }
         if (nlast.stripTrailingZeros().scale() > 0) {
-            raiseLiteral("ArrayIndexException", nlast.toString());
+            raiseLiteral("PANIC", "Last index not an integer: " + nlast.toString());
             return;
         }
         int first = nfirst.intValue();
@@ -1482,10 +1489,10 @@ class Executor {
         stack.addFirst(new Cell(r));
     }
 
-    private void bytes__decodeToString()
+    private void bytes__decodeUTF8()
     {
         byte[] b = stack.removeFirst().getBytes();
-        stack.addFirst(new Cell(new String(b)));
+        stack.addFirst(new Cell(new Cell[]{new Cell(BigDecimal.ZERO), new Cell(new String(b))}));
     }
 
     private void bytes__index()
@@ -1628,12 +1635,6 @@ class Executor {
         stack.addFirst(new Cell(r.toString()));
     }
 
-    private void exceptiontype__toString()
-    {
-        List<Cell> a = stack.removeFirst().getArray();
-        stack.addFirst(new Cell("<ExceptionType:" + a.get(0).getString() + "," + a.get(1).getObject().toString() + "," + a.get(2).getNumber() + ">"));
-    }
-
     private void num()
     {
         String s = stack.removeFirst().getString();
@@ -1648,10 +1649,10 @@ class Executor {
             try {
                 stack.addFirst(new Cell(new BigDecimal(s)));
             } catch (NumberFormatException x) {
-                raiseLiteral("ValueRangeException");
+                raiseLiteral("PANIC", "num() argument not a number");
             }
         } else {
-            raiseLiteral("ValueRangeException");
+            raiseLiteral("PANIC", "num() argument not a number");
         }
     }
 
@@ -1930,7 +1931,7 @@ class Executor {
         stack.addFirst(new Cell(s.substring(first, last+1)));
     }
 
-    private void string__toBytes()
+    private void string__encodeUTF8()
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(s.getBytes()));

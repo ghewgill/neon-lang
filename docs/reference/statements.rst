@@ -83,12 +83,12 @@ The ``CHECK`` statement evaluates a boolean expression and, if it is ``FALSE``, 
 
     FUNCTION foo(n: Number)
         CHECK n >= 0 ELSE
-            RAISE ValueRangeException
+            PANIC "Value out of range"
         END CHECK
         print("\(n)")
     END FUNCTION
 
-The block of statements must end in a block-exiting statement which is one of ``EXIT``, ``NEXT``, ``RAISE``, or ``RETURN``.
+The block of statements must end in a block-exiting statement which is one of ``EXIT``, ``NEXT``, ``PANIC``, ``RAISE``, or ``RETURN``.
 This statement is useful to check a condition while guaranteeing that execution will not continue after the ``END CHECK`` if the condition is false.
 
 ``EXEC``

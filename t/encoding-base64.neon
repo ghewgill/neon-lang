@@ -1,7 +1,7 @@
 IMPORT encoding
 
 FUNCTION stringToBytes(s: String): Bytes
-    RETURN s.toBytes()
+    RETURN s.encodeUTF8()
 END FUNCTION
 
 FUNCTION t(b: Bytes)
@@ -19,19 +19,19 @@ TESTCASE encoding.base64Encode(stringToBytes("foobar")) = "Zm9vYmFy"
 TESTCASE encoding.base64Encode(stringToBytes("foobar\r\nfoobar")) = "Zm9vYmFyDQpmb29iYXI="
 
 -- Then perform decode tests based on RFC samples...
-TESTCASE encoding.base64Decode("").decodeToString() = ""
-TESTCASE encoding.base64Decode("Zg==").decodeToString() = "f"
-TESTCASE encoding.base64Decode("Zm8=").decodeToString() = "fo"
-TESTCASE encoding.base64Decode("Zm9v").decodeToString() = "foo"
-TESTCASE encoding.base64Decode("Zm9vYg==").decodeToString() = "foob"
-TESTCASE encoding.base64Decode("Zm9vYmE=").decodeToString() = "fooba"
-TESTCASE encoding.base64Decode("Zm9vYmFy").decodeToString() = "foobar"
+TESTCASE encoding.base64Decode("").decodeUTF8().expectString() = ""
+TESTCASE encoding.base64Decode("Zg==").decodeUTF8().expectString() = "f"
+TESTCASE encoding.base64Decode("Zm8=").decodeUTF8().expectString() = "fo"
+TESTCASE encoding.base64Decode("Zm9v").decodeUTF8().expectString() = "foo"
+TESTCASE encoding.base64Decode("Zm9vYg==").decodeUTF8().expectString() = "foob"
+TESTCASE encoding.base64Decode("Zm9vYmE=").decodeUTF8().expectString() = "fooba"
+TESTCASE encoding.base64Decode("Zm9vYmFy").decodeUTF8().expectString() = "foobar"
 
 -- Perform minimal "fuzz" tests...
-TESTCASE encoding.base64Decode("Zm9vYmFy\r   \nZm9vYmFy").decodeToString() = "foobarfoobar"
-TESTCASE encoding.base64Decode("Zm9vYmFyDQ  pmb29iYXI=").decodeToString() = "foobar\r\nfoobar"
-TESTCASE encoding.base64Decode("!@#$#^&*)(_+_)==").decodeToString() = ""
-TESTCASE encoding.base64Decode(encoding.base64Encode(stringToBytes("foobar"))).decodeToString() = "foobar"
+TESTCASE encoding.base64Decode("Zm9vYmFy\r   \nZm9vYmFy").decodeUTF8().expectString() = "foobarfoobar"
+TESTCASE encoding.base64Decode("Zm9vYmFyDQ  pmb29iYXI=").decodeUTF8().expectString() = "foobar\r\nfoobar"
+TESTCASE encoding.base64Decode("!@#$#^&*)(_+_)==").decodeUTF8().expectString() = ""
+TESTCASE encoding.base64Decode(encoding.base64Encode(stringToBytes("foobar"))).decodeUTF8().expectString() = "foobar"
 
 -- Most thorough tests of all, test every bit, at every position across all 3 base64 Bytes.
 t(HEXBYTES "00 00 00")

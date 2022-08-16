@@ -179,6 +179,7 @@ endforeach ()
 set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/base.neon
     ${CMAKE_SOURCE_DIR}/lib/binary.neon
+    ${CMAKE_SOURCE_DIR}/lib/builtin.neon
     ${CMAKE_SOURCE_DIR}/lib/cformat.neon
     ${CMAKE_SOURCE_DIR}/lib/complex.neon
     ${CMAKE_SOURCE_DIR}/lib/console.neon
@@ -238,13 +239,13 @@ set_source_files_properties(
 )
 
 if (JAVAC)
-    set(RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
-    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/global.neon")
-    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/struct.neon") # TODO (excluding struct for some reason)
-    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/json.neon") # TODO (excluding json for some reason)
-    list(REMOVE_ITEM RTL_NEON_WITHOUT_GLOBAL "${CMAKE_SOURCE_DIR}/lib/http.neon") # TODO (excluding http for some reason)
+    set(RTL_NEON_FOR_JAVAC "${RTL_NEON}")
+    list(REMOVE_ITEM RTL_NEON_FOR_JAVAC "${CMAKE_SOURCE_DIR}/lib/builtin.neon")
+    list(REMOVE_ITEM RTL_NEON_FOR_JAVAC "${CMAKE_SOURCE_DIR}/lib/struct.neon") # TODO (excluding struct for some reason)
+    list(REMOVE_ITEM RTL_NEON_FOR_JAVAC "${CMAKE_SOURCE_DIR}/lib/json.neon") # TODO (excluding json for some reason)
+    list(REMOVE_ITEM RTL_NEON_FOR_JAVAC "${CMAKE_SOURCE_DIR}/lib/http.neon") # TODO (excluding http for some reason)
     set(RTL_CLASSES "")
-    foreach (rtl_neon ${RTL_NEON_WITHOUT_GLOBAL})
+    foreach (rtl_neon ${RTL_NEON_FOR_JAVAC})
         get_filename_component(nameonly ${rtl_neon} NAME_WE)
         set(class "${CMAKE_BINARY_DIR}/rtl/jvm/neon/lib/${nameonly}.class")
         add_custom_command(
@@ -259,6 +260,7 @@ if (JAVAC)
     )
     set(NEON_JVM
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Binary.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Builtin.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Datetime.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/File.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Global.java
@@ -292,6 +294,7 @@ endif (JAVAC)
 
 if (CSC)
     set(NEON_CLI
+        ${CMAKE_SOURCE_DIR}/rtl/cli/Builtin.cs
         ${CMAKE_SOURCE_DIR}/rtl/cli/Global.cs
     )
     # TODO: Use cmake C# support (3.8.2+)
@@ -410,9 +413,9 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     )
 endif ()
 
-string(REPLACE "${CMAKE_SOURCE_DIR}/lib/global.neon" "" RTL_NEON_WITHOUT_GLOBAL "${RTL_NEON}")
+string(REPLACE "${CMAKE_SOURCE_DIR}/lib/builtin.neon" "" RTL_NEON_FOR_COMPILE "${RTL_NEON}")
 set(RTL_NEONX "")
-foreach (src ${RTL_NEON_WITHOUT_GLOBAL})
+foreach (src ${RTL_NEON_FOR_COMPILE})
     string(REPLACE ".neon" ".neonx" neonx ${src})
     string(REPLACE "${CMAKE_SOURCE_DIR}/" "" neonx ${neonx})
     add_custom_command(
@@ -440,6 +443,7 @@ add_library(executor STATIC
     src/rtl_exec.cpp
     src/support_exec.cpp
     lib/binary.cpp
+    lib/builtin.cpp
     lib/console.cpp
     lib/datetime.cpp
     lib/debugger.cpp
@@ -919,6 +923,9 @@ add_test(
 add_custom_target(hello_exe ALL
     COMMAND neonbind -stub $<TARGET_FILE:neonstub> -e ${CMAKE_BINARY_DIR}/tmp/hello.exe ${CMAKE_BINARY_DIR}/bin/hello.neonx
     DEPENDS neonbind neonstub ${CMAKE_BINARY_DIR}/bin/hello.neonx
+)
+add_dependencies(hello_exe
+    neon_rtl
 )
 add_test(
     NAME hello_exe

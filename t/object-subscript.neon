@@ -32,12 +32,7 @@ TRAP DynamicConversionException AS dc DO
 END TRY
 --= to Number
 
-TRY
-    print(str(a[42]))
-TRAP ArrayIndexException AS ai DO
-    print(ai.info)
-END TRY
---= 42
+TESTCASE print(str(a[42])) EXPECT PANIC "Array index exceeds size 3: 42"
 
 TRY
     print(str(d[2]))
