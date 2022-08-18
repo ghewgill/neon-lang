@@ -526,7 +526,7 @@ class Executor {
         BigDecimal b = stack.removeFirst().getNumber();
         BigDecimal a = stack.removeFirst().getNumber();
         if (b.signum() == 0) {
-            raiseLiteral("NumberException.DivideByZero");
+            raiseLiteral("PANIC", "Number divide by zero error: divide");
             return;
         }
         stack.addFirst(new Cell(a.divide(b, 34, java.math.RoundingMode.HALF_EVEN)));

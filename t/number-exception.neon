@@ -1,14 +1,14 @@
 IMPORT math
 
-TESTCASE 5.1 * 1e6144 + 5.1 * 1e6144 EXPECT NumberException.Overflow
-TESTCASE -5.1 * 1e6144 - 5.1 * 1e6144 EXPECT NumberException.Overflow
-TESTCASE 1.1 * 1e6144 * 10 EXPECT NumberException.Overflow
-TESTCASE 1e6144 / 0.1 EXPECT NumberException.Overflow
-TESTCASE 1e6144 / 0 EXPECT NumberException.DivideByZero
-TESTCASE 10.1 MOD 0 EXPECT NumberException.Invalid
-TESTCASE 10.1 ^ 6145 EXPECT NumberException.Overflow
-TESTCASE math.acos(2) EXPECT NumberException.Invalid
-TESTCASE math.exp(100000) EXPECT NumberException.Overflow
-TESTCASE math.log(0) EXPECT NumberException.DivideByZero
-TESTCASE math.log(-1) EXPECT NumberException.Invalid
-TESTCASE math.sqrt(-1) EXPECT NumberException.Invalid
+TESTCASE 5.1 * 1e6144 + 5.1 * 1e6144 EXPECT PANIC "Number overflow error: add"
+TESTCASE -5.1 * 1e6144 - 5.1 * 1e6144 EXPECT PANIC "Number overflow error: subtract"
+TESTCASE 1.1 * 1e6144 * 10 EXPECT PANIC "Number overflow error: multiply"
+TESTCASE 1e6144 / 0.1 EXPECT PANIC "Number overflow error: divide"
+TESTCASE 1e6144 / 0 EXPECT PANIC "Number divide by zero error: divide"
+TESTCASE 10.1 MOD 0 EXPECT PANIC "Number invalid error: modulo"
+TESTCASE 10.1 ^ 6145 EXPECT PANIC "Number overflow error: exponentiation"
+TESTCASE math.acos(2) EXPECT PANIC "Number invalid error: acos"
+TESTCASE math.exp(100000) EXPECT PANIC "Number overflow error: exp"
+TESTCASE math.log(0) EXPECT PANIC "Number divide by zero error: log"
+TESTCASE math.log(-1) EXPECT PANIC "Number invalid error: log"
+TESTCASE math.sqrt(-1) EXPECT PANIC "Number invalid error: sqrt"

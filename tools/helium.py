@@ -858,7 +858,7 @@ class DivisionExpression:
             else:
                 return x / y
         except ZeroDivisionError:
-            raise NeonException(["NumberException", "DivideByZero"])
+            raise NeonException("PANIC", "Number divide by zero error: divide")
 
 class IntegerDivisionExpression:
     def __init__(self, left, right):
@@ -868,7 +868,7 @@ class IntegerDivisionExpression:
         try:
             return math.trunc(self.left.eval(env) / self.right.eval(env))
         except ZeroDivisionError:
-            raise NeonException(["NumberException", "DivideByZero"])
+            raise NeonException("PANIC", "Number divide by zero error: divide")
 
 class ModuloExpression:
     def __init__(self, left, right):

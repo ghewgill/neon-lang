@@ -495,7 +495,7 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("NumberException.DivideByZero", "");
+                Raise("PANIC", "Number divide by zero error: divide");
                 return;
             }
             stack.Push(Cell.CreateNumberCell(Number.Divide(a, b)));
@@ -507,7 +507,7 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("NumberException.DivideByZero", "");
+                Raise("PANIC", "Number invalid error: mod");
                 return;
             }
             stack.Push(Cell.CreateNumberCell(Number.Modulo(a, b)));
@@ -518,10 +518,6 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            if (b.IsZero()) {
-                Raise("NumberException.DivideByZero", "");
-                return;
-            }
             stack.Push(Cell.CreateNumberCell(Number.Pow(a, b)));
         }
 #endregion

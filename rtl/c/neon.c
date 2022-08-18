@@ -311,7 +311,7 @@ Ne_Exception *Ne_Number_multiply(Ne_Number *result, const Ne_Number *a, const Ne
 Ne_Exception *Ne_Number_divide(Ne_Number *result, const Ne_Number *a, const Ne_Number *b)
 {
     if (b->dval == 0) {
-        return Ne_Exception_raise("NumberException.DivideByZero");
+        return Ne_Exception_raise_info_literal("PANIC", "Number divide by zero error: divide");
     }
     result->dval = a->dval / b->dval;
     return NULL;

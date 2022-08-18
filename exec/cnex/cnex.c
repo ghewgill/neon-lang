@@ -583,17 +583,23 @@ void exec_numberCheckAndRaise(TExecutor *self, unsigned int start_ip, const char
 {
     if (_IDEC_glbflags & BID_OVERFLOW_EXCEPTION) {
         self->ip = start_ip;
-        exec_rtl_raiseException(self, "NumberException.Overflow", what);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Number overflow error: %s", what);
+        exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
     if (_IDEC_glbflags & BID_ZERO_DIVIDE_EXCEPTION) {
         self->ip = start_ip;
-        exec_rtl_raiseException(self, "NumberException.DivideByZero", what);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Number divide by zero error: %s", what);
+        exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
     if (_IDEC_glbflags & BID_INVALID_EXCEPTION) {
         self->ip = start_ip;
-        exec_rtl_raiseException(self, "NumberException.Invalid", what);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "Number invalid error: %s", what);
+        exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
 }

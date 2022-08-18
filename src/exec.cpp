@@ -77,13 +77,13 @@ public:
     }
     void check_and_raise(const char *what) {
         if (_IDEC_glbflags & BID_OVERFLOW_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_Overflow.name), utf8string(what));
+            executor_raise_exception(start_ip, utf8string("PANIC"), utf8string(std::string("Number overflow error: ") + what));
         }
         if (_IDEC_glbflags & BID_ZERO_DIVIDE_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_DivideByZero.name), utf8string(what));
+            executor_raise_exception(start_ip, utf8string("PANIC"), utf8string(std::string("Number divide by zero error: ") + what));
         }
         if (_IDEC_glbflags & BID_INVALID_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_Invalid.name), utf8string(what));
+            executor_raise_exception(start_ip, utf8string("PANIC"), utf8string(std::string("Number invalid error: ") + what));
         }
     }
 };

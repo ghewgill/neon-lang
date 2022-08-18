@@ -22,6 +22,7 @@ debug.neon                 # module runtime
 debug-example.neon         # debugger.log
 decimal.neon               # exception
 dictionary.neon            # exception
+divide-by-zero.neon        # exception
 dns-test.neon              # module$enum
 encoding-base64.neon       # verifier - incompatible object for function call
 enum.neon                  # enum toString
