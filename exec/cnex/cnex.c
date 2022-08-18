@@ -1369,7 +1369,12 @@ void exec_CALLP(TExecutor *self)
     const char *func = self->module->bytecode->strings[val]->data;
 
     global_callFunction(func, self);
-    exec_numberCheckAndRaise(self, start_ip, func);
+    const char *funcname = func;
+    const char *sep = strchr(funcname, '$');
+    if (sep != NULL) {
+        funcname = sep + 1;
+    }
+    exec_numberCheckAndRaise(self, start_ip, funcname);
 }
 
 void exec_CALLF(TExecutor *self)

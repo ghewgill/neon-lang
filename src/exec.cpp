@@ -1317,7 +1317,12 @@ void Executor::exec_CALLP()
     try {
         BidExceptionHandler handler(start_ip);
         rtl_call(stack, func, module->rtl_call_tokens[val]);
-        handler.check_and_raise(func.c_str());
+        std::string funcname = func;
+        auto sep = funcname.find('$');
+        if (sep != std::string::npos) {
+            funcname = funcname.substr(sep + 1);
+        }
+        handler.check_and_raise(funcname.c_str());
     } catch (RtlException &x) {
         ip = start_ip;
         raise(x);
