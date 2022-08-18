@@ -6651,7 +6651,24 @@ const ast::Statement *Analyzer::analyze(const pt::TestCaseStatement *statement)
                                             new ast::ConstantStringExpression(utf8string(statement->expected_exception[1].text)),
                                             ast::ComparisonExpression::Comparison::NE
                                         ),
-                                        fail_statements
+                                        [=]() {
+                                            auto r = fail_statements;
+                                            // Remove call to sys.exit() so we can add a rethrow.
+                                            r.resize(r.size() - 1);
+                                            r.push_back(
+                                                new ast::RaiseStatement(
+                                                    statement->token,
+                                                    &panic_exception,
+                                                    new ast::RecordReferenceFieldExpression(
+                                                        ast::TYPE_OBJECT,
+                                                        new ast::VariableExpression(var),
+                                                        "info",
+                                                        false
+                                                    )
+                                                )
+                                            );
+                                            return r;
+                                        }()
                                     )
                                 },
                                 {}
