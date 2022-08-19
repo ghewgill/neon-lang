@@ -9,6 +9,7 @@ import os
 import random
 import re
 import shutil
+import select
 import socket
 import sqlite3
 import stat
@@ -2731,6 +2732,25 @@ def neon_net_socket_recv(self):
     r = sock.recv(count)
     self.stack.append(len(r) > 0)
     self.stack.append(r)
+
+def neon_net_socket_recvfrom(self):
+    count = int(self.stack.pop())
+    sock = self.stack.pop()
+    r, peer = sock.recvfrom(count)
+    self.stack.append(len(r) > 0)
+    self.stack.append(r)
+    self.stack.append(peer[1])
+    self.stack.append(peer[0])
+
+def neon_net_socket_select(self):
+    timeout_seconds = self.stack.pop()
+    error = self.stack.pop()
+    write = self.stack.pop()
+    read = self.stack.pop()
+    r, w, e = select.select([x.value[0].value for x in read.value], [x.value[0].value for x in write.value], [x.value[0].value for x in error.value], timeout_seconds)
+    self.stack.append([Value([Value(x)]) for x in e])
+    self.stack.append([Value([Value(x)]) for x in w])
+    self.stack.append([Value([Value(x)]) for x in r])
 
 def neon_net_socket_send(self):
     b = self.stack.pop()
