@@ -875,7 +875,11 @@ class ModuloExpression:
         self.left = left
         self.right = right
     def eval(self, env):
-        return self.left.eval(env) % self.right.eval(env)
+        a = self.left.eval(env)
+        b = self.right.eval(env)
+        if b == 0:
+            raise NeonException("PANIC", "Number invalid error: modulo")
+        return a % b
 
 class ComparisonExpression:
     def __init__(self, left, right, cond):
@@ -3113,7 +3117,10 @@ def neon_math_abs(env, x):
     return abs(x)
 
 def neon_math_acos(env, x):
-    return math.acos(x)
+    try:
+        return math.acos(x)
+    except ValueError:
+        raise NeonException("PANIC", "Number invalid error: acos")
 
 def neon_math_acosh(env, x):
     return math.acosh(x)
@@ -3179,7 +3186,12 @@ def neon_math_lgamma(env, x):
     return math.lgamma(x)
 
 def neon_math_log(env, x):
-    return math.log(x)
+    if x == 0:
+        raise NeonException("PANIC", "Number divide by zero error: log")
+    try:
+        return math.log(x)
+    except ValueError:
+        raise NeonException("PANIC", "Number invalid error: log")
 
 def neon_math_log10(env, x):
     return math.log10(x)
@@ -3220,7 +3232,10 @@ def neon_math_sinh(env, x):
     return math.sinh(x)
 
 def neon_math_sqrt(env, x):
-    return math.sqrt(x)
+    try:
+        return math.sqrt(x)
+    except ValueError:
+        raise NeonException("PANIC", "Number invalid error: sqrt")
 
 def neon_math_tan(env, x):
     return math.tan(x)

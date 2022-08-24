@@ -57,6 +57,7 @@ namespace csnex
             library = new List<KeyValuePair<string, object>>();
             library.Add(new KeyValuePair<string, object>("console", new rtl.console(this)));
             library.Add(new KeyValuePair<string, object>("io", new rtl.io(this)));
+            library.Add(new KeyValuePair<string, object>("math", new rtl.math(this)));
             library.Add(new KeyValuePair<string, object>("random", new rtl.random(this)));
             library.Add(new KeyValuePair<string, object>("runtime", new rtl.runtime(this)));
             library.Add(new KeyValuePair<string, object>("string", new rtl.@string(this)));
@@ -507,7 +508,7 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("PANIC", "Number invalid error: mod");
+                Raise("PANIC", "Number invalid error: modulo");
                 return;
             }
             stack.Push(Cell.CreateNumberCell(Number.Modulo(a, b)));
@@ -921,8 +922,8 @@ namespace csnex
                 }
             } catch (TargetInvocationException ti) {
                 throw ti.InnerException;
-            } catch {
-                throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined function call.", func));
+            } catch (Exception ex) {
+                throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined function call. ({1})", func, ex));
             }
         }
 

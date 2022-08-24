@@ -1520,6 +1520,10 @@ func (self *executor) op_modn() {
 	self.ip++
 	b := self.pop().num
 	a := self.pop().num
+	if b == 0 {
+		self.raise_literal("PANIC", objectString{"Number invalid error: modulo"})
+		return
+	}
 	self.push(make_cell_num(math.Mod(a, b)))
 }
 
@@ -2497,7 +2501,12 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(math.Abs(x)))
 	case "math$acos":
 		x := self.pop().num
-		self.push(make_cell_num(math.Acos(x)))
+		r := math.Acos(x)
+		if math.IsNaN(r) {
+			self.raise_literal("PANIC", objectString{"Number invalid error: acos"})
+		} else {
+			self.push(make_cell_num(r))
+		}
 	case "math$acosh":
 		x := self.pop().num
 		self.push(make_cell_num(math.Acosh(x)))
@@ -2570,7 +2579,14 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(r))
 	case "math$log":
 		x := self.pop().num
-		self.push(make_cell_num(math.Log(x)))
+		r := math.Log(x)
+		if math.IsNaN(r) {
+			self.raise_literal("PANIC", objectString{"Number invalid error: log"})
+		} else if math.IsInf(r, 0) {
+			self.raise_literal("PANIC", objectString{"Number divide by zero error: log"})
+		} else {
+			self.push(make_cell_num(r))
+		}
 	case "math$log10":
 		x := self.pop().num
 		self.push(make_cell_num(math.Log10(x)))
@@ -2615,7 +2631,12 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(math.Sinh(x)))
 	case "math$sqrt":
 		x := self.pop().num
-		self.push(make_cell_num(math.Sqrt(x)))
+		r := math.Sqrt(x)
+		if math.IsNaN(r) {
+			self.raise_literal("PANIC", objectString{"Number invalid error: sqrt"})
+		} else {
+			self.push(make_cell_num(r))
+		}
 	case "math$tan":
 		x := self.pop().num
 		self.push(make_cell_num(math.Tan(x)))

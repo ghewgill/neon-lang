@@ -7369,7 +7369,9 @@ public:
         leave();
     }
     virtual void visit(const pt::NextStatement *) {}
-    virtual void visit(const pt::PanicStatement *) {}
+    virtual void visit(const pt::PanicStatement *node) {
+        node->expr->accept(this);
+    }
     virtual void visit(const pt::RaiseStatement *) {}
     virtual void visit(const pt::RepeatStatement *node) {
         enter(false);

@@ -127,7 +127,6 @@ mismatch.neon
 module-assign-let.neon
 module-assign-var.neon
 module-scope.neon
-number-exception.neon
 opcode-coverage.neon
 pointer6.neon
 pointer-mismatch.neon

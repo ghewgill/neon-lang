@@ -766,7 +766,7 @@ class Executor:
         b = self.stack.pop()
         a = self.stack.pop()
         if b == 0:
-            self.raise_literal("PANIC", "Number invalid error: mod")
+            self.raise_literal("PANIC", "Number invalid error: modulo")
             return
         m = abs(b)
         if is_signed(a):
@@ -2490,7 +2490,11 @@ def neon_math_abs(self):
 
 def neon_math_acos(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.acos(float(x))))
+    try:
+        self.stack.append(decimal.Decimal(math.acos(float(x))))
+    except ValueError:
+        self.raise_literal("PANIC", "Number invalid error: acos")
+        return
 
 def neon_math_acosh(self):
     x = self.stack.pop()
@@ -2597,7 +2601,14 @@ def neon_math_lgamma(self):
 
 def neon_math_log(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.log(float(x))))
+    try:
+        self.stack.append(decimal.Decimal(math.log(float(x))))
+    except ValueError:
+        if x == 0:
+            self.raise_literal("PANIC", "Number divide by zero error: log")
+        else:
+            self.raise_literal("PANIC", "Number invalid error: log")
+        return
 
 def neon_math_log10(self):
     x = self.stack.pop()
@@ -2660,7 +2671,11 @@ def neon_math_sinh(self):
 
 def neon_math_sqrt(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.sqrt(float(x))))
+    try:
+        self.stack.append(decimal.Decimal(math.sqrt(float(x))))
+    except ValueError:
+        self.raise_literal("PANIC", "Number invalid error: sqrt")
+        return
 
 def neon_math_tan(self):
     x = self.stack.pop()

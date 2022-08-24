@@ -97,6 +97,7 @@ class Executor {
         predefined.put("builtin$string__encodeUTF8", this::string__encodeUTF8);
         predefined.put("builtin$string__toString", this::string__toString);
         predefined.put("math$abs", this::math$abs);
+        predefined.put("math$acos", this::math$acos);
         predefined.put("math$atan", this::math$atan);
         predefined.put("math$ceil", this::math$ceil);
         predefined.put("math$cos", this::math$cos);
@@ -537,6 +538,10 @@ class Executor {
         ip++;
         BigDecimal b = stack.removeFirst().getNumber();
         BigDecimal a = stack.removeFirst().getNumber();
+        if (b.signum() == 0) {
+            raiseLiteral("PANIC", "Number invalid error: modulo");
+            return;
+        }
         stack.addFirst(new Cell(a.remainder(b)));
     }
 
@@ -1949,6 +1954,17 @@ class Executor {
         stack.addFirst(new Cell(x.abs()));
     }
 
+    private void math$acos()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        double r = Math.acos(x.doubleValue());
+        if (Double.isNaN(r)) {
+            raiseLiteral("PANIC", "Number invalid error: acos");
+            return;
+        }
+        stack.addFirst(new Cell(BigDecimal.valueOf(r)));
+    }
+
     private void math$atan()
     {
         BigDecimal x = stack.removeFirst().getNumber();
@@ -1982,7 +1998,16 @@ class Executor {
     private void math$log()
     {
         BigDecimal x = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(BigDecimal.valueOf(Math.log(x.doubleValue()))));
+        double r = Math.log(x.doubleValue());
+        if (Double.isNaN(r)) {
+            raiseLiteral("PANIC", "Number invalid error: log");
+            return;
+        }
+        if (Double.isInfinite(r)) {
+            raiseLiteral("PANIC", "Number divide by zero error: log");
+            return;
+        }
+        stack.addFirst(new Cell(BigDecimal.valueOf(r)));
     }
 
     private void math$odd()
@@ -2006,7 +2031,12 @@ class Executor {
     private void math$sqrt()
     {
         BigDecimal x = stack.removeFirst().getNumber();
-        stack.addFirst(new Cell(BigDecimal.valueOf(Math.sqrt(x.doubleValue()))));
+        double r = Math.sqrt(x.doubleValue());
+        if (Double.isNaN(r)) {
+            raiseLiteral("PANIC", "Number invalid error: sqrt");
+            return;
+        }
+        stack.addFirst(new Cell(BigDecimal.valueOf(r)));
     }
 
     private void math$trunc()

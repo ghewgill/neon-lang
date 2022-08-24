@@ -34,6 +34,13 @@ namespace csnex {
                 val = n.val;
             }
         }
+
+        public static Number FromDouble(double n)
+        {
+            Number r = new Number();
+            r.val = (decimal)n;
+            return r;
+        }
 #endregion
 
         public static Number FromString(string str)
@@ -151,6 +158,11 @@ namespace csnex {
         public static Int64 number_to_int64(Number n)
         {
             return Decimal.ToInt64(n.val);
+        }
+
+        public double ToDouble()
+        {
+            return Decimal.ToDouble(val);
         }
 #endregion
 #region Overrides
