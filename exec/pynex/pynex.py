@@ -2417,8 +2417,11 @@ def neon_file_readBytes(self):
 
 def neon_file_readLines(self):
     fn = self.stack.pop()
-    r = [Value(x.rstrip("\n")) for x in open(fn).readlines()]
-    self.stack.append(r)
+    try:
+        r = [Value(x.rstrip("\n")) for x in open(fn).readlines()]
+        self.stack.append(r)
+    except OSError:
+        self.raise_literal("FileException", "")
 
 def neon_file_removeEmptyDirectory(self):
     fn = self.stack.pop()
