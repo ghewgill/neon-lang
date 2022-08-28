@@ -3,7 +3,6 @@ packages:
 - g++
 - cmake
 - ncurses
-- gmp-devel
 - zlib-devel
 - openssl-devel
 # These perl modules are just for NaturalDocs

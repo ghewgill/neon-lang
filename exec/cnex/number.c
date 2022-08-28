@@ -218,9 +218,6 @@ Number number_from_string(const char *s)
         return bid128_nan(NULL);
     }
 
-    // If we're dealing strictly with an integer, then we pass it off to gmp.
-    // ToDo: implement libgmp!
-
     // Next, check for allowed formats because bid128_from_string() is a bit too permissive.
     if (s[next] == '.') {
         i = next + 1;

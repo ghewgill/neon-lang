@@ -124,7 +124,6 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" 
 endif ()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-find_package(GMP)
 find_package(ZLIB)
 find_package(OpenSSL)
 add_subdirectory(external)
@@ -178,6 +177,7 @@ endforeach ()
 
 set(RTL_NEON
     ${CMAKE_SOURCE_DIR}/lib/base.neon
+    ${CMAKE_SOURCE_DIR}/lib/bigint.neon
     ${CMAKE_SOURCE_DIR}/lib/binary.neon
     ${CMAKE_SOURCE_DIR}/lib/builtin.neon
     ${CMAKE_SOURCE_DIR}/lib/cformat.neon
@@ -339,7 +339,6 @@ target_include_directories(common
 )
 target_link_libraries(common
     bid
-    ${GMP_TARGET}
     hash-library
 )
 

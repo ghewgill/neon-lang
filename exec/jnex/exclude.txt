@@ -8,6 +8,7 @@ assert-enum.neon           # import
 assert-multiline.neon      # import
 assert.neon                # import
 base-test.neon             # import
+bigint-test.neon           # CALLMF
 binary-test.neon           # binary
 bytes-embed.neon           # CALLMF
 bytes-index.neon           # index

@@ -3,7 +3,6 @@ packages:
 - python3
 - cmake
 - ncurses-dev
-- libgmp-dev
 - zlib1g-dev
 - libssl-dev
 # optional

@@ -26,7 +26,6 @@ test_grammar
 *__neonbuild/
 
 external/IntelRDFPMathLib20U2/
-external/gmp-6.1.2/
 external/utfcpp-master/
 external/hash-library/
 external/sqlite-amalgamation-3320300/

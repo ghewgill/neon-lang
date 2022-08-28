@@ -9,6 +9,7 @@ array2d.neon               # array copying semantics
 assert-multiline.neon      # exception
 assignment.neon            # choice
 base-test.neon             # exception
+bigint-test.neon           # class reference to bigint module is incomlete, maybe should be neon.lib.bigint?
 binary-test.neon           # verifier
 bytes.neon                 # bytes.append
 bytes-embed.neon           # choice return

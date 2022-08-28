@@ -1,6 +1,6 @@
 array2d.neon               # copy semantics
 assert-multiline.neon      # stderr
-bigint.neon                # bigint
+bigint-test.neon           # decimal
 binary-test.neon           # bigint
 bytes-splice.neon          # bytes__splice
 complex-test.neon          # precision

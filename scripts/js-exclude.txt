@@ -15,7 +15,7 @@ assert-enum.neon           # enum
 assert-multiline.neon      # stderr
 assignment.neon            # choice
 base-test.neon             # module
-bigint.neon                # bigint
+bigint-test.neon           # ?
 binary-test.neon           # module binary
 bytes-embed.neon           # bytes
 bytes-index.neon           # index

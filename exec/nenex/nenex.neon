@@ -1403,6 +1403,9 @@ FUNCTION f_callp(INOUT self: Executor)
             LET first: Number := self.pop()->n
             LET s: String := self.pop()->s
             self.stack.append(makeValueString(s[first TO last]))
+        WHEN "math$abs" DO
+            LET x: Number := self.pop()->n
+            self.stack.append(makeValueNumber(math.abs(x)))
         WHEN "math$acos" DO
             LET x: Number := self.pop()->n
             CHECK math.abs(x) <= 1 ELSE
@@ -1410,6 +1413,12 @@ FUNCTION f_callp(INOUT self: Executor)
                 EXIT FUNCTION
             END CHECK
             self.stack.append(makeValueNumber(math.acos(x)))
+        WHEN "math$exp" DO
+            LET x: Number := self.pop()->n
+            self.stack.append(makeValueNumber(math.exp(x)))
+        WHEN "math$floor" DO
+            LET x: Number := self.pop()->n
+            self.stack.append(makeValueNumber(math.floor(x)))
         WHEN "math$log" DO
             LET x: Number := self.pop()->n
             CHECK x >= 0 ELSE
@@ -1421,6 +1430,9 @@ FUNCTION f_callp(INOUT self: Executor)
                 EXIT FUNCTION
             END CHECK
             self.stack.append(makeValueNumber(math.log(x)))
+        WHEN "math$sign" DO
+            LET x: Number := self.pop()->n
+            self.stack.append(makeValueNumber(math.sign(x)))
         WHEN "math$sqrt" DO
             LET x: Number := self.pop()->n
             CHECK x >= 0 ELSE

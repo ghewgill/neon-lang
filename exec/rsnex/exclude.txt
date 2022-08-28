@@ -37,7 +37,7 @@ base-invalid-digit.neon
 base-invalid.neon
 base-test.neon
 bases.neon
-bigint.neon
+bigint-test.neon
 binary-test.neon
 boolean.neon
 bytecode-stringtable.neon
