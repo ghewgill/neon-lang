@@ -10,6 +10,12 @@ namespace csnex.rtl
             Exec = exe;
         }
 
+        public void abs()
+        {
+            Number x = Exec.stack.Pop().Number;
+            Exec.stack.Push(Cell.CreateNumberCell(Number.Abs(x)));
+        }
+
         public void acos()
         {
             Number x = Exec.stack.Pop().Number;
@@ -19,6 +25,23 @@ namespace csnex.rtl
                 return;
             }
             Exec.stack.Push(Cell.CreateNumberCell(Number.FromDouble(r)));
+        }
+
+        public void exp()
+        {
+            Number x = Exec.stack.Pop().Number;
+            double r = Math.Exp(x.ToDouble());
+            if (Double.IsInfinity(r)) {
+                Exec.Raise("PANIC", "Number overflow error: exp");
+                return;
+            }
+            Exec.stack.Push(Cell.CreateNumberCell(Number.FromDouble(r)));
+        }
+
+        public void floor()
+        {
+            Number x = Exec.stack.Pop().Number;
+            Exec.stack.Push(Cell.CreateNumberCell(Number.Floor(x)));
         }
 
         public void log()
@@ -34,6 +57,12 @@ namespace csnex.rtl
                 return;
             }
             Exec.stack.Push(Cell.CreateNumberCell(Number.FromDouble(r)));
+        }
+
+        public void sign()
+        {
+            Number x = Exec.stack.Pop().Number;
+            Exec.stack.Push(Cell.CreateNumberCell(Number.Sign(x)));
         }
 
         public void sqrt()

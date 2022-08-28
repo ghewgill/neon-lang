@@ -10,7 +10,7 @@ array.neon                      # exception info
 assert-enum.neon                # enum.toString
 assignment.neon                 # pointer
 base-test.neon                  # memory leak
-bigint.neon                     # bigint
+bigint-test.neon                # module type reference
 binary-test.neon                # module binary
 bytes-embed.neon                # module type reference
 bytes-index.neon                # exception info

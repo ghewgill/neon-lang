@@ -3,62 +3,33 @@
 #include <assert.h>
 #include <iso646.h>
 
-const mpz_class &Number::get_mpz()
-{
-    assert(rep == Rep::MPZ);
-    return mpz;
-}
-
 BID_UINT128 Number::get_bid()
 {
-    if (rep == Rep::BID) {
-        return bid;
-    }
-    assert(rep == Rep::MPZ);
-    return bid128_from_string(const_cast<char *>(mpz.get_str().c_str()));
+    return bid;
 }
 
 Number number_add(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return mpz_class(x.get_mpz() + y.get_mpz());
-    }
     return bid128_add(x.get_bid(), y.get_bid());
 }
 
 Number number_subtract(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return mpz_class(x.get_mpz() - y.get_mpz());
-    }
     return bid128_sub(x.get_bid(), y.get_bid());
 }
 
 Number number_multiply(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return mpz_class(x.get_mpz() * y.get_mpz());
-    }
     return bid128_mul(x.get_bid(), y.get_bid());
 }
 
 Number number_divide(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        if (mpz_divisible_p(x.get_mpz().get_mpz_t(), y.get_mpz().get_mpz_t())) {
-            return mpz_class(x.get_mpz() / y.get_mpz());
-        }
-    }
     return bid128_div(x.get_bid(), y.get_bid());
 }
 
 Number number_modulo(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        mpz_class r;
-        mpz_fdiv_r(r.get_mpz_t(), x.get_mpz().get_mpz_t(), y.get_mpz().get_mpz_t());
-        return r;
-    }
     BID_UINT128 m = bid128_abs(y.get_bid());
     if (bid128_isSigned(x.get_bid())) {
         Number q = number_ceil(bid128_div(bid128_abs(x.get_bid()), m));
@@ -73,11 +44,6 @@ Number number_modulo(Number x, Number y)
 
 Number number_pow(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        mpz_class r;
-        mpz_pow_ui(r.get_mpz_t(), x.get_mpz().get_mpz_t(), y.get_mpz().get_ui());
-        return r;
-    }
     if (number_is_integer(y) && not number_is_negative(y)) {
         uint32_t iy = number_to_uint32(y);
         Number r = number_from_uint32(1);
@@ -93,58 +59,38 @@ Number number_pow(Number x, Number y)
     return bid128_pow(x.get_bid(), y.get_bid());
 }
 
-Number number_powmod(Number b, Number e, Number m)
+Number number_powmod(Number /*b*/, Number /*e*/, Number /*m*/)
 {
-    mpz_class r;
-    mpz_powm(r.get_mpz_t(), b.get_mpz().get_mpz_t(), e.get_mpz().get_mpz_t(), m.get_mpz().get_mpz_t());
-    return r;
+    return Number();
 }
 
 Number number_negate(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return mpz_class(-x.get_mpz());
-    }
     return bid128_negate(x.get_bid());
 }
 
 Number number_abs(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return mpz_class(abs(x.get_mpz()));
-    }
     return bid128_abs(x.get_bid());
 }
 
 Number number_sign(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return mpz_class(sgn(x.get_mpz()));
-    }
     return bid128_copySign(bid128_from_uint32(1), x.get_bid());
 }
 
 Number number_ceil(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x;
-    }
     return bid128_round_integral_positive(x.get_bid());
 }
 
 Number number_floor(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x;
-    }
     return bid128_round_integral_negative(x.get_bid());
 }
 
 Number number_trunc(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x;
-    }
     return bid128_round_integral_zero(x.get_bid());
 }
 
@@ -160,7 +106,6 @@ Number number_log(Number x)
 
 Number number_sqrt(Number x)
 {
-    // TODO: mpz sqrt
     return bid128_sqrt(x.get_bid());
 }
 
@@ -216,7 +161,6 @@ Number number_atan2(Number y, Number x)
 
 Number number_cbrt(Number x)
 {
-    // TODO: mpz
     return bid128_cbrt(x.get_bid());
 }
 
@@ -237,7 +181,6 @@ Number number_erfc(Number x)
 
 Number number_exp2(Number x)
 {
-    // TODO: mpz
     return bid128_exp2(x.get_bid());
 }
 
@@ -283,9 +226,6 @@ Number number_log2(Number x)
 
 Number number_nearbyint(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x;
-    }
     return bid128_nearbyint(x.get_bid());
 }
 
@@ -306,107 +246,67 @@ Number number_tgamma(Number x)
 
 bool number_is_zero(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x.get_mpz() == 0;
-    }
     return bid128_isZero(x.get_bid()) != 0;
 }
 
 bool number_is_negative(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x.get_mpz() < 0;
-    }
     return bid128_isSigned(x.get_bid()) != 0;
 }
 
 bool number_is_equal(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return x.get_mpz() == y.get_mpz();
-    }
     return bid128_quiet_equal(x.get_bid(), y.get_bid()) != 0;
 }
 
 bool number_is_not_equal(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return x.get_mpz() != y.get_mpz();
-    }
     return bid128_quiet_not_equal(x.get_bid(), y.get_bid()) != 0;
 }
 
 bool number_is_less(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return x.get_mpz() < y.get_mpz();
-    }
     return bid128_quiet_less(x.get_bid(), y.get_bid()) != 0;
 }
 
 bool number_is_greater(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return x.get_mpz() > y.get_mpz();
-    }
     return bid128_quiet_greater(x.get_bid(), y.get_bid()) != 0;
 }
 
 bool number_is_less_equal(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return x.get_mpz() <= y.get_mpz();
-    }
     return bid128_quiet_less_equal(x.get_bid(), y.get_bid()) != 0;
 }
 
 bool number_is_greater_equal(Number x, Number y)
 {
-    if (x.rep == Rep::MPZ && y.rep == Rep::MPZ) {
-        return x.get_mpz() >= y.get_mpz();
-    }
     return bid128_quiet_greater_equal(x.get_bid(), y.get_bid()) != 0;
 }
 
 bool number_is_integer(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return true;
-    }
     BID_UINT128 i = bid128_round_integral_zero(x.get_bid());
     return bid128_quiet_equal(x.get_bid(), i) != 0;
 }
 
 bool number_is_odd(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x.get_mpz() % 2 != 0;
-    }
     return not bid128_isZero(bid128_fmod(x.get_bid(), bid128_from_uint32(2)));
 }
 
 bool number_is_finite(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return true;
-    }
     return bid128_isFinite(x.get_bid());
 }
 
 bool number_is_nan(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return false;
-    }
     return bid128_isNaN(x.get_bid()) != 0;
 }
 
 std::string number_to_string(Number x, Format format)
 {
-    if (x.rep == Rep::MPZ) {
-        return x.get_mpz().get_str();
-    }
-
     const int PRECISION = 34;
 
     char buf[50];
@@ -452,108 +352,51 @@ std::string number_to_string(Number x, Format format)
 
 uint8_t number_to_uint8(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return static_cast<uint8_t>(x.get_mpz().get_ui());
-    }
     return bid128_to_uint8_int(x.get_bid());
 }
 
 int8_t number_to_sint8(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return static_cast<int8_t>(x.get_mpz().get_si());
-    }
     return bid128_to_int8_int(x.get_bid());
 }
 
 uint16_t number_to_uint16(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return static_cast<uint16_t>(x.get_mpz().get_ui());
-    }
     return bid128_to_uint16_int(x.get_bid());
 }
 
 int16_t number_to_sint16(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return static_cast<int16_t>(x.get_mpz().get_si());
-    }
     return bid128_to_int16_int(x.get_bid());
 }
 
 uint32_t number_to_uint32(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x.get_mpz().get_ui();
-    }
     return bid128_to_uint32_int(x.get_bid());
 }
 
 int32_t number_to_sint32(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x.get_mpz().get_si();
-    }
     return bid128_to_int32_int(x.get_bid());
 }
 
 uint64_t number_to_uint64(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        size_t uls = sizeof(unsigned long);
-        if (uls >= 8) {
-            return x.get_mpz().get_ui();
-        } else {
-            return static_cast<uint64_t>(x.get_mpz().get_ui() & 0xFFFFFFFF) + (static_cast<uint64_t>(mpz_class(x.get_mpz() >> 32).get_ui() & 0xFFFFFFFF) << 32);
-        }
-    }
     return bid128_to_uint64_int(x.get_bid());
 }
 
 int64_t number_to_sint64(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        size_t sls = sizeof(signed long);
-        if (sls >= 8) {
-            return x.get_mpz().get_si();
-        } else {
-            bool negative = false;
-            if (number_is_negative(x)) {
-                negative = true;
-                x = number_negate(x);
-            }
-            uint64_t ur = static_cast<uint64_t>(x.get_mpz().get_ui() & 0xFFFFFFFF) + (static_cast<uint64_t>(mpz_class(x.get_mpz() >> 32).get_ui() & 0xFFFFFFFF) << 32);
-            if (ur > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) {
-                if (negative) {
-                    return std::numeric_limits<int64_t>::min();
-                } else {
-                    return std::numeric_limits<int64_t>::max();
-                }
-            }
-            int64_t sr = static_cast<int64_t>(ur);
-            if (negative) {
-                sr = -sr;
-            }
-            return sr;
-        }
-    }
     return bid128_to_int64_int(x.get_bid());
 }
 
 float number_to_float(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return static_cast<float>(x.get_mpz().get_d());
-    }
     return bid128_to_binary32(x.get_bid());
 }
 
 double number_to_double(Number x)
 {
-    if (x.rep == Rep::MPZ) {
-        return x.get_mpz().get_d();
-    }
     return bid128_to_binary64(x.get_bid());
 }
 
@@ -572,17 +415,9 @@ Number number_from_string(const std::string &s)
     if (next == i) {
         return bid128_nan(NULL);
     }
-    // If all digits, then do a large integer conversion.
-    if (next == std::string::npos) {
-        try {
-            return mpz_class(s.substr(skip), 10);
-        } catch (std::invalid_argument &) {
-            return bid128_nan(NULL);
-        }
-    }
     // Check exact allowed formats because bid128_from_string
     // is a bit too permissive.
-    if (s[next] == '.') {
+    if (next != std::string::npos && s[next] == '.') {
         i = next + 1;
         if (i >= s.length()) {
             return bid128_nan(NULL);
@@ -618,56 +453,42 @@ Number number_from_string(const std::string &s)
 
 Number number_from_uint8(uint8_t x)
 {
-    return mpz_class(x);
+    return bid128_from_uint32(x);
 }
 
 Number number_from_sint8(int8_t x)
 {
-    return mpz_class(x);
+    return bid128_from_int32(x);
 }
 
 Number number_from_uint16(uint16_t x)
 {
-    return mpz_class(x);
+    return bid128_from_uint32(x);
 }
 
 Number number_from_sint16(int16_t x)
 {
-    return mpz_class(x);
+    return bid128_from_int32(x);
 }
 
 Number number_from_uint32(uint32_t x)
 {
-    return mpz_class(x);
+    return bid128_from_uint32(x);
 }
 
 Number number_from_sint32(int32_t x)
 {
-    return mpz_class(x);
+    return bid128_from_int32(x);
 }
 
 Number number_from_uint64(uint64_t x)
 {
-    mpz_class hi;
-    mpz_mul_2exp(hi.get_mpz_t(), mpz_class(static_cast<uint32_t>(x >> 32)).get_mpz_t(), 32);
-    return mpz_class(static_cast<uint32_t>(x & 0xFFFFFFFF) + hi);
+    return bid128_from_uint64(x);
 }
 
 Number number_from_sint64(int64_t x)
 {
-    if (x >= 0) {
-        mpz_class hi;
-        mpz_mul_2exp(hi.get_mpz_t(), mpz_class(static_cast<uint32_t>(x >> 32)).get_mpz_t(), 32);
-        return mpz_class(static_cast<uint32_t>(x & 0xFFFFFFFF) + hi);
-    } else if (x == std::numeric_limits<int64_t>::min()) {
-        mpz_class hi;
-        mpz_mul_2exp(hi.get_mpz_t(), mpz_class(0x80000000).get_mpz_t(), 32);
-        return mpz_class(-hi);
-    } else {
-        mpz_class hi;
-        mpz_mul_2exp(hi.get_mpz_t(), mpz_class(static_cast<uint32_t>((-x) >> 32)).get_mpz_t(), 32);
-        return mpz_class(-(static_cast<uint32_t>((-x) & 0xFFFFFFFF) + hi));
-    }
+    return bid128_from_int64(x);
 }
 
 Number number_from_float(float x)

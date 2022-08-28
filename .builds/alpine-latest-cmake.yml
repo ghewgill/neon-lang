@@ -1,7 +1,6 @@
 image: alpine/latest
 packages:
 - cmake
-- gmp-dev
 - zlib-dev
 - openssl-dev
 - perl

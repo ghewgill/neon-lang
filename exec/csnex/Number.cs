@@ -49,6 +49,11 @@ namespace csnex {
         }
 
 #region Static Arithmetic Functions
+        public static Number Abs(Number x)
+        {
+            return new Number(Math.Abs(x.val));
+        }
+
         public static Number Add(Number x, Number y)
         {
             return new Number(x.val + y.val);
@@ -94,6 +99,16 @@ namespace csnex {
         public static Number Negate(Number x)
         {
             return new Number(Decimal.Negate(x.val));
+        }
+
+        public static Number Floor(Number x)
+        {
+            return new Number(Math.Floor(x.val));
+        }
+
+        public static Number Sign(Number x)
+        {
+            return new Number(Math.Sign(x.val));
         }
 #endregion
 #region Static "Is" Functions

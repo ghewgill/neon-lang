@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <algorithm>
 #include <functional>
 #include <iso646.h>
 #include <limits.h>

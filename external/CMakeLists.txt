@@ -8,7 +8,6 @@ endif ()
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 include(libbid.cmake)
-include(libgmp.cmake)
 include(libhash.cmake)
 include(libressl.cmake)
 include(minijson.cmake)
