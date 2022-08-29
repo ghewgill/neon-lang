@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "intrinsic.h"
+#include "lexer.h"
 #include "rtl_compile.h"
 #include "rtl_exec.h"
 
@@ -956,12 +957,77 @@ bool BaseLoopStatement::always_returns() const
 
 bool CaseStatement::always_returns() const
 {
+    if (auto enumtype = dynamic_cast<const TypeEnum *>(expr->type)) {
+        std::set<int> values;
+        for (auto i: enumtype->names) {
+            values.insert(i.second);
+        }
+        bool seen_others = false;
+        for (auto clause: clauses) {
+            if (clause.first.empty()) {
+                seen_others = true;
+            }
+            for (auto c: clause.first) {
+                if (auto compcond = dynamic_cast<const ComparisonWhenCondition *>(c)) {
+                    switch (compcond->comp) {
+                        case ComparisonExpression::Comparison::EQ:
+                            values.erase(number_to_sint32(compcond->expr->eval_number(Token())));
+                            break;
+                        case ComparisonExpression::Comparison::NE:
+                        case ComparisonExpression::Comparison::LT:
+                        case ComparisonExpression::Comparison::GT:
+                        case ComparisonExpression::Comparison::LE:
+                        case ComparisonExpression::Comparison::GE:
+                            break;
+                    }
+                } else if (auto rangecond = dynamic_cast<const RangeWhenCondition *>(c)) {
+                    int limit = number_to_sint32(rangecond->high_expr->eval_number(Token()));
+                    for (int i = number_to_sint32(rangecond->low_expr->eval_number(Token())); i <= limit; i++) {
+                        values.erase(i);
+                    }
+                } else {
+                    internal_error("unexpected case clause for enum: " + token.source->source_path + ":" + std::to_string(token.line));
+                }
+            }
+            if (clause.second.empty() || not clause.second.back()->always_returns()) {
+                return false;
+            }
+        }
+        return seen_others || values.empty();
+    } else if (auto choicetype = dynamic_cast<const TypeChoice *>(expr->type)) {
+        std::set<int> values;
+        std::transform(std::begin(choicetype->choices), std::end(choicetype->choices), std::inserter(values, std::begin(values)), [](std::pair<std::string, std::pair<int, const Type *>> x) { return x.second.first; });
+        bool seen_others = false;
+        for (auto clause: clauses) {
+            if (clause.first.empty()) {
+                seen_others = true;
+            }
+            for (auto c: clause.first) {
+                if (auto ctcond = dynamic_cast<const ChoiceTestWhenCondition *>(c)) {
+                    values.erase(ctcond->index);
+                } else {
+                    internal_error("unexpected case clause for enum: " + token.source->source_path + ":" + std::to_string(token.line));
+                }
+            }
+            if (clause.second.empty() || not clause.second.back()->always_returns()) {
+                return false;
+            }
+        }
+        return seen_others || values.empty();
+    }
+    // In theory we could determine whether a Number case covers
+    // all possible numbers, but it doesn't seem worth it.
+    // So assume it doesn't.
+    bool seen_others = false;
     for (auto clause: clauses) {
+        if (clause.first.empty()) {
+            seen_others = true;
+        }
         if (clause.second.empty() || not clause.second.back()->always_returns()) {
             return false;
         }
     }
-    return true;
+    return seen_others;
 }
 
 bool CaseStatement::is_scope_exit_statement() const
