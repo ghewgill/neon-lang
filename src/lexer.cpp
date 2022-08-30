@@ -212,7 +212,7 @@ inline bool space(uint32_t c)
     return c < 256 && isspace(c);
 }
 
-uint32_t unicode_lookup(const Token &t, const std::string &name)
+uint32_t unicode_lookup(Token t, size_t offset, const std::string &name)
 {
     std::string uname;
     //std::transform(name.begin(), name.end(), std::back_inserter(uname), ::toupper);
@@ -232,6 +232,7 @@ uint32_t unicode_lookup(const Token &t, const std::string &name)
             return UnicodeData[mid].value;
         }
     }
+    t.column += offset;
     error(1027, t, "unicode character name not found");
 }
 
@@ -474,6 +475,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         base = 16;
                         utf8::advance(i, 1, source.end());
                     } else {
+                        t.column += 1;
                         error(1003, t, "invalid base character");
                     }
                     Number value = number_from_uint32(0);
@@ -481,6 +483,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                     while (i != source.end()) {
                         c = static_cast<char>(tolower(*i));
                         if (c == '.') {
+                            t.column += i - start;
                             error(1004, t, "non-decimal fraction not supported");
                         }
                         if (not number_body(c)) {
@@ -497,6 +500,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         utf8::advance(i, 1, source.end());
                     }
                     if (i == nstart) {
+                        t.column += i - start;
                         error(1008, t, "numeric constants must have at least one digit");
                     }
                     t.value = value;
@@ -515,6 +519,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                     n.push_back(*i);
                     utf8::advance(i, 1, source.end());
                     if (i != source.end() && not number_start(*i)) {
+                        t.column += i - startindex;
                         error(1028, t, "fractional part of number must contain at least one digit");
                     }
                     while (i != source.end() && number_decimal_body(*i)) {
@@ -577,16 +582,18 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         case 'U': {
                             if (*i == '{') {
                                 utf8::advance(i, 1, source.end());
+                                auto namestart = i;
                                 std::string name;
                                 while (*i != '}') {
                                     if (*i == '"') {
+                                        t.column += i - startindex;
                                         error(1026, t, "unterminated unicode character name");
                                     }
                                     name.push_back(*i);
                                     utf8::advance(i, 1, source.end());
                                 }
                                 utf8::advance(i, 1, source.end());
-                                c = unicode_lookup(t, name);
+                                c = unicode_lookup(t, namestart - startindex, name);
                             } else {
                                 int len = c == 'U' ? 8 : 4;
                                 if (source.end() - i < len) {
@@ -594,6 +601,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                                 }
                                 for (int j = 0; j < len; j++) {
                                     if (not isxdigit(i[j])) {
+                                        t.column += (i - startindex) + j;
                                         error(1013, t, "invalid hex character");
                                     }
                                 }
@@ -637,6 +645,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                                         break;
                                     case '\\':
                                     case '\n':
+                                        t.column += i - start;
                                         error(1014, t, "invalid char embedded in string substitution");
                                 }
                             }
