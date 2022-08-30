@@ -218,7 +218,7 @@ void Emitter::emit(Opcode b)
             case Opcode::JUMPTBL:   stack_depth -= 1; in_jumptbl = true; break;
             case Opcode::CALLX:     break;
             case Opcode::SWAP:      break;
-            case Opcode::DROPN:     break;
+            case Opcode::DROPN:     stack_depth -= 1; break;
             case Opcode::PUSHFP:    stack_depth += 1; break;
             case Opcode::CALLV:     break;
             case Opcode::PUSHCI:    stack_depth += 1; break;
@@ -239,7 +239,6 @@ void Emitter::emit(Opcode b, uint32_t value)
     switch (b) {
         case Opcode::CONSA:     stack_depth -= value - 1; break;
         case Opcode::CONSD:     stack_depth -= 2*value - 1; break;
-        case Opcode::DROPN:     stack_depth -= value - 1; break;
         default:                break;
     }
 }
