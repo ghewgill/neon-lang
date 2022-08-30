@@ -59,10 +59,15 @@ IMPORT string
 
 CONSTANT Debug := FALSE
 
+TYPE CharacterClass IS RECORD
+    chars: Dictionary<Boolean>
+    complement: Boolean
+END RECORD
+
 TYPE Opcode IS CHOICE
     any
     char: String
-    class: Array<Boolean>
+    class: CharacterClass
     begin
     end
     save: Number
@@ -174,22 +179,10 @@ FUNCTION ExprClass.size(self: VALID POINTER TO ExprClass): Number
 END FUNCTION
 
 FUNCTION ExprClass.compile(self: VALID POINTER TO ExprClass, INOUT regex: Regex)
-    VAR class: Array<Boolean> := []
-    FOR x := 0 TO 255 DO
-        class[x] := FALSE
-    END FOR
-    IF self->complement THEN
-        FOR x := 0 TO 255 DO
-            LET c := string.fromCodePoint(x)
-            IF c NOT IN self->chars THEN
-                class[x] := TRUE
-            END IF
-        END FOR
-    ELSE
-        FOREACH c IN self->chars DO
-            class[string.toCodePoint(c)] := TRUE
-        END FOREACH
-    END IF
+    VAR class := CharacterClass(complement WITH self->complement)
+    FOREACH c IN self->chars DO
+        class.chars[c] := TRUE
+    END FOREACH
     regex.append(Opcode.class(class))
 END FUNCTION
 
@@ -777,8 +770,14 @@ FUNCTION matchPart(regex: Regex, ri: Number, target: String, ti: Number, INOUT s
             CHECK ti < target.length() ELSE
                 RETURN Result.noMatch
             END CHECK
-            IF NOT o.class[string.toCodePoint(target[ti])] THEN
-                RETURN Result.noMatch
+            IF o.class.complement THEN
+                IF target[ti] IN o.class.chars THEN
+                    RETURN Result.noMatch
+                END IF
+            ELSE
+                IF target[ti] NOT IN o.class.chars THEN
+                    RETURN Result.noMatch
+                END IF
             END IF
             RETURN matchPart(regex, ri+1, target, ti+1, INOUT saved)
         WHEN ISA Opcode.begin DO
