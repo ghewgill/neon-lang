@@ -489,6 +489,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         if (c != '_') {
                             int d = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'z' ? c - 'a' + 10 : -1;
                             if (d < 0 || d >= base) {
+                                t.column += i - start;
                                 error(1005, t, "invalid digit for given base");
                             }
                             value = number_add(number_multiply(value, number_from_uint32(base)), number_from_uint32(d));
