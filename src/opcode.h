@@ -98,6 +98,7 @@ enum class Opcode {
     PUSHFP,     // push function pointer
     CALLV,      // call virtual
     PUSHCI,     // push class info
+    PUSHMFP,    // push module function pointer
 };
 
 #endif

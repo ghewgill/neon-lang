@@ -118,6 +118,7 @@ private:
     void disasm_PUSHFP();
     void disasm_CALLV();
     void disasm_PUSHCI();
+    void disasm_PUSHMFP();
 };
 
 void InstructionDisassembler::disasm_PUSHB()
@@ -728,6 +729,14 @@ void InstructionDisassembler::disasm_PUSHCI()
     out << "PUSHCI \"" << obj.strtable[val] << "\"";
 }
 
+void InstructionDisassembler::disasm_PUSHMFP()
+{
+    index++;
+    uint32_t mod = Bytecode::get_vint(obj.code, index);
+    uint32_t func = Bytecode::get_vint(obj.code, index);
+    out << "PUSHMFP \"" << obj.strtable[mod] << "\",\"" << obj.strtable[func] << "\"";
+}
+
 void InstructionDisassembler::disassemble()
 {
     switch (static_cast<Opcode>(obj.code[index])) {
@@ -827,6 +836,7 @@ void InstructionDisassembler::disassemble()
         case Opcode::PUSHFP:  disasm_PUSHFP(); break;
         case Opcode::CALLV:   disasm_CALLV(); break;
         case Opcode::PUSHCI:  disasm_PUSHCI(); break;
+        case Opcode::PUSHMFP: disasm_PUSHMFP(); break;
         default:
             out << "Unknown opcode: " << static_cast<uint8_t>(obj.code[index]) << "\n";
             index++;

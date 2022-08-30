@@ -98,6 +98,7 @@
     OPCODE(PUSHFP)     /* push function pointer */\
     OPCODE(CALLV)      /* call virtual */\
     OPCODE(PUSHCI)     /* push class info */\
+    OPCODE(PUSHMFP)    /* push module function pointer */\
 
 #define GENERATE_ENUM(ENUM)     ENUM,
 #define GENERATE_NAME(STRING)   #STRING,

@@ -250,6 +250,7 @@ class Executor {
                     //case PUSHFP
                     case CALLV: doCALLV(); break;
                     case PUSHCI: doPUSHCI(); break;
+                    //case PUSHMFP
                     default:
                         System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
                         System.exit(1);
@@ -1261,6 +1262,7 @@ class Executor {
         PUSHFP,
         CALLV,
         PUSHCI,
+        PUSHMFP,
     }
 
     private interface GenericFunction {

@@ -50,3 +50,7 @@ END TRY
 
 print(str(module.functionpointer(5)))
 --= 25
+
+LET fp: FUNCTION(x: Number): Number := module.function
+print(fp(4))
+--= 16

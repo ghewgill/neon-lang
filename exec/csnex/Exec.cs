@@ -339,6 +339,26 @@ namespace csnex
             throw new NeonException(string.Format("csnex: unknown class name {0}\n", module.Bytecode.strtable[val]));
         }
 
+        void PUSHMFP()
+        {
+            ip++;
+            int mod = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int fun = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int efi = 0;
+            Module m = modules[module.Bytecode.strtable[mod]];
+            if (m != null) {
+                for (efi = 0; efi < m.Bytecode.exports.Count; efi++) {
+                    string funcsig = string.Format("{0},{1}", m.Bytecode.strtable[m.Bytecode.exports[efi].name], m.Bytecode.strtable[m.Bytecode.exports[efi].descriptor]);
+                    if (string.Compare(funcsig, module.Bytecode.strtable[fun]) == 0) {
+                        stack.Push(Cell.CreateArrayCell(new List<Cell> {Cell.CreateOtherCell(m), Cell.CreateNumberCell(new Number(m.Bytecode.exports[efi].index))}));
+                        return;
+                    }
+                }
+                throw new NeonException(string.Format("function not found: {0}", module.Bytecode.strtable[fun]));
+            }
+            throw new NeonException(string.Format("module not found: {0}", module.Bytecode.strtable[mod]));
+        }
+
         void PUSHPEG()
         {
             throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
@@ -1333,6 +1353,7 @@ namespace csnex
                         case Opcode.PUSHFP: PUSHFP(); break;              // push function pointer
                         case Opcode.CALLV: CALLV(); break;                // call virtual
                         case Opcode.PUSHCI: PUSHCI(); break;              // push class info
+                        case Opcode.PUSHMFP: PUSHMFP(); break;            // push module function pointer
                         default:
                             throw new InvalidOpcodeException(string.Format("Invalid opcode ({0}) in bytecode file.", module.Bytecode.code[ip]));
                     }

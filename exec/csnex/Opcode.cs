@@ -98,5 +98,6 @@
         PUSHFP,     // push function pointer
         CALLV,      // call virtual
         PUSHCI,     // push class info
+        PUSHMFP,    // push modle function pointer
     }
 }

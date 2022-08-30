@@ -222,6 +222,7 @@ void Emitter::emit(Opcode b)
             case Opcode::PUSHFP:    stack_depth += 1; break;
             case Opcode::CALLV:     break;
             case Opcode::PUSHCI:    stack_depth += 1; break;
+            case Opcode::PUSHMFP:   stack_depth += 1; break;
         }
     }
 }
@@ -1285,6 +1286,12 @@ void ast::ExtensionFunction::generate_call(Emitter &emitter) const
 void ast::ModuleFunction::predeclare(Emitter &emitter) const
 {
     emitter.add_import(module);
+}
+
+void ast::ModuleFunction::generate_load(Emitter &emitter) const
+{
+    // Get the address of a module function for function pointer support.
+    emitter.emit(Opcode::PUSHMFP, emitter.str(module->name), emitter.str(name + "," + descriptor));
 }
 
 void ast::ModuleFunction::generate_call(Emitter &emitter) const

@@ -276,6 +276,7 @@ public:
     void exec_PUSHFP();
     void exec_CALLV();
     void exec_PUSHCI();
+    void exec_PUSHMFP();
 
     void invoke(Module *m, uint32_t index);
     void raise_literal(const utf8string &exception, std::shared_ptr<Object> info);
@@ -1680,6 +1681,32 @@ void Executor::exec_PUSHCI()
     exit(1);
 }
 
+void Executor::exec_PUSHMFP()
+{
+    ip++;
+    uint32_t mod = Bytecode::get_vint(module->object.code, ip);
+    uint32_t func = Bytecode::get_vint(module->object.code, ip);
+    auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
+    if (f != module->module_functions.end()) {
+        stack.push(Cell(std::vector<Cell> {Cell::makeOther(f->second.first), Cell(number_from_uint32(f->second.second))}));
+    } else {
+        auto m = modules.find(module->object.strtable[mod]);
+        if (m == modules.end()) {
+            fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
+            exit(1);
+        }
+        for (auto ef: m->second->object.export_functions) {
+            if (m->second->object.strtable[ef.name] + "," + m->second->object.strtable[ef.descriptor] == module->object.strtable[func]) {
+                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ef.index);
+                stack.push(Cell(std::vector<Cell> {Cell::makeOther(m->second), Cell(number_from_uint32(ef.index))}));
+                return;
+            }
+        }
+        fprintf(stderr, "fatal: module function not found: %s\n", module->object.strtable[func].c_str());
+        exit(1);
+    }
+}
+
 void Executor::invoke(Module *m, uint32_t index)
 {
     callstack.push_back(std::make_pair(module, ip));
@@ -2068,6 +2095,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case Opcode::PUSHFP:  exec_PUSHFP(); break;
             case Opcode::CALLV:   exec_CALLV(); break;
             case Opcode::PUSHCI:  exec_PUSHCI(); break;
+            case Opcode::PUSHMFP: exec_PUSHMFP(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();

@@ -3139,8 +3139,8 @@ public:
 
     virtual bool is_pure(std::set<const ast::Function *> &) const override { return false; }
     virtual void predeclare(Emitter &emitter) const override;
-    virtual void generate_address(Emitter &) const override { internal_error("ModuleFunction"); }
-    virtual void generate_load(Emitter &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_address(Emitter &) const override {}
+    virtual void generate_load(Emitter &) const override;
     virtual void generate_store(Emitter &) const override { internal_error("ModuleFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
 

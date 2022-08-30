@@ -561,6 +561,12 @@ FUNCTION pushci()
     x := NEW Class(Field WITH 42)
 END FUNCTION
 
+--    PUSHMFP,    // push module function pointer
+FUNCTION pushmfp()
+    VAR fp: FUNCTION(x: Number): Number
+    fp := module.function
+END FUNCTION
+
 BEGIN MAIN
     -- Ensure we call every test, to test the execution of the generated opcodes.
     -- Should there be a test that ensures every test in this test file is called
@@ -661,4 +667,5 @@ BEGIN MAIN
     pushfp()
     callv()
     pushci()
+    pushmfp()
 END MAIN

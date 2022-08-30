@@ -1258,6 +1258,23 @@ class Executor:
         print("neon: unknown class name {0}".format(self.module.object.strtable[val].decode()), file=sys.stderr)
         sys.exit(1)
 
+    def PUSHMFP(self):
+        self.ip += 1
+        mod, self.ip = get_vint(self.module.object.code, self.ip)
+        fun, self.ip = get_vint(self.module.object.code, self.ip)
+        module_name = self.module.object.strtable[mod].decode()
+        m = self.modules.get(module_name)
+        if m is None:
+            print("module not found: {}".format(module_name), file=sys.stderr);
+            sys.exit(1)
+        function_name = self.module.object.strtable[fun]
+        for ef in m.object.export_functions:
+            if m.object.strtable[ef.name] + b"," + m.object.strtable[ef.descriptor] == function_name:
+                self.stack.append([Value(m), Value(ef.index)])
+                return
+        print("function not found: {}".format(function_name))
+        sys.exit(1)
+
     def invoke(self, module, index):
         if len(self.callstack) >= self.param_recursion_limit:
             self.raise_literal("PANIC", "StackOverflow: Stack depth exceeds recursion limit of {}".format(self.param_recursion_limit))
@@ -1406,6 +1423,7 @@ Dispatch = [
     Executor.PUSHFP,
     Executor.CALLV,
     Executor.PUSHCI,
+    Executor.PUSHMFP,
 ]
 
 def neon_builtin_array__append(self):

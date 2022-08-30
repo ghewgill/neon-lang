@@ -1752,6 +1752,33 @@ void exec_PUSHCI(TExecutor *self)
     fatal_error("cnex: unknown class name %s\n", TCSTR(self->module->bytecode->strings[val]));
 }
 
+void exec_PUSHMFP(TExecutor *self)
+{
+    self->ip++;
+    unsigned int mod = exec_getOperand(self);
+    unsigned int fun = exec_getOperand(self);
+    unsigned int efi = 0;
+    TModule *m = module_findModule(self, self->module->bytecode->strings[mod]->data);
+    if (m != NULL) {
+        for (efi = 0; efi < m->bytecode->export_functionsize; efi++) {
+            TString *funcsig = string_copyString(m->bytecode->strings[m->bytecode->export_functions[efi].name]);
+            funcsig = string_appendChar(funcsig, ',');
+            funcsig = string_appendString(funcsig, m->bytecode->strings[m->bytecode->export_functions[efi].descriptor]);
+            if (string_compareString(funcsig, self->module->bytecode->strings[fun]) == 0) {
+                string_freeString(funcsig);
+                Cell *a = cell_createArrayCell(0);
+                cell_arrayAppendElementPointer(a, cell_createOtherCell(m));
+                cell_arrayAppendElementPointer(a, cell_fromNumber(number_from_uint32(m->bytecode->export_functions[efi].index)));
+                push(self->stack, a);
+                return;
+            }
+            string_freeString(funcsig);
+        }
+        fatal_error("function not found: %s", self->module->bytecode->strings[fun]->data);
+    }
+    fatal_error("module not found: %s", self->module->bytecode->strings[mod]->data);
+}
+
 void invoke(TExecutor *self, TModule *m, int index)
 {
     self->callstacktop++;
@@ -1917,6 +1944,7 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case PUSHFP:  exec_PUSHFP(self); break;
             case CALLV:   exec_CALLV(self); break;
             case PUSHCI:  exec_PUSHCI(self); break;
+            case PUSHMFP: exec_PUSHMFP(self); break;
             default:
                 fatal_error("exec: Unexpected opcode: %d\n", self->module->bytecode->code[self->ip]);
         }

@@ -101,6 +101,7 @@ enum Opcode {
     PUSHFP,     // push function pointer
     CALLV,      // call virtual
     PUSHCI,     // push class info
+    PUSHMFP,    // push module function pointer
 }
 
 fn get_vint(bytes: &[u8], i: &mut usize) -> usize {
@@ -365,6 +366,7 @@ impl Executor {
                 x if x == Opcode::PUSHFP as u8 => self.op_pushfp(),
                 x if x == Opcode::CALLV as u8 => self.op_callv(),
                 x if x == Opcode::PUSHCI as u8 => self.op_pushci(),
+                x if x == Opcode::PUSHMFP as u8 => self.op_pushmfp(),
                 _ => panic!("invalid opcode")
             }
         }
@@ -779,6 +781,10 @@ impl Executor {
     }
 
     fn op_pushci(&mut self) {
+        assert!(false, "unimplemented");
+    }
+
+    fn op_pushmfp(&mut self) {
         assert!(false, "unimplemented");
     }
 

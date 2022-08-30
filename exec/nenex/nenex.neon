@@ -423,6 +423,7 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_pushfp,
     f_callv,
     f_pushci,
+    f_pushmfp,
 ]
 
 FUNCTION Executor.run(INOUT self: Executor)
@@ -1638,6 +1639,10 @@ FUNCTION f_pushci(INOUT self: Executor)
     END IF
     textio.writeLine(textio.stderr, "neon: unknown class name \(self.bytecode.strtable[val])")
     sys.exit(1)
+END FUNCTION
+
+FUNCTION f_pushmfp(INOUT self: Executor)
+    PANIC "PUSHMFP not implemented"
 END FUNCTION
 
 FUNCTION makeExecutor(bytes: Bytes): Executor
