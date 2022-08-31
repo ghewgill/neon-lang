@@ -1,0 +1,3 @@
+FUNCTION f(x: Number) END FUNCTION
+FUNCTION g(y: Number) END FUNCTION
+VAR a: Array<FUNCTION(z: Number)> := [f, g]

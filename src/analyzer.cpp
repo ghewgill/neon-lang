@@ -2293,8 +2293,13 @@ const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
             elementtype = element->type;
         } else if (elementtype->make_converter(element->type) == nullptr) {
             elementtype = ast::TYPE_OBJECT;
+            int i = 0;
             for (auto &y: elements) {
                 y = convert(elementtype, y);
+                if (y == nullptr) {
+                    error(3340, elementtokens[i], "cannot convert value to type Object (differing types in array)");
+                }
+                i++;
             }
         }
         element = convert(elementtype, element);
