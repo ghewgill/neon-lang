@@ -238,7 +238,15 @@ std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeF
             return identity_conversion;
         }
     }
-    if (returntype != TYPE_NOTHING && f->returntype != TYPE_NOTHING && returntype->make_converter(f->returntype) == nullptr) {
+    if (returntype == TYPE_NOTHING) {
+        if (f->returntype != TYPE_NOTHING) {
+            return nullptr;
+        }
+    } else if (f->returntype == TYPE_NOTHING) {
+        if (returntype != TYPE_NOTHING) {
+            return nullptr;
+        }
+    } else if (returntype->make_converter(f->returntype) == nullptr) {
         return nullptr;
     }
     if (params.size() != f->params.size()) {
