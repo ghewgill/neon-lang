@@ -1329,6 +1329,15 @@ void ast::Expression::generate(Emitter &emitter) const
     generate_expr(emitter);
 }
 
+void ast::Expression::generate_call(Emitter &emitter) const
+{
+    if (auto fptype = dynamic_cast<const TypeFunctionPointer *>(type)) {
+        fptype->generate_call(emitter);
+    } else {
+        internal_error("Expression::generate_call");
+    }
+}
+
 void ast::ConstantBooleanExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(Opcode::PUSHB);

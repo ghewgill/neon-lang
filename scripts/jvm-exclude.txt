@@ -35,6 +35,7 @@ export.neon                # enum with no name
 file-filecopied1.neon      # exception identification
 file-test.neon             # stack size
 for.neon                   # number format (2 vs 2.0)
+function-pointer.neon      # ArrayReferenceIndexExpression
 import.neon                # InterfacePointerConstructor
 import-optional.neon       # import
 inc-reference.neon         # increment

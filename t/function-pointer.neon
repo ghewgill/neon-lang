@@ -19,3 +19,7 @@ print(p(5, "hello"))
 p := append
 print(p(5, "hello"))
 --= 5hello
+
+VAR a: Array<FUNCTION(n: Number, s: String): String> := [append]
+print(a[0](5, "five"))
+--= 5five

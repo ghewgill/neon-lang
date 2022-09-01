@@ -1026,7 +1026,7 @@ public:
     utf8string eval_string(const Token &token) const;
     void generate(Emitter &emitter) const;
     virtual void generate_expr(Emitter &emitter) const = 0;
-    virtual void generate_call(Emitter &) const { internal_error("Expression::generate_call"); }
+    virtual void generate_call(Emitter &) const;
 
     const Type *type;
     const bool is_constant;
