@@ -2838,13 +2838,14 @@ public:
 
 class BaseLoopStatement: public CompoundStatement {
 public:
-    BaseLoopStatement(const Token &token, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop): CompoundStatement(token, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), loop_id(loop_id) {}
+    BaseLoopStatement(const Token &token, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop, bool has_exit): CompoundStatement(token, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), has_exit(has_exit), loop_id(loop_id) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> prologue;
     const std::vector<const Statement *> tail;
 
     const bool infinite_loop;
+    const bool has_exit;
     const unsigned int loop_id;
 
     virtual bool always_returns() const override;

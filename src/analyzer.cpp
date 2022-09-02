@@ -17,6 +17,14 @@
 
 static const ast::Expression *identity_conversion(Analyzer *, const ast::Expression *e) { return e; }
 
+class LoopInfo {
+public:
+    LoopInfo(const std::string &name, unsigned int loop_id): name(name), loop_id(loop_id), has_exit(false) {}
+    const std::string name;
+    const unsigned int loop_id;
+    bool has_exit;
+};
+
 class Analyzer {
     enum class AllowClass { no, yes };
 public:
@@ -35,7 +43,7 @@ public:
     std::map<std::string, Token> exports;
 
     std::stack<std::pair<const ast::Type *, const ast::TypeFunction *>> functiontypes;
-    std::stack<std::list<std::pair<std::string, unsigned int>>> loops;
+    std::stack<std::list<LoopInfo>> loops;
     std::stack<std::set<std::string>> imported_checked_stack;
     std::stack<std::map<const ast::Variable *, std::set<int>>> checked_choice_variables;
 
@@ -729,6 +737,7 @@ static const ast::Expression *make_array_conversion(Analyzer *analyzer, const as
             {
                 new ast::IncrementStatement(Token(), new ast::VariableExpression(index), 1)
             },
+            false,
             false
         ),
         new ast::VariableExpression(result)
@@ -813,6 +822,7 @@ static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, con
             {
                 new ast::IncrementStatement(Token(), new ast::VariableExpression(index), 1)
             },
+            false,
             false
         ),
         new ast::VariableExpression(result)
@@ -4727,7 +4737,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *decl
     frame.push(function->frame);
     scope.push(function->scope);
     functiontypes.push(std::make_pair(type, dynamic_cast<const ast::TypeFunction *>(function->type)));
-    loops.push(std::list<std::pair<std::string, unsigned int>>());
+    loops.push(std::list<LoopInfo>());
     function->statements = analyze(declaration->body);
     const ast::Type *returntype = dynamic_cast<const ast::TypeFunction *>(function->type)->returntype;
     if (returntype != ast::TYPE_NOTHING) {
@@ -5585,11 +5595,11 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
     return new ast::IfStatement(statement->token, condition_statements, else_statements);
 }
 
-static unsigned int get_loop_id(const Token &token, const std::stack<std::list<std::pair<std::string, unsigned int>>> &loops, const std::string &type)
+static unsigned int get_loop_id(const Token &token, const std::stack<std::list<LoopInfo>> &loops, const std::string &type)
 {
     for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
-        if (j->first == type) {
-            return j->second;
+        if (j->name == type) {
+            return j->loop_id;
         }
     }
     error(4301, token, "statement not within loop type while WHENEVER condition in effect");
@@ -6055,8 +6065,9 @@ const ast::Statement *Analyzer::analyze(const pt::ExitStatement *statement)
     std::string type = statement->type.text;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
-            if (j->first == type) {
-                return new ast::ExitStatement(statement->token, j->second);
+            if (j->name == type) {
+                j->has_exit = true;
+                return new ast::ExitStatement(statement->token, j->loop_id);
             }
         }
     }
@@ -6123,7 +6134,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
         }
         scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
-    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
+    loops.top().push_back(LoopInfo(statement->label.text, loop_id));
     std::vector<const ast::ReferenceExpression *> vars { new ast::VariableExpression(var) };
     std::vector<const ast::Statement *> init_statements {
         new ast::AssignmentStatement(statement->token, vars, start),
@@ -6152,9 +6163,10 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
         new ast::AssignmentStatement(statement->token, vars, new ast::AdditionExpression(new ast::VariableExpression(var), step)),
     };
     scope.pop();
+    bool has_exit = loops.top().back().has_exit;
     loops.top().pop_back();
     var->is_readonly = false;
-    return new ast::BaseLoopStatement(statement->token, loop_id, init_statements, statements, tail_statements, false);
+    return new ast::BaseLoopStatement(statement->token, loop_id, init_statements, statements, tail_statements, false, has_exit);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
@@ -6221,7 +6233,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         }
         scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
-    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
+    loops.top().push_back(LoopInfo(statement->label.text, loop_id));
     std::vector<const ast::Statement *> init_statements {
         new ast::AssignmentStatement(statement->token, { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
         new ast::AssignmentStatement(statement->token, { new ast::VariableExpression(array_copy) }, array),
@@ -6255,9 +6267,10 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         new ast::IncrementStatement(statement->token, new ast::VariableExpression(index), 1),
     };
     scope.pop();
+    bool has_exit = loops.top().back().has_exit;
     loops.top().pop_back();
     var->is_readonly = false;
-    return new ast::BaseLoopStatement(statement->token, loop_id, init_statements, statements, tail_statements, false);
+    return new ast::BaseLoopStatement(statement->token, loop_id, init_statements, statements, tail_statements, false, has_exit);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
@@ -6387,11 +6400,12 @@ const ast::Statement *Analyzer::analyze(const pt::LoopStatement *statement)
         }
         scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
-    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
+    loops.top().push_back(LoopInfo(statement->label.text, loop_id));
     std::vector<const ast::Statement *> statements = analyze(statement->body);
     scope.pop();
+    bool has_exit = loops.top().back().has_exit;
     loops.top().pop_back();
-    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, true);
+    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, true, has_exit);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::NextStatement *statement)
@@ -6399,8 +6413,8 @@ const ast::Statement *Analyzer::analyze(const pt::NextStatement *statement)
     std::string type = statement->type.text;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
-            if (j->first == type) {
-                return new ast::NextStatement(statement->token, j->second);
+            if (j->name == type) {
+                return new ast::NextStatement(statement->token, j->loop_id);
             }
         }
     }
@@ -6464,7 +6478,7 @@ const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
         }
         scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
-    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
+    loops.top().push_back(LoopInfo(statement->label.text, loop_id));
     std::vector<const ast::Statement *> statements = analyze(statement->body);
     const ast::Expression *cond = analyze(statement->cond.get());
     cond = convert(ast::TYPE_BOOLEAN, cond);
@@ -6485,8 +6499,9 @@ const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
         )
     );
     scope.pop();
+    bool has_exit = loops.top().back().has_exit;
     loops.top().pop_back();
-    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == false);
+    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == false, has_exit);
 }
 
 const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
@@ -6915,7 +6930,7 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
         }
         scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
-    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
+    loops.top().push_back(LoopInfo(statement->label.text, loop_id));
     std::vector<const ast::Statement *> statements {
         new ast::IfStatement(
             statement->token,
@@ -6932,8 +6947,9 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     std::vector<const ast::Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     scope.pop();
+    bool has_exit = loops.top().back().has_exit;
     loops.top().pop_back();
-    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == true);
+    return new ast::BaseLoopStatement(statement->token, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == true, has_exit);
 }
 
 // This code attempts to check for every type that is used in an exported
@@ -7025,7 +7041,7 @@ const ast::Program *Analyzer::analyze()
 
     //init_builtin_constants(global_scope);
 
-    loops.push(std::list<std::pair<std::string, unsigned int>>());
+    loops.push(std::list<LoopInfo>());
     r->statements = analyze(program->body);
     loops.pop();
     r->scope->checkForward();
