@@ -21,8 +21,7 @@ Repl::Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool 
     compiler_support("", {}, nullptr, true),
     runtime_support("", {}),
     globals_ast(),
-    globals_cells(),
-    input()
+    globals_cells()
 {
     if (not no_prompt) {
         std::cout << "Neon 0.1 (" << GIT_DESCRIBE << ")\n";
@@ -45,24 +44,6 @@ void Repl::handle(const std::string &s)
             auto tokens = tokenize("", s);
             const ast::Program *program;
             try {
-                auto parsetree = parse(*tokens);
-                // Grab a copy of the globals and let analyze() modify the copy.
-                // Some errors will be detected after things are added to the
-                // global scope, and we don't want to capture those global
-                // things if there was an error. (Errors are handled by exception
-                // so the assignment back to globals_ast won't happen.)
-                auto globals = globals_ast;
-                program = analyze(&compiler_support, parsetree.get(), &globals);
-                // TODO: Do we still need this? The PUSHPEG opcode now creates new entries
-                // in the external_globals map as needed.
-                globals_ast = globals;
-                for (auto g: globals_ast) {
-                    if (globals_cells.find(g.first) == globals_cells.end()) {
-                        globals_cells[g.first] = new Cell();
-                    }
-                }
-            } catch (CompilerError *e) {
-                first_error = e;
                 auto exprtree = parseExpression(*tokens);
                 std::vector<std::unique_ptr<pt::FunctionCallExpression::Argument>> print_args;
                 print_args.emplace_back(
@@ -104,6 +85,24 @@ void Repl::handle(const std::string &s)
                     "00000000000000000000000000000000"
                 )};
                 program = analyze(&compiler_support, parsetree.get(), &globals_ast);
+            } catch (CompilerError *error) {
+                first_error = error;
+                auto parsetree = parse(*tokens);
+                // Grab a copy of the globals and let analyze() modify the copy.
+                // Some errors will be detected after things are added to the
+                // global scope, and we don't want to capture those global
+                // things if there was an error. (Errors are handled by exception
+                // so the assignment back to globals_ast won't happen.)
+                auto globals = globals_ast;
+                program = analyze(&compiler_support, parsetree.get(), &globals);
+                // TODO: Do we still need this? The PUSHPEG opcode now creates new entries
+                // in the external_globals map as needed.
+                globals_ast = globals;
+                for (auto g: globals_ast) {
+                    if (globals_cells.find(g.first) == globals_cells.end()) {
+                        globals_cells[g.first] = new Cell();
+                    }
+                }
             }
             DebugInfo debug("-", s);
             auto bytecode = compile(program, &debug);
@@ -114,12 +113,13 @@ void Repl::handle(const std::string &s)
             if (r != 0) {
                 fprintf(stderr, "exit code %d\n", r);
             }
-            input.emplace_back(std::move(tokens));
         } catch (CompilerError *error) {
             SourceError *se = dynamic_cast<SourceError *>(error);
-            // Error 2015 is "Expression expected", which means the real error
+            // Error 2033 is "Identifier expected", which means the real error
             // was more likely to be the first one reported.
-            if (se != nullptr && se->number == 2015) {
+            // Error 2096 is "Plain identifier cannot be a statement" which
+            // probably also means the first one is better.
+            if (se != nullptr && (se->number == 2033 || se->number == 2096)) {
                 first_error->write(std::cerr);
             } else {
                 error->write(std::cerr);

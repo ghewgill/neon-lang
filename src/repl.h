@@ -27,7 +27,6 @@ private:
     RuntimeSupport runtime_support;
     std::map<std::string, ast::ExternalGlobalInfo> globals_ast;
     std::map<std::string, Cell *> globals_cells;
-    std::vector<std::unique_ptr<TokenizedSource>> input;
 };
 
 #endif // REPL_H
