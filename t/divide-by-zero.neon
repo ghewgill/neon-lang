@@ -1,10 +1,4 @@
 VAR a, b: Number
 a := 5
 b := 0
-TRY
-    print(str(a / b))
-TRAP NumberException.DivideByZero DO
-    print("divide by zero")
-END TRY
-
---= divide by zero
+TESTCASE a / b EXPECT PANIC "Number divide by zero error: divide"

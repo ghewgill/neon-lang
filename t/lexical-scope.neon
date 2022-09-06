@@ -1,3 +1,5 @@
+EXCEPTION TestException
+
 VAR a: Number := 0
 
 CASE a
@@ -39,7 +41,7 @@ UNTIL x = 0
 TRY
     VAR x: Number := a
     _ := x
-TRAP NumberException.DivideByZero DO
+TRAP TestException DO
     VAR x: Number := a
     _ := x
 END TRY

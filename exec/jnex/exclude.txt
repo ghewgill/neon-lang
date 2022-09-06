@@ -8,6 +8,7 @@ assert-enum.neon           # import
 assert-multiline.neon      # import
 assert.neon                # import
 base-test.neon             # import
+bigint-test.neon           # CALLMF
 binary-test.neon           # binary
 bytes-embed.neon           # CALLMF
 bytes-index.neon           # index
@@ -81,7 +82,6 @@ net-test.neon              # import
 net-test-udp.neon          # import
 new-init-module.neon       # module
 number-ceil.neon           # math
-number-exception.neon
 object-record.neon         # EQA
 opcode-coverage.neon       # runtime$moduleIsMain
 os-test.neon               # os

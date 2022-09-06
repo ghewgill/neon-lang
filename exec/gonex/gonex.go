@@ -119,6 +119,7 @@ const (
 	PUSHFP  = iota // push function pointer
 	CALLV   = iota // call virtual
 	PUSHCI  = iota // push class info
+	PUSHMFP = iota // push module function pointer
 )
 
 func assert(b bool, msg string) {
@@ -1256,6 +1257,8 @@ func (self *executor) run() {
 			self.op_callv()
 		case PUSHCI:
 			self.op_pushci()
+		case PUSHMFP:
+			self.op_pushmfp()
 		default:
 			panic(fmt.Sprintf("unknown opcode %d", self.module.object.code[self.ip]))
 		}
@@ -1510,7 +1513,7 @@ func (self *executor) op_divn() {
 	b := self.pop().num
 	a := self.pop().num
 	if b == 0 {
-		self.raise_literal("NumberException.DivideByZero", objectString{""})
+		self.raise_literal("PANIC", objectString{"Number divide by zero error: divide"})
 		return
 	}
 	self.push(make_cell_num(a / b))
@@ -1520,6 +1523,10 @@ func (self *executor) op_modn() {
 	self.ip++
 	b := self.pop().num
 	a := self.pop().num
+	if b == 0 {
+		self.raise_literal("PANIC", objectString{"Number invalid error: modulo"})
+		return
+	}
 	self.push(make_cell_num(math.Mod(a, b)))
 }
 
@@ -2509,7 +2516,12 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(math.Abs(x)))
 	case "math$acos":
 		x := self.pop().num
-		self.push(make_cell_num(math.Acos(x)))
+		r := math.Acos(x)
+		if math.IsNaN(r) {
+			self.raise_literal("PANIC", objectString{"Number invalid error: acos"})
+		} else {
+			self.push(make_cell_num(r))
+		}
 	case "math$acosh":
 		x := self.pop().num
 		self.push(make_cell_num(math.Acosh(x)))
@@ -2582,7 +2594,14 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(r))
 	case "math$log":
 		x := self.pop().num
-		self.push(make_cell_num(math.Log(x)))
+		r := math.Log(x)
+		if math.IsNaN(r) {
+			self.raise_literal("PANIC", objectString{"Number invalid error: log"})
+		} else if math.IsInf(r, 0) {
+			self.raise_literal("PANIC", objectString{"Number divide by zero error: log"})
+		} else {
+			self.push(make_cell_num(r))
+		}
 	case "math$log10":
 		x := self.pop().num
 		self.push(make_cell_num(math.Log10(x)))
@@ -2627,7 +2646,12 @@ func (self *executor) op_callp() {
 		self.push(make_cell_num(math.Sinh(x)))
 	case "math$sqrt":
 		x := self.pop().num
-		self.push(make_cell_num(math.Sqrt(x)))
+		r := math.Sqrt(x)
+		if math.IsNaN(r) {
+			self.raise_literal("PANIC", objectString{"Number invalid error: sqrt"})
+		} else {
+			self.push(make_cell_num(r))
+		}
 	case "math$tan":
 		x := self.pop().num
 		self.push(make_cell_num(math.Tan(x)))
@@ -3291,6 +3315,23 @@ func (self *executor) op_pushci() {
 		}
 	}
 	panic("neon: unknown class name")
+}
+
+func (self *executor) op_pushmfp() {
+	self.ip++
+	mod := get_vint(self.module.object.code, &self.ip)
+	fun := get_vint(self.module.object.code, &self.ip)
+	m, found := self.modules[string(self.module.object.strtable[mod])]
+	if !found {
+		panic("module not found: " + string(self.module.object.strtable[mod]))
+	}
+	for _, ef := range m.object.export_functions {
+		if string(m.object.strtable[ef.name])+","+string(m.object.strtable[ef.descriptor]) == string(self.module.object.strtable[fun]) {
+			self.push(make_cell_array([]cell{make_cell_module(m), make_cell_num(float64(ef.index))}))
+			return
+		}
+	}
+	panic("function not found: " + string(self.module.object.strtable[fun]))
 }
 
 func (self *executor) raise_literal(exception string, info object) {

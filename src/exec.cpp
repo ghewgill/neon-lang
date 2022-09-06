@@ -77,13 +77,13 @@ public:
     }
     void check_and_raise(const char *what) {
         if (_IDEC_glbflags & BID_OVERFLOW_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_Overflow.name), utf8string(what));
+            executor_raise_exception(start_ip, utf8string("PANIC"), utf8string(std::string("Number overflow error: ") + what));
         }
         if (_IDEC_glbflags & BID_ZERO_DIVIDE_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_DivideByZero.name), utf8string(what));
+            executor_raise_exception(start_ip, utf8string("PANIC"), utf8string(std::string("Number divide by zero error: ") + what));
         }
         if (_IDEC_glbflags & BID_INVALID_EXCEPTION) {
-            executor_raise_exception(start_ip, utf8string(rtl::ne_global::Exception_NumberException_Invalid.name), utf8string(what));
+            executor_raise_exception(start_ip, utf8string("PANIC"), utf8string(std::string("Number invalid error: ") + what));
         }
     }
 };
@@ -276,6 +276,7 @@ public:
     void exec_PUSHFP();
     void exec_CALLV();
     void exec_PUSHCI();
+    void exec_PUSHMFP();
 
     void invoke(Module *m, uint32_t index);
     void raise_literal(const utf8string &exception, std::shared_ptr<Object> info);
@@ -1317,7 +1318,12 @@ void Executor::exec_CALLP()
     try {
         BidExceptionHandler handler(start_ip);
         rtl_call(stack, func, module->rtl_call_tokens[val]);
-        handler.check_and_raise(func.c_str());
+        std::string funcname = func;
+        auto sep = funcname.find('$');
+        if (sep != std::string::npos) {
+            funcname = funcname.substr(sep + 1);
+        }
+        handler.check_and_raise(funcname.c_str());
     } catch (RtlException &x) {
         ip = start_ip;
         raise(x);
@@ -1673,6 +1679,32 @@ void Executor::exec_PUSHCI()
     }
     fprintf(stderr, "neon: unknown class name %s\n", module->object.strtable[val].c_str());
     exit(1);
+}
+
+void Executor::exec_PUSHMFP()
+{
+    ip++;
+    uint32_t mod = Bytecode::get_vint(module->object.code, ip);
+    uint32_t func = Bytecode::get_vint(module->object.code, ip);
+    auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
+    if (f != module->module_functions.end()) {
+        stack.push(Cell(std::vector<Cell> {Cell::makeOther(f->second.first), Cell(number_from_uint32(f->second.second))}));
+    } else {
+        auto m = modules.find(module->object.strtable[mod]);
+        if (m == modules.end()) {
+            fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
+            exit(1);
+        }
+        for (auto ef: m->second->object.export_functions) {
+            if (m->second->object.strtable[ef.name] + "," + m->second->object.strtable[ef.descriptor] == module->object.strtable[func]) {
+                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ef.index);
+                stack.push(Cell(std::vector<Cell> {Cell::makeOther(m->second), Cell(number_from_uint32(ef.index))}));
+                return;
+            }
+        }
+        fprintf(stderr, "fatal: module function not found: %s\n", module->object.strtable[func].c_str());
+        exit(1);
+    }
 }
 
 void Executor::invoke(Module *m, uint32_t index)
@@ -2063,6 +2095,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case Opcode::PUSHFP:  exec_PUSHFP(); break;
             case Opcode::CALLV:   exec_CALLV(); break;
             case Opcode::PUSHCI:  exec_PUSHCI(); break;
+            case Opcode::PUSHMFP: exec_PUSHMFP(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();

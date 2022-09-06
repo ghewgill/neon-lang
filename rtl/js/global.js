@@ -70,7 +70,7 @@ neon = {
     global: {
         divide: function(a, b) {
             if (b === 0) {
-                throw new NeonException("NumberException.DivideByZero");
+                throw new NeonException("PANIC", "Number divide by zero error: divide");
             }
             return a / b;
         },

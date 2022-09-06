@@ -10,6 +10,7 @@ import os
 import random
 import re
 import shutil
+import select
 import socket
 import sqlite3
 import stat
@@ -754,7 +755,7 @@ class Executor:
         b = self.stack.pop()
         a = self.stack.pop()
         if b == 0:
-            self.raise_literal("NumberException.DivideByZero", "")
+            self.raise_literal("PANIC", "Number divide by zero error: divide")
             return
         if isinstance(a, int) and isinstance(b, int) and a % b == 0:
             self.stack.append(a // b)
@@ -766,7 +767,7 @@ class Executor:
         b = self.stack.pop()
         a = self.stack.pop()
         if b == 0:
-            self.raise_literal("NumberException.DivideByZero", "")
+            self.raise_literal("PANIC", "Number invalid error: modulo")
             return
         m = abs(b)
         if is_signed(a):
@@ -1258,6 +1259,23 @@ class Executor:
         print("neon: unknown class name {0}".format(self.module.object.strtable[val].decode()), file=sys.stderr)
         sys.exit(1)
 
+    def PUSHMFP(self):
+        self.ip += 1
+        mod, self.ip = get_vint(self.module.object.code, self.ip)
+        fun, self.ip = get_vint(self.module.object.code, self.ip)
+        module_name = self.module.object.strtable[mod].decode()
+        m = self.modules.get(module_name)
+        if m is None:
+            print("module not found: {}".format(module_name), file=sys.stderr);
+            sys.exit(1)
+        function_name = self.module.object.strtable[fun]
+        for ef in m.object.export_functions:
+            if m.object.strtable[ef.name] + b"," + m.object.strtable[ef.descriptor] == function_name:
+                self.stack.append([Value(m), Value(ef.index)])
+                return
+        print("function not found: {}".format(function_name))
+        sys.exit(1)
+
     def invoke(self, module, index):
         if len(self.callstack) >= self.param_recursion_limit:
             self.raise_literal("PANIC", "StackOverflow: Stack depth exceeds recursion limit of {}".format(self.param_recursion_limit))
@@ -1406,6 +1424,7 @@ Dispatch = [
     Executor.PUSHFP,
     Executor.CALLV,
     Executor.PUSHCI,
+    Executor.PUSHMFP,
 ]
 
 def neon_builtin_array__append(self):
@@ -2445,7 +2464,7 @@ def neon_file_readLines(self):
     try:
         r = [Value(x.rstrip("\n")) for x in open(fn).readlines()]
         self.stack.append([Value(0), Value(r)]) # lines
-    except FileNotFoundError as x:
+    except OSError as x:
         self.stack.append(neon_file_ERROR(x))
 
 def neon_file_removeEmptyDirectory(self):
@@ -2526,7 +2545,11 @@ def neon_math_abs(self):
 
 def neon_math_acos(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.acos(float(x))))
+    try:
+        self.stack.append(decimal.Decimal(math.acos(float(x))))
+    except ValueError:
+        self.raise_literal("PANIC", "Number invalid error: acos")
+        return
 
 def neon_math_acosh(self):
     x = self.stack.pop()
@@ -2633,7 +2656,14 @@ def neon_math_lgamma(self):
 
 def neon_math_log(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.log(float(x))))
+    try:
+        self.stack.append(decimal.Decimal(math.log(float(x))))
+    except ValueError:
+        if x == 0:
+            self.raise_literal("PANIC", "Number divide by zero error: log")
+        else:
+            self.raise_literal("PANIC", "Number invalid error: log")
+        return
 
 def neon_math_log10(self):
     x = self.stack.pop()
@@ -2696,7 +2726,11 @@ def neon_math_sinh(self):
 
 def neon_math_sqrt(self):
     x = self.stack.pop()
-    self.stack.append(decimal.Decimal(math.sqrt(float(x))))
+    try:
+        self.stack.append(decimal.Decimal(math.sqrt(float(x))))
+    except ValueError:
+        self.raise_literal("PANIC", "Number invalid error: sqrt")
+        return
 
 def neon_math_tan(self):
     x = self.stack.pop()
@@ -2773,6 +2807,25 @@ def neon_net_socket_recv(self):
         self.stack.append([Value(0), Value(r)]) # data
     else:
         self.stack.append([Value(1)]) # eof
+
+def neon_net_socket_recvfrom(self):
+    count = int(self.stack.pop())
+    sock = self.stack.pop()
+    r, peer = sock.recvfrom(count)
+    if len(r):
+        self.stack.append([Value(0), Value([Value(peer[0]), Value(peer[1]), Value(r)])]) # data
+    else:
+        self.stack.append([Value(1)]) # eof
+
+def neon_net_socket_select(self):
+    timeout_seconds = self.stack.pop()
+    error = self.stack.pop()
+    write = self.stack.pop()
+    read = self.stack.pop()
+    r, w, e = select.select([x.value[0].value for x in read.value], [x.value[0].value for x in write.value], [x.value[0].value for x in error.value], timeout_seconds)
+    self.stack.append([Value([Value(x)]) for x in e])
+    self.stack.append([Value([Value(x)]) for x in w])
+    self.stack.append([Value([Value(x)]) for x in r])
 
 def neon_net_socket_send(self):
     b = self.stack.pop()

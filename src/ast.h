@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <algorithm>
 #include <functional>
 #include <iso646.h>
 #include <limits.h>
@@ -1025,7 +1026,7 @@ public:
     utf8string eval_string(const Token &token) const;
     void generate(Emitter &emitter) const;
     virtual void generate_expr(Emitter &emitter) const = 0;
-    virtual void generate_call(Emitter &) const { internal_error("Expression::generate_call"); }
+    virtual void generate_call(Emitter &) const;
 
     const Type *type;
     const bool is_constant;
@@ -2837,13 +2838,14 @@ public:
 
 class BaseLoopStatement: public CompoundStatement {
 public:
-    BaseLoopStatement(const Token &token, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop): CompoundStatement(token, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), loop_id(loop_id) {}
+    BaseLoopStatement(const Token &token, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop, bool has_exit): CompoundStatement(token, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), has_exit(has_exit), loop_id(loop_id) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> prologue;
     const std::vector<const Statement *> tail;
 
     const bool infinite_loop;
+    const bool has_exit;
     const unsigned int loop_id;
 
     virtual bool always_returns() const override;
@@ -3138,8 +3140,8 @@ public:
 
     virtual bool is_pure(std::set<const ast::Function *> &) const override { return false; }
     virtual void predeclare(Emitter &emitter) const override;
-    virtual void generate_address(Emitter &) const override { internal_error("ModuleFunction"); }
-    virtual void generate_load(Emitter &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_address(Emitter &) const override {}
+    virtual void generate_load(Emitter &) const override;
     virtual void generate_store(Emitter &) const override { internal_error("ModuleFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
 

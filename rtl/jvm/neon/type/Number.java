@@ -39,7 +39,7 @@ public class Number implements Comparable<Number> {
 
     public Number divide(Number divisor) {
         if (divisor.repr.signum() == 0) {
-            throw new NeonException("NumberException.DivideByZero");
+            throw new NeonException("PANIC", "Number divide by zero error: divide");
         }
         return new Number(repr.divide(divisor.repr));
     }

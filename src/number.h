@@ -24,16 +24,6 @@
 #pragma warning(pop)
 #endif
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#undef min
-#undef max
-#endif
-#include <gmpxx.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 enum class Format {
     full,
     scientific,
@@ -41,20 +31,11 @@ enum class Format {
 
 const Format DefaultFormat = Format::full;
 
-enum class Rep {
-    MPZ,
-    BID
-};
-
 struct Number {
-    Number(): rep(Rep::MPZ), mpz(), bid(bid128_from_uint32(0)) {}
-    Number(const mpz_class &x): rep(Rep::MPZ), mpz(x), bid(bid128_from_uint32(0)) {}
-    Number(BID_UINT128 x): rep(Rep::BID), mpz(), bid(x) {}
-    const mpz_class &get_mpz();
+    Number(): bid(bid128_from_uint32(0)) {}
+    Number(BID_UINT128 x): bid(x) {}
     BID_UINT128 get_bid();
-    Rep rep;
 private:
-    mpz_class mpz;
     BID_UINT128 bid;
 };
 

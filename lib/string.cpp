@@ -59,11 +59,11 @@ utf8string quoted(const utf8string &s)
             case '"':
             case '\\':
                 r.push_back('\\');
-                r.push_back(c);
+                r.push_back(static_cast<char>(c));
                 break;
             default:
                 if (c >= ' ' && c < 0x7f) {
-                    r.push_back(c);
+                    r.push_back(static_cast<char>(c));
                 } else if (c < 0x10000) {
                     char buf[7];
                     snprintf(buf, sizeof(buf), "\\u%04x", c);

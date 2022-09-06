@@ -1,4 +1,3 @@
-bigint.neon                # gmp
 dns-test.neon              # invalid socket?
 file-linelength.neon       # buffer size
 gc-array.neon              # Object Count

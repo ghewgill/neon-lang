@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <iso646.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
@@ -134,13 +135,13 @@ public:
         if (r < 0) {
             int err = errno;
             perror("recv");
-            return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_error)), Cell(utf8string(strerror(err)))});
+            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvResult_error)), Cell(utf8string(strerror(err)))});
         }
         if (r == 0) {
-            return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_eof))});
+            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvResult_eof))});
         }
         buffer.resize(r);
-        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_data)), Cell(buffer)});
+        return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvResult_data)), Cell(buffer)});
     }
     virtual Cell recvfrom(Number count) override {
         int n = number_to_sint32(count);
@@ -151,13 +152,13 @@ public:
         if (r < 0) {
             int err = errno;
             perror("recvfrom");
-            return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_error)), Cell(utf8string(strerror(err)))});
+            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvFromResult_error)), Cell(utf8string(strerror(err)))});
         }
         if (r == 0) {
-            return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_eof))});
+            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvFromResult_eof))});
         }
         buffer.resize(r);
-        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvFromResult_data)), Cell(std::vector<Cell> {
+        return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvFromResult_data)), Cell(std::vector<Cell> {
             Cell(utf8string(inet_ntoa(sin.sin_addr))),
             Cell(number_from_uint32(ntohs(sin.sin_port))),
             Cell(buffer)
@@ -329,7 +330,7 @@ public:
         return r;
     }
     virtual Cell recvfrom(Number) override {
-        return Cell(std::vector<Cell> {Cell(Number(CHOICE_RecvResult_error)), Cell(utf8string("not supported for this socket type"))});
+        return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvResult_error)), Cell(utf8string("not supported for this socket type"))});
     }
     virtual void send(const std::vector<unsigned char> &data) override {
         //printf("send %zd\n", data.size());

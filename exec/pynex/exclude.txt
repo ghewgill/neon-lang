@@ -1,6 +1,4 @@
 decimal.neon               # arithmetic
-dns-test.neon              # socket.select
-number-exception.neon
 
 compress-test.neon
 extsample-test.neon

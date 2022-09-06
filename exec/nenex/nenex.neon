@@ -423,6 +423,7 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_pushfp,
     f_callv,
     f_pushci,
+    f_pushmfp,
 ]
 
 FUNCTION Executor.run(INOUT self: Executor)
@@ -529,7 +530,9 @@ FUNCTION f_pushpg(INOUT self: Executor)
 END FUNCTION
 
 FUNCTION f_pushppg(INOUT self: Executor)
-    ASSERT FALSE
+    INC self.ip
+    LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
+    PANIC "pushppg: " & self.bytecode.strtable[val]
 END FUNCTION
 
 FUNCTION f_pushpmg(INOUT self: Executor)
@@ -733,7 +736,7 @@ FUNCTION f_divn(INOUT self: Executor)
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
     CHECK b <> 0 ELSE
-        self.raise_literal("NumberException.DivideByZero", "")
+        self.raise_literal("PANIC", "Number divide by zero error: divide")
         EXIT FUNCTION
     END CHECK
     self.stack.append(makeValueNumber(a / b))
@@ -743,6 +746,10 @@ FUNCTION f_modn(INOUT self: Executor)
     INC self.ip
     LET b: Number := self.pop()->n
     LET a: Number := self.pop()->n
+    CHECK b <> 0 ELSE
+        self.raise_literal("PANIC", "Number invalid error: modulo")
+        EXIT FUNCTION
+    END CHECK
     self.stack.append(makeValueNumber(a MOD b))
 END FUNCTION
 
@@ -1397,6 +1404,43 @@ FUNCTION f_callp(INOUT self: Executor)
             LET first: Number := self.pop()->n
             LET s: String := self.pop()->s
             self.stack.append(makeValueString(s[first TO last]))
+        WHEN "math$abs" DO
+            LET x: Number := self.pop()->n
+            self.stack.append(makeValueNumber(math.abs(x)))
+        WHEN "math$acos" DO
+            LET x: Number := self.pop()->n
+            CHECK math.abs(x) <= 1 ELSE
+                self.raise_literal("PANIC", "Number invalid error: acos")
+                EXIT FUNCTION
+            END CHECK
+            self.stack.append(makeValueNumber(math.acos(x)))
+        WHEN "math$exp" DO
+            LET x: Number := self.pop()->n
+            self.stack.append(makeValueNumber(math.exp(x)))
+        WHEN "math$floor" DO
+            LET x: Number := self.pop()->n
+            self.stack.append(makeValueNumber(math.floor(x)))
+        WHEN "math$log" DO
+            LET x: Number := self.pop()->n
+            CHECK x >= 0 ELSE
+                self.raise_literal("PANIC", "Number invalid error: log")
+                EXIT FUNCTION
+            END CHECK
+            CHECK x > 0 ELSE
+                self.raise_literal("PANIC", "Number divide by zero error: log")
+                EXIT FUNCTION
+            END CHECK
+            self.stack.append(makeValueNumber(math.log(x)))
+        WHEN "math$sign" DO
+            LET x: Number := self.pop()->n
+            self.stack.append(makeValueNumber(math.sign(x)))
+        WHEN "math$sqrt" DO
+            LET x: Number := self.pop()->n
+            CHECK x >= 0 ELSE
+                self.raise_literal("PANIC", "Number invalid error: sqrt")
+                EXIT FUNCTION
+            END CHECK
+            self.stack.append(makeValueNumber(math.sqrt(x)))
         WHEN "string$fromCodePoint" DO
             LET n: Number := self.pop()->n
             self.stack.append(makeValueString(string.fromCodePoint(n)))
@@ -1594,6 +1638,10 @@ FUNCTION f_pushci(INOUT self: Executor)
     END IF
     textio.writeLine(textio.stderr, "neon: unknown class name \(self.bytecode.strtable[val])")
     sys.exit(1)
+END FUNCTION
+
+FUNCTION f_pushmfp(INOUT self: Executor)
+    PANIC "PUSHMFP not implemented"
 END FUNCTION
 
 FUNCTION makeExecutor(bytes: Bytes): Executor

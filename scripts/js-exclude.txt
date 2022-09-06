@@ -15,7 +15,7 @@ assert-enum.neon           # enum
 assert-multiline.neon      # stderr
 assignment.neon            # choice
 base-test.neon             # module
-bigint.neon                # bigint
+bigint-test.neon           # ?
 binary-test.neon           # module binary
 bytes-embed.neon           # bytes
 bytes-index.neon           # index
@@ -39,6 +39,7 @@ debug-server.neon          # StringReferenceIndexExpression
 decimal.neon               # Inf
 dns-test.neon              # ?
 dictionary.neon            # exception on dictionary index not existing
+divide-by-zero.neon        # exception info
 encoding-base64.neon       # module
 enum.neon                  # keyword enum
 equality.neon              # DictionaryComparisonExpression
@@ -98,6 +99,7 @@ multiarray-test.neon       # module multiarray
 net-test.neon              # module net
 net-test-udp.neon          # module net
 number-ceil.neon           # number formatting
+number-exception.neon      # number exception
 object.neon                # object
 object-choice.neon         # object
 object-isa.neon            # object

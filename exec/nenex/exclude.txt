@@ -13,7 +13,7 @@ array-tostring.neon         # array__toString__number
 array2d.neon                # value semantics
 assert-multiline.neon       # pushppg
 base-test.neon              # callmf
-bigint.neon                 # math$abs
+bigint-test.neon            # callmf
 binary-test.neon            # exception Utf8DecodingException
 bytes-embed.neon            # callmf
 bytes-index.neon            # bytes__range
@@ -84,7 +84,6 @@ net-test.neon               # net$tcpSocket
 net-test-udp.neon           # net$udpSocket
 new-init-module.neon        # module
 number-ceil.neon            # math$ceil
-number-exception.neon
 object.neon                 # number formatting
 object-record.neon          # object__makeString
 opcode-coverage.neon        # runtime$moduleIsMain

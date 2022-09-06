@@ -18,6 +18,7 @@ set(CSNEX_SOURCES
 set(CSNEX_RUNTIME
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/console.cs
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/io.cs
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/math.cs
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/random.cs
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/runtime.cs
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/string.cs

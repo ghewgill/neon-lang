@@ -1,0 +1,324 @@
+/*
+ *  File: bigint
+ *
+ *  Provides arbitrary precision integer support.
+ */
+
+EXPORT BigInt
+EXPORT Zero
+EXPORT One
+EXPORT Two
+EXPORT make
+EXPORT makeFromString
+EXPORT abs
+EXPORT add
+EXPORT equals
+EXPORT less
+EXPORT mul
+EXPORT neg
+EXPORT sub
+
+IMPORT math
+IMPORT string
+
+CONSTANT Digits: Number := 6
+CONSTANT Base: Number := 1000000 -- = 10^Digits, but avoid using ^
+
+TYPE Comparison IS ENUM
+    less
+    equal
+    greater
+END ENUM
+
+/*
+ *  Type: BigInt
+ *
+ *  An arbitrary precision integer type. This is an opaque type and users are not
+ *  expected to poke around inside it.
+ */
+TYPE BigInt IS RECORD
+    sign: Number
+    digits: Array<Number>
+END RECORD
+
+-- TODO: Make these constants
+
+/*
+ *  Constant: Zero
+ *
+ *  The integer zero (0) as a BigInt.
+ */
+LET Zero: BigInt := BigInt(sign WITH 1, digits WITH [0])
+
+/*
+ *  Constant: One
+ *
+ *  The integer one (1) as a BigInt.
+ */
+LET One: BigInt := BigInt(sign WITH 1, digits WITH [1])
+
+/*
+ *  Constant: Two
+ *
+ *  The integer two (2) as a BigInt.
+ */
+LET Two: BigInt := BigInt(sign WITH 1, digits WITH [2])
+
+FUNCTION normalise(INOUT r: BigInt)
+    WHILE r.digits.size() >= 2 AND r.digits[LAST] = 0 DO
+        r.digits := r.digits[FIRST TO LAST-1]
+    END WHILE
+    IF r.digits = [0] THEN
+        r.sign := 1
+    END IF
+END FUNCTION
+
+/*
+ *  Function: make
+ *
+ *      Make a BigInt from a Number.
+ *
+ *  Parameters:
+ *      x - number to make into a BigInt
+ *
+ *  Returns:
+ *      The value of x as a BigInt.
+ *
+ *  Description:
+ *      This function discards any fractional part of the input value.
+ */
+FUNCTION make(x: Number): BigInt
+    VAR r: BigInt := BigInt()
+    r.sign := (IF x < 0 THEN -1 ELSE 1)
+    VAR n: Number := math.floor(math.abs(x))
+    r.digits[0] := 0
+    VAR i: Number := 0
+    WHILE n > 0 DO
+        r.digits[i] := n MOD Base
+        n := math.floor(n / Base)
+        INC i
+    END WHILE
+    RETURN r
+END FUNCTION
+
+/*
+ *  Function: makeFromString
+ *
+ *      Make a BigInt from a string.
+ *
+ *  Parameters:
+ *      s - string to make into a BigInt
+ *
+ *  Returns:
+ *      The value of s as a BigInt.
+ *
+ *  Description:
+ *      This function expects that the string contains only decimal
+ *      digits, optionally preceded by a minus sign (-).
+ */
+FUNCTION makeFromString(s: String): BigInt
+    VAR r: BigInt := BigInt()
+    VAR t: String := s
+    r.sign := 1
+    IF t[0] = "-" THEN
+        r.sign := -1
+        t := t[1 TO LAST]
+    END IF
+    VAR i: Number := 0
+    VAR j: Number := t.length() - Digits
+    WHILE j >= 0 DO
+        r.digits[i] := num(t[j TO j+Digits-1])
+        INC i
+        j := j - Digits
+    END WHILE
+    IF j > -Digits THEN
+        r.digits[i] := num(t[FIRST TO j+Digits-1])
+    END IF
+    RETURN r
+END FUNCTION
+
+/*
+ *  Function: add
+ *
+ *  Add two BigInt values and return the result.
+ */
+FUNCTION add(x, y: BigInt): BigInt
+    IF x.sign = y.sign THEN
+        VAR r: BigInt := BigInt()
+        r.sign := x.sign
+        VAR i: Number := 0
+        VAR carry: Number := 0
+        WHILE i < x.digits.size() OR i < y.digits.size() OR carry <> 0 DO
+            r.digits[i] := (IF i < x.digits.size() THEN x.digits[i] ELSE 0) + (IF i < y.digits.size() THEN y.digits[i] ELSE 0) + carry
+            IF r.digits[i] >= Base THEN
+                r.digits[i] := r.digits[i] - Base
+                carry := 1
+            ELSE
+                carry := 0
+            END IF
+            INC i
+        END WHILE
+        RETURN r
+    ELSE
+        RETURN sub(x, neg(y))
+    END IF
+END FUNCTION
+
+/*
+ *  Function: sub
+ *
+ *  Subtract two BigInt values and return the result.
+ */
+FUNCTION sub(x, y: BigInt): BigInt
+    IF x.sign = y.sign THEN
+        IF NOT less(abs(x), abs(y)) THEN
+            VAR r: BigInt := BigInt()
+            r.sign := x.sign
+            VAR i: Number := 0
+            VAR borrow: Number := 0
+            WHILE i < x.digits.size() DO
+                r.digits[i] := (IF i < x.digits.size() THEN x.digits[i] ELSE 0) - (IF i < y.digits.size() THEN y.digits[i] ELSE 0) - borrow
+                IF r.digits[i] < 0 THEN
+                    r.digits[i] := r.digits[i] + Base
+                    borrow := 1
+                ELSE
+                    borrow := 0
+                END IF
+                INC i
+            END WHILE
+            normalise(INOUT r)
+            RETURN r
+        ELSE
+            RETURN neg(sub(y, x))
+        END IF
+    ELSE
+        RETURN add(x, neg(y))
+    END IF
+END FUNCTION
+
+/*
+ *  Function: mul
+ *
+ *  Multiply two BigInt values and return the result.
+ */
+FUNCTION mul(x, y: BigInt): BigInt
+    VAR r: BigInt := Zero
+    FOR i := 0 TO y.digits.size()-1 DO
+        VAR p: BigInt := Zero
+        VAR carry: Number := 0
+        FOR j := 0 TO x.digits.size()-1 DO
+            LET z: Number := (IF j < x.digits.size() THEN x.digits[j] ELSE 0) * y.digits[i] + carry
+            p.digits[i+j] := z MOD Base
+            carry := math.floor(z / Base)
+        END FOR
+        IF carry <> 0 THEN
+            p.digits[i+x.digits.size()] := carry
+        END IF
+        r := r.add(p)
+    END FOR
+    r.sign := x.sign * y.sign
+    normalise(INOUT r)
+    RETURN r
+END FUNCTION
+
+/*
+ *  Function: abs
+ *
+ *  Return the absolute value of a BigInt value.
+ */
+FUNCTION abs(x: BigInt): BigInt
+    VAR r: BigInt := x
+    r.sign := 1
+    RETURN r
+END FUNCTION
+
+/*
+ *  Function: neg
+ *
+ *  Return the negation of a BigInt value.
+ */
+FUNCTION neg(x: BigInt): BigInt
+    VAR r: BigInt := x
+    r.sign := -r.sign
+    RETURN r
+END FUNCTION
+
+/*
+ *  Function: less
+ *
+ *  Determine whether one BigInt value is less than another. Returns TRUE if x < y.
+ */
+FUNCTION less(x, y: BigInt): Boolean
+    IF x.sign <> y.sign THEN
+        RETURN x.sign < y.sign
+    END IF
+    IF x.digits.size() <> y.digits.size() THEN
+        RETURN x.sign*x.digits.size() < y.sign*y.digits.size()
+    END IF
+    FOR i := x.digits.size()-1 TO 0 STEP -1 DO
+        IF x.digits[i] <> y.digits[i] THEN
+            RETURN x.sign*x.digits[i] < y.sign*y.digits[i]
+        END IF
+    END FOR
+    RETURN FALSE
+END FUNCTION
+
+/*
+ *  Function: equals
+ *
+ *  Returns TRUE if x = y.
+ */
+FUNCTION equals(x, y: BigInt): Boolean
+    RETURN x.sign = y.sign AND x.digits = y.digits
+END FUNCTION
+
+/*
+ *  Function: BigInt.add
+ *
+ */
+FUNCTION BigInt.add(self, x: BigInt): BigInt
+    RETURN add(self, x)
+END FUNCTION
+
+/*
+ *  Function: BigInt.equals
+ *
+ */
+FUNCTION BigInt.equals(self, x: BigInt): Boolean
+    RETURN equals(self, x)
+END FUNCTION
+
+/*
+ *  Function: BigInt.mul
+ *
+ */
+FUNCTION BigInt.mul(self, x: BigInt): BigInt
+    RETURN mul(self, x)
+END FUNCTION
+
+/*
+ *  Function: BigInt.sub
+ *
+ */
+FUNCTION BigInt.sub(self, x: BigInt): BigInt
+    RETURN sub(self, x)
+END FUNCTION
+
+/*
+ *  Function: BigInt.toString
+ *
+ */
+FUNCTION BigInt.toString(self: BigInt): String
+    VAR s: String := ""
+    FOR i := 0 TO self.digits.size()-1 DO
+        IF i < self.digits.size()-1 THEN
+            s := string.format(str(self.digits[i]), "0\(Digits)d") & s
+        ELSE
+            s := str(self.digits[i]) & s
+        END IF
+    END FOR
+    IF self.sign < 0 THEN
+        s := "-" & s
+    END IF
+    RETURN s
+END FUNCTION

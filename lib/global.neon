@@ -10,7 +10,6 @@ EXPORT num
 EXPORT print
 EXPORT str
 
-EXPORT NumberException
 EXPORT DynamicConversionException
 EXPORT InterruptedException
 EXPORT ObjectSubscriptException
@@ -64,30 +63,6 @@ END RECORD
 FUNCTION ExceptionType.toString(self: ExceptionType): String
     RETURN "<ExceptionType:" & self.name & "," & self.info & "," & str(self.offset) & ">"
 END FUNCTION
-
-/*  Exception: NumberException
- *
- *  Number exception.
- */
-EXCEPTION NumberException
-
-/*  Exception: NumberException.DivideByZero
- *
- *  Divide by zero error.
- */
-EXCEPTION NumberException.DivideByZero
-
-/*  Exception: NumberException.Invalid
- *
- *  Invalid range.
- */
-EXCEPTION NumberException.Invalid
-
-/*  Exception: NumberException.Overflow
- *
- *  Floating point overflow.
- */
-EXCEPTION NumberException.Overflow
 
 /*  Exception: DynamicConversionException
  *

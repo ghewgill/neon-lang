@@ -218,10 +218,11 @@ void Emitter::emit(Opcode b)
             case Opcode::JUMPTBL:   stack_depth -= 1; in_jumptbl = true; break;
             case Opcode::CALLX:     break;
             case Opcode::SWAP:      break;
-            case Opcode::DROPN:     break;
+            case Opcode::DROPN:     stack_depth -= 1; break;
             case Opcode::PUSHFP:    stack_depth += 1; break;
             case Opcode::CALLV:     break;
             case Opcode::PUSHCI:    stack_depth += 1; break;
+            case Opcode::PUSHMFP:   stack_depth += 1; break;
         }
     }
 }
@@ -238,7 +239,6 @@ void Emitter::emit(Opcode b, uint32_t value)
     switch (b) {
         case Opcode::CONSA:     stack_depth -= value - 1; break;
         case Opcode::CONSD:     stack_depth -= 2*value - 1; break;
-        case Opcode::DROPN:     stack_depth -= value - 1; break;
         default:                break;
     }
 }
@@ -1287,6 +1287,12 @@ void ast::ModuleFunction::predeclare(Emitter &emitter) const
     emitter.add_import(module);
 }
 
+void ast::ModuleFunction::generate_load(Emitter &emitter) const
+{
+    // Get the address of a module function for function pointer support.
+    emitter.emit(Opcode::PUSHMFP, emitter.str(module->name), emitter.str(name + "," + descriptor));
+}
+
 void ast::ModuleFunction::generate_call(Emitter &emitter) const
 {
     emitter.emit(Opcode::CALLMF, emitter.str(module->name), emitter.str(name + "," + descriptor));
@@ -1321,6 +1327,15 @@ void ast::Expression::generate(Emitter &emitter) const
         type->predeclare(emitter);
     }
     generate_expr(emitter);
+}
+
+void ast::Expression::generate_call(Emitter &emitter) const
+{
+    if (auto fptype = dynamic_cast<const TypeFunctionPointer *>(type)) {
+        fptype->generate_call(emitter);
+    } else {
+        internal_error("Expression::generate_call");
+    }
 }
 
 void ast::ConstantBooleanExpression::generate_expr(Emitter &emitter) const

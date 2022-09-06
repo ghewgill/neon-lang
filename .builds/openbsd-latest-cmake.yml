@@ -2,7 +2,6 @@ image: openbsd/latest
 packages:
 - cmake
 - python3
-- gmpxx
 # optional
 - jdk
 - mono

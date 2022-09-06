@@ -3,7 +3,6 @@ packages:
 - cmake
 - python3
 - ncurses
-- gmp
 # optional
 - jdk-openjdk
 - mono

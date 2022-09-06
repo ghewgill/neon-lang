@@ -57,6 +57,7 @@ namespace csnex
             library = new List<KeyValuePair<string, object>>();
             library.Add(new KeyValuePair<string, object>("console", new rtl.console(this)));
             library.Add(new KeyValuePair<string, object>("io", new rtl.io(this)));
+            library.Add(new KeyValuePair<string, object>("math", new rtl.math(this)));
             library.Add(new KeyValuePair<string, object>("random", new rtl.random(this)));
             library.Add(new KeyValuePair<string, object>("runtime", new rtl.runtime(this)));
             library.Add(new KeyValuePair<string, object>("string", new rtl.@string(this)));
@@ -338,6 +339,26 @@ namespace csnex
             throw new NeonException(string.Format("csnex: unknown class name {0}\n", module.Bytecode.strtable[val]));
         }
 
+        void PUSHMFP()
+        {
+            ip++;
+            int mod = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int fun = Bytecode.Get_VInt(module.Bytecode.code, ref ip);
+            int efi = 0;
+            Module m = modules[module.Bytecode.strtable[mod]];
+            if (m != null) {
+                for (efi = 0; efi < m.Bytecode.exports.Count; efi++) {
+                    string funcsig = string.Format("{0},{1}", m.Bytecode.strtable[m.Bytecode.exports[efi].name], m.Bytecode.strtable[m.Bytecode.exports[efi].descriptor]);
+                    if (string.Compare(funcsig, module.Bytecode.strtable[fun]) == 0) {
+                        stack.Push(Cell.CreateArrayCell(new List<Cell> {Cell.CreateOtherCell(m), Cell.CreateNumberCell(new Number(m.Bytecode.exports[efi].index))}));
+                        return;
+                    }
+                }
+                throw new NeonException(string.Format("function not found: {0}", module.Bytecode.strtable[fun]));
+            }
+            throw new NeonException(string.Format("module not found: {0}", module.Bytecode.strtable[mod]));
+        }
+
         void PUSHPEG()
         {
             throw new NotImplementedException(string.Format("{0} not implemented.", MethodBase.GetCurrentMethod().Name));
@@ -495,7 +516,7 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("NumberException.DivideByZero", "");
+                Raise("PANIC", "Number divide by zero error: divide");
                 return;
             }
             stack.Push(Cell.CreateNumberCell(Number.Divide(a, b)));
@@ -507,7 +528,7 @@ namespace csnex
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
             if (b.IsZero()) {
-                Raise("NumberException.DivideByZero", "");
+                Raise("PANIC", "Number invalid error: modulo");
                 return;
             }
             stack.Push(Cell.CreateNumberCell(Number.Modulo(a, b)));
@@ -518,10 +539,6 @@ namespace csnex
             ip++;
             Number b = stack.Pop().Number;
             Number a = stack.Pop().Number;
-            if (b.IsZero()) {
-                Raise("NumberException.DivideByZero", "");
-                return;
-            }
             stack.Push(Cell.CreateNumberCell(Number.Pow(a, b)));
         }
 #endregion
@@ -925,8 +942,8 @@ namespace csnex
                 }
             } catch (TargetInvocationException ti) {
                 throw ti.InnerException;
-            } catch {
-                throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined function call.", func));
+            } catch (Exception ex) {
+                throw new NeonException(string.Format("\"{0}\" - invalid or unsupported predefined function call. ({1})", func, ex));
             }
         }
 
@@ -1336,6 +1353,7 @@ namespace csnex
                         case Opcode.PUSHFP: PUSHFP(); break;              // push function pointer
                         case Opcode.CALLV: CALLV(); break;                // call virtual
                         case Opcode.PUSHCI: PUSHCI(); break;              // push class info
+                        case Opcode.PUSHMFP: PUSHMFP(); break;            // push module function pointer
                         default:
                             throw new InvalidOpcodeException(string.Format("Invalid opcode ({0}) in bytecode file.", module.Bytecode.code[ip]));
                     }

@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iso646.h>
 #include <string>
+#include <string.h>
 #include <vector>
 
 #include "rtl_exec.h"

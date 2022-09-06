@@ -226,9 +226,11 @@ Try Expression
 
 A try expression is like an inline ``TRY`` statement::
 
-    LET a: Number := 5
-    LET b: Number := 0
-    LET n: Number := (TRY a / b TRAP NumberException.DivideByZero GIVES -1)
+    EXCEPTION TestException
+    FUNCTION f(): Number
+        RAISE TestException
+    END FUNCTION
+    LET n: Number := (TRY f() TRAP TestException GIVES -1)
 
 The expression following ``TRY`` is evaluated.
 If an exception is raised, then it is matched against the ``TRAP`` clauses.

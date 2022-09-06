@@ -10,7 +10,7 @@ array.neon                      # exception info
 assert-enum.neon                # enum.toString
 assignment.neon                 # pointer
 base-test.neon                  # memory leak
-bigint.neon                     # bigint
+bigint-test.neon                # module type reference
 binary-test.neon                # module binary
 bytes-embed.neon                # module type reference
 bytes-index.neon                # exception info
@@ -25,6 +25,7 @@ datetime-test.neon              # module datetime
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 dictionary.neon                 # memory leak
+divide-by-zero.neon             # exception info
 dns-test.neon                   # module file
 encoding-base64.neon            # module binary
 enum.neon                       # enum.toString

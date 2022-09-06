@@ -1,7 +1,6 @@
 arithmetic.neon                                 # exponentiation
 assert-multiline.neon                           # output
 base-test.neon                                  # math$trunc
-bigint.neon                                     # bigint
 binary-test.neon                                # binary module
 bytes.neon                                      # ByteOutOfRangeException
 bytes-splice.neon                               # bytes__splice
@@ -37,7 +36,6 @@ modulo.neon                                     # incorrect results
 net-test-udp.neon                               # net module
 net-test.neon                                   # net module
 number-ceil.neon                                # math module
-number-exception.neon
 object.neon
 object-record.neon                              # EQA
 opcode-coverage.neon                            # Missing Opcodes
