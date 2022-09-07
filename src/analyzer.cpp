@@ -4312,7 +4312,9 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         type = actual_choice;
     } else {
         ast::Type *t = const_cast<ast::Type *>(type);
-        if (type != ast::TYPE_BOOLEAN && type != ast::TYPE_NUMBER && type != ast::TYPE_STRING && type != ast::TYPE_BYTES) {
+        if (t == ast::TYPE_OBJECT) {
+            t = new ast::TypeObject(declaration->token, name);
+        } else if (type != ast::TYPE_BOOLEAN && type != ast::TYPE_NUMBER && type != ast::TYPE_STRING && type != ast::TYPE_BYTES) {
             const_cast<std::string &>(t->name) = name;
         }
         scope.top()->addName(declaration->token, name, t); // Still ugly.

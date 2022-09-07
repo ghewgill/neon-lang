@@ -466,6 +466,7 @@ extern TypeBytes *TYPE_BYTES;
 class TypeObject: public Type {
 public:
     TypeObject(): Type(Token(), "Object") {}
+    TypeObject(Token token, const std::string &name): Type(token, name) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual const Expression *make_default_value() const override;
