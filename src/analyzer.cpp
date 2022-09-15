@@ -723,7 +723,7 @@ static const ast::Expression *make_array_conversion(Analyzer *analyzer, const as
                             new ast::VariableExpression(result),
                             element_converter(
                                 analyzer,
-                                new ast::ArrayValueIndexExpression(
+                                new ast::ArrayReferenceIndexExpression(
                                     from_type->elementtype,
                                     new ast::VariableExpression(array_copy),
                                     new ast::VariableExpression(index)

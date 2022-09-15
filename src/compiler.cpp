@@ -655,9 +655,12 @@ void ast::TypeFunction::predeclare(Emitter &emitter) const
     returntype->predeclare(emitter);
 }
 
-void ast::TypeFunction::generate_load(Emitter &) const
+void ast::TypeFunction::generate_load(Emitter &emitter) const
 {
-    internal_error("TypeFunction");
+    // This generates the correct opcode to load a function
+    // pointer. Added for initialisations like:
+    // VAR a: Array<FUNCTION()> := [f]
+    emitter.emit(Opcode::LOADA);
 }
 
 void ast::TypeFunction::generate_store(Emitter &) const
