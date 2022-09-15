@@ -3501,6 +3501,9 @@ public:
                     ca.max_stack = 16;
                     ca.max_locals = 1;
                     Context context(classcontext, ca);
+                    if (program->scope->lookupName("MAIN") != nullptr) {
+                        ca.code << OP_invokestatic << context.cf.Method(cf.name, "MAIN", "()V");
+                    }
                     for (auto s: statements) {
                         s->generate(context);
                     }

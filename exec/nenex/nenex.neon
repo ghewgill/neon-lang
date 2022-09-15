@@ -1381,6 +1381,9 @@ FUNCTION f_callp(INOUT self: Executor)
             self.stack.append(makeValueBoolean(FALSE))
         WHEN "runtime$executorName" DO
             self.stack.append(makeValueString("nenex"))
+        WHEN "runtime$moduleIsMain" DO
+            -- TODO: When modules are supported, fix this.
+            self.stack.append(makeValueBoolean(TRUE))
         WHEN "global$str", "builtin$number__toString" DO
             LET n: Number := self.pop()->n
             self.stack.append(makeValueString(str(n)))

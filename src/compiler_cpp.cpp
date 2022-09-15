@@ -1937,6 +1937,9 @@ public:
         out << "#include \"neon.h\"\n";
         Context context(out);
         context.out << "int main(int, const char *[]) { try {";
+        if (program->scope->lookupName("MAIN") != nullptr) {
+            context.out << "MAIN();";
+        }
         for (auto s: statements) {
             s->generate(context);
         }

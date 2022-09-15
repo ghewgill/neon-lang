@@ -208,6 +208,7 @@ loop-return-repeat-infinite.neon
 loop-return-repeat.neon
 loop-return-while-infinite.neon
 loop-return-while.neon
+main.neon
 math-test.neon
 methods-declare.neon
 methods.neon
