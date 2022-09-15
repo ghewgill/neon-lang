@@ -1,0 +1,9 @@
+pipeline:
+    build:
+        image: debian
+        commands:
+            - apt update
+            - apt install -y cmake clang perl zlib1g-dev libssl-dev
+            - cmake .
+            - cmake --build .
+            - ctest
