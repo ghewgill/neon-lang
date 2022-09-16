@@ -18,6 +18,7 @@ Array *array_createArray(void)
 
     a->size = 0;
     a->data = NULL;
+    a->refcount = 1;
     return a;
 }
 
@@ -27,6 +28,7 @@ Array *array_createArrayFromSize(size_t iElements)
 
     a->size = iElements;
     a->data = malloc(sizeof(Cell) * a->size);
+    a->refcount = 1;
     if (a->data == NULL) {
         fatal_error("Unable to allocate memory for %d array elements.", a->size);
     }
@@ -61,13 +63,18 @@ Array *array_expandArray(Array *self, size_t iElements)
 
 void array_freeArray(Array *self)
 {
-    if (self != NULL && self->data != NULL) {
-        for (size_t i = 0; i < self->size; i++) {
-            cell_clearCell(&self->data[i]);
+    if (self != NULL) {
+        self->refcount--;
+        if (self->refcount <= 0) {
+            if (self->data != NULL) {
+                for (size_t i = 0; i < self->size; i++) {
+                    cell_clearCell(&self->data[i]);
+                }
+                free(self->data);
+            }
+            free(self);
         }
-        free(self->data);
     }
-    free(self);
 }
 
 void array_clearArray(Array *self)
@@ -105,6 +112,11 @@ Array *array_copyArray(Array *a)
 
 int array_compareArray(Array *l, Array *r)
 {
+    // Obviously, if the two arrays point to the same array; then they're equal!
+    if (l == r) {
+        return TRUE;
+    }
+
     if (l->size != r->size) {
         return FALSE;
     }
@@ -117,7 +129,7 @@ int array_compareArray(Array *l, Array *r)
     return TRUE;
 }
 
-size_t array_appendElement(Array *self, Cell *element)
+size_t array_appendElement(Array *self, const Cell *element)
 {
     if (self == NULL) {
         fatal_error("Uninitialized array passed to array_appendElement!");

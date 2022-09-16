@@ -208,10 +208,8 @@ Cell *cell_fromCell(const Cell *c)
             cell_copyCell(x, c);
             break;
         case cArray:
-            x->array = array_createArrayFromSize(c->array->size);
-            for (size_t i = 0; i < x->array->size; i++) {
-                cell_copyCell(&x->array->data[i], &c->array->data[i]);
-            }
+            x->array = c->array;
+            x->array->refcount++;
             x->boolean = FALSE;
             x->number = number_from_uint32(0);
             x->object = NULL;
@@ -394,22 +392,7 @@ void cell_arrayAppendElement(Cell *c, const Cell e)
         c->array = array_createArray();
     }
 
-    if (c->array->data) {
-        c->array->data = realloc(c->array->data, sizeof(Cell) * (c->array->size + 1));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to expand array.");
-        }
-        c->array->size++;
-    }
-    if (c->array->data == NULL) {
-        c->array->data = malloc(sizeof(Cell));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to allocate memory for appended array element.");
-        }
-        c->array->size = 1;
-    }
-    cell_initCell(&c->array->data[c->array->size-1]);
-    cell_copyCell(&c->array->data[c->array->size-1], &e);
+    array_appendElement(c->array, &e);
 }
 
 void cell_arrayAppendElementPointer(Cell *c, Cell *e)
@@ -422,22 +405,7 @@ void cell_arrayAppendElementPointer(Cell *c, Cell *e)
         c->array = array_createArray();
     }
 
-    if (c->array->data) {
-        c->array->data = realloc(c->array->data, sizeof(Cell) * (c->array->size + 1));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to expand array.");
-        }
-        c->array->size++;
-    }
-    if (c->array->data == NULL) {
-        c->array->data = malloc(sizeof(Cell));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to allocate memory for appended array element.");
-        }
-        c->array->size = 1;
-    }
-    cell_initCell(&c->array->data[c->array->size-1]);
-    cell_copyCell(&c->array->data[c->array->size-1], e);
+    array_appendElement(c->array, e);
     cell_freeCell(e);
 }
 
@@ -546,6 +514,14 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
     if (c->array == NULL) {
         c->array = array_createArray();
     }
+    if (c->array->refcount != 1) {
+        // Create a copy of the array, since we're going to write to it.
+        Array *wa = array_copyArray(c->array);
+        // Free the original array, which in this case will just decrement its refcount.
+        array_freeArray(c->array);
+        // Assign the (new) copied array to the cell object.
+        c->array = wa;
+    }
     if (i >= c->array->size) {
         c->array->data = realloc(c->array->data, sizeof(Cell) * (i+1));
         if (c->array->data == NULL) {
@@ -606,10 +582,9 @@ void cell_copyCell(Cell *dest, const Cell *source)
     }
 
     if (source->type == cArray && source->array != NULL) {
-        dest->array = array_createArrayFromSize(source->array->size);
-        for (size_t i = 0; i < dest->array->size; i++) {
-            cell_copyCell(&dest->array->data[i], &source->array->data[i]);
-        }
+        dest->array = source->array;
+        // Simply increment the refcount, since we're creating a copy of the cell.
+        dest->array->refcount++;
     } else {
         dest->array = NULL;
     }

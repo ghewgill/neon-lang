@@ -4,6 +4,7 @@
 
 typedef struct tagTArray {
     size_t size;
+    int refcount;
     struct tagTCell *data;
 } Array;
 
@@ -19,6 +20,6 @@ Array *array_copyArray(Array *a);
 
 int array_compareArray(Array *l, Array *r);
 
-size_t array_appendElement(Array *self, struct tagTCell *element);
+size_t array_appendElement(Array *self, const struct tagTCell *element);
 
 #endif
