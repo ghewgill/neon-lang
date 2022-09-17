@@ -44,7 +44,11 @@ void Repl::handle(const std::string &s)
             auto tokens = tokenize("", s);
             const ast::Program *program;
             try {
-                auto exprtree = parseExpression(*tokens);
+                bool consumed_all = false;
+                auto exprtree = parseExpression(*tokens, consumed_all);
+                if (not consumed_all) {
+                    throw new SourceError("", 1, 9999, Token(), "unexpected input");
+                }
                 std::vector<std::unique_ptr<pt::FunctionCallExpression::Argument>> print_args;
                 print_args.emplace_back(
                     std::unique_ptr<pt::FunctionCallExpression::Argument> { new pt::FunctionCallExpression::Argument(
