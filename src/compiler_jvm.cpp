@@ -3091,6 +3091,10 @@ public:
     const Expression *ref;
 
     virtual void generate(Context &context) const override {
+        // TODO: Does not work with statements like INC a[i] OR INC d[i]
+        // The problem is the array or dictionary element might not exist
+        // to start with, and ref->generate(expr) generates code that expects
+        // it to exist.
         ref->generate(context);
         (new ConstantNumberExpression(new ast::ConstantNumberExpression(number_from_sint32(is->delta))))->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "add", "(Lneon/type/Number;)Lneon/type/Number;");
