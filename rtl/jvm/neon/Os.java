@@ -5,7 +5,7 @@ public class Os {
     public static neon.type.Number system(java.lang.String command) {
         Process p;
         try {
-            p = Runtime.getRuntime().exec(command);
+            p = java.lang.Runtime.getRuntime().exec(command);
             try {
                 p.waitFor();
             } catch (InterruptedException x) {

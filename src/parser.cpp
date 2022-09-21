@@ -2314,7 +2314,10 @@ std::unique_ptr<Program> parse(const TokenizedSource &tokens)
     return Parser(tokens).parse();
 }
 
-std::unique_ptr<pt::Expression> parseExpression(const TokenizedSource &tokens)
+std::unique_ptr<pt::Expression> parseExpression(const TokenizedSource &tokens, bool &consumed_all)
 {
-    return Parser(tokens).parseExpression();
+    Parser p(tokens);
+    auto r = p.parseExpression();
+    consumed_all = p.tokens[p.i].type == END_OF_FILE;
+    return r;
 }

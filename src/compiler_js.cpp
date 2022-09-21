@@ -1984,6 +1984,9 @@ public:
         out << "require(\"../rtl/js/global.js\");\n"; // TODO: use correct path (like node_modules maybe?)
         Context context(out);
         context.out << "try {";
+        if (program->scope->lookupName("MAIN") != nullptr) {
+            context.out << "MAIN();";
+        }
         for (auto s: statements) {
             s->generate(context);
         }

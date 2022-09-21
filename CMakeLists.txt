@@ -268,6 +268,7 @@ if (JAVAC)
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Io.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Math.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Os.java
+        ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Runtime.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/String.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Sys.java
         ${CMAKE_SOURCE_DIR}/rtl/jvm/neon/Textio.java

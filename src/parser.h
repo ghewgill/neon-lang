@@ -8,6 +8,6 @@
 #include "pt.h"
 
 std::unique_ptr<pt::Program> parse(const TokenizedSource &tokens);
-std::unique_ptr<pt::Expression> parseExpression(const TokenizedSource &tokens);
+std::unique_ptr<pt::Expression> parseExpression(const TokenizedSource &tokens, bool &consumed_all);
 
 #endif
