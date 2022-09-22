@@ -1135,6 +1135,34 @@ void Ne_Dictionary_deinit(Ne_Dictionary *d)
     free(d->d);
 }
 
+int Ne_Dictionary_compare(const Ne_Dictionary *a, const Ne_Dictionary *b)
+{
+    assert(a->mtable == b->mtable);
+    if (a->size < b->size) {
+        return -1;
+    }
+    if (a->size > b->size) {
+        return 1;
+    }
+    for (int i = 0; i < a->size; i++) {
+        int found = 0;
+        for (int j = 0; j < b->size; j++) {
+            if (Ne_String_compare(&a->d[i].key, &b->d[j].key) == 0) {
+                int r = a->mtable->compare(a->d[i].value, b->d[j].value);
+                if (r != 0) {
+                    return r;
+                }
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 Ne_Exception *Ne_Dictionary_in(Ne_Boolean *result, const Ne_Dictionary *d, const Ne_String *key)
 {
     *result = 0;

@@ -149,6 +149,7 @@ void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable);
 void Ne_Dictionary_init_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
 void Ne_Dictionary_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
 void Ne_Dictionary_deinit(Ne_Dictionary *d);
+int Ne_Dictionary_compare(const Ne_Dictionary *a, const Ne_Dictionary *b);
 Ne_Exception *Ne_Dictionary_in(Ne_Boolean *result, const Ne_Dictionary *d, const Ne_String *key);
 Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index, Ne_Boolean always_create);
 Ne_Exception *Ne_builtin_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d);
