@@ -11,7 +11,10 @@
 
 #ifdef _WIN32
 #else
+#include <dirent.h>
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <unistd.h>
 #endif
 
 const MethodTable Ne_Boolean_mtable = {
@@ -1359,6 +1362,90 @@ Ne_Exception *Ne_binary_xorBytes(Ne_Bytes *r, Ne_Bytes *x, Ne_Bytes *y)
     for (int i = 0; i < x->len; i++) {
         r->data[i] = x->data[i] ^ y->data[i];
     }
+    return NULL;
+}
+
+Ne_Exception *Ne_file__CONSTANT_Separator(Ne_String *result)
+{
+    #ifdef _WIN32
+        Ne_String_init_literal(result, "\\");
+    #else
+        Ne_String_init_literal(result, "/");
+    #endif
+    return NULL;
+}
+
+Ne_Exception *Ne_file_delete(const Ne_String *filename)
+{
+    #ifdef _WIN32
+        abort();
+    #else
+        remove((const char *)filename->ptr);
+    #endif
+    return NULL;
+}
+
+Ne_Exception *Ne_file_files(Ne_Array *result, const Ne_String *path)
+{
+    Ne_Array_init(result, 0, &Ne_String_mtable);
+    #ifdef _WIN32
+        abort();
+    #else
+        DIR *d = opendir((const char *)path->ptr);
+        if (d != NULL) {
+            for (;;) {
+                struct dirent *de = readdir(d);
+                if (de == NULL) {
+                    break;
+                }
+                Ne_String name;
+                Ne_String_init_literal(&name, de->d_name);
+                Ne_builtin_array__append(result, &name);
+                Ne_String_deinit(&name);
+            }
+            closedir(d);
+        }
+    #endif
+    return NULL;
+}
+
+Ne_Exception *Ne_file_isDirectory(Ne_Boolean *result, const Ne_String *path)
+{
+    Ne_Boolean_init(result);
+    #ifdef _WIN32
+        abort();
+    #else
+        struct stat st;
+        *result = stat((const char *)path->ptr, &st) == 0 && S_ISDIR(st.st_mode);
+    #endif
+    return NULL;
+}
+
+Ne_Exception *Ne_file_readLines(Ne_Array *result, const Ne_String *filename)
+{
+    Ne_Array_init(result, 0, &Ne_String_mtable);
+    FILE *f = fopen((const char *)filename->ptr, "r");
+    if (f != NULL) {
+        // TODO: handle long lines.
+        char buf[10000];
+        while (fgets(buf, sizeof(buf), f) != NULL) {
+            Ne_String s;
+            Ne_String_init_literal(&s, buf);
+            Ne_builtin_array__append(result, &s);
+            Ne_String_deinit(&s);
+        }
+        fclose(f);
+    }
+    return NULL;
+}
+
+Ne_Exception *Ne_file_removeEmptyDirectory(const Ne_String *path)
+{
+    #ifdef _WIN32
+        abort();
+    #else
+        rmdir((const char *)path->ptr);
+    #endif
     return NULL;
 }
 
