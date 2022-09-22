@@ -1163,37 +1163,41 @@ int Ne_Dictionary_compare(const Ne_Dictionary *a, const Ne_Dictionary *b)
     return 0;
 }
 
+static int dictionary_find(const Ne_Dictionary *d, const Ne_String *key, int *index)
+{
+    int lo = 0;
+    int hi = d->size;
+    while (lo < hi) {
+        int m = (lo + hi) / 2;
+        int c = Ne_String_compare(key, &d->d[m].key);
+        if (c == 0) {
+            *index = m;
+            return 1;
+        }
+        if (c < 0) {
+            hi = m;
+        } else {
+            lo = m + 1;
+        }
+    }
+    *index = lo;
+    return 0;
+}
+
 Ne_Exception *Ne_Dictionary_in(Ne_Boolean *result, const Ne_Dictionary *d, const Ne_String *key)
 {
-    *result = 0;
-    int i = 0;
-    while (i < d->size) {
-        int c = Ne_String_compare(&d->d[i].key, key);
-        if (c == 0) {
-            *result = 1;
-            return NULL;
-        }
-        if (c > 0) {
-            break;
-        }
-        i++;
-    }
+    int i;
+    *result = dictionary_find(d, key, &i);
     return NULL;
 }
 
 Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index, Ne_Boolean always_create)
 {
-    int i = 0;
-    while (i < d->size) {
-        int c = Ne_String_compare(&d->d[i].key, index);
-        if (c == 0) {
-            *result = d->d[i].value;
-            return NULL;
-        }
-        if (c > 0) {
-            break;
-        }
-        i++;
+    int i;
+    int found = dictionary_find(d, index, &i);
+    if (found) {
+        *result = d->d[i].value;
+        return NULL;
     }
     if (!always_create) {
         char buf[100];
@@ -1222,20 +1226,14 @@ Ne_Exception *Ne_builtin_dictionary__keys(Ne_Array *result, const Ne_Dictionary 
 
 Ne_Exception *Ne_builtin_dictionary__remove(Ne_Dictionary *d, const Ne_String *key)
 {
-    int i = 0;
-    while (i < d->size) {
-        int c = Ne_String_compare(&d->d[i].key, key);
-        if (c == 0) {
-            Ne_String_deinit(&d->d[i].key);
-            d->mtable->destructor(d->d[i].value);
-            memmove(&d->d[i], &d->d[i+1], (d->size-i-1) * sizeof(struct KV));
-            d->size--;
-            return NULL;
-        }
-        if (c > 0) {
-            break;
-        }
-        i++;
+    int i;
+    int found = dictionary_find(d, key, &i);
+    if (found) {
+        Ne_String_deinit(&d->d[i].key);
+        d->mtable->destructor(d->d[i].value);
+        memmove(&d->d[i], &d->d[i+1], (d->size-i-1) * sizeof(struct KV));
+        d->size--;
+        return NULL;
     }
     return NULL;
 }
