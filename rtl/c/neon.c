@@ -14,6 +14,13 @@
 #include <sys/time.h>
 #endif
 
+const MethodTable Ne_Boolean_mtable = {
+    .constructor = (void (*)(void **))Ne_Boolean_constructor,
+    .destructor = (void (*)(void *))Ne_Boolean_destructor,
+    .copy = (void (*)(void *, const void *))Ne_Boolean_copy,
+    .compare = (int (*)(const void *, const void *))Ne_Boolean_compare,
+};
+
 const MethodTable Ne_Number_mtable = {
     .constructor = (void (*)(void **))Ne_Number_constructor,
     .destructor = (void (*)(void *))Ne_Number_destructor,
@@ -50,6 +57,17 @@ static const char *Ne_String_null_terminate(const Ne_String *s)
 void Ne_Boolean_init(Ne_Boolean *bool)
 {
     *bool = 0;
+}
+
+void Ne_Boolean_constructor(Ne_Boolean **bool)
+{
+    *bool = malloc(sizeof(Ne_Boolean));
+    Ne_Boolean_init(*bool);
+}
+
+void Ne_Boolean_destructor(Ne_Boolean *bool)
+{
+    free(bool);
 }
 
 void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src)

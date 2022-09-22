@@ -7,6 +7,7 @@ typedef struct {
     int (*compare)(const void *, const void *);
 } MethodTable;
 
+extern const MethodTable Ne_Boolean_mtable;
 extern const MethodTable Ne_Number_mtable;
 extern const MethodTable Ne_String_mtable;
 extern const MethodTable Ne_Object_mtable;
@@ -75,7 +76,9 @@ static int Ne_FunctionPointer_compare(const Ne_FunctionPointer *p, const Ne_Func
 
 void Ne_Boolean_init(Ne_Boolean *bool);
 void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src);
+void Ne_Boolean_constructor(Ne_Boolean **bool);
 void Ne_Boolean_copy(Ne_Boolean *dest, const Ne_Boolean *src);
+void Ne_Boolean_destructor(Ne_Boolean *bool);
 void Ne_Boolean_deinit(Ne_Boolean *bool);
 int Ne_Boolean_compare(const Ne_Boolean *a, const Ne_Boolean *b);
 Ne_Exception *Ne_builtin_boolean__toString(Ne_String *result, const Ne_Boolean *a);
