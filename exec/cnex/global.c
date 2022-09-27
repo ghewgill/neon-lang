@@ -481,19 +481,20 @@ Cell *global_getVariable(const char *pszVar)
     fatal_error("global_getVariable(): \"%s\" - invalid predefined variable.", pszVar);
 }
 
-void global_callFunction(const char *pszFunc, struct tagTExecutor *exec)
+void (*global_lookupFunction(const char *pszFunc, TExecutor *exec))(struct tagTExecutor *exec)
 {
     uint32_t i;
 
     i = 0;
+    exec->diagnostics.predef_linear_lookups++;
     while (gfuncDispatch[i].name) {
         if (strcmp(pszFunc, gfuncDispatch[i].name) == 0) {
-            (*gfuncDispatch[i].func)(exec);
-            return;
+            exec->diagnostics.total_linear_elements += i;
+            return gfuncDispatch[i].func;
         }
         i++;
     }
-    fatal_error("global_callFunction(): \"%s\" - invalid or unsupported predefined function call.", pszFunc);
+    fatal_error("global_lookupFunction(): \"%s\" - invalid or unsupported predefined function call.", pszFunc);
 }
 
 void neon_num(TExecutor *exec)

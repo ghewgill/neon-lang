@@ -51,6 +51,11 @@ typedef struct tagTExecutor {
         clock_t time_end;
         size_t total_allocations;
         size_t collected_objects;
+        size_t predef_cache_hits;
+        size_t predef_linear_lookups;
+        size_t total_linear_elements;
+        size_t total_predef_calls;
+        size_t predef_cache_size;
     } diagnostics;
 
     BOOL debugging;
