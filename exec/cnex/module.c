@@ -40,6 +40,7 @@ TModule *module_newModule(const char *name)
 
     r->bytecode = bytecode_newBytecode();
     r->globals = NULL;
+    r->predef_cache = NULL;
     r->code = NULL;
     r->path_only = NULL;
     r->extension_path = NULL;
@@ -175,6 +176,7 @@ void module_freeModule(TModule *m)
     if (m->extension_path) {
         free(m->extension_path);
     }
+    free(m->predef_cache);
     // If our debug_symbols are NULL, it is ok to pass NULL to cJSON_Delete().
     cJSON_Delete(m->debug_symbols);
     free(m->name);
