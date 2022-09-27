@@ -66,20 +66,20 @@ public:
     explicit ObjectBytes(const std::vector<unsigned char> &b): b(b) {}
     virtual bool getBytes(std::vector<unsigned char> &r) const override { r = b; return true; }
     virtual utf8string toString() const override {
-        utf8string r {"HEXBYTES \""};
+        UTF8StringBuilder r {"HEXBYTES \""};
         bool first = true;
         for (auto x: b) {
             if (first) {
                 first = false;
             } else {
-                r += ' ';
+                r.append(' ');
             }
             char buf[3];
             snprintf(buf, sizeof(buf), "%02x", x);
-            r += buf;
+            r.append(buf);
         }
-        r += "\"";
-        return r;
+        r.append('"');
+        return utf8string(r);
     }
 private:
     const std::vector<unsigned char> b;

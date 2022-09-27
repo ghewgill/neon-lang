@@ -175,7 +175,7 @@ std::vector<unsigned char> array__toBytes__number(const std::vector<Number> &a)
 
 utf8string array__toString__number(const std::vector<Number> &a)
 {
-    utf8string r {"["};
+    UTF8StringBuilder r {"["};
     for (Number x: a) {
         if (r.length() > 1) {
             r.append(", ");
@@ -183,12 +183,12 @@ utf8string array__toString__number(const std::vector<Number> &a)
         r.append(number_to_string(x));
     }
     r.append("]");
-    return r;
+    return utf8string(r);
 }
 
 utf8string array__toString__string(const std::vector<utf8string> &a)
 {
-    utf8string r {"["};
+    UTF8StringBuilder r {"["};
     for (utf8string x: a) {
         if (r.length() > 1) {
             r.append(", ");
@@ -196,12 +196,12 @@ utf8string array__toString__string(const std::vector<utf8string> &a)
         r.append(rtl::ne_string::quoted(x));
     }
     r.append("]");
-    return r;
+    return utf8string(r);
 }
 
 utf8string array__toString__object(std::vector<std::shared_ptr<Object>> a)
 {
-    utf8string r {"["};
+    UTF8StringBuilder r {"["};
     for (auto &x: a) {
         if (r.length() > 1) {
             r.append(", ");
@@ -209,7 +209,7 @@ utf8string array__toString__object(std::vector<std::shared_ptr<Object>> a)
         r.append(x->toLiteralString());
     }
     r.append("]");
-    return r;
+    return utf8string(r);
 }
 
 utf8string boolean__toString(bool self)
@@ -239,7 +239,7 @@ void dictionary__remove(Cell *self, const utf8string &key)
 
 utf8string dictionary__toString__number(const std::map<utf8string, Number> &d)
 {
-    utf8string r {"{"};
+    UTF8StringBuilder r {"{"};
     for (auto &e: d) {
         if (r.length() > 1) {
             r.append(", ");
@@ -249,12 +249,12 @@ utf8string dictionary__toString__number(const std::map<utf8string, Number> &d)
         r.append(number_to_string(e.second));
     }
     r.append("}");
-    return r;
+    return utf8string(r);
 }
 
 utf8string dictionary__toString__string(const std::map<utf8string, utf8string> &d)
 {
-    utf8string r {"{"};
+    UTF8StringBuilder r {"{"};
     for (auto &e: d) {
         if (r.length() > 1) {
             r.append(", ");
@@ -264,12 +264,12 @@ utf8string dictionary__toString__string(const std::map<utf8string, utf8string> &
         r.append(rtl::ne_string::quoted(e.second));
     }
     r.append("}");
-    return r;
+    return utf8string(r);
 }
 
 utf8string dictionary__toString__object(std::map<utf8string, std::shared_ptr<Object>> d)
 {
-    utf8string r {"{"};
+    UTF8StringBuilder r {"{"};
     for (auto &e: d) {
         if (r.length() > 1) {
             r.append(", ");
@@ -279,7 +279,7 @@ utf8string dictionary__toString__object(std::map<utf8string, std::shared_ptr<Obj
         r.append(e.second->toLiteralString());
     }
     r.append("}");
-    return r;
+    return utf8string(r);
 }
 
 utf8string number__toString(Number self)
@@ -289,7 +289,7 @@ utf8string number__toString(Number self)
 
 void string__append(utf8string *self, const utf8string &t)
 {
-    self->append(t);
+    *self = *self + t;
 }
 
 utf8string string__index(const utf8string &s, Number index)

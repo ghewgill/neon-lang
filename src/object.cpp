@@ -52,7 +52,7 @@ bool ObjectArray::subscript(std::shared_ptr<Object> index, std::shared_ptr<Objec
 
 utf8string ObjectArray::toString() const
 {
-    utf8string r {"["};
+    UTF8StringBuilder r {"["};
     bool first = true;
     for (auto x: a) {
         if (not first) {
@@ -63,7 +63,7 @@ utf8string ObjectArray::toString() const
         r.append(x != nullptr ? x->toLiteralString() : utf8string("null"));
     }
     r.append("]");
-    return r;
+    return utf8string(r);
 }
 
 bool ObjectDictionary::invokeMethod(const utf8string &name, const std::vector<std::shared_ptr<Object>> &args, std::shared_ptr<Object> &result) const
@@ -106,7 +106,7 @@ bool ObjectDictionary::subscript(std::shared_ptr<Object> index, std::shared_ptr<
 
 utf8string ObjectDictionary::toString() const
 {
-    utf8string r {"{"};
+    UTF8StringBuilder r {"{"};
     bool first = true;
     for (auto x: d) {
         if (not first) {
@@ -119,5 +119,5 @@ utf8string ObjectDictionary::toString() const
         r.append(x.second != nullptr ? x.second->toLiteralString() : utf8string("null"));
     }
     r.append("}");
-    return r;
+    return utf8string(r);
 }

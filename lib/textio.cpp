@@ -69,17 +69,20 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
 bool readLine(const std::shared_ptr<Object> &pf, utf8string *s)
 {
     TextFileObject *f = check_file(pf);
-    s->clear();
+    UTF8StringBuilder r;
     for (;;) {
         char buf[1024];
         if (fgets(buf, sizeof(buf), f->file) == NULL) {
+            *s = utf8string(r);
             return not s->empty();
         }
-        s->append(buf);
-        if (s->at(s->length()-1) == '\n') {
-            s->resize(s->length()-1);
+        if (buf[strlen(buf)-1] == '\n') {
+            buf[strlen(buf)-1] = 0;
+            r.append(buf);
+            *s = utf8string(r);
             return true;
         }
+        r.append(buf);
     }
 }
 

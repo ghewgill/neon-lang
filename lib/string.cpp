@@ -28,18 +28,18 @@ utf8string fromCodePoint(Number code)
 utf8string lower(const utf8string &ss)
 {
     const std::string &s = ss.str(); // TODO: utf8
-    utf8string r;
+    UTF8StringBuilder r;
     //std::transform(s.begin(), s.end(), std::back_inserter(r), ::tolower);
     for (auto c: s) {
-        r.push_back(static_cast<char>(::tolower(c)));
+        r.append(static_cast<char>(::tolower(c)));
     }
-    return r;
+    return utf8string(r);
 }
 
 utf8string quoted(const utf8string &s)
 {
-    utf8string r;
-    r.push_back('"');
+    UTF8StringBuilder r;
+    r.append('"');
     for (auto i = s.str().begin(); i != s.str().end(); utf8::advance(i, 1, s.str().end())) {
         auto c = utf8::peek_next(i, s.str().end());
         switch (c) {
@@ -50,12 +50,12 @@ utf8string quoted(const utf8string &s)
             case '\t': r.append("\\t"); break;
             case '"':
             case '\\':
-                r.push_back('\\');
-                r.push_back(static_cast<char>(c));
+                r.append('\\');
+                r.append(static_cast<char>(c));
                 break;
             default:
                 if (c >= ' ' && c < 0x7f) {
-                    r.push_back(static_cast<char>(c));
+                    r.append(static_cast<char>(c));
                 } else if (c < 0x10000) {
                     char buf[7];
                     snprintf(buf, sizeof(buf), "\\u%04x", c);
@@ -68,8 +68,8 @@ utf8string quoted(const utf8string &s)
                 break;
         }
     }
-    r.push_back('"');
-    return r;
+    r.append('"');
+    return utf8string(r);
 }
 
 std::vector<utf8string> split(const utf8string &ss, const utf8string &dd)
@@ -131,12 +131,12 @@ utf8string trimCharacters(const utf8string &ss, const utf8string &trimLeadingCha
 utf8string upper(const utf8string &ss)
 {
     const std::string &s = ss.str(); // TODO: utf8
-    utf8string r;
+    UTF8StringBuilder r;
     //std::transform(s.begin(), s.end(), std::back_inserter(r), ::toupper);
     for (auto c: s) {
-        r.push_back(static_cast<char>(::toupper(c)));
+        r.append(static_cast<char>(::toupper(c)));
     }
-    return r;
+    return utf8string(r);
 }
 
 } // namespace ne_string

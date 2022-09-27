@@ -165,8 +165,9 @@ Number getgid()
 
 Number gethostname(utf8string *name)
 {
-    name->reserve(256);
-    Number r = wrap(::gethostname(const_cast<char *>(name->data()), 256));
+    char buf[256];
+    Number r = wrap(::gethostname(buf, sizeof(buf)));
+    *name = utf8string(buf);
     // TODO: truncate name
     return r;
 }
