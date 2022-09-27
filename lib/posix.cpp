@@ -322,8 +322,11 @@ Number readlink(const utf8string &path, std::vector<unsigned char> *buf, Number 
 Number readlinkat(Number fd, const utf8string &path, utf8string *buf, Number bufsize)
 {
     size_t n = number_to_uint64(bufsize);
-    buf->reserve(n);
-    return wrap(::readlinkat(number_to_sint32(fd), path.c_str(), const_cast<char *>(buf->data()), n));
+    char *tmp = new char[n];
+    Number r = wrap(::readlinkat(number_to_sint32(fd), path.c_str(), tmp, n));
+    *buf = utf8string(tmp);
+    delete[] tmp;
+    return r;
 }
 #endif
 
