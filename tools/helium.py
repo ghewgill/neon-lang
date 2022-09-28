@@ -579,7 +579,11 @@ class InterpolatedStringExpression:
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, str) else str(e) if e is not None else "null") for e in x)) if isinstance(x, list)
                   else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, str) else str(v) if v is not None else "null")) for k, v in sorted(x.items())))) if isinstance(x, dict)
                   else x.toString(env, x)) if x is not None else "null"
-            r += neon_format(env, s, f) if f else s
+            if f:
+                format_func = g_Modules["string"].env.get_value("format")
+                r += format_func(env, s, f)
+            else:
+                r += s
         return r
 
 class NewRecordExpression:
@@ -2822,7 +2826,7 @@ class Environment:
             e = e.parent
         assert False, name
     def module(self):
-        return self.parent.module() if self.parent else self.module_name
+        return self.module_name if self.module_name else self.parent.module()
     def set(self, name, value):
         if name == "_":
             return
@@ -2916,6 +2920,11 @@ def run(program):
     g = import_module("global", False)
     for name, decl in g.env.names.items():
         program.env.names[name] = decl
+    if program.env.module_name != "global":
+        assert program.env.parent is None
+        program.env.parent = g_Modules["global"].env
+    # Always import string module for use by InterpolatedStringExpression.
+    program.env.declare("string", ClassModule(), import_module("string", False))
     program.run(program.env)
 
 def eval_cond(left, cond, right):
@@ -2967,12 +2976,6 @@ def neon_array_toBytes(a):
 def neon_dictionary_remove(d, k):
     if k in d:
         del d[k]
-
-def neon_format(env, s, fmt):
-    if fmt.endswith("x"):
-        return format(int(s), fmt)
-    else:
-        return format(s, fmt)
 
 def neon_global_decodeUTF8(env, x):
     try:
