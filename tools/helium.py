@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import calendar
 import codecs
 import copy
 import math
@@ -3012,6 +3013,13 @@ def neon_console_input_internal(env, prompt, r):
         return True, input(prompt)
     except EOFError:
         return False, None
+
+def neon_datetime_gmtime(env, t):
+    tm = time.gmtime(t)
+    return time.struct_time((tm.tm_year - 1900, tm.tm_mon - 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, 1 + tm.tm_wday % 7, tm.tm_yday, tm.tm_isdst))
+
+def neon_datetime_timegm(env, tm):
+    return calendar.timegm((1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec))
 
 def neon_file_copy(env, src, dest):
     if neon_file_exists(env, dest):
