@@ -8,6 +8,7 @@ EXPORT NativeObjectException
 EXPORT assertionsEnabled
 EXPORT createObject
 EXPORT debugEnabled
+EXPORT debugTimestamp
 EXPORT executorName
 EXPORT garbageCollect
 EXPORT getAllocatedObjectCount
@@ -15,6 +16,12 @@ EXPORT isModuleImported
 EXPORT moduleIsMain
 EXPORT setGarbageCollectionInterval
 EXPORT setRecursionLimit
+
+IMPORT datetime
+IMPORT math
+IMPORT time
+
+VAR debugTimer: time.Stopwatch
 
 /*  Exception: NativeObjectException
  *
@@ -35,6 +42,12 @@ DECLARE NATIVE FUNCTION createObject(name: String): Object
  *  Return TRUE if DEBUG statements are currently enabled.
  */
 DECLARE NATIVE FUNCTION debugEnabled(): Boolean
+
+FUNCTION debugTimestamp(): String
+    LET now := datetime.now()
+    LET frac := math.trunc(now.fraction * 1000)
+    RETURN "\(now.year:04d)-\(now.month:02d)-\(now.day:02d)T\(now.hour:02d):\(now.minute:02d):\(now.second:02d).\(frac:03d) +\(debugTimer.elapsed())"
+END FUNCTION
 
 /*  Function: executorName
  *
@@ -86,3 +99,8 @@ DECLARE NATIVE FUNCTION setGarbageCollectionInterval(count: Number)
  *  1000. Exceeding this limit raises a <StackOverflow> exception.
  */
 DECLARE NATIVE FUNCTION setRecursionLimit(depth: Number)
+
+IF debugEnabled() THEN
+    debugTimer := time.Stopwatch()
+    debugTimer.start()
+END IF
