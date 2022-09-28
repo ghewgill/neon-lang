@@ -105,6 +105,7 @@ TYPE Instant IS Number
  *      hour - hour
  *      minute - minute
  *      second - second
+ *      fraction - seconds fractional part
  */
 TYPE DateTime IS RECORD
     instant: Instant
@@ -115,6 +116,7 @@ TYPE DateTime IS RECORD
     hour: Number
     minute: Number
     second: Number
+    fraction: Number
 END RECORD
 
 /*  Type: Interval
@@ -185,6 +187,7 @@ END FUNCTION
  *  Convert a specific instant into a <DateTime> record.
  */
 FUNCTION makeFromInstant(inst: Instant): DateTime
+    LET frac := inst - math.trunc(inst)
     LET tm: struct_tm := gmtime(inst)
     RETURN DateTime(
         instant WITH inst,
@@ -194,7 +197,8 @@ FUNCTION makeFromInstant(inst: Instant): DateTime
         weekday WITH 1 + (tm.tm_wday + 6) MOD 7,
         hour WITH tm.tm_hour,
         minute WITH tm.tm_min,
-        second WITH tm.tm_sec
+        second WITH tm.tm_sec,
+        fraction WITH frac
     )
 END FUNCTION
 
