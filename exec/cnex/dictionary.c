@@ -77,6 +77,7 @@ Dictionary *dictionary_createDictionary(void)
     }
     d->len = 0;
     d->max = 8;
+    d->refount = 1;
     d->data = malloc(d->max * sizeof(struct tagTDictionaryEntry));
     if (d->data == NULL) {
         fatal_error("Could not allocate space for %d dictionary entries.", d->max);
@@ -96,6 +97,10 @@ Dictionary *dictionary_copyDictionary(Dictionary *self)
 
 int dictionary_compareDictionary(Dictionary *lhs, Dictionary *rhs)
 {
+    // If the two dictionaries are pointing to the same memory, they're equal.
+    if (lhs == rhs) {
+        return TRUE;
+    }
     if (lhs->len != rhs->len) {
         return FALSE;
     }
@@ -117,13 +122,17 @@ int dictionary_compareDictionary(Dictionary *lhs, Dictionary *rhs)
 
 void dictionary_freeDictionary(Dictionary *self)
 {
-    int64_t i;
-    for (i = 0; i < self->len; i++) {
-        cell_freeCell(self->data[i].value);
-        string_freeString(self->data[i].key);
+    if (self != NULL) {
+        self->refount--;
+        if (self->refount <= 0) {
+            for (int64_t i = 0; i < self->len; i++) {
+                cell_freeCell(self->data[i].value);
+                string_freeString(self->data[i].key);
+            }
+            free(self->data);
+            free(self);
+        }
     }
-    free(self->data);
-    free(self);
 }
 
 static int dictionary_compareKeys(const void *a, const void *b)
