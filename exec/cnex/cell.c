@@ -238,7 +238,8 @@ Cell *cell_fromCell(const Cell *c)
             x->dictionary = NULL;
             break;
         case cDictionary:
-            x->dictionary = dictionary_copyDictionary(c->dictionary);
+            x->dictionary = c->dictionary;
+            x->dictionary->refount++;
             x->boolean = FALSE;
             x->number = number_from_uint32(0);
             x->object = NULL;
@@ -535,7 +536,7 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
     return &c->array->data[i];
 }
 
-Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key)
+Cell *cell_dictionaryIndexForWrite(Cell *c, TString *key)
 {
     if (c->type == cNothing) {
         c->type = cDictionary;
@@ -544,6 +545,15 @@ Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key)
     if (c->dictionary == NULL) {
         c->dictionary = dictionary_createDictionary();
     }
+    if (c->dictionary->refount != 1) {
+        // Create a copy of the dictionary, since we're going to write to it.
+        Dictionary *wd = dictionary_copyDictionary(c->dictionary);
+        // Free the original dictionary, which in this case will just decrement its refcount.
+        dictionary_freeDictionary(c->dictionary);
+        // Assign the (new) copied array to the cell object.
+        c->dictionary = wd;
+    }
+
     int64_t idx = dictionary_findIndex(c->dictionary, key);
     if (idx == -1) {
         idx = dictionary_addDictionaryEntry(c->dictionary, key, cell_newCell());
@@ -589,7 +599,9 @@ void cell_copyCell(Cell *dest, const Cell *source)
         dest->array = NULL;
     }
     if (source->type == cDictionary && source->dictionary != NULL) {
-        dest->dictionary = dictionary_copyDictionary(source->dictionary);
+        dest->dictionary = source->dictionary;
+        // Simply increment the refcount, since we're creating a copy of the cell.
+        dest->dictionary->refount++;
     } else {
         dest->dictionary = NULL;
     }
