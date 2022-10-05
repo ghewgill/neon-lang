@@ -1619,7 +1619,7 @@ void string__index(TExecutor *exec)
         char buf[100];
         snprintf(buf, sizeof(buf), "String index not an integer: %s", number_to_string(index));
         exec->rtl_raise(exec, "PANIC", buf);
-        return;
+        goto cleanup;
     }
 
     int64_t i = number_to_sint64(index);
@@ -1627,19 +1627,20 @@ void string__index(TExecutor *exec)
         char buf[100];
         snprintf(buf, sizeof(buf), "String index is negative: %" PRId64, i);
         exec->rtl_raise(exec, "PANIC", buf);
-        return;
+        goto cleanup;
     }
     if (i >= (int64_t)string_getLength(a->string)) {
         char buf[100];
         snprintf(buf, sizeof(buf), "String index exceeds length %zd: %" PRId64, string_getLength(a->string), i);
         exec->rtl_raise(exec, "PANIC", buf);
-        return;
+        goto cleanup;
     }
 
     Cell *r = cell_newCellType(cString);
     r->string = string_index(a->string, i);
 
     push(exec->stack, r);
+cleanup:
     cell_freeCell(a);
 }
 
