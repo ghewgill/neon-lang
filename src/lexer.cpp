@@ -344,6 +344,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         Token t(tsource);
         t.line = line;
         t.column = column;
+        t.length = 0;
         t.type = NONE;
              if (c == '(') { t.type = LPAREN; utf8::advance(i, 1, source.end()); }
         else if (c == ')') { t.type = RPAREN; utf8::advance(i, 1, source.end()); }
@@ -549,6 +550,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 }
             }
             t.text = std::string(start, i);
+            t.length = t.text.length();
         } else if (c == '"') {
             utf8::advance(i, 1, source.end());
             t.type = STRING;
@@ -611,8 +613,10 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                             break;
                         }
                         case '(': {
+                            t.length = i - startindex;
                             tokens.push_back(t);
                             t.column = column + (i - startindex) - 1;
+                            t.length = 1;
                             t.type = SUBBEGIN;
                             tokens.push_back(t);
                             auto start = i;
@@ -658,14 +662,17 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                             std::copy(subtokens.begin(), subtokens.end(), std::back_inserter(tokens));
                             if (colon > start) {
                                 t.column = column + (colon - startindex);
+                                t.length = 0;
                                 t.type = SUBFMT;
                                 tokens.push_back(t);
                                 t.column += 1;
                                 t.type = STRING;
                                 t.text = std::string(colon + 1, i - 1);
+                                t.length = t.text.length();
                                 tokens.push_back(t);
                             }
                             t.column = column + (i - startindex) - 1;
+                            t.length = 0;
                             t.type = SUBEND;
                             tokens.push_back(t);
                             t.column = column + (i - startindex);
@@ -683,6 +690,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 utf8::append(c, std::back_inserter(t.text));
             }
             t.text_source_offset.push_back(i - startindex - 2);
+            t.length = i - startindex;
         } else if (c == '@') {
             utf8::advance(i, 1, source.end());
             t.type = STRING;
@@ -757,6 +765,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 }
                 t.text_source_offset.push_back(i - startindex - 2);
             }
+            t.length = i - startindex;
         } else if (c == '\t') {
             column += 8 - ((column - 1) % 8);
             utf8::advance(i, 1, source.end());
