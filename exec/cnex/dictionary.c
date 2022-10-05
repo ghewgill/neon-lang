@@ -12,53 +12,64 @@
 #include "nstring.h"
 #include "util.h"
 
-int64_t dictionary_findIndex(Dictionary *self, struct tagTString *key)
-{
-    int64_t i;
 
-    for (i = 0; i < self->len; i++) {
-        if (string_compareString(self->data[i].key, key) == 0) {
-            return i;
+BOOL dictionary_findIndex(Dictionary *self, TString *key, int64_t *index)
+{
+    int64_t lo = 0;
+    int64_t hi = self->len;
+    while (lo < hi) {
+        int64_t mid = (lo + hi) / 2;
+        int c = string_compareString(key, self->data[mid].key);
+        if (c == 0) {
+            *index = mid;
+            return TRUE;
+        }
+        if (c < 0) {
+            hi = mid;
+        } else {
+            lo = mid + 1;
         }
     }
-    return -1;
+    *index = lo;
+    return FALSE;
 }
 
-struct tagTCell *dictionary_findDictionaryEntry(Dictionary *self, struct tagTString *key)
+struct tagTCell *dictionary_findDictionaryEntry(Dictionary *self, TString *key)
 {
-    int64_t idx;
+    int64_t idx = 0;
 
-    idx = dictionary_findIndex(self, key);
-    return idx == -1 ? NULL : self->data[idx].value;
-}
-
-int64_t dictionary_addDictionaryEntry(Dictionary *self, struct tagTString *key, struct tagTCell *value)
-{
-    int64_t idx;
-
-    idx = dictionary_findIndex(self, key);
-    if (idx != -1) {
-        cell_freeCell(self->data[idx].value);
-        self->data[idx].value = value;
-        return idx;
+    if (!dictionary_findIndex(self, key, &idx)) {
+        return NULL;
     }
+    return self->data[idx].value;
+}
+
+int64_t dictionary_addDictionaryEntry(Dictionary *self, TString *key, Cell *value, int64_t index)
+{
+    // If we weren't provided an index to add at, then we'll find out where this value should be inserted at.
+    if (index < 0) {
+        if (dictionary_findIndex(self, key, &index)) {
+            cell_freeCell(self->data[index].value);
+            self->data[index].value = value;
+            return index;
+        }
+    }
+
     if (self->len == self->max) {
-        self->max = self->max * 2;
-        self->data = realloc(self->data, self->max * sizeof(struct tagTDictionaryEntry));
-        if (self->data == NULL) {
-            fatal_error("Unable to reallocate %d dictionary indices.", self->max);
-        }
+        self->max *= 2;
+        self->data = realloc(self->data, self->max * sizeof(DictionaryEntry));
     }
-    self->data[self->len].key = key;
-    self->data[self->len].value = value;
+    memmove(&self->data[index+1], &self->data[index], (self->len-index) * sizeof(DictionaryEntry));
     self->len++;
-    return self->len - 1;
+    self->data[index].key = key;
+    self->data[index].value = value;
+    return index;
 }
 
 void dictionary_removeDictionaryEntry(Dictionary *self, TString *key)
 {
-    int64_t idx = dictionary_findIndex(self, key);
-    if (idx == -1) {
+    int64_t idx = 0;
+    if (!dictionary_findIndex(self, key, &idx)) {
         return;
     }
 
@@ -88,10 +99,14 @@ Dictionary *dictionary_createDictionary(void)
 Dictionary *dictionary_copyDictionary(Dictionary *self)
 {
     Dictionary *d = dictionary_createDictionary();
+    d->data = realloc(d->data, sizeof(DictionaryEntry) * self->len);
 
+    // There's no reason to do a sorted insert on a copy; self->data will already be sorted.
     for (int64_t i = 0; i < self->len; i++) {
-        dictionary_addDictionaryEntry(d, string_copyString(self->data[i].key), cell_fromCell(self->data[i].value));
+        d->data[i].key = string_copyString(self->data[i].key);
+        d->data[i].value = cell_fromCell(self->data[i].value);
     }
+    d->len = self->len;
     return d;
 }
 
@@ -135,21 +150,14 @@ void dictionary_freeDictionary(Dictionary *self)
     }
 }
 
-static int dictionary_compareKeys(const void *a, const void *b)
-{
-    return string_compareString(((Cell*)a)->string, ((Cell*)b)->string);
-}
-
 Cell *dictionary_getKeys(Dictionary *self)
 {
     Cell *r = cell_createArrayCell(0);
 
+    // There's no reason to sort the keys, they should come out sorted due to sort on insert.
     for (int64_t i = 0; i < self->len; i++) {
         Cell *e = cell_fromStringLength(self->data[i].key->data, self->data[i].key->length);
-        cell_arrayAppendElement(r, *e);
-        cell_freeCell(e);
+        cell_arrayAppendElementPointer(r, e);
     }
-    qsort(r->array->data, r->array->size, sizeof(Cell), dictionary_compareKeys);
-
     return r;
 }

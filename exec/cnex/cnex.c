@@ -1529,7 +1529,7 @@ void exec_CONSD(TExecutor *self)
     while (val > 0) {
         Cell *value = cell_fromCell(top(self->stack)); pop(self->stack);
         TString *key = string_fromString(top(self->stack)->string); pop(self->stack);
-        dictionary_addDictionaryEntry(d->dictionary, key, value);
+        dictionary_addDictionaryEntry(d->dictionary, key, value, -1);
         val--;
     }
     push(self->stack, d);
