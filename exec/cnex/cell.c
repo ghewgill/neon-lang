@@ -554,13 +554,13 @@ Cell *cell_dictionaryIndexForWrite(Cell *c, TString *key)
         c->dictionary = wd;
     }
 
-    int64_t idx = dictionary_findIndex(c->dictionary, key);
-    if (idx == -1) {
-        idx = dictionary_addDictionaryEntry(c->dictionary, key, cell_newCell());
+    int64_t index = 0;
+    if (!dictionary_findIndex(c->dictionary, key, &index)) {
+        dictionary_addDictionaryEntry(c->dictionary, key, cell_newCell(), index);
     } else {
         string_freeString(key); // Since we aren't using the provided key, we need to destroy it.
     }
-    return c->dictionary->data[idx].value;
+    return c->dictionary->data[index].value;
 }
 
 Cell *cell_dictionaryIndexForRead(Cell *c, TString *key)
