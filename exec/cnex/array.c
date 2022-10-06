@@ -9,6 +9,10 @@
 #include "cell.h"
 #include "util.h"
 
+// ToDo: make dictionary and array pre-malloc sizes adjustable with a command line parameter.
+// ToDo: Profile cnex using various starting sizes to figure out what the best starting value would be.
+static const size_t ARRAY_INITIAL_SIZE = 8;  // Reasonable starting value.  Will get us in the ballpark.
+
 Array *array_createArray(void)
 {
     Array *a = malloc(sizeof(Array));
@@ -16,22 +20,30 @@ Array *array_createArray(void)
         fatal_error("Unable to allocate array.");
     }
 
-    a->size = 0;
     a->data = NULL;
+    a->size = 0;
+    a->max = ARRAY_INITIAL_SIZE;
+    a->data = malloc(a->max * sizeof(Cell));
     a->refcount = 1;
     return a;
 }
 
 Array *array_createArrayFromSize(size_t iElements)
 {
-    Array *a = array_createArray();
-
-    a->size = iElements;
-    a->data = malloc(sizeof(Cell) * a->size);
-    a->refcount = 1;
-    if (a->data == NULL) {
-        fatal_error("Unable to allocate memory for %d array elements.", a->size);
+    Array *a = malloc(sizeof(Array));
+    if (a == NULL) {
+        fatal_error("Unable to allocate array for size.");
     }
+
+    a->data = NULL;
+    a->size = iElements;
+    a->max = (a->size > 0 ? a->size : ARRAY_INITIAL_SIZE);
+    a->data = malloc(a->max * sizeof(Cell));
+    if (a->data == NULL) {
+        fatal_error("Unable to allocate memory for an array of %zu elements.", a->max);
+    }
+    a->refcount = 1;
+
     for (size_t i = 0; i < a->size; i++) {
         cell_initCell(&a->data[i]);
     }
@@ -50,17 +62,24 @@ Array *array_resizeArray(Array *self, size_t newSize)
             cell_clearCell(&self->data[i]);
         }
     }
-    if (newSize > 0) {
-        self->data = realloc(self->data, sizeof(Cell) * newSize);
-        if (self->data == NULL) {
-            fatal_error("Unable resize array from %zu to %zu elements.", self->size, newSize);
+    if (newSize > 0 && newSize > self->max) {
+        self->max *= 2;
+        if (self->max < newSize) {
+            self->max = newSize;
         }
-    } else {
-        // If the new size ends up being zero, fine, we won't realloc it, since we'd have already cleaned up
-        // all of the array elements above, so there's no harm in leaving the array container allocated for more
-        // than we're using.  It'll all come out in the wash.
+        self->data = realloc(self->data, sizeof(Cell) * self->max);
+        if (self->data == NULL) {
+            fatal_error("Unable resize array from %zu to %zu elements.", self->size, self->max);
+        }
+    } else if (newSize == 0) {
+        // If the new size ends up being zero, we'll basically reset the array to an initial starting point.
         self->size = 0;
-    }
+        self->max = ARRAY_INITIAL_SIZE;
+        self->data = realloc(self->data, sizeof(Cell) * self->max);
+        if (self->data == NULL) {
+            fatal_error("Unable resize array.");
+        }
+    } // Else we have enough elements to fit the new array data in, so no realloc is necessary, at this time.
 
     // Initialize any new elements we may have added, but skip any that may have been there before.
     for (size_t i = self->size; i < newSize; i++) {
@@ -89,12 +108,12 @@ void array_freeArray(Array *self)
 
 void array_clearArray(Array *self)
 {
+    // Note:  This function only cleans up the elements of the array, not the array itself.  The reference counting
+    //        will take care of that for us.  Because of that, we will not adjust the max member either, just the size.
     if (self != NULL && self->data != NULL) {
         for (size_t i = 0; i < self->size; i++) {
             cell_clearCell(&self->data[i]);
         }
-        free(self->data);
-        self->data = NULL;
         self->size = 0;
     }
 }
@@ -141,25 +160,11 @@ int array_compareArray(Array *l, Array *r)
 
 size_t array_appendElement(Array *self, const Cell *element)
 {
-    if (self == NULL) {
-        fatal_error("Uninitialized array passed to array_appendElement!");
-    }
-    if (self->data) {
-        self->data = realloc(self->data, sizeof(Cell) * (self->size + 1));
-        if (self->data == NULL) {
-            fatal_error("Not enough memory to expand array.");
-        }
-        self->size++;
-    }
-    if (self->data == NULL) {
-        self->data = malloc(sizeof(Cell));
-        if (self->data == NULL) {
-            fatal_error("Failed to allocate memory array element.");
-        }
-        self->size = 1;
-    }
-    cell_initCell(&self->data[self->size-1]);
-    cell_copyCell(&self->data[self->size-1], element);
+    assert(self);
+    assert(self->data);
 
+    array_resizeArray(self, self->size + 1);
+
+    cell_copyCell(&self->data[self->size-1], element);
     return self->size;
 }

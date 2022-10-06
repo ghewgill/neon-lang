@@ -4,6 +4,7 @@
 
 typedef struct tagTArray {
     size_t size;
+    size_t max;
     int refcount;
     struct tagTCell *data;
 } Array;
