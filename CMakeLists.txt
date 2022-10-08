@@ -499,6 +499,7 @@ add_executable(neonc
     src/compiler_cpp.cpp
     src/compiler_js.cpp
     src/compiler_jvm.cpp
+    src/compiler_null.cpp
 )
 target_include_directories(neonc
     PRIVATE ${CMAKE_BINARY_DIR}/gen
