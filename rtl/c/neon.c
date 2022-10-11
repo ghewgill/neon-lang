@@ -11,8 +11,18 @@
 
 #ifdef _WIN32
 #else
+#include <dirent.h>
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <unistd.h>
 #endif
+
+const MethodTable Ne_Boolean_mtable = {
+    .constructor = (void (*)(void **))Ne_Boolean_constructor,
+    .destructor = (void (*)(void *))Ne_Boolean_destructor,
+    .copy = (void (*)(void *, const void *))Ne_Boolean_copy,
+    .compare = (int (*)(const void *, const void *))Ne_Boolean_compare,
+};
 
 const MethodTable Ne_Number_mtable = {
     .constructor = (void (*)(void **))Ne_Number_constructor,
@@ -50,6 +60,17 @@ static const char *Ne_String_null_terminate(const Ne_String *s)
 void Ne_Boolean_init(Ne_Boolean *bool)
 {
     *bool = 0;
+}
+
+void Ne_Boolean_constructor(Ne_Boolean **bool)
+{
+    *bool = malloc(sizeof(Ne_Boolean));
+    Ne_Boolean_init(*bool);
+}
+
+void Ne_Boolean_destructor(Ne_Boolean *bool)
+{
+    free(bool);
 }
 
 void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src)
@@ -1114,37 +1135,69 @@ void Ne_Dictionary_deinit(Ne_Dictionary *d)
     free(d->d);
 }
 
+int Ne_Dictionary_compare(const Ne_Dictionary *a, const Ne_Dictionary *b)
+{
+    assert(a->mtable == b->mtable);
+    if (a->size < b->size) {
+        return -1;
+    }
+    if (a->size > b->size) {
+        return 1;
+    }
+    for (int i = 0; i < a->size; i++) {
+        int found = 0;
+        for (int j = 0; j < b->size; j++) {
+            if (Ne_String_compare(&a->d[i].key, &b->d[j].key) == 0) {
+                int r = a->mtable->compare(a->d[i].value, b->d[j].value);
+                if (r != 0) {
+                    return r;
+                }
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int dictionary_find(const Ne_Dictionary *d, const Ne_String *key, int *index)
+{
+    int lo = 0;
+    int hi = d->size;
+    while (lo < hi) {
+        int m = (lo + hi) / 2;
+        int c = Ne_String_compare(key, &d->d[m].key);
+        if (c == 0) {
+            *index = m;
+            return 1;
+        }
+        if (c < 0) {
+            hi = m;
+        } else {
+            lo = m + 1;
+        }
+    }
+    *index = lo;
+    return 0;
+}
+
 Ne_Exception *Ne_Dictionary_in(Ne_Boolean *result, const Ne_Dictionary *d, const Ne_String *key)
 {
-    *result = 0;
-    int i = 0;
-    while (i < d->size) {
-        int c = Ne_String_compare(&d->d[i].key, key);
-        if (c == 0) {
-            *result = 1;
-            return NULL;
-        }
-        if (c > 0) {
-            break;
-        }
-        i++;
-    }
+    int i;
+    *result = dictionary_find(d, key, &i);
     return NULL;
 }
 
 Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index, Ne_Boolean always_create)
 {
-    int i = 0;
-    while (i < d->size) {
-        int c = Ne_String_compare(&d->d[i].key, index);
-        if (c == 0) {
-            *result = d->d[i].value;
-            return NULL;
-        }
-        if (c > 0) {
-            break;
-        }
-        i++;
+    int i;
+    int found = dictionary_find(d, index, &i);
+    if (found) {
+        *result = d->d[i].value;
+        return NULL;
     }
     if (!always_create) {
         char buf[100];
@@ -1173,20 +1226,14 @@ Ne_Exception *Ne_builtin_dictionary__keys(Ne_Array *result, const Ne_Dictionary 
 
 Ne_Exception *Ne_builtin_dictionary__remove(Ne_Dictionary *d, const Ne_String *key)
 {
-    int i = 0;
-    while (i < d->size) {
-        int c = Ne_String_compare(&d->d[i].key, key);
-        if (c == 0) {
-            Ne_String_deinit(&d->d[i].key);
-            d->mtable->destructor(d->d[i].value);
-            memmove(&d->d[i], &d->d[i+1], (d->size-i-1) * sizeof(struct KV));
-            d->size--;
-            return NULL;
-        }
-        if (c > 0) {
-            break;
-        }
-        i++;
+    int i;
+    int found = dictionary_find(d, key, &i);
+    if (found) {
+        Ne_String_deinit(&d->d[i].key);
+        d->mtable->destructor(d->d[i].value);
+        memmove(&d->d[i], &d->d[i+1], (d->size-i-1) * sizeof(struct KV));
+        d->size--;
+        return NULL;
     }
     return NULL;
 }
@@ -1341,6 +1388,90 @@ Ne_Exception *Ne_binary_xorBytes(Ne_Bytes *r, Ne_Bytes *x, Ne_Bytes *y)
     for (int i = 0; i < x->len; i++) {
         r->data[i] = x->data[i] ^ y->data[i];
     }
+    return NULL;
+}
+
+Ne_Exception *Ne_file__CONSTANT_Separator(Ne_String *result)
+{
+    #ifdef _WIN32
+        Ne_String_init_literal(result, "\\");
+    #else
+        Ne_String_init_literal(result, "/");
+    #endif
+    return NULL;
+}
+
+Ne_Exception *Ne_file_delete(const Ne_String *filename)
+{
+    #ifdef _WIN32
+        abort();
+    #else
+        remove((const char *)filename->ptr);
+    #endif
+    return NULL;
+}
+
+Ne_Exception *Ne_file_files(Ne_Array *result, const Ne_String *path)
+{
+    Ne_Array_init(result, 0, &Ne_String_mtable);
+    #ifdef _WIN32
+        abort();
+    #else
+        DIR *d = opendir((const char *)path->ptr);
+        if (d != NULL) {
+            for (;;) {
+                struct dirent *de = readdir(d);
+                if (de == NULL) {
+                    break;
+                }
+                Ne_String name;
+                Ne_String_init_literal(&name, de->d_name);
+                Ne_builtin_array__append(result, &name);
+                Ne_String_deinit(&name);
+            }
+            closedir(d);
+        }
+    #endif
+    return NULL;
+}
+
+Ne_Exception *Ne_file_isDirectory(Ne_Boolean *result, const Ne_String *path)
+{
+    Ne_Boolean_init(result);
+    #ifdef _WIN32
+        abort();
+    #else
+        struct stat st;
+        *result = stat((const char *)path->ptr, &st) == 0 && S_ISDIR(st.st_mode);
+    #endif
+    return NULL;
+}
+
+Ne_Exception *Ne_file_readLines(Ne_Array *result, const Ne_String *filename)
+{
+    Ne_Array_init(result, 0, &Ne_String_mtable);
+    FILE *f = fopen((const char *)filename->ptr, "r");
+    if (f != NULL) {
+        // TODO: handle long lines.
+        char buf[10000];
+        while (fgets(buf, sizeof(buf), f) != NULL) {
+            Ne_String s;
+            Ne_String_init_literal(&s, buf);
+            Ne_builtin_array__append(result, &s);
+            Ne_String_deinit(&s);
+        }
+        fclose(f);
+    }
+    return NULL;
+}
+
+Ne_Exception *Ne_file_removeEmptyDirectory(const Ne_String *path)
+{
+    #ifdef _WIN32
+        abort();
+    #else
+        rmdir((const char *)path->ptr);
+    #endif
     return NULL;
 }
 

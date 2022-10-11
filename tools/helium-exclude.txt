@@ -8,7 +8,6 @@ cformat-test.neon      # Module not required
 comments.neon          # Nested comments not required
 complex-test.neon      # Module not required
 concat-bytes.neon      # Feature not required
-datetime-test.neon     # Module not required
 debug-example.neon     # Feature not required
 debug-server.neon      # Feature not required
 decimal.neon           # Module not required

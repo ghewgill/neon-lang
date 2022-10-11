@@ -136,12 +136,13 @@ class TokenizedSource;
 
 class Token {
 public:
-    explicit Token(const TokenizedSource *source = nullptr): source(source), line(0), column(0), type(NONE), text(), value() {}
-    explicit Token(const std::string &text): source(nullptr), line(0), column(0), type(NONE), text(text), value() {}
-    Token(TokenType type, const std::string &text): source(nullptr), line(0), column(0), type(type), text(text), value() {}
+    explicit Token(const TokenizedSource *source = nullptr): source(source), line(0), column(0), length(0), type(NONE), text(), value() {}
+    explicit Token(const std::string &text): source(nullptr), line(0), column(0), length(0), type(NONE), text(text), value() {}
+    Token(TokenType type, const std::string &text): source(nullptr), line(0), column(0), length(0), type(type), text(text), value() {}
     const TokenizedSource *source;
     int line;
     size_t column;
+    size_t length;
     TokenType type;
     std::string text;
     std::vector<int> text_source_offset;

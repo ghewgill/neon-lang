@@ -387,6 +387,17 @@ public:
             i++;
         }
         context.out << "}\n";
+        context.out << "void " << name << "_init_copy(" << name << " *dest, " << name << " *src) {\n";
+        i = 0;
+        for (auto f: field_types) {
+            if (tr->fields[i].name.text == "__classtype") {
+                context.out << "dest->" << tr->fields[i].name.text << " = src->" << tr->fields[i].name.text << ";\n";
+            } else {
+                context.out << f->name << "_init_copy(&dest->" << tr->fields[i].name.text << ", &src->" << tr->fields[i].name.text << ");\n";
+            }
+            i++;
+        }
+        context.out << "}\n";
         context.out << "void " << name << "_deinit(" << name << " *r) {\n";
         i = 0;
         for (auto f: field_types) {

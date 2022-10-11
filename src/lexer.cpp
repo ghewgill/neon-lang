@@ -344,32 +344,33 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         Token t(tsource);
         t.line = line;
         t.column = column;
+        t.length = 0;
         t.type = NONE;
-             if (c == '(') { t.type = LPAREN; utf8::advance(i, 1, source.end()); }
-        else if (c == ')') { t.type = RPAREN; utf8::advance(i, 1, source.end()); }
-        else if (c == '[') { t.type = LBRACKET; utf8::advance(i, 1, source.end()); }
-        else if (c == ']') { t.type = RBRACKET; utf8::advance(i, 1, source.end()); }
-        else if (c == '{') { t.type = LBRACE; utf8::advance(i, 1, source.end()); }
-        else if (c == '}') { t.type = RBRACE; utf8::advance(i, 1, source.end()); }
-        else if (c == '+') { t.type = PLUS; utf8::advance(i, 1, source.end()); }
-        else if (c == '*') { t.type = TIMES; utf8::advance(i, 1, source.end()); }
-        else if (c == '^') { t.type = EXP; utf8::advance(i, 1, source.end()); }
-        else if (c == '&') { t.type = CONCAT; utf8::advance(i, 1, source.end()); }
-        else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
-        else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2212 /*'−'*/) { t.type = MINUS; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x00D7 /*'×'*/) { t.type = TIMES; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2215 /*'∕'*/) { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x00F7 /*'÷'*/) { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2260 /*'≠'*/) { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2264 /*'≤'*/) { t.type = LESSEQ; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2265 /*'≥'*/) { t.type = GREATEREQ; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2254 /*'≔'*/) { t.type = ASSIGN; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x00ac /*'¬'*/) { t.type = NOT; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2227 /*'∧'*/) { t.type = AND; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2228 /*'∨'*/) { t.type = OR; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2208 /*'∈'*/) { t.type = IN; utf8::advance(i, 1, source.end()); }
-        // TODO else if (c == 0x2209 /*'∉'*/) { t.type = NOTIN; utf8::advance(i, 1, source.end()); }
+             if (c == '(') { t.type = LPAREN; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == ')') { t.type = RPAREN; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == '[') { t.type = LBRACKET; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == ']') { t.type = RBRACKET; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == '{') { t.type = LBRACE; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == '}') { t.type = RBRACE; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == '+') { t.type = PLUS; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == '*') { t.type = TIMES; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == '^') { t.type = EXP; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == '&') { t.type = CONCAT; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2212 /*'−'*/) { t.type = MINUS; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x00D7 /*'×'*/) { t.type = TIMES; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2215 /*'∕'*/) { t.type = DIVIDE; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x00F7 /*'÷'*/) { t.type = DIVIDE; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2260 /*'≠'*/) { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2264 /*'≤'*/) { t.type = LESSEQ; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2265 /*'≥'*/) { t.type = GREATEREQ; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2254 /*'≔'*/) { t.type = ASSIGN; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x00ac /*'¬'*/) { t.type = NOT; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2227 /*'∧'*/) { t.type = AND; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2228 /*'∨'*/) { t.type = OR; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        else if (c == 0x2208 /*'∈'*/) { t.type = IN; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
+        // TODO else if (c == 0x2209 /*'∉'*/) { t.type = NOTIN; utf8::advance(i, 1, source.end()); t.length = i - startindex; }
         else if (c == '-') {
             if (i+1 != source.end() && *(i+1) == '-') {
                 while (i != source.end() && *i != '\n') {
@@ -382,6 +383,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 t.type = MINUS;
                 utf8::advance(i, 1, source.end());
             }
+            t.length = i - startindex;
         } else if (c == '/') {
             if (i+1 != source.end() && *(i+1) == '*') {
                 for (;;) {
@@ -405,6 +407,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 t.type = DIVIDE;
                 utf8::advance(i, 1, source.end());
             }
+            t.length = i - startindex;
         } else if (c == '<') {
             if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = LESSEQ;
@@ -416,6 +419,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 t.type = LESS;
                 utf8::advance(i, 1, source.end());
             }
+            t.length = i - startindex;
         } else if (c == '>') {
             if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = GREATEREQ;
@@ -424,6 +428,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 t.type = GREATER;
                 utf8::advance(i, 1, source.end());
             }
+            t.length = i - startindex;
         } else if (c == ':') {
             if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = ASSIGN;
@@ -432,6 +437,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 t.type = COLON;
                 utf8::advance(i, 1, source.end());
             }
+            t.length = i - startindex;
         } else if (c == '.') {
             if (i+1 != source.end() && *(i+1) == '.' && i+2 != source.end() && *(i+2) == '.') {
                 t.type = ELLIPSIS;
@@ -440,6 +446,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 t.type = DOT;
                 utf8::advance(i, 1, source.end());
             }
+            t.length = i - startindex;
         } else if (identifier_start(c)) {
             t.type = IDENTIFIER;
             auto const start = i;
@@ -457,6 +464,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             } else if (t.text.length() >= 2 && t.text[0] == '_') {
                 error(1025, t, "identifier cannot start with underscore");
             }
+            t.length = t.text.length();
         } else if (number_start(c)) {
             t.type = NUMBER;
             auto start = i;
@@ -549,6 +557,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 }
             }
             t.text = std::string(start, i);
+            t.length = t.text.length();
         } else if (c == '"') {
             utf8::advance(i, 1, source.end());
             t.type = STRING;
@@ -611,8 +620,10 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                             break;
                         }
                         case '(': {
+                            t.length = i - startindex;
                             tokens.push_back(t);
                             t.column = column + (i - startindex) - 1;
+                            t.length = 1;
                             t.type = SUBBEGIN;
                             tokens.push_back(t);
                             auto start = i;
@@ -658,14 +669,17 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                             std::copy(subtokens.begin(), subtokens.end(), std::back_inserter(tokens));
                             if (colon > start) {
                                 t.column = column + (colon - startindex);
+                                t.length = 0;
                                 t.type = SUBFMT;
                                 tokens.push_back(t);
                                 t.column += 1;
                                 t.type = STRING;
                                 t.text = std::string(colon + 1, i - 1);
+                                t.length = t.text.length();
                                 tokens.push_back(t);
                             }
                             t.column = column + (i - startindex) - 1;
+                            t.length = 0;
                             t.type = SUBEND;
                             tokens.push_back(t);
                             t.column = column + (i - startindex);
@@ -683,6 +697,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 utf8::append(c, std::back_inserter(t.text));
             }
             t.text_source_offset.push_back(i - startindex - 2);
+            t.length = i - startindex;
         } else if (c == '@') {
             utf8::advance(i, 1, source.end());
             t.type = STRING;
@@ -757,6 +772,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 }
                 t.text_source_offset.push_back(i - startindex - 2);
             }
+            t.length = i - startindex;
         } else if (c == '\t') {
             column += 8 - ((column - 1) % 8);
             utf8::advance(i, 1, source.end());

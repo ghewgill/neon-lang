@@ -321,7 +321,12 @@ DECLARE NATIVE FUNCTION rename(oldname: String, newname: String): FileResult
  *      * match zero or more characters
  */
 FUNCTION wildcardMatch(pattern: String, name: String): Boolean
-    FUNCTION matchTail(pindex, nindex: Number): Boolean
+    RETURN matchTail(pattern, name, 0, 0)
+END FUNCTION
+    -- TODO: put this back into a local function above
+    -- after the C backend can compile local functions.
+    -- Remove pattern and name parameters.
+    FUNCTION matchTail(pattern: String, name: String, pindex, nindex: Number): Boolean
         VAR pi: Number := pindex
         VAR ni: Number := nindex
         WHILE pi < pattern.length() DO
@@ -331,7 +336,7 @@ FUNCTION wildcardMatch(pattern: String, name: String): Boolean
                     RETURN TRUE
                 END IF
                 WHILE ni < name.length() DO
-                    IF matchTail(pi, ni) THEN
+                    IF matchTail(pattern, name, pi, ni) THEN
                         RETURN TRUE
                     END IF
                     INC ni
@@ -348,8 +353,6 @@ FUNCTION wildcardMatch(pattern: String, name: String): Boolean
         END WHILE
         RETURN ni >= name.length()
     END FUNCTION
-    RETURN matchTail(0, 0)
-END FUNCTION
 
 /*  Function: writeBytes
  *

@@ -10,6 +10,7 @@ typedef struct tagTDictionaryEntry {
 typedef struct tagTDictionary {
     int64_t len;
     int64_t max;
+    int refount;
     struct tagTDictionaryEntry *data;
 } Dictionary;
 

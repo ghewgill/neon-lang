@@ -208,10 +208,8 @@ Cell *cell_fromCell(const Cell *c)
             cell_copyCell(x, c);
             break;
         case cArray:
-            x->array = array_createArrayFromSize(c->array->size);
-            for (size_t i = 0; i < x->array->size; i++) {
-                cell_copyCell(&x->array->data[i], &c->array->data[i]);
-            }
+            x->array = c->array;
+            x->array->refcount++;
             x->boolean = FALSE;
             x->number = number_from_uint32(0);
             x->object = NULL;
@@ -240,7 +238,8 @@ Cell *cell_fromCell(const Cell *c)
             x->dictionary = NULL;
             break;
         case cDictionary:
-            x->dictionary = dictionary_copyDictionary(c->dictionary);
+            x->dictionary = c->dictionary;
+            x->dictionary->refount++;
             x->boolean = FALSE;
             x->number = number_from_uint32(0);
             x->object = NULL;
@@ -394,22 +393,7 @@ void cell_arrayAppendElement(Cell *c, const Cell e)
         c->array = array_createArray();
     }
 
-    if (c->array->data) {
-        c->array->data = realloc(c->array->data, sizeof(Cell) * (c->array->size + 1));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to expand array.");
-        }
-        c->array->size++;
-    }
-    if (c->array->data == NULL) {
-        c->array->data = malloc(sizeof(Cell));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to allocate memory for appended array element.");
-        }
-        c->array->size = 1;
-    }
-    cell_initCell(&c->array->data[c->array->size-1]);
-    cell_copyCell(&c->array->data[c->array->size-1], &e);
+    array_appendElement(c->array, &e);
 }
 
 void cell_arrayAppendElementPointer(Cell *c, Cell *e)
@@ -422,22 +406,7 @@ void cell_arrayAppendElementPointer(Cell *c, Cell *e)
         c->array = array_createArray();
     }
 
-    if (c->array->data) {
-        c->array->data = realloc(c->array->data, sizeof(Cell) * (c->array->size + 1));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to expand array.");
-        }
-        c->array->size++;
-    }
-    if (c->array->data == NULL) {
-        c->array->data = malloc(sizeof(Cell));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to allocate memory for appended array element.");
-        }
-        c->array->size = 1;
-    }
-    cell_initCell(&c->array->data[c->array->size-1]);
-    cell_copyCell(&c->array->data[c->array->size-1], e);
+    array_appendElement(c->array, e);
     cell_freeCell(e);
 }
 
@@ -546,6 +515,14 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
     if (c->array == NULL) {
         c->array = array_createArray();
     }
+    if (c->array->refcount != 1) {
+        // Create a copy of the array, since we're going to write to it.
+        Array *wa = array_copyArray(c->array);
+        // Free the original array, which in this case will just decrement its refcount.
+        array_freeArray(c->array);
+        // Assign the (new) copied array to the cell object.
+        c->array = wa;
+    }
     if (i >= c->array->size) {
         c->array->data = realloc(c->array->data, sizeof(Cell) * (i+1));
         if (c->array->data == NULL) {
@@ -559,7 +536,7 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
     return &c->array->data[i];
 }
 
-Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key)
+Cell *cell_dictionaryIndexForWrite(Cell *c, TString *key)
 {
     if (c->type == cNothing) {
         c->type = cDictionary;
@@ -568,6 +545,15 @@ Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key)
     if (c->dictionary == NULL) {
         c->dictionary = dictionary_createDictionary();
     }
+    if (c->dictionary->refount != 1) {
+        // Create a copy of the dictionary, since we're going to write to it.
+        Dictionary *wd = dictionary_copyDictionary(c->dictionary);
+        // Free the original dictionary, which in this case will just decrement its refcount.
+        dictionary_freeDictionary(c->dictionary);
+        // Assign the (new) copied array to the cell object.
+        c->dictionary = wd;
+    }
+
     int64_t idx = dictionary_findIndex(c->dictionary, key);
     if (idx == -1) {
         idx = dictionary_addDictionaryEntry(c->dictionary, key, cell_newCell());
@@ -606,15 +592,16 @@ void cell_copyCell(Cell *dest, const Cell *source)
     }
 
     if (source->type == cArray && source->array != NULL) {
-        dest->array = array_createArrayFromSize(source->array->size);
-        for (size_t i = 0; i < dest->array->size; i++) {
-            cell_copyCell(&dest->array->data[i], &source->array->data[i]);
-        }
+        dest->array = source->array;
+        // Simply increment the refcount, since we're creating a copy of the cell.
+        dest->array->refcount++;
     } else {
         dest->array = NULL;
     }
     if (source->type == cDictionary && source->dictionary != NULL) {
-        dest->dictionary = dictionary_copyDictionary(source->dictionary);
+        dest->dictionary = source->dictionary;
+        // Simply increment the refcount, since we're creating a copy of the cell.
+        dest->dictionary->refount++;
     } else {
         dest->dictionary = NULL;
     }

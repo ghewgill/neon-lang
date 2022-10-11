@@ -22,6 +22,7 @@ choice.neon                     # choice.toString
 choice-recursive.neon           # choice
 complex-test.neon               # number range
 datetime-test.neon              # module datetime
+debug.neon                      # module datetime
 debug-example.neon              # debugger interface
 decimal.neon                    # decimal floating point
 dictionary.neon                 # memory leak

@@ -7,6 +7,7 @@ typedef struct {
     int (*compare)(const void *, const void *);
 } MethodTable;
 
+extern const MethodTable Ne_Boolean_mtable;
 extern const MethodTable Ne_Number_mtable;
 extern const MethodTable Ne_String_mtable;
 extern const MethodTable Ne_Object_mtable;
@@ -75,7 +76,9 @@ static int Ne_FunctionPointer_compare(const Ne_FunctionPointer *p, const Ne_Func
 
 void Ne_Boolean_init(Ne_Boolean *bool);
 void Ne_Boolean_init_copy(Ne_Boolean *dest, const Ne_Boolean *src);
+void Ne_Boolean_constructor(Ne_Boolean **bool);
 void Ne_Boolean_copy(Ne_Boolean *dest, const Ne_Boolean *src);
+void Ne_Boolean_destructor(Ne_Boolean *bool);
 void Ne_Boolean_deinit(Ne_Boolean *bool);
 int Ne_Boolean_compare(const Ne_Boolean *a, const Ne_Boolean *b);
 Ne_Exception *Ne_builtin_boolean__toString(Ne_String *result, const Ne_Boolean *a);
@@ -146,6 +149,7 @@ void Ne_Dictionary_init(Ne_Dictionary *d, const MethodTable *mtable);
 void Ne_Dictionary_init_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
 void Ne_Dictionary_copy(Ne_Dictionary *dest, const Ne_Dictionary *src);
 void Ne_Dictionary_deinit(Ne_Dictionary *d);
+int Ne_Dictionary_compare(const Ne_Dictionary *a, const Ne_Dictionary *b);
 Ne_Exception *Ne_Dictionary_in(Ne_Boolean *result, const Ne_Dictionary *d, const Ne_String *key);
 Ne_Exception *Ne_Dictionary_index(void **result, Ne_Dictionary *d, const Ne_String *index, Ne_Boolean always_create);
 Ne_Exception *Ne_builtin_dictionary__keys(Ne_Array *result, const Ne_Dictionary *d);

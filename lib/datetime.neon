@@ -38,7 +38,7 @@ EXPORT Sunday
 IMPORT math
 IMPORT time
 
-CONSTANT MonthNames := [
+CONSTANT MonthNames: Array<String> := [
     "",
     "January",
     "February",
@@ -66,7 +66,7 @@ CONSTANT October  : Number := 10
 CONSTANT November : Number := 11
 CONSTANT December : Number := 12
 
-CONSTANT WeekdayNames := [
+CONSTANT WeekdayNames: Array<String> := [
     "",
     "Monday",
     "Tuesday",
@@ -88,6 +88,7 @@ CONSTANT Sunday   : Number := 7
  *
  *  Represents a particular instant in global time.
  */
+-- TODO: Currently using bare Number instead because helium can't handle this type declaration.
 TYPE Instant IS Number
 
 /*  Type: DateTime
@@ -103,9 +104,10 @@ TYPE Instant IS Number
  *      hour - hour
  *      minute - minute
  *      second - second
+ *      fraction - seconds fractional part
  */
 TYPE DateTime IS RECORD
-    instant: Instant
+    instant: Number
     year: Number
     month: Number
     day: Number
@@ -113,6 +115,7 @@ TYPE DateTime IS RECORD
     hour: Number
     minute: Number
     second: Number
+    fraction: Number
 END RECORD
 
 /*  Type: Interval
@@ -182,7 +185,8 @@ END FUNCTION
  *
  *  Convert a specific instant into a <DateTime> record.
  */
-FUNCTION makeFromInstant(inst: Instant): DateTime
+FUNCTION makeFromInstant(inst: Number): DateTime
+    LET frac: Number := inst - math.trunc(inst)
     LET tm: struct_tm := gmtime(inst)
     RETURN DateTime(
         instant WITH inst,
@@ -192,7 +196,8 @@ FUNCTION makeFromInstant(inst: Instant): DateTime
         weekday WITH 1 + (tm.tm_wday + 6) MOD 7,
         hour WITH tm.tm_hour,
         minute WITH tm.tm_min,
-        second WITH tm.tm_sec
+        second WITH tm.tm_sec,
+        fraction WITH frac
     )
 END FUNCTION
 

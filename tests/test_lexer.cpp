@@ -124,6 +124,12 @@ int main(int argc, char *argv[])
         assert(tokens[1].column == 1);
         assert(tokens[2].type == END_OF_FILE);
 
+        tokens = dump(*tokenize("", "\"你好\"")).tokens;
+        assert(tokens.size() == 2);
+        assert(tokens[0].type == STRING);
+        assert(tokens[0].text == "你好");
+        assert(tokens[0].length == 8);
+
         {
             auto tokenized = tokenize("", "#!/bin/neon\na\n");
             dump(*tokenized);

@@ -4998,13 +4998,13 @@ void Analyzer::dump_expression_parts(const Token &token, const std::vector<const
         const Token &end = part->get_end_token();
         std::string str;
         if (start.line == end.line) {
-            str = start.source_line().substr(start.column-1, end.column + end.text.length() - start.column);
+            str = start.source_line().substr(start.column-1, end.column + end.length - start.column);
         } else {
             str = start.source_line().substr(start.column-1);
             for (int line = start.line + 1; line < end.line; line++) {
                 str += start.source->source_line(line);
             }
-            str += end.source_line().substr(0, end.column + end.text.length());
+            str += end.source_line().substr(0, end.column + end.length);
         }
         if (seen.find(str) != seen.end()) {
             continue;
@@ -6757,8 +6757,18 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
         internal_error("where's the print function");
     }
     const ast::Variable *string_concat = dynamic_cast<const ast::Variable *>(scope.top()->lookupName("builtin$string__concat"));
+    const ast::Module *runtime = import_module(Token(), "runtime", false);
+    if (runtime == nullptr) {
+        internal_error("need module runtime");
+    }
+    const ast::VariableExpression *debugTimestamp = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(runtime->scope->lookupName("debugTimestamp")));
+    if (debugTimestamp == nullptr) {
+        internal_error("need function runtime.debugTimestamp");
+    }
     auto concat = [string_concat](const ast::Expression *s, const ast::Expression *t){ return new ast::FunctionCall(new ast::VariableExpression(string_concat), {s, t}); };
-    const ast::Expression *s = new ast::ConstantStringExpression(utf8string("DEBUG (" + statement->token.source->source_path + ":" + std::to_string(statement->token.line) + ") "));
+    const ast::Expression *s = new ast::ConstantStringExpression(utf8string("DEBUG "));
+    s = concat(s, new ast::FunctionCall(debugTimestamp, {}));
+    s = concat(s, new ast::ConstantStringExpression(utf8string(" (" + statement->token.source->source_path + ":" + std::to_string(statement->token.line) + ") ")));
     bool first = true;
     for (auto &v: statement->values) {
         if (not first) {
@@ -6775,7 +6785,7 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
         } else {
             auto st = v->get_start_token();
             auto et = v->get_end_token();
-            s = concat(s, new ast::ConstantStringExpression(utf8string(st.source_line().substr(st.column-1, et.column + et.text.length() - st.column) + " (" + e->type->name.c_str() + ") = ")));
+            s = concat(s, new ast::ConstantStringExpression(utf8string(st.source_line().substr(st.column-1, et.column + et.length - st.column) + " (" + e->type->name.c_str() + ") = ")));
             auto toString = e->type->methods.find("toString");
             if (toString == e->type->methods.end()) {
                 error(3330, v->token, "no toString() method found for type");
@@ -6785,10 +6795,6 @@ const ast::Statement *Analyzer::analyze(const pt::DebugStatement *statement)
     }
     if (not support->enableDebug()) {
         return new ast::NullStatement(statement->token);
-    }
-    const ast::Module *runtime = import_module(Token(), "runtime", false);
-    if (runtime == nullptr) {
-        internal_error("need module runtime");
     }
     return new ast::IfStatement(
         statement->token,
