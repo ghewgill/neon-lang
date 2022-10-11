@@ -112,7 +112,7 @@ Cell mkdir(const utf8string &path)
     if (!r) {
         return error_result(GetLastError(), path);
     }
-    return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
+    return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
 Cell removeEmptyDirectory(const utf8string &path)
@@ -121,7 +121,7 @@ Cell removeEmptyDirectory(const utf8string &path)
     if (!r) {
         return error_result(GetLastError(), path);
     }
-    return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
+    return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
 Cell rename(const utf8string &oldname, const utf8string &newname)
@@ -130,7 +130,7 @@ Cell rename(const utf8string &oldname, const utf8string &newname)
     if (!r) {
         return error_result(GetLastError(), oldname);
     }
-    return Cell(std::vector<Cell> {Cell(Number(CHOICE_FileResult_ok))});
+    return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
 
 } // namespace ne_file
