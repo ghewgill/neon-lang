@@ -153,7 +153,7 @@ public:
     size_t param_recursion_limit;
 
     std::map<std::string, Cell *> *external_globals;
-    std::map<std::string, Module *> modules;
+    std::map<std::string, std::unique_ptr<Module>> modules;
     std::vector<std::string> init_order;
     Module *module;
     int exit_code;
@@ -585,7 +585,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
         exit(1);
     }
     module = new Module(source_path, b, debuginfo, this, support);
-    modules[""] = module;
+    modules[""] = std::unique_ptr<Module>(module);
 }
 
 Executor::~Executor()
@@ -621,7 +621,7 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
         }
         // TODO: check hash of exports
         executor->modules[importname] = nullptr; // Prevent unwanted recursion.
-        executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
+        executor->modules[importname] = std::unique_ptr<Module>(new Module(importname, code, nullptr, executor, support));
         executor->init_order.push_back(importname);
     }
 }
@@ -1361,8 +1361,8 @@ void Executor::exec_CALLMF()
         }
         for (auto ef: m->second->object.export_functions) {
             if (m->second->object.strtable[ef.name] + "," + m->second->object.strtable[ef.descriptor] == module->object.strtable[func]) {
-                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ef.index);
-                invoke(m->second, ef.index);
+                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second.get(), ef.index);
+                invoke(m->second.get(), ef.index);
                 return;
             }
         }
@@ -1665,7 +1665,7 @@ void Executor::exec_PUSHCI()
         std::string methodname = module->object.strtable[val].substr(dot+1);
         auto mod = modules.find(modname);
         if (mod != modules.end()) {
-            Module *m = mod->second;
+            Module *m = mod->second.get();
             for (auto &c: m->object.classes) {
                 if (m->object.strtable[c.name] == methodname) {
                     Cell ci;
@@ -1697,8 +1697,8 @@ void Executor::exec_PUSHMFP()
         }
         for (auto ef: m->second->object.export_functions) {
             if (m->second->object.strtable[ef.name] + "," + m->second->object.strtable[ef.descriptor] == module->object.strtable[func]) {
-                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ef.index);
-                stack.push(Cell(std::vector<Cell> {Cell::makeOther(m->second), Cell(number_from_uint32(ef.index))}));
+                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second.get(), ef.index);
+                stack.push(Cell(std::vector<Cell> {Cell::makeOther(m->second.get()), Cell(number_from_uint32(ef.index))}));
                 return;
             }
         }
@@ -1881,7 +1881,7 @@ void Executor::garbage_collect()
     }
 
     // Mark reachable objects.
-    for (auto m: modules) {
+    for (auto &m: modules) {
         for (auto &g: m.second->globals) {
             mark(&g);
         }
@@ -1921,7 +1921,7 @@ bool Executor::is_module_imported(const std::string &mod)
 
 bool Executor::module_is_main()
 {
-    return module == modules[""];
+    return module == modules[""].get();
 }
 
 void Executor::set_garbage_collection_interval(size_t count)
@@ -1943,7 +1943,7 @@ int Executor::exec()
     // each module in the order determined in init_order, followed
     // by running the code in the main module.
     for (auto x = init_order.rbegin(); x != init_order.rend(); ++x) {
-        invoke(modules[*x], 0);
+        invoke(modules[*x].get(), 0);
     }
 
     int r = exec_loop(0);
@@ -2215,7 +2215,7 @@ void Executor::handle_GET(const std::string &path, HttpResponse &response)
         if (modname == "-") {
             modname = "";
         }
-        Module *m = modules[modname];
+        Module *m = modules[modname].get();
         if (parts.size() == 4 && parts[3] == "bytecode") {
             response.code = 200;
             minijson::write_array(r, m->object.obj.begin(), m->object.obj.end());
@@ -2233,7 +2233,7 @@ void Executor::handle_GET(const std::string &path, HttpResponse &response)
     } else if (path == "/modules") {
         response.code = 200;
         std::vector<std::string> names;
-        for (auto m: modules) {
+        for (auto &m: modules) {
             names.push_back(m.first);
         }
         minijson::write_array(r, names.begin(), names.end());
