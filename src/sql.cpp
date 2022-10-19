@@ -614,7 +614,7 @@ public:
             if (sql[i] == ':') {
                 name = ":";
             } else if (not name.empty()) {
-                if (isalnum(sql[i])) {
+                if (isalnum(sql[i]) || sql[i] == '_') {
                     name.push_back(sql[i]);
                 } else {
                     ::Token tok = ::Token(lexer.token);
