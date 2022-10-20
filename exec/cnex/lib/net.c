@@ -299,7 +299,7 @@ void net_socket_select(TExecutor *exec)
     int nfds = 0;
 
     for (size_t i = 0; i < read->array->size; i++) {
-        SOCKET *ps = check_socket(exec, read->array->data[i].object);
+        SOCKET *ps = check_socket(exec, read->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         FD_SET(fd, &rfds);
         if (fd + 1 > nfds) {
@@ -308,7 +308,7 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < write->array->size; i++) {
-        SOCKET *ps = check_socket(exec, read->array->data[i].object);
+        SOCKET *ps = check_socket(exec, write->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         FD_SET(fd, &wfds);
         if (fd + 1 > nfds) {
@@ -317,7 +317,7 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < error->array->size; i++) {
-        SOCKET *ps = check_socket(exec, read->array->data[i].object);
+        SOCKET *ps = check_socket(exec, error->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         FD_SET(fd, &efds);
         if (fd + 1 > nfds) {
@@ -355,7 +355,7 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < read->array->size; ) {
-        SOCKET *ps = check_socket(exec, read->array->data[i].object);
+        SOCKET *ps = check_socket(exec, read->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         if (FD_ISSET(fd, &rfds)) {
             ++i;
@@ -365,7 +365,7 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < write->array->size; ) {
-        SOCKET *ps = check_socket(exec, write->array->data[i].object);
+        SOCKET *ps = check_socket(exec, write->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         if (FD_ISSET(fd, &rfds)) {
             ++i;
@@ -375,7 +375,7 @@ void net_socket_select(TExecutor *exec)
     }
 
     for (size_t i = 0; i < error->array->size; ) {
-        SOCKET *ps = check_socket(exec, error->array->data[i].object);
+        SOCKET *ps = check_socket(exec, error->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         if (FD_ISSET(fd, &rfds)) {
             ++i;
