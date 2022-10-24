@@ -302,27 +302,36 @@ void net_socket_select(TExecutor *exec)
         SOCKET *ps = check_socket(exec, read->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         FD_SET(fd, &rfds);
+#ifndef _WIN32
+        // nfds is ignored in Win32, so we ignore this to avoid a C4244 warning on SOCKET to int conversion.
         if (fd + 1 > nfds) {
             nfds = fd+1;
         }
+#endif
     }
 
     for (size_t i = 0; i < write->array->size; i++) {
         SOCKET *ps = check_socket(exec, write->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         FD_SET(fd, &wfds);
+#ifndef _WIN32
+        // nfds is ignored in Win32, so we ignore this to avoid a C4244 warning on SOCKET to int conversion.
         if (fd + 1 > nfds) {
             nfds = fd+1;
         }
+#endif
     }
 
     for (size_t i = 0; i < error->array->size; i++) {
         SOCKET *ps = check_socket(exec, error->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
         FD_SET(fd, &efds);
+#ifndef _WIN32
+        // nfds is ignored in Win32, so we ignore this to avoid a C4244 warning on SOCKET to int conversion.
         if (fd + 1 > nfds) {
             nfds = fd+1;
         }
+#endif
     }
 
     struct timeval actual_tv;
