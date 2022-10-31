@@ -11,3 +11,17 @@ a.resize(2)
 TESTCASE a.size() = 2
 TESTCASE a[2] EXPECT PANIC "Array index exceeds size 2: 2"
 TESTCASE a.resize(1.5) EXPECT PANIC "Invalid array size: 1.5"
+
+a.resize(0)
+TESTCASE a.size() = 0
+
+a[10] := 1
+a[4] := 2
+TESTCASE a.size() = 11
+TESTCASE a[10] = 1
+TESTCASE a[4] = 2
+
+a.resize(5)
+TESTCASE a.size() = 5
+TESTCASE a[4] = 2
+TESTCASE a[5] EXPECT PANIC "Array index exceeds size 5: 5"
