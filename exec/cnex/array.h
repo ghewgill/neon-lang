@@ -10,7 +10,7 @@ typedef struct tagTArray {
 
 Array *array_createArray(void);
 Array *array_createArrayFromSize(size_t iElements);
-Array *array_expandArray(Array *self, size_t iElements);
+Array *array_resizeArray(Array *self, size_t newSize);
 
 void array_clearArray(Array *self);
 void array_freeArray(Array *self);
