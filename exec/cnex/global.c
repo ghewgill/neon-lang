@@ -658,16 +658,7 @@ void array__resize(TExecutor *exec)
     }
 
     cell_ensureArray(addr);
-    size_t array_size = addr->array->size;
-    addr->array->size = number_to_sint64(new_size);
-    addr->array->data = realloc(addr->array->data, (sizeof(Cell) * addr->array->size));
-    if (addr->array->data == NULL) {
-        fatal_error("Could not expand array to %ld elements.", addr->array->size);
-    }
-
-    for (size_t i = array_size; i < addr->array->size; i++) {
-        cell_initCell(&addr->array->data[i]);
-    }
+    array_resizeArray(addr->array, number_to_sint64(new_size));
 }
 
 void array__reversed(TExecutor *exec)

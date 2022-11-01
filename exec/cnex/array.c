@@ -38,26 +38,36 @@ Array *array_createArrayFromSize(size_t iElements)
     return a;
 }
 
-Array *array_expandArray(Array *self, size_t iElements)
+Array *array_resizeArray(Array *self, size_t newSize)
 {
     if (self == NULL) {
-        self = malloc(sizeof(Array));
-        if (self == NULL) {
-            fatal_error("Unable to allocate array for array expansion.");
+        self = array_createArray();
+    }
+
+    // If we're shrinking the array, then we need to free the elements at the cutoff point, to prevent a memory leak.
+    if (newSize < self->size) {
+        for (size_t i = newSize; i < self->size; i++) {
+            cell_clearCell(&self->data[i]);
         }
+    }
+    if (newSize > 0) {
+        self->data = realloc(self->data, sizeof(Cell) * newSize);
+        if (self->data == NULL) {
+            fatal_error("Unable resize array from %zu to %zu elements.", self->size, newSize);
+        }
+    } else {
+        // If the new size ends up being zero, fine, we won't realloc it, since we'd have already cleaned up
+        // all of the array elements above, so there's no harm in leaving the array container allocated for more
+        // than we're using.  It'll all come out in the wash.
         self->size = 0;
-        self->data = NULL;
     }
 
-    self->data = realloc(self->data, sizeof(Cell) * (self->size + iElements));
-    if (self->data == NULL) {
-        fatal_error("Unable to allocate memory for %d expanded array elements.", self->size + iElements);
-    }
-
-    for (size_t i = self->size; i < self->size + iElements; i++) {
+    // Initialize any new elements we may have added, but skip any that may have been there before.
+    for (size_t i = self->size; i < newSize; i++) {
         cell_initCell(&self->data[i]);
     }
-    self->size += iElements;
+    // Finally, assign the size, and return ourself.
+    self->size = newSize;
     return self;
 }
 
