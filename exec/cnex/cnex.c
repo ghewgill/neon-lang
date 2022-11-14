@@ -20,9 +20,6 @@
 #include "array.h"
 #include "bytecode.h"
 #include "cell.h"
-#ifdef _WIN32
-#define CJSON_HIDE_SYMBOLS
-#endif
 #include "cJSON.h"
 #include "dictionary.h"
 #include "disassembly.h"
