@@ -582,11 +582,11 @@ void array__find(TExecutor *exec)
     Cell *e = peek(exec->stack, 0);
     Array *a = peek(exec->stack, 1)->array;
 
-    Number r = number_from_sint32(-1);
+    Number r = number_from_sint64(-1);
 
     for (size_t i = 0; i < a->size; i++) {
         if (cell_compareCell(&a->data[i], e) == 0) {
-            r = number_from_uint32(i);
+            r = number_from_uint64(i);
             break;
         }
     }
@@ -918,7 +918,7 @@ void bytes__decodeUTF8(TExecutor *exec)
         Cell *e = cell_createArrayCell(1);
         Cell *o = cell_arrayIndexForWrite(e, 0);
         o->type = cNumber;
-        o->number = number_from_uint32(err_idx);
+        o->number = number_from_uint32((uint32_t)err_idx);
         pop(exec->stack);
         push(exec->stack, cell_makeChoice_cell(CHOICE_DecodeResult_error, e));
         return;
@@ -1111,7 +1111,7 @@ void bytes__store(TExecutor *exec)
 
     int64_t idx = number_to_sint64(index);
     // TODO: range checking
-    s->string->data[idx] = number_to_uint32(b);
+    s->string->data[idx] = (char)number_to_uint32(b);
 }
 
 void bytes__toArray(TExecutor *exec)
