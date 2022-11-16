@@ -608,24 +608,33 @@ void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info
 
 void exec_numberCheckAndRaise(TExecutor *self, unsigned int start_ip, const char *what)
 {
+    if ((_IDEC_glbflags & (BID_OVERFLOW_EXCEPTION | BID_ZERO_DIVIDE_EXCEPTION | BID_INVALID_EXCEPTION)) == 0) {
+        return;
+    }
+    const char *funcname = what;
+    const char *sep = strchr(funcname, '$');
+    if (sep != NULL) {
+        funcname = sep + 1;
+    }
+
     if (_IDEC_glbflags & BID_OVERFLOW_EXCEPTION) {
         self->ip = start_ip;
         char buf[100];
-        snprintf(buf, sizeof(buf), "Number overflow error: %s", what);
+        snprintf(buf, sizeof(buf), "Number overflow error: %s", funcname);
         exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
     if (_IDEC_glbflags & BID_ZERO_DIVIDE_EXCEPTION) {
         self->ip = start_ip;
         char buf[100];
-        snprintf(buf, sizeof(buf), "Number divide by zero error: %s", what);
+        snprintf(buf, sizeof(buf), "Number divide by zero error: %s", funcname);
         exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
     if (_IDEC_glbflags & BID_INVALID_EXCEPTION) {
         self->ip = start_ip;
         char buf[100];
-        snprintf(buf, sizeof(buf), "Number invalid error: %s", what);
+        snprintf(buf, sizeof(buf), "Number invalid error: %s", funcname);
         exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
@@ -1408,12 +1417,7 @@ void exec_CALLP(TExecutor *self)
     }
     (self->module->predef_cache[val])(self);
 
-    const char *funcname = func;
-    const char *sep = strchr(funcname, '$');
-    if (sep != NULL) {
-        funcname = sep + 1;
-    }
-    exec_numberCheckAndRaise(self, start_ip, funcname);
+    exec_numberCheckAndRaise(self, start_ip, func);
 }
 
 void exec_CALLF(TExecutor *self)
