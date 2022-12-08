@@ -305,6 +305,40 @@ Cell *cell_fromCell(const Cell *c)
     return x;
 }
 
+Cell *cell_fromCellValue(const Cell* c)
+{
+    assert(c != NULL);
+
+    Cell *x = cell_newCell();
+    x->type = c->type;
+    switch (c->type) {
+        case cArray:
+            x->array = array_copyArray(c->array);
+            x->boolean = FALSE;
+            x->number = number_from_uint32(0);
+            x->object = NULL;
+            x->string = NULL;
+            x->address = NULL;
+            x->dictionary = NULL;
+            x->other = NULL;
+            break;
+        case cDictionary:
+            x->dictionary = dictionary_copyDictionary(c->dictionary);
+            x->boolean = FALSE;
+            x->number = number_from_uint32(0);
+            x->object = NULL;
+            x->string = NULL;
+            x->address = NULL;
+            x->array = NULL;
+            x->other = NULL;
+            break;
+        default:
+            cell_copyCell(x, c);
+            break;
+    }
+    return x;
+}
+
 void cell_setString(Cell *c, TString *s)
 {
     c->string = s;
@@ -567,6 +601,27 @@ Cell *cell_dictionaryIndexForRead(Cell *c, TString *key)
     }
     Cell *r = dictionary_findDictionaryEntry(c->dictionary, key);
     return r;
+}
+
+void cell_valueCopyCell(Cell *dest, const Cell *source)
+{
+    assert(source != NULL);
+    assert(dest != NULL);
+
+    cell_clearCell(dest);
+    dest->type = source->type;
+
+    switch (source->type) {
+        case cArray:
+            dest->array = array_copyArray(source->array);
+            break;
+        case cDictionary:
+            dest->dictionary = dictionary_copyDictionary(source->dictionary);
+            break;
+        default:
+            cell_copyCell(dest, source);
+            break;
+    }
 }
 
 void cell_copyCell(Cell *dest, const Cell *source)

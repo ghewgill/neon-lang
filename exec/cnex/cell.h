@@ -66,8 +66,11 @@ Cell *cell_fromString(struct tagTString *s);
 Cell *cell_fromStringLength(const char *s, int64_t length);
 Cell *cell_fromOther(void *p);
 Cell *cell_fromCell(const Cell *c);
+Cell *cell_fromCellValue(const Cell* c);
 
 void cell_copyCell(Cell *dest, const Cell *source);
+void cell_valueCopyCell(Cell *dest, const Cell *source);
+
 
 int32_t cell_compareCell(const Cell *s, const Cell *d);
 

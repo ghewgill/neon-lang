@@ -62,8 +62,10 @@ Array *array_resizeArray(Array *self, size_t newSize)
             cell_clearCell(&self->data[i]);
         }
     }
+    // If we're expanding the array, but we don't have any preallocated space left, we need to make some.
     if (newSize > 0 && newSize > self->max) {
         self->max *= 2;
+        // Just in case max*2 still isn't enough space, we'll cut our losses here and just allocate what we need.
         if (self->max < newSize) {
             self->max = newSize;
         }
@@ -122,6 +124,8 @@ void array_removeItem(Array *self, size_t index)
 {
     if (self != NULL && self->data != NULL) {
         for(size_t i = index; i+1 < self->size; i++) {
+            // It's safe to do a reference copy here, since we'll lower the reference count right after, and in fact
+            // is faster than having to make a value copy.
             cell_copyCell(&self->data[i], &self->data[i+1]);
             cell_clearCell(&self->data[i+1]);
         }
@@ -134,7 +138,8 @@ Array *array_copyArray(Array *a)
     Array *r = array_createArrayFromSize(a->size);
 
     for (size_t i = 0; i < r->size; i++) {
-        cell_copyCell(&r->data[i], &a->data[i]);
+        // Ensure that any arrays contained inside of the array is actually copied by value, and not by reference.
+        cell_valueCopyCell(&r->data[i], &a->data[i]);
     }
     return r;
 }

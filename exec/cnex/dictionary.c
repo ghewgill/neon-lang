@@ -55,9 +55,17 @@ int64_t dictionary_addDictionaryEntry(Dictionary *self, TString *key, Cell *valu
         }
     }
 
-    if (self->len == self->max) {
+    //This could be a new dictionary; so we should ensure that we have at least the initial storage available.
+    if (self->data == NULL) {
+        self->data = malloc(self->max * sizeof(DictionaryEntry));
+    }
+    assert(self->data != NULL);
+    if (self->len >= self->max) {
         self->max *= 2;
         self->data = realloc(self->data, self->max * sizeof(DictionaryEntry));
+        if (self->data == NULL) {
+            fatal_error("Could not realloc data for dictionary.  Size: %zd", self->max * sizeof(DictionaryEntry));
+        }
     }
     memmove(&self->data[index+1], &self->data[index], (self->len-index) * sizeof(DictionaryEntry));
     self->len++;
@@ -104,9 +112,11 @@ Dictionary *dictionary_copyDictionary(Dictionary *self)
     // There's no reason to do a sorted insert on a copy; self->data will already be sorted.
     for (int64_t i = 0; i < self->len; i++) {
         d->data[i].key = string_copyString(self->data[i].key);
-        d->data[i].value = cell_fromCell(self->data[i].value);
+        d->data[i].value = cell_fromCellValue(self->data[i].value);
     }
     d->len = self->len;
+    // We didn't take into account any extra space; so we want to make sure the limit is set.
+    d->max = self->len;
     return d;
 }
 
