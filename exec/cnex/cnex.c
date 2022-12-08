@@ -1238,7 +1238,10 @@ void exec_INDEXAR(TExecutor *self)
         self->rtl_raise(self, "PANIC", buf);
         return;
     }
-    push(self->stack, cell_fromAddress(cell_arrayIndexForRead(addr, j)));
+    // ToDo: This should probably be a call to cell_arrayIndexForRead().  Since arrays are reference
+    // counted in cnex, this shouldn't incur too much of a performance hit, however it could.  See
+    // src/exec.cpp, Executor::exec_INDEXAR() for full explanation.
+    push(self->stack, cell_fromAddress(cell_arrayIndexForWrite(addr, j)));
 }
 
 void exec_INDEXAW(TExecutor *self)
@@ -1337,8 +1340,8 @@ void exec_INDEXDR(TExecutor *self)
         string_freeString(index);
         return;
     }
-    push(self->stack, cell_fromAddress(cell_dictionaryIndexForRead(addr, index)));
-    string_freeString(index);
+    // Note: This should probably be cell_dictionaryIndexForRead().  See comment in exec_INDEXAR()
+    push(self->stack, cell_fromAddress(cell_dictionaryIndexForWrite(addr, index)));
 }
 
 void exec_INDEXDW(TExecutor *self)
@@ -1347,7 +1350,6 @@ void exec_INDEXDW(TExecutor *self)
     TString *index = string_fromString(top(self->stack)->string); pop(self->stack);
     Cell *addr = top(self->stack)->address; pop(self->stack);
     push(self->stack, cell_fromAddress(cell_dictionaryIndexForWrite(addr, index)));
-    //string_freeString(index);
 }
 
 void exec_INDEXDV(TExecutor *self)
