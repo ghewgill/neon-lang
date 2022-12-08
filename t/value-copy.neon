@@ -46,3 +46,15 @@ VAR d1: Dictionary<Number> := {"one": 1, "two": 2, "three": 3}
 VAR d2: Dictionary<Number> := d1
 d1["one"] := -1
 TESTCASE d2["one"] = 1
+
+VAR aa1: Array<Array<Number>> := [[]]
+VAR aa2: Array<Array<Number>> := aa1
+aa1[0].append(1)
+TESTCASE aa1[0] = [1]
+TESTCASE aa2[0] = []
+
+VAR da1: Dictionary<Array<Number>> := {"": []}
+VAR da2: Dictionary<Array<Number>> := da1
+da1[""].append(1)
+TESTCASE da1[""] = [1]
+TESTCASE da2[""] = []

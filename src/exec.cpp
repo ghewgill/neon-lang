@@ -1185,7 +1185,13 @@ void Executor::exec_INDEXAR()
         raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>(utf8string("Array index exceeds size " + std::to_string(addr->array().size()) + ": " + number_to_string(index))));
         return;
     }
-    stack.push(Cell(&addr->array_index_for_read(j)));
+    // TODO: This should really be a call to array_index_for_read.
+    // However, in the case where a mutating function is called
+    // on an array element (such as a[0].mutate()), we really need
+    // to detach the array from any other shared copy first.
+    // This change loses some optimisation because more copies may
+    // be made than necessary, but it doesn't break the semantics.
+    stack.push(Cell(&addr->array_index_for_write(j)));
 }
 
 void Executor::exec_INDEXAW()
@@ -1261,7 +1267,8 @@ void Executor::exec_INDEXDR()
         raise_literal(utf8string("PANIC"), std::make_shared<ObjectString>("Dictionary key not found: " + index));
         return;
     }
-    stack.push(Cell(&addr->dictionary_index_for_read(index)));
+    // TODO: See note in INDEXAR.
+    stack.push(Cell(&addr->dictionary_index_for_write(index)));
 }
 
 void Executor::exec_INDEXDW()
