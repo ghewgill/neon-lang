@@ -5,6 +5,7 @@
 #include "cJSON.h"
 
 struct tagTExecutor;
+typedef void (*PredefinedFunctionPointer)(struct tagTExecutor *s);
 
 typedef struct tagTModule {
     char *name;
@@ -15,6 +16,7 @@ typedef struct tagTModule {
     unsigned int codelen;
     struct tagTBytecode *bytecode;
     struct tagTCell *globals;
+    PredefinedFunctionPointer *predef_cache;
     cJSON *debug_symbols;
 } TModule;
 

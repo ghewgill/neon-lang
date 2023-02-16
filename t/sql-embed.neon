@@ -13,3 +13,10 @@ EXEC SQL INSERT INTO user (name, password) VALUES (:name, :password);
 VAR pw_tmp: String
 EXEC SQL SELECT password INTO :pw_tmp FROM user WHERE name = :name;
 TESTCASE pw_tmp = "password"
+
+LET user_name: String := "user name"
+EXEC SQL INSERT INTO user (name, password) VALUES (:user_name, :password);
+
+pw_tmp := ""
+EXEC SQL SELECT password INTO :pw_tmp FROM user WHERE name = :user_name;
+TESTCASE pw_tmp = "password"

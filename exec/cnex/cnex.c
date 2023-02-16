@@ -20,9 +20,6 @@
 #include "array.h"
 #include "bytecode.h"
 #include "cell.h"
-#ifdef _WIN32
-#define CJSON_HIDE_SYMBOLS
-#endif
 #include "cJSON.h"
 #include "dictionary.h"
 #include "disassembly.h"
@@ -224,6 +221,11 @@ int main(int argc, char* argv[])
                         "Max Framesets          : %d\n"
                         "Max Allocations        : %zu\n"
                         "Remaining Objects      : %zu\n"
+                        "Total Predefined Calls : %zu\n"
+                        "Predef Linear Lookups  : %zu\n"
+                        "Total Linear Elements  : %zu\n"
+                        "Predef cache hits      : %zu\n"
+                        "Predef cache size      : %zu bytes\n"
                         "Execution Time         : %fms\n",
                         g_executor->diagnostics.total_opcodes,
                         g_executor->stack->max + 1,
@@ -234,7 +236,12 @@ int main(int argc, char* argv[])
                         g_executor->framestack->max,
                         g_executor->diagnostics.total_allocations,
                         heap_getObjectCount(g_executor),
-                        (((float)g_executor->diagnostics.time_end - g_executor->diagnostics.time_start) / CLOCKS_PER_SEC) * 1000
+                        g_executor->diagnostics.total_predef_calls,
+                        g_executor->diagnostics.predef_linear_lookups,
+                        g_executor->diagnostics.total_linear_elements,
+                        g_executor->diagnostics.predef_cache_hits,
+                        g_executor->diagnostics.predef_cache_size,
+                        ((((float)g_executor->diagnostics.time_end - g_executor->diagnostics.time_start) / CLOCKS_PER_SEC) * 1000)
         );
     }
 
@@ -366,11 +373,28 @@ TExecutor *exec_newExecutor(TModule *object)
         module_loadModule(r, r->module->bytecode->strings[r->module->bytecode->imports[m].name]->data, r->module_count);
     }
 
+    // Build predefined function pointer cache for all modules
+    r->diagnostics.predef_cache_size = 0;
+    for (unsigned int m = 0; m < r->module_count; m++) {
+        // Calculating and store its size for diagnostic purposes
+        size_t cache_size = sizeof(void(*)(struct tagTExecutor *)) * r->modules[m]->bytecode->strtablelen;
+        r->diagnostics.predef_cache_size += cache_size;
+        r->modules[m]->predef_cache = malloc(cache_size);
+        // Prep global cache
+        for (size_t gfp = 0; gfp < r->modules[m]->bytecode->strtablelen; gfp++) {
+            r->modules[m]->predef_cache[gfp] = NULL;
+        }
+    }
+
     /* Debug / Diagnostic fields */
     r->diagnostics.total_opcodes = 0;
     r->diagnostics.callstack_max_height = 0;
     r->diagnostics.total_allocations = 0;
     r->diagnostics.collected_objects = 0;
+    r->diagnostics.total_predef_calls = 0;
+    r->diagnostics.predef_linear_lookups = 0;
+    r->diagnostics.total_linear_elements = 0;
+    r->diagnostics.predef_cache_hits = 0;
     return r;
 }
 
@@ -581,24 +605,33 @@ void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info
 
 void exec_numberCheckAndRaise(TExecutor *self, unsigned int start_ip, const char *what)
 {
+    if ((_IDEC_glbflags & (BID_OVERFLOW_EXCEPTION | BID_ZERO_DIVIDE_EXCEPTION | BID_INVALID_EXCEPTION)) == 0) {
+        return;
+    }
+    const char *funcname = what;
+    const char *sep = strchr(funcname, '$');
+    if (sep != NULL) {
+        funcname = sep + 1;
+    }
+
     if (_IDEC_glbflags & BID_OVERFLOW_EXCEPTION) {
         self->ip = start_ip;
         char buf[100];
-        snprintf(buf, sizeof(buf), "Number overflow error: %s", what);
+        snprintf(buf, sizeof(buf), "Number overflow error: %s", funcname);
         exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
     if (_IDEC_glbflags & BID_ZERO_DIVIDE_EXCEPTION) {
         self->ip = start_ip;
         char buf[100];
-        snprintf(buf, sizeof(buf), "Number divide by zero error: %s", what);
+        snprintf(buf, sizeof(buf), "Number divide by zero error: %s", funcname);
         exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
     if (_IDEC_glbflags & BID_INVALID_EXCEPTION) {
         self->ip = start_ip;
         char buf[100];
-        snprintf(buf, sizeof(buf), "Number invalid error: %s", what);
+        snprintf(buf, sizeof(buf), "Number invalid error: %s", funcname);
         exec_rtl_raiseException(self, "PANIC", buf);
         return;
     }
@@ -1371,16 +1404,17 @@ void exec_CALLP(TExecutor *self)
     _IDEC_glbflags = 0;
     unsigned int start_ip = self->ip;
     self->ip++;
+    self->diagnostics.total_predef_calls++;
     unsigned int val = exec_getOperand(self);
     const char *func = self->module->bytecode->strings[val]->data;
-
-    global_callFunction(func, self);
-    const char *funcname = func;
-    const char *sep = strchr(funcname, '$');
-    if (sep != NULL) {
-        funcname = sep + 1;
+    if (self-> module->predef_cache[val] == NULL) {
+        self-> module->predef_cache[val] = global_lookupFunction(func, self);
+    } else {
+        self->diagnostics.predef_cache_hits++;
     }
-    exec_numberCheckAndRaise(self, start_ip, funcname);
+    (self->module->predef_cache[val])(self);
+
+    exec_numberCheckAndRaise(self, start_ip, func);
 }
 
 void exec_CALLF(TExecutor *self)
@@ -1529,7 +1563,7 @@ void exec_CONSD(TExecutor *self)
     while (val > 0) {
         Cell *value = cell_fromCell(top(self->stack)); pop(self->stack);
         TString *key = string_fromString(top(self->stack)->string); pop(self->stack);
-        dictionary_addDictionaryEntry(d->dictionary, key, value);
+        dictionary_addDictionaryEntry(d->dictionary, key, value, -1);
         val--;
     }
     push(self->stack, d);

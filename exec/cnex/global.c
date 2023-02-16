@@ -481,19 +481,20 @@ Cell *global_getVariable(const char *pszVar)
     fatal_error("global_getVariable(): \"%s\" - invalid predefined variable.", pszVar);
 }
 
-void global_callFunction(const char *pszFunc, struct tagTExecutor *exec)
+void (*global_lookupFunction(const char *pszFunc, TExecutor *exec))(struct tagTExecutor *exec)
 {
     uint32_t i;
 
     i = 0;
+    exec->diagnostics.predef_linear_lookups++;
     while (gfuncDispatch[i].name) {
         if (strcmp(pszFunc, gfuncDispatch[i].name) == 0) {
-            (*gfuncDispatch[i].func)(exec);
-            return;
+            exec->diagnostics.total_linear_elements += i;
+            return gfuncDispatch[i].func;
         }
         i++;
     }
-    fatal_error("global_callFunction(): \"%s\" - invalid or unsupported predefined function call.", pszFunc);
+    fatal_error("global_lookupFunction(): \"%s\" - invalid or unsupported predefined function call.", pszFunc);
 }
 
 void neon_num(TExecutor *exec)
@@ -582,11 +583,11 @@ void array__find(TExecutor *exec)
     Cell *e = peek(exec->stack, 0);
     Array *a = peek(exec->stack, 1)->array;
 
-    Number r = number_from_sint32(-1);
+    Number r = number_from_sint64(-1);
 
     for (size_t i = 0; i < a->size; i++) {
         if (cell_compareCell(&a->data[i], e) == 0) {
-            r = number_from_uint32(i);
+            r = number_from_uint64(i);
             break;
         }
     }
@@ -658,16 +659,7 @@ void array__resize(TExecutor *exec)
     }
 
     cell_ensureArray(addr);
-    size_t array_size = addr->array->size;
-    addr->array->size = number_to_sint64(new_size);
-    addr->array->data = realloc(addr->array->data, (sizeof(Cell) * addr->array->size));
-    if (addr->array->data == NULL) {
-        fatal_error("Could not expand array to %ld elements.", addr->array->size);
-    }
-
-    for (size_t i = array_size; i < addr->array->size; i++) {
-        cell_initCell(&addr->array->data[i]);
-    }
+    array_resizeArray(addr->array, number_to_sint64(new_size));
 }
 
 void array__reversed(TExecutor *exec)
@@ -899,7 +891,7 @@ void bytes__decodeUTF8(TExecutor *exec)
         Cell *e = cell_createArrayCell(1);
         Cell *o = cell_arrayIndexForWrite(e, 0);
         o->type = cNumber;
-        o->number = number_from_uint32(err_idx);
+        o->number = number_from_uint32((uint32_t)err_idx);
         pop(exec->stack);
         push(exec->stack, cell_makeChoice_cell(CHOICE_DecodeResult_error, e));
         return;
@@ -1092,7 +1084,7 @@ void bytes__store(TExecutor *exec)
 
     int64_t idx = number_to_sint64(index);
     // TODO: range checking
-    s->string->data[idx] = number_to_uint32(b);
+    s->string->data[idx] = (char)number_to_uint32(b);
 }
 
 void bytes__toArray(TExecutor *exec)

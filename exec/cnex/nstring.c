@@ -588,11 +588,11 @@ TString *string_quote(TString *s)
             case '"':
             case '\\':
                 string_appendChar(r, '\\');
-                string_appendChar(r, c);
+                string_appendChar(r, (char)c);
                 break;
             default:
                 if (c >= ' ' && c < 0x7f) {
-                    string_appendChar(r, c);
+                    string_appendChar(r, (char)c);
                 } else if (c < 0x10000) {
                     char buf[7];
                     snprintf(buf, sizeof(buf), "\\u%04x", c);

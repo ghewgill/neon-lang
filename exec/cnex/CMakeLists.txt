@@ -6,6 +6,8 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_C_COMPILER_VERSION}" VE
     add_compile_options(-Wno-cast-function-type)
 endif ()
 
+add_definitions(-DCJSON_HIDE_SYMBOLS)
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(platform_cnex
         rtl_posix.c

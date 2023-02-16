@@ -76,6 +76,9 @@ Number number_abs(Number x)
 
 Number number_sign(Number x)
 {
+    if (bid128_isZero(x.get_bid())) {
+        return bid128_from_uint32(0);
+    }
     return bid128_copySign(bid128_from_uint32(1), x.get_bid());
 }
 

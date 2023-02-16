@@ -1,5 +1,5 @@
 #include <iso646.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include <windows.h>
 
 #include "cell.h"

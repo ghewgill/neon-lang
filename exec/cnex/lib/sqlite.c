@@ -367,7 +367,7 @@ void sqlite_cursorDeclare(TExecutor *exec)
     Cell *c = cell_createOtherCell(declareCursor(exec, db->ptr, query));
 
     // It is again, important to note that name is also preserved, as it becomes the active KEY for the dictionary entry, so once again, we pass it along.
-    dictionary_addDictionaryEntry(Cursors, name, c);
+    dictionary_addDictionaryEntry(Cursors, name, c, -1);
 
     push(exec->stack, cell_fromString(name));
 }

@@ -524,14 +524,7 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
         c->array = wa;
     }
     if (i >= c->array->size) {
-        c->array->data = realloc(c->array->data, sizeof(Cell) * (i+1));
-        if (c->array->data == NULL) {
-            fatal_error("Unable to reallcoate memory for write array.");
-        }
-        for (size_t n = c->array->size; n < i+1; n++) {
-            cell_initCell(&c->array->data[n]);
-        }
-        c->array->size = i+1;
+        array_resizeArray(c->array, i+1);
     }
     return &c->array->data[i];
 }
@@ -554,13 +547,13 @@ Cell *cell_dictionaryIndexForWrite(Cell *c, TString *key)
         c->dictionary = wd;
     }
 
-    int64_t idx = dictionary_findIndex(c->dictionary, key);
-    if (idx == -1) {
-        idx = dictionary_addDictionaryEntry(c->dictionary, key, cell_newCell());
+    int64_t index = 0;
+    if (!dictionary_findIndex(c->dictionary, key, &index)) {
+        dictionary_addDictionaryEntry(c->dictionary, key, cell_newCell(), index);
     } else {
         string_freeString(key); // Since we aren't using the provided key, we need to destroy it.
     }
-    return c->dictionary->data[idx].value;
+    return c->dictionary->data[index].value;
 }
 
 Cell *cell_dictionaryIndexForRead(Cell *c, TString *key)
