@@ -89,7 +89,11 @@ BEGIN MAIN
     LET main := sys.args[i]
     tempdir := string.replaceOne(main, ".neon", "__neonbuild")
     IF NOT file.isDirectory(tempdir) THEN
-        file.mkdir(tempdir)
+        LET r := file.mkdir(tempdir)
+        CHECK r ISA file.FileResult.ok ELSE
+            print("Unable to create temporary directory \(tempdir): \(r.error.message)")
+            EXIT PROCESS FAILURE
+        END CHECK
     END IF
 
     VAR objects: Array<String> := []
@@ -151,7 +155,12 @@ END FUNCTION
 
 FUNCTION getDependencies(source: String): Array<String>
     VAR r: Array<String> := []
-    LET lines := file.readLines(source)
+    LET rr := file.readLines(source)
+    CHECK rr ISA file.LinesResult.lines ELSE
+        print("Unable to read file \(source): \(rr.error.message)")
+        EXIT PROCESS FAILURE
+    END CHECK
+    LET lines := rr.lines
     FOREACH line IN lines DO
         LET a := string.split(line, " ")
         IF a.size() >= 2 AND a[0] = "IMPORT" THEN
@@ -209,15 +218,19 @@ FUNCTION execTree(tree: VALID POINTER TO Node): Boolean
             END IF
         END IF
     END FOREACH
-    TRY
-        LET sourceinfo := file.getInfo(tree->source)
-        LET targetinfo := file.getInfo(tree->target)
-        IF TRUE OR sourceinfo.lastModificationTime > targetinfo.lastModificationTime THEN
+    LET sourceinfo := file.getInfo(tree->source)
+    LET targetinfo := file.getInfo(tree->target)
+    IF sourceinfo ISA file.FileInfoResult.info THEN
+        IF targetinfo ISA file.FileInfoResult.info THEN
+            IF TRUE OR sourceinfo.info.lastModificationTime > targetinfo.info.lastModificationTime THEN
+                any := TRUE
+            END IF
+        ELSE
             any := TRUE
         END IF
-    TRAP file.FileException.PathNotFound DO
+    ELSE
         any := TRUE
-    END TRY
+    END IF
     IF any THEN
         exec(tree)
     END IF

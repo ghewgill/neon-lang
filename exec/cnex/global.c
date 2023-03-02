@@ -882,34 +882,6 @@ void bytes__concat(TExecutor *exec)
     push(exec->stack, r);
 }
 
-// These two functions should be removed from here once they're available
-// in cell.c (from branch lib-choice).
-static Cell *cell_makeChoice_string(int choice, TString *str)
-{
-    Cell *r = cell_createArrayCell(2);
-    Cell *e = cell_arrayIndexForWrite(r, 0);
-    e->type = cNumber;
-    e->number = number_from_uint32(choice);
-    e = cell_arrayIndexForWrite(r, 1);
-    e->type = cString;
-    e->string = str;
-    return r;
-}
-
-static Cell *cell_makeChoice_cell(int choice, Cell *value)
-{
-    Cell *r = cell_createArrayCell(2);
-    Cell *e = cell_arrayIndexForWrite(r, 0);
-    e->type = cNumber;
-    e->number = number_from_uint32(choice);
-    e = cell_arrayIndexForWrite(r, 1);
-    // TODO: This should really be done with a "move" operation,
-    // instead of a copy and free.
-    cell_copyCell(e, value);
-    cell_freeCell(value);
-    return r;
-}
-
 void bytes__decodeUTF8(TExecutor *exec)
 {
     TString *s = top(exec->stack)->string;

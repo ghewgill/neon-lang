@@ -9,13 +9,31 @@ IMPORT time
 CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): Object
-    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeUTF8().expectString()
-    RETURN json.decode(data)
+    LET hr := http.get("http://127.0.0.1:\(Port)\(url)", {})
+    CHECK hr ISA http.HttpResult.response ELSE
+        print(hr.error)
+        EXIT PROCESS FAILURE
+    END CHECK
+    LET d := json.decode(hr.response.data.decodeUTF8().expectString())
+    CHECK d ISA json.JsonResult.data ELSE
+        print(d.error.message)
+        EXIT PROCESS FAILURE
+    END CHECK
+    RETURN d.data
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): Object
-    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeUTF8().expectString()
-    RETURN json.decode(data)
+    LET hr := http.post("http://127.0.0.1:\(Port)\(url)", post_data, {})
+    CHECK hr ISA http.HttpResult.response ELSE
+        print(hr.error)
+        EXIT PROCESS FAILURE
+    END CHECK
+    LET d := json.decode(hr.response.data.decodeUTF8().expectString())
+    CHECK d ISA json.JsonResult.data ELSE
+        print(d.error.message)
+        EXIT PROCESS FAILURE
+    END CHECK
+    RETURN d.data
 END FUNCTION
 
 FUNCTION help()
@@ -48,7 +66,12 @@ VAR Globals: Dictionary<Global> := {}
 
 print("Neon debugger. Type 'help' for help.")
 
-LET target: os.Process := os.spawn("bin/neon --debug-port \(Port) \(sys.args[1])")
+LET sr: os.SpawnResult := os.spawn("bin/neon --debug-port \(Port) \(sys.args[1])")
+CHECK sr ISA os.SpawnResult.process ELSE
+    print("Could not run executor")
+    EXIT PROCESS FAILURE
+END CHECK
+LET target: os.Process := sr.process
 time.sleep(0.1)
 VAR r: Object
 
@@ -73,11 +96,7 @@ VAR last: String := ""
 LOOP
     REPEAT
         time.sleep(0.1)
-        TRY
-            r := get("/status")
-        TRAP http.HttpException DO
-            EXIT LOOP
-        END TRY
+        r := get("/status")
     UNTIL r.state = "stopped"
 
     IF r.log_messages > 0 THEN

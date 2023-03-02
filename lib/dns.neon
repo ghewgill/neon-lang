@@ -391,12 +391,10 @@ FUNCTION execQuery(server: String, msg: Message): Result
     CHECK net.select(INOUT rs, INOUT ws, INOUT es, 30) ELSE
         RETURN Result.timeout
     END CHECK
-    VAR remote_address: String
-    VAR remote_port: Number
-    VAR buf: Bytes
-    CHECK s.recvfrom(512, OUT remote_address, OUT remote_port, OUT buf) ELSE
+    LET rfr: net.RecvFromResult := s.recvfrom(512)
+    CHECK rfr ISA net.RecvFromResult.data ELSE
         RETURN Result.timeout
     END CHECK
-    DEBUG buf
-    RETURN Result.response(unpackMessage(buf))
+    DEBUG rfr.data.data
+    RETURN Result.response(unpackMessage(rfr.data.data))
 END FUNCTION

@@ -44,6 +44,7 @@ public:
 
     Cell *&address();
     bool &boolean();
+    Number get_number() const;
     Number &number();
     const utf8string &string();
     utf8string &string_for_write();

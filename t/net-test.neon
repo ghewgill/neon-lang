@@ -10,9 +10,11 @@ LET t: net.Socket := server.accept()
 
 LET s: String := "GET / HTTP/1.0"
 client.send(s.encodeUTF8())
-VAR buf: Bytes
-_ := t.recv(1000, OUT buf)
-print(buf.decodeUTF8().expectString())
+LET r := t.recv(1000)
+CHECK r ISA net.RecvResult.data ELSE
+    PANIC "Test failed"
+END CHECK
+print(r.data.decodeUTF8().expectString())
 --= GET / HTTP/1.0
 
 client.close()

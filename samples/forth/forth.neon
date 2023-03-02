@@ -1388,9 +1388,14 @@ END FUNCTION
 
 LET files: Array<String> := sys.args[1 TO LAST]
 FOREACH fn IN files DO
-    current_file := io.open(fn, io.Mode.read)
-    interpret()
-    io.close(current_file)
+    LET r := io.open(fn, io.Mode.read)
+    IF r ISA io.OpenResult.file THEN
+        current_file := r.file
+        interpret()
+        io.close(current_file)
+    ELSE
+        print("Could not open: \(fn)")
+    END IF
 END FOREACH
 
 current_file := io.stdin

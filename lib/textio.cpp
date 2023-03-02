@@ -16,6 +16,7 @@
 #include "rtl_exec.h"
 
 #include "enums.inc"
+#include "choices.inc"
 
 class TextFileObject: public Object {
 public:
@@ -50,35 +51,47 @@ void close(const std::shared_ptr<Object> &pf)
     f->file = NULL;
 }
 
-std::shared_ptr<Object> open(const utf8string &name, Cell &mode)
+Cell open(const utf8string &name, Cell &mode)
 {
     const char *m;
     switch (number_to_uint32(mode.number())) {
         case ENUM_Mode_read:  m = "r"; break;
         case ENUM_Mode_write: m = "w+"; break;
         default:
-            return NULL;
+            return Cell(std::vector<Cell> {
+                Cell(number_from_uint32(CHOICE_OpenResult_error)),
+                Cell(utf8string("invalid mode"))
+            });
     }
     FILE *f = fopen(name.c_str(), m);
     if (f == NULL) {
-        throw RtlException(Exception_TextioException_Open, utf8string("open error " + std::to_string(errno)));
+        return Cell(std::vector<Cell> {
+            Cell(number_from_uint32(CHOICE_OpenResult_error)),
+            Cell(utf8string("open error " + std::to_string(errno)))
+        });
     }
-    return std::shared_ptr<Object> { new TextFileObject(f) };
+    return Cell(std::vector<Cell> {
+        Cell(number_from_uint32(CHOICE_OpenResult_file)),
+        Cell(std::shared_ptr<Object> { new TextFileObject(f) })
+    });
 }
 
-bool readLine(const std::shared_ptr<Object> &pf, utf8string *s)
+Cell readLine(const std::shared_ptr<Object> &pf)
 {
+    utf8string s;
     TextFileObject *f = check_file(pf);
-    s->clear();
     for (;;) {
         char buf[1024];
         if (fgets(buf, sizeof(buf), f->file) == NULL) {
-            return not s->empty();
+            if (s.empty()) {
+                return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_ReadLineResult_eof))});
+            }
+            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_ReadLineResult_line)), Cell(s)});
         }
-        s->append(buf);
-        if (s->at(s->length()-1) == '\n') {
-            s->resize(s->length()-1);
-            return true;
+        s.append(buf);
+        if (s.at(s.length()-1) == '\n') {
+            s.resize(s.length()-1);
+            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_ReadLineResult_line)), Cell(s)});
         }
     }
 }

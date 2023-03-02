@@ -3,12 +3,16 @@
  *  Functions for working with files and directories.
  */
 
-EXPORT FileException
-
 EXPORT Separator
 
 EXPORT FileType
 EXPORT FileInfo
+EXPORT Error
+EXPORT ErrorInfo
+EXPORT FileInfoResult
+EXPORT FileResult
+EXPORT BytesResult
+EXPORT LinesResult
 
 EXPORT copy
 EXPORT copyOverwriteIfExists
@@ -31,48 +35,6 @@ EXPORT writeBytes
 EXPORT writeLines
 
 DECLARE NATIVE CONSTANT Separator: String
-
-/*  Exception: FileException
- *
- *  Generic file error.
- */
-EXCEPTION FileException
-
-/*  Exception: FileException.DirectoryExists
- *
- *  Indicates that a directory already exists when calling <mkdir>.
- */
-EXCEPTION FileException.DirectoryExists
-
-/*  Exception: FileException.Exists
- *
- *  Indicates that a an attempt was made to create, or overwrite an existing file.
- */
-EXCEPTION FileException.Exists
-
-/*  Exception: FileException.Open
- *
- *  Indicates that an error occurred when opening a file.
- */
-EXCEPTION FileException.Open
-
-/*  Exception: FileException.PathNotFound
- *
- *  Indicates that a path was not found.
- */
-EXCEPTION FileException.PathNotFound
-
-/*  Exception: FileException.PermissionDenied
- *
- *  Indicates that an operation was denied due to filesystem permissions.
- */
-EXCEPTION FileException.PermissionDenied
-
-/*  Exception: FileException.Write
- *
- *  Indicates that an error occurred while writing to a file.
- */
-EXCEPTION FileException.Write
 
 /*  Type: FileType
  *
@@ -100,6 +62,40 @@ TYPE FileInfo IS RECORD
     lastModificationTime: Number
 END RECORD
 
+TYPE Error IS ENUM
+    alreadyExists
+    notFound
+    permissionDenied
+    other
+END ENUM
+
+TYPE ErrorInfo IS RECORD
+    type: Error
+    os_code: Number
+    message: String
+    path: String
+END RECORD
+
+TYPE FileResult IS CHOICE
+    ok
+    error: ErrorInfo
+END CHOICE
+
+TYPE FileInfoResult IS CHOICE
+    info: FileInfo
+    error: ErrorInfo
+END CHOICE
+
+TYPE BytesResult IS CHOICE
+    data: Bytes
+    error: ErrorInfo
+END CHOICE
+
+TYPE LinesResult IS CHOICE
+    lines: Array<String>
+    error: ErrorInfo
+END CHOICE
+
 /*  Function: copy
  *
  *  Copies a file to a new destination.  If the destination file already exists, a FileException.Exists
@@ -121,7 +117,7 @@ END RECORD
  *      > END TRY
  *
  */
-DECLARE NATIVE FUNCTION copy(filename: String, destination: String)
+DECLARE NATIVE FUNCTION copy(filename: String, destination: String): FileResult
 
 /*  Function: copyOverwriteIfExists
  *
@@ -135,7 +131,7 @@ DECLARE NATIVE FUNCTION copy(filename: String, destination: String)
  *      > file.copyOverwriteIfExists("LICENSE.txt", "tmp/Copy_of_LICENSE.txt")
  *
  */
-DECLARE NATIVE FUNCTION copyOverwriteIfExists(filename: String, destination: String)
+DECLARE NATIVE FUNCTION copyOverwriteIfExists(filename: String, destination: String): FileResult
 
 /*  Function: delete
  *
@@ -145,7 +141,7 @@ DECLARE NATIVE FUNCTION copyOverwriteIfExists(filename: String, destination: Str
  *  Exceptions:
  *      - <FileException.PermissionDenied> - if the file permissions prevent the operation
  */
-DECLARE NATIVE FUNCTION delete(filename: String)
+DECLARE NATIVE FUNCTION delete(filename: String): FileResult
 
 /*  Function: exists
  *
@@ -187,7 +183,7 @@ END FUNCTION
  *
  *  Given a file name, return the file information.
  */
-DECLARE NATIVE FUNCTION getInfo(name: String): FileInfo
+DECLARE NATIVE FUNCTION getInfo(name: String): FileInfoResult
 
 /*  Function: isDirectory
  *
@@ -204,7 +200,7 @@ DECLARE NATIVE FUNCTION isDirectory(path: String): Boolean
  *      - <FileException.DirectoryExists> - if the directory already exists
  *      - <FileException.PathNotFound> - if the path (not including the last component) does not exist
  */
-DECLARE NATIVE FUNCTION mkdir(path: String)
+DECLARE NATIVE FUNCTION mkdir(path: String): FileResult
 
 /*  Function: pathJoin
  *
@@ -252,7 +248,7 @@ END FUNCTION
  *  Exceptions:
  *      - <FileOpenError> - if the file cannot be opened
  */
-DECLARE NATIVE FUNCTION readBytes(filename: String): Bytes
+DECLARE NATIVE FUNCTION readBytes(filename: String): BytesResult
 
 /*  Function: readLines
  *
@@ -261,13 +257,15 @@ DECLARE NATIVE FUNCTION readBytes(filename: String): Bytes
  *  Exceptions:
  *      - <FileOpenError> - if the file cannot be opened
  */
-DECLARE NATIVE FUNCTION readLines(filename: String): Array<String> 
+DECLARE NATIVE FUNCTION readLines(filename: String): LinesResult
 
 /*  Function: removeDirectoryTree
  *
  *  Remove directory tree recursively.
  */
-FUNCTION removeDirectoryTree(path: String)
+FUNCTION removeDirectoryTree(path: String): FileResult
+    VAR ret: FileResult := FileResult.ok
+    VAR r: FileResult
     LET names: Array<String> := files(path)
     FOREACH name IN names DO
         IF name IN [".", ".."] THEN
@@ -275,19 +273,35 @@ FUNCTION removeDirectoryTree(path: String)
         END IF
         LET pathname: String := pathJoin(path, name)
         IF isDirectory(name) THEN
-            removeDirectoryTree(pathname)
+            r := removeDirectoryTree(pathname)
+            IF r ISA FileResult.error THEN
+                IF ret ISA FileResult.ok THEN
+                    ret := r
+                END IF
+            END IF
         ELSE
-            delete(pathname)
+            r := delete(pathname)
+            IF r ISA FileResult.error THEN
+                IF ret ISA FileResult.ok THEN
+                    ret := r
+                END IF
+            END IF
         END IF
     END FOREACH
-    removeEmptyDirectory(path)
+    r := removeEmptyDirectory(path)
+    IF r ISA FileResult.error THEN
+        IF ret ISA FileResult.ok THEN
+            ret := r
+        END IF
+    END IF
+    RETURN ret
 END FUNCTION
 
 /*  Function: removeEmptyDirectory
  *
  *  Remove an empty directory.
  */
-DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String)
+DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String): FileResult
 
 /*  Function: rename
  *
@@ -297,7 +311,7 @@ DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String)
  *  Exceptions:
  *      - <PathNotFound> - if the file does not exist
  */
-DECLARE NATIVE FUNCTION rename(oldname: String, newname: String)
+DECLARE NATIVE FUNCTION rename(oldname: String, newname: String): FileResult
 
 /*  Function: wildcardMatch
  *
@@ -348,7 +362,7 @@ END FUNCTION
  *      - <FileOpenError> - if the file cannot be opened
  *      - <FileWriteError> - if an error occurs during writing
  */
-DECLARE NATIVE FUNCTION writeBytes(filename: String, data: Bytes)
+DECLARE NATIVE FUNCTION writeBytes(filename: String, data: Bytes): FileResult
 
 /*  Function: writeLines
  *
@@ -358,7 +372,7 @@ DECLARE NATIVE FUNCTION writeBytes(filename: String, data: Bytes)
  *      - <FileOpenError> - if the file cannot be opened
  *      - <FileWriteError> - if an error occurs during writing
  */
-DECLARE NATIVE FUNCTION writeLines(filename: String, data: Array<String>)
+DECLARE NATIVE FUNCTION writeLines(filename: String, data: Array<String>): FileResult
 
 BEGIN MAIN
     TESTCASE wildcardMatch("", "")

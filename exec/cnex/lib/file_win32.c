@@ -1,3 +1,5 @@
+#include "file.h"
+
 #include <io.h>
 #include <windows.h>
 
@@ -9,24 +11,6 @@
 #include "stack.h"
 #include "util.h"
 
-
-static void handle_error(TExecutor *exec, DWORD error, const char *path)
-{
-    switch (error) {
-        case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException.DirectoryExists", path);     break;
-        case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException.PermissionDenied", path);    break;
-        case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException.PathNotFound", path);        break;
-        case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException.Exists", path);              break;
-        case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException.PermissionDenied", path);    break;
-        default:
-        {
-            char err[MAX_PATH + 32];
-            snprintf(err, sizeof(err), "%s: %d", path, error);
-            exec->rtl_raise(exec, "FileException", err);
-            break;
-        }
-    }
-}
 
 static inline Number unix_time_from_filetime(const FILETIME *ft)
 {
@@ -49,8 +33,12 @@ void file_copy(TExecutor *exec)
 
     BOOL r = CopyFile(filename, destination, TRUE);
     if (!r) {
-        handle_error(exec, GetLastError(), destination);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(destination)));
+        free(destination);
+        free(filename);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(destination);
     free(filename);
 }
@@ -62,8 +50,12 @@ void file_copyOverwriteIfExists(TExecutor *exec)
 
     BOOL r = CopyFile(filename, destination, FALSE);
     if (!r) {
-        handle_error(exec, GetLastError(), destination);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(destination)));
+        free(destination);
+        free(filename);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(destination);
     free(filename);
 }
@@ -75,9 +67,12 @@ void file_delete(TExecutor *exec)
     BOOL r = DeleteFile(filename);
     if (!r) {
         if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-            handle_error(exec, GetLastError(), filename);
+            push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(filename)));
+            free(filename);
+            return;
         }
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(filename);
 }
 
@@ -122,9 +117,9 @@ void file_getInfo(TExecutor *exec)
     WIN32_FIND_DATA fd;
     HANDLE ff = FindFirstFile(name, &fd);
     if (ff == INVALID_HANDLE_VALUE) {
-        handle_error(exec , GetLastError(), name);
-        free(name);
         pop(exec->stack);
+        push(exec->stack, file_error_result(CHOICE_FileInfoResult_error, GetLastError(), name));
+        free(name);
         return;
     }
     FindClose(ff);
@@ -166,7 +161,7 @@ void file_getInfo(TExecutor *exec)
     cell_arrayAppendElement(r, t);
 
     pop(exec->stack);
-    push(exec->stack, r);
+    push(exec->stack, cell_makeChoice_cell(CHOICE_FileInfoResult_info, r));
 }
 
 void file_isDirectory(TExecutor *exec)
@@ -184,8 +179,11 @@ void file_mkdir(TExecutor *exec)
 
     BOOL r = CreateDirectory(path, NULL);
     if (!r) {
-        handle_error(exec, GetLastError(), path);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(path)));
+        free(path);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(path);
 }
 
@@ -195,8 +193,11 @@ void file_removeEmptyDirectory(TExecutor *exec)
 
     BOOL r = RemoveDirectory(path);
     if (!r) {
-        handle_error(exec, GetLastError(), path);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(path)));
+        free(path);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(path);
 }
 
@@ -207,8 +208,12 @@ void file_rename(TExecutor *exec)
 
     BOOL r = MoveFile(oldname, newname);
     if (!r) {
-        handle_error(exec, GetLastError(), oldname);
+        push(exec->stack, cell_makeChoice_string(CHOICE_FileResult_error, string_createCString(oldname)));
+        free(oldname);
+        free(newname);
+        return;
     }
+    push(exec->stack, cell_makeChoice_none(CHOICE_FileResult_ok));
     free(oldname);
     free(newname);
 }

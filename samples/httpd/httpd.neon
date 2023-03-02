@@ -70,15 +70,15 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
 END FUNCTION
 
 FUNCTION HttpServer.handle_incoming(INOUT self: HttpServer, INOUT client: Client): Boolean
-    VAR buf: Bytes
-    IF NOT client.socket.recv(1000, OUT buf) THEN
+    LET rr := client.socket.recv(1000)
+    CHECK rr ISA net.RecvResult.data ELSE
         RETURN TRUE
-    END IF
-    LET r := buf.decodeUTF8()
-    CHECK r ISA DecodeResult.string ELSE
+    END CHECK
+    LET dr := rr.data.decodeUTF8()
+    CHECK dr ISA DecodeResult.string ELSE
         RETURN FALSE
     END CHECK
-    client.header.append(r.string)
+    client.header.append(dr.string)
     IF client.header[LAST-3 TO LAST] = "\r\n\r\n" THEN
         self.handle_request(INOUT client)
         RETURN TRUE
@@ -144,15 +144,17 @@ FUNCTION path_handler(path: String, params: Array<Object>): Response
             r.content := page.encodeUTF8()
         END IF
     ELSE
-        TRY
-            r.code := 200
-            r.content_type := "text/plain"
-            r.content := file.readBytes(local_path)
-        TRAP file.FileException.Open DO
-            r.code := 404
-            r.content_type := "text/plain"
-            r.content := toBytes("file not found")
-        END TRY
+        LET br := file.readBytes(local_path)
+        CASE br
+            WHEN ISA file.BytesResult.data DO
+                r.code := 200
+                r.content_type := "text/plain"
+                r.content := br.data
+            WHEN ISA file.BytesResult.error DO
+                r.code := 404
+                r.content_type := "text/plain"
+                r.content := toBytes("file not found")
+        END CASE
     END IF
     RETURN r
 END FUNCTION

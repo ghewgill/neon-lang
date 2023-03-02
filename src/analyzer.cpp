@@ -3704,7 +3704,7 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
             internal_error("need module string");
         }
         return new ast::TryExpression(
-            new ast::NumericComparisonExpression(
+            new ast::ChoiceTestExpression(
                 new ast::FunctionCall(
                     new ast::VariableExpression(
                         dynamic_cast<const ast::Variable *>(string->scope->lookupName("find"))
@@ -3714,8 +3714,8 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
                         left
                     }
                 ),
-                new ast::ConstantNumberExpression(number_from_uint32(0)),
-                ast::ComparisonExpression::Comparison::GE
+                dynamic_cast<const ast::TypeChoice *>(string->scope->lookupName("FindResult")),
+                1 // FindResult.index
             ),
             {
                 ast::TryTrap(
@@ -5882,23 +5882,45 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             if (name == nullptr) {
                 error(4304, name_variable->variable, "variable not found");
             }
+            ast::Variable *r = scope.top()->makeTemporary(dynamic_cast<const ast::Type *>(sqlite->scope->lookupName("OpenResult")));
             statements.push_back(new ast::AssignmentStatement(
                 statement->token,
-                {new ast::VariableExpression(name)},
+                {new ast::VariableExpression(r)},
                 new ast::FunctionCall(
                     new ast::VariableExpression(openfunc),
                     {target}
                 )
             ));
-        } else {
-            // TODO: handle default connection
-            const ast::Variable *name = dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"));
             statements.push_back(new ast::AssignmentStatement(
                 statement->token,
                 {new ast::VariableExpression(name)},
+                new ast::ChoiceReferenceExpression(
+                    name->type,
+                    new ast::VariableExpression(r),
+                    dynamic_cast<const ast::TypeChoice *>(r->type),
+                    0
+                )
+            ));
+        } else {
+            // TODO: handle default connection
+            const ast::Variable *name = dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"));
+            ast::Variable *r = scope.top()->makeTemporary(dynamic_cast<const ast::Type *>(sqlite->scope->lookupName("OpenResult")));
+            statements.push_back(new ast::AssignmentStatement(
+                statement->token,
+                {new ast::VariableExpression(r)},
                 new ast::FunctionCall(
                     new ast::VariableExpression(openfunc),
                     {target}
+                )
+            ));
+            statements.push_back(new ast::AssignmentStatement(
+                statement->token,
+                {new ast::VariableExpression(name)},
+                new ast::ChoiceReferenceExpression(
+                    name->type,
+                    new ast::VariableExpression(r),
+                    dynamic_cast<const ast::TypeChoice *>(r->type),
+                    0
                 )
             ));
         }

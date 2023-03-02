@@ -46,6 +46,7 @@ file-test.neon                  # module file
 file-writebytes.neon            # module file
 file-writelines.neon            # module file
 foreach.neon                    # double free
+format.neon                     # string.find
 function-pointer.neon           # memory leak
 gc1.neon                        # gc
 gc2.neon                        # gc
@@ -63,6 +64,7 @@ interface-parameter-export2.neon # InterfaceMethodExpression
 interface-parameter-export.neon # InterfaceMethodExpression
 interface-parameter-import2.neon # InterfacePointerConstructor
 interface-parameter-import.neon # InterfacePointerConstructor
+intrinsic.neon                  # string.find
 io-test.neon                    # io$stdout
 json-test.neon                  # TypeTestExpression
 literal-array.neon              # Ne_Array_range
@@ -133,6 +135,7 @@ string-escape.neon              # utf8
 string-format.neon              # module string
 string-in.neon                  # TryExpression
 string-index.neon               # memory leak
+string-multiline.neon           # string.find
 string-splice.neon              # exception info
 string-test.neon                # module string
 struct-test.neon                # bignum

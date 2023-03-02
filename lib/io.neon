@@ -5,6 +5,7 @@
 
 EXPORT File
 EXPORT Mode
+EXPORT OpenResult
 EXPORT SeekBase
 
 EXPORT IoException
@@ -52,6 +53,11 @@ END ENUM
  *  Opaque type representing a file on disk.
  */
 TYPE File IS Object
+
+TYPE OpenResult IS CHOICE
+    file: File
+    error: String
+END CHOICE
 
 /*  Exception: IoException
  *
@@ -111,7 +117,7 @@ DECLARE NATIVE FUNCTION flush(f: File)
  *
  *  Open a file with the given name and mode.
  */
-DECLARE NATIVE FUNCTION open(name: String, mode: Mode): File
+DECLARE NATIVE FUNCTION open(name: String, mode: Mode): OpenResult
 
 /*  Function: readBytes
  *

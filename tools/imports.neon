@@ -2,13 +2,18 @@ IMPORT file
 IMPORT string
 IMPORT sys
 
-VAR lines: Array<String> := file.readLines(sys.args[1])
+LET lr: file.LinesResult := file.readLines(sys.args[1])
+CHECK lr ISA file.LinesResult.lines ELSE
+    print("Could not read file: \(sys.args[1])")
+    EXIT PROCESS FAILURE
+END CHECK
+VAR lines: Array<String> := lr.lines
 FOREACH s IN lines DO
-    VAR i: Number := string.find(s, "IMPORT")
-    IF i < 0 THEN
+    LET r: string.FindResult := string.find(s, "IMPORT")
+    CHECK r ISA string.FindResult.index ELSE
         NEXT FOREACH
-    END IF
-    i := i + 6
+    END CHECK
+    VAR i: Number := r.index + 6
     LET spaces: Number := i
     WHILE s[i] = " " DO
         INC i

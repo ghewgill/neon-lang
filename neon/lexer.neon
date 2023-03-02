@@ -212,9 +212,9 @@ FUNCTION findLineEnd(source: String, start: Number): Number
     IF start >= source.length() THEN
         RETURN source.length()
     END IF
-    LET r: Number := string.find(source[start TO LAST], "\n")
-    IF r >= 0 THEN
-        RETURN start + r
+    LET r: string.FindResult := string.find(source[start TO LAST], "\n")
+    IF r ISA string.FindResult.index THEN
+        RETURN start + r.index
     ELSE
         RETURN source.length()
     END IF
@@ -438,7 +438,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "DEBUG" THEN t.type := Type.debug
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
-            ELSIF string.find(t.text, "__") >= 0 THEN
+            ELSIF "__" IN t.text THEN
                 error(1024, t, "identifier cannot contain double underscore (reserved)")
             ELSIF t.text.length() >= 2 AND t.text[0] = "_" THEN
                 error(1025, t, "identifier cannot start with underscore")
@@ -764,9 +764,9 @@ FUNCTION tokenize(source_path: String, orig_source: String): Array<Token>
     LET source: String := expand_tabs(orig_source)
     VAR i: Number := 0
     IF source[0 TO 1] = "#!" THEN
-        LET eol: Number := string.find(source, "\n")
-        IF eol > 0 THEN
-            i := eol
+        LET eol: string.FindResult := string.find(source, "\n")
+        IF eol ISA string.FindResult.index THEN
+            i := eol.index
         END IF
     END IF
     VAR line: Number := 1
@@ -779,11 +779,11 @@ FUNCTION count(s: String, t: String): Number
     VAR r: Number := 0
     VAR i: Number := 0
     LOOP
-        LET next: Number := string.find(s[i TO LAST], t)
-        IF next < 0 THEN
+        LET next: string.FindResult := string.find(s[i TO LAST], t)
+        CHECK next ISA string.FindResult.index ELSE
             EXIT LOOP
-        END IF
-        i := next + 1
+        END CHECK
+        i := next.index + 1
         INC r
     END LOOP
     RETURN r
@@ -802,16 +802,21 @@ END FUNCTION
 
 BEGIN MAIN
     FOREACH fn IN sys.args[1 TO LAST] DO
-        LET bytes: Bytes := file.readBytes(fn)
-        LET r: DecodeResult := bytes.decodeUTF8()
-        CASE r
+        LET rr: file.BytesResult := file.readBytes(fn)
+        CHECK rr ISA file.BytesResult.data ELSE
+            print("Could not open file: \(fn)")
+            NEXT FOREACH
+        END CHECK
+        LET bytes: Bytes := rr.data
+        LET dr: DecodeResult := bytes.decodeUTF8()
+        CASE dr
             WHEN ISA DecodeResult.string DO
-                LET tokens: Array<Token> := tokenize(fn, r.string)
+                LET tokens: Array<Token> := tokenize(fn, dr.string)
                 FOREACH t IN tokens DO
                     print("\(t)")
                 END FOREACH
             WHEN ISA DecodeResult.error DO
-                LET offset: Number := r.error.offset
+                LET offset: Number := dr.error.offset
                 LET source: String := bytes[FIRST TO offset-1].decodeUTF8().expectString()
                 LET line: Number := 1 + count(source, "\n")
                 LET bol: Number := findLast(source, "\n") + 1

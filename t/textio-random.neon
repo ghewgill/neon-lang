@@ -6,10 +6,21 @@ VAR s := ""
 FOR i := 1 TO 100000 DO
     s.append(string.fromCodePoint(32 + random.uint32() MOD 96))
 END FOR
-VAR f: textio.TextFile := textio.open("tmp/textio-test.tmp", textio.Mode.write)
+VAR r: textio.OpenResult := textio.open("tmp/textio-test.tmp", textio.Mode.write)
+CHECK r ISA textio.OpenResult.file ELSE
+    PANIC "Test failed"
+END CHECK
+VAR f: textio.TextFile := r.file
 textio.writeLine(f, s)
 textio.close(f)
-f := textio.open("tmp/textio-test.tmp", textio.Mode.read)
-VAR t: String
-TESTCASE textio.readLine(f, OUT t) AND t = s
+r := textio.open("tmp/textio-test.tmp", textio.Mode.read)
+CHECK r ISA textio.OpenResult.file ELSE
+    PANIC "Test failed"
+END CHECK
+f := r.file
+LET rlr: textio.ReadLineResult := textio.readLine(f)
+CHECK rlr ISA textio.ReadLineResult.line ELSE
+    PANIC "Test failed"
+END CHECK
+TESTCASE rlr.line = s
 textio.close(f)

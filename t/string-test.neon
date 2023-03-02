@@ -4,7 +4,12 @@ FUNCTION bstr(z: Boolean): String
     RETURN (IF z THEN "TRUE" ELSE "FALSE")
 END FUNCTION
 
-print(str(string.find("hello world", "world")))
+LET r: string.FindResult := string.find("hello world", "world")
+IF r ISA string.FindResult.index THEN
+    print(r.index)
+ELSE
+    print("notfound")
+END IF
 --= 6
 
 print(string.fromCodePoint(65))

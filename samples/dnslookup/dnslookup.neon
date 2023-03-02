@@ -5,8 +5,9 @@ IMPORT sys
 
 VAR nameserver := "1.1.1.1"
 
-TRY
-    LET resolv := file.readLines("/etc/resolv.conf")
+LET rr := file.readLines("/etc/resolv.conf")
+IF rr ISA file.LinesResult.lines THEN
+    LET resolv := rr.lines
     FOREACH s IN resolv DO
         LET a := string.split(s, " ")
         IF a.size() >= 1 AND a[0] = "nameserver" THEN
@@ -14,9 +15,7 @@ TRY
             EXIT FOREACH
         END IF
     END FOREACH
-TRAP file.FileException DO
-    -- pass
-END TRY
+END IF
 
 IF sys.args.size() < 2 THEN
     print("Usage: dnslookup [options] domainname [type...]")

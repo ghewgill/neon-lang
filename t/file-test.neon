@@ -6,16 +6,21 @@ END FUNCTION
 
 TESTCASE file.Separator IN ["/", "\\"]
 
-VAR a: Array<String>
-
-a := file.readLines("LICENSE.txt")
-print(str(a.size()))
+LET lr: file.LinesResult := file.readLines("LICENSE.txt")
+CHECK lr ISA file.LinesResult.lines ELSE
+    PANIC "Test failed"
+END CHECK
+LET lines: Array<String> := lr.lines
+print(str(lines.size()))
 --= 21
-print(a[0])
+print(lines[0])
 --= The MIT License (MIT)
 
-VAR buf: Bytes
-buf := file.readBytes("LICENSE.txt")
+LET br: file.BytesResult := file.readBytes("LICENSE.txt")
+CHECK br ISA file.BytesResult.data ELSE
+    PANIC "Test failed"
+END CHECK
+LET buf: Bytes := br.data
 print(bstr(buf.size() = 1076 OR buf.size() = 1097)) -- account for lf vs crlf
 --= TRUE
 VAR arr: Array<Number> := buf.toArray()
@@ -25,11 +30,15 @@ print("\(arr[0])")
 print(bstr(file.isDirectory("t")))
 --= TRUE
 
-a := file.files("t")
+LET a: Array<String> := file.files("t")
 print(bstr("file-test.neon" IN a))
 --= TRUE
 
-LET fi: file.FileInfo := file.getInfo("t/file-test.neon")
+LET fir: file.FileInfoResult := file.getInfo("t/file-test.neon")
+CHECK fir ISA file.FileInfoResult.info ELSE
+    PANIC "Test failed"
+END CHECK
+LET fi: file.FileInfo := fir.info
 print(fi.name)
 --= file-test.neon
 TESTCASE 1000 <= fi.size <= 10000
@@ -39,48 +48,61 @@ print(fi.type.toString())
 --= normal
 TESTCASE fi.lastModificationTime > 0
 
-file.writeLines("tmp/file-test.tmp", ["hello", "world"])
+TESTCASE file.writeLines("tmp/file-test.tmp", ["hello", "world"]) ISA file.FileResult.ok
 print(bstr(file.exists("tmp/file-test.tmp")))
 --= TRUE
-file.delete("tmp/file-test.tmp")
+CHECK file.delete("tmp/file-test.tmp") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
 print(bstr(file.exists("tmp/file-test.tmp")))
 --= FALSE
-file.delete("tmp/file-test.tmp") -- No exception expected.
+CHECK file.delete("tmp/file-test.tmp") ISA file.FileResult.ok ELSE -- No exception expected.
+    PANIC "Test failed"
+END CHECK
 
-file.writeLines("tmp/file-test.tmp", ["hello", "world"])
-file.delete("tmp/file-test2.tmp")
-file.rename("tmp/file-test.tmp", "tmp/file-test2.tmp")
+TESTCASE file.writeLines("tmp/file-test.tmp", ["hello", "world"]) ISA file.FileResult.ok
+CHECK file.delete("tmp/file-test2.tmp") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
+CHECK file.rename("tmp/file-test.tmp", "tmp/file-test2.tmp") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
 print(bstr(file.exists("tmp/file-test.tmp")))
 --= FALSE
 print(bstr(file.exists("tmp/file-test2.tmp")))
 --= TRUE
 
-file.copyOverwriteIfExists("tmp/file-test2.tmp", "tmp/file-test3.tmp")
+CHECK file.copyOverwriteIfExists("tmp/file-test2.tmp", "tmp/file-test3.tmp") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
 print(bstr(file.exists("tmp/file-test2.tmp")))
 --= TRUE
 print(bstr(file.exists("tmp/file-test3.tmp")))
 --= TRUE
 
-file.mkdir("tmp/foo")
+CHECK file.mkdir("tmp/foo") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
 print(bstr(file.isDirectory("tmp/foo")))
 --= TRUE
-file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
-TRY
-    file.removeEmptyDirectory("tmp/foo")
-TRAP file.FileException DO
-    print("ok")
-END TRY
---= ok
-file.delete("tmp/foo/bar.txt")
-file.removeEmptyDirectory("tmp/foo")
+TESTCASE file.writeLines("tmp/foo/bar.txt", ["hello", "world"]) ISA file.FileResult.ok
+TESTCASE file.removeEmptyDirectory("tmp/foo") ISA file.FileResult.error
+CHECK file.delete("tmp/foo/bar.txt") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
+TESTCASE file.removeEmptyDirectory("tmp/foo") ISA file.FileResult.ok
 print(bstr(file.isDirectory("tmp/foo")))
 --= FALSE
 
-file.mkdir("tmp/foo")
+CHECK file.mkdir("tmp/foo") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
 print(bstr(file.isDirectory("tmp/foo")))
 --= TRUE
-file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
-file.removeDirectoryTree("tmp/foo")
+TESTCASE file.writeLines("tmp/foo/bar.txt", ["hello", "world"]) ISA file.FileResult.ok
+CHECK file.removeDirectoryTree("tmp/foo") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
 print(bstr(file.isDirectory("tmp/foo")))
 --= FALSE
 
@@ -100,3 +122,11 @@ print("\(directory) \(name)")
 file.pathSplit("a/b", OUT directory, OUT name)
 print("\(directory) \(name)")
 --= a b
+
+LET r: file.BytesResult := file.readBytes("nonexistent.file")
+CHECK r ISA file.BytesResult.error ELSE
+    PANIC "Test failed"
+END CHECK
+TESTCASE r.error.type = file.Error.notFound
+TESTCASE r.error.message <> ""
+TESTCASE r.error.path = "nonexistent.file"

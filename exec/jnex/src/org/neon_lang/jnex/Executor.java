@@ -119,7 +119,7 @@ class Executor {
         predefined.put("string$toCodePoint", this::string$toCodePoint);
         predefined.put("sys$exit", this::sys$exit);
         predefined.put("textio$close", this::textio$close);
-        predefined.put("textio$open", this::textio$open);
+        predefined.put("textio$open_internal", this::textio$open_internal);
         predefined.put("textio$readLine", this::textio$readLine);
         predefined.put("textio$writeLine", this::textio$writeLine);
         predefined.put("time$now", this::time$now);
@@ -2115,7 +2115,7 @@ class Executor {
         }
     }
 
-    private void textio$open()
+    private void textio$open_internal()
     {
         int mode = stack.removeFirst().getNumber().intValueExact();
         String name = stack.removeFirst().getString();

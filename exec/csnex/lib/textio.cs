@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace csnex.rtl
@@ -74,16 +75,25 @@ namespace csnex.rtl
                     fa = FileAccess.Write;
                     fm = FileMode.OpenOrCreate;
                     break;
-            default:
-                exec.stack.Push(Cell.CreateObjectCell(new TextFileObject(null)));
-                return;
+                default:
+                    exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                        Cell.CreateNumberCell(new Number((int)OpenResult.error)),
+                        Cell.CreateStringCell("invalid mode")
+                    }));
+                    return;
             }
 
             try {
                 FileStream f = new FileStream(name, fm, fa);
-                exec.stack.Push(Cell.CreateObjectCell(new TextFileObject(f)));
+                exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)OpenResult.file)),
+                    Cell.CreateObjectCell(new TextFileObject(f))
+                }));
             } catch (IOException iox) {
-                exec.Raise("TextioException.Open", iox.HResult.ToString());
+                exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)OpenResult.error)),
+                    Cell.CreateStringCell(iox.HResult.ToString())
+                }));
             }
         }
 
@@ -93,18 +103,31 @@ namespace csnex.rtl
 
             Stream f = check_file(pf);
             if (f == null) {
+                exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)ReadLineResult.error)),
+                    Cell.CreateStringCell("not a file")
+                }));
                 return;
             }
 
             try {
                 StreamReader sr = new StreamReader(f);
-                Cell r = Cell.CreateStringCell(sr.ReadLine());
-                Boolean ret = r.String != null;
-
-                exec.stack.Push(Cell.CreateBooleanCell(ret));
-                exec.stack.Push(r);
+                String s = sr.ReadLine();
+                if (s != null) {
+                    exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                        Cell.CreateNumberCell(new Number((int)ReadLineResult.line)),
+                        Cell.CreateStringCell(s)
+                    }));
+                } else {
+                    exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                        Cell.CreateNumberCell(new Number((int)ReadLineResult.eof))
+                    }));
+                }
             } catch (IOException iox) {
-                exec.Raise("TextioException.Read", iox.HResult.ToString());
+                exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {
+                    Cell.CreateNumberCell(new Number((int)ReadLineResult.error)),
+                    Cell.CreateStringCell(iox.HResult.ToString())
+                }));
             }
         }
 

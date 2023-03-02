@@ -4,6 +4,7 @@
 
 #include "assert.h"
 #include "cell.h"
+#include "enums.h"
 #include "exec.h"
 #include "nstring.h"
 #include "number.h"
@@ -162,11 +163,25 @@ void sqlite_open(TExecutor *exec)
     sqlite3 *db;
     int r = sqlite3_open(name, &db);
     if (r != SQLITE_OK) {
-        exec->rtl_raise(exec, "SqlException", sqlite3_errmsg(db));
+        Cell *ret = cell_createArrayCell(2);
+        Cell *t = cell_arrayIndexForWrite(ret, 0);
+        t->type = cNumber;
+        t->number = number_from_uint32(CHOICE_OpenResult_error);
+        t = cell_arrayIndexForWrite(ret, 1);
+        t->type = cString;
+        t->string = string_createCString(sqlite3_errmsg(db));
+        push(exec->stack, ret);
         goto cleanup;
     }
 
-    push(exec->stack, cell_fromObject(object_createDatabaseObject(db)));
+    Cell *ret = cell_createArrayCell(2);
+    Cell *t = cell_arrayIndexForWrite(ret, 0);
+    t->type = cNumber;
+    t->number = number_from_uint32(CHOICE_OpenResult_file); // TODO: db
+    t = cell_arrayIndexForWrite(ret, 1);
+    t->type = cObject;
+    t->object = object_createDatabaseObject(db);
+    push(exec->stack, ret);
 
 cleanup:
     free(name);

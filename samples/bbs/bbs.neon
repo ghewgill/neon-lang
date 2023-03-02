@@ -223,9 +223,9 @@ LOOP
         END IF
         FOR i := clients.size()-1 TO 0 STEP -1 DO
             IF clients[i].socket IN read THEN
-                VAR buf: Bytes
-                IF clients[i].socket.recv(1000, OUT buf) THEN
-                    clients[i].handleInput(buf)
+                LET r := clients[i].socket.recv(1000)
+                IF r ISA net.RecvResult.data THEN
+                    clients[i].handleInput(r.data)
                     IF clients[i].handler = NOWHERE THEN
                         clients[i].close()
                         clients.remove(i)

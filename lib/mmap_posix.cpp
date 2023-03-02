@@ -11,6 +11,8 @@
 #include "number.h"
 #include "rtl_exec.h"
 
+#include "choices.inc"
+
 class MmapObject: public Object {
 public:
     explicit MmapObject(int fd): fd(fd), len(0), view(NULL) {}
@@ -43,12 +45,15 @@ void close(const std::shared_ptr<Object> &pf)
     f->fd = -1;
 }
 
-std::shared_ptr<Object> open(const utf8string &name, Cell &)
+Cell open(const utf8string &name, Cell &)
 {
     int fd = ::open(name.c_str(), O_RDONLY);
     if (fd < 0) {
         int e = errno;
-        throw RtlException(Exception_OpenFileException, utf8string("open: error (" + std::to_string(e) + ") " + strerror(e)));
+        return Cell(std::vector<Cell> {
+           Cell(number_from_uint32(CHOICE_OpenResult_error)),
+           Cell(utf8string("open: error (" + std::to_string(e) + ") " + strerror(e)))
+        });
     }
     MmapObject *f = new MmapObject(fd);
     struct stat st;
@@ -59,9 +64,15 @@ std::shared_ptr<Object> open(const utf8string &name, Cell &)
         int e = errno;
         ::close(f->fd);
         delete f;
-        throw RtlException(Exception_OpenFileException, utf8string("mmap: error (" + std::to_string(e) + ") " + strerror(e)));
+        return Cell(std::vector<Cell> {
+           Cell(number_from_uint32(CHOICE_OpenResult_error)),
+           Cell(utf8string("mmap: error (" + std::to_string(e) + ") " + strerror(e)))
+        });
     }
-    return std::shared_ptr<Object> { f };
+    return Cell(std::vector<Cell> {
+       Cell(number_from_uint32(CHOICE_OpenResult_file)),
+       Cell(std::shared_ptr<Object> { f })
+    });
 }
 
 std::vector<unsigned char> read(const std::shared_ptr<Object> &pf, Number offset, Number count)

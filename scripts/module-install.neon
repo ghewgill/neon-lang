@@ -16,13 +16,7 @@ IF file.isDirectory("lib/\(name)") THEN
     sys.exit(1)
 END IF
 
-VAR mod: Object
-TRY
-    mod := yamlLoad("neon-module-registry/\(name).yaml")
-TRAP file.FileException.Open DO
-    textio.writeLine(textio.stderr, "Module not found")
-    sys.exit(1)
-END TRY
+LET mod := yamlLoad("neon-module-registry/\(name).yaml")
 
 IF os.system("git clone \(mod["repository"]) lib/\(name)") <> 0 THEN
     print("Error cloning module")
@@ -32,12 +26,19 @@ END IF
 FUNCTION yamlLoad(fn: String): Object
     -- Simplistic YAML load function that is suitable for module registry entries.
     VAR r: Dictionary<Object> := {}
-    LET lines: Array<String> := file.readLines(fn)
+    LET lr: file.LinesResult := file.readLines(fn)
+    CHECK lr ISA file.LinesResult.lines ELSE
+        print("Could not read file: \(fn)")
+        EXIT PROCESS FAILURE
+    END CHECK
+    LET lines: Array<String> := lr.lines
     FOREACH line IN lines DO
-        LET colon: Number := string.find(line, ":")
-        LET key: String := string.trim(line[FIRST TO colon-1])
-        LET value: String := string.trim(line[colon+1 TO LAST])
-        r[key] := value
+        LET colon: string.FindResult := string.find(line, ":")
+        IF colon ISA string.FindResult.index THEN
+            LET key: String := string.trim(line[FIRST TO colon.index-1])
+            LET value: String := string.trim(line[colon.index+1 TO LAST])
+            r[key] := value
+        END IF
     END FOREACH
     RETURN r
 END FUNCTION

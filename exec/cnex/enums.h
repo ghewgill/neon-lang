@@ -17,6 +17,37 @@
 #define ENUM_FileType_directory     1
 #define ENUM_FileType_special       2
 
+#define ENUM_Error_alreadyExists    0
+#define ENUM_Error_notFound         1
+#define ENUM_Error_permissionDenied 2
+#define ENUM_Error_other            3
+
+#define CHOICE_FileResult_ok        0
+#define CHOICE_FileResult_error     1
+
+#define CHOICE_FileInfoResult_info  0
+#define CHOICE_FileInfoResult_error 1
+
+#define CHOICE_BytesResult_data     0
+#define CHOICE_BytesResult_error    1
+
+#define CHOICE_LinesResult_lines    0
+#define CHOICE_LinesResult_error    1
+
+#define CHOICE_FindResult_notfound  0
+#define CHOICE_FindResult_index     1
+
+#define CHOICE_OpenResult_file      0
+#define CHOICE_OpenResult_error     1
+
+#define CHOICE_ReadLineResult_line  0
+#define CHOICE_ReadLineResult_eof   1
+#define CHOICE_ReadLineResult_error 2
+
+#define CHOICE_RecvResult_data  0
+#define CHOICE_RecvResult_eof   1
+#define CHOICE_RecvResult_error 2
+
 #define CHOICE_DecodeResult_string  0
 #define CHOICE_DecodeResult_error   1
 

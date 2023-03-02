@@ -1,12 +1,20 @@
 IMPORT textio
 
-VAR f: textio.TextFile := textio.open("tmp/textio-test.tmp", textio.Mode.write)
+VAR r: textio.OpenResult := textio.open("tmp/textio-test.tmp", textio.Mode.write)
+CHECK r ISA textio.OpenResult.file ELSE
+    PANIC "Test failed"
+END CHECK
+VAR f: textio.TextFile := r.file
 textio.writeLine(f, "Hello world")
 textio.seekStart(f)
 textio.truncate(f)
 textio.close(f)
-f := textio.open("tmp/textio-test.tmp", textio.Mode.read)
-print("\(textio.readLine(f, OUT _))")
---= FALSE
+r := textio.open("tmp/textio-test.tmp", textio.Mode.read)
+CHECK r ISA textio.OpenResult.file ELSE
+    PANIC "Test failed"
+END CHECK
+f := r.file
+print("\(textio.readLine(f))")
+--= <eof>
 
 textio.close(f)

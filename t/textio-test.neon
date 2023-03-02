@@ -3,13 +3,18 @@ IMPORT textio
 textio.writeLine(textio.stdout, "Hello World")
 --= Hello World
 
-TESTCASE textio.open("nonexistent.file", textio.Mode.read) EXPECT textio.TextioException.Open
+TESTCASE textio.open("nonexistent.file", textio.Mode.read) ISA textio.OpenResult.error
 
-VAR f: textio.TextFile := textio.open("LICENSE.txt", textio.Mode.read)
-VAR s: String := ""
-print("\(textio.readLine(f, OUT s))")
---= TRUE
-print(s)
+VAR r: textio.OpenResult := textio.open("LICENSE.txt", textio.Mode.read)
+CHECK r ISA textio.OpenResult.file ELSE
+    PANIC "Test failed"
+END CHECK
+VAR f: textio.TextFile := r.file
+VAR rlr: textio.ReadLineResult := textio.readLine(f)
+CHECK rlr ISA textio.ReadLineResult.line ELSE
+    PANIC "Test failed"
+END CHECK
+print(rlr.line)
 --= The MIT License (MIT)
 
 textio.close(f)

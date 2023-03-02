@@ -1,5 +1,9 @@
 IMPORT mmap
 
-VAR f: mmap.MemoryFile := mmap.open("LICENSE.txt", mmap.Mode.read)
+VAR r: mmap.OpenResult := mmap.open("LICENSE.txt", mmap.Mode.read)
+CHECK r ISA mmap.OpenResult.file ELSE
+    PANIC "Test failed"
+END CHECK
+VAR f: mmap.MemoryFile := r.file
 TESTCASE mmap.read(f, 0, 21).decodeUTF8().expectString() = "The MIT License (MIT)"
 mmap.close(f)

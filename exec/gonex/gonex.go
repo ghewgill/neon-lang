@@ -2367,7 +2367,7 @@ func (self *executor) op_callp() {
 		srcname := self.pop().str
 		dst, err := os.OpenFile(dstname, os.O_CREATE|os.O_EXCL, 0644)
 		if err != nil && os.IsExist(err) {
-			self.raise_literal("FileException.Exists", objectString{err.Error()})
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str(err.Error())})) // error
 		} else {
 			if err != nil {
 				panic(err)
@@ -2379,17 +2379,20 @@ func (self *executor) op_callp() {
 			}
 			defer src.Close()
 			io.Copy(src, dst)
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 		}
 	case "file$copyOverwriteIfExists":
 		dstname := self.pop().str
 		srcname := self.pop().str
 		neon_file_copyOverwriteIfExists(srcname, dstname)
+		self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 	case "file$delete":
 		name := self.pop().str
 		err := os.Remove(name)
 		if err != nil && !os.IsNotExist(err) {
 			panic(err)
 		}
+		self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 	case "file$exists":
 		name := self.pop().str
 		_, err := os.Stat(name)
@@ -2430,7 +2433,7 @@ func (self *executor) op_callp() {
 		a[6] = make_cell_num(0)
 		a[7] = make_cell_num(0)
 		a[8] = make_cell_num(float64(fileinfo.ModTime().Unix()))
-		self.push(make_cell_array(a))
+		self.push(make_cell_array([]cell{make_cell_num(0), make_cell_array(a)})) // info
 	case "file$isDirectory":
 		name := self.pop().str
 		fileinfo, err := os.Stat(name)
@@ -2443,17 +2446,20 @@ func (self *executor) op_callp() {
 		name := self.pop().str
 		err := os.Mkdir(name, 0755)
 		if err != nil && os.IsExist(err) {
-			self.raise_literal("FileException.DirectoryExists", objectString{name})
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str(name)})) // error
 		} else if err != nil {
 			panic(err)
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 		}
 	case "file$readBytes":
 		name := self.pop().str
 		b, err := ioutil.ReadFile(name)
 		if err != nil {
-			panic(err)
+			self.push(neon_file_ERROR(err, 1, name)) // notFound
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(0), make_cell_bytes(b)})) // data
 		}
-		self.push(make_cell_bytes(b))
 	case "file$readLines":
 		name := self.pop().str
 		f, err := os.Open(name)
@@ -2470,24 +2476,29 @@ func (self *executor) op_callp() {
 			}
 			a = append(a, make_cell_str(s[:len(s)-1]))
 		}
-		self.push(make_cell_array(a))
+		self.push(make_cell_array([]cell{make_cell_num(0), make_cell_array(a)})) // lines
 	case "file$removeEmptyDirectory":
 		name := self.pop().str
 		err := os.Remove(name)
 		if err != nil {
-			self.raise_literal("FileException", objectString{err.Error()})
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str(err.Error())})) // error
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 		}
 	case "file$rename":
 		newname := self.pop().str
 		oldname := self.pop().str
 		err := os.Rename(oldname, newname)
 		if err != nil {
-			panic(err)
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str(err.Error())})) // error
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 		}
 	case "file$writeBytes":
 		b := self.pop().bytes
 		name := self.pop().str
 		ioutil.WriteFile(name, b, 0644)
+		self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 	case "file$writeLines":
 		a := self.pop().array
 		name := self.pop().str
@@ -2499,6 +2510,7 @@ func (self *executor) op_callp() {
 		for _, s := range a {
 			f.WriteString(s.str + "\n")
 		}
+		self.push(make_cell_array([]cell{make_cell_num(0)})) // ok
 	case "math$abs":
 		x := self.pop().num
 		self.push(make_cell_num(math.Abs(x)))
@@ -2894,7 +2906,12 @@ func (self *executor) op_callp() {
 	case "string$find":
 		t := self.pop().str
 		s := self.pop().str
-		self.push(make_cell_num(float64(strings.Index(s, t))))
+		r := strings.Index(s, t)
+		if r < 0 {
+			self.push(make_cell_array([]cell{make_cell_num(0)})) // notfound
+		} else {
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_num(float64(r))})) // index
+		}
 	case "string$fromCodePoint":
 		c := self.pop().num
 		if c != math.Trunc(c) {
@@ -3362,6 +3379,18 @@ func (self *executor) raise_literal(exception string, info object) {
 
 	fmt.Fprintf(os.Stderr, "Unhandled exception %s (%s)\n", exception, info.toString())
 	os.Exit(1)
+}
+
+func neon_file_ERROR(err error, errortype int, filename string) cell {
+	return make_cell_array([]cell{
+		make_cell_num(1),
+		make_cell_array([]cell{
+			make_cell_num(float64(errortype)),
+			make_cell_num(0),
+			make_cell_str(err.Error()),
+			make_cell_str(filename),
+		}),
+	}) // error
 }
 
 func neon_file_copyOverwriteIfExists(srcname string, dstname string) {

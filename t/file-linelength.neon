@@ -4,6 +4,10 @@ VAR s: String := "0123456789"
 FOR i := 1 TO 16 DO
     s := s & s
 END FOR
-file.writeLines("tmp/linelength.tmp", [s])
-VAR t: Array<String> := file.readLines("tmp/linelength.tmp")
+TESTCASE file.writeLines("tmp/linelength.tmp", [s]) ISA file.FileResult.ok
+LET r: file.LinesResult := file.readLines("tmp/linelength.tmp")
+CHECK r ISA file.LinesResult.lines ELSE
+    PANIC "Test failed"
+END CHECK
+LET t: Array<String> := r.lines
 TESTCASE t[0] = s

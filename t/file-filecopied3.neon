@@ -2,17 +2,17 @@ IMPORT file
 
 -- This ensures that the file.copyOverwriteIfExists() will 
 -- actually CREATE the file if it does not exist already.
-file.delete("tmp/NEW_LICENSE.txt")
+CHECK file.delete("tmp/NEW_LICENSE.txt") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
 
-TRY 
-    file.copyOverwriteIfExists("LICENSE.txt", "tmp/NEW_LICENSE.txt")
-    IF file.exists("tmp/NEW_LICENSE.txt") THEN
-        print("File copied")
-    ELSE
-        print("File not copied")
-    END IF
-TRAP file.FileException.Exists DO
-    print("Failed")
-END TRY
+CHECK file.copyOverwriteIfExists("LICENSE.txt", "tmp/NEW_LICENSE.txt") ISA file.FileResult.ok ELSE
+    PANIC "Test failed"
+END CHECK
+IF file.exists("tmp/NEW_LICENSE.txt") THEN
+    print("File copied")
+ELSE
+    print("File not copied")
+END IF
 
 --= File copied

@@ -1,53 +1,61 @@
 IMPORT base
 
+FUNCTION from(b: Number, s: String): Number
+    LET r: base.NumberResult := base.from(b, s)
+    CHECK r ISA base.NumberResult.value ELSE
+        PANIC "Test failed"
+    END CHECK
+    RETURN r.value
+END FUNCTION
+
 -- check zero functionality
-TESTCASE base.from(2, "0") = 0
+TESTCASE from(2, "0") = 0
 TESTCASE base.to(2, 0) = "0"
 
 -- conversion from all valid bases
-TESTCASE base.from(2, "101010") = 42
-TESTCASE base.from(3, "1120") = 42
-TESTCASE base.from(4, "222") = 42
-TESTCASE base.from(5, "132") = 42
-TESTCASE base.from(6, "110") = 42
-TESTCASE base.from(7, "60") = 42
-TESTCASE base.from(8, "52") = 42
-TESTCASE base.from(9, "46") = 42
-TESTCASE base.from(10, "42") = 42
-TESTCASE base.from(11, "39") = 42
-TESTCASE base.from(12, "36") = 42
-TESTCASE base.from(13, "33") = 42
-TESTCASE base.from(14, "30") = 42
-TESTCASE base.from(15, "2c") = 42
-TESTCASE base.from(16, "2a") = 42
-TESTCASE base.from(17, "28") = 42
-TESTCASE base.from(18, "26") = 42
-TESTCASE base.from(19, "24") = 42
-TESTCASE base.from(20, "22") = 42
-TESTCASE base.from(21, "20") = 42
-TESTCASE base.from(22, "1k") = 42
-TESTCASE base.from(23, "1j") = 42
-TESTCASE base.from(24, "1i") = 42
-TESTCASE base.from(25, "1h") = 42
-TESTCASE base.from(26, "1g") = 42
-TESTCASE base.from(27, "1f") = 42
-TESTCASE base.from(28, "1e") = 42
-TESTCASE base.from(29, "1d") = 42
-TESTCASE base.from(30, "1c") = 42
-TESTCASE base.from(31, "1b") = 42
-TESTCASE base.from(32, "1a") = 42
-TESTCASE base.from(33, "19") = 42
-TESTCASE base.from(34, "18") = 42
-TESTCASE base.from(35, "17") = 42
-TESTCASE base.from(36, "16") = 42
+TESTCASE from(2, "101010") = 42
+TESTCASE from(3, "1120") = 42
+TESTCASE from(4, "222") = 42
+TESTCASE from(5, "132") = 42
+TESTCASE from(6, "110") = 42
+TESTCASE from(7, "60") = 42
+TESTCASE from(8, "52") = 42
+TESTCASE from(9, "46") = 42
+TESTCASE from(10, "42") = 42
+TESTCASE from(11, "39") = 42
+TESTCASE from(12, "36") = 42
+TESTCASE from(13, "33") = 42
+TESTCASE from(14, "30") = 42
+TESTCASE from(15, "2c") = 42
+TESTCASE from(16, "2a") = 42
+TESTCASE from(17, "28") = 42
+TESTCASE from(18, "26") = 42
+TESTCASE from(19, "24") = 42
+TESTCASE from(20, "22") = 42
+TESTCASE from(21, "20") = 42
+TESTCASE from(22, "1k") = 42
+TESTCASE from(23, "1j") = 42
+TESTCASE from(24, "1i") = 42
+TESTCASE from(25, "1h") = 42
+TESTCASE from(26, "1g") = 42
+TESTCASE from(27, "1f") = 42
+TESTCASE from(28, "1e") = 42
+TESTCASE from(29, "1d") = 42
+TESTCASE from(30, "1c") = 42
+TESTCASE from(31, "1b") = 42
+TESTCASE from(32, "1a") = 42
+TESTCASE from(33, "19") = 42
+TESTCASE from(34, "18") = 42
+TESTCASE from(35, "17") = 42
+TESTCASE from(36, "16") = 42
 
 -- check that both upper and lower case is accepted
-TESTCASE base.from(16, "beef") = 48879
-TESTCASE base.from(16, "BEEF") = 48879
+TESTCASE from(16, "beef") = 48879
+TESTCASE from(16, "BEEF") = 48879
 
-TESTCASE base.fromBinary("101010") = 42
-TESTCASE base.fromOctal("52") = 42
-TESTCASE base.fromHex("2a") = 42
+LET r1: base.NumberResult := base.fromBinary("101010") IF r1 ISA base.NumberResult.value THEN TESTCASE r1.value = 42 ELSE PANIC "Test failed" END IF
+LET r2: base.NumberResult := base.fromOctal("52")      IF r2 ISA base.NumberResult.value THEN TESTCASE r2.value = 42 ELSE PANIC "Test failed" END IF
+LET r3: base.NumberResult := base.fromHex("2a")        IF r3 ISA base.NumberResult.value THEN TESTCASE r3.value = 42 ELSE PANIC "Test failed" END IF
 
 -- conversion to all valid bases
 TESTCASE base.to(2, 42) = "101010"

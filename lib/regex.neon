@@ -486,7 +486,11 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                                         WHEN "t" DO
                                             c := "\t"
                                         WHEN "x" DO
-                                            c := string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))
+                                            LET v := base.fromHex(pattern[i+1 TO i+2])
+                                            CHECK v ISA base.NumberResult.value ELSE
+                                                RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "invalid hex characters: \(pattern[i+1 TO i+2])"))
+                                            END CHECK
+                                            c := string.fromCodePoint(v.value)
                                             i := i + 2
                                         WHEN OTHERS DO
                                             RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))
@@ -528,7 +532,11 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                                     WHEN "W" DO
                                         s.extend(WordCharsComplement)
                                     WHEN "x" DO
-                                        s.append(string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2])))
+                                        LET v := base.fromHex(pattern[i+1 TO i+2])
+                                        CHECK v ISA base.NumberResult.value ELSE
+                                            RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "invalid hex characters: \(pattern[i+1 TO i+2])"))
+                                        END CHECK
+                                        s.append(string.fromCodePoint(v.value))
                                         i := i + 2
                                     WHEN OTHERS DO
                                         RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))
@@ -669,9 +677,6 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                 CASE pattern[i]
                     WHEN "A" TO "Z", "a" TO "z", "0" TO "9" DO
                         CASE pattern[i]
-                            WHEN "0" DO
-                                r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromOctal(pattern[i TO i+2]))))
-                                i := i + 2
                             WHEN "1" TO "9" DO
                                 RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "backreferences not supported"))
                             WHEN "d" DO
@@ -697,7 +702,11 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                             WHEN "W" DO
                                 r->exprs.append(NEW ExprClass(chars WITH WordChars, complement WITH TRUE))
                             WHEN "x" DO
-                                r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(base.fromHex(pattern[i+1 TO i+2]))))
+                                LET v := base.fromHex(pattern[i+1 TO i+2])
+                                CHECK v ISA base.NumberResult.value ELSE
+                                    RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "invalid hex characters: \(pattern[i+1 TO i+2])"))
+                                END CHECK
+                                r->exprs.append(NEW ExprLiteral(literal WITH string.fromCodePoint(v.value)))
                                 i := i + 2
                             WHEN OTHERS DO
                                 RETURN ParseResult.error(ErrorInfo(index WITH i, message WITH "unknown escape character"))

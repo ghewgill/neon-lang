@@ -1628,8 +1628,7 @@ END FUNCTION
 FUNCTION f_pushci(INOUT self: Executor)
     INC self.ip
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
-    LET dot: Number := string.find(self.bytecode.strtable[val], ".")
-    IF dot < 0 THEN
+    IF "." NOT IN self.bytecode.strtable[val] THEN
         FOREACH c IN self.bytecode.classes DO
             IF c.name = val THEN
                 LET a: Array<POINTER TO Value> := [
@@ -1662,6 +1661,11 @@ FUNCTION makeExecutor(bytes: Bytes): Executor
 END FUNCTION
 
 BEGIN MAIN
-    VAR e: Executor := makeExecutor(file.readBytes(sys.args[1]))
+    LET r: file.BytesResult := file.readBytes(sys.args[1])
+    CHECK r ISA file.BytesResult.data ELSE
+        print("Could not read file: \(sys.args[1])")
+        EXIT PROCESS FAILURE
+    END CHECK
+    VAR e: Executor := makeExecutor(r.data)
     e.run()
 END MAIN

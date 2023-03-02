@@ -1025,7 +1025,7 @@ public:
 
         {
             field_info f;
-            f.access_flags = 0;
+            f.access_flags = ACC_PUBLIC;
             f.name_index = cf.utf8("_choice");
             f.descriptor_index = cf.utf8("I");
             cf.fields.push_back(f);
@@ -1034,7 +1034,7 @@ public:
         for (auto c: choices) {
             if (c.second.second != nullptr) {
                 field_info f;
-                f.access_flags = 0;
+                f.access_flags = ACC_PUBLIC;
                 f.name_index = cf.utf8(c.first);
                 f.descriptor_index = cf.utf8(c.second.second->jtype);
                 cf.fields.push_back(f);

@@ -5,6 +5,8 @@
 
 EXPORT TextFile
 EXPORT Mode
+EXPORT OpenResult
+EXPORT ReadLineResult
 
 EXPORT TextioException
 
@@ -34,6 +36,17 @@ END ENUM
  *  Opaque type representing a text file on disk.
  */
 TYPE TextFile IS Object
+
+TYPE OpenResult IS CHOICE
+    file: TextFile
+    error: String
+END CHOICE
+
+TYPE ReadLineResult IS CHOICE
+    line: String
+    eof
+    error: String
+END CHOICE
 
 /*  Exception: TextioException
  *
@@ -87,7 +100,7 @@ DECLARE NATIVE FUNCTION close(f: TextFile)
  *
  *  Open a file with the given name and mode.
  */
-DECLARE NATIVE FUNCTION open(name: String, mode: Mode): TextFile
+DECLARE NATIVE FUNCTION open(name: String, mode: Mode): OpenResult
 
 /*  Function: readLine
  *
@@ -96,7 +109,7 @@ DECLARE NATIVE FUNCTION open(name: String, mode: Mode): TextFile
  *  Returns:
  *      FALSE if there are no more lines in the file, otherwise TRUE.
  */
-DECLARE NATIVE FUNCTION readLine(f: TextFile, OUT s: String): Boolean
+DECLARE NATIVE FUNCTION readLine(f: TextFile): ReadLineResult
 
 /*  Function: seekEnd
  *

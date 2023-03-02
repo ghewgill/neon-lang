@@ -372,6 +372,8 @@ class TypeCompound:
         self.name = name
     def resolve(self, env):
         return g_Modules[self.name[0]].env.get_value(self.name[1])
+    def __repr__(self):
+        return "<TypeCompound:{}>".format(self.name)
 
 class Field:
     def __init__(self, name, type):
@@ -967,7 +969,7 @@ class TypeTestExpression:
                     return True
         if isinstance(v, ClassChoice.Instance) or self.target.name == ("regex", "Result", "match"):
             return v._choice == self.target.name[-1]
-        assert False, "add type ISA support for target {}".format(self.target)
+        assert False, "add type ISA support for type {} target {}".format(type(v), self.target)
 
 class MembershipExpression:
     def __init__(self, left, right):
@@ -1177,7 +1179,10 @@ class AssignmentStatement:
     def run(self, env):
         x = self.rhs.eval(env)
         import _io
-        if not isinstance(x, (_io.TextIOWrapper, _io.BufferedWriter)):
+        o = x
+        if isinstance(x, ClassChoice.Instance):
+            o = getattr(x, x._choice)
+        if not isinstance(o, (_io.TextIOWrapper, _io.BufferedWriter)):
             x = copy.deepcopy(x)
         self.var.set(env, x)
     def eval(self, env):
@@ -2750,7 +2755,7 @@ class ClassEnum(Class):
 
 class ClassChoice(Class):
     class Instance:
-        def __init__(self, name, value):
+        def __init__(self, name, value=None):
             self._choice = name
             setattr(self, name, value)
         def __eq__(self, rhs):
@@ -2774,7 +2779,7 @@ class ClassChoice(Class):
         self.choices = choices
         self.methods = {}
     def default(self, env):
-        r = ClassChoice.Instance(self.choices[0][0], self.choices[0][1] and self.choices[0][1].resolve(env).default(env))
+        r = ClassChoice.Instance(self.choices[0][0], None)
         return r
 
 class ClassPointer(Class):
@@ -3023,17 +3028,20 @@ def neon_datetime_timegm(env, tm):
 
 def neon_file_copy(env, src, dest):
     if neon_file_exists(env, dest):
-        raise NeonException(["FileException", "Exists"])
+        return ClassChoice.Instance("error", "Exists")
     shutil.copyfile(src, dest)
+    return ClassChoice.Instance("ok")
 
 def neon_file_copyOverwriteIfExists(env, src, dest):
     shutil.copyfile(src, dest)
+    return ClassChoice.Instance("ok")
 
 def neon_file_delete(env, fn):
     try:
         os.unlink(fn)
     except OSError:
         pass
+    return ClassChoice.Instance("ok")
 
 def neon_file_exists(env, fn):
     return os.access(fn, os.F_OK)
@@ -3063,28 +3071,38 @@ def neon_file_mkdir(env, path):
 
 def neon_file_readBytes(env, fn):
     with open(fn, "rb") as f:
-        return bytes(f.read())
+        return ClassChoice.Instance("data", bytes(f.read()))
 
 def neon_file_readLines(env, fn):
     with codecs.open(fn, "r", encoding="utf-8") as f:
-        return list(map(lambda x: x.rstrip("\r\n"), f.readlines()))
+        return ClassChoice.Instance("lines", list(map(lambda x: x.rstrip("\r\n"), f.readlines())))
 
 def neon_file_removeEmptyDirectory(env, path):
     try:
         os.rmdir(path)
     except OSError:
-        raise NeonException("FileException")
+        return ClassChoice.Instance("error", "remove error")
+    return ClassChoice.Instance("ok")
 
 def neon_file_rename(env, old, new):
     os.rename(old, new)
+    return ClassChoice.Instance("ok")
 
 def neon_file_writeBytes(env, fn, bytes):
-    with open(fn, "wb") as f:
-        f.write("".join(chr(x) for x in bytes.a))
+    try:
+        with open(fn, "wb") as f:
+            f.write("".join(chr(x) for x in bytes.a))
+    except OSError as x:
+        return ClassChoice.Instance("error", str(x))
+    return ClassChoice.Instance("ok")
 
 def neon_file_writeLines(env, fn, lines):
-    with open(fn, "wb") as f:
-        f.writelines((x+"\n").encode() for x in lines)
+    try:
+        with open(fn, "wb") as f:
+            f.writelines((x+"\n").encode() for x in lines)
+    except OSError as x:
+        return ClassChoice.Instance("error", str(x))
+    return ClassChoice.Instance("ok")
 
 def neon_io_close(env, f):
     f.close()
@@ -3098,9 +3116,9 @@ def neon_io_fprint(env, f, s):
 
 def neon_io_open(env, fn, mode):
     try:
-        return open(fn, "wb" if mode.name == "write" else "rb")
+        return ClassChoice.Instance("file", open(fn, "wb" if mode.name == "write" else "rb"))
     except OSError:
-        raise NeonException(["IoException", "Open"], "open error")
+        return ClassChoice.Instance("error", "open error")
 
 def neon_io_readBytes(env, f, count):
     return bytes(f.read(count))
@@ -3335,7 +3353,10 @@ def neon_runtime_setRecursionLimit(env, depth):
     pass
 
 def neon_string_find(env, s, t):
-    return s.find(t)
+    r = s.find(t)
+    if r < 0:
+        return ClassChoice.Instance("notfound")
+    return ClassChoice.Instance("index", r)
 
 def neon_string_fromCodePoint(env, x):
     if x != int(x):
@@ -3412,15 +3433,15 @@ def neon_textio_close(env, f):
 
 def neon_textio_open(env, fn, mode):
     try:
-        return open(fn, "w" if mode.name == "write" else "r")
+        return ClassChoice.Instance("file", open(fn, "w" if mode.name == "write" else "r"))
     except OSError:
-        raise NeonException(["TextioException", "Open"], "open error")
+        return ClassChoice.Instance("error", "open error")
 
-def neon_textio_readLine(env, f, r):
+def neon_textio_readLine(env, f):
     r = f.readline()
     if not r:
-        return False, ""
-    return r is not None, r.rstrip("\r\n")
+        return ClassChoice.Instance("eof")
+    return ClassChoice.Instance("line", r.rstrip("\r\n"))
 
 def neon_textio_seekEnd(env, f):
     f.seek(0, os.SEEK_END)

@@ -489,11 +489,15 @@ with open("gen/functions_compile_jvm.inc", "w") as inc:
             "int",
         ]:
             function += "_"
+        rettype = JvmFromAst[rtype]
+        if rtype[0] == "TYPE_GENERIC":
+            # Recover the original class name so the native function can return the right type.
+            rettype = "Lneon/lib/{}${};".format(name.split("$")[0], rtypename)
         print("    {{\"{}\", \"{}\", \"{}\", \"{}\"}},".format(
             name,
             "neon/{}".format(module.title()),
             function,
-            "(" + "".join(JvmFromAst[(p, m)] for (p, m), t, n in zip(params, paramtypes, paramnames)) + ")" + ("[Ljava/lang/Object;" if any(x[1] == REF for x in params) else JvmFromAst[rtype])
+            "(" + "".join(JvmFromAst[(p, m)] for (p, m), t, n in zip(params, paramtypes, paramnames)) + ")" + ("[Ljava/lang/Object;" if any(x[1] == REF for x in params) else rettype)
         ), file=inc)
     print("};", file=inc)
 

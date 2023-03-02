@@ -1,43 +1,51 @@
 IMPORT json
 
+FUNCTION decode(t: String): Object
+    LET r := json.decode(t)
+    CHECK r ISA json.JsonResult.data ELSE
+        PANIC "Test failed"
+    END CHECK
+    RETURN r.data
+END FUNCTION
+
 VAR s: String
 VAR v: Object
 
 s := json.encode(NIL)
 print(s)
 --= null
-v := json.decode(s)
+v := decode(s)
 print("\(v = NIL)")
 --= TRUE
 
 s := json.encode(TRUE)
 print(s)
 --= true
-v := json.decode(s)
+v := decode(s)
 print("\(v)")
 --= TRUE
 
 s := json.encode(5)
 print(s)
 --= 5
-v := json.decode(s)
+v := decode(s)
 print("\(v)")
 --= 5
 
 s := json.encode("fork")
 print(s)
 --= "fork"
-v := json.decode(s)
+v := decode(s)
 print("\(v)")
 --= fork
 
-TESTCASE json.decode(@@""\"\\\/\b\n\f\r\t""@@) = "\"\\/\b\n\f\r\t"
-TESTCASE json.decode(@@""\u0021""@@) = "!"
+TESTCASE decode(@@""\"\\\/\b\n\f\r\t""@@) = "\"\\/\b\n\f\r\t"
+TESTCASE decode(@@""\u0021""@@) = "!"
 
 s := json.encode([5, "fork"])
 print(s)
 --= [5,"fork"]
-v := json.decode(s)
+v := decode(s)
 print("\(v[0]) \(v[1])")
 --= 5 fork
 
@@ -49,7 +57,7 @@ s := json.encode({
 })
 print(s)
 --= {"boolean":true,"null":null,"number":5,"string":"fork"}
-v := json.decode(s)
+v := decode(s)
 print((v["null"] = NIL).toString())
 --= TRUE
 print((IF v["boolean"] THEN "TRUE" ELSE "FALSE"))
@@ -59,11 +67,11 @@ print(str(v["number"]))
 print(v["string"])
 --= fork
 
-v := json.decode(@@"{"foo": "bar\"baz"}"@@)
+v := decode(@@"{"foo": "bar\"baz"}"@@)
 print(v.foo)
 --= bar"baz
 
-LET a: Object := json.decode(@@"
+LET a: Object := decode(@@"
     {
         "z": null,
         "b": true,

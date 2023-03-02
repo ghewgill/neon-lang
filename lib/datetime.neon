@@ -38,8 +38,6 @@ EXPORT Sunday
 IMPORT math
 IMPORT time
 
-EXCEPTION TodoException
-
 CONSTANT MonthNames: Array<String> := [
     "",
     "January",
@@ -224,7 +222,7 @@ END FUNCTION
  *  Make a DateTime from a string representation.
  */
 FUNCTION makeFromString(s: String): DateTime
-    RAISE TodoException
+    PANIC "Not implemented"
 END FUNCTION
 
 /*  Function: DateTime.minusDuration
@@ -240,7 +238,7 @@ END FUNCTION
  *  Subtract a <Period> from a <DateTime> and return a new <DateTime>.
  */
 FUNCTION DateTime.minusPeriod(self: DateTime, period: Period): DateTime
-    RAISE TodoException
+    PANIC "Not implemented"
 END FUNCTION
 
 /*  Function: DateTime.plusDuration

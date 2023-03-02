@@ -25,17 +25,31 @@ TYPE Client IS RECORD
     last_packet: Boolean
 END RECORD
 
-FUNCTION makeClient(remote_address: String, remote_port: Number, filename: String, mode: String): Client
+TYPE ClientResult IS CHOICE
+    client: Client
+    error: String
+END CHOICE
+
+FUNCTION makeClient(remote_address: String, remote_port: Number, filename: String, mode: String): ClientResult
     VAR c: Client := Client()
     c.remote_addr := remote_address
     c.remote_port := remote_port
-    c.file := io.open(filename, io.Mode.read)
+    LET r := io.open(filename, io.Mode.read)
+    CHECK r ISA io.OpenResult.file ELSE
+        CASE r
+            WHEN ISA io.OpenResult.error DO
+                RETURN ClientResult.error(r.error)
+            WHEN OTHERS DO
+                RETURN ClientResult.error("unknown")
+        END CASE
+    END CHECK
+    c.file := r.file
     c.socket := net.udpSocket()
     c.socket.connect(remote_address, remote_port)
     c.block_number := 0
     c.last_packet := FALSE
     c.sendNextBlock()
-    RETURN c
+    RETURN ClientResult.client(c)
 END FUNCTION
 
 FUNCTION Client.close(INOUT self: Client)
@@ -44,11 +58,11 @@ FUNCTION Client.close(INOUT self: Client)
 END FUNCTION
 
 FUNCTION Client.handleRead(INOUT self: Client): Boolean
-    VAR buf: Bytes
-    IF NOT self.socket.recv(1024, OUT buf) THEN
+    LET r := self.socket.recv(1024)
+    CHECK r ISA net.RecvResult.data ELSE
         RETURN FALSE
-    END IF
-    LET a: Array<Number> := buf.toArray()
+    END CHECK
+    LET a: Array<Number> := r.data.toArray()
     IF a[0] = 0 THEN
         IF a[1] = Type_ACK THEN
             LET block: Number := struct.unpackInt16BE(a[2 TO 3].toBytes())
@@ -92,20 +106,20 @@ LOOP
     VAR error: Array<net.Socket> := []
     IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN
         IF server IN read THEN
-            VAR remote_address: String
-            VAR remote_port: Number
-            VAR data: Bytes
-            IF NOT server.recvfrom(1024, OUT remote_address, OUT remote_port, OUT data) THEN
+            LET rr := server.recvfrom(1024)
+            CHECK rr ISA net.RecvResult.data ELSE
                 EXIT LOOP
-            END IF
-            LET a: Array<Number> := data.toArray()
+            END CHECK
+            LET a: Array<Number> := rr.data.data.toArray()
             IF a[0] = 0 THEN
                 IF a[1] = Type_RRQ THEN
                     LET s: String := a[2 TO LAST].toBytes().decodeUTF8().expectString()
                     LET args: Array<String> := string.split(s, string.fromCodePoint(0))
                     IF args.size() = 2 THEN
-                        VAR c: Client := makeClient(remote_address, remote_port, filename WITH args[0], mode WITH args[1])
-                        clients.append(c)
+                        LET r := makeClient(rr.data.remoteAddress, rr.data.remotePort, filename WITH args[0], mode WITH args[1])
+                        IF r ISA ClientResult.client THEN
+                            clients.append(r.client)
+                        END IF
                     ELSE
                         print("invalid RRQ packet format")
                     END IF

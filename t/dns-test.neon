@@ -4,18 +4,16 @@ IMPORT string
 
 VAR nameserver: String := "1.1.1.1"
 
-TRY
-    LET resolv: Array<String> := file.readLines("/etc/resolv.conf")
-    FOREACH s IN resolv DO
+LET resolv: file.LinesResult := file.readLines("/etc/resolv.conf")
+IF resolv ISA file.LinesResult.lines THEN
+    FOREACH s IN resolv.lines DO
         LET a: Array<String> := string.split(s, " ")
         IF a.size() >= 1 AND a[0] = "nameserver" THEN
             nameserver := a[1]
             EXIT FOREACH
         END IF
     END FOREACH
-TRAP file.FileException DO
-    -- pass
-END TRY
+END IF
 
 LET q: dns.Message := dns.makeQuery("example.com", dns.Type.soa)
 LET r: dns.Result := dns.execQuery(nameserver, q)

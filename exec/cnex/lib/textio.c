@@ -66,20 +66,40 @@ void textio_open(TExecutor *exec)
         case ENUM_Mode_write: m = "w+"; break;
         default:
             free(pszName);
-            push(exec->stack, cell_fromAddress(NULL));
+            Cell *r = cell_createArrayCell(2);
+            Cell *t = cell_arrayIndexForWrite(r, 0);
+            t->type = cNumber;
+            t->number = number_from_uint32(CHOICE_OpenResult_error);
+            t = cell_arrayIndexForWrite(r, 1);
+            t->type = cString;
+            t->string = string_createCString("invalid mode");
+            push(exec->stack, r);
             return;
     }
 
     FILE *f = fopen(pszName, m);
     if (f == NULL) {
-        exec->rtl_raise(exec, "TextioException.Open", number_to_string(number_from_sint32(errno)));
+        Cell *r = cell_createArrayCell(2);
+        Cell *t = cell_arrayIndexForWrite(r, 0);
+        t->type = cNumber;
+        t->number = number_from_uint32(CHOICE_OpenResult_error);
+        t = cell_arrayIndexForWrite(r, 1);
+        t->type = cString;
+        t->string = string_createCString(pszName);
+        push(exec->stack, r);
         free(pszName);
         return;
     }
-    Object *r = object_createFileObject(f);
     free(pszName);
 
-    push(exec->stack, cell_fromObject(r));
+    Cell *r = cell_createArrayCell(2);
+    Cell *t = cell_arrayIndexForWrite(r, 0);
+    t->type = cNumber;
+    t->number = number_from_uint32(CHOICE_OpenResult_file);
+    t = cell_arrayIndexForWrite(r, 1);
+    t->type = cObject;
+    t->object = object_createFileObject(f);
+    push(exec->stack, r);
 }
 
 void textio_readLine(TExecutor *exec)
@@ -91,24 +111,37 @@ void textio_readLine(TExecutor *exec)
         return;
     }
 
-    Cell *r = cell_createStringCell(0);
-    BOOL ret = FALSE;
+    Cell *r = cell_createArrayCell(2);
+    Cell *s = cell_createStringCell(0);
 
     for (;;) {
         char buf[1024];
         if (fgets(buf, sizeof(buf), f) == NULL) {
-            ret = r->string->length != 0;
+            if (s->string->length == 0) {
+                Cell *t = cell_arrayIndexForWrite(r, 0);
+                t->type = cNumber;
+                t->number = number_from_uint32(CHOICE_ReadLineResult_eof);
+            } else {
+                Cell *t = cell_arrayIndexForWrite(r, 0);
+                t->type = cNumber;
+                t->number = number_from_uint32(CHOICE_ReadLineResult_line);
+                t = cell_arrayIndexForWrite(r, 1);
+                cell_copyCell(t, s);
+            }
             break;
         }
-        r->string = string_appendCString(r->string, buf);
-        if (r->string->data[r->string->length - 1] == '\n') {
-            string_resizeString(r->string, r->string->length-1);
-            ret = TRUE;
+        s->string = string_appendCString(s->string, buf);
+        if (s->string->data[s->string->length - 1] == '\n') {
+            string_resizeString(s->string, s->string->length-1);
+            Cell *t = cell_arrayIndexForWrite(r, 0);
+            t->type = cNumber;
+            t->number = number_from_uint32(CHOICE_ReadLineResult_line);
+            t = cell_arrayIndexForWrite(r, 1);
+            cell_copyCell(t, s);
             break;
         }
     }
 
-    push(exec->stack, cell_fromBoolean(ret));
     push(exec->stack, r);
 }
 

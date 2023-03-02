@@ -3,6 +3,7 @@
 import calendar
 import ctypes
 import decimal
+import errno
 import math
 import mmap
 import os
@@ -2361,6 +2362,21 @@ def neon_substring(self):
     s = self.stack.pop().value
     self.stack.append(s[offset:offset+length])
 
+def neon_file_ERROR(ex):
+    return [
+        Value(1), # error
+        Value([
+            Value({
+                errno.EACCES: 2, # permissionDenied
+                errno.EEXIST: 0, # alreadyExists
+                errno.ENOENT: 1, # notFound
+            }.get(ex.errno, 3)), # other
+            Value(ex.errno),
+            Value(ex.strerror),
+            Value(ex.filename),
+        ])
+    ]
+
 def neon_file__CONSTANT_Separator(self):
     self.stack.append(os.sep)
 
@@ -2369,18 +2385,20 @@ def neon_file_copy(self):
     src = self.stack.pop()
     try:
         destf = open(dest, "xb")
-    except FileExistsError:
-        self.raise_literal("FileException.Exists", dest)
+    except FileExistsError as x:
+        self.stack.append(neon_file_ERROR(x))
         return
     srcf = open(src, "rb")
     shutil.copyfileobj(srcf, destf)
     destf.close()
     srcf.close()
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_copyOverwriteIfExists(self):
     dest = self.stack.pop()
     src = self.stack.pop()
     shutil.copyfile(src, dest)
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_delete(self):
     fn = self.stack.pop()
@@ -2388,6 +2406,7 @@ def neon_file_delete(self):
         os.remove(fn)
     except FileNotFoundError:
         pass
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_exists(self):
     n = self.stack.pop()
@@ -2411,7 +2430,7 @@ def neon_file_getInfo(self):
         st.st_atime,
         st.st_mtime,
     ]
-    self.stack.append([Value(x) for x in r])
+    self.stack.append([Value(0), Value([Value(x) for x in r])]) # info
 
 def neon_file_isDirectory(self):
     fn = self.stack.pop()
@@ -2425,39 +2444,50 @@ def neon_file_mkdir(self):
     fn = self.stack.pop()
     try:
         os.mkdir(fn)
-    except FileExistsError:
-        self.raise_literal("FileException.DirectoryExists", fn)
+    except FileExistsError as x:
+        self.stack.append(neon_file_ERROR(x))
+        return
+    self.stack.append([
+        Value(0) # ok
+    ])
 
 def neon_file_readBytes(self):
     fn = self.stack.pop()
-    r = open(fn, "rb").read()
-    self.stack.append(r)
+    try:
+        r = open(fn, "rb").read()
+        self.stack.append([Value(0), Value(r)]) # data
+    except FileNotFoundError as x:
+        self.stack.append(neon_file_ERROR(x))
 
 def neon_file_readLines(self):
     fn = self.stack.pop()
     try:
         r = [Value(x.rstrip("\n")) for x in open(fn).readlines()]
-        self.stack.append(r)
-    except OSError:
-        self.raise_literal("FileException", "")
+        self.stack.append([Value(0), Value(r)]) # lines
+    except OSError as x:
+        self.stack.append(neon_file_ERROR(x))
 
 def neon_file_removeEmptyDirectory(self):
     fn = self.stack.pop()
     try:
         os.rmdir(fn)
-    except OSError:
-        self.raise_literal("FileException", "")
+    except OSError as x:
+        self.stack.append(neon_file_ERROR(x))
+        return
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_rename(self):
     newname = self.stack.pop()
     oldname = self.stack.pop()
     os.rename(oldname, newname)
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_writeBytes(self):
     data = self.stack.pop()
     fn = self.stack.pop()
     with open(fn, "wb") as f:
         f.write(data)
+    self.stack.append([Value(0)]) # ok
 
 def neon_file_writeLines(self):
     data = self.stack.pop()
@@ -2465,6 +2495,7 @@ def neon_file_writeLines(self):
     with open(fn, "w") as f:
         for s in data:
             print(s.value, file=f)
+    self.stack.append([Value(0)]) # ok
 
 def neon_io_close(self):
     f = self.stack.pop()
@@ -2475,9 +2506,12 @@ def neon_io_open(self):
     fn = self.stack.pop()
     try:
         f = open(fn, "rb" if mode == 0 else "wb")
-        self.stack.append(f)
-    except FileNotFoundError:
-        self.raise_literal("IoException.Open", fn)
+        self.stack.append([
+            Value(0), # file
+            Value(f)
+        ])
+    except FileNotFoundError as x:
+        self.stack.append(neon_file_ERROR(x))
 
 def neon_io_flush(self):
     f = self.stack.pop()
@@ -2725,7 +2759,10 @@ def neon_mmap_open(self):
     f = os.open(name, os.O_RDONLY)
     size = os.fstat(f).st_size
     m = mmap.mmap(f, size, access=mmap.ACCESS_READ)
-    self.stack.append((f, m))
+    self.stack.append([
+        Value(0), # file
+        Value((f, m))
+    ])
 
 def neon_mmap_read(self):
     count = int(self.stack.pop())
@@ -2766,17 +2803,19 @@ def neon_net_socket_recv(self):
     count = int(self.stack.pop())
     sock = self.stack.pop()
     r = sock.recv(count)
-    self.stack.append(len(r) > 0)
-    self.stack.append(r)
+    if len(r) > 0:
+        self.stack.append([Value(0), Value(r)]) # data
+    else:
+        self.stack.append([Value(1)]) # eof
 
 def neon_net_socket_recvfrom(self):
     count = int(self.stack.pop())
     sock = self.stack.pop()
     r, peer = sock.recvfrom(count)
-    self.stack.append(len(r) > 0)
-    self.stack.append(r)
-    self.stack.append(peer[1])
-    self.stack.append(peer[0])
+    if len(r):
+        self.stack.append([Value(0), Value([Value(peer[0]), Value(peer[1]), Value(r)])]) # data
+    else:
+        self.stack.append([Value(1)]) # eof
 
 def neon_net_socket_select(self):
     timeout_seconds = self.stack.pop()
@@ -2934,12 +2973,30 @@ def neon_sqlite_execRaw(self):
 def neon_sqlite_open(self):
     fn = self.stack.pop()
     r = sqlite3.connect(fn)
-    self.stack.append(r)
+    if r is None:
+        self.stack.append([
+            Value(1), # error
+            Value("open error")
+        ])
+    else:
+        self.stack.append([
+            Value(0), # db
+            Value(r)
+        ])
 
 def neon_string_find(self):
     t = self.stack.pop()
     s = self.stack.pop()
-    self.stack.append(s.find(t))
+    r = s.find(t)
+    if r < 0:
+        self.stack.append([
+            Value(0) # notfound
+        ])
+    else:
+        self.stack.append([
+            Value(1), # index
+            Value(r)
+        ])
 
 def neon_string_hasPrefix(self):
     prefix = self.stack.pop()
@@ -3022,21 +3079,25 @@ def neon_textio_open(self):
     fn = self.stack.pop()
     try:
         f = open(fn, "r" if mode == 0 else "w")
-        self.stack.append(f)
+        self.stack.append([
+            Value(0), # file
+            Value(f)
+        ])
     except FileNotFoundError:
-        self.raise_literal("TextioException.Open", fn)
+        self.stack.append([
+            Value(1), # error
+            Value(fn)
+        ])
 
 def neon_textio_readLine(self):
     f = self.stack.pop()
     try:
         s = f.readline()
         if not s:
-            self.stack.append(False)
-            self.stack.append("")
+            self.stack.append([Value(1)]) # eof
             return
         s = s.rstrip("\n")
-        self.stack.append(True)
-        self.stack.append(s)
+        self.stack.append([Value(0), Value(s)]) # line
     except IOError:
         self.raise_literal("TextioException", "")
 

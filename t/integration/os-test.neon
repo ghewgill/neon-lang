@@ -8,7 +8,12 @@ r := os.system("echo hello")
 print(str(r))
 --= 0
 
-VAR p: os.Process := os.spawn(@@"bin/neon -c "IMPORT time time.sleep(1)""@@)
+LET sr: os.SpawnResult := os.spawn(@@"bin/neon -c "IMPORT time time.sleep(1)""@@)
+CHECK sr ISA os.SpawnResult.process ELSE
+    print("spawn failed")
+    EXIT PROCESS FAILURE
+END CHECK
+VAR p: os.Process := sr.process
 LET start: Number := time.now()
 r := os.wait(p)
 LET end: Number := time.now()

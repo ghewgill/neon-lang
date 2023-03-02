@@ -2,9 +2,13 @@ IMPORT file
 
 LET an: Array<Number> := [4, 3, 2, 0, 1]
 LET buf: Bytes := an.toBytes()
-file.writeBytes("tmp/bytetest.bin", buf)
+TESTCASE file.writeBytes("tmp/bytetest.bin", buf) ISA file.FileResult.ok
 
-VAR a: Array<Number> := file.readBytes("tmp/bytetest.bin").toArray()
+LET r: file.BytesResult := file.readBytes("tmp/bytetest.bin")
+CHECK r ISA file.BytesResult.data ELSE
+    PANIC "Test failed"
+END CHECK
+VAR a: Array<Number> := r.data.toArray()
 print("\(a[0]),\(a[1]),\(a[2]),\(a[3]),\(a[4])")
 
 --= 4,3,2,0,1
