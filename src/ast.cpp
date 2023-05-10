@@ -1088,7 +1088,6 @@ Number FunctionCall::eval_number() const
     if (f->name == "math$trunc") return rtl::ne_global::int_(args[0]->eval_number());
     if (f->name == "math$max") return rtl::ne_global::max(args[0]->eval_number(), args[1]->eval_number());
     if (f->name == "math$min") return rtl::ne_global::min(args[0]->eval_number(), args[1]->eval_number());
-    if (f->name == "global$num") return rtl::ne_global::num(args[0]->eval_string());
     if (f->name == "math$round") return rtl::ne_global::round(args[0]->eval_number(), args[1]->eval_number());
     internal_error("unexpected intrinsic");
 }
@@ -1123,7 +1122,6 @@ bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const 
      || f->name == "math$trunc"
      || f->name == "math$max"
      || f->name == "math$min"
-     || f->name == "global$num"
      || f->name == "math$odd"
      || f->name == "string$toCodePoint"
      || f->name == "math$round"
