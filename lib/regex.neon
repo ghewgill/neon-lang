@@ -603,7 +603,11 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                     INC j
                 END WHILE
                 IF j > i THEN
-                    min := num(pattern[i TO j-1])
+                    LET pr: ParseNumberResult := parseNumber(pattern[i TO j-1])
+                    CHECK pr ISA ParseNumberResult.number ELSE
+                        PANIC "internal error not a number"
+                    END CHECK
+                    min := pr.number
                     i := j
                 END IF
                 IF i < pattern.length() AND pattern[i] = "," THEN
@@ -613,7 +617,11 @@ FUNCTION parsePart(pattern: String, ignoreCase: Boolean, INOUT i: Number, INOUT 
                         INC j
                     END WHILE
                     IF j > i THEN
-                        max := num(pattern[i TO j-1])
+                        LET pr: ParseNumberResult := parseNumber(pattern[i TO j-1])
+                        CHECK pr ISA ParseNumberResult.number ELSE
+                            PANIC "internal error not a number"
+                        END CHECK
+                        max := pr.number
                         i := j
                     END IF
                 ELSE

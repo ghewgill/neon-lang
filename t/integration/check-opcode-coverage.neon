@@ -57,7 +57,11 @@ FUNCTION extractCode(disassembly: Array<String>): Array<Instruction>
     FOREACH l IN disassembly[start TO end] INDEX i DO
         LET ops: Array<String> := string.split(string.trim(l), " ")
         ret[i].source := l
-        ret[i].address := num(ops[0])
+        LET pr: ParseNumberResult := parseNumber(ops[0])
+        CHECK pr ISA ParseNumberResult.number ELSE
+            PANIC "unexpected invalid number"
+        END CHECK
+        ret[i].address := pr.number
         ret[i].opcode := ops[1]
         IF ops.size() = 3 THEN
             ret[i].parameters := ops[2]
@@ -109,7 +113,11 @@ END FUNCTION
 FUNCTION getValue(property: String): Number
     LET items: Array<String> := string.split(property, "=")
     ASSERT items.size() = 2, property
-    RETURN num(items[1])
+    LET pr: ParseNumberResult := parseNumber(items[1])
+    CHECK pr ISA ParseNumberResult.number ELSE
+        PANIC "number expected"
+    END CHECK
+    RETURN pr.number
 END FUNCTION
 
 BEGIN MAIN

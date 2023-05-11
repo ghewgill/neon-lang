@@ -525,7 +525,11 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         INC i
                     END WHILE
                 END IF
-                t.value := num(n)
+                LET pr: ParseNumberResult := parseNumber(n)
+                CHECK pr ISA ParseNumberResult.number ELSE
+                    PANIC "internal error: number format"
+                END CHECK
+                t.value := pr.number
             END IF
             t.text := source[start TO i-1]
         ELSIF c = "\"" THEN

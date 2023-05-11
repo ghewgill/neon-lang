@@ -2664,13 +2664,13 @@ func (self *executor) op_callp() {
 	case "math$trunc":
 		x := self.pop().num
 		self.push(make_cell_num(math.Trunc(x)))
-	case "global$num":
+	case "global$parseNumber":
 		s := self.pop().str
 		n, err := strconv.ParseFloat(s, 64)
 		if err == nil {
-			self.push(make_cell_num(n))
+			self.push(make_cell_array([]cell{make_cell_num(0), make_cell_num(n)})) // number
 		} else {
-			self.raise_literal("PANIC", objectString{"num() argument not a number"})
+			self.push(make_cell_array([]cell{make_cell_num(1), make_cell_str("parseNumber() argument not a number")})) // error
 		}
 	case "builtin$object__invokeMethod":
 		args := self.pop().array

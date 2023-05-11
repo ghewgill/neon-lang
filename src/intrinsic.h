@@ -15,7 +15,6 @@ utf8string chr(Number x);
 Number int_(Number a);
 Number max(Number a, Number b);
 Number min(Number a, Number b);
-Number num(const utf8string &s);
 bool odd(Number x);
 Number ord(const utf8string &s);
 Number round(Number places, Number value);

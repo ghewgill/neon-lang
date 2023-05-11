@@ -2989,13 +2989,13 @@ def neon_global_decodeUTF8(env, x):
     except UnicodeDecodeError as x:
         return ClassChoice.Instance("error", [x.start])
 
-def neon_global_num(env, x):
+def neon_global_parseNumber(env, x):
     if not any(c.isdigit() for c in x):
-        raise NeonException("PANIC", "num() argument not a number")
+        return ClassChoice.Instance("error", "parseNumber() argument not a number")
     try:
-        return int(x) if x.isdigit() else float(x)
+        return ClassChoice.Instance("number", int(x) if x.isdigit() else float(x))
     except ValueError:
-        raise NeonException("PANIC", "num() argument not a number")
+        return ClassChoice.Instance("error", "parseNumber() argument not a number")
 
 def neon_global_print(env, x):
     if isinstance(x, list):

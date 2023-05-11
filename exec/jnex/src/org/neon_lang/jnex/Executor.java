@@ -67,7 +67,7 @@ class Executor {
         predefined.put("builtin$dictionary__remove", this::dictionary__remove);
         predefined.put("builtin$dictionary__toString__object", this::dictionary__toString__object);
         predefined.put("builtin$dictionary__toString__string", this::dictionary__toString__string);
-        predefined.put("global$num", this::num);
+        predefined.put("global$parseNumber", this::parseNumber);
         predefined.put("builtin$number__toString", this::number__toString);
         predefined.put("builtin$object__getArray", this::object__getArray);
         predefined.put("builtin$object__getBoolean", this::object__getBoolean);
@@ -1642,7 +1642,7 @@ class Executor {
         stack.addFirst(new Cell(r.toString()));
     }
 
-    private void num()
+    private void parseNumber()
     {
         String s = stack.removeFirst().getString();
         boolean any_digits = false;
@@ -1654,12 +1654,12 @@ class Executor {
         }
         if (any_digits) {
             try {
-                stack.addFirst(new Cell(new BigDecimal(s)));
+                stack.addFirst(new Cell(new ArrayList<Cell>(Arrays.asList(new Cell(BigDecimal.ZERO), new Cell(new BigDecimal(s)))))); // number
             } catch (NumberFormatException x) {
-                raiseLiteral("PANIC", "num() argument not a number");
+                stack.addFirst(new Cell(new ArrayList<Cell>(Arrays.asList(new Cell(BigDecimal.ONE), new Cell("parseNumber() argument not a number"))))); // error
             }
         } else {
-            raiseLiteral("PANIC", "num() argument not a number");
+            stack.addFirst(new Cell(new ArrayList<Cell>(Arrays.asList(new Cell(BigDecimal.ONE), new Cell("parseNumber() argument not a number"))))); // error
         }
     }
 

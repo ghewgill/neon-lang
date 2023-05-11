@@ -127,12 +127,21 @@ FUNCTION makeFromString(s: String): BigInt
     VAR i: Number := 0
     VAR j: Number := t.length() - Digits
     WHILE j >= 0 DO
-        r.digits[i] := num(t[j TO j+Digits-1])
+        LET pr := parseNumber(t[j TO j+Digits-1])
+        CHECK pr ISA ParseNumberResult.number ELSE
+            -- TODO: propagate this result up through this function return value
+            PANIC "not a valid number"
+        END CHECK
+        r.digits[i] := pr.number
         INC i
         j := j - Digits
     END WHILE
     IF j > -Digits THEN
-        r.digits[i] := num(t[FIRST TO j+Digits-1])
+        LET pr := parseNumber(t[FIRST TO j+Digits-1])
+        CHECK pr ISA ParseNumberResult.number ELSE
+            PANIC "not a valid number"
+        END CHECK
+        r.digits[i] := pr.number
     END IF
     RETURN r
 END FUNCTION

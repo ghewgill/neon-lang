@@ -42,7 +42,11 @@ FUNCTION tokenise(s: String): Array<Token>
                 WHILE j+1 < s.length() AND isNumber(s[j+1]) DO
                     INC j
                 END WHILE
-                r.append(Token(type WITH TokenType.value, value WITH num(s[i TO j])))
+                LET pr: ParseNumberResult := parseNumber(s[i TO j])
+                CHECK pr ISA ParseNumberResult.number ELSE
+                    RAISE SyntaxException("invalid number value")
+                END CHECK
+                r.append(Token(type WITH TokenType.value, value WITH pr.number))
                 i := j
             WHEN "a" TO "z" DO
                 VAR j: Number := i
@@ -320,8 +324,12 @@ BEGIN MAIN
                             EXIT FUNCTION
                         END CHECK
                         LET v: String := vr.line
-                        -- TODO: Catch invalid number here.
-                        vars[var] := num(v)
+                        LET pr: ParseNumberResult := parseNumber(v)
+                        CHECK pr ISA ParseNumberResult.number ELSE
+                            print("invalid number")
+                            NEXT LOOP
+                        END CHECK
+                        vars[var] := pr.number
                         EXIT LOOP
                     END LOOP
                 END IF

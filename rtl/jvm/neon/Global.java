@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class Global {
 
-    public static neon.type.Number num(java.lang.String s) {
+    public static neon.lib.global$ParseNumberResult parseNumber(java.lang.String s) {
         boolean any_digits = false;
         for (int i = 0; i < s.length(); i++) {
             if (s.charAt(i) >= '0' && s.charAt(i) <= '9') {
@@ -14,12 +14,21 @@ public class Global {
         }
         if (any_digits) {
             try {
-                return new neon.type.Number(s);
+                neon.lib.global$ParseNumberResult r = new neon.lib.global$ParseNumberResult();
+                r._choice = 0; // number
+                r.number = new neon.type.Number(s);
+                return r;
             } catch (NumberFormatException x) {
-                throw new neon.type.NeonException("PANIC", "num() argument not a number");
+                neon.lib.global$ParseNumberResult r = new neon.lib.global$ParseNumberResult();
+                r._choice = 1; // error
+                r.error = "parseNumber() argument not a number";
+                return r;
             }
         } else {
-            throw new neon.type.NeonException("PANIC", "num() argument not a number");
+            neon.lib.global$ParseNumberResult r = new neon.lib.global$ParseNumberResult();
+            r._choice = 1; // error
+            r.error = "parseNumber() argument not a number";
+            return r;
         }
     }
 

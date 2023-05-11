@@ -127,9 +127,19 @@ LOOP
 
     LET a: Array<String> := string.split(s, " ")
     IF a[0] IN ["b", "break"] THEN
-        r := post("/break/\(AddressFromLine[num(a[1])])", "true")
+        LET pr: ParseNumberResult := parseNumber(a[1])
+        IF pr ISA ParseNumberResult.number THEN
+            r := post("/break/\(AddressFromLine[pr.number])", "true")
+        ELSE
+            print("invalid number")
+        END IF
     ELSIF a[0] IN ["c", "clear"] THEN
-        r := post("/break/\(AddressFromLine[num(a[1])])", "false")
+        LET pr: ParseNumberResult := parseNumber(a[1])
+        IF pr ISA ParseNumberResult.number THEN
+            r := post("/break/\(AddressFromLine[pr.number])", "false")
+        ELSE
+            print("invalid number")
+        END IF
     ELSIF a[0] IN ["g", "globals"] THEN
         FOREACH name IN Globals.keys() DO
             r := get("/module/-/global/\(Globals[name].index)")

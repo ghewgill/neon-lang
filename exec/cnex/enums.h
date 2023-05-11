@@ -51,4 +51,7 @@
 #define CHOICE_DecodeResult_string  0
 #define CHOICE_DecodeResult_error   1
 
+#define CHOICE_ParseNumberResult_number 0
+#define CHOICE_ParseNumberResult_error  1
+
 #endif

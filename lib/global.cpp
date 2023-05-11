@@ -24,6 +24,18 @@ namespace rtl {
 
 namespace ne_global {
 
+Cell parseNumber(const utf8string &s)
+{
+    Number n = number_from_string(s.str());
+    if (number_is_nan(n)) {
+        return Cell(std::vector<Cell> {
+            Cell(number_from_uint32(CHOICE_ParseNumberResult_error)),
+            Cell(utf8string("parseNumber() argument not a number"))
+        });
+    }
+    return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_ParseNumberResult_number)), Cell(n)});
+}
+
 void print(const std::shared_ptr<Object> &x)
 {
     if (x == nullptr) {

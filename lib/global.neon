@@ -5,8 +5,9 @@
 
 EXPORT ExceptionType
 EXPORT DecodeResult
+EXPORT ParseNumberResult
 
-EXPORT num
+EXPORT parseNumber
 EXPORT print
 EXPORT str
 
@@ -87,11 +88,16 @@ EXCEPTION ObjectSubscriptException
  */
 EXCEPTION SqlException
 
-/*  Function: num
+TYPE ParseNumberResult IS CHOICE
+    number: Number
+    error: String
+END CHOICE
+
+/*  Function: parseNumber
  *
  *  Convert a decimal number as a string to a number.
  */
-DECLARE NATIVE FUNCTION num(s: String): Number
+DECLARE NATIVE FUNCTION parseNumber(s: String): ParseNumberResult
 
 /*  Function: print
  *

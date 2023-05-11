@@ -13,7 +13,7 @@ void global_shutdown();
 void (*global_lookupFunction(const char *pszFunc, struct tagTExecutor *exec))(struct tagTExecutor *exec);
 struct tagTCell *global_getVariable(const char *pszVar);
 
-void neon_num(struct tagTExecutor *exec);
+void neon_parseNumber(struct tagTExecutor *exec);
 void neon_print(struct tagTExecutor *exec);
 void neon_str(struct tagTExecutor *exec);
 

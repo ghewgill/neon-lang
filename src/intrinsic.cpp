@@ -49,15 +49,6 @@ Number min(Number a, Number b)
     }
 }
 
-Number num(const utf8string &s)
-{
-    Number n = number_from_string(s.str());
-    if (number_is_nan(n)) {
-        throw PanicException(utf8string("num() argument not a number"));
-    }
-    return n;
-}
-
 bool odd(Number x)
 {
     if (not number_is_integer(x)) {

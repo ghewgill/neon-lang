@@ -119,7 +119,11 @@ FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Di
     END LOOP
     s.close()
     LET a := string.split(status, " ")
-    LET code := num(a[1])
+    LET pr := parseNumber(a[1])
+    CHECK pr ISA ParseNumberResult.number ELSE
+        RETURN HttpResult.error("bad http result code: " & pr.error)
+    END CHECK
+    LET code := pr.number
     LET codeName := string.join(a[2 TO LAST], " ")
     RETURN HttpResult.response(HttpResponse(
         code WITH code,
@@ -154,7 +158,11 @@ FUNCTION decomposeUrl(url: String): DecomposeResult
         WHEN ISA string.FindResult.index DO
             parts.server := tail[FIRST TO portcolon.index-1]
             IF portcolon.index < slash.index THEN
-                parts.port := num(tail[portcolon.index+1 TO slash.index-1])
+                LET pr := parseNumber(tail[portcolon.index+1 TO slash.index-1])
+                CHECK pr ISA ParseNumberResult.number ELSE
+                    RETURN DecomposeResult.error("bad port number: " & pr.error)
+                END CHECK
+                parts.port := pr.number
             END IF
     END CASE
     parts.path := tail[slash.index TO LAST]

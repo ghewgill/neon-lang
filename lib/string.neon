@@ -37,6 +37,14 @@ END CHOICE
  */
 DECLARE NATIVE FUNCTION find(s: String, t: String): FindResult
 
+FUNCTION num(s: String): Number
+    LET pr: ParseNumberResult := parseNumber(s)
+    CHECK pr ISA ParseNumberResult.number ELSE
+        PANIC "unexpected: invalid number"
+    END CHECK
+    RETURN pr.number
+END FUNCTION
+
 /*  Function: format
  *
  *  Format a string based on the formatting mini-language.

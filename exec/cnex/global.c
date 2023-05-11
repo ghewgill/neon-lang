@@ -44,7 +44,7 @@
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
 TDispatch gfuncDispatch[] = {
-    PDFUNC("global$num",                neon_num),
+    PDFUNC("global$parseNumber",        neon_parseNumber),
     PDFUNC("global$print",              neon_print),
     PDFUNC("global$str",                neon_str),
 
@@ -497,23 +497,23 @@ void (*global_lookupFunction(const char *pszFunc, TExecutor *exec))(struct tagTE
     fatal_error("global_lookupFunction(): \"%s\" - invalid or unsupported predefined function call.", pszFunc);
 }
 
-void neon_num(TExecutor *exec)
+void neon_parseNumber(TExecutor *exec)
 {
     char *str = string_asCString(top(exec->stack)->string); pop(exec->stack);
     // Require at least one digit in the input.
     if (strcspn(str, "0123456789") == strlen(str)) {
         free(str);
-        exec->rtl_raise(exec, "PANIC", "num() argument not a number");
+        push(exec->stack, cell_makeChoice_cell(CHOICE_ParseNumberResult_error, cell_fromCString("parseNumber() argument not a number")));
         return;
     }
     Number n = number_from_string(str);
     free(str);
 
     if (number_is_nan(n)) {
-        exec->rtl_raise(exec, "PANIC", "num() argument not a number");
+        push(exec->stack, cell_makeChoice_cell(CHOICE_ParseNumberResult_error, cell_fromCString("parseNumber() argument not a number")));
         return;
     }
-    push(exec->stack, cell_fromNumber(n));
+    push(exec->stack, cell_makeChoice_cell(CHOICE_ParseNumberResult_number, cell_fromNumber(n)));
 }
 
 void neon_print(TExecutor *exec)

@@ -15,7 +15,7 @@ namespace csnex
         }
 
 #region Global Functions
-        public void num()
+        public void parseNumber()
         {
             string s = Exec.stack.Pop().String;
 
@@ -23,16 +23,16 @@ namespace csnex
             try {
                 n = Number.FromString(s);
             } catch {
-                Exec.Raise("PANIC", "num() argument not a number");
+                Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {Cell.CreateNumberCell(new Number(1)), Cell.CreateStringCell("parseNumber() argument not a number")}));
                 return;
             }
 
             if (n == null || n.IsNaN()) {
-                Exec.Raise("PANIC", "num() argument not a number");
+                Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {Cell.CreateNumberCell(new Number(1)), Cell.CreateStringCell("parseNumber() argument not a number")}));
                 return;
             }
 
-            Exec.stack.Push(Cell.CreateNumberCell(n));
+            Exec.stack.Push(Cell.CreateArrayCell(new List<Cell> {Cell.CreateNumberCell(new Number(0)), Cell.CreateNumberCell(n)}));
         }
 
         public void print()

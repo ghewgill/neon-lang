@@ -413,7 +413,7 @@ END FUNCTION
 
 --    CALLP,      // call predefined
 FUNCTION callp()
-    _ := num("42")
+    _ := str(42)
 END FUNCTION
 
 --    CALLF,      // call function

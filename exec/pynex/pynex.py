@@ -2052,12 +2052,12 @@ def neon_builtin_dictionary__toString__string(self):
     d = self.stack.pop()
     self.stack.append("{{{}}}".format(", ".join("{}: {}".format(quoted(k), literal(v.value)) for k, v in sorted(d.items()))))
 
-def neon_global_num(self):
+def neon_global_parseNumber(self):
     s = self.stack.pop()
     try:
-        self.stack.append(decimal.Decimal(s))
+        self.stack.append([Value(0), Value(decimal.Decimal(s))]) # number
     except decimal.InvalidOperation:
-        self.raise_literal("PANIC", "num() argument not a number")
+        self.stack.append([Value(1), Value("parseNumber() argument not a number")]) # error
         return
 
 def neon_builtin_number__toString(self):

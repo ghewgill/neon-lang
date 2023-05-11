@@ -508,7 +508,11 @@ END FUNCTION
 FUNCTION f_pushn(INOUT self: Executor)
     INC self.ip
     LET val: Number := getVint(self.bytecode.code, INOUT self.ip)
-    self.stack.append(makeValueNumber(num(self.bytecode.strtable[val])))
+    LET pr: ParseNumberResult := parseNumber(self.bytecode.strtable[val])
+    CHECK pr ISA ParseNumberResult.number ELSE
+        PANIC "invalid number in neonx file"
+    END CHECK
+    self.stack.append(makeValueNumber(pr.number))
 END FUNCTION
 
 FUNCTION f_pushs(INOUT self: Executor)
@@ -1277,12 +1281,16 @@ FUNCTION f_callp(INOUT self: Executor)
             END FOREACH
             r.append("}")
             self.stack.append(makeValueString(r))
-        WHEN "global$num" DO
+        WHEN "global$parseNumber" DO
             LET s: String := self.pop()->s
             IF regex.search(@"^[-+]?\d+(\.\d+)?([eE][-+]?\d+)?$", s) ISA regex.Result.match THEN
-                self.stack.append(makeValueNumber(num(s)))
+                LET pr: ParseNumberResult := parseNumber(s)
+                CHECK pr ISA ParseNumberResult.number ELSE
+                    PANIC "internal error: number expected"
+                END CHECK
+                self.stack.append(makeValueArray([makeValueNumber(0), makeValueNumber(pr.number)])) -- number
             ELSE
-                self.raise_literal("PANIC", "num() argument not a number")
+                self.stack.append(makeValueArray([makeValueNumber(1), makeValueString("parseNumber() argument not a number")])) -- error
             END IF
         WHEN "builtin$object__getArray" DO
             TRY

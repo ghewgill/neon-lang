@@ -88,7 +88,11 @@ FUNCTION decodePart(json: String, INOUT index: Number): JsonResult
                         INC index
                     END WHILE
                 END IF
-                RETURN JsonResult.data(num(json[start TO index-1]))
+                LET pr := parseNumber(json[start TO index-1])
+                CHECK pr ISA ParseNumberResult.number ELSE
+                    RETURN JsonResult.error(DecodeError(message WITH "number format error"))
+                END CHECK
+                RETURN JsonResult.data(pr.number)
             WHEN "\"" DO
                 INC index
                 VAR t: String := ""

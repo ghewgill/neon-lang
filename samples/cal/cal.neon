@@ -56,10 +56,18 @@ FUNCTION main(args: Array<String>)
         IF a[0] = "-" THEN
             options[a] := TRUE
         ELSIF year = 0 THEN
-            year := num(a)
+            LET pr: ParseNumberResult := parseNumber(a)
+            CHECK pr ISA ParseNumberResult.number ELSE
+                PANIC "invalid year"
+            END CHECK
+            year := pr.number
         ELSE
             month := year
-            year := num(a)
+            LET pr: ParseNumberResult := parseNumber(a)
+            CHECK pr ISA ParseNumberResult.number ELSE
+                PANIC "invalid year"
+            END CHECK
+            year := pr.number
         END IF
     END FOREACH
 
