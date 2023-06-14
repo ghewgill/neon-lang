@@ -1,0 +1,6 @@
+FUNCTION String.foo(self: String)
+END FUNCTION
+
+FUNCTION String.foo(self: String)
+                --<1
+END FUNCTION

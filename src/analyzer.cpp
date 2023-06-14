@@ -4676,7 +4676,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
     if (type != nullptr) {
         auto f = type->methods.find(name);
         if (f != type->methods.end()) {
-            function = dynamic_cast<ast::Function *>(f->second);
+            error(3341, declaration->name, "type method already exists");
         } else {
             if (name == "toString") {
                 Token t;
