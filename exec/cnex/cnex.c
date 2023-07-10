@@ -1,4 +1,8 @@
-#ifdef __MS_HEAP_DBG
+#if defined _MSC_VER && _DEBUG
+// If we're building a debug build on Windows, we want
+// Heap tracking enabled, so any tests that leak memory
+// will fail.
+#define __MS_HEAP_DBG
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -255,10 +259,10 @@ shutdown:
 
     free(gOptions.pszExecutablePath);
 #ifdef __MS_HEAP_DBG
-    /* If you're doing HEAP tracking, and cnex leaks memory, then 
-       _CrtDempMemoryLeaks() will return true, to ensure that the 
-       test that is being debugged will fail.  (This will also dump
-       all of the allocations that were never free()'ed.)       */
+    /* If you're doing HEAP tracking in Windows, and cnex leaks memory, then
+       _CrtDumpMemoryLeaks() will return true.  We will return 1, to ensure
+       that if we're running under ctest, the running test will fail.  (This
+       will also dump all of the allocations that were never free()'ed.)  */
     if (_CrtDumpMemoryLeaks()) {
         return 1;
     }
