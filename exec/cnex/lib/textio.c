@@ -142,6 +142,7 @@ void textio_readLine(TExecutor *exec)
         }
     }
 
+    cell_freeCell(s);
     push(exec->stack, r);
 }
 
