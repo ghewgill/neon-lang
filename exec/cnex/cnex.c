@@ -823,7 +823,7 @@ void exec_STORES(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
-    cell_copyCell(addr, top(self->stack)); pop(self->stack);
+    cell_valueCopyCell(addr, top(self->stack)); pop(self->stack);
 }
 
 void exec_STOREY(TExecutor *self)

@@ -49,6 +49,7 @@ TString *string_newString(void)
     }
 
     c->data = NULL;
+    c->refcount = 1;
     c->length = 0;
     return c;
 }
@@ -56,17 +57,21 @@ TString *string_newString(void)
 void string_freeString(TString *s)
 {
     if (s) {
-        free(s->data);
-        s->data = NULL;
-        s->length = 0;
+        s->refcount--;
+        if (s->refcount <= 0) {
+            free(s->data);
+            s->data = NULL;
+            s->length = 0;
+            free(s);
+        }
     }
-    free(s);
 }
 
 void string_clearString(TString *s)
 {
     if (s) {
         if (s->data) {
+            assert(s->refcount == 1);
             free(s->data);
             s->data = NULL;
             s->length = 0;
@@ -76,6 +81,7 @@ void string_clearString(TString *s)
 
 TString *string_copyString(TString *s)
 {
+    // Note: In the (new) copied string, the refcount is set back to 1, since this is a new string.
     TString *r = string_newString();
 
     if (s->data) {
@@ -94,22 +100,37 @@ TString *string_copyString(TString *s)
 
 TString *string_fromString(TString *s)
 {
-    TString *r = string_newString();
+    TString *r = NULL; // string_newString();
 
     if (s != NULL) {
+        if (s->refcount == 1) {
+            s->refcount++;
+            return s;
+            //r->data = s->data;
+            //r->length = s->length;
+            //r->refcount = s->refcount;
+            //return r;
+        }
+
+        r = string_newString();
         r->length = s->length;
         r->data = malloc(r->length);
         if (r->data == NULL) {
             fatal_error("Unable to allocate new string data.");
         }
         memcpy(r->data, s->data, r->length);
+        return r;
     }
-    return r;
+    return string_newString();
 }
 
 int string_compareString(TString *lhs, TString *rhs)
 {
     int r = 0;
+    // If the two pointers are the same, then it's equal.
+    if (lhs == rhs) {
+        return r;
+    }
     uint64_t size = lhs->length;
 
     if (lhs->length > rhs->length) {
@@ -181,20 +202,42 @@ TString *string_appendCString(TString *s, const char *ns)
     return s;
 }
 
+// NOTE: This function can possibly return a new string, and the string passed in
+//       should never be used!  Only the returned string should be referenced after
+//       a call to this function!
 TString *string_appendChar(TString *s, char c)
 {
-    s->data = realloc(s->data, s->length + 1);
-    if (s->data == NULL) {
+    TString *r = s;
+    if (r->refcount > 1) {
+        // We have to create a new string, since more than one string is pointing to it.
+        r = string_copyString(s);
+        // Then remove our reference to the (old) string.
+        string_freeString(s);
+    }
+
+    r->data = realloc(r->data, r->length + 1);
+    if (r->data == NULL) {
         fatal_error("Could not reallocate data for appended character.");
     }
 
-    s->length++;
-    s->data[s->length-1] =  c;
-    return s;
+    r->length++;
+    r->data[r->length-1] =  c;
+    return r;
 }
 
+// NOTE: This function can possibly return a new string, and the string passed in
+//       should never be used!  Only the returned string should be referenced after
+//       a call to this function!
 TString *string_appendCodePoint(TString *s, uint32_t cp)
 {
+    TString *r = s;
+    if (r->refcount > 1) {
+        // We have to create a new string, since more than one string is pointing to it.
+        r = string_copyString(s);
+        // Then remove our reference to the (old) string.
+        string_freeString(s);
+    }
+
     char val[4];
     uint32_t lead_byte = 0x7F;
     int index = 0;
@@ -205,21 +248,33 @@ TString *string_appendCodePoint(TString *s, uint32_t cp)
     }
     val[index++] = (cp & lead_byte) | (~lead_byte << 1);
     while (index) {
-        s = string_appendChar(s, val[--index]);
+        r = string_appendChar(s, val[--index]);
     }
-    return s;
+    return r;
 }
 
+// NOTE: This function can possibly return a new string, and the string passed in
+//       should never be used!  Only the returned string should be referenced after
+//       a call to this function!
 TString *string_appendData(TString *s, char *buf, size_t len)
 {
-    s->data = realloc(s->data, s->length + len);
-    if (s->data == NULL) {
+    TString *r = s;
+    if (s->refcount > 1) {
+        assert(s->refcount > 1);
+        // We have to create a new string, since more than one string is pointing to it.
+        r = string_copyString(s);
+        // Then remove our reference to the (old) string.
+        string_freeString(s);
+    }
+
+    r->data = realloc(r->data, r->length + len);
+    if (r->data == NULL) {
         fatal_error("Could not reallocate string for append data.");
     }
 
-    memcpy(&s->data[s->length], buf, len);
-    s->length += len;
-    return s;
+    memcpy(&r->data[r->length], buf, len);
+    r->length += len;
+    return r;
 }
 
 void string_resizeString(TString *s, size_t n)
@@ -233,14 +288,22 @@ void string_resizeString(TString *s, size_t n)
 
 TString *string_appendString(TString *s, TString *ns)
 {
-    s->data = realloc(s->data, s->length + ns->length);
-    if (s->data == NULL) {
+    TString *r = s;
+    if (s->refcount > 1) {
+        assert(s->refcount > 1);
+        // We have to create a new string, since more than one string is pointing to it.
+        r = string_copyString(s);
+        // Then remove our reference to the (old) string.
+        string_freeString(s);
+    }
+    r->data = realloc(r->data, r->length + ns->length);
+    if (r->data == NULL) {
         fatal_error("Could not allocate appended TString data.");
     }
 
-    memcpy(&s->data[s->length], ns->data, ns->length);
-    s->length += ns->length;
-    return s;
+    memcpy(&r->data[r->length], ns->data, ns->length);
+    r->length += ns->length;
+    return r;
 }
 
 /* NOTE: The caller is responsible for freeing the string created from this function! */
@@ -486,6 +549,7 @@ const char *string_ensureNullTerminated(TString *s)
 
 // NOTE:  The following functions return NEW string objects from existing strings.
 // Return the middle part of a string, starting at pos, for count number of bytes.
+// NOTE:  New string returned, so refcount will be set to 1 on the new string.
 TString *string_subString(TString *s, int64_t pos, int64_t count)
 {
     int64_t newLen = count;
@@ -505,6 +569,7 @@ TString *string_subString(TString *s, int64_t pos, int64_t count)
 
 TString *string_toLowerCase(TString *s)
 {
+    // Note: returned string will always have a refcount of 1.
     TString *r = string_createString(s->length);
 
     for (size_t i = 0; i < s->length; i++) {
@@ -516,6 +581,7 @@ TString *string_toLowerCase(TString *s)
 
 TString *string_toUpperCase(TString *s)
 {
+    // Note: returned string will always have a refcount of 1.
     TString *r = string_createString(s->length);
 
     for (size_t i = 0; i < s->length; i++) {
@@ -532,6 +598,8 @@ TString *string_toUpperCase(TString *s)
 TString *string_quoteInPlace(TString *s)
 {
     TString *r = string_quote(s);
+
+    // Do the modification on the provided string.
     free(s->data);
     s->data = r->data;
     s->length = r->length;
@@ -542,6 +610,9 @@ TString *string_quoteInPlace(TString *s)
 // This may not be the best place for this, because it is not part of
 // the implementation of TString, but is just a specific string utility
 // function. But there wasn't an obviously better place to put it.
+// NOTE: The returned string will have a refcount of 1, so a new string
+//       is returned, in all cases.  This means that we may have to call
+//       string_freeString() on it when we're done with it.
 TString *string_quote(TString *s)
 {
     TString *r = string_newString();
@@ -573,6 +644,7 @@ TString *string_quote(TString *s)
                 i++;
                 if ((s->data[i] & 0xc0) != 0x80) {
                     // Garbage data, give up.
+                    // Should this raise an exception?
                     break;
                 }
                 c = (c << 6) | (s->data[i] & 0x3f);
@@ -606,6 +678,9 @@ TString *string_quote(TString *s)
         }
     }
     string_appendChar(r, '"');
+    if (s->refcount > 1) {
+        string_freeString(s);
+    }
     return r;
 }
 
@@ -642,6 +717,7 @@ size_t string_getLength(TString *s)
 
 TString *string_index(TString *s, size_t index)
 {
+    // Returned string will have a refcount of 1;
     TString *r = string_createString(0);
 
     size_t idx = 0;
@@ -666,6 +742,7 @@ TString *string_index(TString *s, size_t index)
                 c &= 0x01;
                 n = 6;
             } else {
+                // Should this exit cnex?  What happens in neonx.exe?
                 fatal_error("Invalid UTF8 in string: %02x", s->data[i]);
             }
         } else {
