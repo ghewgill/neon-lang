@@ -3654,13 +3654,16 @@ const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
     if (qtype != nullptr) {
         const ast::Name *name = scope.top()->lookupName(qtype->names[0].text);
         const ast::Module *mod = dynamic_cast<const ast::Module *>(name);
-        int i = 1;
+        size_t i = 1;
         if (mod != nullptr) {
             name = mod->scope->lookupName(qtype->names[1].text);
             i++;
         }
         const ast::TypeChoice *choice_type = dynamic_cast<const ast::TypeChoice *>(name);
         if (choice_type != nullptr) {
+            if (i >= qtype->names.size()) {
+                error(3342, qtype->names[i-1], "choice option expected");
+            }
             auto choice = choice_type->choices.find(qtype->names[i].text);
             if (choice == choice_type->choices.end()) {
                 error(3312, qtype->names[i], "choice not found");

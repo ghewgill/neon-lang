@@ -1,0 +1,5 @@
+IMPORT file
+LET fr := file.readLines("test4.neon")
+IF fr ISA file.LinesResult THEN
+               --<
+END IF
