@@ -901,12 +901,14 @@ add_test(
     COMMAND python3 scripts/test_doc.py --neon $<TARGET_FILE:neon> --neonc $<TARGET_FILE:neonc>
 )
 
-add_custom_target(docs ALL
-    COMMAND perl ${CMAKE_BINARY_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/lib -o HTML gh-pages/html -p ${CMAKE_SOURCE_DIR}/lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3
-)
-add_custom_target(docs_samples ALL
-    COMMAND perl ${CMAKE_BINARY_DIR}/external/NaturalDocs/NaturalDocs -i ${CMAKE_SOURCE_DIR}/samples -o HTML gh-pages/samples -p ${CMAKE_SOURCE_DIR}/samples/nd.proj -ro
-)
+if (MONO)
+    add_custom_target(docs ALL
+        COMMAND ${MONO} "${CMAKE_BINARY_DIR}/external/Natural Docs/NaturalDocs.exe" -i ${CMAKE_SOURCE_DIR}/lib -o HTML gh-pages/html -p ${CMAKE_SOURCE_DIR}/lib/nd.proj -ro
+    )
+    add_custom_target(docs_samples ALL
+        COMMAND ${MONO} "${CMAKE_BINARY_DIR}/external/Natural Docs/NaturalDocs.exe" -i ${CMAKE_SOURCE_DIR}/samples -o HTML gh-pages/samples -p ${CMAKE_SOURCE_DIR}/samples/nd.proj -ro
+    )
+endif (MONO)
 
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/bin/hello.neonx

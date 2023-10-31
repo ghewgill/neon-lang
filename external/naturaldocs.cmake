@@ -1,6 +1,6 @@
-if (NOT EXISTS external/NaturalDocs/NaturalDocs)
+if (NOT EXISTS "external/Natural Docs/NaturalDocs.exe")
     execute_process(
-        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/extract.py ${CMAKE_CURRENT_SOURCE_DIR}/NaturalDocs-1.52.zip NaturalDocs
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/extract.py ${CMAKE_CURRENT_SOURCE_DIR}/Natural_Docs_2.3.zip .
         WORKING_DIRECTORY external
         RESULT_VARIABLE retcode
     )
