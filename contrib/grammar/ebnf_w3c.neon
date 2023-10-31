@@ -11,7 +11,7 @@ LOOP
     CHECK r ISA console.InputResult.line ELSE
         EXIT LOOP
     END CHECK
-    LET s: String := r.line
+    VAR s: String := r.line
 
     -- Skip over comment block at top.
     IF s.length() >= 2 AND s[1] = "*" THEN
@@ -46,7 +46,7 @@ LOOP
         END CHECK
         LET rbracket: string.FindResult := string.find(s, "]")
         CHECK rbracket ISA string.FindResult.index ELSE
-            ASSERT FALSE
+            PANIC "expected right bracket"
         END CHECK
         s[bracket.index+1] := "("
         s[rbracket.index] := ")?"
@@ -60,7 +60,7 @@ LOOP
         END CHECK
         LET rbrace: string.FindResult := string.find(s, "}")
         CHECK rbrace ISA string.FindResult.index ELSE
-            ASSERT FALSE
+            PANIC "expected right brace"
         END CHECK
         s[brace.index+1] := "("
         s[rbrace.index] := ")*"
