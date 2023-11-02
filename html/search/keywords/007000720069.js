@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("pri",["Function"],[["print",,[[,,,,0,"File:global.neon:print"]]],["printf",,[[,,,,0,"File:cformat.neon:printf"]]]]);

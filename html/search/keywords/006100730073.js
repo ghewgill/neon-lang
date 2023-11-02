@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("ass",["Function"],[["assertionsEnabled",,[[,,,,0,"File:runtime.neon:assertionsEnabled"]]]]);

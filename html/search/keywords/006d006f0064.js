@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("mod",["Enumeration","Function"],[["Mode",,[[,,,,0,"File:io.neon:Mode"]]],["moduleIsMain",,[[,,,,1,"File:runtime.neon:moduleIsMain"]]]]);

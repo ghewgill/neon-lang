@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("fin",["Function"],[["find",,[[,,,,0,"File:string.neon:find"]]]]);

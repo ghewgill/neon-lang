@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("typ",["Enumeration"],[["Type",,[[,,,,0,"File:struct.neon:Type"]]]]);

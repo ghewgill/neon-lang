@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("pow",["Function"],[["pow",,[[,,,,0,"File:complex.neon:pow"]]]]);

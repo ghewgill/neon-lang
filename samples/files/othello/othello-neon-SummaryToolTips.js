@@ -1,0 +1,1 @@
+﻿NDSummary.OnToolTipsLoaded("File:othello/othello.neon",{24:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Othello game.</div></div>"});

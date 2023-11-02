@@ -1,0 +1,1 @@
+﻿NDSummary.OnToolTipsLoaded("File:forth/forth.neon",{16:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Implementation of the Forth programming language.</div></div>"});

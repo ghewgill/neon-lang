@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("exi",["Function"],[["exists",,[[,,,,0,"File:file.neon:exists"]]],["exit",,[[,,,,0,"File:sys.neon:exit"]]]]);

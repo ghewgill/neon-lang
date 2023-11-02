@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("File:mandelbrot/mandelbrot.neon","mandelbrot.neon");NDSummary.OnSummaryLoaded("File:mandelbrot/mandelbrot.neon",[["Neon","Neon"]],[["Files","File"]],[[13,0,0,"mandelbrot","mandelbrot"]]);

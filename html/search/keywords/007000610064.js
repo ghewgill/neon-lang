@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("pad",["Function"],[["padLeft",,[[,,,,0,"File:string.neon:padLeft"]]],["padRight",,[[,,,,0,"File:string.neon:padRight"]]]]);

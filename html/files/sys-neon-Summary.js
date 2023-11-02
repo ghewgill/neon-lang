@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("File:sys.neon","sys.neon");NDSummary.OnSummaryLoaded("File:sys.neon",[["Neon","Neon"]],[["Files","File"],["Functions","Function"],["Groups","Group"],["Variables","Variable"]],[[195,0,0,"sys","sys"],[196,0,2,"Variables","Variables"],[197,0,3,"args","args"],[198,0,2,"Functions","Functions"],[199,0,1,"exit","exit"]]);

@@ -1,0 +1,1 @@
+﻿NDSummary.OnToolTipsLoaded("File:tetris/tetris.neon",{2:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Tetris game in curses.</div></div>"});

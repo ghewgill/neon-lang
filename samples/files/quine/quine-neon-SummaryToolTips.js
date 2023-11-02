@@ -1,0 +1,1 @@
+﻿NDSummary.OnToolTipsLoaded("File:quine/quine.neon",{14:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Program that prints out its own source code.</div></div>"});

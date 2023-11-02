@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("sqr",["Function"],[["sqrt",,[[,,,,0,"File:complex.neon:sqrt"]]]]);

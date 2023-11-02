@@ -1,0 +1,1 @@
+﻿NDContentPage.OnToolTipsLoaded({11:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">Unicode string.</div></div>",101:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">Represents an XML document.</div></div>"});

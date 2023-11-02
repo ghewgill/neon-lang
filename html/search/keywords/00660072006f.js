@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("fro",["Function","Constant"],[["fromCodePoint",,[[,,,,0,"File:string.neon:fromCodePoint"]]],["fromEnd",,[["SeekBase",,,,1,"File:io.neon:SeekBase.fromEnd"]]]]);

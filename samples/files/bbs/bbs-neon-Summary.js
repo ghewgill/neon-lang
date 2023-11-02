@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("File:bbs/bbs.neon","bbs.neon");NDSummary.OnSummaryLoaded("File:bbs/bbs.neon",[["Neon","Neon"]],[["Files","File"]],[[9,0,0,"bbs","bbs"]]);

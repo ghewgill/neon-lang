@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("doc",["Type"],[["Document",,[[,,,,0,"File:xml.neon:Document"]]]]);

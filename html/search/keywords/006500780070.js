@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("exp",["Function"],[["exp",,[[,,,,0,"File:complex.neon:exp"]]],["exp2",,[[,,,,0,"File:math.neon:exp2"]]],["expm1",,[[,,,,0,"File:math.neon:expm1"]]]]);

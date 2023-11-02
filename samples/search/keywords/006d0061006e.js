@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("man",["File"],[["mandelbrot",,[[,,,,0,"File:mandelbrot/mandelbrot.neon:mandelbrot"]]]]);

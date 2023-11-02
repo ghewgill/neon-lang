@@ -1,0 +1,1 @@
+﻿NDSummary.OnToolTipsLoaded("File:snake/snake.neon",{10:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Snake game in curses.</div></div>"});

@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("tex",["Type","File","Exception"],[["TextFile",,[[,,,,0,"File:textio.neon:TextFile"]]],["textio",,[[,,,,1,"File:textio.neon:textio"]]],["TextioException",,[[,,,,2,"File:textio.neon:TextioException"]]]]);

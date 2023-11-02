@@ -1,451 +1,406 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en" data-content_root="../">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>5.4. Expressions &mdash; Neon 1.0 documentation</title>
-    
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Neon 1.0 documentation" href="../index.html" />
-    <link rel="up" title="5. Language Reference" href="index.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>5.4. Expressions &#8212; Neon 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="5.5. Statements" href="statements.html" />
     <link rel="prev" title="5.3. Declarations" href="declarations.html" />
    
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
-  <div class="section" id="expressions">
-<h1>5.4. Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h1>
+  <section id="expressions">
+<h1><span class="section-number">5.4. </span>Expressions<a class="headerlink" href="#expressions" title="Link to this heading">¶</a></h1>
 <p>Expressions are combinations of operands and operators.
-Operands are values in themselves, which may be expressions surrounded by <code class="docutils literal"><span class="pre">(</span> <span class="pre">)</span></code>.
+Operands are values in themselves, which may be expressions surrounded by <code class="docutils literal notranslate"><span class="pre">(</span> <span class="pre">)</span></code>.
 Operators are logical, arithmetic, or string and the valid operators depend on the types of the operands.</p>
-<div class="section" id="literal-values">
-<h2>5.4.1. Literal Values<a class="headerlink" href="#literal-values" title="Permalink to this headline">¶</a></h2>
-<p>Literal values can be individual lexical elements such as <a class="reference internal" href="lexical.html#identifiers"><span>identifiers</span></a>, <a class="reference internal" href="lexical.html#numbers"><span>numbers</span></a>, and <a class="reference internal" href="lexical.html#strings"><span>strings</span></a>.</p>
-<p>Literal arrays are sequences of comma-separated values surrounded by brackets <code class="docutils literal"><span class="pre">[</span> <span class="pre">]</span></code>.</p>
+<section id="literal-values">
+<h2><span class="section-number">5.4.1. </span>Literal Values<a class="headerlink" href="#literal-values" title="Link to this heading">¶</a></h2>
+<p>Literal values can be individual lexical elements such as <a class="reference internal" href="lexical.html#identifiers"><span class="std std-ref">identifiers</span></a>, <a class="reference internal" href="lexical.html#numbers"><span class="std std-ref">numbers</span></a>, and <a class="reference internal" href="lexical.html#strings"><span class="std std-ref">strings</span></a>.</p>
+<p>Literal arrays are sequences of comma-separated values surrounded by brackets <code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">]</span></code>.</p>
 <p>Example:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">Number</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="m">1</span><span class="o">,</span> <span class="m">2</span><span class="o">,</span> <span class="m">3</span><span class="o">]</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET a: Array&lt;Number&gt; := [1, 2, 3]
 </pre></div>
 </div>
-<p>Literal dictionaries are sequences of comma-separated name/value pairs surrounded by braces <code class="docutils literal"><span class="pre">{</span> <span class="pre">}</span></code>.</p>
+<p>Literal dictionaries are sequences of comma-separated name/value pairs surrounded by braces <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">}</span></code>.</p>
 <p>Example:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">d</span><span class="o">:</span> <span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">Number</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">{</span>
-    <span class="s">&quot;one&quot;</span><span class="o">:</span> <span class="m">1</span><span class="o">,</span>
-    <span class="s">&quot;two&quot;</span><span class="o">:</span> <span class="m">2</span><span class="o">,</span>
-    <span class="s">&quot;three&quot;</span><span class="o">:</span> <span class="m">3</span>
-<span class="o">}</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET d: Dictionary&lt;Number&gt; := {
+    &quot;one&quot;: 1,
+    &quot;two&quot;: 2,
+    &quot;three&quot;: 3
+}
 </pre></div>
 </div>
 <p>For convenience, both literal arrays and dictionaries accept a trailing comma after the final element:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">numbers</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span>
-    <span class="s">&quot;zero&quot;</span><span class="o">,</span>
-    <span class="s">&quot;one&quot;</span><span class="o">,</span>
-    <span class="s">&quot;two&quot;</span><span class="o">,</span>
-<span class="o">]</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET numbers: Array&lt;String&gt; := [
+    &quot;zero&quot;,
+    &quot;one&quot;,
+    &quot;two&quot;,
+]
 </pre></div>
 </div>
-</div>
-<div class="section" id="boolean-operators">
-<h2>5.4.2. Boolean Operators<a class="headerlink" href="#boolean-operators" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="boolean-operators">
+<h2><span class="section-number">5.4.2. </span>Boolean Operators<a class="headerlink" href="#boolean-operators" title="Link to this heading">¶</a></h2>
 <p>The following operator takes one boolean value.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="33%" />
-<col width="67%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">NOT</span></code></td>
-<td>logical negation</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NOT</span></code></p></td>
+<td><p>logical negation</p></td>
 </tr>
 </tbody>
 </table>
 <p>The following operators take two boolean values.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="30%" />
-<col width="70%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">=</span></code></td>
-<td>equality</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">=</span></code></p></td>
+<td><p>equality</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&lt;&gt;</span></code></td>
-<td>inequality</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;&gt;</span></code></p></td>
+<td><p>inequality</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">AND</span></code></td>
-<td>logical conjunction</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AND</span></code></p></td>
+<td><p>logical conjunction</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">OR</span></code></td>
-<td>logical disjunction</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OR</span></code></p></td>
+<td><p>logical disjunction</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="numeric-operators">
-<h2>5.4.3. Numeric Operators<a class="headerlink" href="#numeric-operators" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="numeric-operators">
+<h2><span class="section-number">5.4.3. </span>Numeric Operators<a class="headerlink" href="#numeric-operators" title="Link to this heading">¶</a></h2>
 <p>The following operators take one number value.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="16%" />
-<col width="84%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">+</span></code></td>
-<td>identity (provided for symmetry with <code class="docutils literal"><span class="pre">-</span></code>)</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code></p></td>
+<td><p>identity (provided for symmetry with <code class="docutils literal notranslate"><span class="pre">-</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">-</span></code></td>
-<td>arithmetic negation</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>arithmetic negation</p></td>
 </tr>
 </tbody>
 </table>
 <p>The following operators take two number values.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="32%" />
-<col width="68%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">+</span></code></td>
-<td>addition</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code></p></td>
+<td><p>addition</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">-</span></code></td>
-<td>subtraction</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>subtraction</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">*</span></code></td>
-<td>multiplication</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*</span></code></p></td>
+<td><p>multiplication</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">/</span></code></td>
-<td>division</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">/</span></code></p></td>
+<td><p>division</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">INTDIV</span></code></td>
-<td>integer division</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">INTDIV</span></code></p></td>
+<td><p>integer division</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">MOD</span></code></td>
-<td>modulo (remainder)</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MOD</span></code></p></td>
+<td><p>modulo (remainder)</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">^</span></code></td>
-<td>exponentiation</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">^</span></code></p></td>
+<td><p>exponentiation</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">=</span></code></td>
-<td>equality</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">=</span></code></p></td>
+<td><p>equality</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">&lt;&gt;</span></code></td>
-<td>inequality</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;&gt;</span></code></p></td>
+<td><p>inequality</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&lt;</span></code></td>
-<td>less than</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;</span></code></p></td>
+<td><p>less than</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">&gt;</span></code></td>
-<td>greater than</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&gt;</span></code></p></td>
+<td><p>greater than</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&lt;=</span></code></td>
-<td>less than or equal</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;=</span></code></p></td>
+<td><p>less than or equal</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">&gt;=</span></code></td>
-<td>greater than or equal</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&gt;=</span></code></p></td>
+<td><p>greater than or equal</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="string-operators">
-<h2>5.4.4. String Operators<a class="headerlink" href="#string-operators" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="string-operators">
+<h2><span class="section-number">5.4.4. </span>String Operators<a class="headerlink" href="#string-operators" title="Link to this heading">¶</a></h2>
 <p>The following operators take two string values.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="18%" />
-<col width="82%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">&amp;</span></code></td>
-<td>concatenation</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;</span></code></p></td>
+<td><p>concatenation</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">=</span></code></td>
-<td>equality</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">=</span></code></p></td>
+<td><p>equality</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">&lt;&gt;</span></code></td>
-<td>inequality</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;&gt;</span></code></p></td>
+<td><p>inequality</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&lt;</span></code></td>
-<td>lexicographical less than</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;</span></code></p></td>
+<td><p>lexicographical less than</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">&gt;</span></code></td>
-<td>lexicographical greater than</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&gt;</span></code></p></td>
+<td><p>lexicographical greater than</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&lt;=</span></code></td>
-<td>lexicographical less than or equal</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;=</span></code></p></td>
+<td><p>lexicographical less than or equal</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">&gt;=</span></code></td>
-<td>lexicographical greater than or equal</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&gt;=</span></code></p></td>
+<td><p>lexicographical greater than or equal</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="array-operators">
-<h2>5.4.5. Array Operators<a class="headerlink" href="#array-operators" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="22%" />
-<col width="78%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+</section>
+<section id="array-operators">
+<h2><span class="section-number">5.4.5. </span>Array Operators<a class="headerlink" href="#array-operators" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">IN</span></code></td>
-<td>membership test (<em>O(n)</em> complexity)</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IN</span></code></p></td>
+<td><p>membership test (<em>O(n)</em> complexity)</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></code></td>
-<td>membership test (<em>O(n)</em> complexity)</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NOT</span> <span class="pre">IN</span></code></p></td>
+<td><p>membership test (<em>O(n)</em> complexity)</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="dictionary-operators">
-<h2>5.4.6. Dictionary Operators<a class="headerlink" href="#dictionary-operators" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="20%" />
-<col width="80%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+</section>
+<section id="dictionary-operators">
+<h2><span class="section-number">5.4.6. </span>Dictionary Operators<a class="headerlink" href="#dictionary-operators" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">IN</span></code></td>
-<td>membership test (<em>O(log n)</em> complexity)</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IN</span></code></p></td>
+<td><p>membership test (<em>O(log n)</em> complexity)</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></code></td>
-<td>membership test (<em>O(log n)</em> complexity)</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NOT</span> <span class="pre">IN</span></code></p></td>
+<td><p>membership test (<em>O(log n)</em> complexity)</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="object-operator">
-<h2>5.4.7. Object Operator<a class="headerlink" href="#object-operator" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="21%" />
-<col width="79%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+</section>
+<section id="object-operator">
+<h2><span class="section-number">5.4.7. </span>Object Operator<a class="headerlink" href="#object-operator" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">ISA</span></code></td>
-<td>type test (<code class="docutils literal"><span class="pre">object</span> <span class="pre">ISA</span> <span class="pre">Type</span></code>)</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ISA</span></code></p></td>
+<td><p>type test (<code class="docutils literal notranslate"><span class="pre">object</span> <span class="pre">ISA</span> <span class="pre">Type</span></code>)</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="pointer-operator">
-<h2>5.4.8. Pointer Operator<a class="headerlink" href="#pointer-operator" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="30%" />
-<col width="70%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+</section>
+<section id="pointer-operator">
+<h2><span class="section-number">5.4.8. </span>Pointer Operator<a class="headerlink" href="#pointer-operator" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">-&gt;</span></code></td>
-<td>pointer dereference</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-&gt;</span></code></p></td>
+<td><p>pointer dereference</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="operator-precedence">
-<h2>5.4.9. Operator Precedence<a class="headerlink" href="#operator-precedence" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="operator-precedence">
+<h2><span class="section-number">5.4.9. </span>Operator Precedence<a class="headerlink" href="#operator-precedence" title="Link to this heading">¶</a></h2>
 <p>The operator precedence is as follows, highest to lowest:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="51%" />
-<col width="49%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Operator</th>
-<th class="head">Description</th>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operator</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">(</span> <span class="pre">)</span></code></td>
-<td>subexpression</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">(</span> <span class="pre">)</span></code></p></td>
+<td><p>subexpression</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">^</span></code></td>
-<td>exponentiation</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">^</span></code></p></td>
+<td><p>exponentiation</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">*</span></code> <code class="docutils literal"><span class="pre">/</span></code> <code class="docutils literal"><span class="pre">MOD</span></code> <code class="docutils literal"><span class="pre">INTDIV</span></code></td>
-<td>multiplication, division, modulo</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*</span></code> <code class="docutils literal notranslate"><span class="pre">/</span></code> <code class="docutils literal notranslate"><span class="pre">MOD</span></code> <code class="docutils literal notranslate"><span class="pre">INTDIV</span></code></p></td>
+<td><p>multiplication, division, modulo</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">+</span></code> <code class="docutils literal"><span class="pre">-</span></code> <code class="docutils literal"><span class="pre">&amp;</span></code></td>
-<td>addition, subtraction, concatenation</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code> <code class="docutils literal notranslate"><span class="pre">-</span></code> <code class="docutils literal notranslate"><span class="pre">&amp;</span></code></p></td>
+<td><p>addition, subtraction, concatenation</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">=</span></code> <code class="docutils literal"><span class="pre">&lt;&gt;</span></code> <code class="docutils literal"><span class="pre">&lt;</span></code> <code class="docutils literal"><span class="pre">&gt;</span></code> <code class="docutils literal"><span class="pre">&lt;=</span></code> <code class="docutils literal"><span class="pre">&gt;=</span></code></td>
-<td>comparison</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">=</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;&gt;</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code></p></td>
+<td><p>comparison</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">IN</span></code> <code class="docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></code></td>
-<td>membership</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IN</span></code> <code class="docutils literal notranslate"><span class="pre">NOT</span> <span class="pre">IN</span></code></p></td>
+<td><p>membership</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">AND</span></code></td>
-<td>conjunction</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AND</span></code></p></td>
+<td><p>conjunction</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">OR</span></code></td>
-<td>disjunction</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OR</span></code></p></td>
+<td><p>disjunction</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">IF</span></code></td>
-<td>conditional</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IF</span></code></p></td>
+<td><p>conditional</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="array-subscripts">
-<h2>5.4.10. Array Subscripts<a class="headerlink" href="#array-subscripts" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="array-subscripts">
+<h2><span class="section-number">5.4.10. </span>Array Subscripts<a class="headerlink" href="#array-subscripts" title="Link to this heading">¶</a></h2>
 <p>Array subscripts are normally integers greater than or equal to zero:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;foo&quot;</span><span class="o">,</span> <span class="s">&quot;bar&quot;</span><span class="o">,</span> <span class="s">&quot;baz&quot;</span><span class="o">]</span>
-<span class="n">print</span><span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="m">0</span><span class="o">])</span>
-<span class="n">print</span><span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="m">2</span><span class="o">])</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET a: Array&lt;String&gt; := [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]
+print(a[0])
+print(a[2])
 </pre></div>
 </div>
-<p>Two special values may be used, <code class="docutils literal"><span class="pre">FIRST</span></code> and <code class="docutils literal"><span class="pre">LAST</span></code>:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;foo&quot;</span><span class="o">,</span> <span class="s">&quot;bar&quot;</span><span class="o">,</span> <span class="s">&quot;baz&quot;</span><span class="o">]</span>
-<span class="n">print</span><span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="k">FIRST</span><span class="o">])</span>
-<span class="n">print</span><span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="k">LAST</span><span class="o">])</span>
+<p>Two special values may be used, <code class="docutils literal notranslate"><span class="pre">FIRST</span></code> and <code class="docutils literal notranslate"><span class="pre">LAST</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET a: Array&lt;String&gt; := [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]
+print(a[FIRST])
+print(a[LAST])
 </pre></div>
 </div>
-<p><code class="docutils literal"><span class="pre">FIRST</span></code> always means the same as <cite>0</cite> and is provided for completeness.
-<code class="docutils literal"><span class="pre">LAST</span></code> refers to the index of the last element of the array (if the array is not empty).</p>
-<p>Array slices are also possible using the <code class="docutils literal"><span class="pre">TO</span></code> keyword.
+<p><code class="docutils literal notranslate"><span class="pre">FIRST</span></code> always means the same as <cite>0</cite> and is provided for completeness.
+<code class="docutils literal notranslate"><span class="pre">LAST</span></code> refers to the index of the last element of the array (if the array is not empty).</p>
+<p>Array slices are also possible using the <code class="docutils literal notranslate"><span class="pre">TO</span></code> keyword.
 Both indexes are inclusive:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;foo&quot;</span><span class="o">,</span> <span class="s">&quot;bar&quot;</span><span class="o">,</span> <span class="s">&quot;baz&quot;</span><span class="o">]</span>
-<span class="k">LET</span> <span class="n">b</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="n">a</span><span class="o">[</span><span class="m">0</span> <span class="k">TO</span> <span class="m">1</span><span class="o">]</span>
-<span class="k">LET</span> <span class="n">c</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="n">a</span><span class="o">[</span><span class="k">LAST</span><span class="o">-</span><span class="m">1</span> <span class="k">TO</span> <span class="k">LAST</span><span class="o">]</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET a: Array&lt;String&gt; := [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]
+LET b: Array&lt;String&gt; := a[0 TO 1]
+LET c: Array&lt;String&gt; := a[LAST-1 TO LAST]
 </pre></div>
 </div>
-<p>In the above example, <code class="docutils literal"><span class="pre">b</span></code> contains <code class="docutils literal"><span class="pre">[&quot;foo&quot;,</span> <span class="pre">&quot;bar&quot;]</span></code> and <code class="docutils literal"><span class="pre">c</span></code> contains <code class="docutils literal"><span class="pre">[&quot;bar&quot;,</span> <span class="pre">&quot;baz&quot;]</span></code>.</p>
-</div>
-<div class="section" id="dictionary-subscripts">
-<h2>5.4.11. Dictionary Subscripts<a class="headerlink" href="#dictionary-subscripts" title="Permalink to this headline">¶</a></h2>
+<p>In the above example, <code class="docutils literal notranslate"><span class="pre">b</span></code> contains <code class="docutils literal notranslate"><span class="pre">[&quot;foo&quot;,</span> <span class="pre">&quot;bar&quot;]</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code> contains <code class="docutils literal notranslate"><span class="pre">[&quot;bar&quot;,</span> <span class="pre">&quot;baz&quot;]</span></code>.</p>
+</section>
+<section id="dictionary-subscripts">
+<h2><span class="section-number">5.4.11. </span>Dictionary Subscripts<a class="headerlink" href="#dictionary-subscripts" title="Link to this heading">¶</a></h2>
 <p>Dictionary subscripts are strings:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">d</span><span class="o">:</span> <span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">{</span>
-    <span class="s">&quot;apple&quot;</span><span class="o">:</span> <span class="s">&quot;red&quot;</span><span class="o">,</span>
-    <span class="s">&quot;orange&quot;</span><span class="o">:</span> <span class="s">&quot;orange&quot;</span><span class="o">,</span>
-    <span class="s">&quot;banana&quot;</span><span class="o">:</span> <span class="s">&quot;yellow&quot;</span>
-<span class="o">}</span>
-<span class="n">print</span><span class="o">(</span><span class="n">d</span><span class="o">[</span><span class="s">&quot;apple&quot;</span><span class="o">])</span>
-<span class="n">print</span><span class="o">(</span><span class="n">d</span><span class="o">[</span><span class="s">&quot;banana&quot;</span><span class="o">])</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET d: Dictionary&lt;String&gt; := {
+    &quot;apple&quot;: &quot;red&quot;,
+    &quot;orange&quot;: &quot;orange&quot;,
+    &quot;banana&quot;: &quot;yellow&quot;
+}
+print(d[&quot;apple&quot;])
+print(d[&quot;banana&quot;])
 </pre></div>
 </div>
-</div>
-<div class="section" id="conditional-expression">
-<h2>5.4.12. Conditional Expression<a class="headerlink" href="#conditional-expression" title="Permalink to this headline">¶</a></h2>
-<p>A conditional expression is like an inline <code class="docutils literal"><span class="pre">IF</span></code> statement:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">n</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">5</span>
-<span class="k">LET</span> <span class="n">s</span><span class="o">:</span> <span class="n">String</span> <span class="o">:=</span> <span class="o">(</span><span class="k">IF</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="m">0</span> <span class="k">THEN</span> <span class="s">&quot;positive&quot;</span> <span class="k">ELSE</span> <span class="s">&quot;negative&quot;</span><span class="o">)</span>
+</section>
+<section id="conditional-expression">
+<h2><span class="section-number">5.4.12. </span>Conditional Expression<a class="headerlink" href="#conditional-expression" title="Link to this heading">¶</a></h2>
+<p>A conditional expression is like an inline <code class="docutils literal notranslate"><span class="pre">IF</span></code> statement:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET n: Number := 5
+LET s: String := (IF n &gt;= 0 THEN &quot;positive&quot; ELSE &quot;negative&quot;)
 </pre></div>
 </div>
-<p>The condition following <code class="docutils literal"><span class="pre">IF</span></code> is evaluated.
-If it is true, then the <code class="docutils literal"><span class="pre">THEN</span></code> expression is evaluated and is the result of the expression.
-Otherwise, the <code class="docutils literal"><span class="pre">ELSE</span></code> expression is evaluated and is the result of the expression.</p>
+<p>The condition following <code class="docutils literal notranslate"><span class="pre">IF</span></code> is evaluated.
+If it is true, then the <code class="docutils literal notranslate"><span class="pre">THEN</span></code> expression is evaluated and is the result of the expression.
+Otherwise, the <code class="docutils literal notranslate"><span class="pre">ELSE</span></code> expression is evaluated and is the result of the expression.</p>
 <p>The parentheses around the entire conditional expression are required.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The branch not taken is <em>not</em> evaluated.
+<p class="admonition-title">Note</p>
+<p>The branch not taken is <em>not</em> evaluated.
 This means that if a branch not taken is a function call, the function will not be called.</p>
 </div>
-</div>
-<div class="section" id="try-expression">
-<h2>5.4.13. Try Expression<a class="headerlink" href="#try-expression" title="Permalink to this headline">¶</a></h2>
-<p>A try expression is like an inline <code class="docutils literal"><span class="pre">TRY</span></code> statement:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">5</span>
-<span class="k">LET</span> <span class="n">b</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="m">0</span>
-<span class="k">LET</span> <span class="n">n</span><span class="o">:</span> <span class="n">Number</span> <span class="o">:=</span> <span class="o">(</span><span class="k">TRY</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span> <span class="k">TRAP</span> <span class="n">DivideByZeroException</span> <span class="k">GIVES</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+</section>
+<section id="try-expression">
+<h2><span class="section-number">5.4.13. </span>Try Expression<a class="headerlink" href="#try-expression" title="Link to this heading">¶</a></h2>
+<p>A try expression is like an inline <code class="docutils literal notranslate"><span class="pre">TRY</span></code> statement:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>EXCEPTION TestException
+FUNCTION f(): Number
+    RAISE TestException
+END FUNCTION
+LET n: Number := (TRY f() TRAP TestException GIVES -1)
 </pre></div>
 </div>
-<p>The expression following <code class="docutils literal"><span class="pre">TRY</span></code> is evaluated.
-If an exception is raised, then it is matched against the <code class="docutils literal"><span class="pre">TRAP</span></code> clauses.
-A matching <code class="docutils literal"><span class="pre">TRAP</span></code> clause with a <code class="docutils literal"><span class="pre">GIVES</span></code> keyword evalues the <code class="docutils literal"><span class="pre">GIVES</span></code> expression and returns that as the value of the try expression.</p>
-<p>The keyword <code class="docutils literal"><span class="pre">DO</span></code> can be used instead of <code class="docutils literal"><span class="pre">GIVES</span></code>.
-The <code class="docutils literal"><span class="pre">DO</span></code> keywords introduces a new statement block which must end with a block-exiting statement (<code class="docutils literal"><span class="pre">EXIT</span></code>, <code class="docutils literal"><span class="pre">NEXT</span></code>, <code class="docutils literal"><span class="pre">RAISE</span></code>, or <code class="docutils literal"><span class="pre">RETURN</span></code>).</p>
-</div>
-<div class="section" id="expression-substitution">
-<h2>5.4.14. Expression Substitution<a class="headerlink" href="#expression-substitution" title="Permalink to this headline">¶</a></h2>
-<p>Literal strings may contain embedded expressions surrounded by the special escape <code class="docutils literal"><span class="pre">\(</span> <span class="pre">)</span></code>.
+<p>The expression following <code class="docutils literal notranslate"><span class="pre">TRY</span></code> is evaluated.
+If an exception is raised, then it is matched against the <code class="docutils literal notranslate"><span class="pre">TRAP</span></code> clauses.
+A matching <code class="docutils literal notranslate"><span class="pre">TRAP</span></code> clause with a <code class="docutils literal notranslate"><span class="pre">GIVES</span></code> keyword evalues the <code class="docutils literal notranslate"><span class="pre">GIVES</span></code> expression and returns that as the value of the try expression.</p>
+<p>The keyword <code class="docutils literal notranslate"><span class="pre">DO</span></code> can be used instead of <code class="docutils literal notranslate"><span class="pre">GIVES</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">DO</span></code> keywords introduces a new statement block which must end with a block-exiting statement (<code class="docutils literal notranslate"><span class="pre">EXIT</span></code>, <code class="docutils literal notranslate"><span class="pre">NEXT</span></code>, <code class="docutils literal notranslate"><span class="pre">RAISE</span></code>, or <code class="docutils literal notranslate"><span class="pre">RETURN</span></code>).</p>
+</section>
+<section id="expression-substitution">
+<h2><span class="section-number">5.4.14. </span>Expression Substitution<a class="headerlink" href="#expression-substitution" title="Link to this heading">¶</a></h2>
+<p>Literal strings may contain embedded expressions surrounded by the special escape <code class="docutils literal notranslate"><span class="pre">\(</span> <span class="pre">)</span></code>.
 These expressions are evaluated at run time.
-The type of the embedded expression must have a <code class="docutils literal"><span class="pre">.toString()</span></code> method which will be called automatically to convert the result to a string.</p>
+The type of the embedded expression must have a <code class="docutils literal notranslate"><span class="pre">.toString()</span></code> method which will be called automatically to convert the result to a string.</p>
 <p>Example:</p>
-<div class="highlight-neon"><div class="highlight"><pre><span class="k">LET</span> <span class="n">a</span><span class="o">:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">:=</span> <span class="o">[</span><span class="s">&quot;one&quot;</span><span class="o">,</span> <span class="s">&quot;two&quot;</span><span class="o">,</span> <span class="s">&quot;three&quot;</span><span class="o">]</span>
-<span class="k">FOR</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span> <span class="k">TO</span> <span class="m">2</span> <span class="k">DO</span>
-    <span class="n">print</span><span class="o">(</span><span class="s">&quot;i is \(i) and the array element is \(a[i])&quot;</span><span class="o">)</span>
-<span class="k">END</span> <span class="k">FOR</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LET a: Array&lt;String&gt; := [&quot;one&quot;, &quot;two&quot;, &quot;three&quot;]
+FOR i := 0 TO 2 DO
+    print(&quot;i is \(i) and the array element is \(a[i])&quot;)
+END FOR
 </pre></div>
 </div>
 <div class="admonition-todo admonition">
-<p class="first admonition-title">TODO</p>
-<p class="last">formatting specifiers</p>
+<p class="admonition-title">TODO</p>
+<p>formatting specifiers</p>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -456,16 +411,11 @@ The type of the embedded expression must have a <code class="docutils literal"><
 
 
 
-<p>
-<iframe src="https://ghbtns.com/github-btn.html?user=&repo=&type=watch&count=true&size=large"
-  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
-</p>
-
 
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../manifesto.html">2. Manifesto</a></li>
@@ -475,7 +425,7 @@ The type of the embedded expression must have a <code class="docutils literal"><
 <li class="toctree-l2"><a class="reference internal" href="lexical.html">5.1. Lexical Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="types.html">5.2. Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="declarations.html">5.3. Declarations</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">5.4. Expressions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.4. Expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="statements.html">5.5. Statements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="functions.html">5.6. Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classes.html">5.7. Classes</a></li>
@@ -492,26 +442,31 @@ The type of the embedded expression must have a <code class="docutils literal"><
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">5. Language Reference</a><ul>
-      <li>Previous: <a href="declarations.html" title="previous chapter">5.3. Declarations</a></li>
-      <li>Next: <a href="statements.html" title="next chapter">5.5. Statements</a></li>
+  <li><a href="index.html"><span class="section-number">5. </span>Language Reference</a><ul>
+      <li>Previous: <a href="declarations.html" title="previous chapter"><span class="section-number">5.3. </span>Declarations</a></li>
+      <li>Next: <a href="statements.html" title="next chapter"><span class="section-number">5.5. </span>Statements</a></li>
   </ul></li>
   </ul></li>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -520,11 +475,11 @@ The type of the embedded expression must have a <code class="docutils literal"><
       &copy;2017, Greg Hewgill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
-      <a href="../_sources/reference/expressions.txt"
+      <a href="../_sources/reference/expressions.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

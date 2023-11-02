@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("exc",["Type"],[["ExceptionType",,[[,,,,0,"File:global.neon:ExceptionType"]]]]);

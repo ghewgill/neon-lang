@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("ins",["Type"],[["Instant",,[[,,,,0,"File:datetime.neon:Instant"]]]]);

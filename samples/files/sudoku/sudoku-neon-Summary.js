@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("File:sudoku/sudoku.neon","sudoku.neon");NDSummary.OnSummaryLoaded("File:sudoku/sudoku.neon",[["Neon","Neon"]],[["Files","File"],["Functions","Function"],["Groups","Group"]],[[17,0,0,"sudoku","sudoku"],[18,0,2,"Functions","Functions"],[19,0,1,"solveSudoku","solveSudoku"],[20,0,1,"makeSolution","makeSolution"],[21,0,1,"makePuzzle","makePuzzle"]]);

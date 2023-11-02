@@ -1,0 +1,1 @@
+﻿NDSummary.OnToolTipsLoaded("File:editor/editor.neon",{23:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Simple text editor, with Neon syntax highlighting.</div></div>"});

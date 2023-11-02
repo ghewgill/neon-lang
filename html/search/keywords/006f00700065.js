@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("ope",["Function","Exception"],[["Open",,[[,"open",,,0,"File:io.neon:open"],["IoException",,,,1,"File:io.neon:IoException.Open"],["TextioException",,,,1,"File:textio.neon:TextioException.Open"]]],["OpenFileException",,[[,,,,1,"File:mmap.neon:OpenFileException"]]]]);

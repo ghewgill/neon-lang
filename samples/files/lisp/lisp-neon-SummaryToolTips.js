@@ -1,0 +1,1 @@
+﻿NDSummary.OnToolTipsLoaded("File:lisp/lisp.neon",{6:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Implementation of a Scheme-like Lisp variant.</div></div>"});

@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("File:crypto/include/openssl/pkcs7.h","pkcs7.h");NDSummary.OnSummaryLoaded("File:crypto/include/openssl/pkcs7.h",[["C/C++","C"]],[["Groups","Group"],["Variables","Variable"]],[[2,0,0,"Variables","Variables"],[3,0,1,"for compatibility with older code","for_compatibility_with_older_code"]]);

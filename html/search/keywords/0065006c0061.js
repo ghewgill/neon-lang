@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("ela",["Function"],[["elapsed",,[["Stopwatch",,,,0,"File:time.neon:Stopwatch.elapsed"]]]]);
