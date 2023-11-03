@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Statements :: Neon Language</title>
+    <meta name="generator" content="Antora 3.1.4">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="../../..">Neon Language</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="neon-lang" data-version="0.1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../intro.html">Neon</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../intro.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../manifesto.html">Manifesto</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../tutorial.html">Tutorial</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../overview.html">Overview</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="reference.html">Language Reference</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="lexical.html">Lexical Structure</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="types.html">Types</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="declarations.html">Declarations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="expressions.html">Expressions</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="statements.html">Statements</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="functions.html">Functions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="classes.html">Classes</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="grammar.html">Grammar</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../library.html">Standard Library</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extensions.html">Extensions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../samples.html">Samples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Neon</span>
+    <span class="version">0.1-alpha</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../intro.html">Neon</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../intro.html">0.1-alpha</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../intro.html">Neon</a></li>
+    <li><a href="reference.html">Language Reference</a></li>
+    <li><a href="statements.html">Statements</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/greg/neon-lang/docs/modules/reference/pages/statements.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Statements</h1>
+<div class="sect1">
+<h2 id="_assignment"><a class="anchor" href="#_assignment"></a>Assignment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Assignment evaluates the expression on the right hand side and assigns it to the storage location identified on the left hand side.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR a: Number
+
+a := 5</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_function_call"><a class="anchor" href="#_function_call"></a>Function Call</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A function call statement is the same as a function call in an expression, except that the function cannot return a value.
+See <a href="functions.html" class="xref page">Functions</a> for complete information about function calls.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_assert"><a class="anchor" href="#_assert"></a>ASSERT</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ASSERT</code> statement evaluates an expression and if the expression is <code>FALSE</code>, prints a diagnostic message and raises an exception.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">LET s: String := "foo"
+ASSERT s[0] = "x"       -- exception</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">Assert failed (test.neon line 2):
+ASSERT s[0] = "x"
+Assert expression dump:
+  s[0]  is f
+  s[0] = "x" is FALSE
+Unhandled exception AssertFailedException (ASSERT s[0] = "x") (code 0)
+  Stack frame #1: file test.neon line 2 address 213
+    ASSERT s[0] = "x"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_case"><a class="anchor" href="#_case"></a>CASE</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>CASE</code> statement selects one of a number of alternative code paths based on the value of an expression.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR x: Number := 0
+
+CASE x
+    WHEN &lt; 2 DO
+        print("less than two")
+    WHEN 2 DO
+        print("is two")
+    WHEN 3 TO 5 DO
+        print("three to five")
+    WHEN 7, 9 DO
+        print("seven or nine")
+    WHEN OTHERS DO
+        print("is something else")
+END CASE</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>CASE</code> statement expression may be of type <code>Number</code>, <code>String</code>, or an enumeration.
+The possible kinds of <code>WHEN</code> clauses are:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Form</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WHEN &lt;value&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">equality match</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WHEN &lt;op&gt; &lt;value&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">relational operator comparison (one of <code>=</code>, <code>&lt;&gt;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&#8656;</code>, <code>&gt;=</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WHEN &lt;value&gt; TO &lt;value&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">range check (both endpoints inclusive)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>More than one of the above forms may be included in a <code>WHEN</code> clause, separated by commas.
+The values of <code>WHEN</code> clauses must not overlap.
+The optional <code>WHEN OTHERS</code> clause is executed when no other <code>WHEN</code> clauses match.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_check"><a class="anchor" href="#_check"></a>CHECK</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>CHECK</code> statement evaluates a boolean expression and, if it is <code>FALSE</code>, evaluates a block:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FUNCTION foo(n: Number)
+    CHECK n &gt;= 0 ELSE
+        PANIC "Value out of range"
+    END CHECK
+    print("\(n)")
+END FUNCTION</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The block of statements must end in a block-exiting statement which is one of <code>EXIT</code>, <code>NEXT</code>, <code>PANIC</code>, <code>RAISE</code>, or <code>RETURN</code>.
+This statement is useful to check a condition while guaranteeing that execution will not continue after the <code>END CHECK</code> if the condition is false.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exec"><a class="anchor" href="#_exec"></a>EXEC</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TODO</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exit"><a class="anchor" href="#_exit"></a>EXIT</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>EXIT</code> statement has five different forms:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Form</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXIT FOR</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">stop iteration of the nearest enclosing <code>FOR</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXIT FOREACH</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">stop iteration of the nearest enclosing <code>FOREACH</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXIT FUNCTION</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">immediately return from a function (only for functions that do not return a value)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXIT LOOP</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">stop iteration of the nearest enclosing <code>LOOP</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXIT REPEAT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">stop iteration of the nearest enclosing <code>REPEAT</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXIT WHILE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">stop iteration of the nearest enclosing <code>WHILE</code> loop</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_for"><a class="anchor" href="#_for"></a>FOR</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>FOR</code> loop iterates a numeric variable over a range of values.
+The loop control variable is implicitly a <code>Number</code> and must not be already declared outside the <code>FOR</code> statement.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FOR i := 1 TO 10 STEP 2 DO
+    print("i is \(i)")
+END FOR</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above example is equivalent to:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR i: Number
+
+i := 1
+WHILE i &lt;= 10 DO
+    print("i is \(i)")
+    i := i + 2
+END WHILE</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The exception is that in the <code>FOR</code> loop, the value of <code>i</code> cannot be modified.</p>
+</div>
+<div class="paragraph">
+<p>The <code>STEP</code> value is optional and defaults to 1.
+It may be any number, including fractional values, except 0.
+It must, however, be a compile time constant.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_foreach"><a class="anchor" href="#_foreach"></a>FOREACH</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>FOREACH</code> loop iterates through an array from the first element to a last, executing the statements within the block.
+The loop control variable is implicitly declared and must not be already declared outside the <code>FOREACH</code> statement.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">LET a: Array&lt;String&gt; := ["one", "two", "three"]
+FOREACH x IN a DO
+    print(x)
+END FOREACH</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_if"><a class="anchor" href="#_if"></a>IF</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>IF</code> statement tests a condition of type <code>Boolean</code> and executes one of two alternatives.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR x: Number := 0
+
+IF x &lt; 10 THEN
+    print("x is less than 10")
+ELSE
+    print("not less than 10")
+END IF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>ELSE</code> clause is optional.</p>
+</div>
+<div class="paragraph">
+<p>Additional alternatives may be introduced with the <code>ELSIF</code> clause:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR x: Number := 0
+
+IF x &lt; 10 THEN
+    print("x is less than 10")
+ELSIF x &lt; 20 THEN
+    print("x is less than 20")
+ELSE
+    print("not less than 20")
+END IF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>IF VALID</code> form is used to test a pointer value to check whether it is <code>NIL</code>, and capture the pointer value in a new variable for use within the <code>IF VALID</code> block:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Record IS CLASS
+    name: String
+END CLASS
+
+VAR p: POINTER TO Record := NIL
+
+IF VALID p AS q THEN
+    print(q-&gt;name)
+END IF</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_inc"><a class="anchor" href="#_inc"></a>INC</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>INC</code> statement increments a variable of type <code>Number</code>.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR x: Number := 5
+INC x
+ASSERT x = 6</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>INC x</code> is equivalent to <code>x := x + 1</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_let"><a class="anchor" href="#_let"></a>LET</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>LET</code> statement introduces a new read-only variable and assigns a value (which can be an arbitrary expression, evaluated at run time).</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FUNCTION five(): Number
+    RETURN 5
+END FUNCTION
+
+LET ten: Number := 2 * five()</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_loop"><a class="anchor" href="#_loop"></a>LOOP</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>LOOP</code> statement begins a loop with no specific exit condition.
+There is normally an <code>EXIT LOOP</code> statement within the loop for a termination condition.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR i: Number := 0
+
+LOOP
+    INC i
+    IF i &gt;= 10 THEN
+        EXIT LOOP
+    END IF
+    print("i is \(i)")
+END LOOP</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next"><a class="anchor" href="#_next"></a>NEXT</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>NEXT</code> statement has four different forms:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Form</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEXT FOR</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">next iteration of the nearest enclosing <code>FOR</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEXT FOREACH</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">next iteration of the nearest enclosing <code>FOREACH</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEXT LOOP</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">next iteration of the nearest enclosing <code>LOOP</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEXT REPEAT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">next iteration of the nearest enclosing <code>REPEAT</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEXT WHILE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">next iteration of the nearest enclosing <code>WHILE</code> loop</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>When using <code>NEXT FOR</code>, the loop control variable is incremented (or decremented, according to the <code>STEP</code> value) before continuing to the next iteration.</p>
+</div>
+<div class="paragraph">
+<p>When using <code>NEXT REPEAT</code> or <code>NEXT WHILE</code>, the loop condition is tested before continuing to the next iteration.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_raise"><a class="anchor" href="#_raise"></a>RAISE</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>RAISE</code> statement raises an exception.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">EXCEPTION InvalidWidgetSizeException
+
+VAR size: Number := 3
+IF size &gt; 4 THEN
+    RAISE InvalidWidgetSizeException(size.toString())
+END IF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The executor searches for an exception handler that can handle the given expression type, and execution resumes with the exception handler.
+If no exception handler is found, the program terminates with a message and stack trace.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_repeat"><a class="anchor" href="#_repeat"></a>REPEAT</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>REPEAT</code> statement begins a loop with a bottom-tested condition.
+Execution always proceeds into the loop body at least once.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR x: Number := 0
+
+REPEAT
+    print("x is \(x)")
+    INC x
+UNTIL x = 10</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above loop will print the whole numbers 0 through 9.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_return"><a class="anchor" href="#_return"></a>RETURN</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>RETURN</code> statement returns a value from a function.
+The type of the expression in the <code>RETURN</code> statement must match the return type declared in the function header (which means that it is only valid to use <code>RETURN</code> for a function that actually returns a value).</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FUNCTION square(x: Number): Number
+    RETURN x ^ 2
+END FUNCTION</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_try"><a class="anchor" href="#_try"></a>TRY</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>TRY</code> statement introduces a block that handles exceptions.
+After entering a <code>TRY</code> block, any exception that happens within the block is checked against the <code>TRAP</code> clauses.
+If an exception matching a clause is raised, the corresponding exception handler starts running.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">EXCEPTION InvalidWidgetSizeException
+
+VAR size: Number := 5
+TRY
+    IF size &gt; 4 THEN
+        RAISE InvalidWidgetSizeException(size.toString())
+    END IF
+TRAP InvalidWidgetSizeException AS x DO
+    print("Invalid size \(x.info)")
+END TRY</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_while"><a class="anchor" href="#_while"></a>WHILE</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>WHILE</code> statement begins a loop with a top-tested condition.
+The condition is tested before every loop iteration, including the first one.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR x: Number := 0
+
+WHILE x &lt; 10 DO
+    print("x is \(x)")
+    INC x
+END WHILE</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above loop will print the whole numbers 0 through 9.</p>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

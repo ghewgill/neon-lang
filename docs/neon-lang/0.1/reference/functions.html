@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Functions :: Neon Language</title>
+    <meta name="generator" content="Antora 3.1.4">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="../../..">Neon Language</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="neon-lang" data-version="0.1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../intro.html">Neon</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../intro.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../manifesto.html">Manifesto</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../tutorial.html">Tutorial</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../overview.html">Overview</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="reference.html">Language Reference</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="lexical.html">Lexical Structure</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="types.html">Types</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="declarations.html">Declarations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="expressions.html">Expressions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="statements.html">Statements</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="functions.html">Functions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="classes.html">Classes</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="grammar.html">Grammar</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../library.html">Standard Library</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extensions.html">Extensions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../samples.html">Samples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Neon</span>
+    <span class="version">0.1-alpha</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../intro.html">Neon</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../intro.html">0.1-alpha</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../intro.html">Neon</a></li>
+    <li><a href="reference.html">Language Reference</a></li>
+    <li><a href="functions.html">Functions</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/greg/neon-lang/docs/modules/reference/pages/functions.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Functions</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Functions are declared using the <code>FUNCTION</code> keyword:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FUNCTION square(x: Number): Number
+    RETURN x ^ 2
+END FUNCTION</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The return type of a function (appearing after the <code>)</code>) is optional.
+The <code>RETURN</code> statement is not permitted inside a function that does not return a value (use <code>EXIT FUNCTION</code> instead).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_parameter_modes"><a class="anchor" href="#_parameter_modes"></a>Parameter Modes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Function parameters may be declared with a parameter mode:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>IN</code> - The function parameter is passed from the caller into the function, and may not be modified within the function.</p>
+</li>
+<li>
+<p><code>INOUT</code> - A reference to the function argument is passed to the function, and the parameter may be modified within the function.</p>
+</li>
+<li>
+<p><code>OUT</code> - No value is passed into the function, but any value assigned within the function is passed back to the caller.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The default parameter mode is <code>IN</code>.
+For <code>INOUT</code> and <code>OUT</code> parameters, the caller must supply an actual variable rather than the result of an expression.</p>
+</div>
+<div class="paragraph">
+<p>When calling a function with a parameter that has <code>INOUT</code> or <code>OUT</code> modes, the parameter mode must also be declared in the call:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FUNCTION double(INOUT x: Number)
+    x := x * 2
+END FUNCTION
+
+VAR a: Number := 5
+double(INOUT a)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_default_parameter_value"><a class="anchor" href="#_default_parameter_value"></a>Default Parameter Value</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Function parameters may be declared with a default value.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FUNCTION add(INOUT x: Number, delta: Number DEFAULT 1)
+    x := x + delta
+END FUNCTION
+
+VAR value: Number := 5
+add(INOUT value)
+add(INOUT value, 2)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When a parameter is not specified and it has a default value, the function call is executed as if the parameter were present and had the given value.
+Default parameter values only apply to <code>IN</code> mode parameters.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_named_parameters"><a class="anchor" href="#_named_parameters"></a>Named Parameters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When calling a function, function parameters may be named using the <code>WITH</code> keyword.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FUNCTION birthdayParty(name: String, balloons: Number, cake: String, clown: Boolean)
+    -- ...
+END FUNCTION
+
+birthdayParty(name WITH "Helen", balloons WITH 10, cake WITH "Chocolate", clown WITH TRUE)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Parameters may be passed in order without using <code>WITH</code>, and then switch to using <code>WITH</code> for the remainder of the function call.
+Each non-default parameter must be specified exactly once in the function call.</p>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

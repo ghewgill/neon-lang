@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Types :: Neon Language</title>
+    <meta name="generator" content="Antora 3.1.4">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="../../..">Neon Language</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="neon-lang" data-version="0.1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../intro.html">Neon</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../intro.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../manifesto.html">Manifesto</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../tutorial.html">Tutorial</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../overview.html">Overview</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="reference.html">Language Reference</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="lexical.html">Lexical Structure</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="types.html">Types</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="declarations.html">Declarations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="expressions.html">Expressions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="statements.html">Statements</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="functions.html">Functions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="classes.html">Classes</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="grammar.html">Grammar</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../library.html">Standard Library</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extensions.html">Extensions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../samples.html">Samples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Neon</span>
+    <span class="version">0.1-alpha</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../intro.html">Neon</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../intro.html">0.1-alpha</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../intro.html">Neon</a></li>
+    <li><a href="reference.html">Language Reference</a></li>
+    <li><a href="types.html">Types</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/greg/neon-lang/docs/modules/reference/pages/types.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Types</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Neon is statically and strongly typed.
+Every value has a definite type, and there are no automatic conversions of values between types.</p>
+</div>
+<div class="paragraph">
+<p>There is a dynamic <code>Object</code> type which can hold values of any of the concrete types.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_boolean"><a class="anchor" href="#_boolean"></a>Boolean</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Boolean values can take on two values, <code>FALSE</code> or <code>TRUE</code>.</p>
+</div>
+<div class="paragraph">
+<p>Example</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">LET b: Boolean := TRUE</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_number"><a class="anchor" href="#_number"></a>Number</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Number values are 128-bit decimal floating point (specifically, <a href="https://en.wikipedia.org/wiki/Decimal128_floating-point_format">decimal128</a>).
+The valid magnitude range of numbers are (in addition to zero):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Minimum: 1.000000000000000000000000000000000e-6143</p>
+</li>
+<li>
+<p>Maximum: 9.999999999999999999999999999999999e6144</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">LET n: Number := 2.997924580e+8</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_string"><a class="anchor" href="#_string"></a>String</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>String values are sequences of Unicode code points.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bytes"><a class="anchor" href="#_bytes"></a>Bytes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Bytes values are sequences of 8-bit bytes.
+Values of this type are used for buffers when doing file and network I/O, for example.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enumeration"><a class="anchor" href="#_enumeration"></a>Enumeration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Enumeration values are one of a set of valid values defined in the <code>ENUM</code> definition.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Colour IS ENUM
+    red
+    green
+    blue
+END ENUM
+
+LET e: Colour := Colour.green</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_record"><a class="anchor" href="#_record"></a>Record</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Records are aggregate types that contain named elements with independent types.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Item IS RECORD
+    name: String
+    size: Number
+END RECORD
+
+VAR r: Item := Item()
+
+r.name := "Widget"
+r.size := 5</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Records may have associated functions called methods, which can be called using a typical method call syntax.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Cart IS RECORD
+    apples: Number
+    oranges: Number
+END RECORD
+
+FUNCTION Cart.totalFruit(self: Cart): Number
+    RETURN self.apples + self.oranges
+END FUNCTION
+
+VAR c: Cart := Cart()
+c.apples := 5
+c.oranges := 6
+print(str(c.totalFruit()))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Record fields may be marked <code>PRIVATE</code>, which means that only code within associated methods may access that field.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Cart IS RECORD
+    apples: Number
+    oranges: Number
+    PRIVATE nuts: Number
+END RECORD</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_class"><a class="anchor" href="#_class"></a>Class</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Classes are aggregate types similar to records, but have different semantics and are always allocated dynamically.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Item IS CLASS
+    name: String
+    size: Number
+END CLASS
+
+LET p: POINTER TO Item := NEW Item()
+
+p-&gt;name := "Widget"
+p-&gt;size := 5</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Classes may also have methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Cart IS CLASS
+    apples: Number
+    oranges: Number
+END CLASS
+
+FUNCTION Cart.totalFruit(self: VALID POINTER TO Cart): Number
+    RETURN self-&gt;apples + self-&gt;oranges
+END FUNCTION
+
+LET c: POINTER TO Cart := NEW Cart()
+c-&gt;apples := 5
+c-&gt;oranges := 6
+print(str(c-&gt;totalFruit()))</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_array"><a class="anchor" href="#_array"></a>Array</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Arrays are variable size sequences of values indexed by nonnegative integers.
+Arrays are dynamically sized as needed.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR a: Array&lt;String&gt; := []
+
+a[0] := "Hello"
+a[1] := "World"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dictionary"><a class="anchor" href="#_dictionary"></a>Dictionary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dictionaries are an associative map which pairs a unique <code>String</code> with a value of some type.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR d: Dictionary&lt;Number&gt; := {}
+
+d["gold"] := 1
+d["silver"] := 2
+d["bronze"] := 3</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pointers"><a class="anchor" href="#_pointers"></a>Pointers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Pointers are addresses of dynamically allocated class objects.
+The <code>NEW</code> keyword allocates a new object of a given type and returns a pointer to it.
+Pointers may have the value <code>NIL</code> that does not point to any object.
+To use (dereference) a pointer, it must first be checked for validity (not <code>NIL</code>) using the <code>IF VALID</code> construct.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Item IS CLASS
+    name: String
+    size: Number
+END CLASS
+
+VAR item: POINTER TO Item
+
+item := NEW Item
+IF VALID item AS p THEN
+    p-&gt;name := "Widget"
+    p-&gt;size := 5
+END IF</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_object"><a class="anchor" href="#_object"></a>Object</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>Object</code> type can hold values of any of the concrete types.
+When used, <code>Object</code> values are converted back to the required concrete type when used.
+If the value is of the wrong type (eg. a <code>Number</code> where a <code>String</code> is required), then a <code>DynamicConversionException</code> is raised.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR x: Object
+
+x := "hello"
+print(x)
+
+x := 5
+TRY
+    print(x)
+TRAP DynamicConversionException DO
+    print("Exception raised")
+END TRY</code></pre>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

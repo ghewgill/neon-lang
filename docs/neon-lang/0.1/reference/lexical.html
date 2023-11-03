@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Lexical Structure :: Neon Language</title>
+    <meta name="generator" content="Antora 3.1.4">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="../../..">Neon Language</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="neon-lang" data-version="0.1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../intro.html">Neon</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../intro.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../manifesto.html">Manifesto</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../tutorial.html">Tutorial</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../overview.html">Overview</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="reference.html">Language Reference</a>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="lexical.html">Lexical Structure</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="types.html">Types</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="declarations.html">Declarations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="expressions.html">Expressions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="statements.html">Statements</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="functions.html">Functions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="classes.html">Classes</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="grammar.html">Grammar</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../library.html">Standard Library</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extensions.html">Extensions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../samples.html">Samples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Neon</span>
+    <span class="version">0.1-alpha</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../intro.html">Neon</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../intro.html">0.1-alpha</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../intro.html">Neon</a></li>
+    <li><a href="reference.html">Language Reference</a></li>
+    <li><a href="lexical.html">Lexical Structure</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/greg/neon-lang/docs/modules/reference/pages/lexical.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Lexical Structure</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Neon source code is encoded in UTF-8.
+All keywords and identifiers are case sensitive.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_comments"><a class="anchor" href="#_comments"></a>Comments</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The comment lead-in character sequence is <code>--</code>.
+A single line comment is a <code>--</code> followed by arbitrary text to the end of the line.
+A block comment is introduced with <code>/<strong></code> and ends with <code></strong>/</code>.
+Block comments may span multiple lines.
+Block comments may not nest.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">-- The following line prints some text.
+print("Hello, World.")
+
+/* This comment spans multiple
+   lines of text until the comment
+   closing characters. */</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_keywords"><a class="anchor" href="#_keywords"></a>Keywords</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All words that consist of only uppercase letters are reserved for keywords.
+The following keywords are defined by the language.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Keyword</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ALIAS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>IMPORT</code> to optionally rename a module</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AND</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">logical conjunction</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">names a tested expression in <code>IF VALID</code> statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ASSERT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">assert that an expression is true, used for diagnostics</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">generic array type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BEGIN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>BEGIN MAIN</code> to indicate a program entry point</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CASE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">multiple value matching from a range</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CONSTANT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">constant declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DECLARE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exception and forward function declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DEFAULT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">default value for function parameter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DEC</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">decrement a <code>Number</code> variable</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Dictionary</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">generic dictionary type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DO</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>CASE</code>, <code>FOR</code>, and <code>WHILE</code> statements</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ELSE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">alternative condition in <code>IF</code> statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ELSIF</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">alternative and test in <code>IF</code> statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EMBED</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">include an external file directly into the compiled code</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ENUM</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">enumeration type declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>END</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">end of most kinds of blocks of code</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXCEPTION</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exception declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXIT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">early exit from loops</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EXPORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">export identifier from module</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FALSE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean constant</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FIRST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">indicates first value in array subscript</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FOR</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">loop with a sequential control variable</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FOREACH</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">loop over an array of values</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FUNCTION</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">definition of subprogram</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>HEXBYTES</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">literal <code>Bytes</code> value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IF</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">conditional test and branch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function parameter passing mode; aggregate membership test</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>INC</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">increment a <code>Number</code> variable</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>INDEX</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>FOREACH</code> statement for counting values</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>INOUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function parameter passing mode</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IMPORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">access code in another module</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in a <code>TYPE</code> declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LAST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">indicates last value in array subscript</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">assignment to read-only value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LOOP</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">generic loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MAIN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>BEGIN MAIN</code> to indicate a program entry point</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MOD</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">arithmetic modulus</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NATIVE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">declares a predefined function in the standard library</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEXT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">early skip to next loop iteration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEW</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">dynamic memory allocation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NIL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pointer value constant</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NOT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">logical negation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OF</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>FOREACH</code> statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OR</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">logical disjunction</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function parameter passing mode</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OTHERS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">alternative condition in a <code>CASE</code> statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POINTER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pointer type declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PRIVATE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">private record field</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RAISE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">initiate exception search</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RECORD</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">named aggregate type declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>REPEAT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bottom-tested loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RETURN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">early exit and value return from function</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>STEP</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>FOR</code> loop for increment value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>THEN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>IF</code> statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TO</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>FOR</code> loop; part of pointer declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TRUE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean constant</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TRY</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">start of exception-checked block</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TYPE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">define named type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>UNTIL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used at end of <code>REPEAT</code> loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VAR</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">variable declaration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VALID</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>IF VALID</code> pointer test statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WHEN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">used in <code>CASE</code> statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WHILE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">top-tested loop</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WITH</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">parameter specification for named parameters</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_identifiers"><a class="anchor" href="#_identifiers"></a>Identifiers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An identifier is a letter followed by any number of letters, digits, or underscore.
+Identifiers which consist of all uppercase letters are reserved for <a href="#_keywords">Keywords</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_numbers"><a class="anchor" href="#_numbers"></a>Numbers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Literal numbers are in base 10 by default.</p>
+</div>
+<div class="paragraph">
+<p>Numbers may be specified in a variety of bases (these support integers only):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Binary preceded by <code>0b</code></p>
+</li>
+<li>
+<p>Octal preceded by <code>0o</code></p>
+</li>
+<li>
+<p>Hexadecimal preceded by <code>0x</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For base 10 numbers, they may contain a fractional portion following a decimal point <code>.</code>.
+Additionally, they may have an exponent following <code>e</code> or <code>E</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_strings"><a class="anchor" href="#_strings"></a>Strings</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Strings are sequences of Unicode characters surrounded by double quotes.
+The only special character within a string is the backslash, used for character escapes.
+The allowed character escapes are:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Escape</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Replacement</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">double quote</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\\</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\\</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">backslash</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\b</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chr(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">backspace</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\f</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chr(11)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">form feed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\n</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chr(10)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">newline</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\r</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chr(13)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">carriage return</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\t</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chr(9)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tab</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\uXXXX</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chr(XXXX)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unicode character XXXX (where XXXX is a 4-digit hex number)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\UXXXXXXXX</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chr(XXXXXXXX)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unicode character XXXXXXXX (where XXXXXXXX is a 8-digit hex number)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\u{NAME}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">character</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unicode character named NAME from the <a href="https://unicode.org/versions/latest/">Unicode standard</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>\()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expression</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">see <a href="expressions.html#_expression_substitution" class="xref page">Expression Substitution</a></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR s: String
+
+s := "Hello, World"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Literal strings may need to contain backslashes (such as when used for regular expressions).
+Instead of using normal double-quoted strings, there are two varieties of "raw strings".
+The first can contain any character except <code>"</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">CONSTANT s: String := @"This string contains backslash (\) characters"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The second type of string uses arbitrary delimiters so that any literal string can be included in source.
+The simplest form is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">CONSTANT s: String := @@"This string contains backslashes (\) and "quotes"."@@</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If there is a need to include the sequence <code>"@@</code> within the string, an arbitrary identifier may appear between the <code>@</code> at the start and end of the stiring.
+For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">CONSTANT s: String := @raw@"A raw string example is @@"like this"@@."@raw@</code></pre>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

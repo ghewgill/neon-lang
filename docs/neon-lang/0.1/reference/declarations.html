@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Declarations :: Neon Language</title>
+    <meta name="generator" content="Antora 3.1.4">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="../../..">Neon Language</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="neon-lang" data-version="0.1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../intro.html">Neon</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../intro.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../manifesto.html">Manifesto</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../tutorial.html">Tutorial</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../overview.html">Overview</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="reference.html">Language Reference</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="lexical.html">Lexical Structure</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="types.html">Types</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="declarations.html">Declarations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="expressions.html">Expressions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="statements.html">Statements</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="functions.html">Functions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="classes.html">Classes</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="grammar.html">Grammar</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../library.html">Standard Library</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extensions.html">Extensions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../samples.html">Samples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Neon</span>
+    <span class="version">0.1-alpha</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../intro.html">Neon</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../intro.html">0.1-alpha</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../intro.html">Neon</a></li>
+    <li><a href="reference.html">Language Reference</a></li>
+    <li><a href="declarations.html">Declarations</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/greg/neon-lang/docs/modules/reference/pages/declarations.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Declarations</h1>
+<div class="sect1">
+<h2 id="_types"><a class="anchor" href="#_types"></a>Types</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>New type names are introduced using the <code>TYPE</code> keyword:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Length IS Number
+
+VAR len: Length</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the above case, <code>Length</code> is an alias for <code>Number</code> and the two can be used interchangeably.</p>
+</div>
+<div class="paragraph">
+<p>More often the <code>TYPE</code> keyword is used for introducing aggregate types:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Widget IS RECORD
+    size: Number
+    colour: String
+END RECORD
+
+VAR r: Widget</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_constants"><a class="anchor" href="#_constants"></a>Constants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Constants are defined using the <code>CONSTANT</code> keyword:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">CONSTANT Pi: Number := 3.141592653589793
+CONSTANT Sky: String := "blue"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The value assigned to a constant must be able to be evaluated at compile time.
+This may be an expression:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">CONSTANT Pi: Number := 3.141592653589793
+CONSTANT Pi2: Number := Pi ^ 2
+
+CONSTANT Greeting: String := "Hello " &amp; "world"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_variables"><a class="anchor" href="#_variables"></a>Variables</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Variables are declared using the <code>VAR</code> keyword:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR count: Number
+VAR colour: String</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Variables declared outside a function are <strong>global</strong> variables.
+Variables declared inside a function are visible only from within the scope where they are declared.</p>
+</div>
+<div class="paragraph">
+<p>Read-only values (therefore not actually <strong>variables</strong>) are declared with the <code>LET</code> keyword:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">IMPORT os
+
+LET path: String := os.getenv("PATH")</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The difference between <code>LET</code> and <code>CONSTANT</code> is that a <code>CONSTANT</code> value must be able to be evaluated at <strong>compile</strong> time.
+A <code>LET</code> value can be initialised from data that is known only at runtime.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you calculate a value, or save the return value from a function call, then usually <code>LET</code> is what you want to use.
+Use <code>VAR</code> only when necessary in the case where your program logic needs to modify the variable later.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exceptions"><a class="anchor" href="#_exceptions"></a>Exceptions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Exceptions are declared with the <code>EXCEPTION</code> keyword:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">EXCEPTION PrinterOutOfPaperException</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Exception names must end with the word <code>Exception</code>.</p>
+</div>
+<div class="paragraph">
+<p>Exceptions may also declare <strong>subexceptions</strong>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">EXCEPTION PrinterException
+EXCEPTION PrinterException.OutOfPaper</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interfaces"><a class="anchor" href="#_interfaces"></a>Interfaces</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Interfaces are declared with the <code>INTERFACE</code> keyword:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">INTERFACE Shape
+    FUNCTION perimeter(self: Shape): Number
+    FUNCTION area(self: Shape): Number
+END INTERFACE</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Interfaces are used with classes to declare that a class must implement a specific set of functions.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exports"><a class="anchor" href="#_exports"></a>Exports</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Identifiers can be exported using the <code>EXPORT</code> keyword:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">EXPORT name
+
+VAR name: String</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>EXPORT</code> keyword may be combined with the declaration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">EXPORT VAR name: String</code></pre>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

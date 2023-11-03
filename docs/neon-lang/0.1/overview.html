@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Neon Overview :: Neon Language</title>
+    <meta name="generator" content="Antora 3.1.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="../..">Neon Language</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="neon-lang" data-version="0.1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="intro.html">Neon</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="intro.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="manifesto.html">Manifesto</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="tutorial.html">Tutorial</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="overview.html">Overview</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="reference/reference.html">Language Reference</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/lexical.html">Lexical Structure</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/types.html">Types</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/declarations.html">Declarations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/expressions.html">Expressions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/statements.html">Statements</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/functions.html">Functions</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/classes.html">Classes</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/modules.html">Modules</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/grammar.html">Grammar</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="library.html">Standard Library</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="extensions.html">Extensions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="samples.html">Samples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Neon</span>
+    <span class="version">0.1-alpha</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="intro.html">Neon</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="intro.html">0.1-alpha</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="intro.html">Neon</a></li>
+    <li><a href="overview.html">Overview</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/greg/neon-lang/docs/modules/ROOT/pages/overview.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Neon Overview</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following is a brief description of Neon for experienced programmers.
+There are plenty of examples, because experienced programmers know how to read code, and can pick up concepts more quickly by reading code than by reading a description of code.</p>
+</div>
+<div class="paragraph">
+<p>Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and <a href="motivation.html">others</a>.
+Program structure and modules are influenced by Python.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">-- This sample program greets the user
+-- until an empty line is entered.
+
+IMPORT console
+
+LOOP
+    LET ir: console.InputResult := console.input("What is your name? ")
+    CHECK ir ISA console.InputResult.line ELSE
+        EXIT LOOP
+    END CHECK
+    LET name: String := ir.line
+    IF name = "" THEN
+        EXIT LOOP
+    END IF
+    print("Hello, \(name).")
+END LOOP</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_general"><a class="anchor" href="#_general"></a>General</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All identifiers are case sensitive.
+Language defined keywords are all upper case.
+Semicolons are not used.
+Identifier scope is defined by program block structure.
+Assignments have value semantics (deep copy).
+Forward declarations are not required.
+All variables must be explicitly initialised before use.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_types"><a class="anchor" href="#_types"></a>Types</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The scalar types are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Boolean</code> (<code>TRUE</code> or <code>FALSE</code>)</p>
+</li>
+<li>
+<p><code>Number</code> (decimal floating point)</p>
+</li>
+<li>
+<p><code>String</code> (Unicode text)</p>
+</li>
+<li>
+<p><code>Bytes</code> (arbitrary blocks of bytes)</p>
+</li>
+<li>
+<p>enumerations (named values)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Aggregate types are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>RECORD</code> (named fields)</p>
+</li>
+<li>
+<p><code>CLASS</code> (dynamically allocated objects)</p>
+</li>
+<li>
+<p><code>Array</code> (arbitrary size vector)</p>
+</li>
+<li>
+<p><code>Dictionary</code> (map indexed by a <code>String</code> key)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>There is a dynamic <code>Object</code> type which can hold values of any of the concrete types.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">VAR x: Object
+x := 5
+print(str(x))
+x := "hello"
+print(x)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Dynamic heap allocation is supported by a <code>POINTER</code> type.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Colour IS ENUM
+    red
+    green
+    blue
+END ENUM
+
+TYPE Person IS RECORD
+    name: String
+    eyes: Colour
+END RECORD
+
+TYPE Node IS CLASS
+    value: String
+    next: POINTER TO Node
+END CLASS
+
+LET b: Boolean := TRUE
+LET n: Number := 123.456
+LET s: String := "Hello world"
+LET y: Bytes := HEXBYTES "00 01 02 03"
+LET e: Colour := Colour.green
+LET r: Person := Person(name WITH "Alice", eyes WITH Colour.green)
+LET a: Array&lt;String&gt; := ["fork", "knife", "spoon"]
+LET d: Dictionary&lt;Number&gt; := {"fork": 5, "knife": 6, "spoon": 1}
+LET p: POINTER TO Node := NEW Node(value WITH "green")</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_expressions"><a class="anchor" href="#_expressions"></a>Expressions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There is a rich expression syntax including arithmetic, array slicing, conditionals, and string interpolation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">LET x: Number := 5
+LET y: Number := (6 + x) / 2
+ASSERT y = 5.5
+
+LET a: Array&lt;String&gt; := ["fork", "knife", "spoon"]
+ASSERT a[1 TO LAST] = ["knife", "spoon"]
+
+LET r: String := (IF y &lt; 5 THEN "small" ELSE "big")
+ASSERT r = "big"
+
+LET t: String := "y is a \(r) value"
+ASSERT t = "y is a big value"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_statements"><a class="anchor" href="#_statements"></a>Statements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are two variable declarations: <code>LET</code> (read-only value), and <code>VAR</code> (modifiable value).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">LET a: Number := 5
+
+VAR b: Number
+b := a
+b := 6
+
+print("\(a), \(b)")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are two conditional blocks: <code>CASE</code> (multiple branches), and <code>IF</code> (single test).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FOR a := 0 TO 9 DO
+    VAR s: String
+    CASE a
+        WHEN &lt; 2 DO
+            s := "less than two"
+        WHEN 2 DO
+            s := "two"
+        WHEN 3 TO 5 DO
+            s := "three to five"
+        WHEN 7, 9 DO
+            s := "seven or nine"
+        WHEN OTHERS DO
+            s := "something else"
+    END CASE
+    print("\(a) is \(s)")
+END FOR
+
+IMPORT random
+IF random.uint32() &lt; 10 THEN
+    print("small")
+END IF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are four kinds of loops: <code>FOR</code> (bounded iteration), <code>LOOP</code> (infinite loop), <code>REPEAT</code> (bottom-tested condition), and <code>WHILE</code> (top-tested condition).
+The <code>EXIT</code> and <code>NEXT</code> statements branch out of the loop or to the next iteration, respectively.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FOR i := 1 TO 10 DO
+    print("\(i)")
+END FOR
+
+VAR a: Number := 1
+LOOP
+    print("\(a)")
+    IF a = 10 THEN
+        EXIT LOOP
+    END IF
+    INC a
+END LOOP
+
+a := 1
+REPEAT
+    print("\(a)")
+    INC a
+UNTIL a = 10
+
+a := 1
+WHILE a &lt;= 10 DO
+    print("\(a)")
+    INC a
+END WHILE</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The exception handling statements are <code>TRY</code> (introduces a new handling scope), and <code>RAISE</code> to raise an exception.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">EXCEPTION PrinterOutOfPaperException
+
+FUNCTION printFile(name: String)
+    -- Save the trees, don't print anything.
+    RAISE PrinterOutOfPaperException
+END FUNCTION
+
+TRY
+    printFile("hello.txt")
+TRAP PrinterOutOfPaperException DO
+    print("Sorry, out of paper.")
+END TRY</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>ASSERT</code> statement is used to check program invariants.
+Execution stops with a diagnostic dump if the condition is not satisfied.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">FUNCTION setRatio(percent: Number)
+    ASSERT 0 &lt;= percent &lt;= 100
+    -- ... use percent value
+END FUNCTION</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functions"><a class="anchor" href="#_functions"></a>Functions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Functions may or may not return a value.
+If a function returns a value, then the return value cannot be silently ignored by the caller.
+Function parameters can be <code>IN</code> (default), <code>OUT</code> (passed back to caller), or <code>INOUT</code> (references caller value).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">IMPORT string
+
+FUNCTION func(name: String, OUT result: String, INOUT count: Number)
+    result := string.upper(name)
+    INC count
+END FUNCTION
+
+VAR uname: String
+VAR n: Number := 0
+
+-- The parameter mode (if not IN) must be explicitly indicated
+-- on the function call.
+func("charlie", OUT uname, INOUT n)
+
+-- The caller may choose to pass parameters in a different
+-- order using the WITH keyword.
+func("charlie", INOUT count WITH n, OUT result WITH uname)
+
+ASSERT uname = "CHARLIE"
+ASSERT n = 2</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_methods"><a class="anchor" href="#_methods"></a>Methods</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Records and classes may have methods attached to them, to be called with the usual method syntax.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Rectangle IS RECORD
+    width: Number
+    height: Number
+END RECORD
+
+FUNCTION Rectangle.area(self: Rectangle): Number
+    RETURN self.width * self.height
+END FUNCTION
+
+FUNCTION Rectangle.expand(INOUT self: Rectangle, edge: Number)
+    self.width := self.width + 2 * edge
+    self.height := self.height + 2 * edge
+END FUNCTION
+
+LET r: Rectangle := Rectangle(width WITH 4, height WITH 5)
+ASSERT r.area() = 20
+r.expand(1)
+ASSERT r.area() = 42</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pointers"><a class="anchor" href="#_pointers"></a>Pointers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Pointers can only point to classes.
+Pointers are declared with <code>POINTER TO</code> and allocated with <code>NEW</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Person IS CLASS
+    name: String
+    age: Number
+END CLASS
+
+LET p: POINTER TO Person := NEW Person
+p-&gt;name := "Alice"
+p-&gt;age := 23</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Pointers must be checked for validity (non-NIL) before they can be used using the <code>IF VALID</code> block.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-neon hljs" data-lang="neon">TYPE Person IS CLASS
+    name: String
+    age: Number
+END CLASS
+
+FUNCTION incrementAge(p: POINTER TO Person)
+    IF VALID p THEN
+        INC p-&gt;age
+    END IF
+END FUNCTION</code></pre>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
