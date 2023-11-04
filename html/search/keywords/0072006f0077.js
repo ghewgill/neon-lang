@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("row",["Type"],[["Row",,[[,,,,0,"File:sqlite.neon:Row"]]],["Rows",,[[,,,,0,"File:sqlite.neon:Rows"]]]]);

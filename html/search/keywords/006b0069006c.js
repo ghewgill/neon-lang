@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("kil",["Function"],[["kill",,[[,,,,0,"File:os.neon:kill"]]]]);

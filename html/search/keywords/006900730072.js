@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("isr",["Function"],[["isRunning",,[["Stopwatch",,,,0,"File:time.neon:Stopwatch.isRunning"]]]]);

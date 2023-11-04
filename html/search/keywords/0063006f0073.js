@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("cos",["Function"],[["cos",,[[,,,,0,"File:complex.neon:cos"]]],["cosh",,[[,,,,0,"File:complex.neon:cosh"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("isd",["Function"],[["isDirectory",,[[,,,,0,"File:file.neon:isDirectory"]]]]);

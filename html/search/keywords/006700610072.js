@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("gar",["Function"],[["garbageCollect",,[[,,,,0,"File:runtime.neon:garbageCollect"]]]]);

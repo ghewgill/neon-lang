@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("spl",["Function"],[["split",,[[,,,,0,"File:string.neon:split"]]],["splitLines",,[[,,,,0,"File:string.neon:splitLines"]]]]);

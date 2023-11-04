@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("zer",["Constant"],[["Zero",,[[,,,,0,"File:bigint.neon:Zero"]]]]);

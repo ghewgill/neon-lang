@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("con",["Function","File"],[["connect",,[["Socket",,,,0,"File:net.neon:Socket.connect"]]],["console",,[[,,,,1,"File:console.neon:console"]]]]);

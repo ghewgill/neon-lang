@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("min",["Function"],[["min",,[[,,,,0,"File:math.neon:min"]]],["minusDuration",,[["DateTime",,,,0,"File:datetime.neon:DateTime.minusDuration"]]],["minusPeriod",,[["DateTime",,,,0,"File:datetime.neon:DateTime.minusPeriod"]]]]);

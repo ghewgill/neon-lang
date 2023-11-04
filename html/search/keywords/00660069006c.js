@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("fil",["File","Type","Function"],[["File",,[[,"file",,,0,"File:file.neon:file"],[,,,,1,"File:io.neon:File"]]],["FileInfo",,[[,,,,1,"File:file.neon:FileInfo"]]],["files",,[[,,,,2,"File:file.neon:files"]]],["filesByWildcard",,[[,,,,2,"File:file.neon:filesByWildcard"]]],["FileType",,[[,,,,1,"File:file.neon:FileType"]]]]);

@@ -1,1 +1,0 @@
-﻿NDContentPage.OnToolTipsLoaded({11:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">Unicode string.</div></div>"});

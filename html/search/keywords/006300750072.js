@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("cur",["File"],[["curses",,[[,,,,0,"File:curses/curses.neon:curses"]]]]);

@@ -1,1 +1,0 @@
-﻿NDContentPage.OnToolTipsLoaded({9:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">TRUE or FALSE.</div></div>",10:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">Floating point number with 34 decimal digits of precision.</div></div>"});

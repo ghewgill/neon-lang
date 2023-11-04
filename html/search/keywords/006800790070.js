@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("hyp",["Function"],[["hypot",,[[,,,,0,"File:math.neon:hypot"]]]]);

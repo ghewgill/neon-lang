@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("abs",["Function","Constant"],[["abs",,[[,,,,0,"File:bigint.neon:abs"]]],["absolute",,[["SeekBase",,,,1,"File:io.neon:SeekBase.absolute"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSummary.OnToolTipsLoaded("File:regex.neon",{6:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Functions for searching text using regular expressions.</div></div>"});

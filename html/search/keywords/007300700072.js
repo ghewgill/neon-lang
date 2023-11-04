@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("spr",["Function"],[["sprintf",,[[,,,,0,"File:cformat.neon:sprintf"]]]]);

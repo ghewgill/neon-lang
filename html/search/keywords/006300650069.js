@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("cei",["Function"],[["ceil",,[[,,,,0,"File:math.neon:ceil"]]]]);

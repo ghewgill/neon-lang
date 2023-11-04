@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("bit",["Function"],[["bitCount32",,[[,,,,0,"File:binary.neon:bitCount32"]]],["bitCount64",,[[,,,,0,"File:binary.neon:bitCount64"]]]]);

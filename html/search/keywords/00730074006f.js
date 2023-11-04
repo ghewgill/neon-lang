@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("sto",["Function","Type"],[["stop",,[["Stopwatch",,,,0,"File:time.neon:Stopwatch.stop"]]],["Stopwatch",,[[,,,,1,"File:time.neon:Stopwatch"]]]]);

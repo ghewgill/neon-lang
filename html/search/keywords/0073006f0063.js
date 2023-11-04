@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("soc",["Type","Exception"],[["Socket",,[[,,,,0,"File:net.neon:Socket"]]],["SocketException",,[[,,,,1,"File:net.neon:SocketException"]]]]);

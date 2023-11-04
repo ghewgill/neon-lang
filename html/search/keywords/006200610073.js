@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("bas",["Function"],[["base64Decode",,[[,,,,0,"File:encoding.neon:base64Decode"]]],["base64Encode",,[[,,,,0,"File:encoding.neon:base64Encode"]]]]);

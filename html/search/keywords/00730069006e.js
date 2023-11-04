@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("sin",["Function"],[["sin",,[[,,,,0,"File:complex.neon:sin"]]],["sinh",,[[,,,,0,"File:complex.neon:sinh"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("inp",["Function"],[["input",,[[,,,,0,"File:console.neon:input"]]]]);

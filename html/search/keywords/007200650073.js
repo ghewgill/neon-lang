@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("res",["Function"],[["reset",,[["Stopwatch",,,,0,"File:time.neon:Stopwatch.reset"]]]]);

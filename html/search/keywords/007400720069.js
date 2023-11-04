@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("tri",["Function"],[["trim",,[[,,,,0,"File:string.neon:trim"]]],["trimCharacters",,[[,,,,0,"File:string.neon:trimCharacters"]]]]);

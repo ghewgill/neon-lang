@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("tga",["Function"],[["tgamma",,[[,,,,0,"File:math.neon:tgamma"]]]]);

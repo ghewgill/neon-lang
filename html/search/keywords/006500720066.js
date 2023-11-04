@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("erf",["Function"],[["erf",,[[,,,,0,"File:math.neon:erf"]]],["erfc",,[[,,,,0,"File:math.neon:erfc"]]]]);

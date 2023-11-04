@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("sql",["Exception","File"],[["SqlException",,[[,,,,0,"File:global.neon:SqlException"]]],["sqlite",,[[,,,,1,"File:sqlite.neon:sqlite"]]]]);

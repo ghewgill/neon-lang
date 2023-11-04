@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("exe",["Function"],[["exec",,[[,,,,0,"File:sqlite.neon:exec"]]],["execRaw",,[[,,,,0,"File:sqlite.neon:execRaw"]]],["executorName",,[[,,,,0,"File:runtime.neon:executorName"]]]]);

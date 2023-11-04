@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("lde",["Function"],[["ldexp",,[[,,,,0,"File:math.neon:ldexp"]]]]);

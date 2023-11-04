@@ -1,1 +1,0 @@
-﻿NDContentPage.OnToolTipsLoaded({11:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">Unicode string.</div></div>",68:"<div class=\"NDToolTip TEnumeration LNeon\"><div class=\"TTSummary\">Mode to use when opening a file.</div></div>",312:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">Opaque type representing a text file on disk.</div></div>"});

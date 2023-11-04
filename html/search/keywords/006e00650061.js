@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("nea",["Function"],[["nearbyint",,[[,,,,0,"File:math.neon:nearbyint"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("cbr",["Function"],[["cbrt",,[[,,,,0,"File:math.neon:cbrt"]]]]);

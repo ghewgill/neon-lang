@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("upp",["Function"],[["upper",,[[,,,,0,"File:string.neon:upper"]]]]);

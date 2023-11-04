@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("par",["Function"],[["parse",,[[,,,,0,"File:xml.neon:parse"]]],["parseNumber",,[[,,,,0,"File:global.neon:parseNumber"]]]]);

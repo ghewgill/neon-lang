@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("dic",["Type"],[["Dictionary",,[[,,,,0,"File:global.neon:Dictionary"]]]]);

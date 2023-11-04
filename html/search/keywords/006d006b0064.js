@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("mkd",["Function"],[["mkdir",,[[,,,,0,"File:file.neon:mkdir"]]]]);

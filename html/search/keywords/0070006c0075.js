@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("plu",["Function"],[["plusDuration",,[["DateTime",,,,0,"File:datetime.neon:DateTime.plusDuration"]]],["plusPeriod",,[["DateTime",,,,0,"File:datetime.neon:DateTime.plusPeriod"]]]]);

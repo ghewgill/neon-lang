@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("asi",["Function"],[["asin",,[[,,,,0,"File:complex.neon:asin"]]],["asinh",,[[,,,,0,"File:complex.neon:asinh"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("obj",["Exception"],[["ObjectSubscriptException",,[[,,,,0,"File:global.neon:ObjectSubscriptException"]]]]);

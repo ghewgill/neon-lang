@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("glo",["File"],[["global",,[[,,,,0,"File:global.neon:global"]]]]);

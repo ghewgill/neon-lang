@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("now",["Function"],[["now",,[[,,,,0,"File:datetime.neon:now"]]]]);

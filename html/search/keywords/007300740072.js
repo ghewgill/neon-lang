@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("str",["Function","File","Constant","Type"],[["str",,[[,,,,0,"File:global.neon:str"]]],["String",,[[,"string",,,1,"File:string.neon:string"],["Type","string",,,2,"File:struct.neon:Type.string"],[,,,,3,"File:global.neon:String"]]],["Struct",,[[,"struct",,,1,"File:struct.neon:struct"],[,,,,3,"File:struct.neon:Struct"]]]]);

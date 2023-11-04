@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("and",["Function"],[["and32",,[[,,,,0,"File:binary.neon:and32"]]],["and64",,[[,,,,0,"File:binary.neon:and64"]]],["andBytes",,[[,,,,0,"File:binary.neon:andBytes"]]]]);

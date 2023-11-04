@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("big",["File","Type"],[["BigInt",,[[,"bigint",,,0,"File:bigint.neon:bigint"],[,,,,1,"File:bigint.neon:BigInt"]]]]);

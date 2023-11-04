@@ -1,1 +1,0 @@
-﻿NDFramePage.OnPageTitleLoaded("File:debugger.neon","debugger.neon");NDSummary.OnSummaryLoaded("File:debugger.neon",[["Neon","Neon"]],[["Files","File"],["Functions","Function"],["Groups","Group"]],[[122,0,0,"debugger","debugger"],[123,0,2,"Functions","Functions"],[124,0,1,"breakpoint","breakpoint"],[125,0,1,"log","log"]]);

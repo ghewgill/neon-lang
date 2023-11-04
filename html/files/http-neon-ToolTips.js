@@ -1,1 +1,0 @@
-﻿NDContentPage.OnToolTipsLoaded({9:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">TRUE or FALSE.</div></div>",11:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">Unicode string.</div></div>",13:"<div class=\"NDToolTip TType LNeon\"><div class=\"TTSummary\">Parameterised map type from String to the given type. Example</div></div>"});

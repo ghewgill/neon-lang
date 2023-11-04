@@ -1,1 +1,0 @@
-﻿NDFramePage.OnPageTitleLoaded("File:curses/curses.neon","curses.neon");NDSummary.OnSummaryLoaded("File:curses/curses.neon",[["Neon","Neon"]],[["Files","File"]],[[1,0,0,"curses","curses"]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("low",["Function"],[["lower",,[[,,,,0,"File:string.neon:lower"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("boo",["Constant","Type"],[["bool",,[["Type",,,,0,"File:struct.neon:Type.bool"]]],["Boolean",,[[,,,,1,"File:global.neon:Boolean"]]]]);

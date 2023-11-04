@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("del",["Function"],[["delete",,[[,,,,0,"File:file.neon:delete"]]]]);

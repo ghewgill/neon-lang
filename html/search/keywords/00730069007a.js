@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("siz",["Function"],[["size",,[[,,,,0,"File:mmap.neon:size"]]],["sizeof",,[["Struct",,,,0,"File:struct.neon:Struct.sizeof"]]]]);

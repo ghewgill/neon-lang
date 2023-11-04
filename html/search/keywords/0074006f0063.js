@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("toc",["Function"],[["toCodePoint",,[[,,,,0,"File:string.neon:toCodePoint"]]]]);

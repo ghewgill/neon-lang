@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("mul",["Function","File"],[["mul",,[[,,,,0,"File:bigint.neon:mul"],["BigInt",,,,0,"File:bigint.neon:BigInt.mul"]]],["multiarray",,[[,,,,1,"File:multiarray.neon:multiarray"]]]]);

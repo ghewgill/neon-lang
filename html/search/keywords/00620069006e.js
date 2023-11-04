@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("bin",["File","Function"],[["binary",,[[,,,,0,"File:binary.neon:binary"]]],["bind",,[["Socket",,,,1,"File:net.neon:Socket.bind"]]]]);

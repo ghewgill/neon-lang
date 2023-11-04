@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("tru",["Function"],[["trunc",,[[,,,,0,"File:math.neon:trunc"]]],["truncate",,[[,,,,0,"File:io.neon:truncate"]]]]);

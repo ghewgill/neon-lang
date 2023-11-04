@@ -1,1 +1,0 @@
-﻿NDFramePage.OnPageTitleLoaded("File:console.neon","console.neon");NDSummary.OnSummaryLoaded("File:console.neon",[["Neon","Neon"]],[["Files","File"],["Functions","Function"],["Groups","Group"]],[[104,0,0,"console","console"],[105,0,2,"Functions","Functions"],[106,0,1,"input","input"],[107,0,1,"output","output"]]);

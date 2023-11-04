@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("has",["Function"],[["hasPrefix",,[[,,,,0,"File:string.neon:hasPrefix"]]],["hasSuffix",,[[,,,,0,"File:string.neon:hasSuffix"]]]]);

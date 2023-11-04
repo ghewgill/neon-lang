@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("clo",["Function"],[["close",,[[,,,,0,"File:io.neon:close"],["Socket",,,,0,"File:net.neon:Socket.close"]]]]);

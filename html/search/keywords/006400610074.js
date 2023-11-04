@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("dat",["Type","File"],[["Database",,[[,,,,0,"File:sqlite.neon:Database"]]],["DateTime",,[[,"datetime",,,1,"File:datetime.neon:datetime"],[,,,,0,"File:datetime.neon:DateTime"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("rep",["Function"],[["repeat",,[[,,,,0,"File:string.neon:repeat"]]],["replace32",,[[,,,,0,"File:binary.neon:replace32"]]],["replace64",,[[,,,,0,"File:binary.neon:replace64"]]],["replaceAll",,[[,,,,0,"File:string.neon:replaceAll"]]],["replaceOne",,[[,,,,0,"File:string.neon:replaceOne"]]]]);

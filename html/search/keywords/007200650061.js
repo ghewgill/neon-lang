@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("rea",["Function","Constant"],[["read",,[[,,,,0,"File:mmap.neon:read"],["Mode",,,,1,"File:io.neon:Mode.read"]]],["readBytes",,[[,,,,0,"File:file.neon:readBytes"]]],["readLine",,[[,,,,0,"File:textio.neon:readLine"]]],["readLines",,[[,,,,0,"File:file.neon:readLines"]]]]);

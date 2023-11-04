@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("ata",["Function"],[["atan",,[[,,,,0,"File:complex.neon:atan"]]],["atan2",,[[,,,,0,"File:math.neon:atan2"]]],["atanh",,[[,,,,0,"File:complex.neon:atanh"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("rem",["Function"],[["removeDirectoryTree",,[[,,,,0,"File:file.neon:removeDirectoryTree"]]],["removeEmptyDirectory",,[[,,,,0,"File:file.neon:removeEmptyDirectory"]]]]);

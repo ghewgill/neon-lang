@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("squ",["Function"],[["square",,[[,,,,0,"File:complex.neon:square"]]]]);

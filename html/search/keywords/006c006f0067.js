@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("log",["Function"],[["log",,[[,,,,0,"File:complex.neon:log"]]],["log10",,[[,,,,0,"File:complex.neon:log10"]]],["log1p",,[[,,,,0,"File:math.neon:log1p"]]],["log2",,[[,,,,0,"File:math.neon:log2"]]]]);

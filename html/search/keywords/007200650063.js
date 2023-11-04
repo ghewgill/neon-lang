@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("rec",["Function"],[["recv",,[["Socket",,,,0,"File:net.neon:Socket.recv"]]],["recvfrom",,[["Socket",,,,0,"File:net.neon:Socket.recvfrom"]]]]);

@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("max",["Function"],[["max",,[[,,,,0,"File:math.neon:max"]]]]);

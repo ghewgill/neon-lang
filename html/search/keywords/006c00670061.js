@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("lga",["Function"],[["lgamma",,[[,,,,0,"File:math.neon:lgamma"]]]]);

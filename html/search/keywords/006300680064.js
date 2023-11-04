@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("chd",["Function"],[["chdir",,[[,,,,0,"File:os.neon:chdir"]]]]);

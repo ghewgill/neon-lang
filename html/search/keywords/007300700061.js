@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("spa",["Function","Exception"],[["Spawn",,[[,"spawn",,,0,"File:os.neon:spawn"],["OsException",,,,1,"File:os.neon:OsException.Spawn"]]]]);

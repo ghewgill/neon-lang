@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("see",["Function","Enumeration"],[["seek",,[[,,,,0,"File:io.neon:seek"]]],["SeekBase",,[[,,,,1,"File:io.neon:SeekBase"]]],["seekEnd",,[[,,,,0,"File:textio.neon:seekEnd"]]],["seekStart",,[[,,,,0,"File:textio.neon:seekStart"]]]]);

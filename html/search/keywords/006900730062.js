@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("isb",["Function"],[["isBlank",,[[,,,,0,"File:string.neon:isBlank"]]]]);

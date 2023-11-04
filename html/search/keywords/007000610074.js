@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("pat",["Function","Exception"],[["pathJoin",,[[,,,,0,"File:file.neon:pathJoin"]]],["PathNotFound",,[["OsException",,,,1,"File:os.neon:OsException.PathNotFound"]]],["pathSplit",,[[,,,,0,"File:file.neon:pathSplit"]]]]);

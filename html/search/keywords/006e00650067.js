@@ -1,1 +1,0 @@
-﻿NDSearch.OnPrefixDataLoaded("neg",["Function"],[["neg",,[[,,,,0,"File:bigint.neon:neg"]]]]);
