@@ -1,0 +1,46 @@
+= Modules
+
+Neon code can be divided into modules, which are separate source files.
+A module named `example` would be found in a file called `example.neon`.
+
+Module source code must *export* identifiers before they can be used outside the module file.
+This is done with the `EXPORT` declaration:
+
+[source,neon]
+----
+EXPORT hello
+
+FUNCTION hello()
+    print("Hello world")
+END FUNCTION
+----
+
+In order to use an identifier exported by another module, the `IMPORT` declaration must be used.
+
+Example:
+
+[source,neon]
+----
+IMPORT os
+
+print(os.getenv("PATH"))
+----
+
+Individual identifiers may also be imported:
+
+[source,neon]
+----
+IMPORT os.getenv
+
+print(getenv("PATH"))
+----
+
+== Module Path
+
+When a module is imported, the compiler must be able to locate the code for the imported module.
+The followed directories are searched in order:
+
+. Same directory as the importing source file
+. The current directory
+. The directories in the environment variable `NEONPATH`
+. The directories listed in the `.neonpath` file in the current directory

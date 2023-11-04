@@ -59,3 +59,8 @@ CTestTestfile.cmake
 
 # CMake output for Ninja
 *.ninja
+
+# Antora code
+node_modules/
+# Antora build output
+build/

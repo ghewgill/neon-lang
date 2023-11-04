@@ -1,0 +1,18 @@
+site:
+    title: Neon Language
+    start_page: neon-lang::index.adoc
+    url: https://neon-lang.dev
+content:
+    sources:
+    - url: /home/greg/neon-lang
+      start_path: docs
+ui:
+    bundle:
+        url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
+        snapshot: True
+    supplemental_files:
+    - path: partials/header-content.hbs
+      contents: ./supplemental-ui/partials/header-content.hbs
+#antora:
+#    extensions:
+#    - '@antora/lunr-extension' -- requires newer version of nodejs

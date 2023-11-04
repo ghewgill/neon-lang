@@ -1,0 +1,9 @@
+name: neon-lang
+title: Neon
+version: 0.1
+prerelease: "-alpha"
+start_page: intro.adoc
+nav:
+- modules/ROOT/nav-start.adoc
+- modules/reference/nav.adoc
+- modules/ROOT/nav-end.adoc

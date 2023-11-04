@@ -6,7 +6,7 @@ rev=$(git describe --always)
 # Build documentation
 make docs docs_samples
 (cd gh-pages && jekyll build)
-(cd docs && make html)
+env CI=true npx antora --stacktrace antora-playbook.yml
 
 # Remove temporary gh-pages branch location
 rm -rf tmp-gh-pages
@@ -20,7 +20,7 @@ rm -rf tmp-gh-pages/* $(ls -d tmp-gh-pages/.* | grep -v -E '/\.(\.|git)?$')
 
 # Copy generated documentation to temporary dir
 cp -r gh-pages/_site/. tmp-gh-pages/            # web site main pages
-cp -r docs/_build/html/. tmp-gh-pages/docs/     # sphinx language documentation
+cp -r build/site/. tmp-gh-pages/docs/           # sphinx language documentation
 cp -r gh-pages/html tmp-gh-pages/               # naturaldocs library
 cp -r gh-pages/samples tmp-gh-pages/            # naturaldocs samples
 
