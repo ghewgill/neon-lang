@@ -15,6 +15,25 @@
 
 // https://wiki.openssl.org/index.php/SSL/TLS_Client
 
+static std::string socket_error_message(int err)
+{
+#ifdef _WIN32
+    char msgbuf[256];
+    DWORD r = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                            NULL,
+                            err,
+                            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                            msgbuf,
+                            sizeof(msgbuf),
+                            NULL);
+    if (r == 0) {
+        snprintf(msgbuf, sizeof(msgbuf), "(No Error Text) - %d", err);
+    }
+    return msgbuf;
+#endif
+    return strerror(err);
+}
+
 class SocketObject: public Object {
 public:
     SocketObject() {}
@@ -133,9 +152,8 @@ public:
         std::vector<unsigned char> buffer(n);
         int r = ::recv(handle, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer.data())), n, 0);
         if (r < 0) {
-            int err = errno;
-            perror("recv");
-            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvResult_error)), Cell(utf8string(strerror(err)))});
+            int err = socket_error();
+            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvResult_error)), Cell(utf8string(socket_error_message(err)))});
         }
         if (r == 0) {
             return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvResult_eof))});
@@ -150,9 +168,8 @@ public:
         socklen_t sin_len = sizeof(sin);
         int r = ::recvfrom(handle, reinterpret_cast<char *>(const_cast<unsigned char *>(buffer.data())), n, 0, reinterpret_cast<sockaddr *>(&sin), &sin_len);
         if (r < 0) {
-            int err = errno;
-            perror("recvfrom");
-            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvFromResult_error)), Cell(utf8string(strerror(err)))});
+            int err = socket_error();
+            return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvFromResult_error)), Cell(utf8string(socket_error_message(err)))});
         }
         if (r == 0) {
             return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_RecvFromResult_eof))});
