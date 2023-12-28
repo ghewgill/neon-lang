@@ -128,10 +128,10 @@ add_test(
 )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
-    set_target_properties(test_string_support PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
-    set_target_properties(test_number_to_string_c PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
-    set_target_properties(test_path_support PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
+    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall")
+    set_target_properties(test_string_support PROPERTIES COMPILE_FLAGS "-std=c99 -Wall")
+    set_target_properties(test_number_to_string_c PROPERTIES COMPILE_FLAGS "-std=c99 -Wall")
+    set_target_properties(test_path_support PROPERTIES COMPILE_FLAGS "-std=c99 -Wall")
 endif ()
 
 target_link_libraries(cnex

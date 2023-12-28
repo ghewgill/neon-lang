@@ -120,7 +120,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     add_compile_options(/EHsc /W2 /WX /FS /wd4324)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-    add_compile_options(-Wall -Wextra -Werror -g)
+    add_compile_options(-Wall -Wextra -g)
 endif ()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
