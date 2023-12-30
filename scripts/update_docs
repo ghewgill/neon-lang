@@ -20,12 +20,12 @@ rm -rf tmp-gh-pages/* $(ls -d tmp-gh-pages/.* | grep -v -E '/\.(\.|git)?$')
 
 # Copy generated documentation to temporary dir
 cp -r gh-pages/_site/. tmp-gh-pages/            # web site main pages
-cp -r build/site/. tmp-gh-pages/docs/           # sphinx language documentation
-cp -r gh-pages/html tmp-gh-pages/               # naturaldocs library
+cp -r build/site/. tmp-gh-pages/docs/           # antora language documentation
+cp -r gh-pages/lib tmp-gh-pages/                # naturaldocs library
 cp -r gh-pages/samples tmp-gh-pages/            # naturaldocs samples
 
 # Remove .gitignore so we can sensibly commit generated files
-rm -f tmp-gh-pages/html/.gitignore tmp-gh-pages/samples/.gitignore
+rm -f tmp-gh-pages/lib/.gitignore tmp-gh-pages/samples/.gitignore
 cp .git/info/exclude tmp-gh-pages/.git/info/
 
 # Add .nojekyll file because we have already done that and don't need github to do it again

@@ -903,7 +903,7 @@ add_test(
 
 if (MONO)
     add_custom_target(docs ALL
-        COMMAND ${MONO} "${CMAKE_BINARY_DIR}/external/Natural Docs/NaturalDocs.exe" -i ${CMAKE_SOURCE_DIR}/lib -o HTML gh-pages/html -p ${CMAKE_SOURCE_DIR}/lib/nd.proj -ro
+        COMMAND ${MONO} "${CMAKE_BINARY_DIR}/external/Natural Docs/NaturalDocs.exe" -i ${CMAKE_SOURCE_DIR}/lib -o HTML gh-pages/lib -p ${CMAKE_SOURCE_DIR}/lib/nd.proj -ro
     )
     add_custom_target(docs_samples ALL
         COMMAND ${MONO} "${CMAKE_BINARY_DIR}/external/Natural Docs/NaturalDocs.exe" -i ${CMAKE_SOURCE_DIR}/samples -o HTML gh-pages/samples -p ${CMAKE_SOURCE_DIR}/samples/nd.proj -ro
