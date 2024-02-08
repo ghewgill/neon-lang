@@ -150,7 +150,7 @@ FUNCTION search(d, base, color, depth: Number, flag: Boolean, minscore, maxscore
     END IF
     BestPos := best
     IF d >= depth-1 THEN
-        RETURN bestscore + 8*n
+        RETURN bestscore + (8*n)
     ELSE
         RETURN bestscore
     END IF
@@ -176,7 +176,7 @@ FUNCTION displayLabels(x, y: Number)
         curses.attrset(curses.COLOR_PAIR((IF y = i THEN 2 ELSE 0)))
         curses.mvaddstr((i-1)*3, 0, " " & string.fromCodePoint(string.toCodePoint("A") + i - 1) & " ")
         curses.attrset(curses.COLOR_PAIR((IF x = i THEN 2 ELSE 0)))
-        curses.mvaddstr(23, (i-1)*5+5, " " & string.fromCodePoint(string.toCodePoint("1") + i - 1) & " ")
+        curses.mvaddstr(23, ((i-1)*5)+5, " " & string.fromCodePoint(string.toCodePoint("1") + i - 1) & " ")
     END FOR
 END FUNCTION
 
@@ -185,7 +185,7 @@ FUNCTION displayBoard(): Boolean
     VAR any: Boolean := FALSE
     FOR j := 0 TO 7 DO
         FOR i := 0 TO 7 DO
-            LET move: Number := 10*(j+1) + (i+1)
+            LET move: Number := (10*(j+1)) + (i+1)
             LET b: Number := Board[move]
             CASE b
                 WHEN 0 DO
@@ -199,7 +199,7 @@ FUNCTION displayBoard(): Boolean
             END CASE
             curses.attrset(curses.COLOR_PAIR(1+b))
             FOR k := 0 TO 1 DO
-                curses.mvaddstr(3*j+k, 5*i+5, "    ")
+                curses.mvaddstr((3*j)+k, (5*i)+5, "    ")
             END FOR
         END FOR
     END FOR
@@ -257,7 +257,7 @@ FUNCTION main()
                 game_over := TRUE
                 FOR j := 0 TO 7 DO
                     FOR i := 0 TO 7 DO
-                        IF validMove(0, 10*(j+1)+(i+1), 1, 100) THEN
+                        IF validMove(0, (10*(j+1))+(i+1), 1, 100) THEN
                             game_over := FALSE
                         END IF
                     END FOR
@@ -273,9 +273,9 @@ FUNCTION main()
                 IF k >= 0 THEN
                     CASE string.fromCodePoint(k)
                         WHEN "a" TO "h" DO
-                            y := k - string.toCodePoint("a") + 1
+                            y := (k - string.toCodePoint("a")) + 1
                         WHEN "1" TO "8" DO
-                            x := k - string.toCodePoint("1") + 1
+                            x := (k - string.toCodePoint("1")) + 1
                         WHEN "k" DO
                             makeMove(kibitz())
                             EXIT WHILE
@@ -295,7 +295,7 @@ FUNCTION main()
                     END CASE
                 END IF
                 IF x <> 0 AND y <> 0 THEN
-                    LET move: Number := 10*y + x
+                    LET move: Number := (10*y) + x
                     IF validMove(0, move, 2, 100) THEN
                         makeMove(move)
                         EXIT WHILE

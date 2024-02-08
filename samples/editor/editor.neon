@@ -42,7 +42,7 @@ FUNCTION highlight(s: String): String
         ELSE
             EXIT WHILE
         END IF
-        r[i+m.match[n].first TO i+m.match[n].last] := string.repeat(h, m.match[n].last-m.match[n].first+1)
+        r[i+m.match[n].first TO i+m.match[n].last] := string.repeat(h, (m.match[n].last-m.match[n].first)+1)
         i := i + m.match[n].last + 1
     END WHILE
     RETURN r

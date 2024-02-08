@@ -81,14 +81,14 @@ FUNCTION main()
     c := curses.Cols() - 4
 
     FOR d := 4 TO 0 STEP -1 DO
-        xpos[d] := random.uint32() MOD c + 2
-        ypos[d] := random.uint32() MOD r + 2
+        xpos[d] := (random.uint32() MOD c) + 2
+        ypos[d] := (random.uint32() MOD r) + 2
     END FOR
 
     j := 0
     LOOP
-        x := random.uint32() MOD c + 2
-        y := random.uint32() MOD r + 2
+        x := (random.uint32() MOD c) + 2
+        y := (random.uint32() MOD r) + 2
 
         curses.mvaddstr(y, x, ".")
 

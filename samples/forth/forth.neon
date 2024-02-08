@@ -430,7 +430,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_NUMBER DO
             LET ud1h: Number := stack.pop()
             LET ud1l: Number := stack.pop()
-            LET ud1: Number := ud1h * 0x100000000 + ud1l
+            LET ud1: Number := (ud1h * 0x100000000) + ud1l
             LET dig: Number := ud1 MOD storage[cell_base]
             LET ud2: Number := math.floor(ud1 / storage[cell_base])
             stack.push(ud2 MOD 0x100000000)
@@ -444,7 +444,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_NUMBER_S DO
             LET ud1h: Number := stack.pop()
             LET ud1l: Number := stack.pop()
-            VAR ud1: Number := ud1h * 0x100000000 + ud1l
+            VAR ud1: Number := (ud1h * 0x100000000) + ud1l
             REPEAT
                 LET dig: Number := ud1 MOD storage[cell_base]
                 ud1 := math.floor(ud1 / storage[cell_base])
@@ -588,21 +588,21 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             VAR addr: Number := stack.pop()
             LET ud1h: Number := stack.pop()
             LET ud1l: Number := stack.pop()
-            VAR ud1: Number := ud1h * 0x100000000 + ud1l
+            VAR ud1: Number := (ud1h * 0x100000000) + ud1l
             WHILE u > 0 DO
                 LET char: String := string.fromCodePoint(storage[addr])
                 VAR dig: Number := 0 -- FIXME: shouldn't need init here
                 IF "0" <= char <= "9" THEN
                     dig := string.toCodePoint(char) - string.toCodePoint("0")
                 ELSIF "A" <= char <= "Z" THEN
-                    dig := string.toCodePoint(char) - string.toCodePoint("A") + 10
+                    dig := (string.toCodePoint(char) - string.toCodePoint("A")) + 10
                 ELSE
                     EXIT WHILE
                 END IF
                 IF dig >= storage[cell_base] THEN
                     EXIT WHILE
                 END IF
-                ud1 := ud1 * storage[cell_base] + dig
+                ud1 := (ud1 * storage[cell_base]) + dig
                 INC addr
                 DEC u
             END WHILE
@@ -760,7 +760,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET n1: Number := signed32(stack.pop())
             LET d1h: Number := signed32(stack.pop())
             LET d1l: Number := stack.pop()
-            LET d1: Number := d1h * 0x100000000 + d1l
+            LET d1: Number := (d1h * 0x100000000) + d1l
             stack.push(d1 MOD n1)
             stack.push(math.floor(d1 / n1))
         WHEN CORE_HERE DO
@@ -867,7 +867,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET n1: Number := signed32(stack.pop())
             LET d1h: Number := signed32(stack.pop())
             LET d1l: Number := stack.pop()
-            LET d1: Number := d1h * 0x100000000 + d1l
+            LET d1: Number := (d1h * 0x100000000) + d1l
             stack.push(d1 MOD n1)
             stack.push(math.floor(d1 / n1))
         WHEN CORE_SOURCE DO
@@ -912,7 +912,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET u1: Number := stack.pop()
             LET udh: Number := stack.pop()
             LET udl: Number := stack.pop()
-            LET ud: Number := udh * 0x100000000 + udl
+            LET ud: Number := (udh * 0x100000000) + udl
             stack.push(ud MOD u1)
             stack.push(math.floor(ud / u1))
         WHEN CORE_UM_MUL DO
@@ -1258,7 +1258,7 @@ FUNCTION digit(char: String): Number
     IF "0" <= char <= "9" THEN
         RETURN string.toCodePoint(char) - string.toCodePoint("0")
     ELSIF "A" <= char <= "Z" THEN
-        RETURN string.toCodePoint(char) - string.toCodePoint("A") + 10
+        RETURN (string.toCodePoint(char) - string.toCodePoint("A")) + 10
     ELSE
         ASSERT FALSE -- invalid char
     END IF
@@ -1273,7 +1273,7 @@ FUNCTION convert(word: String, base: Number): Number
         INC i
     END IF
     WHILE i < word.length() DO
-        n := n * base + digit(word[i])
+        n := (n * base) + digit(word[i])
         INC i
     END WHILE
     IF negative THEN

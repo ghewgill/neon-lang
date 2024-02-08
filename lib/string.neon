@@ -146,7 +146,7 @@ FUNCTION format(s: String, fmt: String): String
             ELSIF align IN [">", "="] THEN
                 r := repeat(fill, space) & r
             ELSIF align = "^" THEN
-                r := repeat(fill, space INTDIV 2) & r & repeat(fill, space - space INTDIV 2)
+                r := repeat(fill, space INTDIV 2) & r & repeat(fill, space - (space INTDIV 2))
             END IF
         END IF
     END IF
@@ -220,7 +220,7 @@ FUNCTION padLeft(s: String, pad: String, width: Number): String
     CHECK n > 0 ELSE
         RETURN s
     END CHECK
-    RETURN repeat(pad, n INTDIV pad.length()) & pad[0 TO n MOD pad.length() - 1] & s
+    RETURN repeat(pad, n INTDIV pad.length()) & pad[0 TO (n MOD pad.length()) - 1] & s
 END FUNCTION
 
 /*
@@ -234,7 +234,7 @@ FUNCTION padRight(s: String, pad: String, width: Number): String
     CHECK n > 0 ELSE
         RETURN s
     END CHECK
-    RETURN s & pad[LAST - (n MOD pad.length() - 1) TO LAST] & repeat(pad, n INTDIV pad.length())
+    RETURN s & pad[LAST - ((n MOD pad.length()) - 1) TO LAST] & repeat(pad, n INTDIV pad.length())
 END FUNCTION
 
 /*  Function: quoted

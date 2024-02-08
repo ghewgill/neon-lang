@@ -264,20 +264,20 @@ FUNCTION solveSudoku(INOUT grid: multiarray.ArrayNumber2D): Number
             IF g >= 0 THEN
                 VAR row: Array<Boolean> := []
                 row.resize(324)
-                row[i*9+j] := TRUE
-                row[9*9+i*9+g] := TRUE
-                row[9*9*2+j*9+g] := TRUE
-                row[9*9*3+(math.floor(i/3)*3+math.floor(j/3))*9+g] := TRUE
+                row[(i*9)+j] := TRUE
+                row[(9*9)+(i*9)+g] := TRUE
+                row[(9*9*2)+(j*9)+g] := TRUE
+                row[(9*9*3)+(((math.floor(i/3)*3)+math.floor(j/3))*9)+g] := TRUE
                 mat.append(row)
                 rinfo.append([i, j, g+1])
             ELSE
                 FOR n := 0 TO 8 DO
                     VAR row: Array<Boolean> := []
                     row.resize(324)
-                    row[i*9+j] := TRUE
-                    row[9*9+i*9+n] := TRUE
-                    row[9*9*2+j*9+n] := TRUE
-                    row[9*9*3+(math.floor(i/3)*3+math.floor(j/3))*9+n] := TRUE
+                    row[(i*9)+j] := TRUE
+                    row[(9*9)+(i*9)+n] := TRUE
+                    row[(9*9*2)+(j*9)+n] := TRUE
+                    row[(9*9*3)+(((math.floor(i/3)*3)+math.floor(j/3))*9)+n] := TRUE
                     mat.append(row)
                     rinfo.append([i, j, n+1])
                 END FOR
@@ -343,7 +343,7 @@ END FUNCTION
 FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback: FUNCTION(n: Number)): multiarray.ArrayNumber2D
     VAR r: multiarray.ArrayNumber2D := solution
     VAR places: Array<Number> := []
-    FOR i := 0 TO 9*9-1 DO
+    FOR i := 0 TO (9*9)-1 DO
         places[i] := i
     END FOR
     shuffle(INOUT places)
@@ -406,13 +406,13 @@ FUNCTION findErrors(grid: multiarray.ArrayNumber2D): multiarray.ArrayBoolean2D
                 END IF
                 cols[j, n] := i
                 -- Check for duplicate number in cell.
-                LET c: Number := math.floor(i / 3)*3 + math.floor(j / 3)
+                LET c: Number := (math.floor(i / 3)*3) + math.floor(j / 3)
                 LET z: Number := cels[c, n]
                 IF z >= 0 THEN
                     r[i, j] := TRUE
-                    r[math.floor(c / 3)*3 + math.floor(z / 3), (c MOD 3)*3 + (z MOD 3)] := TRUE
+                    r[(math.floor(c / 3)*3) + math.floor(z / 3), ((c MOD 3)*3) + (z MOD 3)] := TRUE
                 END IF
-                cels[c, n] := (i MOD 3)*3 + (j MOD 3)
+                cels[c, n] := ((i MOD 3)*3) + (j MOD 3)
             END IF
         END FOR
     END FOR
@@ -447,9 +447,9 @@ FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
     curses.mvaddch(0, 36, curses.ACS_URCORNER())
     VAR any_errors: Boolean := FALSE
     FOR i := 0 TO 8 DO
-        curses.mvaddstr(1+2*i, 0, "|           |           |           |")
+        curses.mvaddstr(1+(2*i), 0, "|           |           |           |")
         FOR j := 0 TO 36 STEP 12 DO
-            curses.mvaddch(1+2*i, j, curses.ACS_VLINE())
+            curses.mvaddch(1+(2*i), j, curses.ACS_VLINE())
         END FOR
         FOR j := 0 TO 8 DO
             IF i = cy AND j = cx THEN
@@ -459,33 +459,33 @@ FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
                 any_errors := TRUE
             END IF
             IF grid[i, j] > 0 THEN
-                curses.mvaddstr(1+2*i, 1+4*j, " \(grid[i, j]) ")
+                curses.mvaddstr(1+(2*i), 1+(4*j), " \(grid[i, j]) ")
             ELSE
-                curses.mvaddstr(1+2*i, 1+4*j, "   ")
+                curses.mvaddstr(1+(2*i), 1+(4*j), "   ")
             END IF
             curses.attrset(curses.A_NORMAL)
         END FOR
         IF i MOD 3 = 2 THEN
             IF i < 8 THEN
-                curses.mvhline(2+2*i, 0, curses.ACS_HLINE(), 37)
-                curses.mvaddch(2+2*i, 0, curses.ACS_LTEE())
+                curses.mvhline(2+(2*i), 0, curses.ACS_HLINE(), 37)
+                curses.mvaddch(2+(2*i), 0, curses.ACS_LTEE())
                 FOR j := 4 TO 32 STEP 4 DO
-                    curses.mvaddch(2+2*i, j, curses.ACS_PLUS())
+                    curses.mvaddch(2+(2*i), j, curses.ACS_PLUS())
                 END FOR
-                curses.mvaddch(2+2*i, 36, curses.ACS_RTEE())
+                curses.mvaddch(2+(2*i), 36, curses.ACS_RTEE())
             ELSE
-                curses.mvhline(2+2*i, 0, curses.ACS_HLINE(), 37)
-                curses.mvaddch(2+2*i, 0, curses.ACS_LLCORNER())
+                curses.mvhline(2+(2*i), 0, curses.ACS_HLINE(), 37)
+                curses.mvaddch(2+(2*i), 0, curses.ACS_LLCORNER())
                 FOR j := 4 TO 32 STEP 4 DO
-                    curses.mvaddch(2+2*i, j, curses.ACS_BTEE())
+                    curses.mvaddch(2+(2*i), j, curses.ACS_BTEE())
                 END FOR
-                curses.mvaddch(2+2*i, 36, curses.ACS_LRCORNER())
+                curses.mvaddch(2+(2*i), 36, curses.ACS_LRCORNER())
             END IF
         ELSE
-            curses.mvaddch(2+2*i, 0, curses.ACS_LTEE())
-            curses.mvaddch(2+2*i, 12, curses.ACS_PLUS())
-            curses.mvaddch(2+2*i, 24, curses.ACS_PLUS())
-            curses.mvaddch(2+2*i, 36, curses.ACS_RTEE())
+            curses.mvaddch(2+(2*i), 0, curses.ACS_LTEE())
+            curses.mvaddch(2+(2*i), 12, curses.ACS_PLUS())
+            curses.mvaddch(2+(2*i), 24, curses.ACS_PLUS())
+            curses.mvaddch(2+(2*i), 36, curses.ACS_RTEE())
         END IF
     END FOR
     IF NOT any_errors AND puzzleFilled(grid) THEN

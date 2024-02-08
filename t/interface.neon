@@ -23,7 +23,7 @@ TYPE Circle IS CLASS IMPLEMENTS Shape
 END CLASS
 
 FUNCTION Circle.area(self: VALID POINTER TO Circle): Number
-    RETURN Pi * self->radius^2
+    RETURN Pi * (self->radius^2)
 END FUNCTION
 
 FUNCTION Circle.perimeter(self: VALID POINTER TO Circle): Number

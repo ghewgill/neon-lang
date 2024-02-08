@@ -362,7 +362,7 @@ FUNCTION ExprGroup.compile(self: VALID POINTER TO ExprGroup, INOUT regex: Regex)
     IF self->capture THEN
         regex.append(Opcode.save(2*self->index))
         self->expr->compile(INOUT regex)
-        regex.append(Opcode.save(2*self->index+1))
+        regex.append(Opcode.save((2*self->index)+1))
     ELSE
         self->expr->compile(INOUT regex)
     END IF

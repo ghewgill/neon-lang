@@ -110,7 +110,7 @@ FUNCTION main(args: Array<String>)
             FOR line := 0 TO 7 DO
                 VAR s: String := ""
                 FOR col := 0 TO 2 DO
-                    s.append(months[3*row+col][line] & "  ")
+                    s.append(months[(3*row)+col][line] & "  ")
                 END FOR
                 print(s)
             END FOR

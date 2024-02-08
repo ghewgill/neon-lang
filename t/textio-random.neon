@@ -4,7 +4,7 @@ IMPORT textio
 
 VAR s := ""
 FOR i := 1 TO 100000 DO
-    s.append(string.fromCodePoint(32 + random.uint32() MOD 96))
+    s.append(string.fromCodePoint(32 + (random.uint32() MOD 96)))
 END FOR
 VAR r: textio.OpenResult := textio.open("tmp/textio-test.tmp", textio.Mode.write)
 CHECK r ISA textio.OpenResult.file ELSE

@@ -193,7 +193,7 @@ FUNCTION makeFromInstant(inst: Number): DateTime
         year WITH 1900 + tm.tm_year,
         month WITH 1 + tm.tm_mon,
         day WITH tm.tm_mday,
-        weekday WITH 1 + (tm.tm_wday + 6) MOD 7,
+        weekday WITH 1 + ((tm.tm_wday + 6) MOD 7),
         hour WITH tm.tm_hour,
         minute WITH tm.tm_min,
         second WITH tm.tm_sec,
@@ -256,10 +256,10 @@ END FUNCTION
 FUNCTION DateTime.plusPeriod(self: DateTime, period: Period): DateTime
     VAR dt: DateTime := self
     dt.year := dt.year + period.years
-    LET m: Number := dt.month - 1 + period.months
+    LET m: Number := (dt.month - 1) + period.months
     dt.year := dt.year + math.floor(m / 12)
     dt.month := 1 + (m MOD 12)
-    RETURN makeFromParts(dt).plusDuration(86400*period.days + 3600*period.hours + 60*period.minutes + period.seconds)
+    RETURN makeFromParts(dt).plusDuration((86400*period.days) + (3600*period.hours) + (60*period.minutes) + period.seconds)
 END FUNCTION
 
 /*  Function: DateTime.toString
