@@ -13,13 +13,13 @@ FUNCTION b32decode(s: String): Bytes
         IF "A" <= s[i] <= "Z" THEN
             x := string.toCodePoint(s[i]) - string.toCodePoint("A")
         ELSIF "0" <= s[i] <= "7" THEN
-            x := string.toCodePoint(s[i]) - string.toCodePoint("2") + 26
+            x := (string.toCodePoint(s[i]) - string.toCodePoint("2")) + 26
         ELSE
             PANIC "Invalid base64 character"
         END IF
-        b[5*i INTDIV 8] := binary.and32(0xff, binary.or32(b[5*i INTDIV 8], binary.shiftRight32(binary.shiftLeft32(x, 3), 5*i MOD 8)))
-        IF 5*i MOD 8 >= 4 THEN
-            b[5*i INTDIV 8 + 1] := binary.and32(0xff, binary.or32(b[5*i INTDIV 8 + 1], binary.shiftLeft32(x, 3 + 8 - (5*i MOD 8))))
+        b[(5*i) INTDIV 8] := binary.and32(0xff, binary.or32(b[(5*i) INTDIV 8], binary.shiftRight32(binary.shiftLeft32(x, 3), (5*i) MOD 8)))
+        IF (5*i) MOD 8 >= 4 THEN
+            b[((5*i) INTDIV 8) + 1] := binary.and32(0xff, binary.or32(b[((5*i) INTDIV 8) + 1], binary.shiftLeft32(x, 3 + 8 - ((5*i) MOD 8))))
         END IF
     END FOR
     RETURN b.toBytes()
@@ -45,7 +45,7 @@ TESTCASE hmac_sha1(kk.encodeUTF8(), mm.encodeUTF8())   = HEXBYTES "de7c9b85b8b78
 FUNCTION hotp(sbytes: Bytes, movingFactor: Number): String
     VAR data: Array<Number> := [0,0,0,0]
     FOR i := 4 TO 7 DO
-        data.append(binary.and32(0xff, binary.shiftRight32(movingFactor, 56 - 8*i)))
+        data.append(binary.and32(0xff, binary.shiftRight32(movingFactor, 56 - (8*i))))
     END FOR
     LET r: Bytes := hmac_sha1(sbytes, data.toBytes())
     LET a: Array<Number> := r.toArray()

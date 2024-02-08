@@ -828,18 +828,6 @@ std::unique_ptr<Expression> Parser::parseArithmetic()
                     left.reset(new DivisionExpression(tok_op, std::move(left), std::move(right)));
                     break;
                 }
-                case INTDIV: {
-                    ++i;
-                    std::unique_ptr<Expression> right = parseCompoundExpression();
-                    left.reset(new IntegerDivisionExpression(tok_op, std::move(left), std::move(right)));
-                    break;
-                }
-                case MOD: {
-                    ++i;
-                    std::unique_ptr<Expression> right = parseCompoundExpression();
-                    left.reset(new ModuloExpression(tok_op, std::move(left), std::move(right)));
-                    break;
-                }
                 default:
                     break;
             }
