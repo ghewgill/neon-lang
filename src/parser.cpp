@@ -47,8 +47,7 @@ public:
     std::unique_ptr<Expression> parseComparison();
     std::unique_ptr<Expression> parseTypeTest();
     std::unique_ptr<Expression> parseMembership();
-    std::unique_ptr<Expression> parseConjunction();
-    std::unique_ptr<Expression> parseDisjunction();
+    std::unique_ptr<Expression> parseLogical();
     std::unique_ptr<Expression> parseConditional();
     std::unique_ptr<Expression> parseExpression();
     VariableInfo parseVariableDeclaration(RequireType require_type);
@@ -564,13 +563,13 @@ std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
  * Operator precedence:
  *
  *  ^        exponentiation                     parseExponentiation
- *  * / MOD  multiplication, division, modulo   parseMultiplication
- *  + -      addition, subtraction              parseAddition
+ *  * / MOD  multiplication, division, modulo   parseArithmetic
+ *  + -      addition, subtraction              parseArithmetic
  *  < = >    comparison                         parseComparison
  *  isa      type test                          parseTypeTest
  *  in       membership                         parseMembership
- *  and      conjunction                        parseConjunction
- *  or       disjunction                        parseDisjunction
+ *  and      conjunction                        parseLogical
+ *  or       disjunction                        parseLogical
  *  if       conditional                        parseConditional
  */
 
@@ -930,34 +929,31 @@ std::unique_ptr<Expression> Parser::parseMembership()
     }
 }
 
-std::unique_ptr<Expression> Parser::parseConjunction()
+std::unique_ptr<Expression> Parser::parseLogical()
 {
     std::unique_ptr<Expression> left = parseMembership();
-    for (;;) {
-        auto &tok_op = tokens[i];
-        if (tokens[i].type == AND) {
-            ++i;
-            std::unique_ptr<Expression> right = parseMembership();
-            left.reset(new ConjunctionExpression(tok_op, std::move(left), std::move(right)));
-        } else {
+    auto &tok_op = tokens[i];
+    switch (tokens[i].type) {
+        case AND:
+            while (tokens[i].type == AND) {
+                auto &tok_op = tokens[i];
+                ++i;
+                std::unique_ptr<Expression> right = parseMembership();
+                left.reset(new ConjunctionExpression(tok_op, std::move(left), std::move(right)));
+            }
+            break;
+        case OR:
+            while (tokens[i].type == OR) {
+                auto &tok_op = tokens[i];
+                ++i;
+                std::unique_ptr<Expression> right = parseMembership();
+                left.reset(new DisjunctionExpression(tok_op, std::move(left), std::move(right)));
+            }
+            break;
+        default:
             return left;
-        }
     }
-}
-
-std::unique_ptr<Expression> Parser::parseDisjunction()
-{
-    std::unique_ptr<Expression> left = parseConjunction();
-    for (;;) {
-        auto &tok_op = tokens[i];
-        if (tokens[i].type == OR) {
-            ++i;
-            std::unique_ptr<Expression> right = parseConjunction();
-            left.reset(new DisjunctionExpression(tok_op, std::move(left), std::move(right)));
-        } else {
-            return left;
-        }
-    }
+    return left;
 }
 
 std::unique_ptr<Expression> Parser::parseConditional()
@@ -1037,7 +1033,7 @@ std::unique_ptr<Expression> Parser::parseExpression()
     if (expression_depth > 100) {
         error(2067, tokens[i], "exceeded maximum nesting depth");
     }
-    std::unique_ptr<Expression> r = parseDisjunction();
+    std::unique_ptr<Expression> r = parseLogical();
     expression_depth--;
     return r;
 }
