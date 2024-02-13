@@ -865,6 +865,10 @@ std::unique_ptr<Expression> Parser::parseArithmetic()
         default:
             return left;
     }
+    auto &t = tokens[i].type;
+    if (t == PLUS || t == MINUS || t == TIMES || t == DIVIDE || t == INTDIV || t == MOD || t == EXP) {
+        error_a(2145, left->get_start_token(), left->get_end_token(), "use more parentheses to disambiguate");
+    }
     return left;
 }
 
@@ -932,7 +936,6 @@ std::unique_ptr<Expression> Parser::parseMembership()
 std::unique_ptr<Expression> Parser::parseLogical()
 {
     std::unique_ptr<Expression> left = parseMembership();
-    auto &tok_op = tokens[i];
     switch (tokens[i].type) {
         case AND:
             while (tokens[i].type == AND) {
@@ -952,6 +955,10 @@ std::unique_ptr<Expression> Parser::parseLogical()
             break;
         default:
             return left;
+    }
+    auto &t = tokens[i].type;
+    if (t == AND || t == OR) {
+        error_a(2146, left->get_start_token(), left->get_end_token(), "use more parentheses to disambiguate");
     }
     return left;
 }
