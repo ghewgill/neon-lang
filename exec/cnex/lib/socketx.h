@@ -7,6 +7,7 @@
 #pragma comment(lib, "ws2_32.lib") // Include the wsock32 (version 2) library, automatically on Windows builds.
 typedef int socklen_t;
 #pragma warning(disable: 4127) // incompatible with FD_SET()
+#define socket_error()    WSAGetLastError()
 
 #else
 
@@ -19,6 +20,7 @@ typedef int socklen_t;
 
 #define closesocket(x)      close(x)
 #define INVALID_SOCKET     -1
+#define socket_error()      errno
 
 typedef int SOCKET;
 
