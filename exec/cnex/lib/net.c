@@ -58,6 +58,25 @@ static SOCKET *check_socket(TExecutor *exec, Object *o)
     return o->ptr;
 }
 
+static const char *socket_error_message(int err)
+{
+#ifdef _WIN32
+    static char msgbuf[256];
+    DWORD r = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                            NULL,
+                            err,
+                            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                            msgbuf,
+                            sizeof(msgbuf),
+                            NULL);
+    if (r == 0) {
+        snprintf(msgbuf, sizeof(msgbuf), "(No Error Text) - %d", err);
+    }
+    return msgbuf;
+#endif
+    return strerror(err);
+}
+
 
 #ifdef _WIN32
 static void initWinsock()
@@ -251,15 +270,14 @@ void net_socket_recv(TExecutor *exec)
     }
     int r = recv(s, (char*)buf, n, 0);
     if (r < 0) {
-        perror("recv");
-        int err = errno;
+        int err = socket_error();
         Cell *ret = cell_createArrayCell(2);
         Cell *t = cell_arrayIndexForWrite(ret, 0);
         t->type = cNumber;
         t->number = number_from_uint32(CHOICE_RecvResult_error);
         t = cell_arrayIndexForWrite(ret, 1);
         t->type = cString;
-        t->string = string_createCString(strerror(err));
+        t->string = string_createCString(socket_error_message(err));
         push(exec->stack, ret);
         return;
     }
