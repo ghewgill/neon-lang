@@ -2,7 +2,7 @@ IMPORT struct
 VAR s: struct.Struct := struct.make([
     struct.field("field1", struct.Type.int32BE),
     struct.field("field2", struct.Type.string, 20),
-    struct.field("field3", struct.Type.ieee64),
+    struct.field("field3", struct.Type.ieee64LE),
 ])
 
 print("\(s.sizeof())")

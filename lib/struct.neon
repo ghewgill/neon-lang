@@ -11,8 +11,10 @@ EXPORT Type
 EXPORT make
 EXPORT field
 EXPORT packBool
-EXPORT packIEEE32
-EXPORT packIEEE64
+EXPORT packIEEE32BE
+EXPORT packIEEE32LE
+EXPORT packIEEE64BE
+EXPORT packIEEE64LE
 EXPORT packInt8
 EXPORT packInt16BE
 EXPORT packInt16LE
@@ -28,8 +30,10 @@ EXPORT packUInt32LE
 EXPORT packUInt64BE
 EXPORT packUInt64LE
 EXPORT unpackBool
-EXPORT unpackIEEE32
-EXPORT unpackIEEE64
+EXPORT unpackIEEE32BE
+EXPORT unpackIEEE32LE
+EXPORT unpackIEEE64BE
+EXPORT unpackIEEE64LE
 EXPORT unpackInt8
 EXPORT unpackInt16BE
 EXPORT unpackInt16LE
@@ -53,8 +57,10 @@ IMPORT binary
  *
  *  Values:
  *      bool - boolean
- *      ieee32 - IEEE 754 32 bit binary floating point
- *      ieee64 - IEEE 754 64 bit binary floating point
+ *      ieee32BE - IEEE 754 32 bit binary floating point, big endian
+ *      ieee32LE - IEEE 754 32 bit binary floating point, little endian
+ *      ieee64BE - IEEE 754 64 bit binary floating point, big endian
+ *      ieee64LE - IEEE 754 64 bit binary floating point, little endian
  *      int8 - signed 8 bit integer
  *      int16BE - signed 16 bit integer, big endian
  *      int16LE - signed 16 bit integer, little endian
@@ -74,8 +80,10 @@ IMPORT binary
  */
 TYPE Type IS ENUM
     bool
-    ieee32
-    ieee64
+    ieee32BE
+    ieee32LE
+    ieee64BE
+    ieee64LE
     int8
     int16BE
     int16LE
@@ -129,9 +137,13 @@ FUNCTION field(name: String, type: Type, width: Number DEFAULT 0): Field
     CASE type
         WHEN Type.bool DO
             w := 1
-        WHEN Type.ieee32 DO
+        WHEN Type.ieee32BE DO
             w := 4
-        WHEN Type.ieee64 DO
+        WHEN Type.ieee32LE DO
+            w := 4
+        WHEN Type.ieee64BE DO
+            w := 8
+        WHEN Type.ieee64LE DO
             w := 8
         WHEN Type.int8 DO
             w := 1
@@ -175,17 +187,29 @@ FUNCTION packBool(b: Boolean): Bytes
     RETURN (IF b THEN HEXBYTES "01" ELSE HEXBYTES "00")
 END FUNCTION
 
-/*  Function: packIEEE32
+/*  Function: packIEEE32BE
  *
  *  Pack a <Number> value into a <Bytes> in IEEE 754 binary32 floating point format.
  */
-DECLARE NATIVE FUNCTION packIEEE32(n: Number): Bytes
+DECLARE NATIVE FUNCTION packIEEE32BE(n: Number): Bytes
 
-/*  Function: packIEEE64
+/*  Function: packIEEE32LE
+ *
+ *  Pack a <Number> value into a <Bytes> in IEEE 754 binary32 floating point format.
+ */
+DECLARE NATIVE FUNCTION packIEEE32LE(n: Number): Bytes
+
+/*  Function: packIEEE64BE
  *
  *  Pack a <Number> value into a <Bytes> in IEEE 754 binary64 floating point format.
  */
-DECLARE NATIVE FUNCTION packIEEE64(n: Number): Bytes
+DECLARE NATIVE FUNCTION packIEEE64BE(n: Number): Bytes
+
+/*  Function: packIEEE64LE
+ *
+ *  Pack a <Number> value into a <Bytes> in IEEE 754 binary64 floating point format.
+ */
+DECLARE NATIVE FUNCTION packIEEE64LE(n: Number): Bytes
 
 /*  Function: packInt8
  *
@@ -389,17 +413,29 @@ FUNCTION unpackBool(b: Bytes): Boolean
     RETURN a[0] <> 0
 END FUNCTION
 
-/*  Function: unpackIEEE32
+/*  Function: unpackIEEE32BE
  *
  *  Unpack a <Number> from a <Bytes> in IEEE 754 binary32 floating point format.
  */
-DECLARE NATIVE FUNCTION unpackIEEE32(b: Bytes): Number
+DECLARE NATIVE FUNCTION unpackIEEE32BE(b: Bytes): Number
 
-/*  Function: unpackIEEE64
+/*  Function: unpackIEEE32LE
+ *
+ *  Unpack a <Number> from a <Bytes> in IEEE 754 binary32 floating point format.
+ */
+DECLARE NATIVE FUNCTION unpackIEEE32LE(b: Bytes): Number
+
+/*  Function: unpackIEEE64BE
  *
  *  Unpack a <Number> from a <Bytes> in IEEE 754 binary64 floating point format.
  */
-DECLARE NATIVE FUNCTION unpackIEEE64(b: Bytes): Number
+DECLARE NATIVE FUNCTION unpackIEEE64BE(b: Bytes): Number
+
+/*  Function: unpackIEEE64LE
+ *
+ *  Unpack a <Number> from a <Bytes> in IEEE 754 binary64 floating point format.
+ */
+DECLARE NATIVE FUNCTION unpackIEEE64LE(b: Bytes): Number
 
 /*  Function: unpackInt8
  *
@@ -610,10 +646,14 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<Object>): Bytes
             CASE self.fields[f].type
                 WHEN Type.bool DO
                     buf.extend(packBool(v).toArray())
-                WHEN Type.ieee32 DO
-                    buf.extend(packIEEE32(v).toArray())
-                WHEN Type.ieee64 DO
-                    buf.extend(packIEEE64(v).toArray())
+                WHEN Type.ieee32BE DO
+                    buf.extend(packIEEE32BE(v).toArray())
+                WHEN Type.ieee32LE DO
+                    buf.extend(packIEEE32LE(v).toArray())
+                WHEN Type.ieee64BE DO
+                    buf.extend(packIEEE64BE(v).toArray())
+                WHEN Type.ieee64LE DO
+                    buf.extend(packIEEE64LE(v).toArray())
                 WHEN Type.int8 DO
                     buf.extend(packInt8(v).toArray())
                 WHEN Type.int16BE DO
@@ -687,11 +727,17 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<Object>
             WHEN Type.bool DO
                 v := unpackBool(data[i TO i])
                 INC i
-            WHEN Type.ieee32 DO
-                v := unpackIEEE32(data[i TO i+3])
+            WHEN Type.ieee32BE DO
+                v := unpackIEEE32BE(data[i TO i+3])
                 i := i + 4
-            WHEN Type.ieee64 DO
-                v := unpackIEEE64(data[i TO i+7])
+            WHEN Type.ieee32LE DO
+                v := unpackIEEE32LE(data[i TO i+3])
+                i := i + 4
+            WHEN Type.ieee64BE DO
+                v := unpackIEEE64BE(data[i TO i+7])
+                i := i + 8
+            WHEN Type.ieee64LE DO
+                v := unpackIEEE64LE(data[i TO i+7])
                 i := i + 8
             WHEN Type.int8 DO
                 v := unpackInt8(data[i TO i])
@@ -758,13 +804,21 @@ BEGIN MAIN
     TESTCASE packBool(FALSE) = HEXBYTES "00"
     TESTCASE packBool(TRUE) = HEXBYTES "01"
 
-    TESTCASE packIEEE32(0) = HEXBYTES "00 00 00 00"
-    TESTCASE packIEEE32(1) = HEXBYTES "00 00 80 3f"
-    TESTCASE packIEEE32(1e10) = HEXBYTES "f9 02 15 50"
+    TESTCASE packIEEE32BE(0) = HEXBYTES "00 00 00 00"
+    TESTCASE packIEEE32BE(1) = HEXBYTES "3f 80 00 00"
+    TESTCASE packIEEE32BE(1e10) = HEXBYTES "50 15 02 f9"
 
-    TESTCASE packIEEE64(0) = HEXBYTES "00 00 00 00 00 00 00 00"
-    TESTCASE packIEEE64(1) = HEXBYTES "00 00 00 00 00 00 f0 3f"
-    TESTCASE packIEEE64(1e100) = HEXBYTES "7d c3 94 25 ad 49 b2 54"
+    TESTCASE packIEEE32LE(0) = HEXBYTES "00 00 00 00"
+    TESTCASE packIEEE32LE(1) = HEXBYTES "00 00 80 3f"
+    TESTCASE packIEEE32LE(1e10) = HEXBYTES "f9 02 15 50"
+
+    TESTCASE packIEEE64BE(0) = HEXBYTES "00 00 00 00 00 00 00 00"
+    TESTCASE packIEEE64BE(1) = HEXBYTES "3f f0 00 00 00 00 00 00"
+    TESTCASE packIEEE64BE(1e100) = HEXBYTES "54 b2 49 ad 25 94 c3 7d"
+
+    TESTCASE packIEEE64LE(0) = HEXBYTES "00 00 00 00 00 00 00 00"
+    TESTCASE packIEEE64LE(1) = HEXBYTES "00 00 00 00 00 00 f0 3f"
+    TESTCASE packIEEE64LE(1e100) = HEXBYTES "7d c3 94 25 ad 49 b2 54"
 
     TESTCASE packInt8(-128) = HEXBYTES "80"
     TESTCASE packInt8(-1) = HEXBYTES "FF"
@@ -846,13 +900,21 @@ BEGIN MAIN
     TESTCASE unpackBool(HEXBYTES "00") = FALSE
     TESTCASE unpackBool(HEXBYTES "01") = TRUE
 
-    TESTCASE unpackIEEE32(HEXBYTES "00 00 00 00") = 0
-    TESTCASE unpackIEEE32(HEXBYTES "00 00 80 3f") = 1
-    TESTCASE unpackIEEE32(HEXBYTES "f9 02 15 50") = 1e10
+    TESTCASE unpackIEEE32BE(HEXBYTES "00 00 00 00") = 0
+    TESTCASE unpackIEEE32BE(HEXBYTES "3f 80 00 00") = 1
+    TESTCASE unpackIEEE32BE(HEXBYTES "50 15 02 f9") = 1e10
 
-    TESTCASE unpackIEEE64(HEXBYTES "00 00 00 00 00 00 00 00") = 0
-    TESTCASE unpackIEEE64(HEXBYTES "00 00 00 00 00 00 f0 3f") = 1
-    TESTCASE unpackIEEE64(HEXBYTES "7d c3 94 25 ad 49 b2 54") = 1.000000000000000015902891109759918e100
+    TESTCASE unpackIEEE32LE(HEXBYTES "00 00 00 00") = 0
+    TESTCASE unpackIEEE32LE(HEXBYTES "00 00 80 3f") = 1
+    TESTCASE unpackIEEE32LE(HEXBYTES "f9 02 15 50") = 1e10
+
+    TESTCASE unpackIEEE64BE(HEXBYTES "00 00 00 00 00 00 00 00") = 0
+    TESTCASE unpackIEEE64BE(HEXBYTES "3f f0 00 00 00 00 00 00") = 1
+    TESTCASE unpackIEEE64BE(HEXBYTES "54 b2 49 ad 25 94 c3 7d") = 1.000000000000000015902891109759918e100
+
+    TESTCASE unpackIEEE64LE(HEXBYTES "00 00 00 00 00 00 00 00") = 0
+    TESTCASE unpackIEEE64LE(HEXBYTES "00 00 00 00 00 00 f0 3f") = 1
+    TESTCASE unpackIEEE64LE(HEXBYTES "7d c3 94 25 ad 49 b2 54") = 1.000000000000000015902891109759918e100
 
     TESTCASE unpackInt8(HEXBYTES "80") = -128
     TESTCASE unpackInt8(HEXBYTES "FF") = -1

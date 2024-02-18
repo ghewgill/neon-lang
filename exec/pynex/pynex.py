@@ -2346,14 +2346,24 @@ def neon_builtin_string__toString(self):
     s = self.stack.pop()
     self.stack.append(s)
 
-def neon_struct_packIEEE64(self):
+def neon_struct_packIEEE64BE(self):
     n = self.stack.pop()
-    r = struct.pack("d", n)
+    r = struct.pack(">d", n)
     self.stack.append(r)
 
-def neon_struct_unpackIEEE64(self):
+def neon_struct_packIEEE64LE(self):
+    n = self.stack.pop()
+    r = struct.pack("<d", n)
+    self.stack.append(r)
+
+def neon_struct_unpackIEEE64BE(self):
     b = self.stack.pop()
-    r = decimal.Decimal(struct.unpack("d", b)[0])
+    r = decimal.Decimal(struct.unpack(">d", b)[0])
+    self.stack.append(r)
+
+def neon_struct_unpackIEEE64LE(self):
+    b = self.stack.pop()
+    r = decimal.Decimal(struct.unpack("<d", b)[0])
     self.stack.append(r)
 
 def neon_substring(self):
