@@ -1993,61 +1993,57 @@ class Parser:
             return AssignmentStatement(expr.func.expr, AppendExpression(expr.func.expr, expr.args[0][1]))
         return expr
 
-    def parse_exponentiation(self):
+    def parse_arithmetic(self):
         left = self.parse_compound_expression()
-        while True:
-            if self.tokens[self.i] is EXP:
+        if self.tokens[self.i] is PLUS:
+            while self.tokens[self.i] is PLUS:
                 self.i += 1
                 right = self.parse_compound_expression()
-                left = ExponentiationExpression(left, right)
-            else:
-                break
-        return left
-
-    def parse_multiplication(self):
-        left = self.parse_exponentiation()
-        while True:
-            if self.tokens[self.i] is TIMES:
-                self.i += 1
-                right = self.parse_exponentiation()
-                left = MultiplicationExpression(left, right)
-            elif self.tokens[self.i] is DIVIDE:
-                self.i += 1
-                right = self.parse_exponentiation()
-                left = DivisionExpression(left, right)
-            elif self.tokens[self.i] is INTDIV:
-                self.i += 1
-                right = self.parse_exponentiation()
-                left = IntegerDivisionExpression(left, right)
-            elif self.tokens[self.i] is MOD:
-                self.i += 1
-                right = self.parse_exponentiation()
-                left = ModuloExpression(left, right)
-            else:
-                break
-        return left
-
-    def parse_addition(self):
-        left = self.parse_multiplication()
-        while True:
-            if self.tokens[self.i] is PLUS:
-                self.i += 1
-                right = self.parse_multiplication()
                 left = AdditionExpression(left, right)
-            elif self.tokens[self.i] is MINUS:
+            if self.tokens[self.i] is MINUS:
                 self.i += 1
-                right = self.parse_multiplication()
+                right = self.parse_compound_expression()
                 left = SubtractionExpression(left, right)
-            elif self.tokens[self.i] is CONCAT:
+        elif self.tokens[self.i] is CONCAT:
+            while self.tokens[self.i] is CONCAT:
                 self.i += 1
-                right = self.parse_multiplication()
+                right = self.parse_compound_expression()
                 left = ConcatenationExpression(left, right)
-            else:
-                break
+        elif self.tokens[self.i] is TIMES:
+            while self.tokens[self.i] is TIMES:
+                self.i += 1
+                right = self.parse_compound_expression()
+                left = MultiplicationExpression(left, right)
+            if self.tokens[self.i] is DIVIDE:
+                self.i += 1
+                right = self.parse_compound_expression()
+                left = DivisionExpression(left, right)
+        elif self.tokens[self.i] is MINUS:
+            self.i += 1
+            right = self.parse_compound_expression()
+            left = SubtractionExpression(left, right)
+        elif self.tokens[self.i] is DIVIDE:
+            self.i += 1
+            right = self.parse_compound_expression()
+            left = DivisionExpression(left, right)
+        elif self.tokens[self.i] is INTDIV:
+            self.i += 1
+            right = self.parse_compound_expression()
+            left = IntegerDivisionExpression(left, right)
+        elif self.tokens[self.i] is MOD:
+            self.i += 1
+            right = self.parse_compound_expression()
+            left = ModuloExpression(left, right)
+        elif self.tokens[self.i] is EXP:
+            self.i += 1
+            right = self.parse_compound_expression()
+            left = ExponentiationExpression(left, right)
+        else:
+            return left
         return left
 
     def parse_comparison(self):
-        left = self.parse_addition()
+        left = self.parse_arithmetic()
         comps = []
         while (self.tokens[self.i] is EQUAL
             or self.tokens[self.i] is NOTEQUAL
@@ -2057,7 +2053,7 @@ class Parser:
             or self.tokens[self.i] is GREATEREQ):
             comp = self.tokens[self.i]
             self.i += 1
-            right = self.parse_addition()
+            right = self.parse_arithmetic()
             comps.append(ComparisonExpression(left, right, comp))
             left = right
         if not comps:
@@ -2091,20 +2087,18 @@ class Parser:
         else:
             return left
 
-    def parse_conjunction(self):
+    def parse_logical(self):
         left = self.parse_membership()
-        while self.tokens[self.i] is AND:
-            self.i += 1
-            right = self.parse_membership()
-            left = ConjunctionExpression(left, right)
-        return left
-
-    def parse_disjunction(self):
-        left = self.parse_conjunction()
-        while self.tokens[self.i] is OR:
-            self.i += 1
-            right = self.parse_conjunction()
-            left = DisjunctionExpression(left, right)
+        if self.tokens[self.i] is AND:
+            while self.tokens[self.i] is AND:
+                self.i += 1
+                right = self.parse_membership()
+                left = ConjunctionExpression(left, right)
+        elif self.tokens[self.i] is OR:
+            while self.tokens[self.i] is OR:
+                self.i += 1
+                right = self.parse_membership()
+                left = DisjunctionExpression(left, right)
         return left
 
     def parse_conditional(self):
@@ -2147,7 +2141,7 @@ class Parser:
                     catches.append((exceptions, infoname, g))
             return TryExpression(expr, catches)
         else:
-            return self.parse_disjunction()
+            return self.parse_logical()
 
     def parse_expression(self):
         return self.parse_conditional()

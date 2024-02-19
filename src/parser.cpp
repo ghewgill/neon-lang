@@ -562,7 +562,7 @@ std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
 /*
  * Operator precedence:
  *
- *  ^        exponentiation                     parseExponentiation
+ *  ^        exponentiation                     parseArithmetic
  *  * / MOD  multiplication, division, modulo   parseArithmetic
  *  + -      addition, subtraction              parseArithmetic
  *  < = >    comparison                         parseComparison

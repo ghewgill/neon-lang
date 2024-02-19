@@ -1361,14 +1361,14 @@ END FUNCTION
 
 /* Operator precedence:
  *
- *  ^        exponentiation                     parseExponentiation
- *  * / MOD  multiplication, division, modulo   parseMultiplication
- *  + -      addition, subtraction              parseAddition
+ *  ^        exponentiation                     parseArithmetic
+ *  * / MOD  multiplication, division, modulo   parseArithmetic
+ *  + -      addition, subtraction              parseArithmetic
  *  < = >    comparison                         parseComparison
  *  isa      type test                          parseTypeTest
  *  in       membership                         parseMembership
- *  and      conjunction                        parseConjunction
- *  or       disjunction                        parseDisjunction
+ *  and      conjunction                        parseLogical
+ *  or       disjunction                        parseLogical
  *  if       conditional                        parseConditional
  */
 
@@ -1602,11 +1602,141 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
     RETURN NIL
 END FUNCTION
 
-FUNCTION Parser.parseExponentiation(INOUT self: Parser): POINTER TO ParseTreeNode
+FUNCTION Parser.parseArithmetic(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR left: POINTER TO ParseTreeNode := self.parseCompoundExpression()
-    LOOP
-        LET tokOp: lexer.Token := self.token
-        IF tokOp.type = TokenType.exp THEN
+    LET tokOp: lexer.Token := self.token
+    CASE tokOp.type
+        WHEN TokenType.plus DO
+            WHILE self.token.type = TokenType.plus DO
+                LET tokOp2: lexer.Token := self.token
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+                left := NEW ParseTreeNode(
+                    type WITH Type.AdditionExpression,
+                    token WITH tokOp2,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                )
+            END WHILE
+            IF self.token.type = TokenType.minus THEN
+                LET tokOp2: lexer.Token := self.token
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+                left := NEW ParseTreeNode(
+                    type WITH Type.SubtractionExpression,
+                    token WITH tokOp2,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                )
+            END IF
+        WHEN TokenType.concat DO
+            WHILE self.token.type = TokenType.concat DO
+                LET tokOp2: lexer.Token := self.token
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+                left := NEW ParseTreeNode(
+                    type WITH Type.ConcatenationExpression,
+                    token WITH tokOp2,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                )
+            END WHILE
+        WHEN TokenType.times DO
+            WHILE self.token.type = TokenType.times DO
+                LET tokOp2: lexer.Token := self.token
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+                left := NEW ParseTreeNode(
+                    type WITH Type.MultiplicationExpression,
+                    token WITH tokOp2,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                )
+            END WHILE
+            IF self.token.type = TokenType.divide THEN
+                LET tokOp2: lexer.Token := self.token
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+                left := NEW ParseTreeNode(
+                    type WITH Type.DivisionExpression,
+                    token WITH tokOp2,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                )
+            END IF
+        WHEN TokenType.minus DO
+            self.nextToken()
+            LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+            left := NEW ParseTreeNode(
+                type WITH Type.SubtractionExpression,
+                token WITH tokOp,
+                binaryexpression WITH BinaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    left WITH left,
+                    right WITH right
+                )
+            )
+        WHEN TokenType.divide DO
+            self.nextToken()
+            LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+            left := NEW ParseTreeNode(
+                type WITH Type.DivisionExpression,
+                token WITH tokOp,
+                binaryexpression WITH BinaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    left WITH left,
+                    right WITH right
+                )
+            )
+        WHEN TokenType.intdiv DO
+            self.nextToken()
+            LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+            left := NEW ParseTreeNode(
+                type WITH Type.IntegerDivisionExpression,
+                token WITH tokOp,
+                binaryexpression WITH BinaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    left WITH left,
+                    right WITH right
+                )
+            )
+        WHEN TokenType.mod DO
+            self.nextToken()
+            LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
+            left := NEW ParseTreeNode(
+                type WITH Type.ModuloExpression,
+                token WITH tokOp,
+                binaryexpression WITH BinaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    left WITH left,
+                    right WITH right
+                )
+            )
+        WHEN TokenType.exp DO
             self.nextToken()
             LET right: POINTER TO ParseTreeNode := self.parseCompoundExpression()
             left := NEW ParseTreeNode(
@@ -1619,127 +1749,14 @@ FUNCTION Parser.parseExponentiation(INOUT self: Parser): POINTER TO ParseTreeNod
                     right WITH right
                 )
             )
-        ELSE
+        WHEN OTHERS DO
             RETURN left
-        END IF
-    END LOOP
-END FUNCTION
-
-FUNCTION Parser.parseMultiplication(INOUT self: Parser): POINTER TO ParseTreeNode
-    VAR left: POINTER TO ParseTreeNode := self.parseExponentiation()
-    LOOP
-        LET tokOp: lexer.Token := self.token
-        CASE tokOp.type
-            WHEN TokenType.times DO
-                self.nextToken()
-                LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
-                left := NEW ParseTreeNode(
-                    type WITH Type.MultiplicationExpression,
-                    token WITH tokOp,
-                    binaryexpression WITH BinaryExpression(
-                        startColumn WITH getStartColumn(left),
-                        endColumn WITH getEndColumn(right),
-                        left WITH left,
-                        right WITH right
-                    )
-                )
-            WHEN TokenType.divide DO
-                self.nextToken()
-                LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
-                left := NEW ParseTreeNode(
-                    type WITH Type.DivisionExpression,
-                    token WITH tokOp,
-                    binaryexpression WITH BinaryExpression(
-                        startColumn WITH getStartColumn(left),
-                        endColumn WITH getEndColumn(right),
-                        left WITH left,
-                        right WITH right
-                    )
-                )
-            WHEN TokenType.intdiv DO
-                self.nextToken()
-                LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
-                left := NEW ParseTreeNode(
-                    type WITH Type.IntegerDivisionExpression,
-                    token WITH tokOp,
-                    binaryexpression WITH BinaryExpression(
-                        startColumn WITH getStartColumn(left),
-                        endColumn WITH getEndColumn(right),
-                        left WITH left,
-                        right WITH right
-                    )
-                )
-            WHEN TokenType.mod DO
-                self.nextToken()
-                LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
-                left := NEW ParseTreeNode(
-                    type WITH Type.ModuloExpression,
-                    token WITH tokOp,
-                    binaryexpression WITH BinaryExpression(
-                        startColumn WITH getStartColumn(left),
-                        endColumn WITH getEndColumn(right),
-                        left WITH left,
-                        right WITH right
-                    )
-                )
-            WHEN OTHERS DO
-                RETURN left
-        END CASE
-    END LOOP
-END FUNCTION
-
-FUNCTION Parser.parseAddition(INOUT self: Parser): POINTER TO ParseTreeNode
-    VAR left: POINTER TO ParseTreeNode := self.parseMultiplication()
-    LOOP
-        LET tokOp: lexer.Token := self.token
-        CASE tokOp.type
-            WHEN TokenType.plus DO
-                self.nextToken()
-                LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
-                left := NEW ParseTreeNode(
-                    type WITH Type.AdditionExpression,
-                    token WITH tokOp,
-                    binaryexpression WITH BinaryExpression(
-                        startColumn WITH getStartColumn(left),
-                        endColumn WITH getEndColumn(right),
-                        left WITH left,
-                        right WITH right
-                    )
-                )
-            WHEN TokenType.minus DO
-                self.nextToken()
-                LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
-                left := NEW ParseTreeNode(
-                    type WITH Type.SubtractionExpression,
-                    token WITH tokOp,
-                    binaryexpression WITH BinaryExpression(
-                        startColumn WITH getStartColumn(left),
-                        endColumn WITH getEndColumn(right),
-                        left WITH left,
-                        right WITH right
-                    )
-                )
-            WHEN TokenType.concat DO
-                self.nextToken()
-                LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
-                left := NEW ParseTreeNode(
-                    type WITH Type.ConcatenationExpression,
-                    token WITH tokOp,
-                    binaryexpression WITH BinaryExpression(
-                        startColumn WITH getStartColumn(left),
-                        endColumn WITH getEndColumn(right),
-                        left WITH left,
-                        right WITH right
-                    )
-                )
-            WHEN OTHERS DO
-                RETURN left
-        END CASE
-    END LOOP
+    END CASE
+    RETURN left
 END FUNCTION
 
 FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
-    LET left: POINTER TO ParseTreeNode := self.parseAddition()
+    LET left: POINTER TO ParseTreeNode := self.parseArithmetic()
     VAR comps: Array<ChainedComparisonPart> := []
     VAR tokComp: lexer.Token := lexer.Token()
     WHILE self.token.type IN [TokenType.equal, TokenType.notequal, TokenType.less, TokenType.greater, TokenType.lesseq, TokenType.greatereq] DO
@@ -1749,7 +1766,7 @@ FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
         END IF
         LET comp: Comparison := comparisonFromToken(tokComp)
         self.nextToken()
-        LET right: POINTER TO ParseTreeNode := self.parseAddition()
+        LET right: POINTER TO ParseTreeNode := self.parseArithmetic()
         comps.append(ChainedComparisonPart(comp WITH comp, right WITH right))
     END WHILE
     IF comps.size() = 0 THEN
@@ -1844,50 +1861,45 @@ FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
     END IF
 END FUNCTION
 
-FUNCTION Parser.parseConjunction(INOUT self: Parser): POINTER TO ParseTreeNode
+FUNCTION Parser.parseLogical(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR left: POINTER TO ParseTreeNode := self.parseMembership()
-    LOOP
-        LET tokOp: lexer.Token := self.token
-        IF self.token.type = TokenType.and THEN
-            self.nextToken()
-            LET right: POINTER TO ParseTreeNode := self.parseMembership()
-            left := NEW ParseTreeNode(
-                type WITH Type.ConjunctionExpression,
-                token WITH tokOp,
-                binaryexpression WITH BinaryExpression(
-                    startColumn WITH getStartColumn(left),
-                    endColumn WITH getEndColumn(right),
-                    left WITH left,
-                    right WITH right
+    CASE self.token.type
+        WHEN TokenType.and DO
+            WHILE self.token.type = TokenType.and DO
+                LET tokOp: lexer.Token := self.token
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseMembership()
+                left := NEW ParseTreeNode(
+                    type WITH Type.ConjunctionExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
                 )
-            )
-        ELSE
-            RETURN left
-        END IF
-    END LOOP
-END FUNCTION
-
-FUNCTION Parser.parseDisjunction(INOUT self: Parser): POINTER TO ParseTreeNode
-    VAR left: POINTER TO ParseTreeNode := self.parseConjunction()
-    LOOP
-        LET tokOp: lexer.Token := self.token
-        IF self.token.type = TokenType.or THEN
-            self.nextToken()
-            LET right: POINTER TO ParseTreeNode := self.parseConjunction()
-            left := NEW ParseTreeNode(
-                type WITH Type.DisjunctionExpression,
-                token WITH tokOp,
-                binaryexpression WITH BinaryExpression(
-                    startColumn WITH getStartColumn(left),
-                    endColumn WITH getEndColumn(right),
-                    left WITH left,
-                    right WITH right
+            END WHILE
+        WHEN TokenType.or DO
+            WHILE self.token.type = TokenType.or DO
+                LET tokOp: lexer.Token := self.token
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseMembership()
+                left := NEW ParseTreeNode(
+                    type WITH Type.DisjunctionExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
                 )
-            )
-        ELSE
+            END WHILE
+        WHEN OTHERS DO
             RETURN left
-        END IF
-    END LOOP
+    END CASE
+    RETURN left
 END FUNCTION
 
 FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -1997,7 +2009,7 @@ FUNCTION Parser.parseExpression(INOUT self: Parser): POINTER TO ParseTreeNode
     IF self.expressionDepth > 100 THEN
         error(2067, self.token, "exceeded maximum nesting depth")
     END IF
-    LET r: POINTER TO ParseTreeNode := self.parseDisjunction()
+    LET r: POINTER TO ParseTreeNode := self.parseLogical()
     DEC self.expressionDepth
     RETURN r
 END FUNCTION

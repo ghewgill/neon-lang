@@ -56,10 +56,10 @@ FUNCTION handle(e: sdl.Event, INOUT quit: Boolean)
             player.turn := 0.1
         ELSIF e.key.keysym.sym = sdl.SDLK_SPACE THEN
             VAR shot: Shot := Shot()
-            shot.x := player.x + 20 * math.cos(player.rot)
-            shot.y := player.y + 20 * math.sin(player.rot)
-            shot.dx := player.dx + 2 * math.cos(player.rot)
-            shot.dy := player.dy + 2 * math.sin(player.rot)
+            shot.x := player.x + (20 * math.cos(player.rot))
+            shot.y := player.y + (20 * math.sin(player.rot))
+            shot.dx := player.dx + (2 * math.cos(player.rot))
+            shot.dy := player.dy + (2 * math.sin(player.rot))
             shot.count := 100
             shots.append(shot)
         ELSIF e.key.keysym.sym = sdl.SDLK_UP THEN
@@ -81,18 +81,18 @@ FUNCTION render(ren: sdl.Renderer)
     sdl.RenderClear(ren)
     sdl.SetRenderDrawColor(ren, 255, 255, 255, 255)
     sdl.RenderDrawLines(ren, [
-        [player.x+15*math.cos(player.rot), player.y+15*math.sin(player.rot)],
-        [player.x+10*math.cos(player.rot+2.5), player.y+10*math.sin(player.rot+2.5)],
-        [player.x+7*math.cos(player.rot+2.7), player.y+7*math.sin(player.rot+2.7)],
-        [player.x+7*math.cos(player.rot-2.7), player.y+7*math.sin(player.rot-2.7)],
-        [player.x+10*math.cos(player.rot-2.5), player.y+10*math.sin(player.rot-2.5)],
-        [player.x+15*math.cos(player.rot), player.y+15*math.sin(player.rot)],
+        [player.x+(15*math.cos(player.rot)), player.y+(15*math.sin(player.rot))],
+        [player.x+(10*math.cos(player.rot+2.5)), player.y+(10*math.sin(player.rot+2.5))],
+        [player.x+(7*math.cos(player.rot+2.7)), player.y+(7*math.sin(player.rot+2.7))],
+        [player.x+(7*math.cos(player.rot-2.7)), player.y+(7*math.sin(player.rot-2.7))],
+        [player.x+(10*math.cos(player.rot-2.5)), player.y+(10*math.sin(player.rot-2.5))],
+        [player.x+(15*math.cos(player.rot)), player.y+(15*math.sin(player.rot))],
     ])
     IF player.thrust THEN
         sdl.RenderDrawLines(ren, [
-            [player.x+8*math.cos(player.rot+2.8), player.y+8*math.sin(player.rot+2.8)],
-            [player.x+12*math.cos(player.rot+math.Pi), player.y+12*math.sin(player.rot+math.Pi)],
-            [player.x+8*math.cos(player.rot-2.8), player.y+8*math.sin(player.rot-2.8)],
+            [player.x+(8*math.cos(player.rot+2.8)), player.y+(8*math.sin(player.rot+2.8))],
+            [player.x+(12*math.cos(player.rot+math.Pi)), player.y+(12*math.sin(player.rot+math.Pi))],
+            [player.x+(8*math.cos(player.rot-2.8)), player.y+(8*math.sin(player.rot-2.8))],
         ])
     END IF
     FOREACH r IN rocks DO
@@ -135,8 +135,8 @@ FUNCTION update()
     player.rot := player.rot + player.turn
     IF player.thrust THEN
         IF math.hypot(player.dx, player.dy) < 10 THEN
-            player.dx := player.dx + 0.05*math.cos(player.rot)
-            player.dy := player.dy + 0.05*math.sin(player.rot)
+            player.dx := player.dx + (0.05*math.cos(player.rot))
+            player.dy := player.dy + (0.05*math.sin(player.rot))
         END IF
     ELSE
         player.dx := player.dx * 0.995
@@ -157,8 +157,8 @@ FUNCTION update()
                         VAR rock: Rock := Rock()
                         rock.x := rocks[i].x
                         rock.y := rocks[i].y
-                        rock.dx := random.uint32() MOD 10 / 5 - 1
-                        rock.dy := random.uint32() MOD 10 / 5 - 1
+                        rock.dx := ((random.uint32() MOD 10) / 5) - 1
+                        rock.dy := ((random.uint32() MOD 10) / 5) - 1
                         rock.size := rocks[i].size - 1
                         rocks.append(rock)
                     END FOR
@@ -203,8 +203,8 @@ BEGIN MAIN
         VAR rock: Rock := Rock()
         rock.x := random.uint32() MOD 640
         rock.y := random.uint32() MOD 480
-        rock.dx := random.uint32() MOD 10 / 5 - 1
-        rock.dy := random.uint32() MOD 10 / 5 - 1
+        rock.dx := ((random.uint32() MOD 10) / 5) - 1
+        rock.dy := ((random.uint32() MOD 10) / 5) - 1
         rock.size := 3
         rocks.append(rock)
     END FOR
