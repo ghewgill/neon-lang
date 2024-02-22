@@ -21,7 +21,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         lib/random_posix.c
         lib/runtime_posix.c
     )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
     # Not all flavors of Linx will have the function clock_gettime(), and some have it in a different include.
     # See exec/cnex/lib/time_linux.c for more information.
     include(CheckSymbolExists)
@@ -155,4 +155,7 @@ else (WIN32)
     target_link_libraries(test_string_support m)
     target_link_libraries(test_number_to_string_c m)
     target_link_libraries(test_path_support m)
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
+        target_link_libraries(cnex pthread)
+    endif ()
 endif (WIN32)

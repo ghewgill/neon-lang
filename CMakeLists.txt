@@ -387,7 +387,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         lib/time_posix.cpp
         lib/time_darwin.cpp
     )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
     set(platform_executor
         src/rtl_posix.cpp
         lib/file_posix.cpp
@@ -488,7 +488,7 @@ endif (WIN32)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     target_link_libraries(executor dl)
 endif ()
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
     target_link_libraries(executor pthread)
 endif ()
 

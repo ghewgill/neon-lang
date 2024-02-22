@@ -19,7 +19,7 @@ add_library(minizip
     minizip11/zip.c
     ${minizip_platform}
 )
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
     set_source_files_properties(minizip11/ioapi.c PROPERTIES COMPILE_DEFINITIONS "fopen64=fopen;fseeko64=fseeko;ftello64=ftello")
 endif ()
 target_include_directories(minizip

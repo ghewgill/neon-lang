@@ -13,7 +13,23 @@ if (NOT EXISTS external/IntelRDFPMathLib20U2)
             RESULT_VARIABLE retcode
         )
         if (NOT "${retcode}" STREQUAL "0")
-            message(FATAL_ERROR "Fatal error extracting archive")
+            message(FATAL_ERROR "Fatal error patching file")
+        endif ()
+    endif ()
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
+        execute_process(
+            COMMAND perl -p -i -e "s/unsigned short int fexcept_t/unsigned int fexcept_t/" external/IntelRDFPMathLib20U2/LIBRARY/src/bid_functions.h
+            RESULT_VARIABLE retcode
+        )
+        if (NOT "${retcode}" STREQUAL "0")
+            message(FATAL_ERROR "Fatal error patching file")
+        endif ()
+        execute_process(
+            COMMAND sh -c "(echo '#include <unistd.h>' && cat external/IntelRDFPMathLib20U2/LIBRARY/float128/dpml_exception.h) >external/IntelRDFPMathLib20U2/LIBRARY/float128/dpml_exception.h.new && mv external/IntelRDFPMathLib20U2/LIBRARY/float128/dpml_exception.h.new external/IntelRDFPMathLib20U2/LIBRARY/float128/dpml_exception.h"
+            RESULT_VARIABLE retcode
+        )
+        if (NOT "${retcode}" STREQUAL "0")
+            message(FATAL_ERROR "Fatal error patching file")
         endif ()
     endif ()
 endif ()
