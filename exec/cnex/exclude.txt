@@ -7,7 +7,6 @@ gc2.neon                   # Object Count
 gc3.neon                   # Object Count
 gc-two-pointers.neon       # garbage collection
 math-test.neon             # math.powmod()
-struct-test.neon           # iEEE big endian packing
 
 extsample-test.neon        # cell_set_pointer
 http-test.neon             # string$split

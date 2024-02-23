@@ -301,10 +301,14 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("string$upper",              string_upper),
 
     // struct - C struct serialization functions
-    PDFUNC("struct$packIEEE32",         struct_packIEEE32),
-    PDFUNC("struct$packIEEE64",         struct_packIEEE64),
-    PDFUNC("struct$unpackIEEE32",       struct_unpackIEEE32),
-    PDFUNC("struct$unpackIEEE64",       struct_unpackIEEE64),
+    PDFUNC("struct$packIEEE32BE",       struct_packIEEE32BE),
+    PDFUNC("struct$packIEEE32LE",       struct_packIEEE32LE),
+    PDFUNC("struct$packIEEE64BE",       struct_packIEEE64BE),
+    PDFUNC("struct$packIEEE64LE",       struct_packIEEE64LE),
+    PDFUNC("struct$unpackIEEE32BE",     struct_unpackIEEE32BE),
+    PDFUNC("struct$unpackIEEE32LE",     struct_unpackIEEE32LE),
+    PDFUNC("struct$unpackIEEE64BE",     struct_unpackIEEE64BE),
+    PDFUNC("struct$unpackIEEE64LE",     struct_unpackIEEE64LE),
 
     // sys - System level calls
     PDFUNC("sys$exit",                  sys_exit),
