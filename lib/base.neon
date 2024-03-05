@@ -23,7 +23,7 @@ EXPORT FUNCTION from(base: Number, digits: String): NumberResult
         CHECK d ISA string.FindResult.index ELSE
             RETURN NumberResult.error("invalid digit: \(c) at index \(i)")
         END CHECK
-        r := r * base + d.index
+        r := (r * base) + d.index
     END FOREACH
     RETURN NumberResult.value(r)
 END FUNCTION

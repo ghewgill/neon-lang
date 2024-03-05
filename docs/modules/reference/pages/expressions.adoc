@@ -161,15 +161,25 @@ The operator precedence is as follows, highest to lowest:
 | Operator                   | Description
 
 | `( )`                      | subexpression
-| `^`                        | exponentiation
-| `*` `/` `MOD` `INTDIV`     | multiplication, division, modulo
-| `+` `-` `&`                | addition, subtraction, concatenation
+| `^` `*` `/` `MOD` `INTDIV`  `+` `-` `&` | arithmetic (see below)
 | `=` `<>` `<` `>` `<=` `>=` | comparison
 | `IN` `NOT IN`              | membership
-| `AND`                      | conjunction
-| `OR`                       | disjunction
+| `AND` `OR`                 | logical (see below)
 | `IF`                       | conditional
 |===
+
+Operator precedence only matters for expressions with three or more operands.
+For arithmetic and logical expressions, there is a simple rule:
+
+* Parentheses are required in an expression, if adding parentheses around any two operands would change the meaning of the expression.
+
+In practice, this means that all arithmetic and logical expressions (with three or more operands) must be fully parenthesised except in the following cases:
+
+* Sums: `a + b + c` with an optional single subtraction at the end
+* Products: `a * b * c` with an optional single division at the end
+* Concatenation: `a & b & c`
+* Conjunction: `a AND b AND c`
+* Disjunction: `a OR b OR c`
 
 == Array Subscripts
 

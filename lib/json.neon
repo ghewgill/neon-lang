@@ -122,11 +122,11 @@ FUNCTION decodePart(json: String, INOUT index: Number): JsonResult
                                 VAR char: Number := 0
                                 FOR i := 1 TO 4 DO
                                     IF "0" <= json[index+i] <= "9" THEN
-                                        char := char * 0x10 + (string.toCodePoint(json[index+i]) - string.toCodePoint("0"))
+                                        char := (char * 0x10) + (string.toCodePoint(json[index+i]) - string.toCodePoint("0"))
                                     ELSIF "a" <= json[index+i] <= "f" THEN
-                                        char := char * 0x10 + (string.toCodePoint(json[index+i]) - string.toCodePoint("a"))
+                                        char := (char * 0x10) + (string.toCodePoint(json[index+i]) - string.toCodePoint("a"))
                                     ELSIF "A" <= json[index+i] <= "F" THEN
-                                        char := char * 0x10 + (string.toCodePoint(json[index+i]) - string.toCodePoint("A"))
+                                        char := (char * 0x10) + (string.toCodePoint(json[index+i]) - string.toCodePoint("A"))
                                     ELSE
                                         RETURN JsonResult.error(DecodeError(message WITH "invalid hex character", index WITH index+i))
                                     END IF

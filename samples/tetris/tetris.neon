@@ -123,7 +123,7 @@ FUNCTION plot(on: Boolean, w: curses.Window, p, y, x, r: Number)
     FOR j := 0 TO 3 DO
         FOR i := 0 TO 3 DO
             IF q[j, i] <> 0 THEN
-                curses.mvwaddstr(w, y+j, 1+(x+i)*2, "  ")
+                curses.mvwaddstr(w, y+j, 1+((x+i)*2), "  ")
             END IF
         END FOR
     END FOR
@@ -181,14 +181,14 @@ FUNCTION remove_rows(INOUT score, rows: Number)
                 Board[k] := Board[k-1]
                 FOR i := 0 TO BOARD_WIDTH-1 DO
                     curses.wattrset(BoardWindow, curses.COLOR_PAIR(Board[k, i]))
-                    curses.mvwaddstr(BoardWindow, k, 1+2*i, "  ")
+                    curses.mvwaddstr(BoardWindow, k, 1+(2*i), "  ")
                 END FOR
             END FOR
         ELSE
             DEC j
         END IF
     END WHILE
-    score := score + count*count
+    score := score + (count*count)
     rows := rows + count
 END FUNCTION
 
@@ -207,7 +207,7 @@ FUNCTION init()
     curses.mvaddstr(13, 40, @"        space - drop              ")
     curses.refresh()
 
-    BoardWindow := curses.newwin(21, 2+2*10, 2, 5)
+    BoardWindow := curses.newwin(21, 2+(2*10), 2, 5)
     curses.wtimeout(BoardWindow, 100)
 
     NextWindow := curses.newwin(6, 10, 14, 30)
@@ -252,7 +252,7 @@ FUNCTION main()
         END FOR
         VAR p, x, y, r: Number := 0
         VAR rows, score: Number := 0
-        VAR next: Number := 1 + random.uint32() MOD 7
+        VAR next: Number := 1 + (random.uint32() MOD 7)
         VAR drop_time: Number := 1
         VAR new_piece: Boolean := TRUE
         VAR last_drop: Number := 0
@@ -260,7 +260,7 @@ FUNCTION main()
         WHILE NOT game_over AND NOT quit DO
             IF new_piece THEN
                 p := next
-                next := 1 + random.uint32() MOD 7
+                next := 1 + (random.uint32() MOD 7)
                 x := 3
                 y := 0
                 r := 0

@@ -74,8 +74,8 @@ FUNCTION pa(INOUT e: Array<Number>)
     j := 0
     WHILE j < 6 DO
         e[1] := ( e[1] + e[2] + e[3] - e[4]) * t
-        e[2] := ( e[1] + e[2] - e[3] + e[4]) * t
-        e[3] := ( e[1] - e[2] + e[3] + e[4]) * t
+        e[2] := ((e[1] + e[2] - e[3])+ e[4]) * t
+        e[3] := ((e[1] - e[2])+ e[3] + e[4]) * t
         e[4] := (-e[1] + e[2] + e[3] + e[4]) / T2
         j := j + 1
     END WHILE
@@ -189,8 +189,8 @@ C
 
             FOR i := 1 TO N1 DO
                 X1 := (X1 + X2 + X3 - X4) * t
-                X2 := (X1 + X2 - X3 + X4) * t
-                X3 := (X1 - X2 + X3 + X4) * t
+                X2 := ((X1 + X2 - X3) + X4) * t
+                X3 := ((X1 - X2) + X3 + X4) * t
                 X4 := (-X1+ X2 + X3 + X4) * t
             END FOR
 --#ifdef PRINTOUT
@@ -209,8 +209,8 @@ C
 
             FOR i := 1 TO N2 DO
                 E1[1] := ( E1[1] + E1[2] + E1[3] - E1[4]) * t
-                E1[2] := ( E1[1] + E1[2] - E1[3] + E1[4]) * t
-                E1[3] := ( E1[1] - E1[2] + E1[3] + E1[4]) * t
+                E1[2] := ((E1[1] + E1[2] - E1[3])+ E1[4]) * t
+                E1[3] := ((E1[1] - E1[2])+ E1[3] + E1[4]) * t
                 E1[4] := (-E1[1] + E1[2] + E1[3] + E1[4]) * t
             END FOR
 
@@ -274,7 +274,7 @@ C
 
             FOR i := 1 TO N6 DO
                 j := j * (k-j) * (l-k)
-                k := l * k - (l-j) * k
+                k := (l * k) - ((l-j) * k)
                 l := (l-k) * (k+j)
                 E1[l-1] := j + k + l
                 E1[k-1] := j * k * l
@@ -350,7 +350,7 @@ C
                 j := j + k
                 k := j + k
                 j := k - j
-                k := k - j - j
+                k := (k - j) - j
             END FOR
 
 --#ifdef PRINTOUT

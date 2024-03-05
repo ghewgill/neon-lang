@@ -38,8 +38,8 @@ BEGIN MAIN
     player.y := 0
     player.dy := 0
     FOR i := 0 TO 4 DO
-        pipes[i].x := 640 + i * 320
-        pipes[i].gap := random.uint32() MOD 300 + 100
+        pipes[i].x := 640 + (i * 320)
+        pipes[i].gap := (random.uint32() MOD 300) + 100
     END FOR
     VAR quit: Boolean := FALSE
     WHILE NOT quit DO
@@ -71,7 +71,7 @@ BEGIN MAIN
         WHILE pipes.size() < 5 DO
             VAR p: Pipe := Pipe()
             p.x := pipes[LAST].x + 320
-            p.gap := random.uint32() MOD 300 + 100
+            p.gap := (random.uint32() MOD 300) + 100
             pipes.append(p)
         END WHILE
     END WHILE

@@ -157,29 +157,33 @@ WhileStatement = 'WHILE', ExpressionOrValid, ['LABEL', Identifier], 'DO', {State
 
 ExpressionOrValid = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifier)), {',', (Identifier | (Expression, 'AS', Identifier))});
 
-BracketedExpression = ConditionalExpression | TryExpression | DisjunctionExpression;
+BracketedExpression = ConditionalExpression | TryExpression | LogicalExpression;
 
 ConditionalExpression = ('IF', Expression, 'THEN', Expression, 'ELSE', Expression);
 
 TryExpression = ('TRY', Expression, {'TRAP', Identifier, ['.', Identifier], ['AS', Identifier], (('DO', {Statement}) | 'GIVES', Expression)});
 
-Expression = DisjunctionExpression;
+Expression = LogicalExpression;
 
-DisjunctionExpression = ConjunctionExpression, {'OR', ConjunctionExpression};
+LogicalExpression = MembershipExpression, [ DisjunctionExpressionChain | ConjunctionExpressionChain ];
 
-ConjunctionExpression = MembershipExpression, {'AND', MembershipExpression};
+DisjunctionExpressionChain = 'OR', MembershipExpression, {'OR', MembershipExpression};
+
+ConjunctionExpressionChain = 'AND', MembershipExpression, {'AND', MembershipExpression};
 
 MembershipExpression = TypeTestExpression, [('IN' | 'NOT', 'IN'), TypeTestExpression];
 
 TypeTestExpression = ComparisonExpression, ['ISA', Type];
 
-ComparisonExpression = AdditionExpression, {('=' | '<>' | '<' | '>' | '<=' | '>='), AdditionExpression};
+ComparisonExpression = ArithmeticExpression, {('=' | '<>' | '<' | '>' | '<=' | '>='), ArithmeticExpression};
 
-AdditionExpression = MultiplicationExpression, {('+' | '-' | '&'), MultiplicationExpression};
+ArithmeticExpression = CompoundExpression, [ AdditionExpressionChain | ConcatExpressionChain | MultiplicationExpressionChain | (('-' | '/' | 'INTDIV' | 'MOD' | '^'), CompoundExpression) ];
 
-MultiplicationExpression = ExponentiationExpression, {('*' | '/' | 'INTDIV' | 'MOD'), ExponentiationExpression};
+AdditionExpressionChain = '+', CompoundExpression, {'+', CompoundExpression}, ['-', CompoundExpression];
 
-ExponentiationExpression = CompoundExpression, {'^', CompoundExpression};
+ConcatExpressionChain = '&', CompoundExpression, {'&', CompoundExpression};
+
+MultiplicationExpressionChain = '*', CompoundExpression, {'*', CompoundExpression}, ['/', CompoundExpression];
 
 Atom =
     ('(', BracketedExpression, ')') |

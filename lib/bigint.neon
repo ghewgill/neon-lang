@@ -186,7 +186,7 @@ FUNCTION sub(x, y: BigInt): BigInt
             VAR i: Number := 0
             VAR borrow: Number := 0
             WHILE i < x.digits.size() DO
-                r.digits[i] := (IF i < x.digits.size() THEN x.digits[i] ELSE 0) - (IF i < y.digits.size() THEN y.digits[i] ELSE 0) - borrow
+                r.digits[i] := ((IF i < x.digits.size() THEN x.digits[i] ELSE 0) - (IF i < y.digits.size() THEN y.digits[i] ELSE 0)) - borrow
                 IF r.digits[i] < 0 THEN
                     r.digits[i] := r.digits[i] + Base
                     borrow := 1
@@ -216,7 +216,7 @@ FUNCTION mul(x, y: BigInt): BigInt
         VAR p: BigInt := Zero
         VAR carry: Number := 0
         FOR j := 0 TO x.digits.size()-1 DO
-            LET z: Number := (IF j < x.digits.size() THEN x.digits[j] ELSE 0) * y.digits[i] + carry
+            LET z: Number := ((IF j < x.digits.size() THEN x.digits[j] ELSE 0) * y.digits[i]) + carry
             p.digits[i+j] := z MOD Base
             carry := math.floor(z / Base)
         END FOR

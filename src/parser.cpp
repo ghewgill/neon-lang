@@ -43,14 +43,11 @@ public:
     std::unique_ptr<Expression> parseInterpolatedStringExpression();
     std::unique_ptr<Expression> parseAtom();
     std::unique_ptr<Expression> parseCompoundExpression();
-    std::unique_ptr<Expression> parseExponentiation();
-    std::unique_ptr<Expression> parseMultiplication();
-    std::unique_ptr<Expression> parseAddition();
+    std::unique_ptr<Expression> parseArithmetic();
     std::unique_ptr<Expression> parseComparison();
     std::unique_ptr<Expression> parseTypeTest();
     std::unique_ptr<Expression> parseMembership();
-    std::unique_ptr<Expression> parseConjunction();
-    std::unique_ptr<Expression> parseDisjunction();
+    std::unique_ptr<Expression> parseLogical();
     std::unique_ptr<Expression> parseConditional();
     std::unique_ptr<Expression> parseExpression();
     VariableInfo parseVariableDeclaration(RequireType require_type);
@@ -565,14 +562,14 @@ std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
 /*
  * Operator precedence:
  *
- *  ^        exponentiation                     parseExponentiation
- *  * / MOD  multiplication, division, modulo   parseMultiplication
- *  + -      addition, subtraction              parseAddition
+ *  ^        exponentiation                     parseArithmetic
+ *  * / MOD  multiplication, division, modulo   parseArithmetic
+ *  + -      addition, subtraction              parseArithmetic
  *  < = >    comparison                         parseComparison
  *  isa      type test                          parseTypeTest
  *  in       membership                         parseMembership
- *  and      conjunction                        parseConjunction
- *  or       disjunction                        parseDisjunction
+ *  and      conjunction                        parseLogical
+ *  or       disjunction                        parseLogical
  *  if       conditional                        parseConditional
  */
 
@@ -786,90 +783,98 @@ std::unique_ptr<Expression> Parser::parseCompoundExpression()
     return expr;
 }
 
-std::unique_ptr<Expression> Parser::parseExponentiation()
+std::unique_ptr<Expression> Parser::parseArithmetic()
 {
     std::unique_ptr<Expression> left = parseCompoundExpression();
-    for (;;) {
-        auto &tok_op = tokens[i];
-        if (tokens[i].type == EXP) {
+    auto &tok_op = tokens[i];
+    switch (tokens[i].type) {
+        case PLUS: {
+            while (tokens[i].type == PLUS) {
+                auto &tok_op = tokens[i];
+                ++i;
+                std::unique_ptr<Expression> right = parseCompoundExpression();
+                left.reset(new AdditionExpression(tok_op, std::move(left), std::move(right)));
+            }
+            if (tokens[i].type == MINUS) {
+                auto &tok_op = tokens[i];
+                ++i;
+                std::unique_ptr<Expression> right = parseCompoundExpression();
+                left.reset(new SubtractionExpression(tok_op, std::move(left), std::move(right)));
+            }
+            break;
+        }
+        case CONCAT: {
+            while (tokens[i].type == CONCAT) {
+                auto &tok_op = tokens[i];
+                ++i;
+                std::unique_ptr<Expression> right = parseCompoundExpression();
+                left.reset(new ConcatenationExpression(tok_op, std::move(left), std::move(right)));
+            }
+            break;
+        }
+        case TIMES: {
+            while (tokens[i].type == TIMES) {
+                auto &tok_op = tokens[i];
+                ++i;
+                std::unique_ptr<Expression> right = parseCompoundExpression();
+                left.reset(new MultiplicationExpression(tok_op, std::move(left), std::move(right)));
+            }
+            auto &tok_op = tokens[i];
+            switch (tokens[i].type) {
+                case DIVIDE: {
+                    ++i;
+                    std::unique_ptr<Expression> right = parseCompoundExpression();
+                    left.reset(new DivisionExpression(tok_op, std::move(left), std::move(right)));
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+        case MINUS: {
+            ++i;
+            std::unique_ptr<Expression> right = parseCompoundExpression();
+            left.reset(new SubtractionExpression(tok_op, std::move(left), std::move(right)));
+            break;
+        }
+        case DIVIDE: {
+            ++i;
+            std::unique_ptr<Expression> right = parseCompoundExpression();
+            left.reset(new DivisionExpression(tok_op, std::move(left), std::move(right)));
+            break;
+        }
+        case INTDIV: {
+            ++i;
+            std::unique_ptr<Expression> right = parseCompoundExpression();
+            left.reset(new IntegerDivisionExpression(tok_op, std::move(left), std::move(right)));
+            break;
+        }
+        case MOD: {
+            ++i;
+            std::unique_ptr<Expression> right = parseCompoundExpression();
+            left.reset(new ModuloExpression(tok_op, std::move(left), std::move(right)));
+            break;
+        }
+        case EXP: {
             ++i;
             std::unique_ptr<Expression> right = parseCompoundExpression();
             left.reset(new ExponentiationExpression(tok_op, std::move(left), std::move(right)));
-        } else {
+            break;
+        }
+        default:
             return left;
-        }
     }
-}
-
-std::unique_ptr<Expression> Parser::parseMultiplication()
-{
-    std::unique_ptr<Expression> left = parseExponentiation();
-    for (;;) {
-        auto &tok_op = tokens[i];
-        switch (tokens[i].type) {
-            case TIMES: {
-                ++i;
-                std::unique_ptr<Expression> right = parseExponentiation();
-                left.reset(new MultiplicationExpression(tok_op, std::move(left), std::move(right)));
-                break;
-            }
-            case DIVIDE: {
-                ++i;
-                std::unique_ptr<Expression> right = parseExponentiation();
-                left.reset(new DivisionExpression(tok_op, std::move(left), std::move(right)));
-                break;
-            }
-            case INTDIV: {
-                ++i;
-                std::unique_ptr<Expression> right = parseExponentiation();
-                left.reset(new IntegerDivisionExpression(tok_op, std::move(left), std::move(right)));
-                break;
-            }
-            case MOD: {
-                ++i;
-                std::unique_ptr<Expression> right = parseExponentiation();
-                left.reset(new ModuloExpression(tok_op, std::move(left), std::move(right)));
-                break;
-            }
-            default:
-                return left;
-        }
+    auto &t = tokens[i].type;
+    if (t == PLUS || t == MINUS || t == TIMES || t == DIVIDE || t == INTDIV || t == MOD || t == EXP) {
+        error_a(2145, left->get_start_token(), left->get_end_token(), "use more parentheses to disambiguate");
     }
-}
-
-std::unique_ptr<Expression> Parser::parseAddition()
-{
-    std::unique_ptr<Expression> left = parseMultiplication();
-    for (;;) {
-        auto &tok_op = tokens[i];
-        switch (tokens[i].type) {
-            case PLUS: {
-                ++i;
-                std::unique_ptr<Expression> right = parseMultiplication();
-                left.reset(new AdditionExpression(tok_op, std::move(left), std::move(right)));
-                break;
-            }
-            case MINUS: {
-                ++i;
-                std::unique_ptr<Expression> right = parseMultiplication();
-                left.reset(new SubtractionExpression(tok_op, std::move(left), std::move(right)));
-                break;
-            }
-            case CONCAT: {
-                ++i;
-                std::unique_ptr<Expression> right = parseMultiplication();
-                left.reset(new ConcatenationExpression(tok_op, std::move(left), std::move(right)));
-                break;
-            }
-            default:
-                return left;
-        }
-    }
+    return left;
 }
 
 std::unique_ptr<Expression> Parser::parseComparison()
 {
-    std::unique_ptr<Expression> left = parseAddition();
+    std::unique_ptr<Expression> left = parseArithmetic();
     std::vector<std::unique_ptr<ChainedComparisonExpression::Part>> comps;
     Token tok_comp;
     while (tokens[i].type == EQUAL  || tokens[i].type == NOTEQUAL
@@ -881,7 +886,7 @@ std::unique_ptr<Expression> Parser::parseComparison()
         }
         ComparisonExpression::Comparison comp = comparisonFromToken(tok_comp);
         ++i;
-        std::unique_ptr<Expression> right = parseAddition();
+        std::unique_ptr<Expression> right = parseArithmetic();
         comps.emplace_back(new ChainedComparisonExpression::Part(tok_comp, comp, std::move(right)));
     }
     if (comps.empty()) {
@@ -928,34 +933,34 @@ std::unique_ptr<Expression> Parser::parseMembership()
     }
 }
 
-std::unique_ptr<Expression> Parser::parseConjunction()
+std::unique_ptr<Expression> Parser::parseLogical()
 {
     std::unique_ptr<Expression> left = parseMembership();
-    for (;;) {
-        auto &tok_op = tokens[i];
-        if (tokens[i].type == AND) {
-            ++i;
-            std::unique_ptr<Expression> right = parseMembership();
-            left.reset(new ConjunctionExpression(tok_op, std::move(left), std::move(right)));
-        } else {
+    switch (tokens[i].type) {
+        case AND:
+            while (tokens[i].type == AND) {
+                auto &tok_op = tokens[i];
+                ++i;
+                std::unique_ptr<Expression> right = parseMembership();
+                left.reset(new ConjunctionExpression(tok_op, std::move(left), std::move(right)));
+            }
+            break;
+        case OR:
+            while (tokens[i].type == OR) {
+                auto &tok_op = tokens[i];
+                ++i;
+                std::unique_ptr<Expression> right = parseMembership();
+                left.reset(new DisjunctionExpression(tok_op, std::move(left), std::move(right)));
+            }
+            break;
+        default:
             return left;
-        }
     }
-}
-
-std::unique_ptr<Expression> Parser::parseDisjunction()
-{
-    std::unique_ptr<Expression> left = parseConjunction();
-    for (;;) {
-        auto &tok_op = tokens[i];
-        if (tokens[i].type == OR) {
-            ++i;
-            std::unique_ptr<Expression> right = parseConjunction();
-            left.reset(new DisjunctionExpression(tok_op, std::move(left), std::move(right)));
-        } else {
-            return left;
-        }
+    auto &t = tokens[i].type;
+    if (t == AND || t == OR) {
+        error_a(2146, left->get_start_token(), left->get_end_token(), "use more parentheses to disambiguate");
     }
+    return left;
 }
 
 std::unique_ptr<Expression> Parser::parseConditional()
@@ -1035,7 +1040,7 @@ std::unique_ptr<Expression> Parser::parseExpression()
     if (expression_depth > 100) {
         error(2067, tokens[i], "exceeded maximum nesting depth");
     }
-    std::unique_ptr<Expression> r = parseDisjunction();
+    std::unique_ptr<Expression> r = parseLogical();
     expression_depth--;
     return r;
 }

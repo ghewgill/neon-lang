@@ -1,0 +1,2 @@
+LET a := TRUE AND TRUE OR TRUE
+                  --<

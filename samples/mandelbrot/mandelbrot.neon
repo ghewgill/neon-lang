@@ -59,8 +59,8 @@ FUNCTION update()
                 LET re2: Number := z_re * z_re
                 LET im2: Number := z_im * z_im
                 IF re2 + im2 < 4 AND n < MAX_ITERATIONS THEN
-                    z_im := 2 * z_re * z_im + p_im
-                    z_re := re2 - im2 + p_re
+                    z_im := (2 * z_re * z_im) + p_im
+                    z_re := (re2 - im2) + p_re
                     INC n
                 ELSE
                     EXIT LOOP
@@ -94,7 +94,7 @@ BEGIN MAIN
     bmpren := sdl.CreateSoftwareRenderer(bitmap)
     done := multiarray.makeBoolean2D(480, 640)
     FOR i := 0 TO MAX_ITERATIONS-1 DO
-        LET x: Number := i MOD (MAX_ITERATIONS/6) * 255 / (MAX_ITERATIONS/6)
+        LET x: Number := (i MOD (MAX_ITERATIONS/6)) * 255 / (MAX_ITERATIONS/6)
         CASE math.floor(i/(MAX_ITERATIONS/6))
             WHEN 0 DO palette[i] := Colour(r WITH 0, g WITH x, b WITH 255)
             WHEN 1 DO palette[i] := Colour(r WITH 0, g WITH 255, b WITH 255-x)

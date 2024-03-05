@@ -100,7 +100,7 @@ FUNCTION acos(a: Complex): Complex
     LET s2: Complex := make(1 + a.re, a.im).sqrt()
     LET r1: Number := 2 * math.atan2(s1.re, s2.re)
     VAR i1: Number := (s2.re*s1.im) - (s2.im*s1.re)
-    i1 := sign(i1) * math.log(math.abs(i1) + math.sqrt(i1*i1 + 1))
+    i1 := sign(i1) * math.log(math.abs(i1) + math.sqrt((i1*i1) + 1))
     RETURN make(r1, i1)
 END FUNCTION
 
@@ -115,7 +115,7 @@ FUNCTION acosh(a: Complex): Complex
     LET s1: Complex := make(a.re - 1, a.im).sqrt()
     LET s2: Complex := make(a.re + 1, a.im).sqrt()
     VAR r1: Number := (s1.re*s2.re) + (s1.im*s2.im)
-    r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt(r1*r1 + 1))
+    r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt((r1*r1) + 1))
     LET i1: Number := 2 * math.atan2(s1.im, s2.re)
     RETURN make(r1, i1)
 END FUNCTION
@@ -128,7 +128,7 @@ END FUNCTION
  *      http://mathworld.wolfram.com/AbsoluteValue.html
  */
 FUNCTION abs(a: Complex): Number
-    RETURN math.sqrt(a.re^2 + a.im^2)
+    RETURN math.sqrt((a.re^2) + (a.im^2))
 END FUNCTION
 
 /*  Function: add
@@ -164,7 +164,7 @@ FUNCTION asin(a: Complex): Complex
     LET s1: Complex := make(1 + a.re, a.im).sqrt()
     LET s2: Complex := make(1 - a.re, -a.im).sqrt()
     VAR r1: Number := (s1.re*s2.im) - (s2.re*s1.im)
-    r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt(r1*r1 + 1))
+    r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt((r1*r1) + 1))
     LET i1: Number := math.atan2(a.re, (s1.re*s2.re) - (s1.im*s2.im))
     RETURN make(i1, -r1)
 END FUNCTION
@@ -180,7 +180,7 @@ FUNCTION asinh(a: Complex): Complex
     LET s1: Complex := make(1 + a.im, -a.re).sqrt()
     LET s2: Complex := make(1 - a.im, a.re).sqrt()
     VAR r1: Number := (s1.re * s2.im) - (s2.re * s1.im)
-    r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt(r1 * r1 + 1))
+    r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt((r1 * r1) + 1))
     LET i1: Number := math.atan2(a.im, (s1.re * s2.re) - (s1.im * s2.im))
     RETURN make(r1, i1)
 END FUNCTION
@@ -250,8 +250,8 @@ END FUNCTION
  *      http://mathworld.wolfram.com/ComplexDivision.html
  */
 FUNCTION div(a, b: Complex): Complex
-    LET d: Number := b.re^2 + b.im^2
-    RETURN make((a.re*b.re + a.im*b.im) / d, (a.im*b.re - a.re*b.im) / d)
+    LET d: Number := (b.re^2) + (b.im^2)
+    RETURN make(((a.re*b.re) + (a.im*b.im)) / d, ((a.im*b.re) - (a.re*b.im)) / d)
 END FUNCTION
 
 /*  Function: exp
@@ -287,7 +287,7 @@ END FUNCTION
  *      http://mathworld.wolfram.com/MultiplicativeInverse.html
  */
 FUNCTION inv(a: Complex): Complex
-    LET d: Number := a.re*a.re + a.im*a.im
+    LET d: Number := (a.re*a.re) + (a.im*a.im)
     RETURN make(a.re/d, -a.im/d)
 END FUNCTION
 
@@ -299,7 +299,7 @@ END FUNCTION
  *      http://mathworld.wolfram.com/Logarithm.html
  */
 FUNCTION log(a: Complex): Complex
-    RETURN make(math.log(a.re*a.re + a.im*a.im)/2, a.arg())
+    RETURN make(math.log((a.re*a.re) + (a.im*a.im))/2, a.arg())
 END FUNCTION
 
 /*  Function: log10
@@ -322,7 +322,7 @@ END FUNCTION
  *      http://mathworld.wolfram.com/ComplexMultiplication.html
  */
 FUNCTION mul(a, b: Complex): Complex
-    RETURN make(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re)
+    RETURN make((a.re * b.re) - (a.im * b.im), (a.re * b.im) + (a.im * b.re))
 END FUNCTION
 
 /*  Function: pow
@@ -335,8 +335,8 @@ END FUNCTION
 FUNCTION pow(a, b: Complex): Complex
     LET p: Number := a.arg()
     LET m: Number := a.abs()
-    LET r: Number := m^b.re * math.exp(-b.im * p)
-    LET t: Number := b.re * p + b.im * math.log(m)
+    LET r: Number := (m^b.re) * math.exp(-b.im * p)
+    LET t: Number := (b.re * p) + (b.im * math.log(m))
     RETURN make(r * math.cos(t), r * math.sin(t))
 END FUNCTION
 
@@ -390,7 +390,7 @@ END FUNCTION
  *  Complex square (a^2).
  */
 FUNCTION square(a: Complex): Complex
-    RETURN make(a.re*a.re - a.im*a.im, 2*a.re*a.im)
+    RETURN make((a.re*a.re) - (a.im*a.im), 2*a.re*a.im)
 END FUNCTION
 
 /*  Function: tan

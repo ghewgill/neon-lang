@@ -7,5 +7,5 @@ print(str(a + a + a))
 print(str(a * a * a))
 --= 8
 
-print(str(a ^ a ^ a))
+print(str((a ^ a) ^ a))
 --= 16
