@@ -67,6 +67,9 @@ Cell platform()
 void kill(const std::shared_ptr<Object> &process)
 {
     ProcessObject *p = check_process(process);
+    if (p->pid == 0) {
+        return;
+    }
     ::kill(-p->pid, SIGTERM);
     p->pid = 0;
     for (auto pi = g_children.begin(); pi != g_children.end(); ++pi) {
@@ -75,7 +78,6 @@ void kill(const std::shared_ptr<Object> &process)
             break;
         }
     }
-    delete p;
 }
 
 Cell spawn(const utf8string &command)
