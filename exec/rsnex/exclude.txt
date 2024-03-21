@@ -159,7 +159,6 @@ gc-array.neon
 gc-long-chain.neon
 gc-two-pointers.neon
 global-shadow.neon
-hello.neon
 if.neon
 import-dup.neon
 import.neon

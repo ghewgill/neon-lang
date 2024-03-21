@@ -104,6 +104,14 @@ enum Opcode {
     PUSHMFP,    // push module function pointer
 }
 
+fn get_bytes32(bytes: &[u8], i: &mut usize) -> [u8; 32]
+{
+    let mut r = [0; 32];
+    r[..].copy_from_slice(&bytes[*i..*i+32]);
+    *i += 32;
+    return r;
+}
+
 fn get_vint(bytes: &[u8], i: &mut usize) -> usize {
     let mut r: usize = 0;
     loop {
@@ -133,6 +141,12 @@ enum Cell {
     Object(Object),
 }
 
+struct ModuleImport {
+    _name: usize,
+    _optional: usize,
+    _hash: [u8; 32],
+}
+
 struct Function {
     _name: usize,
     _nest: usize,
@@ -151,6 +165,7 @@ struct Bytecode {
     source_hash: Vec<u8>,
     global_size: usize,
     strtable: Vec<String>,
+    imports: Vec<ModuleImport>,
     functions: Vec<Function>,
     types: Vec<Type>,
     code: Vec<u8>,
@@ -163,6 +178,7 @@ impl Bytecode {
             source_hash: Vec::new(),
             global_size: 0,
             strtable: Vec::new(),
+            imports: Vec::new(),
             functions: Vec::new(),
             types: Vec::new(),
             code: Vec::new(),
@@ -208,7 +224,14 @@ impl Bytecode {
         assert!(interfaceexportsize == 0);
 
         let importsize = get_vint(&bytecode, &mut i);
-        assert!(importsize == 0);
+        for _ in 0..importsize {
+            let m = ModuleImport {
+                _name: get_vint(&bytecode, &mut i),
+                _optional: get_vint(&bytecode, &mut i),
+                _hash: get_bytes32(&bytecode, &mut i),
+            };
+            r.imports.push(m);
+        }
 
         let functionsize = get_vint(&bytecode, &mut i);
         for _ in 0..functionsize {
@@ -661,13 +684,13 @@ impl Executor {
     fn op_callp(&mut self) {
         self.ip += 1;
         let val = get_vint(&self.object.code, &mut self.ip);
-        if self.object.strtable[val] == "object__makeString" {
+        if self.object.strtable[val] == "builtin$object__makeString" {
             if let Some(Cell::String(s)) = self.stack.pop() {
                 self.stack.push(Cell::Object(Object::String(s)));
             } else {
                 assert!(false, "type mismatch");
             }
-        } else if self.object.strtable[val] == "print" {
+        } else if self.object.strtable[val] == "global$print" {
             if let Some(Cell::Object(x)) = self.stack.pop() {
                 if let Object::String(s) = x {
                     println!("{}", s);
@@ -680,7 +703,7 @@ impl Executor {
         } else if self.object.strtable[val] == "runtime$executorName" {
             self.stack.push(Cell::String("rsnex".to_string()));
         } else {
-            assert!(false, "unimplemented function");
+            assert!(false, format!("unimplemented function {}", self.object.strtable[val]));
         }
     }
 
