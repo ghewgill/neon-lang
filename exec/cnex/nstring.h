@@ -16,6 +16,7 @@
 
 typedef struct tagTString {
     size_t length;
+    int    refcount;
     char   *data;
 } TString;
 

@@ -229,7 +229,8 @@ Cell *cell_fromCell(const Cell *c)
             x->other = NULL;
             break;
         case cBytes:
-            x->string = string_copyString(c->string);
+            x->string = c->string;
+            x->string->refcount++;
             x->boolean = FALSE;
             x->number = number_from_uint32(0);
             x->object = NULL;
@@ -270,7 +271,8 @@ Cell *cell_fromCell(const Cell *c)
             x->other = NULL;
             break;
         case cString:
-            x->string = string_copyString(c->string);
+            x->string = c->string;
+            x->string->refcount++;
             x->address = NULL;
             x->number = number_from_uint32(0);
             x->object = NULL;
@@ -330,6 +332,16 @@ Cell *cell_fromCellValue(const Cell* c)
             x->string = NULL;
             x->address = NULL;
             x->array = NULL;
+            x->other = NULL;
+            break;
+        case cString:
+            x->string = string_copyString(c->string);
+            x->address = NULL;
+            x->number = number_from_uint32(0);
+            x->object = NULL;
+            x->boolean = FALSE;
+            x->array = NULL;
+            x->dictionary = NULL;
             x->other = NULL;
             break;
         default:
@@ -618,6 +630,9 @@ void cell_valueCopyCell(Cell *dest, const Cell *source)
         case cDictionary:
             dest->dictionary = dictionary_copyDictionary(source->dictionary);
             break;
+        case cString:
+            dest->string = string_copyString(source->string);
+            break;
         default:
             cell_copyCell(dest, source);
             break;
@@ -634,7 +649,8 @@ void cell_copyCell(Cell *dest, const Cell *source)
     dest->number = source->number;
     // ToDo: Split strings and bytes into separate entities; once we implement actual UTF8 strings.
     if ((source->type == cString || source->type == cBytes) && source->string != NULL) {
-        dest->string = string_copyString(source->string);
+        dest->string = source->string;
+        dest->string->refcount++;
     } else {
         dest->string = NULL;
     }
