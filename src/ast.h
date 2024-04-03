@@ -2379,7 +2379,7 @@ public:
 
 class ChoiceReferenceExpression: public ReferenceExpression {
 public:
-    ChoiceReferenceExpression(const Type *type, const ReferenceExpression *expr, const TypeChoice *choice_type, int choice): ReferenceExpression(type, false), expr(expr), choice_type(choice_type), choice(choice) {}
+    ChoiceReferenceExpression(const Type *type, const ReferenceExpression *expr, const TypeChoice *choice_type, int choice): ReferenceExpression(type, expr->is_readonly), expr(expr), choice_type(choice_type), choice(choice) {}
     ChoiceReferenceExpression(const ChoiceReferenceExpression &) = delete;
     ChoiceReferenceExpression &operator=(const ChoiceReferenceExpression &) = delete;
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
