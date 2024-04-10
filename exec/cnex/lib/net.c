@@ -322,9 +322,9 @@ void net_socket_send(TExecutor *exec)
 void net_socket_select(TExecutor *exec)
 {
     Number timeout_seconds = top(exec->stack)->number; pop(exec->stack);
-    Cell *error = peek(exec->stack, 0)->address;
-    Cell *write = peek(exec->stack, 1)->address;
-    Cell *read = peek(exec->stack, 2)->address;
+    Cell *error = top(exec->stack)->address; pop(exec->stack);
+    Cell *write = top(exec->stack)->address; pop(exec->stack);
+    Cell *read = top(exec->stack)->address; pop(exec->stack);
 
     fd_set rfds, wfds, efds;
     FD_ZERO(&rfds);
@@ -410,7 +410,7 @@ void net_socket_select(TExecutor *exec)
     for (size_t i = 0; i < write->array->size; ) {
         SOCKET *ps = check_socket(exec, write->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
-        if (FD_ISSET(fd, &rfds)) {
+        if (FD_ISSET(fd, &wfds)) {
             ++i;
         } else {
             array_removeItem(write->array, i);
@@ -420,7 +420,7 @@ void net_socket_select(TExecutor *exec)
     for (size_t i = 0; i < error->array->size; ) {
         SOCKET *ps = check_socket(exec, error->array->data[i].array->data[0].object);
         SOCKET fd = *ps;
-        if (FD_ISSET(fd, &rfds)) {
+        if (FD_ISSET(fd, &efds)) {
             ++i;
         } else {
             array_removeItem(error->array, i);
