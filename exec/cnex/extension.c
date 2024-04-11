@@ -137,14 +137,14 @@ void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
 
 void *cell_get_pointer(const struct Ne_Cell *cell)
 {
-    cell_ensureOther((Cell*)cell);
-    return (void*)((Cell*)cell)->other;
+    cell_ensureObject((Cell*)cell);
+    return ((Cell*)((Cell*)cell)->object->ptr)->other;
 }
 
 void cell_set_pointer(struct Ne_Cell *cell, void *p)
 {
-    cell_ensureOther((Cell*)cell);
-    ((Cell*)cell)->other = p;
+    cell_ensureObject((Cell*)cell);
+    ((Cell*)cell)->object->ptr = cell_createOtherCell(p);
 }
 
 int cell_get_array_size(const struct Ne_Cell *cell)
