@@ -19,7 +19,7 @@ namespace rtl {
 
 namespace ne_file {
 
-extern Cell error_result(int error, const utf8string &path);
+extern Cell file_error_result(int error, const utf8string &path);
 
 utf8string _CONSTANT_Separator()
 {
@@ -32,30 +32,30 @@ Cell copy(const utf8string &filename, const utf8string &destination)
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL|COPYFILE_EXCL);
     if (r != 0) {
         if (errno == EEXIST) {
-            return error_result(errno, destination);
+            return file_error_result(errno, destination);
         }
-        return error_result(errno, filename);
+        return file_error_result(errno, filename);
     }
 #else
     int sourcefd = open(filename.c_str(), O_RDONLY);
     if (sourcefd < 0) {
-        return error_result(errno, filename);
+        return file_error_result(errno, filename);
     }
     struct stat statbuf;
     int r = fstat(sourcefd, &statbuf);
     if (r != 0) {
         int error = errno;
         close(sourcefd);
-        return error_result(error, filename);
+        return file_error_result(error, filename);
     }
     int destfd = open(destination.c_str(), O_CREAT|O_WRONLY|O_TRUNC|O_EXCL, 0);
     if (destfd < 0) {
         int error = errno;
         close(sourcefd);
         if (error == EEXIST) {
-            return error_result(error, destination);
+            return file_error_result(error, destination);
         }
-        return error_result(error, destination);
+        return file_error_result(error, destination);
     }
     char buf[BUFSIZ];
     for (;;) {
@@ -65,7 +65,7 @@ Cell copy(const utf8string &filename, const utf8string &destination)
             close(sourcefd);
             close(destfd);
             unlink(destination.c_str());
-            return error_result(error, filename);
+            return file_error_result(error, filename);
         } else if (n == 0) {
             break;
         }
@@ -75,7 +75,7 @@ Cell copy(const utf8string &filename, const utf8string &destination)
             close(sourcefd);
             close(destfd);
             unlink(destination.c_str());
-            return error_result(error, destination);
+            return file_error_result(error, destination);
         }
     }
     close(sourcefd);
@@ -84,14 +84,14 @@ Cell copy(const utf8string &filename, const utf8string &destination)
         close(sourcefd);
         close(destfd);
         unlink(destination.c_str());
-        return error_result(error, destination);
+        return file_error_result(error, destination);
     }
     if (fchown(destfd, statbuf.st_uid, statbuf.st_gid) != 0) {
         int error = errno;
         close(sourcefd);
         close(destfd);
         unlink(destination.c_str());
-        return error_result(error, destination);
+        return file_error_result(error, destination);
     }
     close(destfd);
     struct utimbuf utimebuf;
@@ -107,25 +107,25 @@ Cell copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
 #ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL);
     if (r != 0) {
-        return error_result(errno, filename);
+        return file_error_result(errno, filename);
     }
 #else
     int sourcefd = open(filename.c_str(), O_RDONLY);
     if (sourcefd < 0) {
-        return error_result(errno, filename);
+        return file_error_result(errno, filename);
     }
     struct stat statbuf;
     int r = fstat(sourcefd, &statbuf);
     if (r != 0) {
         int error = errno;
         close(sourcefd);
-        return error_result(error, filename);
+        return file_error_result(error, filename);
     }
     int destfd = open(destination.c_str(), O_CREAT|O_WRONLY|O_TRUNC, 0);
     if (destfd < 0) {
         int error = errno;
         close(sourcefd);
-        return error_result(error, destination);
+        return file_error_result(error, destination);
     }
     char buf[BUFSIZ];
     for (;;) {
@@ -135,7 +135,7 @@ Cell copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
             close(sourcefd);
             close(destfd);
             unlink(destination.c_str());
-            return error_result(error, filename);
+            return file_error_result(error, filename);
         } else if (n == 0) {
             break;
         }
@@ -145,7 +145,7 @@ Cell copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
             close(sourcefd);
             close(destfd);
             unlink(destination.c_str());
-            return error_result(error, destination);
+            return file_error_result(error, destination);
         }
     }
     close(sourcefd);
@@ -154,14 +154,14 @@ Cell copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
         close(sourcefd);
         close(destfd);
         unlink(destination.c_str());
-        return error_result(error, destination);
+        return file_error_result(error, destination);
     }
     if (fchown(destfd, statbuf.st_uid, statbuf.st_gid) != 0) {
         int error = errno;
         close(sourcefd);
         close(destfd);
         unlink(destination.c_str());
-        return error_result(error, destination);
+        return file_error_result(error, destination);
     }
     close(destfd);
     struct utimbuf utimebuf;
@@ -177,7 +177,7 @@ Cell delete_(const utf8string &filename)
     int r = unlink(filename.c_str());
     if (r != 0) {
         if (errno != ENOENT) {
-            return error_result(errno, filename);
+            return file_error_result(errno, filename);
         }
     }
     return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
@@ -209,7 +209,7 @@ Cell getInfo(const utf8string &name)
 {
     struct stat st;
     if (stat(name.c_str(), &st) != 0) {
-        return error_result(errno, name);
+        return file_error_result(errno, name);
     }
     std::vector<Cell> r;
     r.push_back(Cell(name.str().rfind('/') != std::string::npos ? utf8string(name.str().substr(name.str().rfind('/')+1)) : name));
@@ -247,7 +247,7 @@ Cell removeEmptyDirectory(const utf8string &path)
 {
     int r = rmdir(path.c_str());
     if (r != 0) {
-        return error_result(errno, path);
+        return file_error_result(errno, path);
     }
     return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
@@ -256,7 +256,7 @@ Cell rename(const utf8string &oldname, const utf8string &newname)
 {
     int r = ::rename(oldname.c_str(), newname.c_str());
     if (r != 0) {
-        return error_result(errno, oldname);
+        return file_error_result(errno, oldname);
     }
     return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }

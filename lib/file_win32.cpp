@@ -18,7 +18,7 @@ namespace rtl {
 
 namespace ne_file {
 
-extern Cell error_result(int error, const utf8string &path);
+extern Cell file_error_result(int error, const utf8string &path);
 
 utf8string _CONSTANT_Separator()
 {
@@ -29,7 +29,7 @@ Cell copy(const utf8string &filename, const utf8string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), TRUE);
     if (!r) {
-        return error_result(GetLastError(), destination);
+        return file_error_result(GetLastError(), destination);
     }
     return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
@@ -38,7 +38,7 @@ Cell copyOverwriteIfExists(const utf8string &filename, const utf8string &destina
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), FALSE);
     if (!r) {
-        return error_result(GetLastError(), destination);
+        return file_error_result(GetLastError(), destination);
     }
     return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
@@ -48,7 +48,7 @@ Cell delete_(const utf8string &filename)
     BOOL r = DeleteFile(filename.c_str());
     if (!r) {
         if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-            return error_result(GetLastError(), filename);
+            return file_error_result(GetLastError(), filename);
         }
     }
     return Cell(std::vector<Cell> { Cell(number_from_uint32(CHOICE_FileResult_ok))});
@@ -78,7 +78,7 @@ Cell getInfo(const utf8string &name)
     WIN32_FIND_DATA fd;
     HANDLE ff = FindFirstFile(name.c_str(), &fd);
     if (ff == INVALID_HANDLE_VALUE) {
-        return error_result(GetLastError(), name);
+        return file_error_result(GetLastError(), name);
     }
     FindClose(ff);
     std::vector<Cell> r;
@@ -110,7 +110,7 @@ Cell mkdir(const utf8string &path)
     // TODO: Convert UTF-8 path to UCS-16 and call CreateDirectoryW.
     BOOL r = CreateDirectoryA(path.c_str(), NULL);
     if (!r) {
-        return error_result(GetLastError(), path);
+        return file_error_result(GetLastError(), path);
     }
     return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
@@ -119,7 +119,7 @@ Cell removeEmptyDirectory(const utf8string &path)
 {
     BOOL r = RemoveDirectory(path.c_str());
     if (!r) {
-        return error_result(GetLastError(), path);
+        return file_error_result(GetLastError(), path);
     }
     return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
@@ -128,7 +128,7 @@ Cell rename(const utf8string &oldname, const utf8string &newname)
 {
     BOOL r = MoveFile(oldname.c_str(), newname.c_str());
     if (!r) {
-        return error_result(GetLastError(), oldname);
+        return file_error_result(GetLastError(), oldname);
     }
     return Cell(std::vector<Cell> {Cell(number_from_uint32(CHOICE_FileResult_ok))});
 }
