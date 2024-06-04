@@ -843,7 +843,7 @@ FUNCTION match(regex: Regex, target: String): Result
         saved.append(-1)
         DEC max
     END WHILE
-    LET r := matchPart(regex, 0, target, 0, INOUT saved)
+    VAR r := matchPart(regex, 0, target, 0, INOUT saved)
     IF r ISA Result.match THEN
         ASSERT saved.size() MOD 2 = 0
         FOR i := 0 TO saved.size()-1 STEP 2 DO
