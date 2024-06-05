@@ -4494,7 +4494,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *decl
     if (declaration->value != nullptr) {
         r.push_back(new ast::AssignmentStatement(declaration->token, refs, expr));
     } else {
-        r.push_back(new ast::ResetStatement(declaration->token, refs));
+        r.push_back(new ast::AssignmentStatement(declaration->token, refs, type->make_default_value()));
     }
     return new ast::CompoundStatement(declaration->token, r);
 }

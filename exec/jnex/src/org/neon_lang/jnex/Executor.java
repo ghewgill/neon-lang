@@ -241,7 +241,6 @@ class Executor {
                     case EXCEPT: doEXCEPT(); break;
                     case ALLOC: doALLOC(); break;
                     case PUSHNIL: doPUSHNIL(); break;
-                    case RESETC: doRESETC(); break;
                     //case PUSHPEG
                     case JUMPTBL: doJUMPTBL(); break;
                     //case CALLX
@@ -1032,13 +1031,6 @@ class Executor {
         stack.addFirst(new Cell());
     }
 
-    private void doRESETC()
-    {
-        ip++;
-        Cell addr = stack.removeFirst().getAddress();
-        addr.reset();
-    }
-
     private void doJUMPTBL()
     {
         ip++;
@@ -1253,7 +1245,6 @@ class Executor {
         EXCEPT,
         ALLOC,
         PUSHNIL,
-        RESETC,
         PUSHPEG,
         JUMPTBL,
         CALLX,

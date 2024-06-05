@@ -89,7 +89,6 @@
     OPCODE(EXCEPT)     /* throw exception */\
     OPCODE(ALLOC)      /* allocate record */\
     OPCODE(PUSHNIL)    /* push nil pointer */\
-    OPCODE(RESETC)     /* reset cell */\
     OPCODE(PUSHPEG)    /* push pointer to external global */\
     OPCODE(JUMPTBL)    /* jump table */\
     OPCODE(CALLX)      /* call extension */\

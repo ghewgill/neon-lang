@@ -213,7 +213,6 @@ void Emitter::emit(Opcode b)
             case Opcode::EXCEPT:    stack_depth = -1; break;
             case Opcode::ALLOC:     stack_depth += 1; break;
             case Opcode::PUSHNIL:   stack_depth += 1; break;
-            case Opcode::RESETC:    stack_depth -= 1; break;
             case Opcode::PUSHPEG:   stack_depth += 1; break;
             case Opcode::JUMPTBL:   stack_depth -= 1; in_jumptbl = true; break;
             case Opcode::CALLX:     break;
@@ -2592,14 +2591,6 @@ void ast::RaiseStatement::generate_code(Emitter &emitter) const
     info->generate(emitter);
     unsigned int index = emitter.str(exception->name);
     emitter.emit(Opcode::EXCEPT, index);
-}
-
-void ast::ResetStatement::generate_code(Emitter &emitter) const
-{
-    for (auto v: variables) {
-         v->generate_address_write(emitter);
-         emitter.emit(Opcode::RESETC);
-    }
 }
 
 void ast::Frame::predeclare(Emitter &emitter)

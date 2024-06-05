@@ -110,7 +110,6 @@ const (
 	EXCEPT  = iota // throw exception
 	ALLOC   = iota // allocate record
 	PUSHNIL = iota // push nil pointer
-	RESETC  = iota // reset cell
 	PUSHPEG = iota // push pointer to external global
 	JUMPTBL = iota // jump table
 	CALLX   = iota // call extension
@@ -1239,8 +1238,6 @@ func (self *executor) run() {
 			self.op_alloc()
 		case PUSHNIL:
 			self.op_pushnil()
-		case RESETC:
-			self.op_resetc()
 		case PUSHPEG:
 			self.op_pushpeg()
 		case JUMPTBL:
@@ -3225,12 +3222,6 @@ func (self *executor) op_alloc() {
 func (self *executor) op_pushnil() {
 	self.ip += 1
 	self.stack = append(self.stack, make_cell_addr(nil))
-}
-
-func (self *executor) op_resetc() {
-	self.ip++
-	r := self.pop().ref
-	r.store(make_cell_none())
 }
 
 func (self *executor) op_pushpeg() {

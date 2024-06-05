@@ -412,7 +412,7 @@ const Expression *TypeRecord::make_default_value() const
         values.push_back(f.type->make_default_value());
         tokens.push_back(Token());
     }
-    return new ArrayLiteralExpression(nullptr, values, tokens);
+    return new RecordLiteralExpression(this, values);
 }
 
 std::string TypeRecord::serialize(const Expression *value) const
@@ -570,7 +570,7 @@ TypeInterfacePointer::TypeInterfacePointer(const Token &declaration, const Inter
 
 const Expression *TypeInterfacePointer::make_default_value() const
 {
-    return new InterfacePointerConstructor(nullptr, new ConstantNilExpression(), 0);
+    return new InterfacePointerConstructor(this, new ConstantNilExpression(), 0);
 }
 
 std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeInterfacePointer::make_converter(const Type *from) const
@@ -690,6 +690,14 @@ const Expression *TypeEnum::deserialize_value(const Bytecode::Bytes &value, int 
 
 const Expression *TypeChoice::make_default_value() const
 {
+    const Type *t = nullptr;
+    for (auto &c: choices) {
+        if (c.second.first == 0) {
+            t = c.second.second;
+            break;
+        }
+    }
+    return new ConstantChoiceExpression(this, 0, t != nullptr ? t->make_default_value() : nullptr);
     return new ArrayLiteralExpression(nullptr, {new ConstantNumberExpression(number_from_uint32(0))}, {Token()});
 }
 

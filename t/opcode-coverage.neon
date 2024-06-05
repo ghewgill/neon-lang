@@ -501,12 +501,6 @@ FUNCTION pushnil(): POINTER TO Class
     RETURN x
 END FUNCTION
 
---    RESETC,     // reset cell
-FUNCTION resetc()
-    VAR x: Number
-    x := 1
-END FUNCTION
-
 --    PUSHPEG,    // push pointer to external global
 FUNCTION pushpeg()
     -- This requires the REPL to implement.
@@ -658,7 +652,6 @@ BEGIN MAIN
     except()
     alloc()
     _ := pushnil()
-    resetc()
     pushpeg()
     _ := jumptbl()
     callx()

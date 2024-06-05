@@ -589,12 +589,6 @@ void disasm_PUSHNIL(TInstructionDisassembler *disasm)
     disasm->index++;
 }
 
-void disasm_RESETC(TInstructionDisassembler *disasm)
-{
-    snprintf(disasm->out, MAX_BUFFER, "RESETC");
-    disasm->index++;
-}
-
 void disasm_PUSHPEG(TInstructionDisassembler *disasm)
 {
     disasm->index++;
@@ -742,7 +736,6 @@ void disasm_disassemble(TInstructionDisassembler *disasm)
         case EXCEPT:  disasm_EXCEPT(disasm); break;
         case ALLOC:   disasm_ALLOC(disasm); break;
         case PUSHNIL: disasm_PUSHNIL(disasm); break;
-        case RESETC:  disasm_RESETC(disasm); break;
         case PUSHPEG: disasm_PUSHPEG(disasm); break;
         case JUMPTBL: disasm_JUMPTBL(disasm); break;
         case CALLX:   disasm_CALLX(disasm); break;

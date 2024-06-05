@@ -1184,13 +1184,6 @@ namespace csnex
             }
             stack.Push(Cell.CreateAddressCell(cell));
         }
-
-        void RESETC()
-        {
-            ip++;
-            Cell addr = stack.Pop().Address;
-            addr.ResetCell();
-        }
 #endregion
 #endregion
 #region Debug / Diagnostic functions
@@ -1344,7 +1337,6 @@ namespace csnex
                         case Opcode.EXCEPT: EXCEPT(); break;              // throw exception
                         case Opcode.ALLOC: ALLOC(); break;                // allocate record
                         case Opcode.PUSHNIL: PUSHNIL(); break;            // push nil pointer
-                        case Opcode.RESETC: RESETC(); break;              // reset cell
                         case Opcode.PUSHPEG: PUSHPEG(); break;            // push pointer to external global
                         case Opcode.JUMPTBL: JUMPTBL(); break;            // jump table
                         case Opcode.CALLX: CALLX(); break;                // call extension

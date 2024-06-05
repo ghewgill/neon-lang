@@ -637,12 +637,6 @@ namespace csnex
             int val = Bytecode.Get_VInt(bytecode.code, ref index);
             stream.AppendFormat("ALLOC {0}", val);
         }
-
-        void RESETC()
-        {
-            stream.AppendFormat("RESETC");
-            index++;
-        }
 #endregion
 
         private void Disassemble()
@@ -735,7 +729,6 @@ namespace csnex
                 case Opcode.EXCEPT: EXCEPT(); break;
                 case Opcode.ALLOC: ALLOC(); break;
                 case Opcode.PUSHNIL: PUSHNIL(); break;
-                case Opcode.RESETC: RESETC(); break;
                 case Opcode.PUSHPEG: PUSHPEG(); break;
                 case Opcode.JUMPTBL: JUMPTBL(); break;
                 case Opcode.CALLX: CALLX(); break;

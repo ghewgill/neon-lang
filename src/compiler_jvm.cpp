@@ -1377,6 +1377,21 @@ public:
     virtual void generate_store(Context &) const override { internal_error("ConstantNowhereExpression"); }
 };
 
+class ConstantNilObject: public Expression {
+public:
+    explicit ConstantNilObject(const ast::ConstantNilObject *cno): Expression(cno), cno(cno) {}
+    ConstantNilObject(const ConstantNilObject &) = delete;
+    ConstantNilObject &operator=(const ConstantNilObject &) = delete;
+    const ast::ConstantNilObject *cno;
+
+    virtual void generate(Context &context) const override {
+        context.ca.code << OP_aconst_null;
+    }
+
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantNilObject"); }
+    virtual void generate_store(Context &) const override { internal_error("ConstantNilObject"); }
+};
+
 class TypeConversionExpression: public Expression {
 public:
     explicit TypeConversionExpression(const ast::TypeConversionExpression *tce): Expression(tce), tce(tce), expr(transform(tce->expr)) {}
@@ -3161,17 +3176,6 @@ public:
     }
 };
 
-class ResetStatement: public Statement {
-public:
-    explicit ResetStatement(const ast::ResetStatement *rs): Statement(rs), rs(rs) {}
-    ResetStatement(const ResetStatement &) = delete;
-    ResetStatement &operator=(const ResetStatement &) = delete;
-    const ast::ResetStatement *rs;
-
-    virtual void generate(Context &) const override {
-    }
-};
-
 class Function: public Variable {
 public:
     explicit Function(const ast::Function *f): Variable(f), f(f), statements(), params(), signature(), out_count(0) {
@@ -3664,7 +3668,6 @@ public:
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
-    virtual void visit(const ast::ResetStatement *) {}
     virtual void visit(const ast::Function *) {}
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}
@@ -3799,7 +3802,6 @@ public:
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
-    virtual void visit(const ast::ResetStatement *) {}
     virtual void visit(const ast::Function *node) { r = new Function(node); }
     virtual void visit(const ast::PredefinedFunction *node) { r = new PredefinedFunction(node); }
     virtual void visit(const ast::ExtensionFunction *) { internal_error("unimplemented"); /*r = new PredefinedFunction(node);*/ }
@@ -3854,7 +3856,7 @@ public:
     virtual void visit(const ast::ConstantChoiceExpression *node) { r = new ConstantChoiceExpression(node); }
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
     virtual void visit(const ast::ConstantNowhereExpression *node) { r = new ConstantNowhereExpression(node); }
-    virtual void visit(const ast::ConstantNilObject *) { internal_error("ConstantNilObject"); }
+    virtual void visit(const ast::ConstantNilObject *node) { r = new ConstantNilObject(node); }
     virtual void visit(const ast::TypeConversionExpression *node) { r = new TypeConversionExpression(node); }
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
@@ -3934,7 +3936,6 @@ public:
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
-    virtual void visit(const ast::ResetStatement *) {}
     virtual void visit(const ast::Function *) {}
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}
@@ -4069,7 +4070,6 @@ public:
     virtual void visit(const ast::NextStatement *node) { r = new NextStatement(node); }
     virtual void visit(const ast::TryStatement *node) { r = new TryStatement(node); }
     virtual void visit(const ast::RaiseStatement *node) { r = new RaiseStatement(node); }
-    virtual void visit(const ast::ResetStatement *node) { r = new ResetStatement(node); }
     virtual void visit(const ast::Function *) {}
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}

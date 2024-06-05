@@ -109,7 +109,6 @@ private:
     void disasm_EXCEPT();
     void disasm_ALLOC();
     void disasm_PUSHNIL();
-    void disasm_RESETC();
     void disasm_PUSHPEG();
     void disasm_JUMPTBL();
     void disasm_CALLX();
@@ -666,12 +665,6 @@ void InstructionDisassembler::disasm_PUSHNIL()
     index++;
 }
 
-void InstructionDisassembler::disasm_RESETC()
-{
-    out << "RESETC";
-    index++;
-}
-
 void InstructionDisassembler::disasm_PUSHPEG()
 {
     index++;
@@ -827,7 +820,6 @@ void InstructionDisassembler::disassemble()
         case Opcode::EXCEPT:  disasm_EXCEPT(); break;
         case Opcode::ALLOC:   disasm_ALLOC(); break;
         case Opcode::PUSHNIL: disasm_PUSHNIL(); break;
-        case Opcode::RESETC:  disasm_RESETC(); break;
         case Opcode::PUSHPEG: disasm_PUSHPEG(); break;
         case Opcode::JUMPTBL: disasm_JUMPTBL(); break;
         case Opcode::CALLX:   disasm_CALLX(); break;

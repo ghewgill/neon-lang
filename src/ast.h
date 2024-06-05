@@ -149,7 +149,6 @@ public:
     virtual void visit(const class NextStatement *node) = 0;
     virtual void visit(const class TryStatement *node) = 0;
     virtual void visit(const class RaiseStatement *node) = 0;
-    virtual void visit(const class ResetStatement *node) = 0;
     virtual void visit(const class Function *node) = 0;
     virtual void visit(const class PredefinedFunction *node) = 0;
     virtual void visit(const class ExtensionFunction *node) = 0;
@@ -1204,7 +1203,7 @@ public:
 
 class ConstantNilObject: public Expression {
 public:
-    ConstantNilObject(): Expression(new TypeObject(), true) {}
+    ConstantNilObject(): Expression(new TypePointerNil(), true) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool is_pure(std::set<const ast::Function *> &) const override { return true; }
@@ -3011,28 +3010,6 @@ public:
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "RaiseStatement(" + exception->text() + ")"; }
-};
-
-class ResetStatement: public Statement {
-public:
-    ResetStatement(const Token &token, const std::vector<const ReferenceExpression *> &vars): Statement(token), variables(vars) {}
-    ResetStatement(const ResetStatement &) = delete;
-    ResetStatement &operator=(const ResetStatement &) = delete;
-    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-
-    const std::vector<const ReferenceExpression *> variables;
-
-    virtual bool is_pure(std::set<const ast::Function *> &) const override { return std::all_of(variables.begin(), variables.end(), [](const ReferenceExpression *r) { return dynamic_cast<const VariableExpression *>(r) != nullptr && dynamic_cast<const LocalVariable *>(dynamic_cast<const VariableExpression *>(r)->var) != nullptr; }); }
-
-    virtual void generate_code(Emitter &emitter) const override;
-
-    virtual std::string text() const override {
-        std::string s = "ResetStatement(";
-        for (auto v: variables) {
-            s += v->text() + ", ";
-        }
-        return s + ")";
-    }
 };
 
 class BaseFunction: public Variable {

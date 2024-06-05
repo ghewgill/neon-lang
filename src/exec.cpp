@@ -267,7 +267,6 @@ public:
     void exec_EXCEPT();
     void exec_ALLOC();
     void exec_PUSHNIL();
-    void exec_RESETC();
     void exec_PUSHPEG();
     void exec_JUMPTBL();
     void exec_CALLX();
@@ -1509,13 +1508,6 @@ void Executor::exec_PUSHNIL()
     stack.push(Cell());
 }
 
-void Executor::exec_RESETC()
-{
-    ip++;
-    Cell *addr = stack.top().address(); stack.pop();
-    *addr = Cell();
-}
-
 void Executor::exec_PUSHPEG()
 {
     ip++;
@@ -2093,7 +2085,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case Opcode::EXCEPT:  exec_EXCEPT(); break;
             case Opcode::ALLOC:   exec_ALLOC(); break;
             case Opcode::PUSHNIL: exec_PUSHNIL(); break;
-            case Opcode::RESETC:  exec_RESETC(); break;
             case Opcode::PUSHPEG: exec_PUSHPEG(); break;
             case Opcode::JUMPTBL: exec_JUMPTBL(); break;
             case Opcode::CALLX:   exec_CALLX(); break;

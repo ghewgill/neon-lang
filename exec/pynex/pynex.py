@@ -1162,11 +1162,6 @@ class Executor:
         self.ip += 1
         self.stack.append(None)
 
-    def RESETC(self):
-        self.ip += 1
-        value = self.stack.pop()
-        value.value = None
-
     def PUSHPEG(self):
         assert False
 
@@ -1415,7 +1410,6 @@ Dispatch = [
     Executor.EXCEPT,
     Executor.ALLOC,
     Executor.PUSHNIL,
-    Executor.RESETC,
     Executor.PUSHPEG,
     Executor.JUMPTBL,
     Executor.CALLX,

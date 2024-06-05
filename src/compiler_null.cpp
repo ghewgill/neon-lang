@@ -1821,17 +1821,6 @@ public:
     }
 };
 
-class ResetStatement: public Statement {
-public:
-    explicit ResetStatement(const ast::ResetStatement *rs): Statement(rs), rs(rs) {}
-    ResetStatement(const ResetStatement &) = delete;
-    ResetStatement &operator=(const ResetStatement &) = delete;
-    const ast::ResetStatement *rs;
-
-    virtual void generate(Context &) const override {
-    }
-};
-
 class Function: public Variable {
 public:
     explicit Function(const ast::Function *f): Variable(f), f(f), statements(), params(), signature(), out_count(0) {
@@ -2056,7 +2045,6 @@ public:
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
-    virtual void visit(const ast::ResetStatement *) {}
     virtual void visit(const ast::Function *) {}
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}
@@ -2191,7 +2179,6 @@ public:
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
-    virtual void visit(const ast::ResetStatement *) {}
     virtual void visit(const ast::Function *node) { r = new Function(node); }
     virtual void visit(const ast::PredefinedFunction *node) { r = new PredefinedFunction(node); }
     virtual void visit(const ast::ExtensionFunction *) { internal_error("unimplemented"); /*r = new PredefinedFunction(node);*/ }
@@ -2326,7 +2313,6 @@ public:
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
-    virtual void visit(const ast::ResetStatement *) {}
     virtual void visit(const ast::Function *) {}
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}
@@ -2461,7 +2447,6 @@ public:
     virtual void visit(const ast::NextStatement *node) { r = new NextStatement(node); }
     virtual void visit(const ast::TryStatement *node) { r = new TryStatement(node); }
     virtual void visit(const ast::RaiseStatement *node) { r = new RaiseStatement(node); }
-    virtual void visit(const ast::ResetStatement *node) { r = new ResetStatement(node); }
     virtual void visit(const ast::Function *) {}
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}

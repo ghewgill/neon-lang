@@ -1608,13 +1608,6 @@ void exec_PUSHNIL(TExecutor *self)
     push(self->stack, cell_newCell());
 }
 
-void exec_RESETC(TExecutor *self)
-{
-    self->ip++;
-    Cell *addr = top(self->stack)->address; pop(self->stack);
-    cell_clearCell(addr);
-}
-
 void exec_PUSHPEG(void)
 {
     fatal_error("exec_PUSHPEG not implemented");
@@ -1975,7 +1968,6 @@ int exec_loop(TExecutor *self, int64_t min_callstack_depth)
             case EXCEPT:  exec_EXCEPT(self); break;
             case ALLOC:   exec_ALLOC(self); break;
             case PUSHNIL: exec_PUSHNIL(self); break;
-            case RESETC:  exec_RESETC(self); break;
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(self); break;
             case CALLX:   exec_CALLX(self); break;

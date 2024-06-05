@@ -414,7 +414,6 @@ LET DispatchTable: Array<FUNCTION(INOUT self: Executor)> := [
     f_except,
     f_alloc,
     f_pushnil,
-    f_resetc,
     f_pushpeg,
     f_jumptbl,
     f_callx,
@@ -1575,23 +1574,6 @@ END FUNCTION
 FUNCTION f_pushnil(INOUT self: Executor)
     INC self.ip
     self.stack.append(makeValuePointer(NIL))
-END FUNCTION
-
-FUNCTION f_resetc(INOUT self: Executor)
-    INC self.ip
-    LET addr: POINTER TO Value := self.pop()->p
-    IF VALID addr THEN
-        addr->p := NIL
-        addr->b := FALSE
-        addr->n := 0
-        addr->s := ""
-        addr->y := HEXBYTES ""
-        addr->a := []
-        addr->d := {}
-        addr->ci := ClassInfo()
-    ELSE
-        ASSERT FALSE
-    END IF
 END FUNCTION
 
 FUNCTION f_pushpeg(INOUT self: Executor)

@@ -20,6 +20,7 @@ check-valid.neon                # valid pointer
 check.neon                      # NEXT FOR
 choice.neon                     # choice.toString
 choice-recursive.neon           # choice
+class-empty.neon                # not sure
 complex-test.neon               # number range
 datetime-test.neon              # module datetime
 debug.neon                      # module datetime
@@ -109,10 +110,13 @@ parameter-out-array.neon        # OUT
 parameter-out-string.neon       # OUT
 parameters-ignore.neon          # OUT
 parameters.neon                 # OUT
+pointer.neon                    # pointers
 pointer2.neon                   # pointers
 pointer3.neon                   # pointers
+pointer4.neon                   # pointers
 pointer5.neon                   # pointers
 pointer7.neon                   # pointers
+pointer8.neon                   # pointers
 pointer-nil.neon                # pointers
 posix-fork.neon                 # module posix
 posix-symlink.neon              # module posix

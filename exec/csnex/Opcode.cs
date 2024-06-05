@@ -89,7 +89,6 @@
         EXCEPT,     // throw exception
         ALLOC,      // allocate record
         PUSHNIL,    // push nil pointer
-        RESETC,     // reset cell
         PUSHPEG,    // push pointer to external global
         JUMPTBL,    // jump table
         CALLX,      // call extension
