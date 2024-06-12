@@ -1537,7 +1537,7 @@ void pointer__toString(TExecutor *exec)
 
 void string__append(TExecutor *exec)
 {
-    Cell *b = cell_fromCell(top(exec->stack)); pop(exec->stack);
+    Cell *b = cell_fromCellValue(top(exec->stack)); pop(exec->stack);
     Cell *addr = top(exec->stack)->address; pop(exec->stack);
 
     addr->string->data = realloc(addr->string->data, addr->string->length + b->string->length);
@@ -1581,7 +1581,7 @@ void string__toString(TExecutor *exec)
 void string__index(TExecutor *exec)
 {
     Number index = top(exec->stack)->number;          pop(exec->stack);
-    Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
+    Cell *a = cell_fromCell(top(exec->stack));   pop(exec->stack);
 
     if (!number_is_integer(index)) {
         char buf[100];
