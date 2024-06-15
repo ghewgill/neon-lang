@@ -59,6 +59,17 @@ namespace csnex.rtl
             Exec.stack.Push(Cell.CreateNumberCell(Number.FromDouble(r)));
         }
 
+        public void min()
+        {
+            Number b = Exec.stack.Pop().Number;
+            Number a = Exec.stack.Pop().Number;
+            if (Number.IsGreaterThan(a, b)) {
+                Exec.stack.Push(Cell.CreateNumberCell(b));
+            } else {
+                Exec.stack.Push(Cell.CreateNumberCell(a));
+            }
+        }
+
         public void sign()
         {
             Number x = Exec.stack.Pop().Number;
