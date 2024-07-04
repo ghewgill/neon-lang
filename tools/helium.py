@@ -1994,8 +1994,9 @@ class Parser:
         return expr
 
     def parse_arithmetic(self):
+        leading_minus = self.tokens[self.i] is MINUS
         left = self.parse_compound_expression()
-        if self.tokens[self.i] is PLUS:
+        if leading_minus or self.tokens[self.i] is PLUS:
             while self.tokens[self.i] is PLUS:
                 self.i += 1
                 right = self.parse_compound_expression()
@@ -2088,8 +2089,11 @@ class Parser:
             return left
 
     def parse_logical(self):
+        leading_not = self.tokens[self.i] is NOT
         left = self.parse_membership()
-        if self.tokens[self.i] is AND:
+        if leading_not:
+            pass
+        elif self.tokens[self.i] is AND:
             while self.tokens[self.i] is AND:
                 self.i += 1
                 right = self.parse_membership()

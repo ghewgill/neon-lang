@@ -251,7 +251,7 @@ FUNCTION main()
         initialize()
         updateBoard()
         VAR game_over: Boolean := FALSE
-        WHILE NOT game_over AND NOT quit DO
+        WHILE (NOT game_over) AND (NOT quit) DO
             LET any: Boolean := displayBoard()
             IF NOT any THEN
                 game_over := TRUE

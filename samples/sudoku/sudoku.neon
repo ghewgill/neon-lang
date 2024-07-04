@@ -488,7 +488,7 @@ FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
             curses.mvaddch(2+(2*i), 36, curses.ACS_RTEE())
         END IF
     END FOR
-    IF NOT any_errors AND puzzleFilled(grid) THEN
+    IF (NOT any_errors) AND puzzleFilled(grid) THEN
         curses.mvaddstr(15, 40, "Puzzle completed.")
     ELSE
         curses.move(15, 40)

@@ -1603,8 +1603,9 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
 END FUNCTION
 
 FUNCTION Parser.parseArithmetic(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET leading_minus := self.token.type = TokenType.minus
     VAR left: POINTER TO ParseTreeNode := self.parseCompoundExpression()
-    LET tokOp: lexer.Token := self.token
+    LET tokOp: lexer.Token := (IF leading_minus THEN lexer.Token(type WITH TokenType.plus) ELSE self.token)
     CASE tokOp.type
         WHEN TokenType.plus DO
             WHILE self.token.type = TokenType.plus DO
@@ -1862,8 +1863,10 @@ FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
 END FUNCTION
 
 FUNCTION Parser.parseLogical(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET leading_not := self.token.type = TokenType.not
     VAR left: POINTER TO ParseTreeNode := self.parseMembership()
-    CASE self.token.type
+    LET op: lexer.Token := (IF leading_not THEN lexer.Token(type WITH TokenType.not) ELSE self.token)
+    CASE op.type
         WHEN TokenType.and DO
             WHILE self.token.type = TokenType.and DO
                 LET tokOp: lexer.Token := self.token
@@ -1896,6 +1899,8 @@ FUNCTION Parser.parseLogical(INOUT self: Parser): POINTER TO ParseTreeNode
                     )
                 )
             END WHILE
+        WHEN TokenType.not DO
+            -- pass
         WHEN OTHERS DO
             RETURN left
     END CASE

@@ -257,7 +257,7 @@ FUNCTION main()
         VAR new_piece: Boolean := TRUE
         VAR last_drop: Number := 0
         VAR game_over: Boolean := FALSE
-        WHILE NOT game_over AND NOT quit DO
+        WHILE (NOT game_over) AND (NOT quit) DO
             IF new_piece THEN
                 p := next
                 next := 1 + (random.uint32() MOD 7)

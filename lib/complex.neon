@@ -228,7 +228,7 @@ END FUNCTION
  *      http://mathworld.wolfram.com/Cosine.html
  */
 FUNCTION cos(a: Complex): Complex
-    RETURN make(math.cos(a.re)*rcosh(a.im), -math.sin(a.re)*rsinh(a.im))
+    RETURN make(math.cos(a.re)*rcosh(a.im), -(math.sin(a.re)*rsinh(a.im)))
 END FUNCTION
 
 /*  Function: cosh
@@ -288,7 +288,7 @@ END FUNCTION
  */
 FUNCTION inv(a: Complex): Complex
     LET d: Number := (a.re*a.re) + (a.im*a.im)
-    RETURN make(a.re/d, -a.im/d)
+    RETURN make(a.re/d, -(a.im/d))
 END FUNCTION
 
 /*  Function: log
@@ -335,7 +335,7 @@ END FUNCTION
 FUNCTION pow(a, b: Complex): Complex
     LET p: Number := a.arg()
     LET m: Number := a.abs()
-    LET r: Number := (m^b.re) * math.exp(-b.im * p)
+    LET r: Number := (m^b.re) * math.exp(-(b.im * p))
     LET t: Number := (b.re * p) + (b.im * math.log(m))
     RETURN make(r * math.cos(t), r * math.sin(t))
 END FUNCTION
@@ -402,7 +402,7 @@ END FUNCTION
  */
 FUNCTION tan(a: Complex): Complex
     LET u: Complex := make(math.tan(a.re), rtanh(a.im))
-    RETURN u.div(make(1, -u.re*u.im))
+    RETURN u.div(make(1, -(u.re*u.im)))
 END FUNCTION
 
 /*  Function: tanh

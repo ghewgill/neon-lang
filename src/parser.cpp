@@ -785,9 +785,10 @@ std::unique_ptr<Expression> Parser::parseCompoundExpression()
 
 std::unique_ptr<Expression> Parser::parseArithmetic()
 {
+    bool leading_minus = tokens[i].type == MINUS;
     std::unique_ptr<Expression> left = parseCompoundExpression();
-    auto &tok_op = tokens[i];
-    switch (tokens[i].type) {
+    auto tok_op = leading_minus ? Token(PLUS, "+") : tokens[i];
+    switch (tok_op.type) {
         case PLUS: {
             while (tokens[i].type == PLUS) {
                 auto &tok_op = tokens[i];
@@ -935,8 +936,10 @@ std::unique_ptr<Expression> Parser::parseMembership()
 
 std::unique_ptr<Expression> Parser::parseLogical()
 {
+    bool leading_not = tokens[i].type == NOT;
     std::unique_ptr<Expression> left = parseMembership();
-    switch (tokens[i].type) {
+    auto &tok_op = leading_not ? Token(NOT, "NOT") : tokens[i];
+    switch (tok_op.type) {
         case AND:
             while (tokens[i].type == AND) {
                 auto &tok_op = tokens[i];
@@ -952,6 +955,8 @@ std::unique_ptr<Expression> Parser::parseLogical()
                 std::unique_ptr<Expression> right = parseMembership();
                 left.reset(new DisjunctionExpression(tok_op, std::move(left), std::move(right)));
             }
+            break;
+        case NOT:
             break;
         default:
             return left;

@@ -616,7 +616,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                                             DEC nest
                                         END IF
                                     WHEN ":" DO
-                                        IF NOT inquote AND nest = 1 THEN
+                                        IF (NOT inquote) AND nest = 1 THEN
                                             colon := i - 1
                                         END IF
                                     WHEN "\"" DO
