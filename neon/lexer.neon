@@ -284,6 +284,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             END IF
         ELSIF c = "/" THEN
             IF i+1 < source.length() AND source[i+1] = "*" THEN
+                i := i + 2
                 LOOP
                     IF i+1 >= source.length() THEN
                         error(1006, t, "Missing closing comment '*/'")
