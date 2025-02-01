@@ -386,6 +386,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             t.length = i - startindex;
         } else if (c == '/') {
             if (i+1 != source.end() && *(i+1) == '*') {
+                i += 2;
                 for (;;) {
                     if (i == source.end() || i+1 == source.end()) {
                         error(1006, t, "Missing closing comment '*/'");
