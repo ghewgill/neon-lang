@@ -938,7 +938,7 @@ std::unique_ptr<Expression> Parser::parseLogical()
 {
     bool leading_not = tokens[i].type == NOT;
     std::unique_ptr<Expression> left = parseMembership();
-    auto &tok_op = leading_not ? Token(NOT, "NOT") : tokens[i];
+    auto tok_op = leading_not ? Token(NOT, "NOT") : tokens[i];
     switch (tok_op.type) {
         case AND:
             while (tokens[i].type == AND) {
