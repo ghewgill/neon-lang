@@ -15,6 +15,7 @@ class ICompilerSupport {
 public:
     virtual ~ICompilerSupport() {}
     virtual void loadBytecode(const std::string &module, Bytecode &bytecode) = 0;
+    virtual void notifyWarning() = 0;
     virtual void writeOutput(const std::string &name, const std::vector<unsigned char> &content) = 0;
     virtual bool enableDebug() { return false; }
 };

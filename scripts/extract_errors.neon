@@ -23,7 +23,7 @@ FOREACH fn IN sources DO
             enable := FALSE
         ELSIF string.hasPrefix(s, "#endif") THEN
             enable := TRUE
-        ELSIF enable AND (" error(" IN s OR " error_a(" IN s OR " error2(" IN s) THEN
+        ELSIF enable AND (" error(" IN s OR " error_a(" IN s OR " error2(" IN s OR " warning(" IN s) THEN
             LET re: regex.Result := regex.search("error\\w*\\((\\d+),.*?\"(.*?)\"", s)
             CHECK re ISA regex.Result.match ELSE
                 EXIT PROCESS FAILURE

@@ -10,6 +10,11 @@
 // platforms. See https://stackoverflow.com/questions/30885997/clang-runtime-fault-when-throwing-aligned-type-compiler-bug
 // for full explanation.
 
+void report_warning(const char *compiler_file, int compiler_line, int number, const Token &token, const std::string &message)
+{
+    fprintf(stderr, "warning N%d: %s\n", number, message.c_str());
+}
+
 void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const std::string &message)
 {
     throw new SourceError(compiler_file, compiler_line, number, token, message);

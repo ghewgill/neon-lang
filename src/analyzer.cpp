@@ -4909,6 +4909,7 @@ std::vector<const ast::Statement *> Analyzer::analyze(const std::vector<std::uni
     }
     StatementAnalyzer sa(this, statements);
     bool lastexit = false;
+    bool warned = false;
     for (auto &s: statement) {
         s->accept(&sa);
         if (dynamic_cast<const pt::ExitStatement *>(s.get()) != nullptr
@@ -4917,8 +4918,9 @@ std::vector<const ast::Statement *> Analyzer::analyze(const std::vector<std::uni
          || dynamic_cast<const pt::RaiseStatement *>(s.get()) != nullptr
          || dynamic_cast<const pt::ReturnStatement *>(s.get()) != nullptr) {
             lastexit = true;
-        } else if (lastexit) {
-            error(3165, s->token, "unreachable code");
+        } else if (lastexit && not warned) {
+            warning(3165, s->token, "unreachable code");
+            warned = true;
         }
     }
     return statements;
@@ -7501,13 +7503,13 @@ private:
         Usage usage;
         void mark_used(const Token &t) {
             if (usage == Usage::DECLARED_UNUSED) {
-                error(3260, t, "variable already declared unused");
+                warning(3260, t, "variable already declared unused");
             }
             usage = Usage::USED;
         }
         void mark_declared_unused(const Token &t) {
             if (usage == VariableInfo::Usage::USED) {
-                error(3259, t, "variable already used");
+                warning(3259, t, "variable already used");
             }
             usage = Usage::DECLARED_UNUSED;
         }
@@ -7539,7 +7541,7 @@ private:
     void check_unused() {
         for (auto &name: scopes.back().variables) {
             if (name.second.usage == VariableInfo::Usage::UNUSED) {
-                error(3205, name.second.token, "Unused variable");
+                warning(3205, name.second.token, "Unused variable");
             }
         }
     }
@@ -7606,7 +7608,7 @@ const ast::Program *analyze(ICompilerSupport *support, const pt::Program *progra
         for (size_t i = 0; i < r->frame->getCount(); i++) {
             ast::Frame::Slot s = r->frame->getSlot(i);
             if (dynamic_cast<ast::Module *>(s.ref) != nullptr && not s.referenced) {
-                error(3192, s.token, "Unused import");
+                warning(3192, s.token, "Unused import");
             }
         }
     }

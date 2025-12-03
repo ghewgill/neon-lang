@@ -48,10 +48,14 @@ public:
     const std::string message2;
 };
 
+#define warning(number, token, message) report_warning(__FILE__, __LINE__, number, token, message)
+
 #define error(number, token, message) abort_error(__FILE__, __LINE__, number, token, message)
 #define error_a(number, token_before, token, message) abort_error_a(__FILE__, __LINE__, number, token_before, token, message)
 #define error2(number, token, message, token2, message2) abort_error(__FILE__, __LINE__, number, token, message, token2, message2)
 #define internal_error(message) abort_internal_error(__FILE__, __LINE__, message)
+
+void report_warning(const char *compiler_file, int compiler_line, int number, const Token &token, const std::string &message);
 
 #ifdef _MSC_VER
 __declspec(noreturn)
